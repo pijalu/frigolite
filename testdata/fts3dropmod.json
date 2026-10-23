@@ -1,9 +1,10 @@
 {
   "file": "fts3dropmod.test",
   "name": "fts3dropmod",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "fts3dropmod-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,17 +13,21 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "fts3dropmod-1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE t2 USING fts4(x);",
           "expect": "1 {no such module: fts4}"
         }
       ]
     },
     {
-      "name": "2.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3dropmod-2.0",
       "steps": [
         {
           "type": "exec",
@@ -31,20 +36,12 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "fts3dropmod-2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE t2 USING fts3(x);",
           "expect": "1 {no such module: fts3}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

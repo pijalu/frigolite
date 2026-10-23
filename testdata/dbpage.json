@@ -1,9 +1,33 @@
 {
   "file": "dbpage.test",
   "name": "dbpage",
+  "ordered": true,
   "tests": [
     {
-      "name": "110",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
+    {
+      "name": "dbpage-100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=0;\n    PRAGMA page_size=4096;\n    PRAGMA journal_mode=WAL;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c100)\n      INSERT INTO t1(a,b) SELECT x, printf('%d-x%.*c',x,x,'x') FROM c;\n    PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "dbpage-110",
       "steps": [
         {
           "type": "query",
@@ -13,7 +37,7 @@
       ]
     },
     {
-      "name": "120",
+      "name": "dbpage-120",
       "steps": [
         {
           "type": "query",
@@ -23,7 +47,7 @@
       ]
     },
     {
-      "name": "130",
+      "name": "dbpage-130",
       "steps": [
         {
           "type": "query",
@@ -33,7 +57,7 @@
       ]
     },
     {
-      "name": "140",
+      "name": "dbpage-140",
       "steps": [
         {
           "type": "query",
@@ -42,7 +66,7 @@
       ]
     },
     {
-      "name": "150",
+      "name": "dbpage-150",
       "steps": [
         {
           "type": "query",
@@ -51,7 +75,7 @@
       ]
     },
     {
-      "name": "160",
+      "name": "dbpage-160",
       "steps": [
         {
           "type": "query",
@@ -61,7 +85,7 @@
       ]
     },
     {
-      "name": "170",
+      "name": "dbpage-170",
       "steps": [
         {
           "type": "query",
@@ -71,7 +95,7 @@
       ]
     },
     {
-      "name": "200",
+      "name": "dbpage-200",
       "steps": [
         {
           "type": "exec",
@@ -80,17 +104,17 @@
       ]
     },
     {
-      "name": "210",
+      "name": "dbpage-210",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "PRAGMA integrity_check;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "220",
+      "name": "dbpage-220",
       "steps": [
         {
           "type": "query",
@@ -100,26 +124,21 @@
       ]
     },
     {
-      "name": "230",
+      "name": "dbpage-230",
       "steps": [
         {
           "type": "exec",
           "sql": "UPDATE sqlite_dbpage SET data=(SELECT x FROM saved_content) WHERE pgno=4;"
-        }
-      ]
-    },
-    {
-      "name": "230",
-      "steps": [
+        },
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "PRAGMA integrity_check;",
           "expect": "0 ok"
         }
       ]
     },
     {
-      "name": "240",
+      "name": "dbpage-240",
       "steps": [
         {
           "type": "exec",
@@ -128,7 +147,7 @@
       ]
     },
     {
-      "name": "241",
+      "name": "dbpage-241",
       "steps": [
         {
           "type": "exec",
@@ -137,17 +156,17 @@
       ]
     },
     {
-      "name": "250",
+      "name": "dbpage-250",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "PRAGMA aux1.integrity_check;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "260",
+      "name": "dbpage-260",
       "steps": [
         {
           "type": "exec",
@@ -156,17 +175,28 @@
       ]
     },
     {
-      "name": "270",
+      "name": "dbpage-270",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "PRAGMA aux1.integrity_check;",
           "expect": "0 ok"
         }
       ]
     },
     {
-      "name": "300",
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "dbpage-300",
       "steps": [
         {
           "type": "query",
@@ -175,7 +205,11 @@
       ]
     },
     {
-      "name": "400",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "dbpage-400",
       "steps": [
         {
           "type": "exec",
@@ -184,7 +218,35 @@
       ]
     },
     {
-      "name": "500",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db2",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=NONE;\n  CREATE TABLE t1(x, y);",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "dbpage-500",
       "steps": [
         {
           "type": "query",
@@ -194,7 +256,42 @@
       ]
     },
     {
-      "name": "520",
+      "name": "dbpage-510",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_count",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT pgno, data FROM sqlite_dbpage",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "dbpage-520",
       "steps": [
         {
           "type": "query",
@@ -204,7 +301,29 @@
       ]
     },
     {
-      "name": "610",
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "dbpage-610",
       "steps": [
         {
           "type": "exec",
@@ -213,7 +332,69 @@
       ]
     },
     {
-      "name": "640",
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT max(rootpage) FROM sqlite_schema",
+          "variable": "pgno"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db2",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    SELECT * FROM x1;",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "dbpage-620",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE sqlite_dbpage SET data = (\n    SELECT data FROM sqlite_dbpage WHERE pgno=$pgno-1\n  ) WHERE pgno = $pgno;",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "dbpage-630",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE sqlite_dbpage SET data = (\n    SELECT data FROM sqlite_dbpage WHERE pgno=$pgno-1\n  ) WHERE pgno = $pgno;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "dbpage-640",
       "steps": [
         {
           "type": "query",
@@ -223,7 +404,20 @@
       ]
     },
     {
-      "name": "700",
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "dbpage-700",
       "steps": [
         {
           "type": "exec",
@@ -232,67 +426,32 @@
       ]
     },
     {
-      "name": "720",
+      "name": "delete_file",
       "steps": [
         {
-          "type": "query",
-          "sql": "PRAGMA integrity_check",
-          "expect": "ok"
+          "type": "delete_file",
+          "sql": "test.db2"
         }
       ]
     },
     {
-      "name": "800",
+      "name": "setup_9",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE x1(x);"
-        }
-      ]
-    },
-    {
-      "name": "810",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT pgno FROM sqlite_dbpage WHERE pgno=555"
-        }
-      ]
-    },
-    {
-      "name": "820",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT pgno FROM sqlite_dbpage WHERE pgno=4294967297"
-        }
-      ]
-    },
-    {
-      "name": "100",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "PRAGMA auto_vacuum=0;\n    PRAGMA page_size=4096;\n    PRAGMA journal_mode=WAL;",
-          "expect": "ok"
-        }
-      ]
-    },
-    {
-      "name": "710",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN;"
+          "type": "open_named_db",
+          "sql": "test.db2",
+          "database": "db2"
         },
         {
           "type": "exec",
-          "sql": "PRAGMA auto_vacuum=0;\n    PRAGMA page_size=4096;\n    PRAGMA journal_mode=WAL;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a,b);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n      INSERT INTO t1(a,b) SELECT x, printf('%d-x%.*c',x,x,'x') FROM c;\n    PRAGMA integrity_check;"
-        },
+          "sql": "CREATE TABLE y1(y);\n  INSERT INTO y1 VALUES( hex(randomblob(1000)) );",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "dbpage-710",
+      "steps": [
         {
           "type": "exec",
           "sql": "BEGIN;"
@@ -304,77 +463,57 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "setup_10",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "dbpage-720",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "dbpage-800",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE TABLE x1(x);"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "dbpage-810",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "query",
+          "sql": "SELECT pgno FROM sqlite_dbpage WHERE pgno=555"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "dbpage-820",
       "steps": [
         {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
+          "type": "query",
+          "sql": "SELECT pgno FROM sqlite_dbpage WHERE pgno=4294967297"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

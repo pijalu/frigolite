@@ -289,7 +289,12 @@ func (s *Stmt) Step() (bool, error) {
 			s.db.engine.SetPreparedReadLock("main", true)
 			s.readLock = true
 		}
-		r := s.db.Query(s.renderBoundSQL())
+		var r *Result
+		if s.readStmt {
+			r = s.db.Query(s.renderBoundSQL())
+		} else {
+			r = execResult(s.execute(nil))
+		}
 		if r.Error != nil {
 			s.releaseReadLock()
 			s.lastErr = r.Error

@@ -1,0 +1,254 @@
+{
+  "file": "journal2.test",
+  "name": "journal2",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "journal2-1.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b)"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "oplog",
+          "expect": "xOpen test.db-journal xClose test.db-journal xDelete test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "journal2-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = truncate;\n    INSERT INTO t1 VALUES(1, 2);"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "oplog",
+          "expect": "xOpen test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "journal2-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3, 4)"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "oplog"
+        }
+      ]
+    },
+    {
+      "name": "journal2-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "journal2-1.5",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = delete",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES(5, 6)",
+          "expect": "1 {disk I/O error}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "journal2-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "journal2-1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = truncate",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5, 6)",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "journal2-1.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "journal2-1.10",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "register_function",
+          "functionName": "a_string",
+          "callbackVars": {
+            "": "",
+            "::oplog": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "a_string_counter": "1",
+            "testdir": ""
+          },
+          "functionProc": "a_string",
+          "functionArgs": [
+            "n"
+          ],
+          "functionBody": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t2 VALUES(a_string(200), a_string(300));\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  2\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  4\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  8\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 16\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 32\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 64",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "journal2-1.12",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 10;\n    BEGIN;\n      INSERT INTO t2 SELECT randomblob(200), randomblob(300) FROM t2;  -- 128",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "journal2-1.13",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "COMMIT",
+          "expect": "1 {disk I/O error}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "testX.db"
+        }
+      ]
+    },
+    {
+      "name": "journal2-1.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t2;\n    PRAGMA integrity_check;",
+          "expect": "64 ok"
+        }
+      ]
+    },
+    {
+      "name": "journal2-1.17",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "PRAGMA integrity_check",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "journal2-1.20",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "testX.db",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "PRAGMA integrity_check",
+          "expect": "0",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "journal2-1.21",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    }
+  ]
+}

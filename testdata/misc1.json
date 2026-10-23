@@ -1,7 +1,843 @@
 {
   "file": "misc1.test",
   "name": "misc1",
+  "ordered": true,
   "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_collation",
+          "collationName": "numeric",
+          "collationProc": "numeric_collate",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          }
+        },
+        {
+          "type": "register_collation",
+          "collationName": "text",
+          "collationProc": "text_collate",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "misc1-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE manycol(x0 text,x1 text,x2 text,x3 text,x4 text,x5 text,x6 text,x7 text,x8 text,x9 text,x10 text,x11 text,x12 text,x13 text,x14 text,x15 text,x16 text,x17 text,x18 text,x19 text,x20 text,x21 text,x22 text,x23 text,x24 text,x25 text,x26 text,x27 text,x28 text,x29 text,x30 text,x31 text,x32 text,x33 text,x34 text,x35 text,x36 text,x37 text,x38 text,x39 text,x40 text,x41 text,x42 text,x43 text,x44 text,x45 text,x46 text,x47 text,x48 text,x49 text,x50 text,x51 text,x52 text,x53 text,x54 text,x55 text,x56 text,x57 text,x58 text,x59 text,x60 text,x61 text,x62 text,x63 text,x64 text,x65 text,x66 text,x67 text,x68 text,x69 text,x70 text,x71 text,x72 text,x73 text,x74 text,x75 text,x76 text,x77 text,x78 text,x79 text,x80 text,x81 text,x82 text,x83 text,x84 text,x85 text,x86 text,x87 text,x88 text,x89 text,x90 text,x91 text,x92 text,x93 text,x94 text,x95 text,x96 text,x97 text,x98 text,x99 text)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO manycol VALUES(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x99 FROM manycol",
+          "expect": "99"
+        }
+      ]
+    },
+    {
+      "name": "misc1-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x0, x10, x25, x50, x75 FROM manycol",
+          "expect": "0 10 25 50 75"
+        }
+      ]
+    },
+    {
+      "name": "misc1-1.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO manycol VALUES(100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO manycol VALUES(200,201,202,203,204,205,206,207,208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,223,224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,240,241,242,243,244,245,246,247,248,249,250,251,252,253,254,255,256,257,258,259,260,261,262,263,264,265,266,267,268,269,270,271,272,273,274,275,276,277,278,279,280,281,282,283,284,285,286,287,288,289,290,291,292,293,294,295,296,297,298,299)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO manycol VALUES(300,301,302,303,304,305,306,307,308,309,310,311,312,313,314,315,316,317,318,319,320,321,322,323,324,325,326,327,328,329,330,331,332,333,334,335,336,337,338,339,340,341,342,343,344,345,346,347,348,349,350,351,352,353,354,355,356,357,358,359,360,361,362,363,364,365,366,367,368,369,370,371,372,373,374,375,376,377,378,379,380,381,382,383,384,385,386,387,388,389,390,391,392,393,394,395,396,397,398,399)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO manycol VALUES(400,401,402,403,404,405,406,407,408,409,410,411,412,413,414,415,416,417,418,419,420,421,422,423,424,425,426,427,428,429,430,431,432,433,434,435,436,437,438,439,440,441,442,443,444,445,446,447,448,449,450,451,452,453,454,455,456,457,458,459,460,461,462,463,464,465,466,467,468,469,470,471,472,473,474,475,476,477,478,479,480,481,482,483,484,485,486,487,488,489,490,491,492,493,494,495,496,497,498,499)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO manycol VALUES(500,501,502,503,504,505,506,507,508,509,510,511,512,513,514,515,516,517,518,519,520,521,522,523,524,525,526,527,528,529,530,531,532,533,534,535,536,537,538,539,540,541,542,543,544,545,546,547,548,549,550,551,552,553,554,555,556,557,558,559,560,561,562,563,564,565,566,567,568,569,570,571,572,573,574,575,576,577,578,579,580,581,582,583,584,585,586,587,588,589,590,591,592,593,594,595,596,597,598,599)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO manycol VALUES(600,601,602,603,604,605,606,607,608,609,610,611,612,613,614,615,616,617,618,619,620,621,622,623,624,625,626,627,628,629,630,631,632,633,634,635,636,637,638,639,640,641,642,643,644,645,646,647,648,649,650,651,652,653,654,655,656,657,658,659,660,661,662,663,664,665,666,667,668,669,670,671,672,673,674,675,676,677,678,679,680,681,682,683,684,685,686,687,688,689,690,691,692,693,694,695,696,697,698,699)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO manycol VALUES(700,701,702,703,704,705,706,707,708,709,710,711,712,713,714,715,716,717,718,719,720,721,722,723,724,725,726,727,728,729,730,731,732,733,734,735,736,737,738,739,740,741,742,743,744,745,746,747,748,749,750,751,752,753,754,755,756,757,758,759,760,761,762,763,764,765,766,767,768,769,770,771,772,773,774,775,776,777,778,779,780,781,782,783,784,785,786,787,788,789,790,791,792,793,794,795,796,797,798,799)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO manycol VALUES(800,801,802,803,804,805,806,807,808,809,810,811,812,813,814,815,816,817,818,819,820,821,822,823,824,825,826,827,828,829,830,831,832,833,834,835,836,837,838,839,840,841,842,843,844,845,846,847,848,849,850,851,852,853,854,855,856,857,858,859,860,861,862,863,864,865,866,867,868,869,870,871,872,873,874,875,876,877,878,879,880,881,882,883,884,885,886,887,888,889,890,891,892,893,894,895,896,897,898,899)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO manycol VALUES(900,901,902,903,904,905,906,907,908,909,910,911,912,913,914,915,916,917,918,919,920,921,922,923,924,925,926,927,928,929,930,931,932,933,934,935,936,937,938,939,940,941,942,943,944,945,946,947,948,949,950,951,952,953,954,955,956,957,958,959,960,961,962,963,964,965,966,967,968,969,970,971,972,973,974,975,976,977,978,979,980,981,982,983,984,985,986,987,988,989,990,991,992,993,994,995,996,997,998,999)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO manycol VALUES(1000,1001,1002,1003,1004,1005,1006,1007,1008,1009,1010,1011,1012,1013,1014,1015,1016,1017,1018,1019,1020,1021,1022,1023,1024,1025,1026,1027,1028,1029,1030,1031,1032,1033,1034,1035,1036,1037,1038,1039,1040,1041,1042,1043,1044,1045,1046,1047,1048,1049,1050,1051,1052,1053,1054,1055,1056,1057,1058,1059,1060,1061,1062,1063,1064,1065,1066,1067,1068,1069,1070,1071,1072,1073,1074,1075,1076,1077,1078,1079,1080,1081,1082,1083,1084,1085,1086,1087,1088,1089,1090,1091,1092,1093,1094,1095,1096,1097,1098,1099)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x50 FROM manycol ORDER BY x80+0",
+          "expect": "50 150 250 350 450 550 650 750 850 950 1050"
+        }
+      ]
+    },
+    {
+      "name": "misc1-1.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x50 FROM manycol ORDER BY x80",
+          "expect": "1050 150 250 350 450 550 650 750 50 850 950"
+        }
+      ]
+    },
+    {
+      "name": "misc1-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x75 FROM manycol WHERE x50=350",
+          "expect": "375"
+        }
+      ]
+    },
+    {
+      "name": "misc1-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x50 FROM manycol WHERE x99=599",
+          "expect": "550"
+        }
+      ]
+    },
+    {
+      "name": "misc1-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX manycol_idx1 ON manycol(x99)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x50 FROM manycol WHERE x99=899",
+          "expect": "850"
+        }
+      ]
+    },
+    {
+      "name": "misc1-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM manycol",
+          "expect": "11"
+        }
+      ]
+    },
+    {
+      "name": "misc1-1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM manycol WHERE x98=1234"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM manycol",
+          "expect": "11"
+        }
+      ]
+    },
+    {
+      "name": "misc1-1.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM manycol WHERE x98=998"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM manycol",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "misc1-1.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM manycol WHERE x99=500"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM manycol",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "misc1-1.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM manycol WHERE x99=599"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM manycol",
+          "expect": "9"
+        }
+      ]
+    },
+    {
+      "name": "misc1-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    CREATE TABLE agger(one text, two text, three text, four text);\n    INSERT INTO agger VALUES(1, 'one', 'hello', 'yes');\n    INSERT INTO agger VALUES(2, 'two', 'howdy', 'no');\n    INSERT INTO agger VALUES(3, 'thr', 'howareya', 'yes');\n    INSERT INTO agger VALUES(4, 'two', 'lothere', 'yes');\n    INSERT INTO agger VALUES(5, 'one', 'atcha', 'yes');\n    INSERT INTO agger VALUES(6, 'two', 'hello', 'no');\n    COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM agger",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "misc1-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT sum(one), two, four FROM agger\n           GROUP BY two, four ORDER BY sum(one) desc",
+          "expect": "8 two no 6 one yes 4 two yes 3 thr yes"
+        }
+      ]
+    },
+    {
+      "name": "misc1-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT sum((one)), (two), (four) FROM agger\n           GROUP BY (two), (four) ORDER BY sum(one) desc",
+          "expect": "8 two no 6 one yes 4 two yes 3 thr yes"
+        }
+      ]
+    },
+    {
+      "name": "misc1-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES('hi');\n    PRAGMA full_column_names=on;\n    SELECT rowid, * FROM t1;",
+          "expect": "hi"
+        }
+      ]
+    },
+    {
+      "name": "misc1-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES('This is a long string to use up a lot of disk -');\n    UPDATE t2 SET a=a||a||a||a;\n    INSERT INTO t2 SELECT '1 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '2 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '3 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '4 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '5 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '6 - ' || a FROM t2;\n    COMMIT;\n    SELECT count(*) FROM t2;",
+          "expect": "64"
+        }
+      ]
+    },
+    {
+      "name": "misc1-5.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TABLE t3(a,b);\n    INSERT INTO t3 VALUES(1,2);\n    INSERT INTO t3 VALUES(3,4);\n    UPDATE t3 SET a=0 WHEREwww b=2;",
+          "expect": "1 {near \"WHEREwww\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "misc1-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 ORDER BY a;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "misc1-6.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TABLE t4(\n      abort, asc, begin, cluster, conflict, copy, delimiters, desc, end,\n      explain, fail, ignore, key, offset, pragma, replace, temp,\n      vacuum, view\n    );",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "misc1-6.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4\n       VALUES(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "misc1-6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4",
+          "expect": "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19"
+        }
+      ]
+    },
+    {
+      "name": "misc1-6.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT abort+asc,max(key,pragma,temp) FROM t4",
+          "expect": "3 17"
+        }
+      ]
+    },
+    {
+      "name": "misc1-7.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TABLE error1(\n      a TYPE PRIMARY KEY,\n      b TYPE PRIMARY KEY\n    );",
+          "expect": "1 {table \"error1\" has more than one primary key}"
+        }
+      ]
+    },
+    {
+      "name": "misc1-7.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TABLE error1(\n      a INTEGER PRIMARY KEY,\n      b TYPE PRIMARY KEY\n    );",
+          "expect": "1 {table \"error1\" has more than one primary key}"
+        }
+      ]
+    },
+    {
+      "name": "misc1-7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a,b,c,PRIMARY KEY(a,b));\n    INSERT INTO t5 VALUES(1,2,3);\n    SELECT * FROM t5 ORDER BY a;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "misc1-7.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t5 VALUES(1,2,4);",
+          "expect": "1 {UNIQUE constraint failed: t5.a, t5.b}"
+        }
+      ]
+    },
+    {
+      "name": "misc1-7.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t5 VALUES(0,2,4);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "misc1-7.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5 ORDER BY a;",
+          "expect": "0 2 4 1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "misc1-8.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT *;",
+          "expect": "1 {no tables specified}"
+        }
+      ]
+    },
+    {
+      "name": "misc1-8.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT t1.*;",
+          "expect": "1 {no such table: t1}"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  DROP TABLE t2;\n  DROP TABLE t3;\n  DROP TABLE t4;"
+        }
+      ]
+    },
+    {
+      "name": "misc1-9.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TABLE t1(a unique not null, b unique not null);\n    INSERT INTO t1 VALUES('a',1234567890123456789);\n    INSERT INTO t1 VALUES('b',1234567891123456789);\n    INSERT INTO t1 VALUES('c',1234567892123456789);\n    SELECT * FROM t1;",
+          "expect": "0 {a 1234567890123456789 b 1234567891123456789 c 1234567892123456789}"
+        }
+      ]
+    },
+    {
+      "name": "misc1-10.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM manycol",
+          "expect": "9"
+        }
+      ]
+    },
+    {
+      "name": "misc1-10.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT count(*) FROM manycol WHERE x0\u003e=0 AND x1\u003c\u003e0 AND x2\u003c\u003e0 AND x3\u003c\u003e0 AND x4\u003c\u003e0 AND x5\u003c\u003e0 AND x6\u003c\u003e0 AND x7\u003c\u003e0 AND x8\u003c\u003e0 AND x9\u003c\u003e0 AND x10\u003c\u003e0 AND x11\u003c\u003e0 AND x12\u003c\u003e0 AND x13\u003c\u003e0 AND x14\u003c\u003e0 AND x15\u003c\u003e0 AND x16\u003c\u003e0 AND x17\u003c\u003e0 AND x18\u003c\u003e0 AND x19\u003c\u003e0 AND x20\u003c\u003e0 AND x21\u003c\u003e0 AND x22\u003c\u003e0 AND x23\u003c\u003e0 AND x24\u003c\u003e0 AND x25\u003c\u003e0 AND x26\u003c\u003e0 AND x27\u003c\u003e0 AND x28\u003c\u003e0 AND x29\u003c\u003e0 AND x30\u003c\u003e0 AND x31\u003c\u003e0 AND x32\u003c\u003e0 AND x33\u003c\u003e0 AND x34\u003c\u003e0 AND x35\u003c\u003e0 AND x36\u003c\u003e0 AND x37\u003c\u003e0 AND x38\u003c\u003e0 AND x39\u003c\u003e0 AND x40\u003c\u003e0 AND x41\u003c\u003e0 AND x42\u003c\u003e0 AND x43\u003c\u003e0 AND x44\u003c\u003e0 AND x45\u003c\u003e0 AND x46\u003c\u003e0 AND x47\u003c\u003e0 AND x48\u003c\u003e0 AND x49\u003c\u003e0 AND x50\u003c\u003e0 AND x51\u003c\u003e0 AND x52\u003c\u003e0 AND x53\u003c\u003e0 AND x54\u003c\u003e0 AND x55\u003c\u003e0 AND x56\u003c\u003e0 AND x57\u003c\u003e0 AND x58\u003c\u003e0 AND x59\u003c\u003e0 AND x60\u003c\u003e0 AND x61\u003c\u003e0 AND x62\u003c\u003e0 AND x63\u003c\u003e0 AND x64\u003c\u003e0 AND x65\u003c\u003e0 AND x66\u003c\u003e0 AND x67\u003c\u003e0 AND x68\u003c\u003e0 AND x69\u003c\u003e0 AND x70\u003c\u003e0 AND x71\u003c\u003e0 AND x72\u003c\u003e0 AND x73\u003c\u003e0 AND x74\u003c\u003e0 AND x75\u003c\u003e0 AND x76\u003c\u003e0 AND x77\u003c\u003e0 AND x78\u003c\u003e0 AND x79\u003c\u003e0 AND x80\u003c\u003e0 AND x81\u003c\u003e0 AND x82\u003c\u003e0 AND x83\u003c\u003e0 AND x84\u003c\u003e0 AND x85\u003c\u003e0 AND x86\u003c\u003e0 AND x87\u003c\u003e0 AND x88\u003c\u003e0 AND x89\u003c\u003e0 AND x90\u003c\u003e0 AND x91\u003c\u003e0 AND x92\u003c\u003e0 AND x93\u003c\u003e0 AND x94\u003c\u003e0 AND x95\u003c\u003e0 AND x96\u003c\u003e0 AND x97\u003c\u003e0 AND x98\u003c\u003e0 AND x99\u003c\u003e0",
+          "expect": "0 9"
+        }
+      ]
+    },
+    {
+      "name": "misc1-10.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT count(*) FROM manycol WHERE x0\u003e=0 AND x1\u003c\u003e0 AND x2\u003c\u003e0 AND x3\u003c\u003e0 AND x4\u003c\u003e0 AND x5\u003c\u003e0 AND x6\u003c\u003e0 AND x7\u003c\u003e0 AND x8\u003c\u003e0 AND x9\u003c\u003e0 AND x10\u003c\u003e0 AND x11\u003c\u003e0 AND x12\u003c\u003e0 AND x13\u003c\u003e0 AND x14\u003c\u003e0 AND x15\u003c\u003e0 AND x16\u003c\u003e0 AND x17\u003c\u003e0 AND x18\u003c\u003e0 AND x19\u003c\u003e0 AND x20\u003c\u003e0 AND x21\u003c\u003e0 AND x22\u003c\u003e0 AND x23\u003c\u003e0 AND x24\u003c\u003e0 AND x25\u003c\u003e0 AND x26\u003c\u003e0 AND x27\u003c\u003e0 AND x28\u003c\u003e0 AND x29\u003c\u003e0 AND x30\u003c\u003e0 AND x31\u003c\u003e0 AND x32\u003c\u003e0 AND x33\u003c\u003e0 AND x34\u003c\u003e0 AND x35\u003c\u003e0 AND x36\u003c\u003e0 AND x37\u003c\u003e0 AND x38\u003c\u003e0 AND x39\u003c\u003e0 AND x40\u003c\u003e0 AND x41\u003c\u003e0 AND x42\u003c\u003e0 AND x43\u003c\u003e0 AND x44\u003c\u003e0 AND x45\u003c\u003e0 AND x46\u003c\u003e0 AND x47\u003c\u003e0 AND x48\u003c\u003e0 AND x49\u003c\u003e0 AND x50\u003c\u003e0 AND x51\u003c\u003e0 AND x52\u003c\u003e0 AND x53\u003c\u003e0 AND x54\u003c\u003e0 AND x55\u003c\u003e0 AND x56\u003c\u003e0 AND x57\u003c\u003e0 AND x58\u003c\u003e0 AND x59\u003c\u003e0 AND x60\u003c\u003e0 AND x61\u003c\u003e0 AND x62\u003c\u003e0 AND x63\u003c\u003e0 AND x64\u003c\u003e0 AND x65\u003c\u003e0 AND x66\u003c\u003e0 AND x67\u003c\u003e0 AND x68\u003c\u003e0 AND x69\u003c\u003e0 AND x70\u003c\u003e0 AND x71\u003c\u003e0 AND x72\u003c\u003e0 AND x73\u003c\u003e0 AND x74\u003c\u003e0 AND x75\u003c\u003e0 AND x76\u003c\u003e0 AND x77\u003c\u003e0 AND x78\u003c\u003e0 AND x79\u003c\u003e0 AND x80\u003c\u003e0 AND x81\u003c\u003e0 AND x82\u003c\u003e0 AND x83\u003c\u003e0 AND x84\u003c\u003e0 AND x85\u003c\u003e0 AND x86\u003c\u003e0 AND x87\u003c\u003e0 AND x88\u003c\u003e0 AND x89\u003c\u003e0 AND x90\u003c\u003e0 AND x91\u003c\u003e0 AND x92\u003c\u003e0 AND x93\u003c\u003e0 AND x94\u003c\u003e0 AND x95\u003c\u003e0 AND x96\u003c\u003e0 AND x97\u003c\u003e0 AND x98\u003c\u003e0 AND x99\u003c\u003e0 AND rowid\u003e0",
+          "expect": "0 9"
+        }
+      ]
+    },
+    {
+      "name": "misc1-10.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DELETE FROM manycol WHERE x0=0 AND x1\u003c\u003e0 AND x2\u003c\u003e0 AND x3\u003c\u003e0 AND x4\u003c\u003e0 AND x5\u003c\u003e0 AND x6\u003c\u003e0 AND x7\u003c\u003e0 AND x8\u003c\u003e0 AND x9\u003c\u003e0 AND x10\u003c\u003e0 AND x11\u003c\u003e0 AND x12\u003c\u003e0 AND x13\u003c\u003e0 AND x14\u003c\u003e0 AND x15\u003c\u003e0 AND x16\u003c\u003e0 AND x17\u003c\u003e0 AND x18\u003c\u003e0 AND x19\u003c\u003e0 AND x20\u003c\u003e0 AND x21\u003c\u003e0 AND x22\u003c\u003e0 AND x23\u003c\u003e0 AND x24\u003c\u003e0 AND x25\u003c\u003e0 AND x26\u003c\u003e0 AND x27\u003c\u003e0 AND x28\u003c\u003e0 AND x29\u003c\u003e0 AND x30\u003c\u003e0 AND x31\u003c\u003e0 AND x32\u003c\u003e0 AND x33\u003c\u003e0 AND x34\u003c\u003e0 AND x35\u003c\u003e0 AND x36\u003c\u003e0 AND x37\u003c\u003e0 AND x38\u003c\u003e0 AND x39\u003c\u003e0 AND x40\u003c\u003e0 AND x41\u003c\u003e0 AND x42\u003c\u003e0 AND x43\u003c\u003e0 AND x44\u003c\u003e0 AND x45\u003c\u003e0 AND x46\u003c\u003e0 AND x47\u003c\u003e0 AND x48\u003c\u003e0 AND x49\u003c\u003e0 AND x50\u003c\u003e0 AND x51\u003c\u003e0 AND x52\u003c\u003e0 AND x53\u003c\u003e0 AND x54\u003c\u003e0 AND x55\u003c\u003e0 AND x56\u003c\u003e0 AND x57\u003c\u003e0 AND x58\u003c\u003e0 AND x59\u003c\u003e0 AND x60\u003c\u003e0 AND x61\u003c\u003e0 AND x62\u003c\u003e0 AND x63\u003c\u003e0 AND x64\u003c\u003e0 AND x65\u003c\u003e0 AND x66\u003c\u003e0 AND x67\u003c\u003e0 AND x68\u003c\u003e0 AND x69\u003c\u003e0 AND x70\u003c\u003e0 AND x71\u003c\u003e0 AND x72\u003c\u003e0 AND x73\u003c\u003e0 AND x74\u003c\u003e0 AND x75\u003c\u003e0 AND x76\u003c\u003e0 AND x77\u003c\u003e0 AND x78\u003c\u003e0 AND x79\u003c\u003e0 AND x80\u003c\u003e0 AND x81\u003c\u003e0 AND x82\u003c\u003e0 AND x83\u003c\u003e0 AND x84\u003c\u003e0 AND x85\u003c\u003e0 AND x86\u003c\u003e0 AND x87\u003c\u003e0 AND x88\u003c\u003e0 AND x89\u003c\u003e0 AND x90\u003c\u003e0 AND x91\u003c\u003e0 AND x92\u003c\u003e0 AND x93\u003c\u003e0 AND x94\u003c\u003e0 AND x95\u003c\u003e0 AND x96\u003c\u003e0 AND x97\u003c\u003e0 AND x98\u003c\u003e0 AND x99\u003c\u003e0",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "misc1-10.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM manycol",
+          "expect": "8"
+        }
+      ]
+    },
+    {
+      "name": "misc1-10.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DELETE FROM manycol WHERE x0=0 AND x1\u003c\u003e0 AND x2\u003c\u003e0 AND x3\u003c\u003e0 AND x4\u003c\u003e0 AND x5\u003c\u003e0 AND x6\u003c\u003e0 AND x7\u003c\u003e0 AND x8\u003c\u003e0 AND x9\u003c\u003e0 AND x10\u003c\u003e0 AND x11\u003c\u003e0 AND x12\u003c\u003e0 AND x13\u003c\u003e0 AND x14\u003c\u003e0 AND x15\u003c\u003e0 AND x16\u003c\u003e0 AND x17\u003c\u003e0 AND x18\u003c\u003e0 AND x19\u003c\u003e0 AND x20\u003c\u003e0 AND x21\u003c\u003e0 AND x22\u003c\u003e0 AND x23\u003c\u003e0 AND x24\u003c\u003e0 AND x25\u003c\u003e0 AND x26\u003c\u003e0 AND x27\u003c\u003e0 AND x28\u003c\u003e0 AND x29\u003c\u003e0 AND x30\u003c\u003e0 AND x31\u003c\u003e0 AND x32\u003c\u003e0 AND x33\u003c\u003e0 AND x34\u003c\u003e0 AND x35\u003c\u003e0 AND x36\u003c\u003e0 AND x37\u003c\u003e0 AND x38\u003c\u003e0 AND x39\u003c\u003e0 AND x40\u003c\u003e0 AND x41\u003c\u003e0 AND x42\u003c\u003e0 AND x43\u003c\u003e0 AND x44\u003c\u003e0 AND x45\u003c\u003e0 AND x46\u003c\u003e0 AND x47\u003c\u003e0 AND x48\u003c\u003e0 AND x49\u003c\u003e0 AND x50\u003c\u003e0 AND x51\u003c\u003e0 AND x52\u003c\u003e0 AND x53\u003c\u003e0 AND x54\u003c\u003e0 AND x55\u003c\u003e0 AND x56\u003c\u003e0 AND x57\u003c\u003e0 AND x58\u003c\u003e0 AND x59\u003c\u003e0 AND x60\u003c\u003e0 AND x61\u003c\u003e0 AND x62\u003c\u003e0 AND x63\u003c\u003e0 AND x64\u003c\u003e0 AND x65\u003c\u003e0 AND x66\u003c\u003e0 AND x67\u003c\u003e0 AND x68\u003c\u003e0 AND x69\u003c\u003e0 AND x70\u003c\u003e0 AND x71\u003c\u003e0 AND x72\u003c\u003e0 AND x73\u003c\u003e0 AND x74\u003c\u003e0 AND x75\u003c\u003e0 AND x76\u003c\u003e0 AND x77\u003c\u003e0 AND x78\u003c\u003e0 AND x79\u003c\u003e0 AND x80\u003c\u003e0 AND x81\u003c\u003e0 AND x82\u003c\u003e0 AND x83\u003c\u003e0 AND x84\u003c\u003e0 AND x85\u003c\u003e0 AND x86\u003c\u003e0 AND x87\u003c\u003e0 AND x88\u003c\u003e0 AND x89\u003c\u003e0 AND x90\u003c\u003e0 AND x91\u003c\u003e0 AND x92\u003c\u003e0 AND x93\u003c\u003e0 AND x94\u003c\u003e0 AND x95\u003c\u003e0 AND x96\u003c\u003e0 AND x97\u003c\u003e0 AND x98\u003c\u003e0 AND x99\u003c\u003e0 AND rowid\u003e0",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "misc1-10.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x1 FROM manycol WHERE x0=100",
+          "expect": "101"
+        }
+      ]
+    },
+    {
+      "name": "misc1-10.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE manycol SET x1=x1+1 WHERE x0=100 AND x1\u003c\u003e0 AND x2\u003c\u003e0 AND x3\u003c\u003e0 AND x4\u003c\u003e0 AND x5\u003c\u003e0 AND x6\u003c\u003e0 AND x7\u003c\u003e0 AND x8\u003c\u003e0 AND x9\u003c\u003e0 AND x10\u003c\u003e0 AND x11\u003c\u003e0 AND x12\u003c\u003e0 AND x13\u003c\u003e0 AND x14\u003c\u003e0 AND x15\u003c\u003e0 AND x16\u003c\u003e0 AND x17\u003c\u003e0 AND x18\u003c\u003e0 AND x19\u003c\u003e0 AND x20\u003c\u003e0 AND x21\u003c\u003e0 AND x22\u003c\u003e0 AND x23\u003c\u003e0 AND x24\u003c\u003e0 AND x25\u003c\u003e0 AND x26\u003c\u003e0 AND x27\u003c\u003e0 AND x28\u003c\u003e0 AND x29\u003c\u003e0 AND x30\u003c\u003e0 AND x31\u003c\u003e0 AND x32\u003c\u003e0 AND x33\u003c\u003e0 AND x34\u003c\u003e0 AND x35\u003c\u003e0 AND x36\u003c\u003e0 AND x37\u003c\u003e0 AND x38\u003c\u003e0 AND x39\u003c\u003e0 AND x40\u003c\u003e0 AND x41\u003c\u003e0 AND x42\u003c\u003e0 AND x43\u003c\u003e0 AND x44\u003c\u003e0 AND x45\u003c\u003e0 AND x46\u003c\u003e0 AND x47\u003c\u003e0 AND x48\u003c\u003e0 AND x49\u003c\u003e0 AND x50\u003c\u003e0 AND x51\u003c\u003e0 AND x52\u003c\u003e0 AND x53\u003c\u003e0 AND x54\u003c\u003e0 AND x55\u003c\u003e0 AND x56\u003c\u003e0 AND x57\u003c\u003e0 AND x58\u003c\u003e0 AND x59\u003c\u003e0 AND x60\u003c\u003e0 AND x61\u003c\u003e0 AND x62\u003c\u003e0 AND x63\u003c\u003e0 AND x64\u003c\u003e0 AND x65\u003c\u003e0 AND x66\u003c\u003e0 AND x67\u003c\u003e0 AND x68\u003c\u003e0 AND x69\u003c\u003e0 AND x70\u003c\u003e0 AND x71\u003c\u003e0 AND x72\u003c\u003e0 AND x73\u003c\u003e0 AND x74\u003c\u003e0 AND x75\u003c\u003e0 AND x76\u003c\u003e0 AND x77\u003c\u003e0 AND x78\u003c\u003e0 AND x79\u003c\u003e0 AND x80\u003c\u003e0 AND x81\u003c\u003e0 AND x82\u003c\u003e0 AND x83\u003c\u003e0 AND x84\u003c\u003e0 AND x85\u003c\u003e0 AND x86\u003c\u003e0 AND x87\u003c\u003e0 AND x88\u003c\u003e0 AND x89\u003c\u003e0 AND x90\u003c\u003e0 AND x91\u003c\u003e0 AND x92\u003c\u003e0 AND x93\u003c\u003e0 AND x94\u003c\u003e0 AND x95\u003c\u003e0 AND x96\u003c\u003e0 AND x97\u003c\u003e0 AND x98\u003c\u003e0 AND x99\u003c\u003e0",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "misc1-10.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x1 FROM manycol WHERE x0=100",
+          "expect": "102"
+        }
+      ]
+    },
+    {
+      "name": "misc1-10.9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE manycol SET x1=x1+1 WHERE x0=100 AND x1\u003c\u003e0 AND x2\u003c\u003e0 AND x3\u003c\u003e0 AND x4\u003c\u003e0 AND x5\u003c\u003e0 AND x6\u003c\u003e0 AND x7\u003c\u003e0 AND x8\u003c\u003e0 AND x9\u003c\u003e0 AND x10\u003c\u003e0 AND x11\u003c\u003e0 AND x12\u003c\u003e0 AND x13\u003c\u003e0 AND x14\u003c\u003e0 AND x15\u003c\u003e0 AND x16\u003c\u003e0 AND x17\u003c\u003e0 AND x18\u003c\u003e0 AND x19\u003c\u003e0 AND x20\u003c\u003e0 AND x21\u003c\u003e0 AND x22\u003c\u003e0 AND x23\u003c\u003e0 AND x24\u003c\u003e0 AND x25\u003c\u003e0 AND x26\u003c\u003e0 AND x27\u003c\u003e0 AND x28\u003c\u003e0 AND x29\u003c\u003e0 AND x30\u003c\u003e0 AND x31\u003c\u003e0 AND x32\u003c\u003e0 AND x33\u003c\u003e0 AND x34\u003c\u003e0 AND x35\u003c\u003e0 AND x36\u003c\u003e0 AND x37\u003c\u003e0 AND x38\u003c\u003e0 AND x39\u003c\u003e0 AND x40\u003c\u003e0 AND x41\u003c\u003e0 AND x42\u003c\u003e0 AND x43\u003c\u003e0 AND x44\u003c\u003e0 AND x45\u003c\u003e0 AND x46\u003c\u003e0 AND x47\u003c\u003e0 AND x48\u003c\u003e0 AND x49\u003c\u003e0 AND x50\u003c\u003e0 AND x51\u003c\u003e0 AND x52\u003c\u003e0 AND x53\u003c\u003e0 AND x54\u003c\u003e0 AND x55\u003c\u003e0 AND x56\u003c\u003e0 AND x57\u003c\u003e0 AND x58\u003c\u003e0 AND x59\u003c\u003e0 AND x60\u003c\u003e0 AND x61\u003c\u003e0 AND x62\u003c\u003e0 AND x63\u003c\u003e0 AND x64\u003c\u003e0 AND x65\u003c\u003e0 AND x66\u003c\u003e0 AND x67\u003c\u003e0 AND x68\u003c\u003e0 AND x69\u003c\u003e0 AND x70\u003c\u003e0 AND x71\u003c\u003e0 AND x72\u003c\u003e0 AND x73\u003c\u003e0 AND x74\u003c\u003e0 AND x75\u003c\u003e0 AND x76\u003c\u003e0 AND x77\u003c\u003e0 AND x78\u003c\u003e0 AND x79\u003c\u003e0 AND x80\u003c\u003e0 AND x81\u003c\u003e0 AND x82\u003c\u003e0 AND x83\u003c\u003e0 AND x84\u003c\u003e0 AND x85\u003c\u003e0 AND x86\u003c\u003e0 AND x87\u003c\u003e0 AND x88\u003c\u003e0 AND x89\u003c\u003e0 AND x90\u003c\u003e0 AND x91\u003c\u003e0 AND x92\u003c\u003e0 AND x93\u003c\u003e0 AND x94\u003c\u003e0 AND x95\u003c\u003e0 AND x96\u003c\u003e0 AND x97\u003c\u003e0 AND x98\u003c\u003e0 AND x99\u003c\u003e0 AND rowid\u003e0",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "misc1-10.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x1 FROM manycol WHERE x0=100",
+          "expect": "103"
+        }
+      ]
+    },
+    {
+      "name": "misc1-11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=0 WHERE 0"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "expect": "0 3",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "misc1-11.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "0 3",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "misc1-12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT '0'=='0.0'",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "misc1-12.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT '0'==0.0",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "misc1-12.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT '12345678901234567890'=='12345678901234567891'",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "misc1-12.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(a INT UNIQUE, b TEXT UNIQUE);\n    INSERT INTO t6 VALUES('0','0.0');\n    SELECT * FROM t6;",
+          "expect": "0 0.0"
+        }
+      ]
+    },
+    {
+      "name": "misc1-12.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT OR IGNORE INTO t6 VALUES(0.0,'x');\n      SELECT * FROM t6;",
+          "expect": "0 0.0"
+        }
+      ]
+    },
+    {
+      "name": "misc1-12.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT OR IGNORE INTO t6 VALUES('y',0);\n      SELECT * FROM t6;",
+          "expect": "0 0.0 y 0"
+        }
+      ]
+    },
+    {
+      "name": "misc1-12.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t7(x INTEGER, y TEXT, z);\n    INSERT INTO t7 VALUES(0,0,1);\n    INSERT INTO t7 VALUES(0.0,0,2);\n    INSERT INTO t7 VALUES(0,0.0,3);\n    INSERT INTO t7 VALUES(0.0,0.0,4);\n    SELECT DISTINCT x, y FROM t7 ORDER BY z;",
+          "expect": "0 0 0 0.0"
+        }
+      ]
+    },
+    {
+      "name": "misc1-12.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT min(z), max(z), count(z) FROM t7 GROUP BY x ORDER BY 1;",
+          "expect": "1 4 4"
+        }
+      ]
+    },
+    {
+      "name": "misc1-12.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT min(z), max(z), count(z) FROM t7 GROUP BY y ORDER BY 1;",
+          "expect": "1 2 2 3 4 2"
+        }
+      ]
+    },
+    {
+      "name": "misc1-12.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t8(x TEXT COLLATE numeric, y INTEGER COLLATE text, z);\n    INSERT INTO t8 VALUES(0,0,1);\n    INSERT INTO t8 VALUES(0.0,0,2);\n    INSERT INTO t8 VALUES(0,0.0,3);\n    INSERT INTO t8 VALUES(0.0,0.0,4);\n    SELECT DISTINCT x, y FROM t8 ORDER BY z;",
+          "expect": "0 0 0.0 0"
+        }
+      ]
+    },
+    {
+      "name": "misc1-12.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT min(z), max(z), count(z) FROM t8 GROUP BY x ORDER BY 1;",
+          "expect": "1 3 2 2 4 2"
+        }
+      ]
+    },
+    {
+      "name": "misc1-12.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT min(z), max(z), count(z) FROM t8 GROUP BY y ORDER BY 1;",
+          "expect": "1 4 4"
+        }
+      ]
+    },
+    {
+      "name": "misc1-13.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t9(x,y);\n       INSERT INTO t9 VALUES('one',1);\n       INSERT INTO t9 VALUES('two',2);\n       INSERT INTO t9 VALUES('three',3);\n       INSERT INTO t9 VALUES('four',4);\n       INSERT INTO t9 VALUES('five',5);\n       INSERT INTO t9 VALUES('six',6);\n       INSERT INTO t9 VALUES('seven',7);\n       INSERT INTO t9 VALUES('eight',8);\n       INSERT INTO t9 VALUES('nine',9);\n       INSERT INTO t9 VALUES('ten',10);\n       INSERT INTO t9 VALUES('eleven',11);\n       SELECT y FROM t9\n       WHERE x=(SELECT x FROM t9 WHERE y=1)\n          OR x=(SELECT x FROM t9 WHERE y=2)\n          OR x=(SELECT x FROM t9 WHERE y=3)\n          OR x=(SELECT x FROM t9 WHERE y=4)\n          OR x=(SELECT x FROM t9 WHERE y=5)\n          OR x=(SELECT x FROM t9 WHERE y=6)\n          OR x=(SELECT x FROM t9 WHERE y=7)\n          OR x=(SELECT x FROM t9 WHERE y=8)\n          OR x=(SELECT x FROM t9 WHERE y=9)\n          OR x=(SELECT x FROM t9 WHERE y=10)\n          OR x=(SELECT x FROM t9 WHERE y=11)\n          OR x=(SELECT x FROM t9 WHERE y=12)\n          OR x=(SELECT x FROM t9 WHERE y=13)\n          OR x=(SELECT x FROM t9 WHERE y=14)\n       ;",
+          "expect": "1 2 3 4 5 6 7 8 9 10 11"
+        }
+      ]
+    },
+    {
+      "name": "misc1-15.1.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TABLE t10 AS SELECT c1;",
+          "expect": "1 {no such column: c1}"
+        }
+      ]
+    },
+    {
+      "name": "misc1-15.1.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TABLE t10 AS SELECT t9.c1;",
+          "expect": "1 {no such column: t9.c1}"
+        }
+      ]
+    },
+    {
+      "name": "misc1-15.1.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TABLE t10 AS SELECT main.t9.c1;",
+          "expect": "1 {no such column: main.t9.c1}"
+        }
+      ]
+    },
+    {
+      "name": "misc1-15.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TABLE t10 AS SELECT 1;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "misc1-16.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT name FROM sqlite_master LIMIT 1"
+        },
+        {
+          "type": "catch",
+          "sql": "CREATE TABLE test(a integer, primary key(a));",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "misc1-16.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TABLE test(a integer, primary key(a));",
+          "expect": "1 {table test already exists}"
+        }
+      ]
+    },
+    {
+      "name": "misc1-16.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TABLE test2(a text primary key, b text, primary key(a,b));",
+          "expect": "1 {table \"test2\" has more than one primary key}"
+        }
+      ]
+    },
+    {
+      "name": "misc1-16.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO test VALUES(1);\n    SELECT rowid, a FROM test;",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "misc1-16.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO test VALUES(5);\n    SELECT rowid, a FROM test;",
+          "expect": "1 1 5 5"
+        }
+      ]
+    },
+    {
+      "name": "misc1-16.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO test VALUES(NULL);\n    SELECT rowid, a FROM test;",
+          "expect": "1 1 5 5 6 6"
+        }
+      ]
+    },
+    {
+      "name": "misc1-17.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE RealTable(TestID INTEGER PRIMARY KEY, TestString TEXT);\n    CREATE TEMP TABLE TempTable(TestID INTEGER PRIMARY KEY, TestString TEXT);\n    CREATE TEMP TRIGGER trigTest_1 AFTER UPDATE ON TempTable BEGIN\n      INSERT INTO RealTable(TestString) \n         SELECT new.TestString FROM TempTable LIMIT 1;\n    END;\n    INSERT INTO TempTable(TestString) VALUES ('1');\n    INSERT INTO TempTable(TestString) VALUES ('2');\n    UPDATE TempTable SET TestString = TestString + 1 WHERE TestID=1 OR TestId=2;\n    COMMIT;\n    SELECT TestString FROM RealTable ORDER BY 1;",
+          "expect": "2 3"
+        }
+      ]
+    },
     {
       "name": "misc1-19.1",
       "steps": [
@@ -46,7 +882,7 @@
       "name": "misc1-21.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "select''like''like''like#0;",
           "expect": "1 {near \"#0\": syntax error}"
         }
@@ -56,7 +892,7 @@
       "name": "misc1-21.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "VALUES(0,0x0MATCH#0;",
           "expect": "1 {unrecognized token: \"0x0MATCH\"}"
         }
@@ -73,6 +909,21 @@
       ]
     },
     {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
+    {
       "name": "misc1-23.1",
       "steps": [
         {
@@ -82,12 +933,42 @@
       ]
     },
     {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
+    {
       "name": "misc1-23.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t1(x UNIQUE);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE IF not EXISTS t(c)';\n  BEGIN;\n  CREATE TABLE t2(x);\n  ROLLBACK;\n  DROP TABLE F;",
           "expect": "1 {no such table: F}"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "defensive",
+          "sql": "0"
         }
       ]
     },
@@ -95,9 +976,30 @@
       "name": "misc1-23.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t1(x UNIQUE);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE table y(a TEXT, a TEXT)';\n  BEGIN;\n  CREATE TABLE t2(y);\n  ROLLBACK;\n  DROP TABLE IF EXISTS t;",
           "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "misc1-24.0",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "!",
+          "variable": "stmt_1",
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "misc1-25.0",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT-1 UNION  SELECT 5 UNION SELECT 0 UNION SElECT*from(SELECT-5) UNION SELECT*from(SELECT-0) UNION  SELECT:SELECT-0 UNION SELECT-1 UNION SELECT 1 UNION SELECT 1 ORDER BY S  in(WITH K AS(WITH K AS(select'CREINDERcharREADEVIRTUL5TABLECONFLICT !1 USIN'' MFtOR(b38q,eWITH K AS(selectCREATe TABLE t0(a,b,c,d,e, PRIMARY KEY(a,b,c,d,c,a,b,b,c,d,c,a,b,c,e,c,d,c,a,b,b,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,a,b,c,e,c,d,c,a,b,b,c,d,c,d,c,a,b,c,e,d,d,c,a,b,b,c,c,a,b,b,c,d,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,a,b,c,e,c,d,c,a,b,b,c,a,b,b,c,d,c,a,c,d,c,d,c,e,d,d,c,a,b,b,c,c,a,b,b,E,d,c,d,c,b,c,d,c,d,c,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,a,b,c,e,c,d,c,a,b,b,c,a,b,c,e,d,d,c,a,b,b,c,d,d,c,a,b,c,e,d,c,d,c,a,b,c,e,c,d,c,a,b,b,c,d,c,a,b,c,e,d,d,c,a,b,b,b,c,e,d,d,c,a,b,b,c,c,a,b,b,c,d,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,a,b,c,e,c,d,c,a,b,b,c,d,c,d,c,e,d,d,c,a,b,b,c,c,a,b,b,E,d,c,d,c,b,c,d,c,d,c,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,a,b,c,e,c,d'CEIl,k'',ab, g, a,b,o11b, i'nEX/charREDE IVT LR!VABLt5SG',N  ,N in rement,l_vacuum,M\u0026U,'te3(''5l' a,bB,b,l*e)SELECT:SELECT, *,*,*from(( SELECT\n$group,:conc ap0,1)fro,(select\"\",:PBAG,c,a,b,b,c,a,b,c,e,d,d,c,a,b,b,c,d,d,c,a,b,c,e,d,c,d,c,a,b,c,e,c,d,c,d,c,a,b,b,c,d,c,a,b,c,e,c,d,c,a,b,b,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,a,b,c,e,c,d,c,a,b,b,c,d,c,d,c,a,b,c,e,d,d,c,a,b,b,c,c,a,b,b,c,d,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,a,b,c,e,d,c,d,c,a,b,c,e,c,d,c,a,b,b,c,d,c,a,b,c,e,d,d,c,a,b,b,b,c,e,d,d,c,a,b,b,c,c,a,b,b,c,d,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,a,b,c,e,c,d,c,a,b,b,c,d,c,d,c,e,d,d,c,a,b,b,c,c,a,b,b,E,d,c,d,c,b,c,d,c,d,c,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,a,b,c,e,c,d,c,a,b,b,c,a,b,c,e,d,d,c,a,b,b,c,d,d,c,a,b,c,e,d,c,d,c,a,b,c,e,c,d,c,d,c,a,b,b,c,d,c,a,b,c,e,c,d,c,a,b,b,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,a,b,c,e,c,d,c,a,b,b,c,d,c,d,c,a,b,c,e,d,d,c,a,b,b,c,c,a,b,b,c,d,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,a,b,c,e,c,d,c,a,b,b,c,d,c,d,c,e,d,d,c,a,b,b,c,c,a,b,b,E,d,c,d,c,b,c,d,c,d,c,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,a,b,c,e,c,d,c,a,b,b,c,a,b,c,e,d,d,c,a,b,b,c,d,d,c,a,b,c,e,d,c,d,c,a,b,c,e,c,d,c,a,b,b,c,c,d,c,c,a,a,b,d,d,c,a,b,b,c,d,c,a,b,e,e,d,b,c,d,c,a,b,b,c,d,c,a,b,c,e,c,d,c,a,b,b,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,a,b,c,e,c,d,c,a,b,b,c,d,c,d,c,a,b,c,e,d,d,c,a,b,b,c,c,a,b,b,c,d,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,a,b,c,e,c,d,c,a,b,b,c,d, foreign_keysc,d,c,e,d,d,c,a,b,b,c,c,a,b,b,E,d,c,d,c,b,c,d,c,d,c,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,a,a,b,d,d,c,a,b,b,c,d,c,a,b,e,e,d,b,c,d,c,a,b,b,c,d,c,a,b,c,e,c,d,c,a,b,b,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,a,b,c,e,c,d,c,a,b,b,c,d,c,d,c,a,b,c,d,c,a,b,c,e,c,d,c,a,b,b,c,d,c,d,c,e,d,d,c,a,b,b,c,c,a,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,a,b,c,e,c,d,c,a,b,b,c,d,c,d,c,a,b,c,d,c,a,b,c,e,c,d,c,a,b,b,c,d,c,d,c,e,d,d,c,a,b,b,c,c,a,b,b,E,d,c,d,c,b,c,d,c,d,c,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,a,b,c,e,c,d,c,a,b,b,c,a,b,c,e,d,d,c,a,b,b,c,d,d,c,a,b,c,e,d,c,d,c,a,b,c,e,c,d,c,a,b,b,c,c,d,c,a,b,d,d,c,a,a,b,d,d,c,a,b,b,c,d,c,a,b,e,e,d,b,c,d,c,a,b,b,c,d,c,a,b,c,e,c,d,c,a,b,b,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,a,b,c,e,c,d,c,a,b,b,c,d,c,d,c,a,b,c,e,d,d,c,a,b,b,c,c,a,b,b,c,d,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,a,b,c,e,c,d,c,a,b,b,c,d,c,d,c,e,d,d,c,a,b,b,c,c,a,b,b,E,d,c,d,c,b,c,d,c,d,c,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,a,a,b,d,d,c,a,b,b,c,d,c,a,b,e,e,d,b,c,d,c,a,b,b,c,d,c,a,b,c,e,c,d,c,a,b,b,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,a,b,c,e,c,d,c,a,b,b,c,d,c,d,c,a,b,c,e,d,d,c,a,b,b,c,c,a,b,b,c,d,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,a,b,c,e,c,d,c,a,b,b,c,d,c,d,c,e,d,d,c,a,b,b,c,c,a,b,b,E,d,c,d,c,b,c,d,c,d,c,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,a,b,c,e,c,d,c,a,b,b,c,a,bb,b,E,d,c,d,c,b,c,d,c,d,c,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,a,b,c,e,c,d,c,a,b,b,c,a,b,c,e,d,d,c,a,b,b,c,d,d,c,a,b,c,e,d,c,d,c,a,b,c,e,c,d,c,a,b,b,c,c,d,c,a,b,d,d,c,a,a,b,d,d,c,a,b,b,c,d,c,a,b,e,e,d,b,c,d,c,a,b,b,c,d,c,a,b,c,e,c,d,c,a,b,b,c,d,c,a,b,c,e,d,d,c,a,b,b,c,d,c,d,c,a,b,c,e,c,d,c,a,b,b,c,d,MAato_aecSELEC,+?b,\" \"O,\"i\",\"a\",\"\"b  ,5 ))KEY)SELECT*FROM((k()reaC,k,K) eA,k '' )t ,K  M);",
+          "expect": "1 {'k' is not a function}"
         }
       ]
     },
@@ -131,6 +1033,14 @@
       ]
     },
     {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
       "name": "misc1-28.0",
       "steps": [
         {
@@ -139,906 +1049,6 @@
           "expect": "ok 1"
         }
       ]
-    },
-    {
-      "name": "misc1-1.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT x0, x10, x25, x50, x75 FROM manycol",
-          "expect": "0 10 25 50 75"
-        }
-      ]
-    },
-    {
-      "name": "misc1-1.3.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT x50 FROM manycol ORDER BY x80+0",
-          "expect": "50 150 250 350 450 550 650 750 850 950 1050"
-        }
-      ]
-    },
-    {
-      "name": "misc1-1.3.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT x50 FROM manycol ORDER BY x80",
-          "expect": "1050 150 250 350 450 550 650 750 50 850 950"
-        }
-      ]
-    },
-    {
-      "name": "misc1-1.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT x75 FROM manycol WHERE x50=350"
-        }
-      ]
-    },
-    {
-      "name": "misc1-1.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT x50 FROM manycol WHERE x99=599"
-        }
-      ]
-    },
-    {
-      "name": "misc1-1.6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX manycol_idx1 ON manycol(x99)"
-        }
-      ]
-    },
-    {
-      "name": "misc1-1.7",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM manycol"
-        }
-      ]
-    },
-    {
-      "name": "misc1-1.8",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM manycol WHERE x98=1234"
-        }
-      ]
-    },
-    {
-      "name": "misc1-1.9",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM manycol WHERE x98=998"
-        }
-      ]
-    },
-    {
-      "name": "misc1-1.10",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM manycol WHERE x99=500"
-        }
-      ]
-    },
-    {
-      "name": "misc1-1.11",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM manycol WHERE x99=599"
-        }
-      ]
-    },
-    {
-      "name": "misc1-2.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN TRANSACTION;\n    CREATE TABLE agger(one text, two text, three text, four text);\n    INSERT INTO agger VALUES(1, 'one', 'hello', 'yes');\n    INSERT INTO agger VALUES(2, 'two', 'howdy', 'no');\n    INSERT INTO agger VALUES(3, 'thr', 'howareya', 'yes');\n    INSERT INTO agger VALUES(4, 'two', 'lothere', 'yes');\n    INSERT INTO agger VALUES(5, 'one', 'atcha', 'yes');\n    INSERT INTO agger VALUES(6, 'two', 'hello', 'no');\n    COMMIT"
-        }
-      ]
-    },
-    {
-      "name": "misc1-2.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT sum(one), two, four FROM agger\n           GROUP BY two, four ORDER BY sum(one) desc",
-          "expect": "8 two no 6 one yes 4 two yes 3 thr yes"
-        }
-      ]
-    },
-    {
-      "name": "misc1-2.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT sum((one)), (two), (four) FROM agger\n           GROUP BY (two), (four) ORDER BY sum(one) desc",
-          "expect": "8 two no 6 one yes 4 two yes 3 thr yes"
-        }
-      ]
-    },
-    {
-      "name": "misc1-3.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES('hi');\n    PRAGMA full_column_names=on;\n    SELECT rowid, * FROM t1;",
-          "expect": "hi"
-        }
-      ]
-    },
-    {
-      "name": "misc1-4.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "BEGIN;\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES('This is a long string to use up a lot of disk -');\n    UPDATE t2 SET a=a||a||a||a;\n    INSERT INTO t2 SELECT '1 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '2 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '3 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '4 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '5 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '6 - ' || a FROM t2;\n    COMMIT;\n    SELECT count(*) FROM t2;",
-          "expect": "64"
-        }
-      ]
-    },
-    {
-      "name": "misc1-5.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t3(a,b);\n    INSERT INTO t3 VALUES(1,2);\n    INSERT INTO t3 VALUES(3,4);\n    UPDATE t3 SET a=0 WHEREwww b=2;",
-          "expect": "1 {near \"WHEREwww\": syntax error}"
-        }
-      ]
-    },
-    {
-      "name": "misc1-5.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t3 ORDER BY a;",
-          "expect": "1 2 3 4"
-        }
-      ]
-    },
-    {
-      "name": "misc1-6.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t4(\n      abort, asc, begin, cluster, conflict, copy, delimiters, desc, end,\n      explain, fail, ignore, key, offset, pragma, replace, temp,\n      vacuum, view\n    );",
-          "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "misc1-6.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t4\n       VALUES(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19);",
-          "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "misc1-6.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t4",
-          "expect": "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19"
-        }
-      ]
-    },
-    {
-      "name": "misc1-6.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT abort+asc,max(key,pragma,temp) FROM t4",
-          "expect": "3 17"
-        }
-      ]
-    },
-    {
-      "name": "misc1-7.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE error1(\n      a TYPE PRIMARY KEY,\n      b TYPE PRIMARY KEY\n    );",
-          "expect": "1 {table \"error1\" has more than one primary key}"
-        }
-      ]
-    },
-    {
-      "name": "misc1-7.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE error1(\n      a INTEGER PRIMARY KEY,\n      b TYPE PRIMARY KEY\n    );",
-          "expect": "1 {table \"error1\" has more than one primary key}"
-        }
-      ]
-    },
-    {
-      "name": "misc1-7.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t5(a,b,c,PRIMARY KEY(a,b));\n    INSERT INTO t5 VALUES(1,2,3);\n    SELECT * FROM t5 ORDER BY a;",
-          "expect": "1 2 3"
-        }
-      ]
-    },
-    {
-      "name": "misc1-7.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t5 VALUES(1,2,4);",
-          "expect": "1 {UNIQUE constraint failed: t5.a, t5.b}"
-        }
-      ]
-    },
-    {
-      "name": "misc1-7.5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t5 VALUES(0,2,4);",
-          "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "misc1-7.6",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t5 ORDER BY a;",
-          "expect": "0 2 4 1 2 3"
-        }
-      ]
-    },
-    {
-      "name": "misc1-8.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT *;",
-          "expect": "1 {no tables specified}"
-        }
-      ]
-    },
-    {
-      "name": "misc1-8.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT t1.*;",
-          "expect": "1 {no such table: t1}"
-        }
-      ]
-    },
-    {
-      "name": "misc1-9.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a unique not null, b unique not null);\n    INSERT INTO t1 VALUES('a',1234567890123456789);\n    INSERT INTO t1 VALUES('b',1234567891123456789);\n    INSERT INTO t1 VALUES('c',1234567892123456789);\n    SELECT * FROM t1;",
-          "expect": "0 {a 1234567890123456789 b 1234567891123456789 c 1234567892123456789}"
-        }
-      ]
-    },
-    {
-      "name": "misc1-10.0",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM manycol",
-          "expect": "9"
-        }
-      ]
-    },
-    {
-      "name": "misc1-10.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM manycol",
-          "expect": "8"
-        }
-      ]
-    },
-    {
-      "name": "misc1-10.6",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT x1 FROM manycol WHERE x0=100",
-          "expect": "101"
-        }
-      ]
-    },
-    {
-      "name": "misc1-10.8",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT x1 FROM manycol WHERE x0=100",
-          "expect": "102"
-        }
-      ]
-    },
-    {
-      "name": "misc1-10.10",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT x1 FROM manycol WHERE x0=100",
-          "expect": "103"
-        }
-      ]
-    },
-    {
-      "name": "misc1-11.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN"
-        }
-      ]
-    },
-    {
-      "name": "misc1-11.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "COMMIT"
-        }
-      ]
-    },
-    {
-      "name": "misc1-12.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT '0'=='0.0'",
-          "expect": "0"
-        }
-      ]
-    },
-    {
-      "name": "misc1-12.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT '0'==0.0",
-          "expect": "0"
-        }
-      ]
-    },
-    {
-      "name": "misc1-12.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT '12345678901234567890'=='12345678901234567891'",
-          "expect": "0"
-        }
-      ]
-    },
-    {
-      "name": "misc1-12.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t6(a INT UNIQUE, b TEXT UNIQUE);\n    INSERT INTO t6 VALUES('0','0.0');\n    SELECT * FROM t6;",
-          "expect": "0 0.0"
-        }
-      ]
-    },
-    {
-      "name": "misc1-12.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "INSERT OR IGNORE INTO t6 VALUES(0.0,'x');\n      SELECT * FROM t6;",
-          "expect": "0 0.0"
-        }
-      ]
-    },
-    {
-      "name": "misc1-12.6",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "INSERT OR IGNORE INTO t6 VALUES('y',0);\n      SELECT * FROM t6;",
-          "expect": "0 0.0 y 0"
-        }
-      ]
-    },
-    {
-      "name": "misc1-12.7",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t7(x INTEGER, y TEXT, z);\n    INSERT INTO t7 VALUES(0,0,1);\n    INSERT INTO t7 VALUES(0.0,0,2);\n    INSERT INTO t7 VALUES(0,0.0,3);\n    INSERT INTO t7 VALUES(0.0,0.0,4);\n    SELECT DISTINCT x, y FROM t7 ORDER BY z;",
-          "expect": "0 0 0 0.0"
-        }
-      ]
-    },
-    {
-      "name": "misc1-12.8",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT min(z), max(z), count(z) FROM t7 GROUP BY x ORDER BY 1;",
-          "expect": "1 4 4"
-        }
-      ]
-    },
-    {
-      "name": "misc1-12.9",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT min(z), max(z), count(z) FROM t7 GROUP BY y ORDER BY 1;",
-          "expect": "1 2 2 3 4 2"
-        }
-      ]
-    },
-    {
-      "name": "misc1-12.10",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "#    SELECT * FROM t6 ORDER BY a COLLATE unknown;\n#",
-          "expect": "0 {0 0 y 0}"
-        }
-      ]
-    },
-    {
-      "name": "misc1-12.11",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t8(x TEXT COLLATE numeric, y INTEGER COLLATE text, z);\n    INSERT INTO t8 VALUES(0,0,1);\n    INSERT INTO t8 VALUES(0.0,0,2);\n    INSERT INTO t8 VALUES(0,0.0,3);\n    INSERT INTO t8 VALUES(0.0,0.0,4);\n    SELECT DISTINCT x, y FROM t8 ORDER BY z;",
-          "expect": "0 0 0.0 0"
-        }
-      ]
-    },
-    {
-      "name": "misc1-12.12",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT min(z), max(z), count(z) FROM t8 GROUP BY x ORDER BY 1;",
-          "expect": "1 3 2 2 4 2"
-        }
-      ]
-    },
-    {
-      "name": "misc1-12.13",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT min(z), max(z), count(z) FROM t8 GROUP BY y ORDER BY 1;",
-          "expect": "1 4 4"
-        }
-      ]
-    },
-    {
-      "name": "misc1-13.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t9(x,y);\n       INSERT INTO t9 VALUES('one',1);\n       INSERT INTO t9 VALUES('two',2);\n       INSERT INTO t9 VALUES('three',3);\n       INSERT INTO t9 VALUES('four',4);\n       INSERT INTO t9 VALUES('five',5);\n       INSERT INTO t9 VALUES('six',6);\n       INSERT INTO t9 VALUES('seven',7);\n       INSERT INTO t9 VALUES('eight',8);\n       INSERT INTO t9 VALUES('nine',9);\n       INSERT INTO t9 VALUES('ten',10);\n       INSERT INTO t9 VALUES('eleven',11);\n       SELECT y FROM t9\n       WHERE x=(SELECT x FROM t9 WHERE y=1)\n          OR x=(SELECT x FROM t9 WHERE y=2)\n          OR x=(SELECT x FROM t9 WHERE y=3)\n          OR x=(SELECT x FROM t9 WHERE y=4)\n          OR x=(SELECT x FROM t9 WHERE y=5)\n          OR x=(SELECT x FROM t9 WHERE y=6)\n          OR x=(SELECT x FROM t9 WHERE y=7)\n          OR x=(SELECT x FROM t9 WHERE y=8)\n          OR x=(SELECT x FROM t9 WHERE y=9)\n          OR x=(SELECT x FROM t9 WHERE y=10)\n          OR x=(SELECT x FROM t9 WHERE y=11)\n          OR x=(SELECT x FROM t9 WHERE y=12)\n          OR x=(SELECT x FROM t9 WHERE y=13)\n          OR x=(SELECT x FROM t9 WHERE y=14)\n       ;",
-          "expect": "1 2 3 4 5 6 7 8 9 10 11"
-        }
-      ]
-    },
-    {
-      "name": "misc1-14.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN"
-        }
-      ]
-    },
-    {
-      "name": "misc1-14.2a",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET a=a||'x' WHERE 0"
-        }
-      ]
-    },
-    {
-      "name": "misc1-14.2b",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET a=a||'y' WHERE 1"
-        }
-      ]
-    },
-    {
-      "name": "misc1-14.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "COMMIT"
-        }
-      ]
-    },
-    {
-      "name": "misc1-15.1.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t10 AS SELECT c1;",
-          "expect": "1 {no such column: c1}"
-        }
-      ]
-    },
-    {
-      "name": "misc1-15.1.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t10 AS SELECT t9.c1;",
-          "expect": "1 {no such column: t9.c1}"
-        }
-      ]
-    },
-    {
-      "name": "misc1-15.1.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t10 AS SELECT main.t9.c1;",
-          "expect": "1 {no such column: main.t9.c1}"
-        }
-      ]
-    },
-    {
-      "name": "misc1-15.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t10 AS SELECT 1;",
-          "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "misc1-16.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT name FROM sqlite_master LIMIT 1",
-          "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "misc1-16.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE test(a integer, primary key(a));",
-          "expect": "1 {table test already exists}"
-        }
-      ]
-    },
-    {
-      "name": "misc1-16.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE test2(a text primary key, b text, primary key(a,b));",
-          "expect": "1 {table \"test2\" has more than one primary key}"
-        }
-      ]
-    },
-    {
-      "name": "misc1-16.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "INSERT INTO test VALUES(1);\n    SELECT rowid, a FROM test;",
-          "expect": "1 1"
-        }
-      ]
-    },
-    {
-      "name": "misc1-16.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "INSERT INTO test VALUES(5);\n    SELECT rowid, a FROM test;",
-          "expect": "1 1 5 5"
-        }
-      ]
-    },
-    {
-      "name": "misc1-16.6",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "INSERT INTO test VALUES(NULL);\n    SELECT rowid, a FROM test;",
-          "expect": "1 1 5 5 6 6"
-        }
-      ]
-    },
-    {
-      "name": "misc1-17.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "BEGIN;\n    CREATE TABLE RealTable(TestID INTEGER PRIMARY KEY, TestString TEXT);\n    CREATE TEMP TABLE TempTable(TestID INTEGER PRIMARY KEY, TestString TEXT);\n    CREATE TEMP TRIGGER trigTest_1 AFTER UPDATE ON TempTable BEGIN\n      INSERT INTO RealTable(TestString) \n         SELECT new.TestString FROM TempTable LIMIT 1;\n    END;\n    INSERT INTO TempTable(TestString) VALUES ('1');\n    INSERT INTO TempTable(TestString) VALUES ('2');\n    UPDATE TempTable SET TestString = TestString + 1 WHERE TestID=1 OR TestId=2;\n    COMMIT;\n    SELECT TestString FROM RealTable ORDER BY 1;",
-          "expect": "2 3"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x0, x10, x25, x50, x75 FROM manycol"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x50 FROM manycol ORDER BY x80+0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x50 FROM manycol ORDER BY x80"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x75 FROM manycol WHERE x50=350"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x50 FROM manycol WHERE x99=599"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX manycol_idx1 ON manycol(x99)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x50 FROM manycol WHERE x99=899"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM manycol"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM manycol WHERE x98=1234"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM manycol"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM manycol WHERE x98=998"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM manycol"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM manycol WHERE x99=500"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM manycol"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM manycol WHERE x99=599"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM manycol"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN TRANSACTION;\n    CREATE TABLE agger(one text, two text, three text, four text);\n    INSERT INTO agger VALUES(1, 'one', 'hello', 'yes');\n    INSERT INTO agger VALUES(2, 'two', 'howdy', 'no');\n    INSERT INTO agger VALUES(3, 'thr', 'howareya', 'yes');\n    INSERT INTO agger VALUES(4, 'two', 'lothere', 'yes');\n    INSERT INTO agger VALUES(5, 'one', 'atcha', 'yes');\n    INSERT INTO agger VALUES(6, 'two', 'hello', 'no');\n    COMMIT"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM agger"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT sum(one), two, four FROM agger\n           GROUP BY two, four ORDER BY sum(one) desc"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT sum((one)), (two), (four) FROM agger\n           GROUP BY (two), (four) ORDER BY sum(one) desc"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES('hi');\n    PRAGMA full_column_names=on;\n    SELECT rowid, * FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES('This is a long string to use up a lot of disk -');\n    UPDATE t2 SET a=a||a||a||a;\n    INSERT INTO t2 SELECT '1 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '2 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '3 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '4 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '5 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '6 - ' || a FROM t2;\n    COMMIT;\n    SELECT count(*) FROM t2;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t3 ORDER BY a;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t4"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT abort+asc,max(key,pragma,temp) FROM t4"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t5(a,b,c,PRIMARY KEY(a,b));\n    INSERT INTO t5 VALUES(1,2,3);\n    SELECT * FROM t5 ORDER BY a;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t5 ORDER BY a;"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t1;\n  DROP TABLE t2;\n  DROP TABLE t3;\n  DROP TABLE t4;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM manycol"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM manycol"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x1 FROM manycol WHERE x0=100"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x1 FROM manycol WHERE x0=100"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x1 FROM manycol WHERE x0=100"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET a=0 WHERE 0"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT '0'=='0.0'"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT '0'==0.0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT '12345678901234567890'=='12345678901234567891'"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t6(a INT UNIQUE, b TEXT UNIQUE);\n    INSERT INTO t6 VALUES('0','0.0');\n    SELECT * FROM t6;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT OR IGNORE INTO t6 VALUES(0.0,'x');\n      SELECT * FROM t6;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT OR IGNORE INTO t6 VALUES('y',0);\n      SELECT * FROM t6;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t7(x INTEGER, y TEXT, z);\n    INSERT INTO t7 VALUES(0,0,1);\n    INSERT INTO t7 VALUES(0.0,0,2);\n    INSERT INTO t7 VALUES(0,0.0,3);\n    INSERT INTO t7 VALUES(0.0,0.0,4);\n    SELECT DISTINCT x, y FROM t7 ORDER BY z;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT min(z), max(z), count(z) FROM t7 GROUP BY x ORDER BY 1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT min(z), max(z), count(z) FROM t7 GROUP BY y ORDER BY 1;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t8(x TEXT COLLATE numeric, y INTEGER COLLATE text, z);\n    INSERT INTO t8 VALUES(0,0,1);\n    INSERT INTO t8 VALUES(0.0,0,2);\n    INSERT INTO t8 VALUES(0,0.0,3);\n    INSERT INTO t8 VALUES(0.0,0.0,4);\n    SELECT DISTINCT x, y FROM t8 ORDER BY z;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT min(z), max(z), count(z) FROM t8 GROUP BY x ORDER BY 1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT min(z), max(z), count(z) FROM t8 GROUP BY y ORDER BY 1;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t9(x,y);\n       INSERT INTO t9 VALUES('one',1);\n       INSERT INTO t9 VALUES('two',2);\n       INSERT INTO t9 VALUES('three',3);\n       INSERT INTO t9 VALUES('four',4);\n       INSERT INTO t9 VALUES('five',5);\n       INSERT INTO t9 VALUES('six',6);\n       INSERT INTO t9 VALUES('seven',7);\n       INSERT INTO t9 VALUES('eight',8);\n       INSERT INTO t9 VALUES('nine',9);\n       INSERT INTO t9 VALUES('ten',10);\n       INSERT INTO t9 VALUES('eleven',11);\n       SELECT y FROM t9\n       WHERE x=(SELECT x FROM t9 WHERE y=1)\n          OR x=(SELECT x FROM t9 WHERE y=2)\n          OR x=(SELECT x FROM t9 WHERE y=3)\n          OR x=(SELECT x FROM t9 WHERE y=4)\n          OR x=(SELECT x FROM t9 WHERE y=5)\n          OR x=(SELECT x FROM t9 WHERE y=6)\n          OR x=(SELECT x FROM t9 WHERE y=7)\n          OR x=(SELECT x FROM t9 WHERE y=8)\n          OR x=(SELECT x FROM t9 WHERE y=9)\n          OR x=(SELECT x FROM t9 WHERE y=10)\n          OR x=(SELECT x FROM t9 WHERE y=11)\n          OR x=(SELECT x FROM t9 WHERE y=12)\n          OR x=(SELECT x FROM t9 WHERE y=13)\n          OR x=(SELECT x FROM t9 WHERE y=14)\n       ;"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET a=a||'x' WHERE 0"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET a=a||'y' WHERE 1"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO test VALUES(1);\n    SELECT rowid, a FROM test;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO test VALUES(5);\n    SELECT rowid, a FROM test;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO test VALUES(NULL);\n    SELECT rowid, a FROM test;"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    CREATE TABLE RealTable(TestID INTEGER PRIMARY KEY, TestString TEXT);\n    CREATE TEMP TABLE TempTable(TestID INTEGER PRIMARY KEY, TestString TEXT);\n    CREATE TEMP TRIGGER trigTest_1 AFTER UPDATE ON TempTable BEGIN\n      INSERT INTO RealTable(TestString) \n         SELECT new.TestString FROM TempTable LIMIT 1;\n    END;\n    INSERT INTO TempTable(TestString) VALUES ('1');\n    INSERT INTO TempTable(TestString) VALUES ('2');\n    UPDATE TempTable SET TestString = TestString + 1 WHERE TestID=1 OR TestId=2;\n    COMMIT;\n    SELECT TestString FROM RealTable ORDER BY 1;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
     }
-  ],
-  "source": "capi"
+  ]
 }

@@ -1,68 +1,182 @@
 {
   "file": "coveridxscan.test",
   "name": "coveridxscan",
+  "ordered": true,
   "tests": [
+    {
+      "name": "coveridxscan-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(5,4,3), (4,8,2), (3,2,1);\n    CREATE INDEX t1ab ON t1(a,b);\n    CREATE INDEX t1b ON t1(b);\n    SELECT a FROM t1;",
+          "expect": "3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "coveridxscan-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, c FROM t1;",
+          "expect": "5 3 4 2 3 1"
+        }
+      ]
+    },
+    {
+      "name": "coveridxscan-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1;",
+          "expect": "2 4 8"
+        }
+      ]
+    },
+    {
+      "name": "coveridxscan-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "5 4 3"
+        }
+      ]
+    },
+    {
+      "name": "coveridxscan-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, c FROM t1",
+          "expect": "5 3 4 2 3 1"
+        }
+      ]
+    },
+    {
+      "name": "coveridxscan-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1",
+          "expect": "4 8 2"
+        }
+      ]
+    },
     {
       "name": "setup_0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(5,4,3), (4,8,2), (3,2,1);\n    CREATE INDEX t1ab ON t1(a,b);\n    CREATE INDEX t1b ON t1(b);\n    SELECT a FROM t1;"
+          "type": "close_db"
         },
         {
-          "type": "exec",
-          "sql": "SELECT a, c FROM t1;"
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "coveridxscan-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "5 4 3"
+        }
+      ]
+    },
+    {
+      "name": "coveridxscan-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, c FROM t1",
+          "expect": "5 3 4 2 3 1"
+        }
+      ]
+    },
+    {
+      "name": "coveridxscan-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1",
+          "expect": "4 8 2"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
         },
         {
-          "type": "exec",
-          "sql": "SELECT b FROM t1;"
-        },
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "coveridxscan-4.1",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT a FROM t1"
-        },
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "coveridxscan-4.2",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT a, c FROM t1"
-        },
+          "type": "query",
+          "sql": "SELECT a, c FROM t1",
+          "expect": "5 3 4 2 3 1"
+        }
+      ]
+    },
+    {
+      "name": "coveridxscan-4.3",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT b FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, c FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT b FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, c FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT b FROM t1"
+          "type": "query",
+          "sql": "SELECT b FROM t1",
+          "expect": "2 4 8"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "coveridxscan-5.1.0",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c, c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23,c24,c25,c26,c27,c28,c29,c30,c31,c32,c33,c34,c35,c36,c37,c38,c39,c40,c41,c42,c43,c44,c45,c46,c47,c48,c49,c50,c51,c52,c53,c54,c55,c56,c57,c58,c59,c60,c61,c62,c63,c64,c65,c66,c67,c68,c69,c70,c71,c72,c73,c74,c75,c76,c77,c78,c79,c80,c81,c82,c83,c84,c85,c86,c87,c88,c89,c90,c91,c92,c93,c94,c95,c96,c97,c98,c99,c100,c101,c102,c103,c104,c105,c106,c107,c108,c109,c110,c111,c112,c113,c114,c115,c116,c117,c118,c119, PRIMARY KEY(a, b, c)) WITHOUT ROWID;\n  CREATE INDEX i1 ON t1(c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23,c24,c25,c26,c27,c28,c29,c30,c31,c32,c33,c34,c35,c36,c37,c38,c39,c40,c41,c42,c43,c44,c45,c46,c47,c48,c49,c50,c51,c52,c53,c54,c55,c56,c57,c58,c59,c60,c61,c62,c63,c64,c65,c66,c67,c68,c69,c70,c71,c72,c73,c74,c75,c76,c77,c78,c79,c80,c81,c82,c83,c84,c85,c86,c87,c88,c89,c90,c91,c92,c93,c94,c95,c96,c97,c98,c99,c100,c101,c102,c103,c104,c105,c106,c107,c108,c109,c110,c111,c112,c113,c114,c115,c116,c117,c118,c119);\n\n  CREATE TABLE t2(i INTEGER PRIMARY KEY, c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23,c24,c25,c26,c27,c28,c29,c30,c31,c32,c33,c34,c35,c36,c37,c38,c39,c40,c41,c42,c43,c44,c45,c46,c47,c48,c49,c50,c51,c52,c53,c54,c55,c56,c57,c58,c59,c60,c61,c62,c63,c64,c65,c66,c67,c68,c69,c70,c71,c72,c73,c74,c75,c76,c77,c78,c79,c80,c81,c82,c83,c84,c85,c86,c87,c88,c89,c90,c91,c92,c93,c94,c95,c96,c97,c98,c99,c100,c101,c102,c103,c104,c105,c106,c107,c108,c109,c110,c111,c112,c113,c114,c115,c116,c117,c118,c119);\n  CREATE INDEX i2 ON t2(c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23,c24,c25,c26,c27,c28,c29,c30,c31,c32,c33,c34,c35,c36,c37,c38,c39,c40,c41,c42,c43,c44,c45,c46,c47,c48,c49,c50,c51,c52,c53,c54,c55,c56,c57,c58,c59,c60,c61,c62,c63,c64,c65,c66,c67,c68,c69,c70,c71,c72,c73,c74,c75,c76,c77,c78,c79,c80,c81,c82,c83,c84,c85,c86,c87,c88,c89,c90,c91,c92,c93,c94,c95,c96,c97,c98,c99,c100,c101,c102,c103,c104,c105,c106,c107,c108,c109,c110,c111,c112,c113,c114,c115,c116,c117,c118,c119);"
+        }
+      ]
+    },
+    {
+      "name": "coveridxscan-5.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1 ORDER BY c1, c2;"
+        }
+      ]
+    },
+    {
+      "name": "coveridxscan-5.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t2 ORDER BY c1, c2;"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

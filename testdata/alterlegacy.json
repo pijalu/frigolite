@@ -76,6 +76,14 @@
       "steps": null
     },
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_echo_module"
+        }
+      ]
+    },
+    {
       "name": "alterlegacy-2.0",
       "steps": [
         {
@@ -92,6 +100,18 @@
           "type": "query",
           "sql": "ALTER TABLE eee RENAME TO fff;\n    SELECT * FROM fff;",
           "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         }
       ]
     },
@@ -249,6 +269,31 @@
       ]
     },
     {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "squish",
+          "callbackVars": {
+            "": "alterlegacy",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "alterlegacy"
+          },
+          "functionProc": "squish",
+          "functionArgs": [
+            "a"
+          ],
+          "functionBody": "\n  string trim [regsub -all {[[:space:]][[:space:]]*} $a { }]\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
       "name": "alterlegacy-4.2",
       "steps": [
         {
@@ -340,6 +385,54 @@
       ]
     },
     {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "",
+            " ": "[[:space:]][[:space:]]*",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "alterlegacy"
+          },
+          "callbackProcs": [
+            {
+              "Name": "squish",
+              "Args": [
+                "a"
+              ],
+              "Body": "\n  string trim [regsub -all {[[:space:]][[:space:]]*} $a { }]\n",
+              "Defaults": null
+            },
+            {
+              "Name": "tcl_command",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n    switch -- $method {\n      xConnect {\n        return \"CREATE TABLE t1(a, b, c)\"\n      }\n    }\n    return {}\n  ",
+              "Defaults": null
+            },
+            {
+              "Name": "trigger",
+              "Args": [
+                "args"
+              ],
+              "Body": "\n  lappend ::trigger $args\n",
+              "Defaults": null
+            }
+          ],
+          "moduleArgs": [
+            "db"
+          ]
+        }
+      ]
+    },
+    {
       "name": "alterlegacy-6.0",
       "steps": [
         {
@@ -370,6 +463,15 @@
     {
       "name": "__RESET_DB__",
       "steps": null
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
     },
     {
       "name": "alterlegacy-8.1",
@@ -444,6 +546,15 @@
       ]
     },
     {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
       "name": "alterlegacy-9.4",
       "steps": [
         {
@@ -508,6 +619,37 @@
       "steps": null
     },
     {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "trigger",
+          "callbackVars": {
+            "": "",
+            " ": "[[:space:]][[:space:]]*",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "alterlegacy"
+          },
+          "functionProc": "trigger",
+          "minArgs": -1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
       "name": "alterlegacy-11.0",
       "steps": [
         {
@@ -522,6 +664,16 @@
         {
           "type": "exec",
           "sql": "INSERT INTO main.t1 VALUES(1, 2, 3);\n  INSERT INTO aux.t1 VALUES(4, 5, 6);"
+        }
+      ]
+    },
+    {
+      "name": "alterlegacy-11.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "trigger",
+          "expect": "{4 5 6}"
         }
       ]
     },
@@ -561,6 +713,16 @@
         {
           "type": "exec",
           "sql": "INSERT INTO aux.t2 VALUES(7, 8, 9);"
+        }
+      ]
+    },
+    {
+      "name": "alterlegacy-11.7",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "trigger",
+          "expect": "{4 5 6} {7 8 9}"
         }
       ]
     },

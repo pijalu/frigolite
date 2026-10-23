@@ -1,17 +1,2005 @@
 {
   "file": "orderby8.test",
   "name": "orderby8",
+  "ordered": true,
   "tests": [
     {
-      "name": "setup_0",
+      "name": "orderby8-1.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1),(5),(9),(7),(3),(2),(4),(6),(8);"
-        },
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1),(5),(9),(7),(3),(2),(4),(6),(8);",
+          "expect": "x"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.1",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT $::result_set FROM t1 ORDER BY x LIMIT -1"
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.2",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.3",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.4",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.5",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.6",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.7",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.8",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.9",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.10",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.11",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.12",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.13",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.14",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.15",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.16",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.17",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.18",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.19",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.20",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.21",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.22",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.23",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.24",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.25",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.26",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.27",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.28",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.29",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.30",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.31",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.32",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.33",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.34",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.35",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.36",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.37",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.38",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.39",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.40",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.41",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.42",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.43",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.44",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.45",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.46",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.47",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.48",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.49",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.50",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.51",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.52",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.53",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.54",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.55",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.56",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.57",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.58",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.59",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.60",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.61",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.62",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.63",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.64",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.65",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.66",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.67",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.68",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.69",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.70",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.71",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.72",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.73",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.74",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.75",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.76",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.77",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.78",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.79",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.80",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.81",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.82",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.83",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.84",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.85",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.86",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.87",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.88",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.89",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.90",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.91",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.92",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.93",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.94",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.95",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.96",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.97",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.98",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.99",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.100",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.101",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.102",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.103",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.104",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.105",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.106",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.107",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.108",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.109",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.110",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.111",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.112",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.113",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.114",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.115",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.116",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.117",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.118",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.119",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.120",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.121",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.122",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.123",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.124",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.125",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.126",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.127",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.128",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.129",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.130",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.131",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.132",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.133",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.134",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.135",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.136",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.137",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.138",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.139",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.140",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.141",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.142",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.143",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.144",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.145",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.146",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.147",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.148",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.149",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.150",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.151",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.152",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.153",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.154",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.155",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.156",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.157",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.158",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.159",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.160",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.161",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.162",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.163",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.164",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.165",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.166",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.167",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.168",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.169",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.170",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.171",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.172",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.173",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172, x+173 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.174",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172, x+173, x+174 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.175",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172, x+173, x+174, x+175 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.176",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172, x+173, x+174, x+175, x+176 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.177",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172, x+173, x+174, x+175, x+176, x+177 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.178",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172, x+173, x+174, x+175, x+176, x+177, x+178 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.179",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172, x+173, x+174, x+175, x+176, x+177, x+178, x+179 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.180",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172, x+173, x+174, x+175, x+176, x+177, x+178, x+179, x+180 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.181",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172, x+173, x+174, x+175, x+176, x+177, x+178, x+179, x+180, x+181 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.182",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172, x+173, x+174, x+175, x+176, x+177, x+178, x+179, x+180, x+181, x+182 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.183",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172, x+173, x+174, x+175, x+176, x+177, x+178, x+179, x+180, x+181, x+182, x+183 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.184",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172, x+173, x+174, x+175, x+176, x+177, x+178, x+179, x+180, x+181, x+182, x+183, x+184 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.185",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172, x+173, x+174, x+175, x+176, x+177, x+178, x+179, x+180, x+181, x+182, x+183, x+184, x+185 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.186",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172, x+173, x+174, x+175, x+176, x+177, x+178, x+179, x+180, x+181, x+182, x+183, x+184, x+185, x+186 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.187",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172, x+173, x+174, x+175, x+176, x+177, x+178, x+179, x+180, x+181, x+182, x+183, x+184, x+185, x+186, x+187 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.188",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172, x+173, x+174, x+175, x+176, x+177, x+178, x+179, x+180, x+181, x+182, x+183, x+184, x+185, x+186, x+187, x+188 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.189",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172, x+173, x+174, x+175, x+176, x+177, x+178, x+179, x+180, x+181, x+182, x+183, x+184, x+185, x+186, x+187, x+188, x+189 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.190",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172, x+173, x+174, x+175, x+176, x+177, x+178, x+179, x+180, x+181, x+182, x+183, x+184, x+185, x+186, x+187, x+188, x+189, x+190 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.191",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172, x+173, x+174, x+175, x+176, x+177, x+178, x+179, x+180, x+181, x+182, x+183, x+184, x+185, x+186, x+187, x+188, x+189, x+190, x+191 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.192",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172, x+173, x+174, x+175, x+176, x+177, x+178, x+179, x+180, x+181, x+182, x+183, x+184, x+185, x+186, x+187, x+188, x+189, x+190, x+191, x+192 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.193",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172, x+173, x+174, x+175, x+176, x+177, x+178, x+179, x+180, x+181, x+182, x+183, x+184, x+185, x+186, x+187, x+188, x+189, x+190, x+191, x+192, x+193 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.194",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172, x+173, x+174, x+175, x+176, x+177, x+178, x+179, x+180, x+181, x+182, x+183, x+184, x+185, x+186, x+187, x+188, x+189, x+190, x+191, x+192, x+193, x+194 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.195",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172, x+173, x+174, x+175, x+176, x+177, x+178, x+179, x+180, x+181, x+182, x+183, x+184, x+185, x+186, x+187, x+188, x+189, x+190, x+191, x+192, x+193, x+194, x+195 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.196",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172, x+173, x+174, x+175, x+176, x+177, x+178, x+179, x+180, x+181, x+182, x+183, x+184, x+185, x+186, x+187, x+188, x+189, x+190, x+191, x+192, x+193, x+194, x+195, x+196 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.197",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172, x+173, x+174, x+175, x+176, x+177, x+178, x+179, x+180, x+181, x+182, x+183, x+184, x+185, x+186, x+187, x+188, x+189, x+190, x+191, x+192, x+193, x+194, x+195, x+196, x+197 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.198",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172, x+173, x+174, x+175, x+176, x+177, x+178, x+179, x+180, x+181, x+182, x+183, x+184, x+185, x+186, x+187, x+188, x+189, x+190, x+191, x+192, x+193, x+194, x+195, x+196, x+197, x+198 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "orderby8-1.199",
+      "steps": [
+        {
+          "type": "query_first_column",
+          "sql": "SELECT x, x+1, x+2, x+3, x+4, x+5, x+6, x+7, x+8, x+9, x+10, x+11, x+12, x+13, x+14, x+15, x+16, x+17, x+18, x+19, x+20, x+21, x+22, x+23, x+24, x+25, x+26, x+27, x+28, x+29, x+30, x+31, x+32, x+33, x+34, x+35, x+36, x+37, x+38, x+39, x+40, x+41, x+42, x+43, x+44, x+45, x+46, x+47, x+48, x+49, x+50, x+51, x+52, x+53, x+54, x+55, x+56, x+57, x+58, x+59, x+60, x+61, x+62, x+63, x+64, x+65, x+66, x+67, x+68, x+69, x+70, x+71, x+72, x+73, x+74, x+75, x+76, x+77, x+78, x+79, x+80, x+81, x+82, x+83, x+84, x+85, x+86, x+87, x+88, x+89, x+90, x+91, x+92, x+93, x+94, x+95, x+96, x+97, x+98, x+99, x+100, x+101, x+102, x+103, x+104, x+105, x+106, x+107, x+108, x+109, x+110, x+111, x+112, x+113, x+114, x+115, x+116, x+117, x+118, x+119, x+120, x+121, x+122, x+123, x+124, x+125, x+126, x+127, x+128, x+129, x+130, x+131, x+132, x+133, x+134, x+135, x+136, x+137, x+138, x+139, x+140, x+141, x+142, x+143, x+144, x+145, x+146, x+147, x+148, x+149, x+150, x+151, x+152, x+153, x+154, x+155, x+156, x+157, x+158, x+159, x+160, x+161, x+162, x+163, x+164, x+165, x+166, x+167, x+168, x+169, x+170, x+171, x+172, x+173, x+174, x+175, x+176, x+177, x+178, x+179, x+180, x+181, x+182, x+183, x+184, x+185, x+186, x+187, x+188, x+189, x+190, x+191, x+192, x+193, x+194, x+195, x+196, x+197, x+198, x+199 FROM t1 ORDER BY x LIMIT -1",
+          "expect": "1 2 3 4 5 6 7 8 9"
         }
       ]
     }

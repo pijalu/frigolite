@@ -1,0 +1,400 @@
+{
+  "file": "rtreecheck.test",
+  "name": "rtreecheck",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "rtreecheck-1.0",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT rtreecheck();",
+          "expect": "1 {wrong number of arguments to function rtreecheck()}"
+        }
+      ]
+    },
+    {
+      "name": "rtreecheck-1.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT rtreecheck(0,0,0);",
+          "expect": "1 {wrong number of arguments to function rtreecheck()}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "swap_int32",
+          "callbackVars": {
+            "": "rtreecheck",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "rtreecheck"
+          },
+          "functionProc": "swap_int32",
+          "functionArgs": [
+            "blob",
+            "i0",
+            "i1"
+          ],
+          "functionBody": "\n  binary scan $blob I* L\n\n  set a [lindex $L $i0]\n  set b [lindex $L $i1]\n\n  lset L $i0 $b\n  lset L $i1 $a\n\n  binary format I* $L\n",
+          "minArgs": 3,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE r1 USING rtree (id, x1, x2, y1, y2);\n    INSERT INTO r1 VALUES(1,  5, 5, 5, 5);  --  3\n    INSERT INTO r1 VALUES(2,  6, 6, 6, 6);  --  9\n    INSERT INTO r1 VALUES(3,  7, 7, 7, 7);  -- 15\n    INSERT INTO r1 VALUES(4,  8, 8, 8, 8);  -- 21\n    INSERT INTO r1 VALUES(5,  9, 9, 9, 9);  -- 27"
+        },
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
+    {
+      "name": "rtreecheck-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rtreecheck('r1')",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "rtreecheck-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE r1_node SET data = swap_int32(data, 3, 9);\n  UPDATE r1_node SET data = swap_int32(data, 23, 29);"
+        }
+      ]
+    },
+    {
+      "name": "rtreecheck-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rtreecheck('r1')",
+          "expect": "{Dimension 0 of cell 0 on node 1 is corrupt\nDimension 1 of cell 3 on node 1 is corrupt}"
+        }
+      ]
+    },
+    {
+      "name": "rtreecheck-2.3b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "{In RTree main.r1:\nDimension 0 of cell 0 on node 1 is corrupt\nDimension 1 of cell 3 on node 1 is corrupt}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "swap_int32",
+          "callbackVars": {
+            "": "rtreecheck",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "rtreecheck"
+          },
+          "functionProc": "swap_int32",
+          "functionArgs": [
+            "blob",
+            "i0",
+            "i1"
+          ],
+          "functionBody": "\n  binary scan $blob I* L\n\n  set a [lindex $L $i0]\n  set b [lindex $L $i1]\n\n  lset L $i0 $b\n  lset L $i1 $a\n\n  binary format I* $L\n",
+          "minArgs": 3,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE r1 USING rtree (id, x1, x2, y1, y2);\n    INSERT INTO r1 VALUES(1,  5, 5, 5, 5);  --  3\n    INSERT INTO r1 VALUES(2,  6, 6, 6, 6);  --  9\n    INSERT INTO r1 VALUES(3,  7, 7, 7, 7);  -- 15\n    INSERT INTO r1 VALUES(4,  8, 8, 8, 8);  -- 21\n    INSERT INTO r1 VALUES(5,  9, 9, 9, 9);  -- 27"
+        },
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
+    {
+      "name": "rtreecheck-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM r1_rowid WHERE rowid = 3;\n  SELECT rtreecheck('r1')",
+          "expect": "{Mapping (3 -\u003e 1) missing from %_rowid table\nWrong number of entries in %_rowid table - expected 5, actual 4}"
+        }
+      ]
+    },
+    {
+      "name": "rtreecheck-2.4b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "{In RTree main.r1:\nMapping (3 -\u003e 1) missing from %_rowid table\nWrong number of entries in %_rowid table - expected 5, actual 4}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "swap_int32",
+          "callbackVars": {
+            "": "rtreecheck",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "rtreecheck"
+          },
+          "functionProc": "swap_int32",
+          "functionArgs": [
+            "blob",
+            "i0",
+            "i1"
+          ],
+          "functionBody": "\n  binary scan $blob I* L\n\n  set a [lindex $L $i0]\n  set b [lindex $L $i1]\n\n  lset L $i0 $b\n  lset L $i1 $a\n\n  binary format I* $L\n",
+          "minArgs": 3,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE r1 USING rtree (id, x1, x2, y1, y2);\n    INSERT INTO r1 VALUES(1,  5, 5, 5, 5);  --  3\n    INSERT INTO r1 VALUES(2,  6, 6, 6, 6);  --  9\n    INSERT INTO r1 VALUES(3,  7, 7, 7, 7);  -- 15\n    INSERT INTO r1 VALUES(4,  8, 8, 8, 8);  -- 21\n    INSERT INTO r1 VALUES(5,  9, 9, 9, 9);  -- 27"
+        },
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
+    {
+      "name": "rtreecheck-2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE r1_rowid SET nodeno=2 WHERE rowid=3;\n  SELECT rtreecheck('r1')",
+          "expect": "{Found (3 -\u003e 2) in %_rowid table, expected (3 -\u003e 1)}"
+        }
+      ]
+    },
+    {
+      "name": "rtreecheck-2.5b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "{In RTree main.r1:\nFound (3 -\u003e 2) in %_rowid table, expected (3 -\u003e 1)}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rtreecheck-3.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE r1 USING rtree_i32(id, x1, x2);\n  INSERT INTO r1 VALUES(1, 0x7FFFFFFF*-1, 0x7FFFFFFF);\n  INSERT INTO r1 VALUES(2, 0x7FFFFFFF*-1, 5);\n  INSERT INTO r1 VALUES(3, -5, 5);\n  INSERT INTO r1 VALUES(4, 5, 0x11111111);\n  INSERT INTO r1 VALUES(5, 5, 0x00800000);\n  INSERT INTO r1 VALUES(6, 5, 0x00008000);\n  INSERT INTO r1 VALUES(7, 5, 0x00000080);\n  INSERT INTO r1 VALUES(8, 5, 0x40490fdb);\n  INSERT INTO r1 VALUES(9, 0x7f800000, 0x7f900000);\n  SELECT rtreecheck('r1');\n  PRAGMA integrity_check;",
+          "expect": "ok ok"
+        }
+      ]
+    },
+    {
+      "name": "rtreecheck-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE r2 USING rtree_i32(id, x1, x2);\n  INSERT INTO r2 VALUES(2, -1*(1\u003c\u003c31), -1*(1\u003c\u003c31)+5);\n  SELECT rtreecheck('r2');\n  PRAGMA integrity_check;",
+          "expect": "ok ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
+    {
+      "name": "rtreecheck-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    UPDATE r2_node SET data = X'123456';\n    SELECT rtreecheck('r2')!='ok';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rtreecheck-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ROLLBACK;\n  UPDATE r2_node SET data = X'00001234';\n  SELECT rtreecheck('r2')!='ok';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rtreecheck-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "{In RTree main.r2:\nNode 1 is too small for cell count of 4660 (4 bytes)\nWrong number of entries in %_rowid table - expected 0, actual 1}"
+        }
+      ]
+    },
+    {
+      "name": "rtreecheck-4.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE notanrtree(i);\n  SELECT rtreecheck('notanrtree');",
+          "expect": "{Schema corrupt or not an rtree}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "set_int32",
+          "callbackVars": {
+            "": "rtreecheck",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "rtreecheck"
+          },
+          "functionProc": "set_int32",
+          "functionArgs": [
+            "blob",
+            "idx",
+            "val"
+          ],
+          "functionBody": "\n  binary scan $blob I* L\n  lset L $idx $val\n  binary format I* $L\n",
+          "minArgs": 3,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "rtreecheck-5.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE r3 USING rtree_i32(id, x1, x2, y1, y2);\n  WITH x(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i\u003c1000\n  )\n  INSERT INTO r3 SELECT i, i, i, i, i FROM x;"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
+    {
+      "name": "rtreecheck-5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    UPDATE r3_node SET data = set_int32(data, 3, 5000);\n    UPDATE r3_node SET data = set_int32(data, 4, 5000);\n    SELECT rtreecheck('r3')=='ok'",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rtreecheck-5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ROLLBACK;\n  BEGIN;\n    UPDATE r3_node SET data = set_int32(data, 3, 0);\n    UPDATE r3_node SET data = set_int32(data, 4, 0);\n    SELECT rtreecheck('r3')=='ok'",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rtreecheck-6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'utf16';\n  CREATE VIRTUAL TABLE t1 USING rtree(id, x, y);"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "rtreecheck-6.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT ( 'elvis' IN(SELECT rtreecheck('t1')) ) FROM (SELECT 1) GROUP BY 1;",
+          "expect": "0 0"
+        }
+      ]
+    }
+  ]
+}

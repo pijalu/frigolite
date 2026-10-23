@@ -1,6 +1,7 @@
 {
   "file": "printf.test",
   "name": "printf",
+  "ordered": true,
   "tests": [
     {
       "name": "printf-16.1",
@@ -17,7 +18,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('%!.20g', 13.0);"
+          "sql": "SELECT format('%!.20g', 13.0);",
+          "expect": "13.0"
         }
       ]
     },
@@ -26,7 +28,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('%.3e', 199990000.0);"
+          "sql": "SELECT format('%.3e', 199990000.0);",
+          "expect": "2.000e+08"
         }
       ]
     },
@@ -35,7 +38,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('%.3f', 199990000.0);"
+          "sql": "SELECT format('%.3f', 199990000.0);",
+          "expect": "199990000.000"
         }
       ]
     },
@@ -44,7 +48,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('%.3g', 199990000.0);"
+          "sql": "SELECT format('%.3g', 199990000.0);",
+          "expect": "2e+08"
         }
       ]
     },
@@ -53,7 +58,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('%.4e', 199990000.0);"
+          "sql": "SELECT format('%.4e', 199990000.0);",
+          "expect": "1.9999e+08"
         }
       ]
     },
@@ -62,7 +68,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('%.4f', 199990000.0);"
+          "sql": "SELECT format('%.4f', 199990000.0);",
+          "expect": "199990000.0000"
         }
       ]
     },
@@ -71,7 +78,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('%.4g', 199990000.0);"
+          "sql": "SELECT format('%.4g', 199990000.0);",
+          "expect": "2e+08"
         }
       ]
     },
@@ -80,7 +88,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('%.5e', 199990000.0);"
+          "sql": "SELECT format('%.5e', 199990000.0);",
+          "expect": "1.99990e+08"
         }
       ]
     },
@@ -89,7 +98,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('%.5f', 199990000.0);"
+          "sql": "SELECT format('%.5f', 199990000.0);",
+          "expect": "199990000.00000"
         }
       ]
     },
@@ -98,7 +108,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('%.5g', 199990000.0);"
+          "sql": "SELECT format('%.5g', 199990000.0);",
+          "expect": "1.9999e+08"
         }
       ]
     },
@@ -107,7 +118,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('%.30f',1.0000000000000000076e-50);"
+          "sql": "SELECT format('%.30f',1.0000000000000000076e-50);",
+          "expect": "0.000000000000000000000000000000"
         }
       ]
     },
@@ -116,7 +128,20 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('%!.0e',-1e100);"
+          "sql": "SELECT format('%!.0e',-1e100);",
+          "expect": "-1.0e+100"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         }
       ]
     },
@@ -161,6 +186,96 @@
       ]
     },
     {
+      "name": "printf-20.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('{%!.3J:5}','abcdefg')-\u003e\u003e'abc';",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "printf-20.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('{%!.3J:5}','αβγδεζη')-\u003e\u003e'αβγ';",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "printf-20.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('{%.6J:5}','abcdefg')-\u003e\u003e'abcdef';",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "printf-20.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('{%.6J:5}','αβγδεζη')-\u003e\u003e'αβγ';",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "printf-20.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('{\"%!.3j\":5}','abcdefg')-\u003e\u003e'abc';",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "printf-20.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('{\"%!.3j\":5}','αβγδεζη')-\u003e\u003e'αβγ';",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "printf-20.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('{\"%.6j\":5}','abcdefg')-\u003e\u003e'abcdef';",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "printf-20.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('{\"%.6j\":5}','αβγδεζη')-\u003e\u003e'αβγ';",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "printf-20.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH RECURSIVE c(n,t) AS (\n    VALUES(1,char(1))\n    UNION ALL\n    SELECT n+1, t||char(n+1) FROM c WHERE n\u003c0x7e\n  )\n  SELECT hex(format('{\"a\":%J}',t)-\u003e\u003e'a') FROM c WHERE n=0x7e;",
+          "expect": "0102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F202122232425262728292A2B2C2D2E2F303132333435363738393A3B3C3D3E3F404142434445464748494A4B4C4D4E4F505152535455565758595A5B5C5D5E5F606162636465666768696A6B6C6D6E6F707172737475767778797A7B7C7D7E"
+        }
+      ]
+    },
+    {
       "name": "printf-20.10",
       "steps": [
         {
@@ -175,8 +290,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('<%6J>','\u3044\u3061');",
-          "expect": "<\\\"\u3044\u3061\\\">"
+          "sql": "SELECT format('\u003c%6J\u003e','いち');",
+          "expect": "\u003c\\\"いち\\\"\u003e"
         }
       ]
     },
@@ -185,8 +300,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('<%!6J>','\u3044\u3061');",
-          "expect": "{<  \"\u3044\u3061\">}"
+          "sql": "SELECT format('\u003c%!6J\u003e','いち');",
+          "expect": "{\u003c  \"いち\"\u003e}"
         }
       ]
     },
@@ -195,8 +310,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('<%!-6J>','\u3044\u3061');",
-          "expect": "{<\"\u3044\u3061\"  >}"
+          "sql": "SELECT format('\u003c%!-6J\u003e','いち');",
+          "expect": "{\u003c\"いち\"  \u003e}"
         }
       ]
     },
@@ -205,8 +320,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('<%6.8J>','\u3044\u3061, \u306b, \u3055\u3093');",
-          "expect": "{<\"\u3044\u3061, \">}"
+          "sql": "SELECT format('\u003c%6.8J\u003e','いち, に, さん');",
+          "expect": "{\u003c\"いち, \"\u003e}"
         }
       ]
     },
@@ -215,8 +330,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('<%!6.2J>','\u3044\u3061, \u306b, \u3055\u3093');",
-          "expect": "{<  \"\u3044\u3061\">}"
+          "sql": "SELECT format('\u003c%!6.2J\u003e','いち, に, さん');",
+          "expect": "{\u003c  \"いち\"\u003e}"
         }
       ]
     },
@@ -225,8 +340,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('<%!-6.2J>','\u3044\u3061, \u306b, \u3055\u3093');",
-          "expect": "{<\"\u3044\u3061\"  >}"
+          "sql": "SELECT format('\u003c%!-6.2J\u003e','いち, に, さん');",
+          "expect": "{\u003c\"いち\"  \u003e}"
         }
       ]
     },
@@ -235,8 +350,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('<%6j>','\u3044\u3061');",
-          "expect": "{<\u3044\u3061>}"
+          "sql": "SELECT format('\u003c%6j\u003e','いち');",
+          "expect": "{\u003cいち\u003e}"
         }
       ]
     },
@@ -245,8 +360,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('<%!6j>','\u3044\u3061');",
-          "expect": "{<    \u3044\u3061>}"
+          "sql": "SELECT format('\u003c%!6j\u003e','いち');",
+          "expect": "{\u003c    いち\u003e}"
         }
       ]
     },
@@ -255,8 +370,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('<%!-6j>','\u3044\u3061');",
-          "expect": "{<\u3044\u3061    >}"
+          "sql": "SELECT format('\u003c%!-6j\u003e','いち');",
+          "expect": "{\u003cいち    \u003e}"
         }
       ]
     },
@@ -265,8 +380,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('<%6.8j>','\u3044\u3061, \u306b, \u3055\u3093');",
-          "expect": "{<\u3044\u3061,   >}"
+          "sql": "SELECT format('\u003c%6.8j\u003e','いち, に, さん');",
+          "expect": "{\u003cいち,   \u003e}"
         }
       ]
     },
@@ -275,8 +390,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('<%!6.2j>','\u3044\u3061, \u306b, \u3055\u3093');",
-          "expect": "{<    \u3044\u3061>}"
+          "sql": "SELECT format('\u003c%!6.2j\u003e','いち, に, さん');",
+          "expect": "{\u003c    いち\u003e}"
         }
       ]
     },
@@ -285,8 +400,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('<%!-6.2j>','\u3044\u3061, \u306b, \u3055\u3093');",
-          "expect": "{<\u3044\u3061    >}"
+          "sql": "SELECT format('\u003c%!-6.2j\u003e','いち, に, さん');",
+          "expect": "{\u003cいち    \u003e}"
         }
       ]
     },
@@ -295,8 +410,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('<%.7j>','abc\"\"\"def');",
-          "expect": "{<abc\\\"\\\"\\\"d>}"
+          "sql": "SELECT format('\u003c%.7j\u003e','abc\"\"\"def');",
+          "expect": "{\u003cabc\\\"\\\"\\\"d\u003e}"
         }
       ]
     },
@@ -305,8 +420,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('<%j>','abc'||char(0x1f)||'def');",
-          "expect": "{<abc\\u001fdef>}"
+          "sql": "SELECT format('\u003c%j\u003e','abc'||char(0x1f)||'def');",
+          "expect": "{\u003cabc\\u001fdef\u003e}"
         }
       ]
     },
@@ -315,8 +430,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('<%.4j>','a\"b\"c');",
-          "expect": "{<a\\\"b\\\">}"
+          "sql": "SELECT format('\u003c%.4j\u003e','a\"b\"c');",
+          "expect": "{\u003ca\\\"b\\\"\u003e}"
         }
       ]
     },
@@ -325,8 +440,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('<%.1J>','abcdef');",
-          "expect": "{<\"a\">}"
+          "sql": "SELECT format('\u003c%.1J\u003e','abcdef');",
+          "expect": "{\u003c\"a\"\u003e}"
         }
       ]
     },
@@ -335,19 +450,10 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT format('<%.0J>','abcdef');",
-          "expect": "{<\"\">}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
+          "sql": "SELECT format('\u003c%.0J\u003e','abcdef');",
+          "expect": "{\u003c\"\"\u003e}"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

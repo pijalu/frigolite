@@ -1,6 +1,7 @@
 {
   "file": "e_select.test",
   "name": "e_select",
+  "ordered": true,
   "tests": [
     {
       "name": "e_select-1.0",
@@ -12,10 +13,100 @@
       ]
     },
     {
+      "name": "e_select-0.1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1 , t2 ON (t1.a=t2.a)",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "e_select-0.1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1 CROSS JOIN t2 ON (t1.a=t2.a)",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "e_select-0.1.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1 INNER JOIN t2 ON (t1.a=t2.a)",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "e_select-0.1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1 , t2 USING (a)",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "e_select-0.1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1 CROSS JOIN t2 USING (a)",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "e_select-0.1.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1 INNER JOIN t2 USING (a)",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "e_select-0.1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1 , t2",
+          "expect": "9"
+        }
+      ]
+    },
+    {
+      "name": "e_select-0.1.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1 CROSS JOIN t2",
+          "expect": "9"
+        }
+      ]
+    },
+    {
+      "name": "e_select-0.1.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1 INNER JOIN t2",
+          "expect": "9"
+        }
+      ]
+    },
+    {
       "name": "e_select-0.1.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT count(*) FROM t1, t2 ON (t1.a=t2.a) USING (a)",
           "expect": "1 {near \"USING\": syntax error}"
         }
@@ -25,9 +116,538 @@
       "name": "e_select-0.1.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT count(*) FROM t1, t2 USING (a) ON (t1.a=t2.a)",
           "expect": "1 {near \"ON\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-0.2.0000.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 1, 2, 3",
+          "expect": "1 2 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT 1, 2, 3",
+          "expect": "1 2 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ALL 1, 2, 3",
+          "expect": "1 2 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b, a||b FROM t1",
+          "expect": "a one aone b two btwo c three cthree"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT a, b, a||b FROM t1",
+          "expect": "a one aone b two btwo c three cthree"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ALL a, b, a||b FROM t1",
+          "expect": "a one aone b two btwo c three cthree"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1, 2, 3 WHERE 1",
+          "expect": "1 2 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1, 2, 3 WHERE 0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1, 2, 3 WHERE NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT 1, 2, 3 WHERE 1",
+          "expect": "1 2 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ALL 1, 2, 3 WHERE 1",
+          "expect": "1 2 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b, a||b FROM t1 WHERE a!='x'",
+          "expect": "a one aone b two btwo c three cthree"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b, a||b FROM t1 WHERE a=='x'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT a, b, a||b FROM t1 WHERE a!='x'",
+          "expect": "a one aone b two btwo c three cthree"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ALL a, b, a||b FROM t1 WHERE a=='x'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1, 2, 3 GROUP BY 2",
+          "expect": "1 2 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1, 2, 3 GROUP BY 2 HAVING count(*)=1",
+          "expect": "1 2 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1, 2, 3 GROUP BY 2 HAVING count(*)\u003e1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT 1, 2, 3 GROUP BY 2",
+          "expect": "1 2 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT 1, 2, 3 GROUP BY 2 HAVING count(*)=1",
+          "expect": "1 2 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT 1, 2, 3 GROUP BY 2 HAVING count(*)\u003e1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ALL 1, 2, 3 GROUP BY 2",
+          "expect": "1 2 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ALL 1, 2, 3 GROUP BY 2 HAVING count(*)=1",
+          "expect": "1 2 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ALL 1, 2, 3 GROUP BY 2 HAVING count(*)\u003e1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), max(a) FROM t1 GROUP BY b",
+          "expect": "1 a 1 c 1 b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), max(a) FROM t1 GROUP BY b HAVING count(*)=1",
+          "expect": "1 a 1 c 1 b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), max(a) FROM t1 GROUP BY b HAVING count(*)=2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT count(*), max(a) FROM t1 GROUP BY b",
+          "expect": "1 a 1 c 1 b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT count(*), max(a) FROM t1 \n           GROUP BY b HAVING count(*)=1",
+          "expect": "1 a 1 c 1 b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT count(*), max(a) FROM t1 \n           GROUP BY b HAVING count(*)=2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ALL count(*), max(a) FROM t1 GROUP BY b",
+          "expect": "1 a 1 c 1 b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ALL count(*), max(a) FROM t1 \n           GROUP BY b HAVING count(*)=1",
+          "expect": "1 a 1 c 1 b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ALL count(*), max(a) FROM t1 \n           GROUP BY b HAVING count(*)=2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1, 2, 3 WHERE 1 GROUP BY 2",
+          "expect": "1 2 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1, 2, 3 WHERE 0 GROUP BY 2 HAVING count(*)=1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1, 2, 3 WHERE 0 GROUP BY 2 HAVING count(*)\u003e1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT 1, 2, 3 WHERE 0 GROUP BY 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT 1, 2, 3 WHERE 1 GROUP BY 2 HAVING count(*)=1",
+          "expect": "1 2 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT 1, 2, 3 WHERE NULL GROUP BY 2 HAVING count(*)\u003e1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ALL 1, 2, 3 WHERE 1 GROUP BY 2",
+          "expect": "1 2 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ALL 1, 2, 3 WHERE 0 GROUP BY 2 HAVING count(*)=1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ALL 1, 2, 3 WHERE 'abc' GROUP BY 2 HAVING count(*)\u003e1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), max(a) FROM t1 WHERE a='a' GROUP BY b",
+          "expect": "1 a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), max(a) FROM t1 \n           WHERE a='c' GROUP BY b HAVING count(*)=1",
+          "expect": "1 c"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), max(a) FROM t1 \n           WHERE 0 GROUP BY b HAVING count(*)=2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT count(*), max(a) FROM t1 WHERE a\u003c'c' GROUP BY b",
+          "expect": "1 a 1 b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT count(*), max(a) FROM t1 WHERE a\u003e'a'\n           GROUP BY b HAVING count(*)=1",
+          "expect": "1 c 1 b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT count(*), max(a) FROM t1 WHERE 0\n           GROUP BY b HAVING count(*)=2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ALL count(*), max(a) FROM t1 WHERE b\u003e'one' GROUP BY b",
+          "expect": "1 c 1 b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ALL count(*), max(a) FROM t1 WHERE a!='b'\n           GROUP BY b HAVING count(*)=1",
+          "expect": "1 a 1 c"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ALL count(*), max(a) FROM t1 \n           WHERE 0 GROUP BY b HAVING count(*)=2"
+        }
+      ]
+    },
+    {
+      "name": "e_select-0.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "a one b two c three"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t1.* FROM t1",
+          "expect": "a one b two c three"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 'x'||a||'x' FROM t1",
+          "expect": "xax xbx xcx"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 'x'||a||'x' alias FROM t1",
+          "expect": "xax xbx xcx"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 'x'||a||'x' AS alias FROM t1",
+          "expect": "xax xbx xcx"
+        }
+      ]
+    },
+    {
+      "name": "e_select-0.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT t1.rowid FROM t1",
+          "expect": "1 2 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t1.rowid FROM t1,t2",
+          "expect": "1 1 1 2 2 2 3 3 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t1.rowid FROM t1,t2,t3",
+          "expect": "1 1 1 1 1 1 2 2 2 2 2 2 3 3 3 3 3 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t1.rowid FROM t1",
+          "expect": "1 2 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t1.rowid FROM t1 JOIN t2",
+          "expect": "1 1 1 2 2 2 3 3 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t1.rowid FROM t1 JOIN t2 JOIN t3",
+          "expect": "1 1 1 1 1 1 2 2 2 2 2 2 3 3 3 3 3 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t1.rowid FROM t1 NATURAL JOIN t3",
+          "expect": "1 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t1.rowid FROM t1 NATURAL LEFT OUTER JOIN t3",
+          "expect": "1 2 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t1.rowid FROM t1 NATURAL LEFT JOIN t3",
+          "expect": "1 2 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t1.rowid FROM t1 NATURAL INNER JOIN t3",
+          "expect": "1 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t1.rowid FROM t1 NATURAL CROSS JOIN t3",
+          "expect": "1 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t1.rowid FROM t1 JOIN t3",
+          "expect": "1 1 2 2 3 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t1.rowid FROM t1 LEFT OUTER JOIN t3",
+          "expect": "1 1 2 2 3 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t1.rowid FROM t1 LEFT JOIN t3",
+          "expect": "1 1 2 2 3 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t1.rowid FROM t1 INNER JOIN t3",
+          "expect": "1 1 2 2 3 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t1.rowid FROM t1 CROSS JOIN t3",
+          "expect": "1 1 2 2 3 3"
+        }
+      ]
+    },
+    {
+      "name": "e_select-0.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 UNION ALL SELECT rowid+2 FROM t4",
+          "expect": "1 2 3 3 4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 UNION     SELECT rowid+2 FROM t4",
+          "expect": "1 2 3 4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 INTERSECT SELECT rowid+2 FROM t4",
+          "expect": "3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 EXCEPT    SELECT rowid+2 FROM t4",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "e_select-0.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b||a FROM t1 ORDER BY b||a",
+          "expect": "onea threec twob"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b||a FROM t1 ORDER BY (b||a) COLLATE nocase",
+          "expect": "onea threec twob"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b||a FROM t1 ORDER BY (b||a) ASC",
+          "expect": "onea threec twob"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b||a FROM t1 ORDER BY (b||a) DESC",
+          "expect": "twob threec onea"
+        }
+      ]
+    },
+    {
+      "name": "e_select-0.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "a one b two c three"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY b",
+          "expect": "a one c three b two"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY b, a",
+          "expect": "a one c three b two"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 LIMIT 10",
+          "expect": "a one b two c three"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 LIMIT 10 OFFSET 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 LIMIT 10, 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY a LIMIT 10",
+          "expect": "a one b two c three"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY b LIMIT 10 OFFSET 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY a,b LIMIT 10, 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 UNION SELECT b, a FROM t1",
+          "expect": "a one b two c three one a three c two b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 UNION SELECT b, a FROM t1 ORDER BY b",
+          "expect": "one a two b three c a one c three b two"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 UNION SELECT b, a FROM t1 ORDER BY b, a",
+          "expect": "one a two b three c a one c three b two"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 UNION SELECT b, a FROM t1 LIMIT 10",
+          "expect": "a one b two c three one a three c two b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 UNION SELECT b, a FROM t1 LIMIT 10 OFFSET 5",
+          "expect": "two b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 UNION SELECT b, a FROM t1 LIMIT 10, 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 UNION SELECT b, a FROM t1 ORDER BY a LIMIT 10",
+          "expect": "a one b two c three one a three c two b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 UNION SELECT b, a FROM t1 ORDER BY b LIMIT 10 OFFSET 5",
+          "expect": "b two"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 UNION SELECT b, a FROM t1 ORDER BY a,b LIMIT 10, 5"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 'abc'",
+          "expect": "abc"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 'abc' WHERE NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT NULL",
+          "expect": "{}"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*)",
+          "expect": "1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) WHERE 0",
+          "expect": "0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) WHERE 1",
+          "expect": "1"
         }
       ]
     },
@@ -41,6 +661,36 @@
       ]
     },
     {
+      "name": "e_select-1.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT quote(x), quote(y) FROM xx",
+          "expect": "'IiJlsIPepMuAhU' X'10B00B897A15BAA02E3F98DCE8F2' NULL -16.87 -17.89 'linguistically'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), count(x), count(y) FROM xx",
+          "expect": "3 2 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(x), sum(y) FROM xx",
+          "expect": "-17.89 -16.87"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1, t2, t3",
+          "expect": "a one a I a 1 a one a I b 2 a one b II a 1 a one b II b 2 a one c III a 1 a one c III b 2 b two a I a 1 b two a I b 2 b two b II a 1 b two b II b 2 b two c III a 1 b two c III b 2 c three a I a 1 c three a I b 2 c three b II a 1 c three b II b 2 c three c III a 1 c three c III b 2"
+        }
+      ]
+    },
+    {
       "name": "e_select-1.4.0",
       "steps": [
         {
@@ -50,11 +700,322 @@
       ]
     },
     {
+      "name": "e_select-1.4.1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1 , x2 LIMIT 1",
+          "expect": "24 converging -60.06 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1 CROSS JOIN x2 LIMIT 1",
+          "expect": "24 converging -60.06 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.1.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1 INNER JOIN x2 LIMIT 1",
+          "expect": "24 converging -60.06 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x2 , x1 LIMIT 1",
+          "expect": "-60.06 {} {} 24 converging"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x2 CROSS JOIN x1 LIMIT 1",
+          "expect": "-60.06 {} {} 24 converging"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.1.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x2 INNER JOIN x1 LIMIT 1",
+          "expect": "-60.06 {} {} 24 converging"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x3 , x2 LIMIT 1",
+          "expect": "-39.24 {} encompass -1 -60.06 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.1.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x3 CROSS JOIN x2 LIMIT 1",
+          "expect": "-39.24 {} encompass -1 -60.06 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.1.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x3 INNER JOIN x2 LIMIT 1",
+          "expect": "-39.24 {} encompass -1 -60.06 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.1.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x2 , x3 LIMIT 1",
+          "expect": "-60.06 {} {} -39.24 {} encompass -1"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.1.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x2 CROSS JOIN x3 LIMIT 1",
+          "expect": "-60.06 {} {} -39.24 {} encompass -1"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.1.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x2 INNER JOIN x3 LIMIT 1",
+          "expect": "-60.06 {} {} -39.24 {} encompass -1"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.2.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x2 , x3 ORDER BY +c, +f",
+          "expect": "-60.06 {} {} -39.24 {} encompass -1 -60.06 {} {} alerting {} -93.79 {} -60.06 {} {} coldest -96 dramatists 82.3 -60.06 {} {} conducting -87.24 37.56 {} -60.06 {} {} presenting 51 reformation dignified -58 {} 1.21 -39.24 {} encompass -1 -58 {} 1.21 alerting {} -93.79 {} -58 {} 1.21 coldest -96 dramatists 82.3 -58 {} 1.21 conducting -87.24 37.56 {} -58 {} 1.21 presenting 51 reformation dignified"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.2.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x2 CROSS JOIN x3 ORDER BY +c, +f",
+          "expect": "-60.06 {} {} -39.24 {} encompass -1 -60.06 {} {} alerting {} -93.79 {} -60.06 {} {} coldest -96 dramatists 82.3 -60.06 {} {} conducting -87.24 37.56 {} -60.06 {} {} presenting 51 reformation dignified -58 {} 1.21 -39.24 {} encompass -1 -58 {} 1.21 alerting {} -93.79 {} -58 {} 1.21 coldest -96 dramatists 82.3 -58 {} 1.21 conducting -87.24 37.56 {} -58 {} 1.21 presenting 51 reformation dignified"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.2.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x2 INNER JOIN x3 ORDER BY +c, +f",
+          "expect": "-60.06 {} {} -39.24 {} encompass -1 -60.06 {} {} alerting {} -93.79 {} -60.06 {} {} coldest -96 dramatists 82.3 -60.06 {} {} conducting -87.24 37.56 {} -60.06 {} {} presenting 51 reformation dignified -58 {} 1.21 -39.24 {} encompass -1 -58 {} 1.21 alerting {} -93.79 {} -58 {} 1.21 coldest -96 dramatists 82.3 -58 {} 1.21 conducting -87.24 37.56 {} -58 {} 1.21 presenting 51 reformation dignified"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.3.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM x1 , x2",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.3.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM x1 CROSS JOIN x2",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.3.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM x1 INNER JOIN x2",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x1, x2",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.3.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM x2 , x3",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.3.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM x2 CROSS JOIN x3",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.3.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM x2 INNER JOIN x3",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x2 JOIN x3",
+          "expect": "7"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.3.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM x3 , x1",
+          "expect": "15"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.3.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM x3 CROSS JOIN x1",
+          "expect": "15"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.3.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM x3 INNER JOIN x1",
+          "expect": "15"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.3.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x3 CROSS JOIN x1",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.3.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM x3 , x3",
+          "expect": "25"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.3.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM x3 CROSS JOIN x3",
+          "expect": "25"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.3.7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM x3 INNER JOIN x3",
+          "expect": "25"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.3.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x3 INNER JOIN x3 AS x4",
+          "expect": "8"
+        }
+      ]
+    },
+    {
       "name": "e_select-1.4.4.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1, t2"
+          "sql": "SELECT * FROM t1, t2",
+          "expect": "a one a I a one b II a one c III b two a I b two b II b two c III c three a I c three b II c three c III"
         }
       ]
     },
@@ -63,7 +1024,386 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 AS x, t1 AS y"
+          "sql": "SELECT * FROM t1 AS x, t1 AS y",
+          "expect": "a one a one a one b two a one c three b two a one b two b two b two c three c three a one c three b two c three c three"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 CROSS JOIN t2",
+          "expect": "a one a I a one b II a one c III b two a I b two b II b two c III c three a I c three b II c three c III"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 AS y CROSS JOIN t1 AS x",
+          "expect": "a one a one a one b two a one c three b two a one b two b two b two c three c three a one c three b two c three c three"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 INNER JOIN t2",
+          "expect": "a one a I a one b II a one c III b two a I b two b II b two c III c three a I c three b II c three c III"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 AS y INNER JOIN t1 AS x",
+          "expect": "a one a one a one b two a one c three b two a one b two b two b two c three c three a one c three b two c three c three"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 , t2 ON (1)",
+          "expect": "a one a I a one b II a one c III b two a I b two b II b two c III c three a I c three b II c three c III"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 CROSS JOIN t2 ON (1)",
+          "expect": "a one a I a one b II a one c III b two a I b two b II b two c III c three a I c three b II c three c III"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 INNER JOIN t2 ON (1)",
+          "expect": "a one a I a one b II a one c III b two a I b two b II b two c III c three a I c three b II c three c III"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 , t2 ON (0)"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 CROSS JOIN t2 ON (0)"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 INNER JOIN t2 ON (0)"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 , t2 ON (NULL)"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 CROSS JOIN t2 ON (NULL)"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 INNER JOIN t2 ON (NULL)"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 , t2 ON ('abc')"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 CROSS JOIN t2 ON ('abc')"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 INNER JOIN t2 ON ('abc')"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 , t2 ON ('1ab')",
+          "expect": "a one a I a one b II a one c III b two a I b two b II b two c III c three a I c three b II c three c III"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 CROSS JOIN t2 ON ('1ab')",
+          "expect": "a one a I a one b II a one c III b two a I b two b II b two c III c three a I c three b II c three c III"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 INNER JOIN t2 ON ('1ab')",
+          "expect": "a one a I a one b II a one c III b two a I b two b II b two c III c three a I c three b II c three c III"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 , t2 ON (0.9)",
+          "expect": "a one a I a one b II a one c III b two a I b two b II b two c III c three a I c three b II c three c III"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 CROSS JOIN t2 ON (0.9)",
+          "expect": "a one a I a one b II a one c III b two a I b two b II b two c III c three a I c three b II c three c III"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 INNER JOIN t2 ON (0.9)",
+          "expect": "a one a I a one b II a one c III b two a I b two b II b two c III c three a I c three b II c three c III"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 , t2 ON ('0.9')",
+          "expect": "a one a I a one b II a one c III b two a I b two b II b two c III c three a I c three b II c three c III"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 CROSS JOIN t2 ON ('0.9')",
+          "expect": "a one a I a one b II a one c III b two a I b two b II b two c III c three a I c three b II c three c III"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 INNER JOIN t2 ON ('0.9')",
+          "expect": "a one a I a one b II a one c III b two a I b two b II b two c III c three a I c three b II c three c III"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 , t2 ON (0.0)"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 CROSS JOIN t2 ON (0.0)"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 INNER JOIN t2 ON (0.0)"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.b, t2.b FROM t1 , t2 ON (t1.a = t2.a)",
+          "expect": "one I two II three III"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.b, t2.b FROM t1 CROSS JOIN t2 ON (t1.a = t2.a)",
+          "expect": "one I two II three III"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.9.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.b, t2.b FROM t1 INNER JOIN t2 ON (t1.a = t2.a)",
+          "expect": "one I two II three III"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.10.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.b, t2.b FROM t1 , t2 ON (t1.a = 'a')",
+          "expect": "one I one II one III"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.b, t2.b FROM t1 CROSS JOIN t2 ON (t1.a = 'a')",
+          "expect": "one I one II one III"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.10.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.b, t2.b FROM t1 INNER JOIN t2 ON (t1.a = 'a')",
+          "expect": "one I one II one III"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.11.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.b, t2.b \n        FROM t1 , t2 ON (CASE WHEN t1.a = 'a' THEN NULL ELSE 1 END)",
+          "expect": "two I two II two III three I three II three III"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.11.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.b, t2.b \n        FROM t1 CROSS JOIN t2 ON (CASE WHEN t1.a = 'a' THEN NULL ELSE 1 END)",
+          "expect": "two I two II two III three I three II three III"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.3.11.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.b, t2.b \n        FROM t1 INNER JOIN t2 ON (CASE WHEN t1.a = 'a' THEN NULL ELSE 1 END)",
+          "expect": "two I two II two III three I three II three III"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.4.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1, t3 USING (b)",
+          "expect": "1 {cannot join using column b - column not present in both tables}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t3, t1 USING (c)",
+          "expect": "1 {cannot join using column c - column not present in both tables}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t3, (SELECT a AS b, b AS c FROM t1) USING (a)",
+          "expect": "1 {cannot join using column a - column not present in both tables}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1, t3 USING (a)",
+          "expect": "a one 1 b two 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3, t4 USING (a,c)",
+          "expect": "b 2"
         }
       ]
     },
@@ -77,11 +1417,510 @@
       ]
     },
     {
+      "name": "e_select-1.6.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t5 , t6 USING (a)",
+          "expect": "AA cc cc BB dd DD"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.6.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t5 CROSS JOIN t6 USING (a)",
+          "expect": "AA cc cc BB dd DD"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.6.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t5 INNER JOIN t6 USING (a)",
+          "expect": "AA cc cc BB dd DD"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.6.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t6 , t5 USING (a)"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.6.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t6 CROSS JOIN t5 USING (a)"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.6.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t6 INNER JOIN t5 USING (a)"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.6.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT a COLLATE nocase, b FROM t6) , t5 USING (a)",
+          "expect": "aa cc cc bb DD dd"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.6.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT a COLLATE nocase, b FROM t6) CROSS JOIN t5 USING (a)",
+          "expect": "aa cc cc bb DD dd"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.6.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT a COLLATE nocase, b FROM t6) INNER JOIN t5 USING (a)",
+          "expect": "aa cc cc bb DD dd"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.6.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t5 , t6 USING (a,b)",
+          "expect": "AA cc"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.6.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t5 CROSS JOIN t6 USING (a,b)",
+          "expect": "AA cc"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.6.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t5 INNER JOIN t6 USING (a,b)",
+          "expect": "AA cc"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.6.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t6 , t5 USING (a,b)"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.6.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t6 CROSS JOIN t5 USING (a,b)"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.6.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t6 INNER JOIN t5 USING (a,b)"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.7.1a.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 , t2 USING (a)",
+          "expect": "a one I b two II c three III"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.7.1a.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 CROSS JOIN t2 USING (a)",
+          "expect": "a one I b two II c three III"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.7.1a.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 INNER JOIN t2 USING (a)",
+          "expect": "a one I b two II c three III"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.7.1b.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 , t2 ON (t1.a=t2.a)",
+          "expect": "a one a I b two b II c three c III"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.7.1b.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 CROSS JOIN t2 ON (t1.a=t2.a)",
+          "expect": "a one a I b two b II c three c III"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.7.1b.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 INNER JOIN t2 ON (t1.a=t2.a)",
+          "expect": "a one a I b two b II c three c III"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.7.2a.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 , t4 USING (a)",
+          "expect": "a 1 {} b 2 2"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.7.2a.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 CROSS JOIN t4 USING (a)",
+          "expect": "a 1 {} b 2 2"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.7.2a.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 INNER JOIN t4 USING (a)",
+          "expect": "a 1 {} b 2 2"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.7.2b.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 , t4 ON (t3.a=t4.a)",
+          "expect": "a 1 a {} b 2 b 2"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.7.2b.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 CROSS JOIN t4 ON (t3.a=t4.a)",
+          "expect": "a 1 a {} b 2 b 2"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.7.2b.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 INNER JOIN t4 ON (t3.a=t4.a)",
+          "expect": "a 1 a {} b 2 b 2"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.7.3a.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 , t4 USING (a,c)",
+          "expect": "b 2"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.7.3a.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 CROSS JOIN t4 USING (a,c)",
+          "expect": "b 2"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.7.3a.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 INNER JOIN t4 USING (a,c)",
+          "expect": "b 2"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.7.3b.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 , t4 ON (t3.a=t4.a AND t3.c=t4.c)",
+          "expect": "b 2 b 2"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.7.3b.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 CROSS JOIN t4 ON (t3.a=t4.a AND t3.c=t4.c)",
+          "expect": "b 2 b 2"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.7.3b.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 INNER JOIN t4 ON (t3.a=t4.a AND t3.c=t4.c)",
+          "expect": "b 2 b 2"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.7.4a.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT a COLLATE nocase, b FROM t6) AS x \n       , t5 USING (a)",
+          "expect": "aa cc cc bb DD dd"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.7.4a.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT a COLLATE nocase, b FROM t6) AS x \n       CROSS JOIN t5 USING (a)",
+          "expect": "aa cc cc bb DD dd"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.7.4a.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT a COLLATE nocase, b FROM t6) AS x \n       INNER JOIN t5 USING (a)",
+          "expect": "aa cc cc bb DD dd"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.7.4b.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT a COLLATE nocase, b FROM t6) AS x\n       , t5 ON (x.a=t5.a)",
+          "expect": "aa cc AA cc bb DD BB dd"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.7.4b.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT a COLLATE nocase, b FROM t6) AS x\n       CROSS JOIN t5 ON (x.a=t5.a)",
+          "expect": "aa cc AA cc bb DD BB dd"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.7.4b.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT a COLLATE nocase, b FROM t6) AS x\n       INNER JOIN t5 ON (x.a=t5.a)",
+          "expect": "aa cc AA cc bb DD BB dd"
+        }
+      ]
+    },
+    {
       "name": "e_select-1.8.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t7(a, b, c);\n  CREATE TABLE t8(a, d, e);\n\n  INSERT INTO t7 VALUES('x', 'ex',  24);\n  INSERT INTO t7 VALUES('y', 'why', 25);\n\n  INSERT INTO t8 VALUES('x', 'abc', 24);\n  INSERT INTO t8 VALUES('z', 'ghi', 26);"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.8.1a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t7 JOIN t8 ON (t7.a=t8.a)",
+          "expect": "1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t7 LEFT JOIN t8 ON (t7.a=t8.a)",
+          "expect": "2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t7 JOIN t8 USING (a)",
+          "expect": "1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t7 LEFT JOIN t8 USING (a)",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.9.1a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t7 JOIN t8 ON (t7.a=t8.a)",
+          "expect": "x ex 24 x abc 24"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t7 LEFT JOIN t8 ON (t7.a=t8.a)",
+          "expect": "x ex 24 x abc 24 y why 25 {} {} {}"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t7 JOIN t8 USING (a)",
+          "expect": "x ex 24 abc 24"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t7 LEFT JOIN t8 USING (a)",
+          "expect": "x ex 24 abc 24 y why 25 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1-10.1a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t7 JOIN t8 USING (a)",
+          "expect": "x ex 24 abc 24"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t7 NATURAL JOIN t8",
+          "expect": "x ex 24 abc 24"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t8 JOIN t7 USING (a)",
+          "expect": "x abc 24 ex 24"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t8 NATURAL JOIN t7",
+          "expect": "x abc 24 ex 24"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t7 LEFT JOIN t8 USING (a)",
+          "expect": "x ex 24 abc 24 y why 25 {} {}"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t7 NATURAL LEFT JOIN t8",
+          "expect": "x ex 24 abc 24 y why 25 {} {}"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t8 LEFT JOIN t7 USING (a)",
+          "expect": "x abc 24 ex 24 z ghi 26 {} {}"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t8 NATURAL LEFT JOIN t7",
+          "expect": "x abc 24 ex 24 z ghi 26 {} {}"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 JOIN t4 USING (a,c)",
+          "expect": "b 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 NATURAL JOIN t4",
+          "expect": "b 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 LEFT JOIN t4 USING (a,c)",
+          "expect": "a 1 b 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 NATURAL LEFT JOIN t4",
+          "expect": "a 1 b 2"
         }
       ]
     },
@@ -93,6 +1932,55 @@
           "sql": "CREATE TABLE t10(x, y);\n  INSERT INTO t10 VALUES(1, 'true');\n  INSERT INTO t10 VALUES(0, 'false');"
         }
       ]
+    },
+    {
+      "name": "e_select-1-11.1a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a, x FROM t1 CROSS JOIN t10",
+          "expect": "a 1 a 0 b 1 b 0 c 1 c 0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, x FROM t1 NATURAL CROSS JOIN t10",
+          "expect": "a 1 a 0 b 1 b 0 c 1 c 0"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.12.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1 NATURAL LEFT JOIN t2 USING (a)",
+          "expect": "1 {a NATURAL join may not have an ON or USING clause}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.12.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1 NATURAL LEFT JOIN t2 ON (t1.a=t2.a)",
+          "expect": "1 {a NATURAL join may not have an ON or USING clause}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-1.12.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1 NATURAL LEFT JOIN t2 ON (45)",
+          "expect": "1 {a NATURAL join may not have an ON or USING clause}"
+        }
+      ]
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
     },
     {
       "name": "e_select-3.0",
@@ -213,6 +2101,10 @@
       ]
     },
     {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
+    },
+    {
       "name": "e_select-4.0",
       "steps": [
         {
@@ -220,6 +2112,270 @@
           "sql": "CREATE TABLE z1(a, b, c);\n  CREATE TABLE z2(d, e);\n  CREATE TABLE z3(a, b);\n\n  INSERT INTO z1 VALUES(51.65, -59.58, 'belfries');\n  INSERT INTO z1 VALUES(-5, NULL, 75);\n  INSERT INTO z1 VALUES(-2.2, -23.18, 'suiters');\n  INSERT INTO z1 VALUES(NULL, 67, 'quartets');\n  INSERT INTO z1 VALUES(-1.04, -32.3, 'aspen');\n  INSERT INTO z1 VALUES(63, 'born', -26);\n\n  INSERT INTO z2 VALUES(NULL, 21);\n  INSERT INTO z2 VALUES(36, 6);\n\n  INSERT INTO z3 VALUES('subsistence', 'gauze');\n  INSERT INTO z3 VALUES(49.17, -67);"
         }
       ]
+    },
+    {
+      "name": "e_select-4.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM z1 LIMIT 1",
+          "expect": "51.65 -59.58 belfries"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM z1,z2 LIMIT 1",
+          "expect": "51.65 -59.58 belfries {} 21"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z1.* FROM z1,z2 LIMIT 1",
+          "expect": "51.65 -59.58 belfries"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z2.* FROM z1,z2 LIMIT 1",
+          "expect": "{} 21"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z2.*, z1.* FROM z1,z2 LIMIT 1",
+          "expect": "{} 21 51.65 -59.58 belfries"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), * FROM z1",
+          "expect": "6 51.65 -59.58 belfries"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(a), * FROM z1",
+          "expect": "63 63 born -26"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT *, min(a) FROM z1",
+          "expect": "-5 {} 75 -5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT *,* FROM z1,z2 LIMIT 1",
+          "expect": "51.65 -59.58 belfries {} 21 51.65 -59.58 belfries {} 21"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z1.*,z1.* FROM z2,z1 LIMIT 1",
+          "expect": "51.65 -59.58 belfries 51.65 -59.58 belfries"
+        }
+      ]
+    },
+    {
+      "name": "e_select-4.2.1.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT a, b, c FROM z1 WHERE *",
+          "expect": "1 {near \"*\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-4.2.1.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT a, b, c FROM z1 GROUP BY *",
+          "expect": "1 {near \"*\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-4.2.1.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1 + * FROM z1",
+          "expect": "1 {near \"*\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-4.2.1.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * + 1 FROM z1",
+          "expect": "1 {near \"+\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-4.2.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT *",
+          "expect": "1 {no tables specified}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-4.2.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * WHERE 1",
+          "expect": "1 {no tables specified}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-4.2.2.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * WHERE 0",
+          "expect": "1 {no tables specified}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-4.2.2.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT count(*), *",
+          "expect": "1 {no tables specified}"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM z1",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM z1",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM z1 NATURAL JOIN z3",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM z1 NATURAL JOIN z3",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT z1.* FROM z1 NATURAL JOIN z3",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT z1.* FROM z1 NATURAL JOIN z3",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT z3.* FROM z1 NATURAL JOIN z3",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT z3.* FROM z1 NATURAL JOIN z3",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT z1.*, z3.* FROM z1 NATURAL JOIN z3",
+          "variable": "stmt_5"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT z1.*, z3.* FROM z1 NATURAL JOIN z3",
+          "variable": "stmt_5"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT 1, 2, z1.* FROM z1",
+          "variable": "stmt_6"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT 1, 2, z1.* FROM z1",
+          "variable": "stmt_6"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT a, *, b, c FROM z1",
+          "variable": "stmt_7"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT a, *, b, c FROM z1",
+          "variable": "stmt_7"
+        }
+      ]
+    },
+    {
+      "name": "e_select-4.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM z1",
+          "expect": "51.65 -59.58 -5 {} -2.2 -23.18 {} 67 -1.04 -32.3 63 born"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a IS NULL, b+1, * FROM z1",
+          "expect": "0 -58.58 51.65 -59.58 belfries 0 {} -5 {} 75 0 -22.18 -2.2 -23.18 suiters 1 68 {} 67 quartets 0 -31.3 -1.04 -32.3 aspen 0 1 63 born -26"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 32*32, d||e FROM z2",
+          "expect": "1024 {} 1024 366"
+        }
+      ]
+    },
+    {
+      "name": "e_select-4.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), max(a), count(b), max(b) FROM z1",
+          "expect": "5 63 5 born"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), max(1)",
+          "expect": "1 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(b+1) FROM z1 NATURAL LEFT JOIN z3",
+          "expect": "-43.06"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(b+2) FROM z1 NATURAL LEFT JOIN z3",
+          "expect": "-38.06"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(b IS NOT NULL) FROM z1 NATURAL LEFT JOIN z3",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
     },
     {
       "name": "e_select-4.6.0",
@@ -231,11 +2387,260 @@
       ]
     },
     {
+      "name": "e_select-4.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT one, two, count(*) FROM a1",
+          "expect": "1 1 4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT one, two, count(*) FROM a1 WHERE one\u003c3",
+          "expect": "1 1 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT one, two, count(*) FROM a1 WHERE one\u003e3",
+          "expect": "4 10 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT *, count(*) FROM a1 JOIN a2",
+          "expect": "1 1 1 1 16"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT *, sum(three) FROM a1 NATURAL JOIN a2",
+          "expect": "1 1 1 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT *, sum(three) FROM a1 NATURAL JOIN a2",
+          "expect": "1 1 1 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT string_agg(three, ''), a1.* FROM a1 NATURAL JOIN a2",
+          "expect": "12 1 1"
+        }
+      ]
+    },
+    {
+      "name": "e_select-4.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT one, two, count(*) FROM a1 WHERE 0",
+          "expect": "{} {} 0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(two), * FROM a1, a2 WHERE three\u003e5",
+          "expect": "{} {} {} {} {}"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(one) IS NULL, one IS NULL, two IS NULL FROM a1 WHERE two=7",
+          "expect": "1 1 1"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT count(*) FROM a1",
+          "variable": "stmt_8"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT count(*) FROM a1",
+          "variable": "stmt_8"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT count(*) FROM a1",
+          "variable": "stmt_8"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT count(*) FROM a1 WHERE 0",
+          "variable": "stmt_9"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT count(*) FROM a1 WHERE 0",
+          "variable": "stmt_9"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT count(*) FROM a1 WHERE 0",
+          "variable": "stmt_9"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT count(*) FROM a1 WHERE 1",
+          "variable": "stmt_10"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT count(*) FROM a1 WHERE 1",
+          "variable": "stmt_10"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT count(*) FROM a1 WHERE 1",
+          "variable": "stmt_10"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT max(a1.one)+min(two), a1.one, two, * FROM a1, a2 WHERE 1",
+          "variable": "stmt_11"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT max(a1.one)+min(two), a1.one, two, * FROM a1, a2 WHERE 1",
+          "variable": "stmt_11"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT max(a1.one)+min(two), a1.one, two, * FROM a1, a2 WHERE 1",
+          "variable": "stmt_11"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT max(a1.one)+min(two), a1.one, two, * FROM a1, a2 WHERE 0",
+          "variable": "stmt_12"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT max(a1.one)+min(two), a1.one, two, * FROM a1, a2 WHERE 0",
+          "variable": "stmt_12"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT max(a1.one)+min(two), a1.one, two, * FROM a1, a2 WHERE 0",
+          "variable": "stmt_12"
+        }
+      ]
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
+    },
+    {
       "name": "e_select-4.9.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE b1(one PRIMARY KEY, two);\n  INSERT INTO b1 VALUES(1, 'o');\n  INSERT INTO b1 VALUES(4, 'f');\n  INSERT INTO b1 VALUES(3, 't');\n  INSERT INTO b1 VALUES(2, 't');\n  INSERT INTO b1 VALUES(5, 'f');\n  INSERT INTO b1 VALUES(7, 's');\n  INSERT INTO b1 VALUES(6, 's');\n\n  CREATE TABLE b2(x, y);\n  INSERT INTO b2 VALUES(NULL, 0);\n  INSERT INTO b2 VALUES(NULL, 1);\n  INSERT INTO b2 VALUES('xyz', 2);\n  INSERT INTO b2 VALUES('abc', 3);\n  INSERT INTO b2 VALUES('xyz', 4);\n\n  CREATE TABLE b3(a COLLATE nocase, b COLLATE binary);\n  INSERT INTO b3 VALUES('abc', 'abc');\n  INSERT INTO b3 VALUES('aBC', 'aBC');\n  INSERT INTO b3 VALUES('Def', 'Def');\n  INSERT INTO b3 VALUES('dEF', 'dEF');"
+        }
+      ]
+    },
+    {
+      "name": "e_select-4.9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT group_concat(one), two FROM b1 GROUP BY two",
+          "expect": "/#,# f 1 o #,# s #,# t/"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT group_concat(one), sum(one) FROM b1 GROUP BY (one\u003e4)",
+          "expect": "1,2,3,4 10 5,6,7 18"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT group_concat(one) FROM b1 GROUP BY (two\u003e'o'), one%2",
+          "expect": "4 1,5 2,6 3,7"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT group_concat(one) FROM b1 GROUP BY (one==2 OR two=='o')",
+          "expect": "4,3,5,7,6 1,2"
+        }
+      ]
+    },
+    {
+      "name": "e_select-4.10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT group_concat(y) FROM b2 GROUP BY x",
+          "expect": "/#,# 3 #,#/"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM b2 GROUP BY CASE WHEN y\u003c4 THEN NULL ELSE 0 END",
+          "expect": "4 1"
+        }
+      ]
+    },
+    {
+      "name": "e_select-4.11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM b3 GROUP BY b",
+          "expect": "1 1 1 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM b3 GROUP BY a",
+          "expect": "2 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM b3 GROUP BY +b",
+          "expect": "1 1 1 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM b3 GROUP BY +a",
+          "expect": "2 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM b3 GROUP BY b||''",
+          "expect": "1 1 1 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM b3 GROUP BY a||''",
+          "expect": "1 1 1 1"
+        }
+      ]
+    },
+    {
+      "name": "e_select-4.12.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM b3 GROUP BY count(*)",
+          "expect": "1 {aggregate functions are not allowed in the GROUP BY clause}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-4.12.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT max(a) FROM b3 GROUP BY max(b)",
+          "expect": "1 {aggregate functions are not allowed in the GROUP BY clause}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-4.12.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT group_concat(a) FROM b3 GROUP BY a, max(b)",
+          "expect": "1 {aggregate functions are not allowed in the GROUP BY clause}"
         }
       ]
     },
@@ -249,6 +2654,128 @@
       ]
     },
     {
+      "name": "e_select-4.13.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT up FROM c1 GROUP BY up HAVING count(*)\u003e3",
+          "expect": "x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT up FROM c1 GROUP BY up HAVING sum(down)\u003e16",
+          "expect": "y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT up FROM c1 GROUP BY up HAVING sum(down)\u003c16",
+          "expect": "x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT up||down FROM c1 GROUP BY (down\u003c5) HAVING max(down)\u003c10",
+          "expect": "x4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT up FROM c1 GROUP BY up HAVING down\u003e10",
+          "expect": "y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT up FROM c1 GROUP BY up HAVING up='y'",
+          "expect": "y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT i, j FROM c2 GROUP BY i\u003e4 HAVING j\u003e6",
+          "expect": "5 10"
+        }
+      ]
+    },
+    {
+      "name": "e_select-4.15.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT sum(down) FROM c1 GROUP BY up",
+          "expect": "15 48"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(j), max(j) FROM c2 GROUP BY (i%3)",
+          "expect": "54 36 27 21 39 28"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(j), max(j) FROM c2 GROUP BY (j%2)",
+          "expect": "80 36 40 21"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1+sum(j), max(j)+1 FROM c2 GROUP BY (j%2)",
+          "expect": "81 37 41 22"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), round(avg(i),2) FROM c1, c2 ON (i=down) GROUP BY j%2",
+          "expect": "3 4.33 1 2.0"
+        }
+      ]
+    },
+    {
+      "name": "e_select-4.15.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT i, j FROM c2 GROUP BY i%2",
+          "expect": "2 1 1 0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT i, j FROM c2 GROUP BY i%2 HAVING j\u003c30",
+          "expect": "2 1 1 0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT i, j FROM c2 GROUP BY i%2 HAVING j\u003e30"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT i, j FROM c2 GROUP BY i%2 HAVING j\u003e30"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), i, k FROM c2 NATURAL JOIN c3 GROUP BY substr(k, 1, 1)",
+          "expect": "2 4 beryllium 2 1 hydrogen 1 3 lithium"
+        }
+      ]
+    },
+    {
+      "name": "e_select.4.16.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT i, j FROM c2 GROUP BY i%2",
+          "expect": "2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT i, j FROM c2 GROUP BY i",
+          "expect": "9"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT i, j FROM c2 GROUP BY i HAVING i\u003c5",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
+    },
+    {
       "name": "e_select-5.1.0",
       "steps": [
         {
@@ -256,6 +2783,95 @@
           "sql": "CREATE TABLE h1(a, b);\n  INSERT INTO h1 VALUES(1, 'one');\n  INSERT INTO h1 VALUES(1, 'I');\n  INSERT INTO h1 VALUES(1, 'i');\n  INSERT INTO h1 VALUES(4, 'four');\n  INSERT INTO h1 VALUES(4, 'IV');\n  INSERT INTO h1 VALUES(4, 'iv');\n\n  CREATE TABLE h2(x COLLATE nocase);\n  INSERT INTO h2 VALUES('One');\n  INSERT INTO h2 VALUES('Two');\n  INSERT INTO h2 VALUES('Three');\n  INSERT INTO h2 VALUES('Four');\n  INSERT INTO h2 VALUES('one');\n  INSERT INTO h2 VALUES('two');\n  INSERT INTO h2 VALUES('three');\n  INSERT INTO h2 VALUES('four');\n\n  CREATE TABLE h3(c, d);\n  INSERT INTO h3 VALUES(1, NULL);\n  INSERT INTO h3 VALUES(2, NULL);\n  INSERT INTO h3 VALUES(3, NULL);\n  INSERT INTO h3 VALUES(4, '2');\n  INSERT INTO h3 VALUES(5, NULL);\n  INSERT INTO h3 VALUES(6, '2,3');\n  INSERT INTO h3 VALUES(7, NULL);\n  INSERT INTO h3 VALUES(8, '2,4');\n  INSERT INTO h3 VALUES(9, '3');"
         }
       ]
+    },
+    {
+      "name": "e_select-5.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ALL a FROM h1",
+          "expect": "1 1 1 4 4 4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT a FROM h1",
+          "expect": "1 4"
+        }
+      ]
+    },
+    {
+      "name": "e_select-5.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ALL x FROM h2",
+          "expect": "One Two Three Four one two three four"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ALL x FROM h1, h2 ON (x=b)",
+          "expect": "One one Four four"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM h2",
+          "expect": "One Two Three Four one two three four"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM h1, h2 ON (x=b)",
+          "expect": "One one Four four"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT x FROM h2",
+          "expect": "One Two Three Four"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT x FROM h1, h2 ON (x=b)",
+          "expect": "One Four"
+        }
+      ]
+    },
+    {
+      "name": "e_select-5.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT d FROM h3",
+          "expect": "{} 2 2,3 2,4 3"
+        }
+      ]
+    },
+    {
+      "name": "e_select-5.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT b FROM h1",
+          "expect": "one I i four IV iv"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT b COLLATE nocase FROM h1",
+          "expect": "one I four IV"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT x FROM h2",
+          "expect": "One Two Three Four"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT x COLLATE binary FROM h2",
+          "expect": "One Two Three Four one two three four"
+        }
+      ]
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
     },
     {
       "name": "e_select-7.1.0",
@@ -267,6 +2883,663 @@
       ]
     },
     {
+      "name": "e_select-7.1.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT a, b FROM j1    UNION ALL SELECT g FROM j3",
+          "expect": "1 {SELECTs to the left and right of UNION ALL do not have the same number of result columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT *    FROM j1    UNION ALL SELECT * FROM j3",
+          "expect": "1 {SELECTs to the left and right of UNION ALL do not have the same number of result columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT a, b FROM j1    UNION ALL SELECT g FROM j3",
+          "expect": "1 {SELECTs to the left and right of UNION ALL do not have the same number of result columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT a, b FROM j1    UNION ALL SELECT * FROM j3,j2",
+          "expect": "1 {SELECTs to the left and right of UNION ALL do not have the same number of result columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT *    FROM j3,j2 UNION ALL SELECT a, b FROM j1",
+          "expect": "1 {SELECTs to the left and right of UNION ALL do not have the same number of result columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT a, b FROM j1    UNION SELECT g FROM j3",
+          "expect": "1 {SELECTs to the left and right of UNION do not have the same number of result columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT *    FROM j1    UNION SELECT * FROM j3",
+          "expect": "1 {SELECTs to the left and right of UNION do not have the same number of result columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT a, b FROM j1    UNION SELECT g FROM j3",
+          "expect": "1 {SELECTs to the left and right of UNION do not have the same number of result columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT a, b FROM j1    UNION SELECT * FROM j3,j2",
+          "expect": "1 {SELECTs to the left and right of UNION do not have the same number of result columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT *    FROM j3,j2 UNION SELECT a, b FROM j1",
+          "expect": "1 {SELECTs to the left and right of UNION do not have the same number of result columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT a, b FROM j1    INTERSECT SELECT g FROM j3",
+          "expect": "1 {SELECTs to the left and right of INTERSECT do not have the same number of result columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT *    FROM j1    INTERSECT SELECT * FROM j3",
+          "expect": "1 {SELECTs to the left and right of INTERSECT do not have the same number of result columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT a, b FROM j1    INTERSECT SELECT g FROM j3",
+          "expect": "1 {SELECTs to the left and right of INTERSECT do not have the same number of result columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT a, b FROM j1    INTERSECT SELECT * FROM j3,j2",
+          "expect": "1 {SELECTs to the left and right of INTERSECT do not have the same number of result columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT *    FROM j3,j2 INTERSECT SELECT a, b FROM j1",
+          "expect": "1 {SELECTs to the left and right of INTERSECT do not have the same number of result columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT a, b FROM j1    EXCEPT SELECT g FROM j3",
+          "expect": "1 {SELECTs to the left and right of EXCEPT do not have the same number of result columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT *    FROM j1    EXCEPT SELECT * FROM j3",
+          "expect": "1 {SELECTs to the left and right of EXCEPT do not have the same number of result columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT a, b FROM j1    EXCEPT SELECT g FROM j3",
+          "expect": "1 {SELECTs to the left and right of EXCEPT do not have the same number of result columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT a, b FROM j1    EXCEPT SELECT * FROM j3,j2",
+          "expect": "1 {SELECTs to the left and right of EXCEPT do not have the same number of result columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT *    FROM j3,j2 EXCEPT SELECT a, b FROM j1",
+          "expect": "1 {SELECTs to the left and right of EXCEPT do not have the same number of result columns}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM j1 ORDER BY a UNION ALL SELECT * FROM j2,j3",
+          "expect": "1 {ORDER BY clause should come after UNION ALL not before}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT count(*) FROM j1 ORDER BY 1 UNION ALL SELECT max(e) FROM j2",
+          "expect": "1 {ORDER BY clause should come after UNION ALL not before}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.2.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT count(*), * FROM j1 ORDER BY 1,2,3 UNION ALL SELECT *,* FROM j2",
+          "expect": "1 {ORDER BY clause should come after UNION ALL not before}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.2.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM j1 LIMIT 10 UNION ALL SELECT * FROM j2,j3",
+          "expect": "1 {LIMIT clause should come after UNION ALL not before}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.2.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM j1 LIMIT 10 OFFSET 5 UNION ALL SELECT * FROM j2,j3",
+          "expect": "1 {LIMIT clause should come after UNION ALL not before}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.2.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT a FROM j1 LIMIT (SELECT e FROM j2) UNION ALL SELECT g FROM j2,j3",
+          "expect": "1 {LIMIT clause should come after UNION ALL not before}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.2.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM j1 ORDER BY a UNION SELECT * FROM j2,j3",
+          "expect": "1 {ORDER BY clause should come after UNION not before}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.2.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT count(*) FROM j1 ORDER BY 1 UNION SELECT max(e) FROM j2",
+          "expect": "1 {ORDER BY clause should come after UNION not before}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.2.9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT count(*), * FROM j1 ORDER BY 1,2,3 UNION SELECT *,* FROM j2",
+          "expect": "1 {ORDER BY clause should come after UNION not before}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.2.10",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM j1 LIMIT 10 UNION SELECT * FROM j2,j3",
+          "expect": "1 {LIMIT clause should come after UNION not before}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.2.11",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM j1 LIMIT 10 OFFSET 5 UNION SELECT * FROM j2,j3",
+          "expect": "1 {LIMIT clause should come after UNION not before}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.2.12",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT a FROM j1 LIMIT (SELECT e FROM j2) UNION SELECT g FROM j2,j3",
+          "expect": "1 {LIMIT clause should come after UNION not before}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.2.13",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM j1 ORDER BY a EXCEPT SELECT * FROM j2,j3",
+          "expect": "1 {ORDER BY clause should come after EXCEPT not before}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.2.14",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT count(*) FROM j1 ORDER BY 1 EXCEPT SELECT max(e) FROM j2",
+          "expect": "1 {ORDER BY clause should come after EXCEPT not before}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.2.15",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT count(*), * FROM j1 ORDER BY 1,2,3 EXCEPT SELECT *,* FROM j2",
+          "expect": "1 {ORDER BY clause should come after EXCEPT not before}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.2.16",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM j1 LIMIT 10 EXCEPT SELECT * FROM j2,j3",
+          "expect": "1 {LIMIT clause should come after EXCEPT not before}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.2.17",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM j1 LIMIT 10 OFFSET 5 EXCEPT SELECT * FROM j2,j3",
+          "expect": "1 {LIMIT clause should come after EXCEPT not before}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.2.18",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT a FROM j1 LIMIT (SELECT e FROM j2) EXCEPT SELECT g FROM j2,j3",
+          "expect": "1 {LIMIT clause should come after EXCEPT not before}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.2.19",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM j1 ORDER BY a INTERSECT SELECT * FROM j2,j3",
+          "expect": "1 {ORDER BY clause should come after INTERSECT not before}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.2.20",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT count(*) FROM j1 ORDER BY 1 INTERSECT SELECT max(e) FROM j2",
+          "expect": "1 {ORDER BY clause should come after INTERSECT not before}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.2.21",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT count(*), * FROM j1 ORDER BY 1,2,3 INTERSECT SELECT *,* FROM j2",
+          "expect": "1 {ORDER BY clause should come after INTERSECT not before}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.2.22",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM j1 LIMIT 10 INTERSECT SELECT * FROM j2,j3",
+          "expect": "1 {LIMIT clause should come after INTERSECT not before}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.2.23",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM j1 LIMIT 10 OFFSET 5 INTERSECT SELECT * FROM j2,j3",
+          "expect": "1 {LIMIT clause should come after INTERSECT not before}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.2.24",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT a FROM j1 LIMIT (SELECT e FROM j2) INTERSECT SELECT g FROM j2,j3",
+          "expect": "1 {LIMIT clause should come after INTERSECT not before}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM j1 UNION ALL SELECT * FROM j2,j3 ORDER BY a",
+          "catchMessage": "msg",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT count(*) FROM j1 UNION ALL SELECT max(e) FROM j2 ORDER BY 1",
+          "catchMessage": "msg",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT count(*), * FROM j1 UNION ALL SELECT *,* FROM j2 ORDER BY 1,2,3",
+          "catchMessage": "msg",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM j1 UNION ALL SELECT * FROM j2,j3 LIMIT 10",
+          "catchMessage": "msg",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM j1 UNION ALL SELECT * FROM j2,j3 LIMIT 10 OFFSET 5",
+          "catchMessage": "msg",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT a FROM j1 UNION ALL SELECT g FROM j2,j3 LIMIT (SELECT 10)",
+          "catchMessage": "msg",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM j1 UNION SELECT * FROM j2,j3 ORDER BY a",
+          "catchMessage": "msg",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT count(*) FROM j1 UNION SELECT max(e) FROM j2 ORDER BY 1",
+          "catchMessage": "msg",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT count(*), * FROM j1 UNION SELECT *,* FROM j2 ORDER BY 1,2,3",
+          "catchMessage": "msg",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.10",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM j1 UNION SELECT * FROM j2,j3 LIMIT 10",
+          "catchMessage": "msg",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.11",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM j1 UNION SELECT * FROM j2,j3 LIMIT 10 OFFSET 5",
+          "catchMessage": "msg",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.12",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT a FROM j1 UNION SELECT g FROM j2,j3 LIMIT (SELECT 10)",
+          "catchMessage": "msg",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.13",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM j1 EXCEPT SELECT * FROM j2,j3 ORDER BY a",
+          "catchMessage": "msg",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.14",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT count(*) FROM j1 EXCEPT SELECT max(e) FROM j2 ORDER BY 1",
+          "catchMessage": "msg",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.15",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT count(*), * FROM j1 EXCEPT SELECT *,* FROM j2 ORDER BY 1,2,3",
+          "catchMessage": "msg",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.16",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM j1 EXCEPT SELECT * FROM j2,j3 LIMIT 10",
+          "catchMessage": "msg",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.17",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM j1 EXCEPT SELECT * FROM j2,j3 LIMIT 10 OFFSET 5",
+          "catchMessage": "msg",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.18",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT a FROM j1 EXCEPT SELECT g FROM j2,j3 LIMIT (SELECT 10)",
+          "catchMessage": "msg",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.19",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM j1 INTERSECT SELECT * FROM j2,j3 ORDER BY a",
+          "catchMessage": "msg",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.20",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT count(*) FROM j1 INTERSECT SELECT max(e) FROM j2 ORDER BY 1",
+          "catchMessage": "msg",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.21",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT count(*), * FROM j1 INTERSECT SELECT *,* FROM j2 ORDER BY 1,2,3",
+          "catchMessage": "msg",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.22",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM j1 INTERSECT SELECT * FROM j2,j3 LIMIT 10",
+          "catchMessage": "msg",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.23",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM j1 INTERSECT SELECT * FROM j2,j3 LIMIT 10 OFFSET 5",
+          "catchMessage": "msg",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.24",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT a FROM j1 INTERSECT SELECT g FROM j2,j3 LIMIT (SELECT 10)",
+          "catchMessage": "msg",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.50",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM j1 ORDER BY 1 UNION ALL SELECT * FROM j2,j3",
+          "catchMessage": "msg",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.51",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM j1 LIMIT 1 UNION ALL SELECT * FROM j2,j3",
+          "catchMessage": "msg",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.52",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT count(*) FROM j1 UNION ALL VALUES(11) ORDER BY 1",
+          "catchMessage": "msg",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.3.53",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT count(*) FROM j1 UNION ALL VALUES(11) LIMIT 1",
+          "catchMessage": "msg",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
+    },
+    {
       "name": "e_select-7.4.0",
       "steps": [
         {
@@ -274,6 +3547,208 @@
           "sql": "CREATE TABLE q1(a TEXT, b INTEGER, c);\n  CREATE TABLE q2(d NUMBER, e BLOB);\n  CREATE TABLE q3(f REAL, g);\n\n  INSERT INTO q1 VALUES(16, -87.66, NULL);\n  INSERT INTO q1 VALUES('legible', 94, -42.47);\n  INSERT INTO q1 VALUES('beauty', 36, NULL);\n\n  INSERT INTO q2 VALUES('legible', 1);\n  INSERT INTO q2 VALUES('beauty', 2);\n  INSERT INTO q2 VALUES(-65.91, 4);\n  INSERT INTO q2 VALUES('emanating', -16.56);\n\n  INSERT INTO q3 VALUES('beauty', 2);\n  INSERT INTO q3 VALUES('beauty', 2);"
         }
       ]
+    },
+    {
+      "name": "e_select-7.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM q1 UNION ALL SELECT d FROM q2",
+          "expect": "16 legible beauty legible beauty -65.91 emanating"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM q1 WHERE a=16 UNION ALL SELECT 'x', * FROM q2 WHERE oid=1",
+          "expect": "16 -87.66 {} x legible 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM q1 UNION ALL SELECT min(e) FROM q2",
+          "expect": "3 -16.56"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM q2 UNION ALL SELECT * FROM q3",
+          "expect": "legible 1 beauty 2 -65.91 4 emanating -16.56 beauty 2 beauty 2"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM q1 UNION SELECT d FROM q2",
+          "expect": "-65.91 16 beauty emanating legible"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM q1 WHERE a=16 UNION SELECT 'x', * FROM q2 WHERE oid=1",
+          "expect": "16 -87.66 {} x legible 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM q1 UNION SELECT min(e) FROM q2",
+          "expect": "-16.56 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM q2 UNION SELECT * FROM q3",
+          "expect": "-65.91 4 beauty 2 emanating -16.56 legible 1"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM q1 INTERSECT SELECT d FROM q2",
+          "expect": "beauty legible"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM q2 INTERSECT SELECT * FROM q3",
+          "expect": "beauty 2"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM q1 EXCEPT SELECT d FROM q2",
+          "expect": "16"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM q2 EXCEPT SELECT * FROM q3",
+          "expect": "-65.91 4 emanating -16.56 legible 1"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.8.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM q3",
+          "expect": "beauty 2 beauty 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM q3 INTERSECT SELECT * FROM q3",
+          "expect": "beauty 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM q3 EXCEPT SELECT a,b FROM q1",
+          "expect": "beauty 2"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "null"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT NULL UNION ALL SELECT NULL",
+          "expect": "null null"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT NULL UNION     SELECT NULL",
+          "expect": "null"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT NULL INTERSECT SELECT NULL",
+          "expect": "null"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT NULL EXCEPT    SELECT NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT NULL UNION ALL SELECT 'ab'",
+          "expect": "null ab"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT NULL UNION     SELECT 'ab'",
+          "expect": "null ab"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT NULL INTERSECT SELECT 'ab'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT NULL EXCEPT    SELECT 'ab'",
+          "expect": "null"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT NULL UNION ALL SELECT 0",
+          "expect": "null 0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT NULL UNION     SELECT 0",
+          "expect": "null 0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT NULL INTERSECT SELECT 0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT NULL EXCEPT    SELECT 0",
+          "expect": "null"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM q1 UNION ALL SELECT g FROM q3",
+          "expect": "null -42.47 null 2 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM q1 UNION     SELECT g FROM q3",
+          "expect": "null -42.47 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM q1 INTERSECT SELECT g FROM q3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM q1 EXCEPT    SELECT g FROM q3",
+          "expect": "null -42.47"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "nullvalue"
+        }
+      ]
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
     },
     {
       "name": "e_select-7.10.0",
@@ -285,6 +3760,60 @@
       ]
     },
     {
+      "name": "e_select-7.10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 'abc'                UNION SELECT 'ABC'",
+          "expect": "ABC abc"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 'abc' COLLATE nocase UNION SELECT 'ABC'",
+          "expect": "ABC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 'abc'                UNION SELECT 'ABC' COLLATE nocase",
+          "expect": "ABC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 'abc' COLLATE binary UNION SELECT 'ABC' COLLATE nocase",
+          "expect": "ABC abc"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 'abc' COLLATE nocase UNION SELECT 'ABC' COLLATE binary",
+          "expect": "ABC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM y1 UNION SELECT b FROM y1",
+          "expect": "abc"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM y1 UNION SELECT a FROM y1",
+          "expect": "Abc abc"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM y1 UNION SELECT c FROM y1",
+          "expect": "aBC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM y1 UNION SELECT c COLLATE binary FROM y1",
+          "expect": "aBC"
+        }
+      ]
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
+    },
+    {
       "name": "e_select-7.10.0",
       "steps": [
         {
@@ -292,6 +3821,71 @@
           "sql": "CREATE TABLE w1(a TEXT, b NUMBER);\n  CREATE TABLE w2(a, b TEXT);\n\n  INSERT INTO w1 VALUES('1', 4.1);\n  INSERT INTO w2 VALUES(1, 4.1);"
         }
       ]
+    },
+    {
+      "name": "e_select-7.11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM w1 UNION SELECT a FROM w2",
+          "expect": "1 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM w2 UNION SELECT a FROM w1",
+          "expect": "1 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM w1 UNION SELECT b FROM w2",
+          "expect": "4.1 4.1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM w2 UNION SELECT b FROM w1",
+          "expect": "4.1 4.1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM w1 INTERSECT SELECT a FROM w2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM w2 INTERSECT SELECT a FROM w1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM w1 INTERSECT SELECT b FROM w2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM w2 INTERSECT SELECT b FROM w1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM w1 EXCEPT SELECT a FROM w2",
+          "expect": "1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM w2 EXCEPT SELECT a FROM w1",
+          "expect": "1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM w1 EXCEPT SELECT b FROM w2",
+          "expect": "4.1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM w2 EXCEPT SELECT b FROM w1",
+          "expect": "4.1"
+        }
+      ]
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
     },
     {
       "name": "e_select-7.12.0",
@@ -303,11 +3897,316 @@
       ]
     },
     {
+      "name": "e_select-7.12.1a",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE x IN (1,2) INTERSECT SELECT x FROM t1 WHERE x IN (1)   UNION     SELECT x FROM t1 WHERE x IN (3)",
+          "expect": "1 3"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.12.1b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE x IN (3)   UNION     SELECT x FROM t1 WHERE x IN (1,2) INTERSECT SELECT x FROM t1 WHERE x IN (1)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.12.2a",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE x IN (1,2) UNION     SELECT x FROM t1 WHERE x IN (3)   UNION ALL SELECT x FROM t1 WHERE x IN (1)",
+          "expect": "1 2 3 1"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.12.2b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE x IN (1)   UNION ALL SELECT x FROM t1 WHERE x IN (3)   UNION     SELECT x FROM t1 WHERE x IN (1,2)",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.12.3a",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE x IN (1,2) UNION     SELECT x FROM t1 WHERE x IN (3)   EXCEPT    SELECT x FROM t1 WHERE x IN (1)",
+          "expect": "2 3"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.12.3b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE x IN (1,2) EXCEPT    SELECT x FROM t1 WHERE x IN (3)   UNION     SELECT x FROM t1 WHERE x IN (1)",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.12.4a",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE x IN (1,2) INTERSECT SELECT x FROM t1 WHERE x IN (1)   UNION ALL SELECT x FROM t1 WHERE x IN (3)",
+          "expect": "1 3"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.12.4b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE x IN (3)   UNION     SELECT x FROM t1 WHERE x IN (1,2) INTERSECT SELECT x FROM t1 WHERE x IN (1)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.12.5a",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE x IN (1,2) INTERSECT SELECT x FROM t1 WHERE x IN (2)   EXCEPT    SELECT x FROM t1 WHERE x IN (2)"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.12.5b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE x IN (2,3) EXCEPT    SELECT x FROM t1 WHERE x IN (2)   INTERSECT SELECT x FROM t1 WHERE x IN (2)"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.12.6a",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE x IN (2)   UNION ALL SELECT x FROM t1 WHERE x IN (2)   EXCEPT    SELECT x FROM t1 WHERE x IN (2)"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.12.6b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE x IN (2)   EXCEPT    SELECT x FROM t1 WHERE x IN (2)   UNION ALL SELECT x FROM t1 WHERE x IN (2)",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "e_select-7.12.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE x IN (2,3) EXCEPT    SELECT x FROM t1 WHERE x IN (2)   EXCEPT    SELECT x FROM t1 WHERE x IN (3)"
+        }
+      ]
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
+    },
+    {
       "name": "e_select-8.1.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE d1(x, y, z);\n\n  INSERT INTO d1 VALUES(1, 2, 3);\n  INSERT INTO d1 VALUES(2, 5, -1);\n  INSERT INTO d1 VALUES(1, 2, 8);\n  INSERT INTO d1 VALUES(1, 2, 7);\n  INSERT INTO d1 VALUES(2, 4, 93);\n  INSERT INTO d1 VALUES(1, 2, -20);\n  INSERT INTO d1 VALUES(1, 4, 93);\n  INSERT INTO d1 VALUES(1, 5, -1);\n\n  CREATE TABLE d2(a, b);\n  INSERT INTO d2 VALUES('gently', 'failings');\n  INSERT INTO d2 VALUES('commercials', 'bathrobe');\n  INSERT INTO d2 VALUES('iterate', 'sexton');\n  INSERT INTO d2 VALUES('babied', 'charitableness');\n  INSERT INTO d2 VALUES('solemnness', 'annexed');\n  INSERT INTO d2 VALUES('rejoicing', 'liabilities');\n  INSERT INTO d2 VALUES('pragmatist', 'guarded');\n  INSERT INTO d2 VALUES('barked', 'interrupted');\n  INSERT INTO d2 VALUES('reemphasizes', 'reply');\n  INSERT INTO d2 VALUES('lad', 'relenting');"
+        }
+      ]
+    },
+    {
+      "name": "e_select-8.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM d1 ORDER BY x, y, z",
+          "expect": "1 2 -20 1 2 3 1 2 7 1 2 8 1 4 93 1 5 -1 2 4 93 2 5 -1"
+        }
+      ]
+    },
+    {
+      "name": "e_select-8.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM d1 ORDER BY x ASC, y ASC, z ASC",
+          "expect": "1 2 -20 1 2 3 1 2 7 1 2 8 1 4 93 1 5 -1 2 4 93 2 5 -1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM d1 ORDER BY x DESC, y DESC, z DESC",
+          "expect": "2 5 -1 2 4 93 1 5 -1 1 4 93 1 2 8 1 2 7 1 2 3 1 2 -20"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM d1 ORDER BY x DESC, y ASC, z DESC",
+          "expect": "2 4 93 2 5 -1 1 2 8 1 2 7 1 2 3 1 2 -20 1 4 93 1 5 -1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM d1 ORDER BY x DESC, y ASC, z ASC",
+          "expect": "2 4 93 2 5 -1 1 2 -20 1 2 3 1 2 7 1 2 8 1 4 93 1 5 -1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM d1 ORDER BY x, y, z",
+          "expect": "1 2 -20 1 2 3 1 2 7 1 2 8 1 4 93 1 5 -1 2 4 93 2 5 -1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM d1 ORDER BY x DESC, y, z DESC",
+          "expect": "2 4 93 2 5 -1 1 2 8 1 2 7 1 2 3 1 2 -20 1 4 93 1 5 -1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM d1 ORDER BY x DESC, y, z",
+          "expect": "2 4 93 2 5 -1 1 2 -20 1 2 3 1 2 7 1 2 8 1 4 93 1 5 -1"
+        }
+      ]
+    },
+    {
+      "name": "e_select-8.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM d1 ORDER BY 1 ASC, 2 ASC, 3 ASC",
+          "expect": "1 2 -20 1 2 3 1 2 7 1 2 8 1 4 93 1 5 -1 2 4 93 2 5 -1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM d1 ORDER BY 1 DESC, 2 DESC, 3 DESC",
+          "expect": "2 5 -1 2 4 93 1 5 -1 1 4 93 1 2 8 1 2 7 1 2 3 1 2 -20"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM d1 ORDER BY 1 DESC, 2 ASC, 3 DESC",
+          "expect": "2 4 93 2 5 -1 1 2 8 1 2 7 1 2 3 1 2 -20 1 4 93 1 5 -1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM d1 ORDER BY 1 DESC, 2 ASC, 3 ASC",
+          "expect": "2 4 93 2 5 -1 1 2 -20 1 2 3 1 2 7 1 2 8 1 4 93 1 5 -1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM d1 ORDER BY 1, 2, 3",
+          "expect": "1 2 -20 1 2 3 1 2 7 1 2 8 1 4 93 1 5 -1 2 4 93 2 5 -1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM d1 ORDER BY 1 DESC, 2, 3 DESC",
+          "expect": "2 4 93 2 5 -1 1 2 8 1 2 7 1 2 3 1 2 -20 1 4 93 1 5 -1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM d1 ORDER BY 1 DESC, 2, 3",
+          "expect": "2 4 93 2 5 -1 1 2 -20 1 2 3 1 2 7 1 2 8 1 4 93 1 5 -1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z, x FROM d1 ORDER BY 2",
+          "expect": "/# 1 # 1 # 1 # 1 # 1 # 1 # 2 # 2/"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z, x FROM d1 ORDER BY 1",
+          "expect": "/-20 1 -1 # -1 # 3 1 7 1 8 1 93 # 93 #/"
+        }
+      ]
+    },
+    {
+      "name": "e_select-8.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT z+1 AS abc FROM d1 ORDER BY abc",
+          "expect": "-19 0 0 4 8 9 94 94"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z+1 AS abc FROM d1 ORDER BY abc DESC",
+          "expect": "94 94 9 8 4 0 0 -19"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z AS x, x AS z FROM d1 ORDER BY z",
+          "expect": "/# 1 # 1 # 1 # 1 # 1 # 1 # 2 # 2/"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z AS x, x AS z FROM d1 ORDER BY x",
+          "expect": "/-20 1 -1 # -1 # 3 1 7 1 8 1 93 # 93 #/"
+        }
+      ]
+    },
+    {
+      "name": "e_select-8.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM d1 ORDER BY x+y+z",
+          "expect": "1 2 -20 1 5 -1 1 2 3 2 5 -1 1 2 7 1 2 8 1 4 93 2 4 93"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM d1 ORDER BY x*z",
+          "expect": "1 2 -20 2 5 -1 1 5 -1 1 2 3 1 2 7 1 2 8 1 4 93 2 4 93"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM d1 ORDER BY y*z",
+          "expect": "1 2 -20 2 5 -1 1 5 -1 1 2 3 1 2 7 1 2 8 2 4 93 1 4 93"
+        }
+      ]
+    },
+    {
+      "name": "e_select-8.7.1.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT x FROM d1 UNION ALL SELECT a FROM d2 ORDER BY x*z",
+          "expect": "1 {1st ORDER BY term does not match any column in the result set}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT x,z FROM d1 UNION ALL SELECT a,b FROM d2 ORDER BY x, x/z",
+          "expect": "1 {2nd ORDER BY term does not match any column in the result set}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-8.7.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x*z FROM d1 UNION ALL SELECT a FROM d2 ORDER BY x*z",
+          "expect": "-20 -2 -1 3 7 8 93 186 babied barked commercials gently iterate lad pragmatist reemphasizes rejoicing solemnness"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, x/z FROM d1 UNION ALL SELECT a,b FROM d2 ORDER BY x, x/z",
+          "expect": "1 -1 1 0 1 0 1 0 1 0 1 0 2 -2 2 0 babied charitableness barked interrupted commercials bathrobe gently failings iterate sexton lad relenting pragmatist guarded reemphasizes reply rejoicing liabilities solemnness annexed"
         }
       ]
     },
@@ -430,6 +4329,126 @@
       ]
     },
     {
+      "name": "e_select-8.13.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM d5 UNION ALL SELECT c FROM d6 UNION ALL SELECT e FROM d7\n         ORDER BY a",
+          "expect": "1 2 3 4 5 6"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM d5 UNION ALL SELECT c FROM d6 UNION ALL SELECT e FROM d7\n         ORDER BY c",
+          "expect": "1 2 3 4 5 6"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM d5 UNION ALL SELECT c FROM d6 UNION ALL SELECT e FROM d7\n         ORDER BY e",
+          "expect": "1 2 3 4 5 6"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM d5 UNION ALL SELECT c FROM d6 UNION ALL SELECT e FROM d7\n         ORDER BY 1",
+          "expect": "1 2 3 4 5 6"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM d5 UNION ALL SELECT b, a FROM d5 ORDER BY b",
+          "expect": "f 1 c 4 4 c 1 f"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM d5 UNION ALL SELECT b, a FROM d5 ORDER BY 2",
+          "expect": "f 1 c 4 4 c 1 f"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM d5 UNION ALL SELECT b, a FROM d5 ORDER BY a",
+          "expect": "1 f 4 c c 4 f 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM d5 UNION ALL SELECT b, a FROM d5 ORDER BY 1",
+          "expect": "1 f 4 c c 4 f 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM d5 UNION ALL SELECT b, a+1 FROM d5 ORDER BY a+1",
+          "expect": "f 2 c 5 4 c 1 f"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM d5 UNION ALL SELECT b, a+1 FROM d5 ORDER BY 2",
+          "expect": "f 2 c 5 4 c 1 f"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a+1, b FROM d5 UNION ALL SELECT b, a+1 FROM d5 ORDER BY a+1",
+          "expect": "2 f 5 c c 5 f 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a+1, b FROM d5 UNION ALL SELECT b, a+1 FROM d5 ORDER BY 1",
+          "expect": "2 f 5 c c 5 f 2"
+        }
+      ]
+    },
+    {
+      "name": "e_select-8.14.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT a FROM d5 UNION SELECT c FROM d6 ORDER BY a+1",
+          "expect": "1 {1st ORDER BY term does not match any column in the result set}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT a FROM d5 UNION SELECT c FROM d6 ORDER BY a, a+1",
+          "expect": "1 {2nd ORDER BY term does not match any column in the result set}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM d5 INTERSECT SELECT * FROM d6 ORDER BY 'hello'",
+          "expect": "1 {1st ORDER BY term does not match any column in the result set}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM d5 INTERSECT SELECT * FROM d6 ORDER BY blah",
+          "expect": "1 {1st ORDER BY term does not match any column in the result set}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM d5 INTERSECT SELECT * FROM d6 ORDER BY c,d,c+d",
+          "expect": "1 {3rd ORDER BY term does not match any column in the result set}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM d5 EXCEPT SELECT * FROM d7 ORDER BY 1,2,b,a/b",
+          "expect": "1 {4th ORDER BY term does not match any column in the result set}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-8.15.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM d5 UNION ALL SELECT c-1, d FROM d6 ORDER BY a, d",
+          "expect": "1 e 1 f 4 b 4 c"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM d5 UNION ALL SELECT c-1, d FROM d6 ORDER BY c-1, b",
+          "expect": "1 e 1 f 4 b 4 c"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM d5 UNION ALL SELECT c-1, d FROM d6 ORDER BY 1, 2",
+          "expect": "1 e 1 f 4 b 4 c"
+        }
+      ]
+    },
+    {
       "name": "e_select-9.0",
       "steps": [
         {
@@ -439,57 +4458,311 @@
       ]
     },
     {
-      "name": "e_select-1.4.3.2",
+      "name": "e_select-9.1.1",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT * FROM x1, x2"
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT 5",
+          "expect": "a b c d e"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT 2+3",
+          "expect": "a b c d e"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT (SELECT a FROM f1 WHERE b = 'e')",
+          "expect": "a b c d e"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT 5.0",
+          "expect": "a b c d e"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT '5'",
+          "expect": "a b c d e"
         }
       ]
     },
     {
-      "name": "e_select-1.4.3.4",
+      "name": "e_select-9.2.1",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT * FROM x2 JOIN x3"
+          "type": "catch",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT 'hello'",
+          "expect": "1 {datatype mismatch}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT NULL",
+          "expect": "1 {datatype mismatch}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT X'ABCD'",
+          "expect": "1 {datatype mismatch}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT 5.1",
+          "expect": "1 {datatype mismatch}"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT (SELECT group_concat(b) FROM f1)",
+          "expect": "1 {datatype mismatch}"
         }
       ]
     },
     {
-      "name": "e_select-1.4.3.6",
+      "name": "e_select-9.4.1",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT * FROM x3 CROSS JOIN x1"
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT -1",
+          "expect": "a b c d e f g h i j k l m n o p q r s t u v w x y z"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT length('abc')-100",
+          "expect": "a b c d e f g h i j k l m n o p q r s t u v w x y z"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT (SELECT count(*) FROM f1)/2 - 14",
+          "expect": "a b c d e f g h i j k l m n o p q r s t u v w x y z"
         }
       ]
     },
     {
-      "name": "e_select-1.4.3.8",
+      "name": "e_select-9.5.1",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT * FROM x3 INNER JOIN x3 AS x4"
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT 0"
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM x1, x2"
+          "sql": "SELECT b FROM f1 ORDER BY a DESC LIMIT 4",
+          "expect": "z y x w"
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM x2 JOIN x3"
+          "sql": "SELECT b FROM f1 ORDER BY a DESC LIMIT 8",
+          "expect": "z y x w v u t s"
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM x3 CROSS JOIN x1"
+          "sql": "SELECT b FROM f1 ORDER BY a DESC LIMIT '12.0'",
+          "expect": "z y x w v u t s r q p o"
+        }
+      ]
+    },
+    {
+      "name": "e_select-9.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 WHERE a\u003e21 ORDER BY a LIMIT 10",
+          "expect": "v w x y z"
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM x3 INNER JOIN x3 AS x4"
+          "sql": "SELECT count(*) FROM f1 GROUP BY a/5 ORDER BY 1 LIMIT 10",
+          "expect": "2 4 5 5 5 5"
+        }
+      ]
+    },
+    {
+      "name": "e_select-9.7.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT 2 OFFSET 'hello'",
+          "expect": "1 {datatype mismatch}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-9.7.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT 2 OFFSET NULL",
+          "expect": "1 {datatype mismatch}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-9.7.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT 2 OFFSET X'ABCD'",
+          "expect": "1 {datatype mismatch}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-9.7.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT 2 OFFSET 5.1",
+          "expect": "1 {datatype mismatch}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-9.7.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT b FROM f1 ORDER BY a \n       LIMIT 2 OFFSET (SELECT group_concat(b) FROM f1)",
+          "expect": "1 {datatype mismatch}"
+        }
+      ]
+    },
+    {
+      "name": "e_select-9.8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT 10 OFFSET 5",
+          "expect": "f g h i j k l m n o"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT 2+3 OFFSET 10",
+          "expect": "k l m n o"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a \n       LIMIT  (SELECT a FROM f1 WHERE b='j') \n       OFFSET (SELECT a FROM f1 WHERE b='b')",
+          "expect": "c d e f g h i j k l"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT '5' OFFSET 3.0",
+          "expect": "d e f g h"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT '5' OFFSET 0",
+          "expect": "a b c d e"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT 0 OFFSET 10"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT 3 OFFSET '1'||'5'",
+          "expect": "p q r"
+        }
+      ]
+    },
+    {
+      "name": "e_select-9.9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT 10 OFFSET 20",
+          "expect": "u v w x y z"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM f1 ORDER BY a DESC LIMIT 100 OFFSET 18+4",
+          "expect": "4 3 2 1"
+        }
+      ]
+    },
+    {
+      "name": "e_select-9.10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT 5 OFFSET -1",
+          "expect": "a b c d e"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT 5 OFFSET -500",
+          "expect": "a b c d e"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT 5 OFFSET 0",
+          "expect": "a b c d e"
+        }
+      ]
+    },
+    {
+      "name": "e_select-9.11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT 5, 10",
+          "expect": "f g h i j k l m n o"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT 10, 2+3",
+          "expect": "k l m n o"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a \n       LIMIT (SELECT a FROM f1 WHERE b='b'), (SELECT a FROM f1 WHERE b='j')",
+          "expect": "c d e f g h i j k l"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT 3.0, '5'",
+          "expect": "d e f g h"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT 0, '5'",
+          "expect": "a b c d e"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT 10, 0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT '1'||'5', 3",
+          "expect": "p q r"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT 20, 10",
+          "expect": "u v w x y z"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM f1 ORDER BY a DESC LIMIT 18+4, 100",
+          "expect": "4 3 2 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT -1, 5",
+          "expect": "a b c d e"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT -500, 5",
+          "expect": "a b c d e"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM f1 ORDER BY a LIMIT 0, 5",
+          "expect": "a b c d e"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

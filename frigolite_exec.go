@@ -285,6 +285,37 @@ func (db *DB) Query(sqlStr string) *Result {
 	}
 }
 
+// QueryEach executes one SELECT and calls fn synchronously for each result row.
+// Returning false stops iteration; callback errors are returned in Result.Error.
+// Rows are owned copies. Unsupported execution shapes use normal materialized
+// SELECT execution, so callback-time mutations affect later rows only on shapes
+// handled by the live-cursor JOIN path.
+func (db *DB) QueryEach(sqlStr string, fn func([]interface{}) (bool, error)) *Result {
+	if db == nil || db.engine == nil {
+		return &Result{Error: fmt.Errorf("frigolite: database not initialized"), SQL: sqlStr}
+	}
+	if fn == nil {
+		return &Result{Error: fmt.Errorf("frigolite: nil QueryEach callback"), SQL: sqlStr}
+	}
+	stmts, err := db.engine.PrepareExec(sqlStr)
+	if err != nil {
+		return &Result{Error: err, SQL: sqlStr}
+	}
+	if len(stmts) != 1 {
+		return &Result{Error: fmt.Errorf("frigolite: QueryEach requires exactly one statement"), SQL: sqlStr}
+	}
+	if _, ok := stmts[0].(*sql.SelectStmt); !ok {
+		return &Result{Error: fmt.Errorf("frigolite: QueryEach requires a SELECT statement"), SQL: sqlStr}
+	}
+	res := db.engine.ExecEach(stmts[0], fn)
+	if res.Error != nil {
+		db.engine.SetLastErr(res.Error.Error(), db.errorCode(res.Error))
+		return &Result{Error: res.Error, SQL: sqlStr}
+	}
+	db.engine.SetLastErr("", "")
+	return &Result{Columns: res.Columns, SQL: sqlStr}
+}
+
 // expandResultZeroBlobs materializes zeroblob(N) cells into their expanded
 // zero bytes before a result leaves the engine (vdbeapi.c
 // sqlite3_column_blob expands the MEM_Zero flag on access; the value a host

@@ -702,24 +702,44 @@ func Test_altertab(t *testing.T) {
 	{ // "altertab-16.20" — skipped: tcl virtual table module (register_tcl_module) not implemented
 	}
 	db.SetDefensive(false)
-	{ // "altertab-16.22" — skipped: FTS3 shadow table rename not supported
+	{ // "16.22"
+		_res = db.Exec("\n    ALTER TABLE y1_segments RENAME TO abc;\n  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    ALTER TABLE y1_segments RENAME TO abc;\n  ")
+		}
 	}
 	db.SetDefensive(true)
-	{ // "altertab-16.23" — skipped: FTS3 shadow table rename not supported
+	{ // "16.23"
+		_res = db.Exec("\n    CREATE TABLE y1_segments AS SELECT * FROM abc;\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "object name reserved for internal use: y1_segments") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "object name reserved for internal use: y1_segments", resErrString(_res), "\n    CREATE TABLE y1_segments AS SELECT * FROM abc;\n  ")
+		}
 	}
-	{ // "altertab-16.24" — skipped: FTS3 shadow table rename not supported
+	{ // "16.24"
+		_res = db.Exec("\n    CREATE VIEW y1_segments AS SELECT * FROM abc;\n  ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "object name reserved for internal use: y1_segments") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "object name reserved for internal use: y1_segments", resErrString(_res), "\n    CREATE VIEW y1_segments AS SELECT * FROM abc;\n  ")
+		}
 	}
 	db.SetDefensive(false)
-	{ // "altertab-16.25" — skipped: FTS3 shadow table rename not supported
+	{ // "16.25"
+		_res = db.Exec("\n    ALTER TABLE abc RENAME TO y1_segments;\n  ")
+		if _res.Error != nil {
+			t.Errorf("expected success, got error: %v\n  sql: %s", resErrString(_res), "\n    ALTER TABLE abc RENAME TO y1_segments;\n  ")
+		}
 	}
 	db.SetDefensive(true)
-	{ // "altertab-16.30" — skipped: FTS3 shadow table rename not supported (SQL side effects only)
+	{ // "16.30"
 		_res = db.Exec("\n    ALTER TABLE y1 RENAME TO z1;\n  ")
-		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    ALTER TABLE y1 RENAME TO z1;\n  ")
+		}
 	}
-	{ // "altertab-16.40" — skipped: FTS3 shadow table rename not supported (SQL side effects only)
-		_res = db.Exec("\n    SELECT * FROM z1_segments;\n  ")
-		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+	{ // "16.40"
+		r = db.Query("\n    SELECT * FROM z1_segments;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM z1_segments;\n  ")
+		}
 	}
 	db.Close()
 	os.Remove("test.db")

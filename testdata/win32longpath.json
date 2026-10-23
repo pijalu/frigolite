@@ -1,13 +1,330 @@
 {
   "file": "win32longpath.test",
   "name": "win32longpath",
+  "ordered": true,
   "tests": [
     {
       "name": "setup_0",
       "steps": [
         {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "win32longpath-1.2",
+      "steps": [
+        {
           "type": "exec",
-          "sql": "BEGIN EXCLUSIVE;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT x FROM t1 ORDER BY x;\n    COMMIT;"
+          "sql": "BEGIN EXCLUSIVE;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT x FROM t1 ORDER BY x;\n    COMMIT;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "win32longpath-1.3",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "\\\\XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY\\test.db",
+          "catchMessage": "msg",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "\\\\?\\\\\\XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY\\test.db",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "win32longpath-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(5);\n    INSERT INTO t1 VALUES(6);\n    INSERT INTO t1 VALUES(7);\n    INSERT INTO t1 VALUES(8);\n    SELECT x FROM t1 ORDER BY x;\n    COMMIT;",
+          "expect": "5 6 7 8",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db3"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "\\\\?\\\\\\XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY\\test.db",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "win32longpath-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;",
+          "expect": "wal",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "win32longpath-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE;\n    INSERT INTO t1 VALUES(9);\n    INSERT INTO t1 VALUES(10);\n    INSERT INTO t1 VALUES(11);\n    INSERT INTO t1 VALUES(12);\n    SELECT x FROM t1 ORDER BY x;\n    COMMIT;",
+          "expect": "5 6 7 8 9 10 11 12",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db3"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "file:%5C%5C%3F%5C\\\\XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY\\test.db",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "win32longpath-1.7.1a",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 ORDER BY x;",
+          "expect": "5 6 7 8 9 10 11 12",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db3"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "file:%5C%5C%3F%5C//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX/YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY/test.db",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "win32longpath-1.7.1b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 ORDER BY x;",
+          "expect": "5 6 7 8 9 10 11 12",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db3"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "file:///%5C%5C%3F%5C\\\\XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY\\test.db",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "win32longpath-1.7.1c",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 ORDER BY x;",
+          "expect": "5 6 7 8 9 10 11 12",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db3"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "file:///%5C%5C%3F%5C//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX/YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY/test.db",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "win32longpath-1.7.1d",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 ORDER BY x;",
+          "expect": "5 6 7 8 9 10 11 12",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db3"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "file://localhost/%5C%5C%3F%5C\\\\XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY\\test.db",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "win32longpath-1.7.1e",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 ORDER BY x;",
+          "expect": "5 6 7 8 9 10 11 12",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db3"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "file://localhost/%5C%5C%3F%5C//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX/YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY/test.db",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "win32longpath-1.7.1f",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 ORDER BY x;",
+          "expect": "5 6 7 8 9 10 11 12",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db3"
+        },
+        {
+          "type": "write_file",
+          "sql": "cleanup.bat",
+          "fileData": "rmdir /q /s \\\\?\\\\\n"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "-force"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "\\\\?\\\\\\XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY\\test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "-force"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "\\\\?\\\\\\XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\\YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "-force"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "\\\\?\\\\\\XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "-force"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "\\\\?\\\\"
         }
       ]
     }

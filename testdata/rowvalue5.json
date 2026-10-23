@@ -1,0 +1,186 @@
+{
+  "file": "rowvalue5.test",
+  "name": "rowvalue5",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "rowvalue5",
+            "::testprefix": "rowvalue5",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "callbackProcs": [
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE t1(a, b, c, d, expr)\"\n    }\n\n    xBestIndex {\n      set COL(0) a\n      set COL(1) b\n      set COL(2) c\n      set COL(3) d\n      set COL(4) expr\n\n      set OP(eq) =\n      set OP(ne) !=\n      set OP(gt) \u003e\n      set OP(le) \u003c=\n      set OP(lt) \u003c\n      set OP(ge) \u003e=\n      set OP(match) MATCH\n      set OP(like) LIKE\n      set OP(glob) GLOB\n      set OP(regexp) REGEXP\n\n      set hdl [lindex $args 0]\n      set clist [$hdl constraints]\n\n      set ret [list]\n      set elist [list]\n      set i 0\n      foreach c $clist {\n        array set C $c\n        if {$C(usable)} {\n          lappend ret omit $i\n          lappend elist \"$COL($C(column)) $OP($C(op)) %$i%\"\n        }\n        incr i\n      }\n\n      lappend ret idxstr [join $elist \" AND \"]\n      #puts \"xBestIndex: $ret\"\n      return $ret\n    }\n\n    xFilter {\n      foreach {idxnum idxstr arglist} $args {}\n      set i 0\n      set ee $idxstr\n      foreach a $arglist {\n        if {[string is double $a]==0} {\n          set a \"'[string map {' ''} $a]'\"\n        }\n        set ee [string map [list \"%$i%\" $a] $ee]\n        incr i\n      }\n      set ee [string map [list \"'\" \"''\"] $ee]\n\n      set ret [list sql \"SELECT 1, 'a', 'b', 'c', 'd', '$ee'\"]\n      #puts \"xFilter: $ret\"\n      return $ret\n    }\n  }\n\n  return {}\n",
+              "Defaults": null
+            }
+          ],
+          "moduleArgs": [
+            "db"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rowvalue5-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue5-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT expr FROM x1 WHERE 1",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue5-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT expr FROM x1 WHERE a=1",
+          "expect": "{a = 1}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue5-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT expr FROM x1 WHERE a=1 AND 4 = b",
+          "expect": "{a = 1 AND b = 4}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue5-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT expr FROM x1 WHERE c\u003e'hello'",
+          "expect": "{c \u003e 'hello'}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue5-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT expr FROM x1 WHERE c\u003c='hel''lo'",
+          "expect": "{c \u003c= 'hel''lo'}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue5-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT expr FROM x1 WHERE (a, b) = (SELECT 9, 10)",
+          "expect": "{a = 9 AND b = 10}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue5-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT expr FROM x1 WHERE (+a, b) = (SELECT 'a', 'b')",
+          "expect": "{b = 'b'}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue5-1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT expr FROM x1 WHERE (a, +b) = (SELECT 'a', 'b')",
+          "expect": "{a = 'a'}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue5-1.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT expr FROM x1 WHERE (+a, b) IN (SELECT 'a', 'b')",
+          "expect": "{b = 'b'}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue5-1.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT expr FROM x1 WHERE (a, +b) IN (SELECT 'a', 'b')",
+          "expect": "{a = 'a'}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue5-1.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT expr FROM x1 WHERE (a, b) \u003c ('d', 'e')",
+          "expect": "{a \u003c= 'd'}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue5-1.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT expr FROM x1 WHERE (a, b) \u003c ('a', 'c')",
+          "expect": "{a \u003c= 'a'}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue5-1.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT expr FROM x1 WHERE (a, b) \u003c= ('a', 'b')",
+          "expect": "{a \u003c= 'a'}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue5-1.16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT expr FROM x1 WHERE (a, b) \u003c ('a', 'b')"
+        }
+      ]
+    }
+  ]
+}

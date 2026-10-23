@@ -581,6 +581,26 @@ func TestP6_CTEInDML(t *testing.T) {
 	}
 }
 
+// TestP6_NestedJoinSameNameIntermediatePinsGroupOutput isolates the result
+// exposed by a parenthesized join group before adding the next outer group.
+// SQLite selectD.test 2.4/2.5 depends on these source columns remaining distinct.
+func TestP6_NestedJoinSameNameIntermediatePinsGroupOutput(t *testing.T) {
+	db := openTestDB(t)
+	defer db.Close()
+	if err := db.Exec(`ATTACH ':memory:' AS aux1;
+		CREATE TABLE t2(a,b); INSERT INTO t2 VALUES(222,'x2');
+		CREATE TABLE main.t4(a,b); INSERT INTO main.t4 VALUES(444,'x4');
+		CREATE TABLE aux1.t4(a,b); INSERT INTO aux1.t4 VALUES(555,'x5');`).Error; err != nil {
+		t.Fatal(err)
+	}
+	got := flattenQuery(t, db, `SELECT * FROM t2 JOIN
+		(main.t4 JOIN aux1.t4 ON aux1.t4.a=main.t4.a+111)
+		ON main.t4.a=t2.a+222`)
+	if got != "222 x2 444 x4 555 x5" {
+		t.Fatalf("nested join-group output: got [%s] want [222 x2 444 x4 555 x5]", got)
+	}
+}
+
 // TestP6_NestedJoinSameName covers selectD: joining two tables with the same
 // name (main.t4 JOIN aux1.t4) inside a parenthesized group used as a join
 // operand must keep both rows distinct. Synthetic derived-table names (_subqN)

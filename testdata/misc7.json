@@ -4,11 +4,31 @@
   "ordered": true,
   "tests": [
     {
+      "name": "misc7-4",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "./mydir",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db2"
+        }
+      ]
+    },
+    {
       "name": "setup_0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE abc(a PRIMARY KEY, b, c);"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         },
         {
           "type": "exec",
@@ -20,9 +40,42 @@
       "name": "misc7-7.0",
       "steps": [
         {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
           "type": "exec",
           "sql": "BEGIN EXCLUSIVE;",
-          "expect": "1 {database is locked} 1"
+          "expect": "1 {database is locked} 1",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db-journal"
         }
       ]
     },
@@ -49,9 +102,23 @@
       "name": "misc7-7.3",
       "steps": [
         {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "exec",
           "sql": "PRAGMA omit_readlock = 1;\n    ATTACH 'test2.db' AS aux;\n    SELECT name FROM aux.sqlite_master;\n    SELECT name FROM aux.sqlite_master;",
           "expect": "hello hello"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         }
       ]
     },
@@ -67,6 +134,9 @@
     {
       "name": "misc7-10",
       "steps": [
+        {
+          "type": "register_echo_module"
+        },
         {
           "type": "exec",
           "sql": "CREATE VIRTUAL TABLE t1 USING echo(abc);\n      SELECT a FROM t1 WHERE a = 1 ORDER BY b;",
@@ -98,6 +168,13 @@
       "name": "misc7-13",
       "steps": [
         {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_echo_module"
+        },
+        {
           "type": "exec",
           "sql": "SELECT * FROM t1 WHERE a = 1;",
           "expect": "1 2 3"
@@ -105,8 +182,39 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
     },
     {
       "name": "misc7-14.0",
@@ -145,8 +253,39 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
     },
     {
       "name": "misc7-15.1",
@@ -168,8 +307,43 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
     },
     {
       "name": "misc7-16.X",
@@ -195,15 +369,61 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "misc7-21.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabcde",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db2"
+        }
+      ]
     },
     {
       "name": "misc7-22.1",
       "steps": [
         {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "copy.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "misc7-22.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         },
         {
           "type": "catch",
@@ -226,9 +446,31 @@
       "name": "misc7-22.3",
       "steps": [
         {
+          "type": "write_file",
+          "sql": "test.db-journal",
+          "fileData": "abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc\n"
+        },
+        {
           "type": "catch",
           "sql": "SELECT * FROM t1",
           "expect": "1 {attempt to write a readonly database}"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
         }
       ]
     }

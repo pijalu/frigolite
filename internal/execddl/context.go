@@ -44,6 +44,13 @@ type DDLContext interface {
 	TextEncoding() string
 	CheckProgress() error
 
+	// ValidateAttachedSchema runs SQLite's schema-init validations (rows and
+	// loaded triggers) over a freshly opened attached database before it is
+	// registered. attach.c attachFunc runs sqlite3Init synchronously: a
+	// validation failure aborts the ATTACH and the database is not attached.
+	// A nil result means the schema is clean.
+	ValidateAttachedSchema(ctx *DatabaseContext) *Result
+
 	// OpenTempBtree marks the temp database's btree open (aDb[1].pBt),
 	// applying the recorded page size on first open (build.c:5338).
 	OpenTempBtree()

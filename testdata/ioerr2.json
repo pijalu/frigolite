@@ -1,6 +1,7 @@
 {
   "file": "ioerr2.test",
   "name": "ioerr2",
+  "ordered": true,
   "tests": [
     {
       "name": "ioerr2-1.1",
@@ -12,62 +13,1073 @@
       ]
     },
     {
-      "name": "ioerr2-5",
+      "name": "setup_0",
       "steps": [
         {
-          "type": "query",
-          "sql": "CREATE TABLE t2 AS SELECT * FROM t1;\n    PRAGMA temp_store = memory;",
-          "expect": "1 {disk I/O error}"
+          "type": "query_assign",
+          "sql": "SELECT md5sum(a, b) FROM t1",
+          "variable": "cksum",
+          "resultAll": true
+        },
+        {
+          "type": "catch",
+          "sql": "PRAGMA integrity_check",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
+        },
+        {
+          "type": "close_db",
+          "condition": "$rc \u0026\u0026 ($msg eq \"disk I/O error\" || $msg eq \"database is locked\")"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "condition": "$rc \u0026\u0026 ($msg eq \"disk I/O error\" || $msg eq \"database is locked\")"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK",
+          "condition": "!($rc \u0026\u0026 ($msg eq \"disk I/O error\" || $msg eq \"database is locked\"))"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT md5sum(a, b) FROM t1",
+          "variable": "ck",
+          "resultAll": true
         }
       ]
     },
     {
-      "name": "ioerr2-6",
+      "name": "ioerr2-2.cksum",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA temp_store_directory = '/tmp/'",
-          "expect": "1 {not a writable directory}"
+          "type": "runtime_expr",
+          "sql": "$ck",
+          "variable": "ck",
+          "expect": "$::cksum"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
         },
         {
-          "type": "exec",
-          "sql": "PRAGMA cache_size = 10;\n    PRAGMA default_cache_size = 10;\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t1 VALUES(randstr(400,400),randstr(400,400));\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 4\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 8\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 16\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 32"
+          "type": "reopen_db",
+          "sql": "test.db"
         },
         {
-          "type": "exec",
-          "sql": "SELECT md5sum(a, b) FROM t1"
+          "type": "catch",
+          "sql": "PRAGMA cache_size = 10;\n  PRAGMA default_cache_size = 10;\n  BEGIN;\n  DELETE FROM t1 WHERE (oid%7)==0;\n  INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) \n    WHERE (random()%7)==0;\n  UPDATE t1 SET a = randstr(400,400), b = randstr(400,400) \n    WHERE (random()%7)==0;\n  ROLLBACK;"
         },
         {
-          "type": "exec",
-          "sql": "PRAGMA integrity_check"
+          "type": "catch",
+          "sql": "PRAGMA cache_size = 10;\n  PRAGMA default_cache_size = 10;\n  BEGIN;\n  DELETE FROM t1 WHERE (oid%7)==0;\n  INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) \n    WHERE (random()%7)==0;\n  UPDATE t1 SET a = randstr(400,400), b = randstr(400,400) \n    WHERE (random()%7)==0;\n  ROLLBACK;"
         },
         {
-          "type": "exec",
-          "sql": "SELECT md5sum(a, b) FROM t1"
+          "type": "catch",
+          "sql": "PRAGMA integrity_check",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
         },
+        {
+          "type": "close_db",
+          "condition": "$rc \u0026\u0026 ($msg eq \"disk I/O error\" || $msg eq \"database is locked\")"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "condition": "$rc \u0026\u0026 ($msg eq \"disk I/O error\" || $msg eq \"database is locked\")"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK",
+          "condition": "!($rc \u0026\u0026 ($msg eq \"disk I/O error\" || $msg eq \"database is locked\"))"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT md5sum(a, b) FROM t1",
+          "variable": "ck",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "ioerr2-3.0.1.cksum",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "$ck",
+          "variable": "ck",
+          "expect": "$::cksum"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
+          "sql": "PRAGMA cache_size = 10;\n  PRAGMA default_cache_size = 10;\n  BEGIN;\n  DELETE FROM t1 WHERE (oid%7)==0;\n  INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) \n    WHERE (random()%7)==0;\n  UPDATE t1 SET a = randstr(400,400), b = randstr(400,400) \n    WHERE (random()%7)==0;\n  ROLLBACK;"
+        },
+        {
+          "type": "catch",
+          "sql": "PRAGMA cache_size = 10;\n  PRAGMA default_cache_size = 10;\n  BEGIN;\n  DELETE FROM t1 WHERE (oid%7)==0;\n  INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) \n    WHERE (random()%7)==0;\n  UPDATE t1 SET a = randstr(400,400), b = randstr(400,400) \n    WHERE (random()%7)==0;\n  ROLLBACK;"
+        },
+        {
+          "type": "catch",
+          "sql": "PRAGMA integrity_check",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
+        },
+        {
+          "type": "close_db",
+          "condition": "$rc \u0026\u0026 ($msg eq \"disk I/O error\" || $msg eq \"database is locked\")"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "condition": "$rc \u0026\u0026 ($msg eq \"disk I/O error\" || $msg eq \"database is locked\")"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK",
+          "condition": "!($rc \u0026\u0026 ($msg eq \"disk I/O error\" || $msg eq \"database is locked\"))"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT md5sum(a, b) FROM t1",
+          "variable": "ck",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "ioerr2-3.1.1.cksum",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "$ck",
+          "variable": "ck",
+          "expect": "$::cksum"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "PRAGMA cache_size = 10;\n  PRAGMA default_cache_size = 10;\n  BEGIN;\n  DELETE FROM t1 WHERE (oid%7)==0;\n  INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) \n    WHERE (random()%7)==0;\n  UPDATE t1 SET a = randstr(400,400), b = randstr(400,400) \n    WHERE (random()%7)==0;\n  ROLLBACK;"
+        },
+        {
+          "type": "catch",
+          "sql": "PRAGMA cache_size = 10;\n  PRAGMA default_cache_size = 10;\n  BEGIN;\n  DELETE FROM t1 WHERE (oid%7)==0;\n  INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) \n    WHERE (random()%7)==0;\n  UPDATE t1 SET a = randstr(400,400), b = randstr(400,400) \n    WHERE (random()%7)==0;\n  ROLLBACK;"
+        },
+        {
+          "type": "catch",
+          "sql": "PRAGMA integrity_check",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
+        },
+        {
+          "type": "close_db",
+          "condition": "$rc \u0026\u0026 ($msg eq \"disk I/O error\" || $msg eq \"database is locked\")"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "condition": "$rc \u0026\u0026 ($msg eq \"disk I/O error\" || $msg eq \"database is locked\")"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK",
+          "condition": "!($rc \u0026\u0026 ($msg eq \"disk I/O error\" || $msg eq \"database is locked\"))"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT md5sum(a, b) FROM t1",
+          "variable": "ck",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "ioerr2-4.2.1.cksum",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "$ck",
+          "variable": "ck",
+          "expect": "$::cksum"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "PRAGMA cache_size = 10;\n  PRAGMA default_cache_size = 10;\n  BEGIN;\n  DELETE FROM t1 WHERE (oid%7)==0;\n  INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) \n    WHERE (random()%7)==0;\n  UPDATE t1 SET a = randstr(400,400), b = randstr(400,400) \n    WHERE (random()%7)==0;\n  ROLLBACK;"
+        },
+        {
+          "type": "catch",
+          "sql": "PRAGMA cache_size = 10;\n  PRAGMA default_cache_size = 10;\n  BEGIN;\n  DELETE FROM t1 WHERE (oid%7)==0;\n  INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) \n    WHERE (random()%7)==0;\n  UPDATE t1 SET a = randstr(400,400), b = randstr(400,400) \n    WHERE (random()%7)==0;\n  ROLLBACK;"
+        },
+        {
+          "type": "catch",
+          "sql": "PRAGMA integrity_check",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
+        },
+        {
+          "type": "close_db",
+          "condition": "$rc \u0026\u0026 ($msg eq \"disk I/O error\" || $msg eq \"database is locked\")"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "condition": "$rc \u0026\u0026 ($msg eq \"disk I/O error\" || $msg eq \"database is locked\")"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK",
+          "condition": "!($rc \u0026\u0026 ($msg eq \"disk I/O error\" || $msg eq \"database is locked\"))"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT md5sum(a, b) FROM t1",
+          "variable": "ck",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "ioerr2-4.3.1.cksum",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "$ck",
+          "variable": "ck",
+          "expect": "$::cksum"
+        }
+      ]
+    },
+    {
+      "name": "ioerr2-5",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t2 AS SELECT * FROM t1;\n    PRAGMA temp_store = memory;"
         },
         {
-          "type": "exec",
+          "type": "query",
           "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
+        },
         {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
         {
-          "type": "reset_db"
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
         }
       ]
     }

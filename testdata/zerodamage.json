@@ -1,57 +1,43 @@
 {
   "file": "zerodamage.test",
   "name": "zerodamage",
+  "ordered": true,
   "tests": [
     {
-      "name": "setup_0",
+      "name": "zerodamage-2.0",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA page_size=1024;\n    PRAGMA journal_mode=DELETE;\n    PRAGMA cache_size=5;\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 SELECT value, randomblob(100) FROM nums\n                    WHERE value BETWEEN 1 AND 400;"
         },
         {
           "type": "exec",
-          "sql": "UPDATE t1 SET y=randomblob(50) WHERE x=123;"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=randomblob(50) WHERE x=124;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA journal_mode=WAL;"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=randomblob(50) WHERE x=124;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA synchronous=FULL;\n       UPDATE t1 SET y=randomblob(50) WHERE x=124;"
+          "sql": "UPDATE t1 SET y=randomblob(50) WHERE x=123;",
+          "expect": "0 1 {}"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "zerodamage-2.1",
       "steps": [
         {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
+          "type": "close_db"
+        },
         {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=randomblob(50) WHERE x=124;",
+          "expect": "0 0 {}"
         }
       ]
     }

@@ -1,13 +1,326 @@
 {
   "file": "select3.test",
   "name": "select3",
+  "ordered": true,
   "tests": [
+    {
+      "name": "select3-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(n int, log int);\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(7,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(8,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(9,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(10,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(11,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(12,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(13,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(14,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(15,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(16,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(17,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(18,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(19,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(20,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(21,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(22,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(23,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(24,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(25,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(26,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(27,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(28,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(29,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(30,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(31,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log FROM t1 ORDER BY log",
+          "expect": "0 1 2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "select3-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "31"
+        }
+      ]
+    },
+    {
+      "name": "select3-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT min(n),min(log),max(n),max(log),sum(n),sum(log),avg(n),avg(log)\n    FROM t1",
+          "expect": "1 0 31 5 496 124 16.0 4.0"
+        }
+      ]
+    },
+    {
+      "name": "select3-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT max(n)/avg(n), max(log)/avg(log) FROM t1",
+          "expect": "1.9375 1.25"
+        }
+      ]
+    },
+    {
+      "name": "select3-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT log, count(*) FROM t1 GROUP BY log ORDER BY log",
+          "expect": "0 1 1 1 2 2 3 4 4 8 5 15"
+        }
+      ]
+    },
+    {
+      "name": "select3-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log",
+          "expect": "0 1 1 2 2 3 3 5 4 9 5 17"
+        }
+      ]
+    },
+    {
+      "name": "select3-2.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT log, avg(n) FROM t1 GROUP BY log ORDER BY log",
+          "expect": "0 1.0 1 2.0 2 3.5 3 6.5 4 12.5 5 24.0"
+        }
+      ]
+    },
+    {
+      "name": "select3-2.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT log, avg(n)+1 FROM t1 GROUP BY log ORDER BY log",
+          "expect": "0 2.0 1 3.0 2 4.5 3 7.5 4 13.5 5 25.0"
+        }
+      ]
+    },
+    {
+      "name": "select3-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT log, avg(n)-min(n) FROM t1 GROUP BY log ORDER BY log",
+          "expect": "0 0.0 1 0.0 2 0.5 3 1.5 4 3.5 5 7.0"
+        }
+      ]
+    },
+    {
+      "name": "select3-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT log*2+1, avg(n)-min(n) FROM t1 GROUP BY log ORDER BY log",
+          "expect": "1 0.0 3 0.0 5 0.5 7 1.5 9 3.5 11 7.0"
+        }
+      ]
+    },
+    {
+      "name": "select3-2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT log*2+1 as x, count(*) FROM t1 GROUP BY x ORDER BY x",
+          "expect": "1 1 3 1 5 2 7 4 9 8 11 15"
+        }
+      ]
+    },
+    {
+      "name": "select3-2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT log*2+1 AS x, count(*) AS y FROM t1 GROUP BY x ORDER BY y, x",
+          "expect": "1 1 3 1 5 2 7 4 9 8 11 15"
+        }
+      ]
+    },
+    {
+      "name": "select3-2.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT log*2+1 AS x, count(*) AS y FROM t1 GROUP BY x ORDER BY 10-(x+y)",
+          "expect": "11 15 9 8 7 4 5 2 3 1 1 1"
+        }
+      ]
+    },
+    {
+      "name": "select3-2.10",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT log, count(*) FROM t1 GROUP BY 0 ORDER BY log;",
+          "expect": "1 {1st GROUP BY term out of range - should be between 1 and 2}"
+        }
+      ]
+    },
+    {
+      "name": "select3-2.11",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT log, count(*) FROM t1 GROUP BY 3 ORDER BY log;",
+          "expect": "1 {1st GROUP BY term out of range - should be between 1 and 2}"
+        }
+      ]
+    },
+    {
+      "name": "select3-2.12",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT log, count(*) FROM t1 GROUP BY 1 ORDER BY log;",
+          "expect": "0 {0 1 1 1 2 2 3 4 4 8 5 15}"
+        }
+      ]
+    },
+    {
+      "name": "select3-2.13",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT log, count(*) FROM t1 GROUP BY ORDER BY log;",
+          "expect": "1 {near \"ORDER\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "select3-2.14",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT log, count(*) FROM t1 GROUP BY;",
+          "expect": "1 {near \";\": syntax error}"
+        }
+      ]
+    },
     {
       "name": "select3-3.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT log, count(*) FROM t1 HAVING log>=4"
+          "sql": "SELECT log, count(*) FROM t1 HAVING log\u003e=4"
         }
       ]
     },
@@ -16,7 +329,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM t1 HAVING log>=4"
+          "sql": "SELECT count(*) FROM t1 HAVING log\u003e=4"
         }
       ]
     },
@@ -31,6 +344,469 @@
       ]
     },
     {
+      "name": "select3-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT log, count(*) FROM t1 GROUP BY log HAVING log\u003e=4 ORDER BY log",
+          "expect": "4 8 5 15"
+        }
+      ]
+    },
+    {
+      "name": "select3-4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT log, count(*) FROM t1 \n    GROUP BY log \n    HAVING count(*)\u003e=4 \n    ORDER BY log",
+          "expect": "3 4 4 8 5 15"
+        }
+      ]
+    },
+    {
+      "name": "select3-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT log, count(*) FROM t1 \n    GROUP BY log \n    HAVING count(*)\u003e=4 \n    ORDER BY max(n)+0",
+          "expect": "3 4 4 8 5 15"
+        }
+      ]
+    },
+    {
+      "name": "select3-4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT log AS x, count(*) AS y FROM t1 \n    GROUP BY x\n    HAVING y\u003e=4 \n    ORDER BY max(n)+0",
+          "expect": "3 4 4 8 5 15"
+        }
+      ]
+    },
+    {
+      "name": "select3-4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT log AS x FROM t1 \n    GROUP BY x\n    HAVING count(*)\u003e=4 \n    ORDER BY max(n)+0",
+          "expect": "3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "select3-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT log, count(*), avg(n), max(n+log*2) FROM t1 \n    GROUP BY log \n    ORDER BY max(n+log*2)+0, avg(n)+0",
+          "expect": "0 1 1.0 1 1 1 2.0 4 2 2 3.5 8 3 4 6.5 14 4 8 12.5 24 5 15 24.0 41"
+        }
+      ]
+    },
+    {
+      "name": "select3-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT log, count(*), avg(n), max(n+log*2) FROM t1 \n    GROUP BY log \n    ORDER BY max(n+log*2)+0, min(log,avg(n))+0",
+          "expect": "0 1 1.0 1 1 1 2.0 4 2 2 3.5 8 3 4 6.5 14 4 8 12.5 24 5 15 24.0 41"
+        }
+      ]
+    },
+    {
+      "name": "select3-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log;",
+          "expect": "0 1 1 2 2 3 3 5 4 9 5 17"
+        }
+      ]
+    },
+    {
+      "name": "select3-6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log DESC;",
+          "expect": "5 17 4 9 3 5 2 3 1 2 0 1"
+        }
+      ]
+    },
+    {
+      "name": "select3-6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY 1;",
+          "expect": "0 1 1 2 2 3 3 5 4 9 5 17"
+        }
+      ]
+    },
+    {
+      "name": "select3-6.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY 1 DESC;",
+          "expect": "5 17 4 9 3 5 2 3 1 2 0 1"
+        }
+      ]
+    },
+    {
+      "name": "select3-6.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(log);\n    SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log;",
+          "expect": "0 1 1 2 2 3 3 5 4 9 5 17"
+        }
+      ]
+    },
+    {
+      "name": "select3-6.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log DESC;",
+          "expect": "5 17 4 9 3 5 2 3 1 2 0 1"
+        }
+      ]
+    },
+    {
+      "name": "select3-6.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY 1;",
+          "expect": "0 1 1 2 2 3 3 5 4 9 5 17"
+        }
+      ]
+    },
+    {
+      "name": "select3-6.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY 1 DESC;",
+          "expect": "5 17 4 9 3 5 2 3 1 2 0 1"
+        }
+      ]
+    },
+    {
+      "name": "select3-7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a,b);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT a, sum(b) FROM t2 WHERE b=5 GROUP BY a;"
+        }
+      ]
+    },
+    {
+      "name": "select3-7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a, sum(b) FROM t2 WHERE b=5;",
+          "expect": "{} {}"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE A (\n      A1 DOUBLE,\n      A2 VARCHAR COLLATE NOCASE,\n      A3 DOUBLE\n    );\n    INSERT INTO A VALUES(39136,'ABC',1201900000);\n    INSERT INTO A VALUES(39136,'ABC',1207000000);\n    SELECT typeof(sum(a3)) FROM a;",
+          "expect": "real"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(sum(a3)) FROM a GROUP BY a1;",
+          "expect": "real"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, 127), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;",
+          "expect": "{} 1.0 ok"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, 128), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;",
+          "expect": "{} 1.0 ok"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.102",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, -127), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;",
+          "expect": "{} 1.0 ok"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.103",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, -128), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;",
+          "expect": "{} 1.0 ok"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.104",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, -129), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;",
+          "expect": "{} 1.0 ok"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, 32767), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;",
+          "expect": "{} 1.0 ok"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.111",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, 32768), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;",
+          "expect": "{} 1.0 ok"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.112",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, -32767), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;",
+          "expect": "{} 1.0 ok"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.113",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, -32768), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;",
+          "expect": "{} 1.0 ok"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.114",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, -32769), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;",
+          "expect": "{} 1.0 ok"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, 2147483647), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;",
+          "expect": "{} 1.0 ok"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.121",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, 2147483648), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;",
+          "expect": "{} 1.0 ok"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.122",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, -2147483647), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;",
+          "expect": "{} 1.0 ok"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.123",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, -2147483648), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;",
+          "expect": "{} 1.0 ok"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.124",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, -2147483649), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;",
+          "expect": "{} 1.0 ok"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, 140737488355327), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;",
+          "expect": "{} 1.0 ok"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.131",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, 140737488355328), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;",
+          "expect": "{} 1.0 ok"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.132",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, -140737488355327), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;",
+          "expect": "{} 1.0 ok"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.133",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, -140737488355328), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;",
+          "expect": "{} 1.0 ok"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.134",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, -140737488355329), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;",
+          "expect": "{} 1.0 ok"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, 9223372036854775807), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;",
+          "expect": "{} 1.0 ok"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.141",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, -9223372036854775807), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;",
+          "expect": "{} 1.0 ok"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.142",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, -9.223372036854776e+18), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;",
+          "expect": "{} 1.0 ok"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.143",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, 9223372036854775806), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;",
+          "expect": "{} 1.0 ok"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.144",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, 9223372036854775805), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;",
+          "expect": "{} 1.0 ok"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.145",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, -9223372036854775806), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;",
+          "expect": "{} 1.0 ok"
+        }
+      ]
+    },
+    {
+      "name": "select3-8.146",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, -9223372036854775805), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;",
+          "expect": "{} 1.0 ok"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
       "name": "select3-9.100",
       "steps": [
         {
@@ -41,6 +817,10 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
       "name": "select3.10.100",
       "steps": [
         {
@@ -49,6 +829,139 @@
           "expect": "{} {}"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "select3-11.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a TEXT);\n    CREATE TABLE t2(x INT);\n    CREATE INDEX t2x ON t2(x);\n    INSERT INTO t1 VALUES('abc');"
+        }
+      ]
+    },
+    {
+      "name": "select3.11.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT max(a), val FROM t1 LEFT JOIN (\n        SELECT 'constant' AS val FROM t2 WHERE x=1234\n    )",
+          "expect": "abc {}"
+        }
+      ]
+    },
+    {
+      "name": "select3.11.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t2 VALUES(123);\n    SELECT max(a), val FROM t1 LEFT JOIN (\n        SELECT 'constant' AS val FROM t2 WHERE x=1234\n    )",
+          "expect": "abc {}"
+        }
+      ]
+    },
+    {
+      "name": "select3.11.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t2 VALUES(1234);\n    SELECT max(a), val FROM t1 LEFT JOIN (\n        SELECT 'constant' AS val FROM t2 WHERE x=1234\n    )",
+          "expect": "abc constant"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "select3-11.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a TEXT);\n    CREATE TABLE t2(x INT);\n    INSERT INTO t1 VALUES('abc');"
+        }
+      ]
+    },
+    {
+      "name": "select3.11.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT max(a), val FROM t1 LEFT JOIN (\n        SELECT 'constant' AS val FROM t2 WHERE x=1234\n    )",
+          "expect": "abc {}"
+        }
+      ]
+    },
+    {
+      "name": "select3.11.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t2 VALUES(123);\n    SELECT max(a), val FROM t1 LEFT JOIN (\n        SELECT 'constant' AS val FROM t2 WHERE x=1234\n    )",
+          "expect": "abc {}"
+        }
+      ]
+    },
+    {
+      "name": "select3.11.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t2 VALUES(1234);\n    SELECT max(a), val FROM t1 LEFT JOIN (\n        SELECT 'constant' AS val FROM t2 WHERE x=1234\n    )",
+          "expect": "abc constant"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "select3-11.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a TEXT);\n    CREATE TABLE t2(x INT);\n    INSERT INTO t1 VALUES('abc');\n    PRAGMA automatic_index=OFF;"
+        }
+      ]
+    },
+    {
+      "name": "select3.11.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT max(a), val FROM t1 LEFT JOIN (\n        SELECT 'constant' AS val FROM t2 WHERE x=1234\n    )",
+          "expect": "abc {}"
+        }
+      ]
+    },
+    {
+      "name": "select3.11.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t2 VALUES(123);\n    SELECT max(a), val FROM t1 LEFT JOIN (\n        SELECT 'constant' AS val FROM t2 WHERE x=1234\n    )",
+          "expect": "abc {}"
+        }
+      ]
+    },
+    {
+      "name": "select3.11.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t2 VALUES(1234);\n    SELECT max(a), val FROM t1 LEFT JOIN (\n        SELECT 'constant' AS val FROM t2 WHERE x=1234\n    )",
+          "expect": "abc constant"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "12.0",
@@ -74,7 +987,7 @@
         {
           "type": "query",
           "sql": "INSERT INTO t1 VALUES(1), (1), (2), (3);\n  SELECT count(x), m FROM t1 LEFT JOIN (SELECT x, 59 AS m FROM t2) GROUP BY a;",
-          "expect": "0 {}\n  0 {}\n  0 {}"
+          "expect": "\n  0 {}\n  0 {}\n  0 {}\n"
         }
       ]
     },
@@ -84,7 +997,7 @@
         {
           "type": "query",
           "sql": "INSERT INTO t2 VALUES(45);\n  SELECT count(x), m FROM t1 LEFT JOIN (SELECT x, 59 AS m FROM t2) GROUP BY a;",
-          "expect": "2 59\n  1 59\n  1 59"
+          "expect": "\n  2 59\n  1 59\n  1 59\n"
         }
       ]
     },
@@ -94,7 +1007,7 @@
         {
           "type": "query",
           "sql": "INSERT INTO t2 VALUES(210);\n  SELECT count(x), m FROM t1 LEFT JOIN (SELECT x, 59 AS m FROM t2) GROUP BY a;",
-          "expect": "4 59\n  2 59\n  2 59"
+          "expect": "\n  4 59\n  2 59\n  2 59\n"
         }
       ]
     },
@@ -104,7 +1017,7 @@
         {
           "type": "query",
           "sql": "INSERT INTO t2 VALUES(NULL);\n  SELECT count(x), m FROM t1 LEFT JOIN (SELECT x, 59 AS m FROM t2) GROUP BY a;",
-          "expect": "4 59\n  2 59\n  2 59"
+          "expect": "\n  4 59\n  2 59\n  2 59\n"
         }
       ]
     },
@@ -123,7 +1036,7 @@
         {
           "type": "query",
           "sql": "SELECT group_concat(x), m FROM t1 \n    LEFT JOIN (SELECT x, 59 AS m FROM t2) GROUP BY a;",
-          "expect": "hello 59"
+          "expect": "\n  hello 59\n"
         }
       ]
     },
@@ -133,545 +1046,7 @@
         {
           "type": "query",
           "sql": "SELECT group_concat(x), m, n FROM t1 \n    LEFT JOIN (SELECT x, 59 AS m, 60 AS n FROM t2) GROUP BY a;",
-          "expect": "hello 59 60"
-        }
-      ]
-    },
-    {
-      "name": "select3-1.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(n int, log int);\n    BEGIN;"
-        }
-      ]
-    },
-    {
-      "name": "select3-1.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM t1",
-          "expect": "31"
-        }
-      ]
-    },
-    {
-      "name": "select3-1.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT min(n),min(log),max(n),max(log),sum(n),sum(log),avg(n),avg(log)\n    FROM t1",
-          "expect": "1 0 31 5 496 124 16.0 4.0"
-        }
-      ]
-    },
-    {
-      "name": "select3-1.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT max(n)/avg(n), max(log)/avg(log) FROM t1",
-          "expect": "1.9375 1.25"
-        }
-      ]
-    },
-    {
-      "name": "select3-2.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT log, count(*) FROM t1 GROUP BY log ORDER BY log",
-          "expect": "0 1 1 1 2 2 3 4 4 8 5 15"
-        }
-      ]
-    },
-    {
-      "name": "select3-2.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log",
-          "expect": "0 1 1 2 2 3 3 5 4 9 5 17"
-        }
-      ]
-    },
-    {
-      "name": "select3-2.3.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT log, avg(n) FROM t1 GROUP BY log ORDER BY log",
-          "expect": "0 1.0 1 2.0 2 3.5 3 6.5 4 12.5 5 24.0"
-        }
-      ]
-    },
-    {
-      "name": "select3-2.3.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT log, avg(n)+1 FROM t1 GROUP BY log ORDER BY log",
-          "expect": "0 2.0 1 3.0 2 4.5 3 7.5 4 13.5 5 25.0"
-        }
-      ]
-    },
-    {
-      "name": "select3-2.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT log, avg(n)-min(n) FROM t1 GROUP BY log ORDER BY log",
-          "expect": "0 0.0 1 0.0 2 0.5 3 1.5 4 3.5 5 7.0"
-        }
-      ]
-    },
-    {
-      "name": "select3-2.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT log*2+1, avg(n)-min(n) FROM t1 GROUP BY log ORDER BY log",
-          "expect": "1 0.0 3 0.0 5 0.5 7 1.5 9 3.5 11 7.0"
-        }
-      ]
-    },
-    {
-      "name": "select3-2.6",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT log*2+1 as x, count(*) FROM t1 GROUP BY x ORDER BY x",
-          "expect": "1 1 3 1 5 2 7 4 9 8 11 15"
-        }
-      ]
-    },
-    {
-      "name": "select3-2.7",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT log*2+1 AS x, count(*) AS y FROM t1 GROUP BY x ORDER BY y, x",
-          "expect": "1 1 3 1 5 2 7 4 9 8 11 15"
-        }
-      ]
-    },
-    {
-      "name": "select3-2.8",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT log*2+1 AS x, count(*) AS y FROM t1 GROUP BY x ORDER BY 10-(x+y)",
-          "expect": "11 15 9 8 7 4 5 2 3 1 1 1"
-        }
-      ]
-    },
-    {
-      "name": "select3-2.9",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "#    SELECT log, count(*) FROM t1 GROUP BY 'x' ORDER BY log;\n#",
-          "expect": "1 {GROUP BY terms must not be non-integer constants}"
-        }
-      ]
-    },
-    {
-      "name": "select3-2.10",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT log, count(*) FROM t1 GROUP BY 0 ORDER BY log;",
-          "expect": "1 {1st GROUP BY term out of range - should be between 1 and 2}"
-        }
-      ]
-    },
-    {
-      "name": "select3-2.11",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT log, count(*) FROM t1 GROUP BY 3 ORDER BY log;",
-          "expect": "1 {1st GROUP BY term out of range - should be between 1 and 2}"
-        }
-      ]
-    },
-    {
-      "name": "select3-2.12",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT log, count(*) FROM t1 GROUP BY 1 ORDER BY log;",
-          "expect": "0 {0 1 1 1 2 2 3 4 4 8 5 15}"
-        }
-      ]
-    },
-    {
-      "name": "select3-2.13",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT log, count(*) FROM t1 GROUP BY ORDER BY log;",
-          "expect": "1 {near \"ORDER\": syntax error}"
-        }
-      ]
-    },
-    {
-      "name": "select3-2.14",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT log, count(*) FROM t1 GROUP BY;",
-          "expect": "1 {near \";\": syntax error}"
-        }
-      ]
-    },
-    {
-      "name": "select3-4.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT log, count(*) FROM t1 GROUP BY log HAVING log>=4 ORDER BY log",
-          "expect": "4 8 5 15"
-        }
-      ]
-    },
-    {
-      "name": "select3-4.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT log, count(*) FROM t1 \n    GROUP BY log \n    HAVING count(*)>=4 \n    ORDER BY log",
-          "expect": "3 4 4 8 5 15"
-        }
-      ]
-    },
-    {
-      "name": "select3-4.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT log, count(*) FROM t1 \n    GROUP BY log \n    HAVING count(*)>=4 \n    ORDER BY max(n)+0",
-          "expect": "3 4 4 8 5 15"
-        }
-      ]
-    },
-    {
-      "name": "select3-4.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT log AS x, count(*) AS y FROM t1 \n    GROUP BY x\n    HAVING y>=4 \n    ORDER BY max(n)+0",
-          "expect": "3 4 4 8 5 15"
-        }
-      ]
-    },
-    {
-      "name": "select3-4.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT log AS x FROM t1 \n    GROUP BY x\n    HAVING count(*)>=4 \n    ORDER BY max(n)+0",
-          "expect": "3 4 5"
-        }
-      ]
-    },
-    {
-      "name": "select3-5.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT log, count(*), avg(n), max(n+log*2) FROM t1 \n    GROUP BY log \n    ORDER BY max(n+log*2)+0, avg(n)+0",
-          "expect": "0 1 1.0 1 1 1 2.0 4 2 2 3.5 8 3 4 6.5 14 4 8 12.5 24 5 15 24.0 41"
-        }
-      ]
-    },
-    {
-      "name": "select3-5.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT log, count(*), avg(n), max(n+log*2) FROM t1 \n    GROUP BY log \n    ORDER BY max(n+log*2)+0, min(log,avg(n))+0",
-          "expect": "0 1 1.0 1 1 1 2.0 4 2 2 3.5 8 3 4 6.5 14 4 8 12.5 24 5 15 24.0 41"
-        }
-      ]
-    },
-    {
-      "name": "select3-6.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log;",
-          "expect": "0 1 1 2 2 3 3 5 4 9 5 17"
-        }
-      ]
-    },
-    {
-      "name": "select3-6.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log DESC;",
-          "expect": "5 17 4 9 3 5 2 3 1 2 0 1"
-        }
-      ]
-    },
-    {
-      "name": "select3-6.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY 1;",
-          "expect": "0 1 1 2 2 3 3 5 4 9 5 17"
-        }
-      ]
-    },
-    {
-      "name": "select3-6.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY 1 DESC;",
-          "expect": "5 17 4 9 3 5 2 3 1 2 0 1"
-        }
-      ]
-    },
-    {
-      "name": "select3-6.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE INDEX i1 ON t1(log);\n    SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log;",
-          "expect": "0 1 1 2 2 3 3 5 4 9 5 17"
-        }
-      ]
-    },
-    {
-      "name": "select3-6.6",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log DESC;",
-          "expect": "5 17 4 9 3 5 2 3 1 2 0 1"
-        }
-      ]
-    },
-    {
-      "name": "select3-6.7",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY 1;",
-          "expect": "0 1 1 2 2 3 3 5 4 9 5 17"
-        }
-      ]
-    },
-    {
-      "name": "select3-6.8",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY 1 DESC;",
-          "expect": "5 17 4 9 3 5 2 3 1 2 0 1"
-        }
-      ]
-    },
-    {
-      "name": "select3-7.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t2(a,b);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT a, sum(b) FROM t2 WHERE b=5 GROUP BY a;"
-        }
-      ]
-    },
-    {
-      "name": "select3-7.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a, sum(b) FROM t2 WHERE b=5;",
-          "expect": "{} {}"
-        }
-      ]
-    },
-    {
-      "name": "select3-8.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE A (\n      A1 DOUBLE,\n      A2 VARCHAR COLLATE NOCASE,\n      A3 DOUBLE\n    );\n    INSERT INTO A VALUES(39136,'ABC',1201900000);\n    INSERT INTO A VALUES(39136,'ABC',1207000000);\n    SELECT typeof(sum(a3)) FROM a;",
-          "expect": "real"
-        }
-      ]
-    },
-    {
-      "name": "select3-8.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(sum(a3)) FROM a GROUP BY a1;",
-          "expect": "real"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(n int, log int);\n    BEGIN;"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT DISTINCT log FROM t1 ORDER BY log"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT min(n),min(log),max(n),max(log),sum(n),sum(log),avg(n),avg(log)\n    FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT max(n)/avg(n), max(log)/avg(log) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT log, count(*) FROM t1 GROUP BY log ORDER BY log"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT log, avg(n) FROM t1 GROUP BY log ORDER BY log"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT log, avg(n)+1 FROM t1 GROUP BY log ORDER BY log"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT log, avg(n)-min(n) FROM t1 GROUP BY log ORDER BY log"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT log*2+1, avg(n)-min(n) FROM t1 GROUP BY log ORDER BY log"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT log*2+1 as x, count(*) FROM t1 GROUP BY x ORDER BY x"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT log*2+1 AS x, count(*) AS y FROM t1 GROUP BY x ORDER BY y, x"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT log*2+1 AS x, count(*) AS y FROM t1 GROUP BY x ORDER BY 10-(x+y)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT log, count(*) FROM t1 GROUP BY log HAVING log>=4 ORDER BY log"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT log, count(*) FROM t1 \n    GROUP BY log \n    HAVING count(*)>=4 \n    ORDER BY log"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT log, count(*) FROM t1 \n    GROUP BY log \n    HAVING count(*)>=4 \n    ORDER BY max(n)+0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT log AS x, count(*) AS y FROM t1 \n    GROUP BY x\n    HAVING y>=4 \n    ORDER BY max(n)+0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT log AS x FROM t1 \n    GROUP BY x\n    HAVING count(*)>=4 \n    ORDER BY max(n)+0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT log, count(*), avg(n), max(n+log*2) FROM t1 \n    GROUP BY log \n    ORDER BY max(n+log*2)+0, avg(n)+0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT log, count(*), avg(n), max(n+log*2) FROM t1 \n    GROUP BY log \n    ORDER BY max(n+log*2)+0, min(log,avg(n))+0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log DESC;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY 1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY 1 DESC;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX i1 ON t1(log);\n    SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log DESC;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY 1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY 1 DESC;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(a,b);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT a, sum(b) FROM t2 WHERE b=5 GROUP BY a;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, sum(b) FROM t2 WHERE b=5;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE A (\n      A1 DOUBLE,\n      A2 VARCHAR COLLATE NOCASE,\n      A3 DOUBLE\n    );\n    INSERT INTO A VALUES(39136,'ABC',1201900000);\n    INSERT INTO A VALUES(39136,'ABC',1207000000);\n    SELECT typeof(sum(a3)) FROM a;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(sum(a3)) FROM a GROUP BY a1;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
+          "expect": "\n  hello 59 60\n"
         }
       ]
     }

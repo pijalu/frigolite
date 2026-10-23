@@ -52,8 +52,10 @@ type walWriter struct {
 	nCkpt uint32
 	// writeLock/ckptLock mirror C's pWal->writeLock/ckptLock: which shm locks
 	// this connection currently holds (released on Close).
-	writeLock bool
-	ckptLock  bool
+	writeLock    bool
+	ckptLock     bool
+	spillStarted bool
+	spilled      map[uint32][]byte
 	// readLock mirrors C's pWal->readLock: the shared WAL_READ_LOCK this
 	// connection holds for its open read transaction (-1 none, 0..4 the
 	// read-mark index; 0 pins the "ignore the WAL" state). Set by
@@ -410,6 +412,41 @@ func (w *walWriter) appendFrame(pg *Page, commit bool, dbSize uint32) error {
 	return nil
 }
 
+// spill writes dirty pager pages as non-commit WAL frames. The published index header is untouched,
+// so readers cannot observe these frames until the transaction commits.
+func (w *walWriter) spill(pages []*Page) error {
+	if len(pages) == 0 {
+		return nil
+	}
+	if !w.writeLock {
+		return fmt.Errorf("pager: WAL spill without writer lock")
+	}
+	if w.spilled == nil {
+		w.spilled = make(map[uint32][]byte)
+	}
+	return w.wi.WriterSection(func() error {
+		if !w.spillStarted && w.readLock == 0 {
+			if err := w.walRestartLogHeld(); err != nil {
+				return err
+			}
+		}
+		for _, pg := range pages {
+			if prior, ok := w.spilled[pg.PageNum]; ok && string(prior) == string(pg.Data) {
+				continue
+			}
+			if err := w.appendFrame(pg, false, 0); err != nil {
+				return err
+			}
+			if err := w.wi.appendLocked(uint32(w.nFrame), pg.PageNum, w.hdr.MxFrame); err != nil {
+				return err
+			}
+			w.spilled[pg.PageNum] = append(w.spilled[pg.PageNum][:0], pg.Data...)
+		}
+		w.spillStarted = true
+		return nil
+	})
+}
+
 // commit writes all currently-dirty pages of the pager as WAL frames, marking
 // the final frame as the commit record (post-transaction database size =
 // p.numPages). It is the sqlite3WalBeginWriteTransaction + walFrames port:
@@ -500,7 +537,7 @@ func (w *walWriter) commitPrepareLocked() error {
 	if changed {
 		w.adoptHeaderLocked()
 	}
-	if w.readLock == 0 {
+	if w.readLock == 0 && !w.spillStarted {
 		// walRestartLog (wal.c L3852): this writer's read transaction pins
 		// READ_LOCK(0) — the log is fully backfilled and may be overwritten
 		// from frame 1 when no other reader holds a mark; the pin is then

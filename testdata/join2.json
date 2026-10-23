@@ -363,8 +363,15 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        }
+      ]
     },
     {
       "name": "join2-7.0",
@@ -484,6 +491,15 @@
     {
       "name": "__RESET_DB__",
       "steps": null
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
     },
     {
       "name": "join2-10.1",

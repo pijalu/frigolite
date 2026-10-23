@@ -336,18 +336,46 @@ func buildOrigColDefs(parts []string) map[string]string {
 		if trimmed == "" {
 			continue
 		}
-		// Extract the column name (first word)
-		spaceIdx := strings.IndexAny(trimmed, " (\"")
-		if spaceIdx > 0 {
-			name := strings.ToUpper(strings.Trim(trimmed[:spaceIdx], "\""))
-			origColDefs[name] = trimmed
-		} else if spaceIdx < 0 {
-			// Single word column name
-			name := strings.ToUpper(strings.Trim(trimmed, "\""))
-			origColDefs[name] = trimmed
+		// Use the SQL token scanner so quoted identifiers containing spaces retain
+		// their complete name and original spelling for subsequent ALTER rewrites.
+		tokens := ddlSQLTokens(trimmed)
+		if len(tokens) > 0 {
+			origColDefs[strings.ToUpper(tokens[0].text)] = trimmed
 		}
 	}
 	return origColDefs
+}
+
+// dropNotNullClause removes the top-level column NOT NULL clause from verbatim SQL.
+func dropNotNullClause(definition string) string {
+	tokens := ddlSQLTokens(definition)
+	depth := 0
+	for i := 0; i+1 < len(tokens); i++ {
+		if tokens[i].text == "(" {
+			depth++
+			continue
+		}
+		if tokens[i].text == ")" {
+			depth--
+			continue
+		}
+		if depth != 0 || tokens[i].quoted || !strings.EqualFold(tokens[i].text, "NOT") || !strings.EqualFold(tokens[i+1].text, "NULL") {
+			continue
+		}
+		start := tokens[i].start
+		if i >= 2 && strings.EqualFold(tokens[i-2].text, "CONSTRAINT") {
+			start = tokens[i-2].start
+		}
+		end := tokens[i+1].start + len(tokens[i+1].text)
+		if i+3 < len(tokens) && strings.EqualFold(tokens[i+2].text, "ON") && strings.EqualFold(tokens[i+3].text, "CONFLICT") {
+			end = tokens[i+3].start + len(tokens[i+3].text)
+			if i+4 < len(tokens) {
+				end = tokens[i+4].start + len(tokens[i+4].text)
+			}
+		}
+		return strings.TrimSpace(definition[:start] + definition[end:])
+	}
+	return definition
 }
 
 // assembleCreateTableSQL writes the final CREATE TABLE SQL from the updated
@@ -366,7 +394,11 @@ func assembleCreateTableSQL(tableName string, colDefs []sql.ColumnDef, constrain
 			// Reconstruct when the column's NOT NULL constraint differs from the
 			// original text (e.g. after ALTER COLUMN SET/DROP NOT NULL).
 			if col.NotNull != origHasNotNull(orig) {
-				formatColumnDef(&buf, col)
+				if !col.NotNull {
+					buf.WriteString(dropNotNullClause(orig))
+				} else {
+					buf.WriteString(strings.TrimSpace(orig) + " NOT NULL")
+				}
 			} else {
 				buf.WriteString(orig)
 			}

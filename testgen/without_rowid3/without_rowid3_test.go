@@ -2803,7 +2803,9 @@ func Test_without_rowid3(t *testing.T) {
 								_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 							}
 							{ // "without_rowid3-18.5" — skipped: authorizer framework (db auth C callback harness N-A) (SQL + file side effects only)
-								_res = db.Exec("\n      CREATE TABLE nought(a, b PRIMARY KEY, c) WITHOUT rowid;\n      CREATE TABLE cross(d, e, f,\n        FOREIGN KEY(e) REFERENCES nought(b) ON UPDATE CASCADE\n      );\n    ")
+								_res = db.Exec("CREATE TABLE nought(a, b PRIMARY KEY, c) WITHOUT rowid")
+								_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+								_res = db.Exec("CREATE TABLE cross(d, e, f,\n        FOREIGN KEY(e) REFERENCES nought(b) ON UPDATE CASCADE\n      )")
 								_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 								_res = db.Exec(" INSERT INTO nought VALUES(2, 1, 2) ")
 								_ = _res.Error // tolerate unsupported-feature errors in skipped tests
@@ -2817,7 +2819,11 @@ func Test_without_rowid3(t *testing.T) {
 								_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 							}
 							{ // "without_rowid3-18.7" — skipped: authorizer framework (db auth C callback harness N-A) (SQL + file side effects only)
-								_res = db.Exec("\n      CREATE TABLE one(a INT PRIMARY KEY, b) WITHOUT rowid;\n      CREATE TABLE two(b, c REFERENCES one);\n      INSERT INTO one VALUES(101, 102);\n    ")
+								_res = db.Exec("CREATE TABLE one(a INT PRIMARY KEY, b) WITHOUT rowid")
+								_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+								_res = db.Exec("CREATE TABLE two(b, c REFERENCES one)")
+								_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+								_res = db.Exec("INSERT INTO one VALUES(101, 102)")
 								_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 								_res = db.Exec(" INSERT INTO two VALUES(100, 101); ")
 								_ = _res.Error // tolerate unsupported-feature errors in skipped tests

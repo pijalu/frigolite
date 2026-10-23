@@ -1,0 +1,3174 @@
+{
+  "file": "tkt-4dd95f6943.test",
+  "name": "tkt-4dd95f6943",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "tkt-4dd95f6943-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES (3), (4), (2), (1), (5), (6);"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-1.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i1;"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-1.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(x ASC)"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-1.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE x IN(2, 4, 5) ORDER BY x ASC;",
+          "expect": "2 4 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-1.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE x IN(2, 4, 5) ORDER BY x DESC;",
+          "expect": "5 4 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-1.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i1;"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-1.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(x DESC)"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-1.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE x IN(2, 4, 5) ORDER BY x ASC;",
+          "expect": "2 4 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-1.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE x IN(2, 4, 5) ORDER BY x DESC;",
+          "expect": "5 4 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x, y);\n  INSERT INTO t2 VALUES (5, 3), (5, 4), (5, 2), (5, 1), (5, 5), (5, 6);\n  INSERT INTO t2 VALUES (1, 3), (1, 4), (1, 2), (1, 1), (1, 5), (1, 6);\n  INSERT INTO t2 VALUES (3, 3), (3, 4), (3, 2), (3, 1), (3, 5), (3, 6);\n  INSERT INTO t2 VALUES (2, 3), (2, 4), (2, 2), (2, 1), (2, 5), (2, 6);\n  INSERT INTO t2 VALUES (4, 3), (4, 4), (4, 2), (4, 1), (4, 5), (4, 6);\n  INSERT INTO t2 VALUES (6, 3), (6, 4), (6, 2), (6, 1), (6, 5), (6, 6);\n\n  CREATE TABLE t3(a, b);\n  INSERT INTO t3 VALUES (2, 2), (4, 4), (5, 5);\n  CREATE UNIQUE INDEX t3i1 ON t3(a ASC);\n  CREATE UNIQUE INDEX t3i2 ON t3(b DESC);"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i1;"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t2(x ASC,  y ASC)"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 1 AND y IN (2, 4, 5) ORDER BY x ASC, y ASC;",
+          "expect": "1 2  1 4  1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 2 AND y IN (2, 4, 5) ORDER BY x ASC, y DESC;",
+          "expect": "2 5  2 4  2 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 3 AND y IN (2, 4, 5) ORDER BY x DESC, y ASC;",
+          "expect": "3 2  3 4  3 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 4 AND y IN (2, 4, 5) ORDER BY x DESC, y DESC;",
+          "expect": "4 5  4 4  4 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x ASC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x ASC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x ASC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x ASC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.3.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x DESC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x DESC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.3.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x DESC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.3.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x DESC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 1 AND y IN (SELECT a FROM t3) ORDER BY x ASC, y ASC;",
+          "expect": "1 2  1 4  1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 2 AND y IN (SELECT a FROM t3) ORDER BY x ASC, y DESC;",
+          "expect": "2 5  2 4  2 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 3 AND y IN (SELECT a FROM t3) ORDER BY x DESC, y ASC;",
+          "expect": "3 2  3 4  3 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 4 AND y IN (SELECT a FROM t3) ORDER BY x DESC, y DESC;",
+          "expect": "4 5  4 4  4 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x ASC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x ASC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.4.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x ASC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x ASC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.4.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x DESC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x DESC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.4.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x DESC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.4.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x DESC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 1 AND y IN (SELECT b FROM t3) ORDER BY x ASC, y ASC;",
+          "expect": "1 2  1 4  1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 2 AND y IN (SELECT b FROM t3) ORDER BY x ASC, y DESC;",
+          "expect": "2 5  2 4  2 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 3 AND y IN (SELECT b FROM t3) ORDER BY x DESC, y ASC;",
+          "expect": "3 2  3 4  3 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 4 AND y IN (SELECT b FROM t3) ORDER BY x DESC, y DESC;",
+          "expect": "4 5  4 4  4 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x ASC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.5.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x ASC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.5.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x ASC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x ASC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.5.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x DESC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x DESC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.5.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x DESC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.1.5.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x DESC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i1;"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t2(x ASC,  y DESC)"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 1 AND y IN (2, 4, 5) ORDER BY x ASC, y ASC;",
+          "expect": "1 2  1 4  1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 2 AND y IN (2, 4, 5) ORDER BY x ASC, y DESC;",
+          "expect": "2 5  2 4  2 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 3 AND y IN (2, 4, 5) ORDER BY x DESC, y ASC;",
+          "expect": "3 2  3 4  3 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 4 AND y IN (2, 4, 5) ORDER BY x DESC, y DESC;",
+          "expect": "4 5  4 4  4 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x ASC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x ASC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x ASC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x ASC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.3.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x DESC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x DESC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.3.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x DESC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.3.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x DESC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 1 AND y IN (SELECT a FROM t3) ORDER BY x ASC, y ASC;",
+          "expect": "1 2  1 4  1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 2 AND y IN (SELECT a FROM t3) ORDER BY x ASC, y DESC;",
+          "expect": "2 5  2 4  2 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 3 AND y IN (SELECT a FROM t3) ORDER BY x DESC, y ASC;",
+          "expect": "3 2  3 4  3 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 4 AND y IN (SELECT a FROM t3) ORDER BY x DESC, y DESC;",
+          "expect": "4 5  4 4  4 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x ASC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x ASC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.4.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x ASC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x ASC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.4.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x DESC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x DESC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.4.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x DESC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.4.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x DESC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 1 AND y IN (SELECT b FROM t3) ORDER BY x ASC, y ASC;",
+          "expect": "1 2  1 4  1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 2 AND y IN (SELECT b FROM t3) ORDER BY x ASC, y DESC;",
+          "expect": "2 5  2 4  2 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 3 AND y IN (SELECT b FROM t3) ORDER BY x DESC, y ASC;",
+          "expect": "3 2  3 4  3 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 4 AND y IN (SELECT b FROM t3) ORDER BY x DESC, y DESC;",
+          "expect": "4 5  4 4  4 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x ASC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.5.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x ASC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.5.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x ASC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x ASC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.5.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x DESC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x DESC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.5.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x DESC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.2.5.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x DESC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i1;"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t2(x DESC, y ASC)"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 1 AND y IN (2, 4, 5) ORDER BY x ASC, y ASC;",
+          "expect": "1 2  1 4  1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 2 AND y IN (2, 4, 5) ORDER BY x ASC, y DESC;",
+          "expect": "2 5  2 4  2 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 3 AND y IN (2, 4, 5) ORDER BY x DESC, y ASC;",
+          "expect": "3 2  3 4  3 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 4 AND y IN (2, 4, 5) ORDER BY x DESC, y DESC;",
+          "expect": "4 5  4 4  4 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x ASC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x ASC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x ASC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x ASC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.3.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x DESC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x DESC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.3.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x DESC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.3.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x DESC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 1 AND y IN (SELECT a FROM t3) ORDER BY x ASC, y ASC;",
+          "expect": "1 2  1 4  1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 2 AND y IN (SELECT a FROM t3) ORDER BY x ASC, y DESC;",
+          "expect": "2 5  2 4  2 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 3 AND y IN (SELECT a FROM t3) ORDER BY x DESC, y ASC;",
+          "expect": "3 2  3 4  3 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 4 AND y IN (SELECT a FROM t3) ORDER BY x DESC, y DESC;",
+          "expect": "4 5  4 4  4 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x ASC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x ASC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.4.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x ASC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x ASC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.4.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x DESC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x DESC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.4.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x DESC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.4.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x DESC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 1 AND y IN (SELECT b FROM t3) ORDER BY x ASC, y ASC;",
+          "expect": "1 2  1 4  1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 2 AND y IN (SELECT b FROM t3) ORDER BY x ASC, y DESC;",
+          "expect": "2 5  2 4  2 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 3 AND y IN (SELECT b FROM t3) ORDER BY x DESC, y ASC;",
+          "expect": "3 2  3 4  3 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 4 AND y IN (SELECT b FROM t3) ORDER BY x DESC, y DESC;",
+          "expect": "4 5  4 4  4 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x ASC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.5.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x ASC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.5.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x ASC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x ASC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.5.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x DESC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x DESC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.5.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x DESC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.3.5.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x DESC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i1;"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t2(x DESC, y DESC)"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 1 AND y IN (2, 4, 5) ORDER BY x ASC, y ASC;",
+          "expect": "1 2  1 4  1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 2 AND y IN (2, 4, 5) ORDER BY x ASC, y DESC;",
+          "expect": "2 5  2 4  2 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 3 AND y IN (2, 4, 5) ORDER BY x DESC, y ASC;",
+          "expect": "3 2  3 4  3 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 4 AND y IN (2, 4, 5) ORDER BY x DESC, y DESC;",
+          "expect": "4 5  4 4  4 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x ASC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x ASC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x ASC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x ASC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.3.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x DESC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x DESC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.3.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x DESC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.3.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x DESC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 1 AND y IN (SELECT a FROM t3) ORDER BY x ASC, y ASC;",
+          "expect": "1 2  1 4  1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 2 AND y IN (SELECT a FROM t3) ORDER BY x ASC, y DESC;",
+          "expect": "2 5  2 4  2 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 3 AND y IN (SELECT a FROM t3) ORDER BY x DESC, y ASC;",
+          "expect": "3 2  3 4  3 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 4 AND y IN (SELECT a FROM t3) ORDER BY x DESC, y DESC;",
+          "expect": "4 5  4 4  4 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x ASC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x ASC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.4.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x ASC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x ASC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.4.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x DESC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x DESC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.4.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x DESC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.4.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x DESC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 1 AND y IN (SELECT b FROM t3) ORDER BY x ASC, y ASC;",
+          "expect": "1 2  1 4  1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 2 AND y IN (SELECT b FROM t3) ORDER BY x ASC, y DESC;",
+          "expect": "2 5  2 4  2 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 3 AND y IN (SELECT b FROM t3) ORDER BY x DESC, y ASC;",
+          "expect": "3 2  3 4  3 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 4 AND y IN (SELECT b FROM t3) ORDER BY x DESC, y DESC;",
+          "expect": "4 5  4 4  4 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x ASC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.5.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x ASC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.5.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x ASC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x ASC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.5.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x DESC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x DESC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.5.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x DESC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.4.5.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x DESC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i1;"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t2(y ASC,  x ASC)"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 1 AND y IN (2, 4, 5) ORDER BY x ASC, y ASC;",
+          "expect": "1 2  1 4  1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 2 AND y IN (2, 4, 5) ORDER BY x ASC, y DESC;",
+          "expect": "2 5  2 4  2 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 3 AND y IN (2, 4, 5) ORDER BY x DESC, y ASC;",
+          "expect": "3 2  3 4  3 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 4 AND y IN (2, 4, 5) ORDER BY x DESC, y DESC;",
+          "expect": "4 5  4 4  4 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x ASC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x ASC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x ASC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x ASC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.3.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x DESC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x DESC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.3.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x DESC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.3.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x DESC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 1 AND y IN (SELECT a FROM t3) ORDER BY x ASC, y ASC;",
+          "expect": "1 2  1 4  1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 2 AND y IN (SELECT a FROM t3) ORDER BY x ASC, y DESC;",
+          "expect": "2 5  2 4  2 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 3 AND y IN (SELECT a FROM t3) ORDER BY x DESC, y ASC;",
+          "expect": "3 2  3 4  3 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 4 AND y IN (SELECT a FROM t3) ORDER BY x DESC, y DESC;",
+          "expect": "4 5  4 4  4 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x ASC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x ASC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.4.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x ASC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x ASC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.4.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x DESC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x DESC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.4.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x DESC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.4.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x DESC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 1 AND y IN (SELECT b FROM t3) ORDER BY x ASC, y ASC;",
+          "expect": "1 2  1 4  1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 2 AND y IN (SELECT b FROM t3) ORDER BY x ASC, y DESC;",
+          "expect": "2 5  2 4  2 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 3 AND y IN (SELECT b FROM t3) ORDER BY x DESC, y ASC;",
+          "expect": "3 2  3 4  3 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 4 AND y IN (SELECT b FROM t3) ORDER BY x DESC, y DESC;",
+          "expect": "4 5  4 4  4 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x ASC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.5.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x ASC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.5.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x ASC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x ASC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.5.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x DESC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x DESC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.5.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x DESC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.5.5.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x DESC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i1;"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t2(y ASC,  x DESC)"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 1 AND y IN (2, 4, 5) ORDER BY x ASC, y ASC;",
+          "expect": "1 2  1 4  1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 2 AND y IN (2, 4, 5) ORDER BY x ASC, y DESC;",
+          "expect": "2 5  2 4  2 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 3 AND y IN (2, 4, 5) ORDER BY x DESC, y ASC;",
+          "expect": "3 2  3 4  3 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 4 AND y IN (2, 4, 5) ORDER BY x DESC, y DESC;",
+          "expect": "4 5  4 4  4 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x ASC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x ASC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x ASC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x ASC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.3.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x DESC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x DESC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.3.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x DESC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.3.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x DESC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 1 AND y IN (SELECT a FROM t3) ORDER BY x ASC, y ASC;",
+          "expect": "1 2  1 4  1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 2 AND y IN (SELECT a FROM t3) ORDER BY x ASC, y DESC;",
+          "expect": "2 5  2 4  2 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 3 AND y IN (SELECT a FROM t3) ORDER BY x DESC, y ASC;",
+          "expect": "3 2  3 4  3 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 4 AND y IN (SELECT a FROM t3) ORDER BY x DESC, y DESC;",
+          "expect": "4 5  4 4  4 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x ASC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x ASC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.4.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x ASC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x ASC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.4.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x DESC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x DESC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.4.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x DESC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.4.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x DESC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 1 AND y IN (SELECT b FROM t3) ORDER BY x ASC, y ASC;",
+          "expect": "1 2  1 4  1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 2 AND y IN (SELECT b FROM t3) ORDER BY x ASC, y DESC;",
+          "expect": "2 5  2 4  2 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 3 AND y IN (SELECT b FROM t3) ORDER BY x DESC, y ASC;",
+          "expect": "3 2  3 4  3 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 4 AND y IN (SELECT b FROM t3) ORDER BY x DESC, y DESC;",
+          "expect": "4 5  4 4  4 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x ASC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.5.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x ASC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.5.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x ASC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x ASC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.5.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x DESC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x DESC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.5.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x DESC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.6.5.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x DESC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i1;"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t2(y DESC, x ASC)"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 1 AND y IN (2, 4, 5) ORDER BY x ASC, y ASC;",
+          "expect": "1 2  1 4  1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 2 AND y IN (2, 4, 5) ORDER BY x ASC, y DESC;",
+          "expect": "2 5  2 4  2 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 3 AND y IN (2, 4, 5) ORDER BY x DESC, y ASC;",
+          "expect": "3 2  3 4  3 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 4 AND y IN (2, 4, 5) ORDER BY x DESC, y DESC;",
+          "expect": "4 5  4 4  4 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x ASC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x ASC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x ASC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x ASC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.3.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x DESC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x DESC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.3.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x DESC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.3.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x DESC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 1 AND y IN (SELECT a FROM t3) ORDER BY x ASC, y ASC;",
+          "expect": "1 2  1 4  1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 2 AND y IN (SELECT a FROM t3) ORDER BY x ASC, y DESC;",
+          "expect": "2 5  2 4  2 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 3 AND y IN (SELECT a FROM t3) ORDER BY x DESC, y ASC;",
+          "expect": "3 2  3 4  3 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 4 AND y IN (SELECT a FROM t3) ORDER BY x DESC, y DESC;",
+          "expect": "4 5  4 4  4 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x ASC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x ASC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.4.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x ASC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x ASC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.4.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x DESC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x DESC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.4.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x DESC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.4.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x DESC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 1 AND y IN (SELECT b FROM t3) ORDER BY x ASC, y ASC;",
+          "expect": "1 2  1 4  1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 2 AND y IN (SELECT b FROM t3) ORDER BY x ASC, y DESC;",
+          "expect": "2 5  2 4  2 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 3 AND y IN (SELECT b FROM t3) ORDER BY x DESC, y ASC;",
+          "expect": "3 2  3 4  3 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 4 AND y IN (SELECT b FROM t3) ORDER BY x DESC, y DESC;",
+          "expect": "4 5  4 4  4 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x ASC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.5.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x ASC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.5.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x ASC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x ASC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.5.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x DESC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x DESC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.5.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x DESC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.7.5.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x DESC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i1;"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t2(y DESC, x DESC)"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 1 AND y IN (2, 4, 5) ORDER BY x ASC, y ASC;",
+          "expect": "1 2  1 4  1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 2 AND y IN (2, 4, 5) ORDER BY x ASC, y DESC;",
+          "expect": "2 5  2 4  2 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 3 AND y IN (2, 4, 5) ORDER BY x DESC, y ASC;",
+          "expect": "3 2  3 4  3 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 4 AND y IN (2, 4, 5) ORDER BY x DESC, y DESC;",
+          "expect": "4 5  4 4  4 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x ASC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x ASC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x ASC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x ASC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.3.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x DESC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x DESC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.3.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY a, x DESC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.3.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (2, 4, 5) \n      ORDER BY x DESC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 1 AND y IN (SELECT a FROM t3) ORDER BY x ASC, y ASC;",
+          "expect": "1 2  1 4  1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 2 AND y IN (SELECT a FROM t3) ORDER BY x ASC, y DESC;",
+          "expect": "2 5  2 4  2 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 3 AND y IN (SELECT a FROM t3) ORDER BY x DESC, y ASC;",
+          "expect": "3 2  3 4  3 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 4 AND y IN (SELECT a FROM t3) ORDER BY x DESC, y DESC;",
+          "expect": "4 5  4 4  4 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x ASC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x ASC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.4.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x ASC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x ASC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.4.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x DESC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x DESC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.4.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY a, x DESC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.4.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT a FROM t3) \n      ORDER BY x DESC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 1 AND y IN (SELECT b FROM t3) ORDER BY x ASC, y ASC;",
+          "expect": "1 2  1 4  1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 2 AND y IN (SELECT b FROM t3) ORDER BY x ASC, y DESC;",
+          "expect": "2 5  2 4  2 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 3 AND y IN (SELECT b FROM t3) ORDER BY x DESC, y ASC;",
+          "expect": "3 2  3 4  3 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 WHERE x = 4 AND y IN (SELECT b FROM t3) ORDER BY x DESC, y DESC;",
+          "expect": "4 5  4 4  4 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x ASC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.5.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x ASC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.5.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x ASC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x ASC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.5.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x DESC, y ASC;",
+          "expect": "4 1 2  4 1 4  4 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x DESC, y ASC;",
+          "expect": "2 1 2  2 1 4  2 1 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.5.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 4 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY a, x DESC, y DESC;",
+          "expect": "4 1 5  4 1 4  4 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-2.8.5.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x, y FROM t2, t3 WHERE a = 2 AND x = 1 AND y IN (SELECT b FROM t3) \n      ORDER BY x DESC, y DESC;",
+          "expect": "2 1 5  2 1 4  2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t7(x);\n  INSERT INTO t7 VALUES (1), (2), (3);\n  CREATE INDEX i7 ON t7(x);\n\n  CREATE TABLE t8(y);\n  INSERT INTO t8 VALUES (1), (2), (3);"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP INDEX IF EXISTS i8;\n    CREATE UNIQUE INDEX i8 ON t8(y ASC);\n    SELECT x FROM t7 WHERE x IN (SELECT y FROM t8) ORDER BY x ASC;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP INDEX IF EXISTS i8;\n    CREATE UNIQUE INDEX i8 ON t8(y ASC);\n    SELECT x FROM t7 WHERE x IN (SELECT y FROM t8) ORDER BY x DESC;",
+          "expect": "3 2 1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP INDEX IF EXISTS i8;\n    CREATE UNIQUE INDEX i8 ON t8(y DESC);\n    SELECT x FROM t7 WHERE x IN (SELECT y FROM t8) ORDER BY x ASC;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "tkt-4dd95f6943-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP INDEX IF EXISTS i8;\n    CREATE UNIQUE INDEX i8 ON t8(y ASC);\n    SELECT x FROM t7 WHERE x IN (SELECT y FROM t8) ORDER BY x DESC;",
+          "expect": "3 2 1"
+        }
+      ]
+    }
+  ]
+}

@@ -10,6 +10,9 @@
         {
           "type": "catch",
           "sql": "UPDATE test1 SET f2=5 WHERE f1\u003c1",
+          "variable": "v",
+          "catchResult": true,
+          "catchMessage": "msg",
           "expect": "1 {no such table: test1}"
         }
       ]
@@ -20,6 +23,9 @@
         {
           "type": "catch",
           "sql": "UPDATE sqlite_master SET name='xyz' WHERE name='123'",
+          "variable": "v",
+          "catchResult": true,
+          "catchMessage": "msg",
           "expect": "1 {table sqlite_master may not be modified}"
         }
       ]
@@ -84,6 +90,9 @@
         {
           "type": "catch",
           "sql": "UPDATE test1 SET f1=f3*2 WHERE f2==32",
+          "variable": "v",
+          "catchResult": true,
+          "catchMessage": "msg",
           "expect": "1 {no such column: f3}"
         }
       ]
@@ -94,6 +103,9 @@
         {
           "type": "catch",
           "sql": "UPDATE test1 SET f1=test2.f1*2 WHERE f2==32",
+          "variable": "v",
+          "catchResult": true,
+          "catchMessage": "msg",
           "expect": "1 {no such column: test2.f1}"
         }
       ]
@@ -104,6 +116,9 @@
         {
           "type": "catch",
           "sql": "UPDATE test1 SET f3=f1*2 WHERE f2==32",
+          "variable": "v",
+          "catchResult": true,
+          "catchMessage": "msg",
           "expect": "1 {no such column: f3}"
         }
       ]
@@ -1096,6 +1111,9 @@
         {
           "type": "catch",
           "sql": "UPDATE test1 SET x=11 WHERE f1=1025",
+          "variable": "v",
+          "catchResult": true,
+          "catchMessage": "msg",
           "expect": "1 {no such column: x}"
         }
       ]
@@ -1106,6 +1124,9 @@
         {
           "type": "catch",
           "sql": "UPDATE test1 SET f1=x(11) WHERE f1=1025",
+          "variable": "v",
+          "catchResult": true,
+          "catchMessage": "msg",
           "expect": "1 {no such function: x}"
         }
       ]
@@ -1116,6 +1137,9 @@
         {
           "type": "catch",
           "sql": "UPDATE test1 SET f1=11 WHERE x=1025",
+          "variable": "v",
+          "catchResult": true,
+          "catchMessage": "msg",
           "expect": "1 {no such column: x}"
         }
       ]
@@ -1126,6 +1150,9 @@
         {
           "type": "catch",
           "sql": "UPDATE test1 SET f1=11 WHERE x(f1)=1025",
+          "variable": "v",
+          "catchResult": true,
+          "catchMessage": "msg",
           "expect": "1 {no such function: x}"
         }
       ]
@@ -1479,6 +1506,15 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1 (vkey INTEGER, c5 INTEGER);\n  INSERT INTO t1 VALUES(3,NULL),(6,-54);"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
         }
       ]
     },

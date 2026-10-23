@@ -1,22 +1,175 @@
 {
   "file": "select2.test",
   "name": "select2",
+  "ordered": true,
   "tests": [
     {
-      "name": "select2-2.0.1",
+      "name": "setup_0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE tbl2(f1 int, f2 int, f3 int); BEGIN;"
+          "sql": "CREATE TABLE tbl1(f1 int, f2 int)"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(0,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(1,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(2,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(3,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(4,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(5,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(6,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(7,7)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(8,8)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(0,9)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(1,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(2,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(3,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(4,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(5,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(6,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(7,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(8,7)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(0,8)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(1,9)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(2,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(3,1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(4,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(5,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(6,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(7,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(8,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(0,7)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(1,8)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(2,9)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl1 VALUES(3,0)"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
         }
       ]
     },
     {
-      "name": "select2-2.0.2",
+      "name": "select2-1.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE tbl2(f1 int, f2 int, f3 int); BEGIN;"
+          "type": "query",
+          "sql": "SELECT DISTINCT f1 FROM tbl1 ORDER BY f1",
+          "expect": "0: 0 7 8 9 1: 0 1 8 9 2: 0 1 2 9 3: 0 1 2 3 4: 2 3 4 5: 3 4 5 6: 4 5 6 7: 5 6 7 8: 6 7 8"
+        }
+      ]
+    },
+    {
+      "name": "select2-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT f1 FROM tbl1 WHERE f1\u003e3 AND f1\u003c5",
+          "expect": "4: 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE tbl2"
         }
       ]
     },
@@ -24,7 +177,7 @@
       "name": "select2-2.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT count(*) FROM tbl2",
           "expect": "30000"
         }
@@ -34,8 +187,8 @@
       "name": "select2-2.2",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT count(*) FROM tbl2 WHERE f2>1000",
+          "type": "exec",
+          "sql": "SELECT count(*) FROM tbl2 WHERE f2\u003e1000",
           "expect": "29500"
         }
       ]
@@ -44,7 +197,7 @@
       "name": "select2-3.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT f1 FROM tbl2 WHERE 1000=f2",
           "expect": "500"
         }
@@ -63,7 +216,7 @@
       "name": "select2-3.2b",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT f1 FROM tbl2 WHERE 1000=f2",
           "expect": "500"
         }
@@ -73,7 +226,7 @@
       "name": "select2-3.2c",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT f1 FROM tbl2 WHERE f2=1000",
           "expect": "500"
         }
@@ -83,7 +236,7 @@
       "name": "select2-3.2d",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM tbl2 WHERE 1000=f2",
           "expect": "3"
         }
@@ -93,7 +246,7 @@
       "name": "select2-3.2e",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM tbl2 WHERE f2=1000",
           "expect": "3"
         }
@@ -105,6 +258,11 @@
         {
           "type": "exec",
           "sql": "DROP INDEX idx1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM tbl2 WHERE f2==2000",
+          "expect": "29999"
         }
       ]
     },
@@ -112,8 +270,8 @@
       "name": "select2-4.1",
       "steps": [
         {
-          "type": "query",
-          "sql": "CREATE TABLE aa(a);\n    CREATE TABLE bb(b);\n    INSERT INTO aa VALUES(1);\n    INSERT INTO aa VALUES(3);\n    INSERT INTO bb VALUES(2);\n    INSERT INTO bb VALUES(4);\n    SELECT * FROM aa, bb WHERE max(a,b)>2;",
+          "type": "exec",
+          "sql": "CREATE TABLE aa(a);\n    CREATE TABLE bb(b);\n    INSERT INTO aa VALUES(1);\n    INSERT INTO aa VALUES(3);\n    INSERT INTO bb VALUES(2);\n    INSERT INTO bb VALUES(4);\n    SELECT * FROM aa, bb WHERE max(a,b)\u003e2;",
           "expect": "1 4 3 2 3 4"
         }
       ]
@@ -122,7 +280,7 @@
       "name": "select2-4.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "INSERT INTO bb VALUES(0);\n    SELECT * FROM aa CROSS JOIN bb WHERE b;",
           "expect": "1 2 1 4 3 2 3 4"
         }
@@ -132,7 +290,7 @@
       "name": "select2-4.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM aa CROSS JOIN bb WHERE NOT b;",
           "expect": "1 0 3 0"
         }
@@ -142,7 +300,7 @@
       "name": "select2-4.4",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM aa, bb WHERE min(a,b);",
           "expect": "1 2 1 4 3 2 3 4"
         }
@@ -152,7 +310,7 @@
       "name": "select2-4.5",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM aa, bb WHERE NOT min(a,b);",
           "expect": "1 0 3 0"
         }
@@ -162,7 +320,7 @@
       "name": "select2-4.6",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM aa, bb WHERE CASE WHEN a=b-1 THEN 1 END;",
           "expect": "1 2 3 4"
         }
@@ -172,109 +330,9 @@
       "name": "select2-4.7",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM aa, bb WHERE CASE WHEN a=b-1 THEN 0 ELSE 1 END;",
           "expect": "1 4 1 0 3 2 3 0"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE tbl1(f1 int, f2 int)"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE tbl2(f1 int, f2 int, f3 int); BEGIN;"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE tbl2"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE tbl2(f1 int, f2 int, f3 int); BEGIN;"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM tbl2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM tbl2 WHERE f2>1000"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT f1 FROM tbl2 WHERE 1000=f2"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX idx1 ON tbl2(f2)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT f1 FROM tbl2 WHERE 1000=f2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT f1 FROM tbl2 WHERE f2=1000"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM tbl2 WHERE 1000=f2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM tbl2 WHERE f2=1000"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX idx1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT f1 FROM tbl2 WHERE f2==2000"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE aa(a);\n    CREATE TABLE bb(b);\n    INSERT INTO aa VALUES(1);\n    INSERT INTO aa VALUES(3);\n    INSERT INTO bb VALUES(2);\n    INSERT INTO bb VALUES(4);\n    SELECT * FROM aa, bb WHERE max(a,b)>2;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO bb VALUES(0);\n    SELECT * FROM aa CROSS JOIN bb WHERE b;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM aa CROSS JOIN bb WHERE NOT b;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM aa, bb WHERE min(a,b);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM aa, bb WHERE NOT min(a,b);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM aa, bb WHERE CASE WHEN a=b-1 THEN 1 END;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM aa, bb WHERE CASE WHEN a=b-1 THEN 0 ELSE 1 END;"
         }
       ]
     }

@@ -1,25 +1,44 @@
 {
   "file": "orderby9.test",
   "name": "orderby9",
+  "ordered": true,
   "tests": [
     {
       "name": "setup",
       "steps": [
         {
-          "type": "exec",
-          "sql": "-- create a table with many entries\n  CREATE TABLE t1(x);\n  WITH RECURSIVE\n     c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n  INSERT INTO t1 SELECT x FROM c;"
-        },
+          "type": "query",
+          "sql": "-- create a table with many entries\n  CREATE TABLE t1(x);\n  WITH RECURSIVE\n     c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c100)\n  INSERT INTO t1 SELECT x FROM c;"
+        }
+      ]
+    },
+    {
+      "name": "orderby9-1.0",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT random() AS y FROM t1 ORDER BY 1;"
-        },
+          "type": "query",
+          "sql": "SELECT random() AS y FROM t1 ORDER BY 1;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "orderby9-1.1",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT random() AS y FROM t1 ORDER BY random();"
-        },
+          "type": "query",
+          "sql": "SELECT random() AS y FROM t1 ORDER BY random();",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "orderby9-1.2",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT random() AS y FROM t1 ORDER BY +random();"
+          "type": "query",
+          "sql": "SELECT random() AS y FROM t1 ORDER BY +random();",
+          "expect": "0"
         }
       ]
     }

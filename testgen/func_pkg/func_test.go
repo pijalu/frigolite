@@ -1527,7 +1527,13 @@ func Test_func(t *testing.T) {
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "func-12.5" — skipped: C test-harness functions (test_destructor*) not registered N-A (SQL + file side effects only)
-		_res = db.Exec("\n    CREATE TABLE t4(x);\n    INSERT INTO t4 VALUES(test_destructor('hello'));\n    INSERT INTO t4 VALUES(test_destructor('world'));\n    SELECT min(test_destructor(x)), max(test_destructor(x)) FROM t4;\n  ")
+		_res = db.Exec("CREATE TABLE t4(x)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("INSERT INTO t4 VALUES(test_destructor('hello'))")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("INSERT INTO t4 VALUES(test_destructor('world'))")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("SELECT min(test_destructor(x)), max(test_destructor(x)) FROM t4")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "func-12.6" — skipped: C test-harness functions (test_destructor*) not registered N-A (SQL + file side effects only)
@@ -1543,7 +1549,11 @@ func Test_func(t *testing.T) {
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "func-13.2" — skipped: C test-harness functions (testfunc/test_auxdata) not registered N-A (SQL + file side effects only)
-		_res = db.Exec("\n    CREATE TABLE t4(a, b);\n    INSERT INTO t4 VALUES('abc', 'def');\n    INSERT INTO t4 VALUES('ghi', 'jkl');\n  ")
+		_res = db.Exec("CREATE TABLE t4(a, b)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("INSERT INTO t4 VALUES('abc', 'def')")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("INSERT INTO t4 VALUES('ghi', 'jkl')")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "func-13.3" — skipped: C test-harness functions (testfunc/test_auxdata) not registered N-A (SQL + file side effects only)

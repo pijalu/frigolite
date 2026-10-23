@@ -1,38 +1,65 @@
 {
   "file": "walsetlk3.test",
   "name": "walsetlk3",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "walsetlk3-1.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x, y);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);"
+          "sql": "CREATE TABLE t1(x, y);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);",
+          "expect": "wal"
         }
       ]
     },
     {
-      "name": "1.1",
+      "name": "setup_0",
       "steps": [
         {
-          "type": "exec",
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "walsetlk3-1.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "SELECT * FROM t1",
           "expect": "1 {database is locked}"
         }
       ]
     },
     {
-      "name": "1.2",
+      "name": "setup_1",
       "steps": [
         {
-          "type": "exec",
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "walsetlk3-1.2",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "SELECT * FROM t1",
           "expect": "0 {1 2 3 4 5 6 7 8 9 10 11 12}"
         }
       ]
     },
     {
-      "name": "2.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "walsetlk3-2.1",
       "steps": [
         {
           "type": "exec",
@@ -41,42 +68,34 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "setup_2",
       "steps": [
         {
-          "type": "exec",
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "walsetlk3-2.2",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "SELECT * FROM x1",
           "expect": "1 {database is locked}"
         }
       ]
     },
     {
-      "name": "2.3",
+      "name": "walsetlk3-2.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM x1",
           "expect": "0 {1 2 3 4}"
-        },
-        {
-          "type": "exec",
-          "sql": "%SQL%"
-        },
-        {
-          "type": "exec",
-          "sql": "%SQL%"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN EXCLUSIVE"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

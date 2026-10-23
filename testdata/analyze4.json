@@ -1,6 +1,7 @@
 {
   "file": "analyze4.test",
   "name": "analyze4",
+  "ordered": true,
   "tests": [
     {
       "name": "analyze4-1.0",
@@ -20,7 +21,7 @@
       "name": "analyze4-1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "SELECT idx, stat FROM sqlite_stat1 WHERE tbl='t1' ORDER BY idx;",
           "expect": "t1a {128 1} t1b {128 128}"
         }

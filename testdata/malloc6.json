@@ -1,0 +1,16 @@
+{
+  "file": "malloc6.test",
+  "name": "malloc6",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "malloc6-1.X",
+      "steps": [
+        {
+          "type": "close_db",
+          "expect": "0"
+        }
+      ]
+    }
+  ]
+}

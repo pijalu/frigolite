@@ -152,14 +152,20 @@ func limitUpdateViewPairs(e *DMLExecutor, s *sql.UpdateStmt, pairs []viewUpdateP
 }
 
 func (e *DMLExecutor) collectUpdateChanges(tableName string, rootPage uint32, colIndex map[string]int, colDefs []sql.ColumnDef, s *sql.UpdateStmt, deferSetEval bool) ([]updateChange, error) {
-	tree := e.dmlTableBTree(tableName, rootPage)
-	defer tree.Close() // scan tree is function-local
-	// WITHOUT ROWID tables store PK-first records; resolve the layout once
-	// so every decoded record below is remapped to declared order.
+	// WITHOUT ROWID tables store entries in index-btree interior cells; use
+	// index traversal and PK decoding rather than the rowid-table cursor.
 	createSQL := ""
+	var tree *btree.BTree
 	if tableEntry, _, ferr := e.ctx.FindTable(tableName); ferr == nil && tableEntry != nil {
 		createSQL = tableEntry.SQL
+		if tableIsWithoutRowid(createSQL) {
+			tree = e.wrTableBTree(e.dmlPager(tableName), tableEntry, colDefs)
+		}
 	}
+	if tree == nil {
+		tree = e.dmlTableBTree(tableName, rootPage)
+	}
+	defer tree.Close() // scan tree is function-local
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return nil, fmt.Errorf("exec: cursor error: %w", err)
@@ -385,6 +391,11 @@ func (e *DMLExecutor) seekUpdateChangesMaps(tree *btree.BTree, tableEntry *schem
 func (e *DMLExecutor) planUpdateSeek(tableName string, rootPage uint32, colDefs []sql.ColumnDef, s *sql.UpdateStmt, scanName string) (*schema.Entry, []int64, bool) {
 	te, _, ferr := e.ctx.FindTable(tableName)
 	if ferr != nil || te == nil {
+		return nil, nil, false
+	}
+	// Index entries for WITHOUT ROWID tables carry synthetic rowid zero;
+	// candidate seeks cannot identify rows by rowid and would collapse them.
+	if strings.Contains(strings.ToUpper(te.SQL), "WITHOUT ROWID") {
 		return nil, nil, false
 	}
 	plan := e.planDMLSeek(te, colDefs, s.Where, scanName, e.currentDMLCtx)

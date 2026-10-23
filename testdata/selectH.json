@@ -1,9 +1,10 @@
 {
   "file": "selectH.test",
   "name": "selectH",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.1",
+      "name": "selectH-1.1",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,33 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "counter",
+          "callbackVars": {
+            "": "0",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "selectH_cnt": "0",
+            "testdir": "",
+            "testprefix": "selectH"
+          },
+          "functionProc": "selectH_counter",
+          "functionArgs": [
+            "amt"
+          ],
+          "functionBody": "\n  global selectH_cnt\n  incr selectH_cnt $amt\n  return $selectH_cnt\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "selectH-1.2",
       "steps": [
         {
           "type": "query",
@@ -22,7 +49,17 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "selectH-1.3",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "selectH_cnt",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "selectH-2.1",
       "steps": [
         {
           "type": "query",
@@ -32,7 +69,17 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "selectH-2.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "selectH_cnt",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "selectH-3.1",
       "steps": [
         {
           "type": "query",
@@ -42,7 +89,17 @@
       ]
     },
     {
-      "name": "3.3",
+      "name": "selectH-3.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "selectH_cnt",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "selectH-3.3",
       "steps": [
         {
           "type": "query",
@@ -52,7 +109,7 @@
       ]
     },
     {
-      "name": "3.4",
+      "name": "selectH-3.4",
       "steps": [
         {
           "type": "query",
@@ -62,7 +119,17 @@
       ]
     },
     {
-      "name": "3.6",
+      "name": "selectH-3.5",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "selectH_cnt",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "selectH-3.6",
       "steps": [
         {
           "type": "query",
@@ -72,7 +139,17 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "selectH-3.7",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "selectH_cnt",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "selectH-4.1",
       "steps": [
         {
           "type": "query",
@@ -82,7 +159,7 @@
       ]
     },
     {
-      "name": "4.2",
+      "name": "selectH-4.2",
       "steps": [
         {
           "type": "query",
@@ -92,7 +169,11 @@
       ]
     },
     {
-      "name": "5.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "selectH-5.0",
       "steps": [
         {
           "type": "exec",
@@ -101,30 +182,22 @@
       ]
     },
     {
-      "name": "5.1",
+      "name": "selectH-5.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT DISTINCT val1 FROM t1 UNION ALL SELECT val2 FROM t2;",
-          "expect": "4 5"
+          "expect": "\n  4 5\n"
         }
       ]
     },
     {
-      "name": "5.2",
+      "name": "selectH-5.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT count(1234) FROM (\n    SELECT DISTINCT val1 FROM t1 UNION ALL SELECT val2 FROM t2\n  )",
           "expect": "2"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

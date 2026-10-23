@@ -1,9 +1,10 @@
 {
   "file": "index9.test",
   "name": "index9",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "index9-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,77 @@
       ]
     },
     {
-      "name": "2.0",
+      "name": "index9-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  SELECT * FROM t1 WHERE x=? AND y=45"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
+          "expect": "t1 t1x"
+        }
+      ]
+    },
+    {
+      "name": "index9-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  SELECT * FROM t1 WHERE x=? AND y=45.1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
+          "expect": "t1"
+        }
+      ]
+    },
+    {
+      "name": "index9-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  SELECT * FROM t1 WHERE x=? AND y=44"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
+          "expect": "t1"
+        }
+      ]
+    },
+    {
+      "name": "index9-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  SELECT * FROM t1 WHERE x=? AND y=$y"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
+          "expect": "t1"
+        }
+      ]
+    },
+    {
+      "name": "index9-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  SELECT * FROM t1 WHERE x=? AND y=45"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
+          "expect": "t1"
+        }
+      ]
+    },
+    {
+      "name": "index9-2.0",
       "steps": [
         {
           "type": "exec",
@@ -21,7 +92,63 @@
       ]
     },
     {
-      "name": "3.0",
+      "name": "index9-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  SELECT * FROM t1 WHERE y=45 ORDER BY x"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
+          "expect": "t1"
+        }
+      ]
+    },
+    {
+      "name": "index9-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  SELECT * FROM t1 WHERE y=-20111000111 ORDER BY x"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
+          "expect": "t1 t1x2"
+        }
+      ]
+    },
+    {
+      "name": "index9-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  SELECT * FROM t1 WHERE y=-20111000110 ORDER BY x"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
+          "expect": "t1"
+        }
+      ]
+    },
+    {
+      "name": "index9-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  SELECT * FROM t1 WHERE y=-20111000112 ORDER BY x"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
+          "expect": "t1"
+        }
+      ]
+    },
+    {
+      "name": "index9-3.0",
       "steps": [
         {
           "type": "exec",
@@ -30,14 +157,153 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "index9-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  SELECT * FROM t1 WHERE y=9223372036854775807 ORDER BY x"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
+          "expect": "t1 t1x3"
+        }
+      ]
+    },
+    {
+      "name": "index9-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  SELECT * FROM t1 WHERE y=9.223372036854776e+18 ORDER BY x"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
+          "expect": "t1"
+        }
+      ]
+    },
+    {
+      "name": "index9-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  SELECT * FROM t1 WHERE y=9223372036854775806 ORDER BY x"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
+          "expect": "t1"
+        }
+      ]
+    },
+    {
+      "name": "index9-3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  SELECT * FROM t1 WHERE y=9223372036854775807 ORDER BY x"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
+          "expect": "t1"
+        }
+      ]
+    },
+    {
+      "name": "index9-3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  SELECT * FROM t1 WHERE y=9.223372036854776e+18 ORDER BY x"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
+          "expect": "t1"
+        }
+      ]
+    },
+    {
+      "name": "index9-4.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE INDEX t1x4 ON t1(x) WHERE y=-9223372036854775808"
         }
       ]
+    },
+    {
+      "name": "index9-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  SELECT * FROM t1 WHERE y=-9.223372036854776e+18 ORDER BY x"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
+          "expect": "t1 t1x4"
+        }
+      ]
+    },
+    {
+      "name": "index9-4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  SELECT * FROM t1 WHERE y=-9223372036854775807 ORDER BY x"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
+          "expect": "t1"
+        }
+      ]
+    },
+    {
+      "name": "index9-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  SELECT * FROM t1 WHERE y=-9.223372036854776e+18 ORDER BY x"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
+          "expect": "t1"
+        }
+      ]
+    },
+    {
+      "name": "index9-4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  SELECT * FROM t1 WHERE -9.223372036854776e+18=y ORDER BY x"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
+          "expect": "t1 t1x4"
+        }
+      ]
+    },
+    {
+      "name": "index9-4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  SELECT * FROM t1 WHERE -9.223372036854776e+18=y ORDER BY x"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE rootpage IN () ORDER BY 1",
+          "expect": "t1"
+        }
+      ]
     }
-  ],
-  "source": "capi"
+  ]
 }

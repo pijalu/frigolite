@@ -1,0 +1,7 @@
+exit=1
+elapsed_seconds=377
+command=go test ./... -count=1
+actual_elapsed_seconds=376.750
+earliest_failure=TestSQLiteSuite/altercol/altercol-7.1.3: update/select result mismatch after rename; got 1, want 2
+additional_failures=altercol-23.0 (single-quoted identifier edge), TestJoinHRightUsingSubqueryDuplicateNameUsesFirstColumn, TestP5AttachDetach, TestP6_NestedJoinSameName
+fixture_note=alterqf/1.1-1.11 lack $before setup; suite's 2.1 has context residue, while isolated alterqf/2.1 passes

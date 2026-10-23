@@ -338,10 +338,13 @@ func (e *Engine) prepareCached(sqlStr string, scratchOK bool) ([]sql.Stmt, error
 	}
 	// Prepare-time parameter validation (resolve.c sqlite3ExprAssignVarNumber):
 	// ?0 and ?NNN above SQLITE_MAX_VARIABLE_NUMBER fail the prepare itself
-	// with "variable number must be between ?1 and ?%d". Cached statements
-	// were validated on their first parse, so only fresh parses check here.
+	// with "variable number must be between ?1 and ?%d", and a statement whose
+	// variable count passes the limit fails with "too many SQL variables"
+	// (expr.c). A failed prepare runs nothing, so no statements are returned.
+	// Cached statements were validated on their first parse, so only fresh
+	// parses check here.
 	if _, perr := CollectParameterNames(sqlStr); perr != nil {
-		return stmts, perr
+		return nil, perr
 	}
 	e.caches.stmtCache[sqlStr] = stmts
 	// Retained by the exact-text cache: stable identity (the memos hold their
@@ -798,6 +801,10 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 	// within a single statement start from 1).
 	e.testState.counterVal = 0
 	e.testState.nondeterVal = 0
+	// Each SQLite statement carries its own statement-status counters
+	// (SQLITE_STMTSTATUS_FULLSCAN_STEP / _SORT): reset them here so
+	// `db status step` reports the rows stepped by THIS statement.
+	e.ResetStmtStatus()
 	// Statement-scoped auxdata (stmtrand() sequence state) dies when the next
 	// outermost statement starts, mirroring SQLite freeing auxdata at
 	// sqlite3_reset. Nested statements (triggers) share the outer aux.

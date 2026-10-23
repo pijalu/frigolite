@@ -2,9 +2,20 @@
   "file": "json502.test",
   "name": "json502",
   "nullToken": "null",
+  "ordered": true,
   "tests": [
     {
-      "name": "2.1",
+      "name": "json502-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(x JSON);\n  INSERT INTO t1(x) VALUES('{a:{b:{c:\"hello\",},},}');\n  SELECT fullkey FROM t1, json_tree(x);",
+          "expect": "{$} {$.a} {$.a.b} {$.a.b.c}"
+        }
+      ]
+    },
+    {
+      "name": "json502-2.1",
       "steps": [
         {
           "type": "query",
@@ -14,7 +25,7 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "json502-2.2",
       "steps": [
         {
           "type": "catch",
@@ -24,7 +35,7 @@
       ]
     },
     {
-      "name": "2.3",
+      "name": "json502-2.3",
       "steps": [
         {
           "type": "catch",
@@ -34,7 +45,7 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "json502-3.1",
       "steps": [
         {
           "type": "query",
@@ -44,7 +55,7 @@
       ]
     },
     {
-      "name": "3.2",
+      "name": "json502-3.2",
       "steps": [
         {
           "type": "query",
@@ -54,7 +65,16 @@
       ]
     },
     {
-      "name": "3.3",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "null"
+        }
+      ]
+    },
+    {
+      "name": "json502-3.3",
       "steps": [
         {
           "type": "query",
@@ -64,7 +84,7 @@
       ]
     },
     {
-      "name": "3.4",
+      "name": "json502-3.4",
       "steps": [
         {
           "type": "query",
@@ -74,7 +94,17 @@
       ]
     },
     {
-      "name": "5.1",
+      "name": "json502-4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM json_tree('{\"\\u0017\":1}','$.\"\\x17\"');",
+          "expect": "{\\x17} 1 integer 1 1 null {$.\"\\x17\"} {$}"
+        }
+      ]
+    },
+    {
+      "name": "json502-5.1",
       "steps": [
         {
           "type": "query",
@@ -84,7 +114,7 @@
       ]
     },
     {
-      "name": "5.2",
+      "name": "json502-5.2",
       "steps": [
         {
           "type": "query",
@@ -94,7 +124,7 @@
       ]
     },
     {
-      "name": "5.3",
+      "name": "json502-5.3",
       "steps": [
         {
           "type": "query",

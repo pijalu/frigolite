@@ -2,6 +2,8 @@ package execquery
 
 import (
 	"strconv"
+
+	"github.com/pijalu/frigolite/internal/function"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/sql"
@@ -142,6 +144,33 @@ func findColAndConst(b *sql.BinaryOp) (*sql.ColumnRef, interface{}) {
 	return nil, nil
 }
 
+func findColAndConstExpr(b *sql.BinaryOp, e *SelectEngine) (*sql.ColumnRef, interface{}, sql.Expr) {
+	if col, ok := b.Left.(*sql.ColumnRef); ok {
+		return col, extractConst(b.Right), deterministicConstExpr(b.Right, e)
+	}
+	if col, ok := b.Right.(*sql.ColumnRef); ok {
+		return col, extractConst(b.Left), deterministicConstExpr(b.Left, e)
+	}
+	return nil, nil, nil
+}
+
+func deterministicConstExpr(expr sql.Expr, e *SelectEngine) sql.Expr {
+	call, ok := expr.(*sql.FuncCall)
+	if !ok {
+		return nil
+	}
+	fn, found := e.ctx.Functions().Find(call.Name)
+	if !found || fn.Type != function.TypeScalar || !fn.Deterministic {
+		return nil
+	}
+	for _, arg := range call.Args {
+		if extractConst(arg) == nil && deterministicConstExpr(arg, e) == nil {
+			return nil
+		}
+	}
+	return expr
+}
+
 // extractConst extracts a constant value from an expression node.
 func extractConst(e sql.Expr) interface{} {
 	switch v := e.(type) {
@@ -177,10 +206,9 @@ func (e *SelectEngine) isWithoutRowidPKColumn(tableName, colName string) bool {
 		return false
 	}
 	colDefs := e.ctx.ParseColumnDefs(entry.Name, entry.SQL)
-	for _, c := range e.ctx.WithoutRowidPKColumns(entry.Name, entry, colDefs, false) {
-		if strings.EqualFold(c.Name, colName) {
-			return true
-		}
+	pkColumns := e.ctx.WithoutRowidPKColumns(entry.Name, entry, colDefs, false)
+	if len(pkColumns) > 0 && strings.EqualFold(pkColumns[0].Name, colName) {
+		return true
 	}
 	return false
 }

@@ -136,7 +136,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t2 VALUES(max_a_t2()+1,999)"
+          "sql": "INSERT INTO t2 VALUES((SELECT max(a) FROM t2)+1,999)"
         },
         {
           "type": "exec",
@@ -150,11 +150,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t2 VALUES(max_a_t2()+1,999)"
+          "sql": "INSERT INTO t2 VALUES((SELECT max(a) FROM t2)+1,999)"
         },
         {
           "type": "exec",
-          "sql": "SELECT b FROM t2 WHERE a=max_a_t2()",
+          "sql": "SELECT b FROM t2 WHERE a=(SELECT max(a) FROM t2)",
           "expect": "999"
         }
       ]
@@ -791,7 +791,7 @@
       "steps": null
     },
     {
-      "name": "13.1",
+      "name": "minmax-13.1",
       "steps": [
         {
           "type": "query",
@@ -801,7 +801,7 @@
       ]
     },
     {
-      "name": "13.2",
+      "name": "minmax-13.2",
       "steps": [
         {
           "type": "exec",
@@ -810,7 +810,127 @@
       ]
     },
     {
-      "name": "14.1",
+      "name": "minmax-13.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT min(b) FROM t1 WHERE a='b'",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "minmax-13.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT min(c) FROM t1 WHERE a='b'",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "minmax-13.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, min(b) FROM t1 WHERE a='b'",
+          "expect": "b 2"
+        }
+      ]
+    },
+    {
+      "name": "minmax-13.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, min(c) FROM t1 WHERE a='b'",
+          "expect": "b 2"
+        }
+      ]
+    },
+    {
+      "name": "minmax-13.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a||c, max(b)+4 FROM t1 WHERE a='c'",
+          "expect": "c7 11"
+        }
+      ]
+    },
+    {
+      "name": "minmax-13.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a||c, max(c)+4 FROM t1 WHERE a='c'",
+          "expect": "c7 11"
+        }
+      ]
+    },
+    {
+      "name": "minmax-13.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a||c, max(b+1) FROM t1 WHERE a='c'",
+          "expect": "c7 8"
+        }
+      ]
+    },
+    {
+      "name": "minmax-13.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a||c, max(c+1) FROM t1 WHERE a='c'",
+          "expect": "c7 8"
+        }
+      ]
+    },
+    {
+      "name": "minmax-13.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(b) FROM t1 WHERE a='c'",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "minmax-13.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(c) FROM t1 WHERE a='c'",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "minmax-13.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT min(b), count(b) FROM t1 WHERE a='a';",
+          "expect": "1 5"
+        }
+      ]
+    },
+    {
+      "name": "minmax-13.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT min(c), count(c) FROM t1 WHERE a='a';",
+          "expect": "1 5"
+        }
+      ]
+    },
+    {
+      "name": "minmax-14.1",
       "steps": [
         {
           "type": "query",
@@ -820,7 +940,7 @@
       ]
     },
     {
-      "name": "14.2",
+      "name": "minmax-14.2",
       "steps": [
         {
           "type": "query",
@@ -834,7 +954,7 @@
       "steps": null
     },
     {
-      "name": "15.1",
+      "name": "minmax-15.1",
       "steps": [
         {
           "type": "query",

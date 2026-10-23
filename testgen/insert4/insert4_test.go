@@ -256,7 +256,11 @@ func Test_insert4(t *testing.T) {
 		}
 	}
 	{ // "insert4-6.3" — skipped: INSERT transfer optimization counter not implemented N-A (SQL + file side effects only)
-		_res = db.Exec("\n    DROP INDEX t2_i1;\n    CREATE INDEX t2_i1 ON t2(x ASC, y ASC);\n    INSERT INTO t2 SELECT * FROM t3;\n  ")
+		_res = db.Exec("DROP INDEX t2_i1")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("CREATE INDEX t2_i1 ON t2(x ASC, y ASC)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("INSERT INTO t2 SELECT * FROM t3")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // do_test "insert4-6.4"

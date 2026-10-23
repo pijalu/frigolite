@@ -1,7 +1,44 @@
 {
   "file": "imposter1.test",
   "name": "imposter1",
+  "ordered": true,
   "tests": [
+    {
+      "name": "imposter-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d NOT NULL);\n    CREATE INDEX t1b ON t1(b);\n    CREATE UNIQUE INDEX t1c ON t1(c);\n    WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i\u003c30)\n      INSERT INTO t1(a,b,c,d) SELECT i,1000+i,2000+i,3000+i FROM c;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT rootpage FROM sqlite_master WHERE name='t1'",
+          "variable": "t1_root"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT rootpage FROM sqlite_master WHERE name='t1b'",
+          "variable": "t1b_root"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT rootpage FROM sqlite_master WHERE name='t1c'",
+          "variable": "t1c_root"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE xt1(a,b,c,d)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE xt1c(c,rowid,PRIMARY KEY(c,rowid))WITHOUT ROWID;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE chnglog(desc TEXT);\n    CREATE TEMP TRIGGER xt1_del AFTER DELETE ON xt1 BEGIN\n      INSERT INTO chnglog VALUES(\n           printf('DELETE t1: rowid=%d, a=%s, b=%s, c=%s, d=%s',\n                  old.rowid, quote(old.a), quote(old.b), quote(old.c),\n                  quote(old.d)));\n    END;\n    CREATE TEMP TRIGGER xt1_ins AFTER INSERT ON xt1 BEGIN\n      INSERT INTO chnglog VALUES(\n           printf('INSERT t1:  rowid=%d, a=%s, b=%s, c=%s, d=%s',\n                  new.rowid, quote(new.a), quote(new.b), quote(new.c),\n                  quote(new.d)));\n    END;"
+        }
+      ]
+    },
     {
       "name": "imposter-1.1",
       "steps": [
@@ -25,7 +62,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "PRAGMA writable_schema=on;\n  DELETE FROM xt1 WHERE rowid=5;\n  INSERT INTO xt1(rowid,a,b,c,d) VALUES(99,'hello',1099,2022,NULL);\n  SELECT * FROM chnglog ORDER BY rowid;"
+          "sql": "PRAGMA writable_schema=on;\n  DELETE FROM xt1 WHERE rowid=5;\n  INSERT INTO xt1(rowid,a,b,c,d) VALUES(99,'hello',1099,2022,NULL);\n  SELECT * FROM chnglog ORDER BY rowid;",
+          "expect": "{DELETE t1: rowid=5, a=NULL, b=1005, c=2005, d=3005} {INSERT t1:  rowid=99, a='hello', b=1099, c=2022, d=NULL}"
         }
       ]
     },
@@ -64,7 +102,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DELETE FROM t1;\n  WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<10)\n   INSERT INTO t1(a,b,c,d) SELECT i,i,i,i FROM c;\n  UPDATE xt1c SET c=NULL WHERE rowid=5;\n  PRAGMA integrity_check;",
+          "sql": "DELETE FROM t1;\n  WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i\u003c10)\n   INSERT INTO t1(a,b,c,d) SELECT i,i,i,i FROM c;\n  UPDATE xt1c SET c=NULL WHERE rowid=5;\n  PRAGMA integrity_check;",
           "expect": "/row # missing from index t1c/"
         }
       ]
@@ -74,7 +112,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DELETE FROM t1;\n  WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<10)\n   INSERT INTO t1(a,b,c,d) SELECT i,i,i,i FROM c;\n  UPDATE xt1c SET c=99 WHERE rowid IN (5,7,9);\n  SELECT c FROM t1 ORDER BY c;",
+          "sql": "DELETE FROM t1;\n  WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i\u003c10)\n   INSERT INTO t1(a,b,c,d) SELECT i,i,i,i FROM c;\n  UPDATE xt1c SET c=99 WHERE rowid IN (5,7,9);\n  SELECT c FROM t1 ORDER BY c;",
           "expect": "1 2 3 4 6 8 10 99 99 99"
         }
       ]
@@ -90,34 +128,14 @@
       ]
     },
     {
-      "name": "imposter-1.0",
+      "name": "imposter-3.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d NOT NULL);\n    CREATE INDEX t1b ON t1(b);\n    CREATE UNIQUE INDEX t1c ON t1(c);\n    WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b,c,d) SELECT i,1000+i,2000+i,3000+i FROM c;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d NOT NULL);\n    CREATE INDEX t1b ON t1(b);\n    CREATE UNIQUE INDEX t1c ON t1(c);\n    WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b,c,d) SELECT i,1000+i,2000+i,3000+i FROM c;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE xt1(a,b,c,d)"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE xt1c(c,rowid,PRIMARY KEY(c,rowid))WITHOUT ROWID;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TEMP TABLE chnglog(desc TEXT);\n    CREATE TEMP TRIGGER xt1_del AFTER DELETE ON xt1 BEGIN\n      INSERT INTO chnglog VALUES(\n           printf('DELETE t1: rowid=%d, a=%s, b=%s, c=%s, d=%s',\n                  old.rowid, quote(old.a), quote(old.b), quote(old.c),\n                  quote(old.d)));\n    END;\n    CREATE TEMP TRIGGER xt1_ins AFTER INSERT ON xt1 BEGIN\n      INSERT INTO chnglog VALUES(\n           printf('INSERT t1:  rowid=%d, a=%s, b=%s, c=%s, d=%s',\n                  new.rowid, quote(new.a), quote(new.b), quote(new.c),\n                  quote(new.d)));\n    END;"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE rowid IN (5,7,9);\n    PRAGMA integrity_check;"
+          "sql": "DELETE FROM t1 WHERE rowid IN (5,7,9);\n    PRAGMA integrity_check;",
+          "expect": "ok"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

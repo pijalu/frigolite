@@ -3,6 +3,7 @@ package exec
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execdml"
 	"github.com/pijalu/frigolite/internal/execexpr"
@@ -10,11 +11,15 @@ import (
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
+	"github.com/pijalu/frigolite/internal/util"
 	"github.com/pijalu/frigolite/internal/value"
 	"strings"
 )
 
 func (e *Engine) execAnalyze(s *sql.AnalyzeStmt) *Result {
+	if err := e.Authorize(auth.ActionAnalyze, strings.TrimSpace(s.Name), "", "", ""); err != nil {
+		return &Result{Error: err}
+	}
 	name := strings.TrimSpace(s.Name)
 	// ANALYZE sqlite_master (or main.sqlite_master) — just ensures stats table exists.
 	// In SQLite this loads stats into memory for the planner; we read from sqlite_stat1 directly.
@@ -95,18 +100,22 @@ func (e *Engine) execAnalyzeNamed(name string) *Result {
 	// reports "unknown database %s" before looking up the table) and
 	// strip it for the table lookup.
 	tableName := name
+	missingName := name
+	lookupSchema := e.mainDB.Schema
 	if dotIdx := strings.Index(tableName, "."); dotIdx >= 0 {
 		prefix := tableName[:dotIdx]
-		if e.getDB(prefix) == nil {
+		db := e.getDB(prefix)
+		if db == nil {
 			return &Result{Error: fmt.Errorf("unknown database %s", prefix)}
 		}
+		lookupSchema = db.Schema
 		tableName = tableName[dotIdx+1:]
 	}
 	// First try as a table name. The table-existence check must run BEFORE
 	// openStatTablesForAnalyze so a non-existent target leaves no schema side
 	// effects (analyze-1.4: SELECT count(*) FROM sqlite_master WHERE
 	// name='sqlite_stat1' remains 0 after ANALYZE no_such_table).
-	if _, tableErr := e.schema.FindTable(tableName); tableErr == nil {
+	if _, tableErr := lookupSchema.FindTable(tableName); tableErr == nil {
 		if err := e.openStatTablesForAnalyze(); err != nil {
 			return &Result{Error: err}
 		}
@@ -121,7 +130,7 @@ func (e *Engine) execAnalyzeNamed(name string) *Result {
 		}
 		return e.analyzeOneIndex(idxEntry)
 	}
-	return &Result{Error: fmt.Errorf("no such table: %s", tableName)}
+	return &Result{Error: fmt.Errorf("no such table: %s", missingName)}
 }
 
 // openStatTablesForAnalyze is the stat-table setup the analyzer must perform
@@ -388,7 +397,7 @@ func (e *Engine) analyzeTableIndexes(entry *schema.Entry, tableNames map[string]
 		if res := e.insertStatRow(entry.Name, idx.Name, statStr); res.Error != nil {
 			return nIdx, allPartial, res
 		}
-		if res := e.insertStat4Row(entry.Name, idx.Name); res.Error != nil {
+		if res := e.insertIndexStat4Rows(entry, idx); res.Error != nil {
 			return nIdx, allPartial, res
 		}
 	}
@@ -405,26 +414,113 @@ func (e *Engine) insertTableScanStat(entry *schema.Entry, nRow int64) *Result {
 	return e.insertStat4Row(entry.Name, "")
 }
 
-// insertStat4Row inserts a row into sqlite_stat4 (tbl, idx, nEq, nLt, nDLt,
-// sample). The statistical samples are not computed; the row records that the
-// index was analyzed so sqlite_stat4 introspection (DISTINCT tbl, idx) matches
-// SQLite's output.
+// insertIndexStat4Rows scans one secondary index and stores STAT4 entries.
+func (e *Engine) insertIndexStat4Rows(tableEntry, idxEntry *schema.Entry) *Result {
+	ctx := e.stat4IndexContext(tableEntry.Name)
+	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
+	if len(e.stat4IndexColumns(idxEntry)) == 0 {
+		return &Result{}
+	}
+	tree := btree.NewBTree(ctx.Pager, e.rootPagePg(ctx.Pager, idxEntry.Name, idxEntry.RootPage), false)
+	defer tree.Close()
+	if ki := execdml.IndexKeyInfo(idxEntry.SQL, colDefs, e.lookupCollation); ki != nil {
+		tree.SetIndexKeyInfo(ki, e.stat4Collation)
+	}
+	entries, records, err := scanStat4Index(tree)
+	if err != nil {
+		return &Result{Error: err}
+	}
+	if len(entries) == 0 {
+		return &Result{}
+	}
+	return e.storeIndexStat4Samples(tableEntry, idxEntry, colDefs, entries, records)
+}
+
+func (e *Engine) stat4IndexContext(table string) *DatabaseContext {
+	if _, owner, err := e.findTable(table); err == nil && owner != nil {
+		return owner
+	}
+	return e.mainDB
+}
+
+func (e *Engine) stat4IndexColumns(index *schema.Entry) []string {
+	cols := parseIndexColumns(index.SQL)
+	if len(cols) == 0 && index.SQL == "" {
+		return e.selectEngine.AutoindexColumnsForAnalyze(index.TblName, index.Name)
+	}
+	return cols
+}
+
+func (e *Engine) stat4Collation(name string) (util.CollationFunc, bool) {
+	collation := e.lookupCollation(name)
+	if collation == nil {
+		return nil, false
+	}
+	return util.CollationFunc(collation), true
+}
+
+func scanStat4Index(tree *btree.BTree) ([][]interface{}, [][]byte, error) {
+	cur, err := tree.OpenCursor()
+	if err != nil {
+		return nil, nil, err
+	}
+	var entries [][]interface{}
+	var records [][]byte
+	for {
+		cell, readErr := cur.ReadCell()
+		if readErr != nil {
+			if strings.Contains(readErr.Error(), "cursor at end") && len(entries) == 0 {
+				return entries, records, nil
+			}
+			return nil, nil, readErr
+		}
+		if cell == nil {
+			return entries, records, nil
+		}
+		rec, decodeErr := storage.DecodeRecord(cell.Payload)
+		if decodeErr != nil {
+			return nil, nil, decodeErr
+		}
+		entries = append(entries, rec.Values)
+		records = append(records, append([]byte(nil), cell.Payload...))
+		ok, nextErr := cur.Next()
+		if nextErr != nil {
+			return nil, nil, nextErr
+		}
+		if !ok {
+			return entries, records, nil
+		}
+	}
+}
+
+func (e *Engine) storeIndexStat4Samples(tableEntry, idxEntry *schema.Entry, colDefs []sql.ColumnDef, entries [][]interface{}, records [][]byte) *Result {
+	statTable, err := e.schema.FindTable("sqlite_stat4")
+	if err != nil {
+		return &Result{Error: err}
+	}
+	statDefs := e.parseColumnDefs("sqlite_stat4", statTable.SQL)
+	samples := selectStat4Samples(entries, records, idxEntry.SQL, colDefs, e)
+	for _, sample := range samples {
+		res := e.insertRow(e.mainDB.Pager, statTable, statDefs, []interface{}{tableEntry.Name, idxEntry.Name, stat4FormatCounts(sample.eq), stat4FormatCounts(sample.lt), stat4FormatCounts(sample.dlt), sample.record}, nil, "")
+		if res.Error != nil {
+			return res
+		}
+	}
+	return &Result{}
+}
+
+// insertStat4Row inserts the NULL sample for a table scan.
 func (e *Engine) insertStat4Row(tbl, idx string) *Result {
 	tableEntry, err := e.schema.FindTable("sqlite_stat4")
 	if err != nil {
 		return &Result{Error: err}
 	}
 	colDefs := e.parseColumnDefs("sqlite_stat4", tableEntry.SQL)
-	// A "" idx encodes SQLite's NULL idx (the stat4 row for a table with no
-	// indexes); an actual index name is stored as a string.
 	var idxVal interface{}
-	if idx == "" {
-		idxVal = nil
-	} else {
+	if idx != "" {
 		idxVal = idx
 	}
-	values := []interface{}{tbl, idxVal, nil, nil, nil, nil}
-	return e.insertRow(e.mainDB.Pager, tableEntry, colDefs, values, nil, "")
+	return e.insertRow(e.mainDB.Pager, tableEntry, colDefs, []interface{}{tbl, idxVal, nil, nil, nil, nil}, nil, "")
 }
 
 // computePKStat computes the stat1 string for a WITHOUT ROWID table's PRIMARY
@@ -537,7 +633,10 @@ func (e *Engine) analyzeOneIndex(idxEntry *schema.Entry) *Result {
 	// Count rows and compute stat
 	nRow := e.countTableRows(tableEntry.RootPage)
 	statStr := e.computeIndexStat(tableEntry, idxEntry, nRow)
-	return e.insertStatRow(tableEntry.Name, idxEntry.Name, statStr)
+	if res := e.insertStatRow(tableEntry.Name, idxEntry.Name, statStr); res.Error != nil {
+		return res
+	}
+	return e.insertIndexStat4Rows(tableEntry, idxEntry)
 }
 
 // countTableRows counts the number of rows in a table by traversing its b-tree.
@@ -827,7 +926,7 @@ func (e *Engine) clearAllStats() *Result {
 	return &Result{}
 }
 
-// clearStatsForTable deletes rows from sqlite_stat1 for a specific table.
+// clearStatsForTable deletes statistics rows for a specific table from sqlite_stat1 and sqlite_stat4.
 // ClearStatsForTable is the package-public form of clearStatsForTable: DDL
 // (DROP TABLE) calls it so sqlite_stat1 entries for the dropped table are
 // removed in the same transaction (SQLite src/build.c sqlite3ClearStatTables).

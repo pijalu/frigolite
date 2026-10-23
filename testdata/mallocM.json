@@ -1,0 +1,46 @@
+{
+  "file": "mallocM.test",
+  "name": "mallocM",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "mallocM-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "mallocM-2.0.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT instr(x'', x'')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "mallocM-2.0.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT instr(x'12345678', x'')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "mallocM-2.0.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT instr(x'', x'1234')",
+          "expect": "0"
+        }
+      ]
+    }
+  ]
+}

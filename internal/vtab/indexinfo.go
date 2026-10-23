@@ -155,6 +155,15 @@ func (ii *IndexInfo) SetColsUsed(cols ...int) {
 	}
 }
 
+// TclCallbackRuntime executes one fixture-provided Tcl virtual-table callback.
+type TclCallbackRuntime interface {
+	Connect(proc string, moduleArgs []string) (string, error)
+	BestIndex(proc string, moduleArgs []string, info *IndexInfo) (string, error)
+	Filter(proc string, moduleArgs []string, idxNum int, idxStr string, argv []interface{}) (string, error)
+	Query(sql string) ([][]interface{}, []int64, error)
+	HasProc(proc string) bool
+}
+
 // PlanBestIndexer is the optional xBestIndex contract (sqlite3_module
 // xBestIndex). Modules implementing it receive the planner's constraint set
 // before a scan is materialized; returning ErrVtabConstraint rejects the

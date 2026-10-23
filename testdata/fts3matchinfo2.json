@@ -1,6 +1,7 @@
 {
   "file": "fts3matchinfo2.test",
   "name": "fts3matchinfo2",
+  "ordered": true,
   "tests": [
     {
       "name": "1.0",

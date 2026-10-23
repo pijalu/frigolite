@@ -1,0 +1,728 @@
+{
+  "file": "vacuum3.test",
+  "name": "vacuum3",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "vacuum3-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1, 2, 3);"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size",
+          "expect": "1024"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-1.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 2048;\n      VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size",
+          "expect": "2048"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-1.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-1.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n      VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size",
+          "expect": "1024"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-1.5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-1.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1170;\n      VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size",
+          "expect": "1024"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-1.6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-1.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 256;\n      VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size",
+          "expect": "1024"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-1.7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-1.8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 512;\n      VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size",
+          "expect": "512"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-1.8.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-1.9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 4096;\n      VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size",
+          "expect": "4096"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-1.9.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-1.10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n      VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size",
+          "expect": "1024"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-1.10.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n    VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 ADD COLUMN d;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET d = randomblob(1000);",
+          "expect": "3072"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size",
+          "expect": "1024"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-2.3",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "select d from t1",
+          "variable": "blob",
+          "expect": "1000"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-2.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 2048;\n      VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size",
+          "expect": "2048"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-2.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 $blob"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-2.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n      VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size",
+          "expect": "1024"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-2.5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 $blob"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-2.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1170;\n      VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size",
+          "expect": "1024"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-2.6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 $blob"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-2.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 256;\n      VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size",
+          "expect": "1024"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-2.7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 $blob"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-2.8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 512;\n      VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size",
+          "expect": "512"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-2.8.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 $blob"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-2.9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 4096;\n      VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size",
+          "expect": "4096"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-2.9.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 $blob"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-2.10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n      VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size",
+          "expect": "1024"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-2.10.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 $blob"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    INSERT INTO abc VALUES(randomblob(100), randomblob(200), randomblob(1000));\n    INSERT INTO abc \n        SELECT randomblob(1000), randomblob(200), randomblob(100)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(25), randomblob(45), randomblob(9456)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(25), randomblob(45), randomblob(9456)\n        FROM abc;\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size",
+          "expect": "1024"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc",
+          "variable": "sig",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-3.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 2048;\n      VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size",
+          "expect": "2048"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-3.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc",
+          "expect": "$::sig"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-3.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n      VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size",
+          "expect": "1024"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-3.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc",
+          "expect": "$::sig"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-3.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1170;\n      VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size",
+          "expect": "1024"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-3.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc",
+          "expect": "$::sig"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-3.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 256;\n      VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size",
+          "expect": "1024"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-3.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc",
+          "expect": "$::sig"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-3.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 512;\n      VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size",
+          "expect": "512"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-3.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc",
+          "expect": "$::sig"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-3.8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 4096;\n      VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size",
+          "expect": "4096"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-3.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc",
+          "expect": "$::sig"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-3.9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n      VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size",
+          "expect": "1024"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-3.9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc",
+          "expect": "$::sig"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-4.1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-4.2",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc",
+          "expect": "1 2 3 4 5 6",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 2048;\n    VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc",
+          "expect": "1 2 3 4 5 6",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=16384;\n    VACUUM;",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc",
+          "expect": "1 2 3 4 5 6",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-4.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n    VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc",
+          "expect": "1 2 3 4 5 6",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": ":memory:",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1234);\n    PRAGMA page_size=4096;\n    VACUUM;\n    SELECT * FROM t1;",
+          "expect": "1234",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "vacuum3-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size",
+          "expect": "1024",
+          "database": "db2"
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 {
   "file": "func5.test",
   "name": "func5",
+  "ordered": true,
   "tests": [
     {
       "name": "func5-1.1",
@@ -33,6 +34,14 @@
       ]
     },
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_test_funcs"
+        }
+      ]
+    },
+    {
       "name": "func5-2.2",
       "steps": [
         {
@@ -40,7 +49,26 @@
           "sql": "SELECT x, y FROM t2\n   WHERE x+counter1('hello')=counter1('hello')+x\n   ORDER BY +x;"
         }
       ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT counter2('hello')+1",
+          "variable": "cvalue"
+        }
+      ]
+    },
+    {
+      "name": "func5-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2\n   WHERE x+counter2('hello')=$cvalue+x\n   ORDER BY +x;",
+          "expect": "1 2 3 4 5 6 7 8"
+        }
+      ]
     }
-  ],
-  "source": "capi"
+  ]
 }

@@ -1,19 +1,31 @@
 {
   "file": "busy.test",
   "name": "busy",
+  "ordered": true,
   "tests": [
     {
       "name": "busy-1.1",
       "steps": [
         {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1"
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1",
+          "expect": "1"
         }
       ]
     },
     {
       "name": "busy-1.2",
       "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE",
+          "database": "db2"
+        },
         {
           "type": "catch",
           "sql": "BEGIN IMMEDIATE",
@@ -36,12 +48,31 @@
       "steps": [
         {
           "type": "exec",
+          "sql": "COMMIT",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
           "sql": "BEGIN; INSERT INTO t1 VALUES(5)"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN; SELECT * FROM t1",
+          "database": "db2"
         },
         {
           "type": "catch",
           "sql": "COMMIT",
           "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     }

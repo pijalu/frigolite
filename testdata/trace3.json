@@ -1,16 +1,8 @@
 {
   "file": "trace3.test",
   "name": "trace3",
+  "ordered": true,
   "tests": [
-    {
-      "name": "13.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE T1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);"
-        }
-      ]
-    },
     {
       "name": "trace3-1.0",
       "steps": [
@@ -24,7 +16,7 @@
       "name": "trace3-3.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a, b FROM t1 ORDER BY a;"
         }
       ]
@@ -33,8 +25,12 @@
       "name": "trace3-3.2",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a, b FROM t1 ORDER BY a;",
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "stmtlist(error)",
           "expect": "/^\\{-?\\d+ \\{SELECT a, b FROM t1 ORDER BY a;\\}\\}$/"
         }
       ]
@@ -43,8 +39,12 @@
       "name": "trace3-3.3",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a, b FROM t1 ORDER BY a;",
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "stmtlist(record)",
           "expect": "/^\\{-?\\d+ \\{SELECT a, b FROM t1 ORDER BY a;\\}\\}$/"
         }
       ]
@@ -53,8 +53,12 @@
       "name": "trace3-3.4",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a, b FROM t1 ORDER BY a;",
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "stmtlist(record)",
           "expect": "/^\\{-?\\d+ \\{SELECT a, b FROM t1 ORDER BY a;\\}\\}$/"
         }
       ]
@@ -63,8 +67,12 @@
       "name": "trace3-3.5",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a, b FROM t1 ORDER BY a;",
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "stmtlist(record)",
           "expect": "/^\\{-?\\d+ \\{SELECT a, b FROM t1 ORDER BY a;\\}\\}$/"
         }
       ]
@@ -73,8 +81,12 @@
       "name": "trace3-4.1",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a, b FROM t1 ORDER BY a;",
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "stmtlist(record)",
           "expect": "/^\\{-?\\d+ -?\\d+\\}$/"
         }
       ]
@@ -83,8 +95,12 @@
       "name": "trace3-4.2",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a, b FROM t1 ORDER BY a;",
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "stmtlist(record)",
           "expect": "/^\\{-?\\d+ -?\\d+\\}$/"
         }
       ]
@@ -93,7 +109,7 @@
       "name": "trace3-4.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a, b FROM t1 ORDER BY a;",
           "expect": "/^-?\\d+ 1$/"
         }
@@ -103,7 +119,19 @@
       "name": "trace3-4.4",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT a, b FROM t1 ORDER BY a;",
           "expect": "/^-?\\d+ 1$/"
         }
@@ -113,8 +141,13 @@
       "name": "trace3-5.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "stmtlist(record)",
+          "expect": "/^-?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+$/"
         }
       ]
     },
@@ -122,8 +155,13 @@
       "name": "trace3-5.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "stmtlist(record)",
+          "expect": "/^-?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+$/"
         }
       ]
     },
@@ -131,8 +169,13 @@
       "name": "trace3-6.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "stmtlist(record)",
+          "expect": "/^-?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ \\{-?\\d+ -?\\d+\\}$/"
         }
       ]
     },
@@ -140,8 +183,35 @@
       "name": "trace3-6.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "stmtlist(record)",
+          "expect": "/^\\{-?\\d+ \\{SELECT a, b FROM t1 ORDER BY a;\\}\\} -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ -?\\d+ \\{-?\\d+ -?\\d+\\}$/"
+        }
+      ]
+    },
+    {
+      "name": "trace3-7.1",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT a, b FROM t1 WHERE b = ? ORDER BY a;",
+          "variable": "stmt_1",
+          "expect": "/^[0-9A-Fa-f]+$/"
+        }
+      ]
+    },
+    {
+      "name": "trace3-9.1",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT a, b FROM t1 WHERE b = ? ORDER BY a;",
+          "variable": "stmt_1",
+          "expect": "SQLITE_OK"
         }
       ]
     },
@@ -149,112 +219,126 @@
       "name": "trace3-10.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a, b FROM t1 ORDER BY a;"
         }
       ]
     },
     {
-      "name": "12.2.0",
+      "name": "trace3-11.1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "stmtlist(record)",
+          "expect": "/^-?\\d+$/"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "trace3-11.2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "stmtlist(record)",
+          "expect": "/^-?\\d+$/"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "trace3-12.1.0",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT ?1 || ?1 || ?1 || ?2 || ?3 || ?4 || ? || ?1 || ?",
+          "variable": "stmt_2",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "trace3-12.1.2",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_1__",
+          "expect": "AAABCDEAF"
+        }
+      ]
+    },
+    {
+      "name": "trace3-12.1.3",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "variable": "stmt_1",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "trace3-12.2.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE nameFtsFuzzySearchTable(\n      word, distance, langid, score, top, scope\n    );"
         },
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,NULL);\n    INSERT INTO t1 VALUES(2,-1);\n    INSERT INTO t1 VALUES(3,0);\n    INSERT INTO t1 VALUES(4,1);\n    INSERT INTO t1 VALUES(5,-2147483648);\n    INSERT INTO t1 VALUES(6,2147483647);\n    INSERT INTO t1 VALUES(7,-9223372036854775808);\n    INSERT INTO t1 VALUES(8,9223372036854775807);\n    INSERT INTO t1 VALUES(9,-1.0);\n    INSERT INTO t1 VALUES(10,0.0);\n    INSERT INTO t1 VALUES(11,1.0);\n    INSERT INTO t1 VALUES(12,'');\n    INSERT INTO t1 VALUES(13,'1');\n    INSERT INTO t1 VALUES(14,'one');\n    INSERT INTO t1 VALUES(15,x'abcd0123');\n    INSERT INTO t1 VALUES(16,x'4567cdef');"
-        },
+          "type": "prepare_stmt",
+          "sql": "SELECT\n      substr(word,1,length(?1)-1) AS term,\n      distance,\n      langid,\n      score\n    FROM\n      nameFtsFuzzySearchTable\n    WHERE\n      word MATCH (?1) AND abs(?1) = abs(term)\n      AND top = ?2 AND distance \u003e ?3 AND scope = ?4 AND langid = ?\n    GROUP BY term, langid \n    HAVING (1.0 - ((distance / 100.0) / CAST( length(?1) - 1 AS REAL ))) \u003e= ?",
+          "variable": "stmt_3",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "trace3-12.1.2",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "variable": "stmt_1",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "trace3-13.0",
+      "steps": [
         {
           "type": "exec",
-          "sql": "SELECT a, b FROM t1 ORDER BY a;"
-        },
+          "sql": "CREATE TABLE T1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);"
+        }
+      ]
+    },
+    {
+      "name": "trace3-13.1",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT a, b FROM t1 ORDER BY a;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, b FROM t1 ORDER BY a;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, b FROM t1 ORDER BY a;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, b FROM t1 ORDER BY a;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, b FROM t1 ORDER BY a;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, b FROM t1 ORDER BY a;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, b FROM t1 ORDER BY a;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, b FROM t1 ORDER BY a;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, b FROM t1 ORDER BY a;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, b FROM t1 ORDER BY a;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, b FROM t1 ORDER BY a;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, b FROM t1 ORDER BY a;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, b FROM t1 ORDER BY a;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE nameFtsFuzzySearchTable(\n      word, distance, langid, score, top, scope\n    );"
-        },
-        {
-          "type": "exec",
+          "type": "query",
           "sql": "SELECT * FROM t1"
         }
       ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
     }
-  ],
-  "source": "capi"
+  ]
 }

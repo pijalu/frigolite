@@ -1,6 +1,7 @@
 {
   "file": "tkt3442.test",
   "name": "tkt3442",
+  "ordered": true,
   "tests": [
     {
       "name": "tkt3442-1.1",
@@ -12,19 +13,41 @@
       ]
     },
     {
+      "name": "tkt3442-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT node FROM listhash WHERE id='5000' LIMIT 1;"
+        }
+      ]
+    },
+    {
+      "name": "tkt3442-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT node FROM listhash WHERE id=\"5000\" LIMIT 1;"
+        }
+      ]
+    },
+    {
+      "name": "tkt3442-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT node FROM listhash WHERE id=5000 LIMIT 1;"
+        }
+      ]
+    },
+    {
       "name": "tkt3442-1.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT node FROM listhash WHERE id=[5000] LIMIT 1;",
           "expect": "1 {no such column: 5000}"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE listhash(\n       key INTEGER PRIMARY KEY,\n       id TEXT,\n       node INTEGER\n     );\n     CREATE UNIQUE INDEX ididx ON listhash(id);"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

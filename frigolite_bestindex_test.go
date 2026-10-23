@@ -26,13 +26,15 @@ type biCon struct {
 // biRecord is the shared observation sink across all instances a fixture
 // module creates (SQLite's test harness stores observations in TCL globals).
 type biRecord struct {
-	cons       []biCon
-	colsUsed   uint64
-	orderBy    string
-	distinct   int
-	sawDefault bool // xBestIndex saw the planner-default estimatedCost
-	argv       []interface{}
-	filters    int
+	cons        []biCon
+	colsUsed    uint64
+	orderBy     string
+	distinct    int
+	sawDefault  bool // xBestIndex saw the planner-default estimatedCost
+	argv        []interface{}
+	filters     int
+	onBestIndex func() error
+	nestedRowID int64
 }
 
 // biFixtureModule is the fixture module (columns a, b, c).
@@ -62,6 +64,11 @@ func (v *biFixtureVTab) Columns() []string { return []string{"a", "b", "c"} }
 // BestIndexPlan implements vtab.PlanBestIndexer (xBestIndex).
 func (v *biFixtureVTab) BestIndexPlan(ii *vtab.IndexInfo) error {
 	r := v.mod.rec
+	if r.onBestIndex != nil {
+		if err := r.onBestIndex(); err != nil {
+			return err
+		}
+	}
 	r.sawDefault = ii.EstimatedCost == 8.988465674311579e+307 // SQLITE_BIG_DBL/2
 	r.colsUsed = ii.ColsUsed
 	r.distinct = ii.Distinct
@@ -312,6 +319,39 @@ func TestNativeBestIndex_constraintEnumeration(t *testing.T) {
 	}
 }
 
+func TestNativeBestIndex_leftJoinONConstraint(t *testing.T) {
+	db, err := Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	leftRec, rightRec := &biRecord{}, &biRecord{}
+	db.RegisterVtabModule("biJoinLeft", &biFixtureModule{mode: "echo", rec: leftRec, rows: [][]interface{}{{"left", "unused", "key"}}})
+	db.RegisterVtabModule("biJoinRight", &biFixtureModule{mode: "echo", rec: rightRec, rows: [][]interface{}{{"key", "name", "unused"}}})
+	for _, stmt := range []string{
+		"CREATE VIRTUAL TABLE Delivery USING biJoinLeft;",
+		"CREATE VIRTUAL TABLE Customer USING biJoinRight;",
+	} {
+		if r := db.Exec(stmt); r.Error != nil {
+			t.Fatal(r.Error)
+		}
+	}
+	result := db.Query("SELECT Delivery.a, Customer.b FROM Delivery LEFT JOIN Customer ON Delivery.c=Customer.a")
+	if result.Error != nil {
+		t.Fatal(result.Error)
+	}
+	if len(result.Rows) != 1 || result.Rows[0][0] != "left" || result.Rows[0][1] != "name" {
+		t.Fatalf("LEFT JOIN rows = %v, want [[left name]]", result.Rows)
+	}
+	want := []biCon{{Column: 0, Op: vtab.IndexConstraintEq, Usable: true}}
+	if len(rightRec.cons) != len(want) || rightRec.cons[0] != want[0] {
+		t.Fatalf("right-side xBestIndex constraints = %+v, want %+v", rightRec.cons, want)
+	}
+	if len(leftRec.cons) != 0 {
+		t.Fatalf("left-side xBestIndex constraints = %+v, want none for LEFT JOIN ON", leftRec.cons)
+	}
+}
+
 func TestNativeBestIndex_limitOffsetConstraints(t *testing.T) {
 	db, err := Open(":memory:")
 	if err != nil {
@@ -332,6 +372,42 @@ func TestNativeBestIndex_limitOffsetConstraints(t *testing.T) {
 	n := len(rec.cons)
 	if n < 2 || rec.cons[n-2].Op != vtab.IndexConstraintOffset || rec.cons[n-1].Op != vtab.IndexConstraintLimit {
 		t.Errorf("aux constraints: got %+v", rec.cons[n-2:])
+	}
+}
+
+// TestNativeBestIndex_reentrantReturning ports bestindexB-1.5: xBestIndex may
+// execute a nested INSERT ... RETURNING on the same connection, and the outer
+// virtual-table query must complete after the callback returns.
+func TestNativeBestIndex_reentrantReturning(t *testing.T) {
+	db, err := Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if r := db.Exec("CREATE TABLE y2(a, b);"); r.Error != nil {
+		t.Fatal(r.Error)
+	}
+	rec := &biRecord{}
+	rec.onBestIndex = func() error {
+		r := db.Query("INSERT INTO y2 VALUES(NULL, NULL) RETURNING rowid")
+		if r.Error != nil {
+			return r.Error
+		}
+		if len(r.Rows) != 1 || len(r.Rows[0]) != 1 {
+			return fmt.Errorf("nested INSERT RETURNING rows = %v, want one rowid", r.Rows)
+		}
+		rec.nestedRowID = r.Rows[0][0].(int64)
+		return nil
+	}
+	db.RegisterVtabModule("bireentrant", &biFixtureModule{mode: "echo", rec: rec})
+	if r := db.Exec("CREATE VIRTUAL TABLE t1 USING bireentrant;"); r.Error != nil {
+		t.Fatal(r.Error)
+	}
+	if r := db.Query("SELECT * FROM t1"); r.Error != nil {
+		t.Fatal(r.Error)
+	}
+	if rec.nestedRowID != 1 {
+		t.Fatalf("xBestIndex nested INSERT RETURNING rowid = %d, want 1", rec.nestedRowID)
 	}
 }
 

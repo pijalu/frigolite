@@ -9,6 +9,7 @@ type RawWord struct {
 	Text   string // raw content (for braced words, literal; for others, may contain $var or [cmd])
 	Braced bool   // true if word was { ... } quoted (literal, no substitution)
 	Quoted bool   // true if word was " ... " quoted (substitution applies)
+	Expand bool   // true if the word used TCL's {*} argument-expansion prefix
 }
 
 // rawWord is an alias for backward compatibility within the package.
@@ -64,6 +65,11 @@ func ParseCommands(src string) [][]RawWord {
 
 		switch ch {
 		case '{':
+			if rw, next, ok := readExpandWord(src, pos); ok {
+				pos = next
+				current = append(current, rw)
+				break
+			}
 			word, next := readBraceWord(src, pos)
 			pos = next
 			current = append(current, rawWord{Text: word, Braced: true})
@@ -110,6 +116,35 @@ func skipToLineEnd(src string, pos int) int {
 		pos++
 	}
 	return pos
+}
+
+// readExpandWord parses a TCL {*} argument-expansion word. The {*} prefix is
+// recognized only at the start of a word and only when the word continues
+// immediately (TCL 8.5 grammar); a bare {*} is an ordinary braced word whose
+// value is "*". The remainder is parsed as a normal word (braced, quoted, or
+// bare) whose evaluated value the caller expands into list elements.
+func readExpandWord(src string, pos int) (rawWord, int, bool) {
+	if pos+3 >= len(src) || src[pos] != '{' || src[pos+1] != '*' || src[pos+2] != '}' {
+		return rawWord{}, pos, false
+	}
+	rest := src[pos+3]
+	if isWordSep(rest) || rest == ']' {
+		return rawWord{}, pos, false
+	}
+	pos += 3
+	rw := rawWord{Expand: true}
+	var next int
+	switch rest {
+	case '{':
+		rw.Text, next = readBraceWord(src, pos)
+		rw.Braced = true
+	case '"':
+		rw.Text, next = readQuoteWord(src, pos)
+		rw.Quoted = true
+	default:
+		rw.Text, next = readPlainWord(src, pos)
+	}
+	return rw, next, true
 }
 
 // readBraceWord reads a { ... } braced word with nesting, returning the word

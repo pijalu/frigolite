@@ -18,7 +18,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(x);\n    CREATE TABLE t2(y);\n    INSERT INTO t1 VALUES(1);",
-          "expect": "6"
+          "expect": "3.0"
         }
       ]
     },
@@ -28,7 +28,7 @@
         {
           "type": "exec",
           "sql": "VACUUM",
-          "expect": "8"
+          "expect": "1.0"
         }
       ]
     },
@@ -36,8 +36,15 @@
       "name": "setup_0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "pragma page_size"
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query_assign",
+          "sql": "pragma page_size",
+          "variable": "pageSize",
+          "resultAll": true
         }
       ]
     },
@@ -46,7 +53,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES('hello');\n    INSERT INTO t2 VALUES('out there');",
+          "sql": "INSERT INTO t1 VALUES('hello');\n    INSERT INTO t2 VALUES('out there');"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "[file size test.db]/$pageSize",
           "expect": "3"
         }
       ]
@@ -56,7 +67,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA auto_vacuum=FULL;\n      VACUUM;",
+          "sql": "PRAGMA auto_vacuum=FULL;\n      VACUUM;"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "[file size test.db]/$pageSize",
           "expect": "4"
         }
       ]
@@ -67,7 +82,8 @@
         {
           "type": "exec",
           "sql": "PRAGMA integrity_check",
-          "expect": "ok"
+          "expect": "ok",
+          "database": "db2"
         }
       ]
     },
@@ -86,7 +102,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA auto_vacuum=NONE;\n    VACUUM;",
+          "sql": "PRAGMA auto_vacuum=NONE;\n    VACUUM;"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "[file size test.db]/$pageSize",
           "expect": "3"
         }
       ]
@@ -97,7 +117,8 @@
         {
           "type": "exec",
           "sql": "PRAGMA integrity_check",
-          "expect": "ok"
+          "expect": "ok",
+          "database": "db2"
         }
       ]
     },
@@ -112,12 +133,38 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
     },
     {
       "name": "vacuum2-4.1",
       "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "vacuum2-4.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
         {
           "type": "exec",
           "sql": "pragma auto_vacuum=1;\n      create table t(a, b);\n      insert into t values(1, 2);\n      insert into t values(1, 2);\n      pragma auto_vacuum=0;\n      vacuum;\n      pragma auto_vacuum;",
@@ -149,6 +196,13 @@
       "name": "vacuum2-4.4",
       "steps": [
         {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "exec",
           "sql": "pragma auto_vacuum;",
           "expect": "1"
@@ -179,6 +233,13 @@
       "name": "vacuum2-4.7",
       "steps": [
         {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "exec",
           "sql": "pragma auto_vacuum;",
           "expect": "2"
@@ -186,8 +247,30 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
     },
     {
       "name": "vacuum2-5.1",
@@ -204,7 +287,7 @@
         {
           "type": "query",
           "sql": "SELECT a, b FROM t1",
-          "expect": "1 {cannot VACUUM - SQL statements in progress}"
+          "catchMessage": "msg"
         }
       ]
     },
@@ -214,7 +297,7 @@
         {
           "type": "query",
           "sql": "SELECT 1, 2, 3",
-          "expect": "1 {cannot VACUUM - SQL statements in progress}"
+          "catchMessage": "msg"
         }
       ]
     },
@@ -225,6 +308,35 @@
           "type": "query",
           "sql": "SELECT a, b FROM t1 WHERE a\u003c=10",
           "expect": "1 2 3 4 5 6 7 8 9 10 {1 {cannot VACUUM - SQL statements in progress}}"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "register_collation",
+          "collationName": "cmp",
+          "collationProc": "cmp",
+          "collationBody": " string compare $lhs $rhs ",
+          "callbackVars": {
+            "": "{}",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "cksum": "",
+            "msg": "$msg",
+            "pageSize": "$pageSize",
+            "res": "",
+            "res2": "{}",
+            "testdir": "",
+            "testprefix": "vacuum2"
+          },
+          "functionArgs": [
+            "lhs",
+            "rhs"
+          ]
         }
       ]
     },

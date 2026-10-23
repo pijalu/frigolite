@@ -1,9 +1,10 @@
 {
   "file": "orderby4.test",
   "name": "orderby4",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.1",
+      "name": "orderby4-1.1",
       "steps": [
         {
           "type": "query",
@@ -13,7 +14,7 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "orderby4-1.2",
       "steps": [
         {
           "type": "query",
@@ -23,7 +24,7 @@
       ]
     },
     {
-      "name": "1.3",
+      "name": "orderby4-1.3",
       "steps": [
         {
           "type": "query",
@@ -33,7 +34,7 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "orderby4-2.1",
       "steps": [
         {
           "type": "query",
@@ -43,7 +44,7 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "orderby4-2.2",
       "steps": [
         {
           "type": "query",
@@ -53,7 +54,7 @@
       ]
     },
     {
-      "name": "2.3",
+      "name": "orderby4-2.3",
       "steps": [
         {
           "type": "query",

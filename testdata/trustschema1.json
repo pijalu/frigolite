@@ -1,19 +1,94 @@
 {
   "file": "trustschema1.test",
   "name": "trustschema1",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.110",
+      "name": "trustschema1-1.100",
       "steps": [
         {
+          "type": "register_function",
+          "functionName": "f1",
+          "callbackVars": {
+            "": "trustschema1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "trustschema1"
+          },
+          "functionProc": "f1",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": "return $x",
+          "minArgs": 1,
+          "maxArgs": -1,
+          "deterministic": true,
+          "innocuous": true
+        },
+        {
+          "type": "register_function",
+          "functionName": "f2",
+          "callbackVars": {
+            "": "trustschema1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "trustschema1"
+          },
+          "functionProc": "f1",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": "return $x",
+          "minArgs": 1,
+          "maxArgs": -1,
+          "deterministic": true
+        },
+        {
+          "type": "register_function",
+          "functionName": "f3",
+          "callbackVars": {
+            "": "trustschema1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "trustschema1"
+          },
+          "functionProc": "f1",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": "return $x",
+          "minArgs": 1,
+          "maxArgs": -1,
+          "deterministic": true,
+          "directOnly": true
+        },
+        {
           "type": "exec",
+          "sql": "CREATE TABLE t1(a, b AS (f1(a+1)), c AS (f2(a+2)));\n    INSERT INTO t1 VALUES(100),(200);"
+        }
+      ]
+    },
+    {
+      "name": "trustschema1-1.110",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "SELECT a, b, c FROM t1;",
           "expect": "0 {100 101 102 200 201 202}"
         }
       ]
     },
     {
-      "name": "1.120",
+      "name": "trustschema1-1.120",
       "steps": [
         {
           "type": "query",
@@ -22,37 +97,37 @@
       ]
     },
     {
-      "name": "1.130",
+      "name": "trustschema1-1.130",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT a, b FROM t1;",
           "expect": "0 {100 101 200 201}"
         }
       ]
     },
     {
-      "name": "1.140",
+      "name": "trustschema1-1.140",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT a, b, c FROM t1;",
           "expect": "1 {unsafe use of f2()}"
         }
       ]
     },
     {
-      "name": "1.150",
+      "name": "trustschema1-1.150",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "PRAGMA trusted_schema=ON;\n  DROP TABLE t1;\n  CREATE TABLE t1(a, b AS (f3(a+1)));",
           "expect": "1 {unsafe use of f3()}"
         }
       ]
     },
     {
-      "name": "1.160",
+      "name": "trustschema1-1.160",
       "steps": [
         {
           "type": "query",
@@ -62,57 +137,57 @@
       ]
     },
     {
-      "name": "1.200",
+      "name": "trustschema1-1.200",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "PRAGMA trusted_schema=ON;\n  CREATE TABLE t2(a,b,c,CHECK(f3(c)==c));",
           "expect": "1 {unsafe use of f3()}"
         }
       ]
     },
     {
-      "name": "1.210",
+      "name": "trustschema1-1.210",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "PRAGMA trusted_schema=Off;\n  CREATE TABLE t2(a,b,c,CHECK(f2(c)==c));",
           "expect": "1 {unsafe use of f2()}"
         }
       ]
     },
     {
-      "name": "1.211",
+      "name": "trustschema1-1.211",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "PRAGMA trusted_schema=On;\n  CREATE TABLE t2(a,b,c,CHECK(f2(c)==c));",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "1.220",
+      "name": "trustschema1-1.220",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t2 VALUES(1,2,3);\n  SELECT * FROM t2;",
           "expect": "0 {1 2 3}"
         }
       ]
     },
     {
-      "name": "1.230",
+      "name": "trustschema1-1.230",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "PRAGMA trusted_schema=off;\n  INSERT INTO t2 VALUES(4,5,6);",
           "expect": "1 {unsafe use of f2()}"
         }
       ]
     },
     {
-      "name": "1.231",
+      "name": "trustschema1-1.231",
       "steps": [
         {
           "type": "query",
@@ -122,7 +197,7 @@
       ]
     },
     {
-      "name": "1.240",
+      "name": "trustschema1-1.240",
       "steps": [
         {
           "type": "query",
@@ -132,37 +207,37 @@
       ]
     },
     {
-      "name": "1.300",
+      "name": "trustschema1-1.300",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t3(a,b DEFAULT(f2(25)));",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "1.310",
+      "name": "trustschema1-1.310",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "PRAGMA trusted_schema=Off;\n  INSERT INTO t3(a) VALUES(1);",
           "expect": "1 {unsafe use of f2()}"
         }
       ]
     },
     {
-      "name": "1.311",
+      "name": "trustschema1-1.311",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t3(a,b) VALUES(1,2);",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "1.320",
+      "name": "trustschema1-1.320",
       "steps": [
         {
           "type": "query",
@@ -172,36 +247,37 @@
       ]
     },
     {
-      "name": "1.400",
+      "name": "trustschema1-1.400",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t4(a,b,c);\n  INSERT INTO t4 VALUES(1,2,3),('a','b','c'),(4,'d',0);\n  SELECT * FROM t4;\n  CREATE TEMP TABLE temp4(a,b,c);\n  INSERT INTO temp4 SELECT * FROM t4;"
+          "sql": "CREATE TABLE t4(a,b,c);\n  INSERT INTO t4 VALUES(1,2,3),('a','b','c'),(4,'d',0);\n  SELECT * FROM t4;\n  CREATE TEMP TABLE temp4(a,b,c);\n  INSERT INTO temp4 SELECT * FROM t4;",
+          "expect": "1 2 3 a b c 4 d 0"
         }
       ]
     },
     {
-      "name": "1.410",
+      "name": "trustschema1-1.410",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE INDEX t4a ON t4(a) WHERE f3(c);",
           "expect": "1 {unsafe use of f3()}"
         }
       ]
     },
     {
-      "name": "1.420",
+      "name": "trustschema1-1.420",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "PRAGMA trusted_schema=OFF;\n  CREATE INDEX t4a ON t4(a) WHERE f2(c);",
           "expect": "1 {unsafe use of f2()}"
         }
       ]
     },
     {
-      "name": "1.421",
+      "name": "trustschema1-1.421",
       "steps": [
         {
           "type": "query",
@@ -211,7 +287,7 @@
       ]
     },
     {
-      "name": "1.430",
+      "name": "trustschema1-1.430",
       "steps": [
         {
           "type": "query",
@@ -221,7 +297,7 @@
       ]
     },
     {
-      "name": "1.440",
+      "name": "trustschema1-1.440",
       "steps": [
         {
           "type": "query",
@@ -231,36 +307,37 @@
       ]
     },
     {
-      "name": "1.500",
+      "name": "trustschema1-1.500",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t5(a,b,c);\n  INSERT INTO t5 VALUES(1,2,3),(4,5,6),(7,0,-3);\n  SELECT * FROM t5;\n  CREATE TEMP TABLE temp5(a,b,c);\n  INSERT INTO temp5 SELECT * FROM t5;"
+          "sql": "CREATE TABLE t5(a,b,c);\n  INSERT INTO t5 VALUES(1,2,3),(4,5,6),(7,0,-3);\n  SELECT * FROM t5;\n  CREATE TEMP TABLE temp5(a,b,c);\n  INSERT INTO temp5 SELECT * FROM t5;",
+          "expect": "1 2 3 4 5 6 7 0 -3"
         }
       ]
     },
     {
-      "name": "1.510",
+      "name": "trustschema1-1.510",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE INDEX t5x1 ON t5(a+f3(b));",
           "expect": "1 {unsafe use of f3()}"
         }
       ]
     },
     {
-      "name": "1.520",
+      "name": "trustschema1-1.520",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "PRAGMA trusted_schema=OFF;\n  CREATE INDEX t5x1 ON t5(a+f2(b));",
           "expect": "1 {unsafe use of f2()}"
         }
       ]
     },
     {
-      "name": "1.521",
+      "name": "trustschema1-1.521",
       "steps": [
         {
           "type": "query",
@@ -270,7 +347,7 @@
       ]
     },
     {
-      "name": "1.530",
+      "name": "trustschema1-1.530",
       "steps": [
         {
           "type": "query",
@@ -280,7 +357,7 @@
       ]
     },
     {
-      "name": "1.540",
+      "name": "trustschema1-1.540",
       "steps": [
         {
           "type": "query",
@@ -290,7 +367,81 @@
       ]
     },
     {
-      "name": "2.100",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "f1",
+          "callbackVars": {
+            "": "trustschema1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "trustschema1"
+          },
+          "functionProc": "f1",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": "return $x",
+          "minArgs": 1,
+          "maxArgs": -1,
+          "deterministic": true,
+          "innocuous": true
+        },
+        {
+          "type": "register_function",
+          "functionName": "f2",
+          "callbackVars": {
+            "": "trustschema1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "trustschema1"
+          },
+          "functionProc": "f1",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": "return $x",
+          "minArgs": 1,
+          "maxArgs": -1,
+          "deterministic": true
+        },
+        {
+          "type": "register_function",
+          "functionName": "f3",
+          "callbackVars": {
+            "": "trustschema1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "trustschema1"
+          },
+          "functionProc": "f1",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": "return $x",
+          "minArgs": 1,
+          "maxArgs": -1,
+          "deterministic": true,
+          "directOnly": true
+        }
+      ]
+    },
+    {
+      "name": "trustschema1-2.100",
       "steps": [
         {
           "type": "query",
@@ -300,27 +451,27 @@
       ]
     },
     {
-      "name": "2.110",
+      "name": "trustschema1-2.110",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "PRAGMA trusted_schema=ON;\n  SELECT * FROM v1a;",
           "expect": "1 {unsafe use of f3()}"
         }
       ]
     },
     {
-      "name": "2.111",
+      "name": "trustschema1-2.111",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "PRAGMA trusted_schema=OFF;\n  SELECT * FROM v1a;",
           "expect": "1 {unsafe use of f3()}"
         }
       ]
     },
     {
-      "name": "2.120",
+      "name": "trustschema1-2.120",
       "steps": [
         {
           "type": "query",
@@ -330,7 +481,7 @@
       ]
     },
     {
-      "name": "2.130",
+      "name": "trustschema1-2.130",
       "steps": [
         {
           "type": "query",
@@ -340,27 +491,27 @@
       ]
     },
     {
-      "name": "2.140",
+      "name": "trustschema1-2.140",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "PRAGMA trusted_schema=ON;\n  SELECT * FROM v1b;",
           "expect": "0 {5 125 -11}"
         }
       ]
     },
     {
-      "name": "2.141",
+      "name": "trustschema1-2.141",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "PRAGMA trusted_schema=OFF;\n  SELECT * FROM v1b;",
           "expect": "1 {unsafe use of f2()}"
         }
       ]
     },
     {
-      "name": "2.150",
+      "name": "trustschema1-2.150",
       "steps": [
         {
           "type": "query",
@@ -370,7 +521,7 @@
       ]
     },
     {
-      "name": "3.100",
+      "name": "trustschema1-3.100",
       "steps": [
         {
           "type": "exec",
@@ -379,17 +530,17 @@
       ]
     },
     {
-      "name": "3.110",
+      "name": "trustschema1-3.110",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1 VALUES(7,6,5);",
           "expect": "1 {unsafe use of f3()}"
         }
       ]
     },
     {
-      "name": "3.111",
+      "name": "trustschema1-3.111",
       "steps": [
         {
           "type": "query",
@@ -398,7 +549,7 @@
       ]
     },
     {
-      "name": "3.120",
+      "name": "trustschema1-3.120",
       "steps": [
         {
           "type": "query",
@@ -408,17 +559,17 @@
       ]
     },
     {
-      "name": "3.130",
+      "name": "trustschema1-3.130",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n  DELETE FROM t2;\n  PRAGMA trusted_schema=OFF;\n  INSERT INTO t1 VALUES(7,6,5);",
           "expect": "1 {unsafe use of f2()}"
         }
       ]
     },
     {
-      "name": "3.131",
+      "name": "trustschema1-3.131",
       "steps": [
         {
           "type": "query",
@@ -427,23 +578,22 @@
       ]
     },
     {
-      "name": "4.2",
+      "name": "trustschema1-4.1",
       "steps": [
         {
           "type": "query",
-          "sql": "PRAGMA trusted_schema=ON;\n  SELECT * FROM test41;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a, b AS (f1(a+1)), c AS (f2(a+2)));\n    INSERT INTO t1 VALUES(100),(200);"
+          "sql": "PRAGMA trusted_schema=OFF;\n  CREATE VIEW test41(x) AS SELECT json_extract('{\"a\":123}','$.a');\n  SELECT * FROM test41;",
+          "expect": "123"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "trustschema1-4.2",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "query",
+          "sql": "PRAGMA trusted_schema=ON;\n  SELECT * FROM test41;",
+          "expect": "123"
         }
       ]
     }

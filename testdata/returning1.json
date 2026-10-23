@@ -425,6 +425,36 @@
       ]
     },
     {
+      "name": "returning1-10.3a",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1(a, b) VALUES(1234, 5678) RETURNING rowid;",
+          "expect": "0 -1"
+        }
+      ]
+    },
+    {
+      "name": "returning1-10.3b",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE t1 SET a='z' WHERE b='y' RETURNING rowid;",
+          "expect": "0 {{} {} {}}"
+        }
+      ]
+    },
+    {
+      "name": "returning1-10.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM log;",
+          "expect": "\n    insert -1 1234 5678 update {} z y update {} z y update {} z y\n  "
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": null
     },
@@ -630,6 +660,16 @@
       "steps": null
     },
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "internal_functions",
+          "sql": "enable",
+          "internalFunctions": true
+        }
+      ]
+    },
+    {
       "name": "returning1-15.0",
       "steps": [
         {
@@ -786,6 +826,15 @@
       "steps": null
     },
     {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "N"
+        }
+      ]
+    },
+    {
       "name": "returning1-20.1",
       "steps": [
         {
@@ -909,6 +958,23 @@
       ]
     },
     {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
       "name": "returning1-24.1",
       "steps": [
         {
@@ -923,7 +989,17 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t2(y);\n    INSERT INTO t2 VALUES('y');"
+          "sql": "CREATE TABLE t2(y);\n    INSERT INTO t2 VALUES('y');",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     },

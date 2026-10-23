@@ -1,6 +1,7 @@
 {
   "file": "upsert3.test",
   "name": "upsert3",
+  "ordered": true,
   "tests": [
     {
       "name": "upsert3-100",
@@ -15,7 +16,7 @@
       "name": "upsert3-110",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1 VALUES(0,'abcdefghij')\n     ON CONFLICT(k) DO NOTHING;",
           "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
         }
@@ -25,7 +26,7 @@
       "name": "upsert3-120",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1 VALUES(0,'abcdefghij')\n     ON CONFLICT(v) DO NOTHING;",
           "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
         }
@@ -66,7 +67,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "INSERT INTO excluded AS base(a,b,c) VALUES(1,2,8),(1,2,3)\n    ON CONFLICT(b,a) DO UPDATE SET c=excluded.c+1 WHERE base.c<excluded.c;\n  SELECT *, 'x' FROM excluded ORDER BY a;",
+          "sql": "INSERT INTO excluded AS base(a,b,c) VALUES(1,2,8),(1,2,3)\n    ON CONFLICT(b,a) DO UPDATE SET c=excluded.c+1 WHERE base.c\u003cexcluded.c;\n  SELECT *, 'x' FROM excluded ORDER BY a;",
           "expect": "1 2 9 x 3 4 1 x 5 6 0 x"
         }
       ]

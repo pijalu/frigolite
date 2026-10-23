@@ -1,40 +1,128 @@
 {
   "file": "ioerr4.test",
   "name": "ioerr4",
+  "ordered": true,
   "tests": [
     {
-      "name": "setup_0",
+      "name": "ioerr4-1.1",
       "steps": [
+        {
+          "type": "close_db",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "ioerr4-1.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum=INCREMENTAL;\n    CREATE TABLE a(i INTEGER, b BLOB);"
         },
         {
-          "type": "exec",
-          "sql": "PRAGMA auto_vacuum;"
-        },
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master",
+          "expect": "a",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "ioerr4-1.3",
+      "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO a VALUES(1, zeroblob(2000));\n    INSERT INTO a VALUES(2, zeroblob(2000));\n    INSERT INTO a SELECT i+2, zeroblob(2000) FROM a;\n    INSERT INTO a SELECT i+4, zeroblob(2000) FROM a;\n    INSERT INTO a SELECT i+8, zeroblob(2000) FROM a;\n    INSERT INTO a SELECT i+16, zeroblob(2000) FROM a;\n    SELECT count(*) FROM a;"
-        },
+          "sql": "PRAGMA auto_vacuum;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "ioerr4-1.4",
+      "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA freelist_count"
-        },
+          "sql": "INSERT INTO a VALUES(1, zeroblob(2000));\n    INSERT INTO a VALUES(2, zeroblob(2000));\n    INSERT INTO a SELECT i+2, zeroblob(2000) FROM a;\n    INSERT INTO a SELECT i+4, zeroblob(2000) FROM a;\n    INSERT INTO a SELECT i+8, zeroblob(2000) FROM a;\n    INSERT INTO a SELECT i+16, zeroblob(2000) FROM a;\n    SELECT count(*) FROM a;",
+          "expect": "32"
+        }
+      ]
+    },
+    {
+      "name": "ioerr4-1.5",
+      "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM a;\n    PRAGMA freelist_count;"
-        },
+          "sql": "PRAGMA freelist_count",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "ioerr4-1.6",
+      "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA auto_vacuum=INCREMENTAL"
+          "sql": "DELETE FROM a;\n    PRAGMA freelist_count;",
+          "expect": "64"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
         },
         {
-          "type": "exec",
-          "sql": "PRAGMA incremental_vacuum(5)"
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "test.db-bu"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-bu"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

@@ -150,9 +150,6 @@ func (e *DMLExecutor) applyTriggeredUpdateRow(tree *btree.BTree, tableName strin
 			return false, &Result{Error: e.uniqueConflictError(tableName, colDefs, colIndex, aVals, ch.values, aRowID, ch.rowID, uniqueCols, idxColsList)}
 		}
 	}
-	if res := e.enforceUpdateFKActions(tableEntry, colDefs, ch); res != nil {
-		return false, res
-	}
 	// Write the row: delete the old cell and insert the new record. SQLite
 	// computes the NEW row values from the SET expressions BEFORE firing
 	// BEFORE triggers, then writes only the SET columns after the triggers
@@ -166,6 +163,9 @@ func (e *DMLExecutor) applyTriggeredUpdateRow(tree *btree.BTree, tableName strin
 		return false, &Result{Error: err}
 	}
 	if res := e.writeUpdateCell(tree, tableName, rootPage, ch, updateWriteRowID(ch), finalValues, tableEntry, colDefs); res.Error != nil {
+		return false, res
+	}
+	if res := e.enforceUpdateFKActions(tableEntry, colDefs, ch); res != nil {
 		return false, res
 	}
 	return true, nil
@@ -642,7 +642,7 @@ func readCurrentRowValues(cursor *btree.Cursor, rowID int64) ([]interface{}, boo
 // from the change; columns not in the SET clause keep the post-trigger
 // (possibly trigger-modified) values.
 func (e *DMLExecutor) overlaySetColumns(current []interface{}, colDefs []sql.ColumnDef, ch updateChange) []interface{} {
-	merged := make([]interface{}, len(current))
+	merged := make([]interface{}, len(colDefs))
 	copy(merged, current)
 	for i, cd := range colDefs {
 		for _, setCol := range e.updateSetColumns {

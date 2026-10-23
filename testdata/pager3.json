@@ -1,0 +1,65 @@
+{
+  "file": "pager3.test",
+  "name": "pager3",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "pager3-1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = DELETE",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "pager3-1.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b)"
+        }
+      ]
+    },
+    {
+      "name": "pager3-1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA locking_mode=EXCLUSIVE",
+          "expect": "exclusive"
+        }
+      ]
+    },
+    {
+      "name": "pager3-1.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 2)"
+        }
+      ]
+    },
+    {
+      "name": "pager3-1.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA locking_mode=NORMAL",
+          "expect": "normal"
+        }
+      ]
+    },
+    {
+      "name": "pager3-1.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2"
+        }
+      ]
+    }
+  ]
+}

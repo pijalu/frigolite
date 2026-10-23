@@ -1,9 +1,10 @@
 {
   "file": "backup4.test",
   "name": "backup4",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "backup4-1.0",
       "steps": [
         {
           "type": "query",
@@ -13,7 +14,31 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "backup4-1.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": ":memory:",
+          "database": "db1"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES('one', 'two');",
+          "database": "db1"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db1"
+        }
+      ]
+    },
+    {
+      "name": "backup4-1.2",
       "steps": [
         {
           "type": "query",
@@ -23,7 +48,42 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "backup4-2.1",
       "steps": [
         {
           "type": "exec",
@@ -32,11 +92,76 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "backup4-2.3",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db2",
+          "database": "db1"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1024",
+          "database": "db1"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "backup4-3.1",
       "steps": [
         {
           "type": "exec",
           "sql": "PRAGMA page_size = 4096;\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);"
+        }
+      ]
+    },
+    {
+      "name": "backup4-3.3",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db2",
+          "database": "db1"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1024",
+          "database": "db1"
         }
       ]
     }

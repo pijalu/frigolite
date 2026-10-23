@@ -1,49 +1,98 @@
 package exec
 
 import (
+	"strings"
+
 	"github.com/pijalu/frigolite/internal/sql"
 )
 
-// statementFromTermCounter accumulates the FROM-term count of one statement
-// (SQLite selects the read-statement limit's unit).
+// statementFromTermCounter accumulates FROM-term count across CTE expansions.
 type statementFromTermCounter struct {
-	count int
+	count  int
+	active map[*sql.CTEDef]bool
 }
 
-// countSelect counts one SELECT's FROM terms and recurses into CTEs, FROM
-// and JOIN subqueries, expression subqueries, and UNION chains.
+type fromTermCTEScope struct {
+	parent *fromTermCTEScope
+	defs   map[string]*fromTermCTEDef
+}
+
+type fromTermCTEDef struct {
+	ast   *sql.CTEDef
+	scope *fromTermCTEScope
+}
+
+// countSelect counts a SELECT's FROM terms, expanding referenced CTE bodies as SQLite does.
 func (c *statementFromTermCounter) countSelect(s *sql.SelectStmt) {
-	if s == nil {
+	c.countSelectScoped(s, nil)
+}
+
+func (c *statementFromTermCounter) countSelectScoped(s *sql.SelectStmt, parent *fromTermCTEScope) {
+	if s == nil || c.count >= 200 {
 		return
+	}
+	scope := &fromTermCTEScope{parent: parent, defs: make(map[string]*fromTermCTEDef, len(s.CTEs))}
+	for i := range s.CTEs {
+		def := &s.CTEs[i]
+		scope.defs[strings.ToLower(def.Name)] = &fromTermCTEDef{ast: def, scope: scope}
 	}
 	if s.From.Name != "" || s.From.Subquery != nil {
 		c.count++
+		c.countCTEReference(s.From, scope)
 	}
 	c.count += len(s.Joins)
-	for _, cte := range s.CTEs {
-		c.countSelect(cte.Select)
+	for i := range s.Joins {
+		c.countCTEReference(s.Joins[i].Table, scope)
 	}
 	if s.From.Subquery != nil {
-		c.countSelect(s.From.Subquery)
+		c.countSelectScoped(s.From.Subquery, scope)
 	}
 	for i := range s.Joins {
 		if s.Joins[i].Table.Subquery != nil {
-			c.countSelect(s.Joins[i].Table.Subquery)
+			c.countSelectScoped(s.Joins[i].Table.Subquery, scope)
 		}
 	}
+	countExpr := func(expr sql.Expr) {
+		countSelectExprSubqueries(expr, func(child *sql.SelectStmt) {
+			c.countSelectScoped(child, scope)
+		})
+	}
 	for _, col := range s.Columns {
-		countSelectExprSubqueries(col.Expr, c.countSelect)
+		countExpr(col.Expr)
 	}
-	countSelectExprSubqueries(s.Where, c.countSelect)
-	for _, g := range s.GroupBy {
-		countSelectExprSubqueries(g, c.countSelect)
+	countExpr(s.Where)
+	for _, group := range s.GroupBy {
+		countExpr(group)
 	}
-	countSelectExprSubqueries(s.Having, c.countSelect)
-	for _, ob := range s.OrderBy {
-		countSelectExprSubqueries(ob.Expr, c.countSelect)
+	countExpr(s.Having)
+	for _, order := range s.OrderBy {
+		countExpr(order.Expr)
 	}
 	if s.Union != nil {
-		c.countSelect(s.Union)
+		c.countSelectScoped(s.Union, scope)
+	}
+}
+
+func (c *statementFromTermCounter) countCTEReference(ref sql.TableRef, scope *fromTermCTEScope) {
+	if ref.Name == "" || ref.IsTabFunc {
+		return
+	}
+	name := strings.ToLower(ref.Name)
+	for current := scope; current != nil; current = current.parent {
+		def := current.defs[name]
+		if def == nil {
+			continue
+		}
+		if c.active == nil {
+			c.active = make(map[*sql.CTEDef]bool)
+		}
+		if c.active[def.ast] {
+			return
+		}
+		c.active[def.ast] = true
+		c.countSelectScoped(def.ast.Select, def.scope)
+		delete(c.active, def.ast)
+		return
 	}
 }
 

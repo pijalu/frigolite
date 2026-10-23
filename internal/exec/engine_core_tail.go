@@ -111,6 +111,11 @@ func duplicateCTENameExec(ctes []sql.CTEDef) string {
 // change (the same contract as the engine's other fingerprint memos:
 // preAff*, wrEntry*, echoSource*).
 func (e *Engine) execPreflight(stmt sql.Stmt) *Result {
+	if e.settings.defensive {
+		if res := e.defensiveShadowGuard(stmt); res != nil {
+			return res
+		}
+	}
 	if e.triggers.Depth() != 0 {
 		return nil
 	}
@@ -665,50 +670,50 @@ func (e *Engine) execFlushAutocommit(stmt sql.Stmt, res *Result, isDML bool) *Re
 	if res := e.autocommitCommitHook(stmt, res, isDML); res != nil {
 		return res
 	}
-		// PRAGMA count_changes: a DML statement returns a single row with the
-		// changed-row count (SQLite's legacy behavior when the pragma is on). For
-		// INSERT ... ON CONFLICT, count_changes counts only rows actually written
-		// as new inserts (upsert DO UPDATE / DO NOTHING rows are excluded).
-		e.applyCountChanges(res, isDML)
-		// One dirty-scan pass over the attach list feeds BOTH the change-counter
-		// bump and the auto-vacuum drain: each previously walked the list and
-		// re-took the pager's dirty lock separately — a per-statement cost every
-		// read-only statement (the point-op floor) paid for nothing. The bump
-		// precedes the drain exactly as before: the drain's freed pages must not
-		// inherit the bump (the bump stamps the PRE-drain dirty set).
-		dirty := e.dirtyDatabases(e.flushDirtyScratch[:0])
-		// Keep the grown backing array: the scratch is reused by the next
-		// autocommit statement, so its cache line stays warm and no statement
-		// pays a fresh allocation for the attach walk (dirtyDatabases appends
-		// at most one entry per database).
-		e.flushDirtyScratch = dirty
-		if len(dirty) > 0 {
-			// Autocommit statement: bump the change counter of every database
-			// that was written so other connections observe the change.
-			for _, dbCtx := range dirty {
-				e.updateFileChangeCounter(dbCtx)
-			}
-			// Auto-vacuum on commit (P8.INCRVACUUM phase 4, btree.c autoVacuumCommit
-			// ~line 4174): for FULL mode, drain the on-disk freelist BEFORE flushing
-			// the pager, so the pager flush writes the already-shrunken file. Without
-			// this, autocommit statements (which don't go through execCommit) leave
-			// the freelist to grow without ever shrinking the file. This block is
-			// only enabled for FULL mode (mode==1) and the pager's AutoVacuum()
-			// flag; INCREMENTAL mode is opt-in via PRAGMA incremental_vacuum and
-			// skips this path.
-			//
-			// The drain fires only when the statement actually wrote pages:
-			// btree.c autoVacuumCommit runs from sqlite3BtreeCommitPhaseOne, which
-			// a read-only transaction never enters. The gate re-walks the attach
-			// list from POST-BUMP state: the bump itself dirties a header page
-			// (updateFileChangeCounter), so a database clean before the bump may
-			// still owe the drain (the incr-vacuum oracle sequence pins this).
-			// Read-only statements (nothing dirty) skip the walk entirely — the
-			// point-op floor's dominant shape.
-			if err := e.autovacuumDrainIfDirty(); err != nil {
-				return &Result{Error: err}
-			}
+	// PRAGMA count_changes: a DML statement returns a single row with the
+	// changed-row count (SQLite's legacy behavior when the pragma is on). For
+	// INSERT ... ON CONFLICT, count_changes counts only rows actually written
+	// as new inserts (upsert DO UPDATE / DO NOTHING rows are excluded).
+	e.applyCountChanges(res, isDML)
+	// One dirty-scan pass over the attach list feeds BOTH the change-counter
+	// bump and the auto-vacuum drain: each previously walked the list and
+	// re-took the pager's dirty lock separately — a per-statement cost every
+	// read-only statement (the point-op floor) paid for nothing. The bump
+	// precedes the drain exactly as before: the drain's freed pages must not
+	// inherit the bump (the bump stamps the PRE-drain dirty set).
+	dirty := e.dirtyDatabases(e.flushDirtyScratch[:0])
+	// Keep the grown backing array: the scratch is reused by the next
+	// autocommit statement, so its cache line stays warm and no statement
+	// pays a fresh allocation for the attach walk (dirtyDatabases appends
+	// at most one entry per database).
+	e.flushDirtyScratch = dirty
+	if len(dirty) > 0 {
+		// Autocommit statement: bump the change counter of every database
+		// that was written so other connections observe the change.
+		for _, dbCtx := range dirty {
+			e.updateFileChangeCounter(dbCtx)
 		}
+		// Auto-vacuum on commit (P8.INCRVACUUM phase 4, btree.c autoVacuumCommit
+		// ~line 4174): for FULL mode, drain the on-disk freelist BEFORE flushing
+		// the pager, so the pager flush writes the already-shrunken file. Without
+		// this, autocommit statements (which don't go through execCommit) leave
+		// the freelist to grow without ever shrinking the file. This block is
+		// only enabled for FULL mode (mode==1) and the pager's AutoVacuum()
+		// flag; INCREMENTAL mode is opt-in via PRAGMA incremental_vacuum and
+		// skips this path.
+		//
+		// The drain fires only when the statement actually wrote pages:
+		// btree.c autoVacuumCommit runs from sqlite3BtreeCommitPhaseOne, which
+		// a read-only transaction never enters. The gate re-walks the attach
+		// list from POST-BUMP state: the bump itself dirties a header page
+		// (updateFileChangeCounter), so a database clean before the bump may
+		// still owe the drain (the incr-vacuum oracle sequence pins this).
+		// Read-only statements (nothing dirty) skip the walk entirely — the
+		// point-op floor's dominant shape.
+		if err := e.autovacuumDrainIfDirty(); err != nil {
+			return &Result{Error: err}
+		}
+	}
 	// Flush attached database pagers so a later connection on the attached
 	// file sees the writes immediately. The MAIN pager is flushed only for
 	// DDL (a schema change another connection may observe); per-DML main

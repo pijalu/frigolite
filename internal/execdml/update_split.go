@@ -790,8 +790,10 @@ func (e *DMLExecutor) fireUpdateAfterTriggers(s *sql.UpdateStmt, tableEntry *sch
 // sqlite_schema (PRAGMA writable_schema=ON).
 func (e *DMLExecutor) invalidateSchemaIfNeeded(tableName string) {
 	if execquery.IsSchemaTable(tableName) {
+		// writable_schema edits update sqlite_schema rows but do not replace
+		// the connection's parsed table definitions. Keep column/constraint
+		// caches until a real DDL or schema reload invalidates them.
 		e.ctx.Schema().InvalidateCache()
-		e.ctx.InvalidateTableCaches()
 	}
 }
 
@@ -800,7 +802,7 @@ func (e *DMLExecutor) invalidateSchemaIfNeeded(tableName string) {
 func (e *DMLExecutor) finishUpdate(s *sql.UpdateStmt, colDefs []sql.ColumnDef, returningRows [][]interface{}, result *Result) *Result {
 	if s.HasReturning {
 		columns := e.ctx.BuildColumnNames([]sql.SelectColumn{s.Returning}, colDefs, nil)
-		return &Result{Columns: columns, Rows: returningRows}
+		return &Result{Columns: columns, Rows: returningRows, Changes: int64(len(returningRows))}
 	}
 	return result
 }

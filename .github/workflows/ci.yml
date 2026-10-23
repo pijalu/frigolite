@@ -6,6 +6,7 @@ on:
     tags: ['v*']
   pull_request:
     branches: [main, master]
+  workflow_dispatch:
 
 jobs:
   quality-and-test:
@@ -69,6 +70,33 @@ jobs:
         if [ -z "$cov" ]; then echo "FAIL: no coverage data"; exit 1; fi
         if awk "BEGIN {exit !($cov < 60)}"; then echo "FAIL: coverage $cov% < 60%"; exit 1; fi
         echo "Coverage: $cov%"
+
+  profile-full-suite:
+    name: Profile Full Go Test Suite
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+        cache: true
+
+    - name: Run and summarize full suite
+      run: tools/profile-go-test.sh artifacts/go-test-profile.jsonl
+
+    - name: Upload full-suite test events
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: go-test-profile-${{ github.run_id }}
+        path: artifacts/go-test-profile.jsonl
+        if-no-files-found: warn
+        retention-days: 14
 
   build-cli:
     name: Build CLI Binaries

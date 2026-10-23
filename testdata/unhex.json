@@ -1,9 +1,70 @@
 {
   "file": "unhex.test",
   "name": "unhex",
+  "ordered": true,
   "tests": [
     {
-      "name": "2.0",
+      "name": "unhex-1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex( unhex( 0000 ) );",
+          "expect": "0000"
+        }
+      ]
+    },
+    {
+      "name": "unhex-1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex( unhex( lower( 0000 ) ) );",
+          "expect": "0000"
+        }
+      ]
+    },
+    {
+      "name": "unhex-1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex( unhex( 'FFFF' ) );",
+          "expect": "FFFF"
+        }
+      ]
+    },
+    {
+      "name": "unhex-1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex( unhex( lower( 'FFFF' ) ) );",
+          "expect": "FFFF"
+        }
+      ]
+    },
+    {
+      "name": "unhex-1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex( unhex( '0123456789ABCDEF' ) );",
+          "expect": "0123456789ABCDEF"
+        }
+      ]
+    },
+    {
+      "name": "unhex-1.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex( unhex( lower( '0123456789ABCDEF' ) ) );",
+          "expect": "0123456789ABCDEF"
+        }
+      ]
+    },
+    {
+      "name": "unhex-2.0",
       "steps": [
         {
           "type": "query",
@@ -13,27 +74,137 @@
       ]
     },
     {
-      "name": "3.0",
+      "name": "unhex-2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
+          "sql": "SELECT unhex( 'ABC' ) IS NULL;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "unhex-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT unhex( 'hello' ) IS NULL;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "unhex-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT unhex( '123456x7' ) IS NULL;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "unhex-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT unhex( '0xff' ) IS NULL;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "unhex-3.0",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "SELECT unhex();",
           "expect": "1 {wrong number of arguments to function unhex()}"
         }
       ]
     },
     {
-      "name": "3.1",
+      "name": "unhex-3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT unhex('ABCD', '1234', '');",
           "expect": "1 {wrong number of arguments to function unhex()}"
         }
       ]
     },
     {
-      "name": "6.0",
+      "name": "unhex-5.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex( unhex('FFFF  ABCD', ' -') );",
+          "expect": "FFFFABCD"
+        }
+      ]
+    },
+    {
+      "name": "unhex-5.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex( unhex('FFFF ABCD', ' -') );",
+          "expect": "FFFFABCD"
+        }
+      ]
+    },
+    {
+      "name": "unhex-5.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex( unhex('FFFFABCD ', ' -') );",
+          "expect": "FFFFABCD"
+        }
+      ]
+    },
+    {
+      "name": "unhex-5.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex( unhex(' FFFFABCD', ' -') );",
+          "expect": "FFFFABCD"
+        }
+      ]
+    },
+    {
+      "name": "unhex-5.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex( unhex('--FFFF AB- -CD- ', ' -') );",
+          "expect": "FFFFABCD"
+        }
+      ]
+    },
+    {
+      "name": "unhex-5.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex( unhex('--', ' -') );",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "unhex-5.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex( unhex(' --', ' -') );",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "unhex-6.0",
       "steps": [
         {
           "type": "query",
@@ -43,7 +214,37 @@
       ]
     },
     {
-      "name": "6.4.1",
+      "name": "unhex-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex( unhex('กABCDข', 'uE01uE02') )",
+          "expect": "ABCD"
+        }
+      ]
+    },
+    {
+      "name": "unhex-6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( unhex('กABCDข', 'uE03uE02') )",
+          "expect": "null"
+        }
+      ]
+    },
+    {
+      "name": "unhex-6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex( unhex('กAB CDuE02uE01', 'uE01 uE02') )",
+          "expect": "ABCD"
+        }
+      ]
+    },
+    {
+      "name": "unhex-6.4.1",
       "steps": [
         {
           "type": "query",
@@ -53,7 +254,7 @@
       ]
     },
     {
-      "name": "6.4.2",
+      "name": "unhex-6.4.2",
       "steps": [
         {
           "type": "query",
@@ -63,7 +264,7 @@
       ]
     },
     {
-      "name": "6.4.3",
+      "name": "unhex-6.4.3",
       "steps": [
         {
           "type": "query",

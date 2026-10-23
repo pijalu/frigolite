@@ -1,0 +1,31 @@
+{
+  "file": "walfault2.test",
+  "name": "walfault2",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "walfault2-1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a, b);\n  PRAGMA journal_mode = wal;\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s LIMIT 30\n  )\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM s;",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "walfault2-2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a, b);\n  PRAGMA journal_mode = wal;\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s LIMIT 30\n  )\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM s;",
+          "expect": "wal"
+        }
+      ]
+    }
+  ]
+}

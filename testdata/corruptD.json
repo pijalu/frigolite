@@ -1,6 +1,7 @@
 {
   "file": "corruptD.test",
   "name": "corruptD",
+  "ordered": true,
   "tests": [
     {
       "name": "corruptD-1.0",
@@ -8,6 +9,211 @@
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 1 * 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2, 2 * 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3, 3 * 3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4, 4 * 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5, 5 * 5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6, 6 * 6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(7, 7 * 7)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(8, 8 * 8)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(9, 9 * 9)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(10, 10 * 10)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(11, 11 * 11)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(12, 12 * 12)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(13, 13 * 13)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(14, 14 * 14)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(15, 15 * 15)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(16, 16 * 16)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(17, 17 * 17)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(18, 18 * 18)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(19, 19 * 19)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(20, 20 * 20)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(21, 21 * 21)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(22, 22 * 22)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(23, 23 * 23)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(24, 24 * 24)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(25, 25 * 25)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(26, 26 * 26)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(27, 27 * 27)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(28, 28 * 28)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(29, 29 * 29)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(30, 30 * 30)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(31, 31 * 31)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(32, 32 * 32)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(33, 33 * 33)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(34, 34 * 34)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(35, 35 * 35)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(36, 36 * 36)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(37, 37 * 37)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(38, 38 * 38)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(39, 39 * 39)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(40, 40 * 40)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(41, 41 * 41)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(42, 42 * 42)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(43, 43 * 43)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(44, 44 * 44)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(45, 45 * 45)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(46, 46 * 46)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(47, 47 * 47)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(48, 48 * 48)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(49, 49 * 49)"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a = 10;\n    DELETE FROM t1 WHERE a = 20;\n    DELETE FROM t1 WHERE a = 30;\n    DELETE FROM t1 WHERE a = 40;"
+        },
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "test.bu"
         }
       ]
     },
@@ -15,7 +221,21 @@
       "name": "corruptD-1.1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileData": "1",
+          "fileTarget": "test.db",
+          "fileOffset": 24
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileData": "FFFF",
+          "fileTarget": "test.db",
+          "fileOffset": 1025
+        },
+        {
+          "type": "catch",
           "sql": "PRAGMA quick_check",
           "expect": "0 {{*** in database main ***\nTree 2 page 2: free space corruption} {wrong # of entries in index i1}}"
         }
@@ -25,17 +245,39 @@
       "name": "corruptD-1.1.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileData": "1",
+          "fileTarget": "test.db",
+          "fileOffset": 24
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileTarget": "test.db",
+          "fileOffset": 1025
+        },
+        {
+          "type": "catch",
           "sql": "SELECT * FROM t1 ORDER BY rowid",
           "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "corruptD-1.2.1",
+      "steps": [
+        {
+          "type": "close_db"
         },
         {
-          "type": "exec",
-          "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);"
+          "type": "copy_file",
+          "sql": "test.bu",
+          "fileTarget": "test.db"
         },
         {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE a = 10;\n    DELETE FROM t1 WHERE a = 20;\n    DELETE FROM t1 WHERE a = 30;\n    DELETE FROM t1 WHERE a = 40;"
+          "type": "reopen_db",
+          "sql": "test.db"
         }
       ]
     }

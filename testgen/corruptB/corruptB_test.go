@@ -231,7 +231,9 @@ func Test_corruptB(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		tclConnRegister("db", db)
-		_res = db.Exec("\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(" + sqlLiteral(v) + ");\n  ")
+		_res = db.Exec("CREATE TABLE t2(a)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("INSERT INTO t2 VALUES($v)")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // do_test "corruptB-3.1.2"

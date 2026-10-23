@@ -22,9 +22,12 @@ func validateFuncArgs(fn *function.Func, f *sql.FuncCall, args []interface{}) er
 		// limit-12.1 "replace()").
 		return fmt.Errorf("wrong number of arguments to function %s()", f.Name)
 	}
-	// src/expr.c sqlite3ExprCodeTarget's likelihood() prepare-time check:
-	// the second argument must be a compile-time constant whose value lies
-	// in [0.0, 1.0] (func3/whereG).
+	return validateLikelihoodArg(f)
+}
+
+// validateLikelihoodArg enforces SQLite's prepare-time likelihood() probability
+// check before its argument expression is evaluated.
+func validateLikelihoodArg(f *sql.FuncCall) error {
 	if strings.EqualFold(f.Name, "LIKELIHOOD") && len(f.Args) == 2 {
 		if v, ok := likelihoodConstProb(f.Args[1]); !ok || v < 0.0 || v > 1.0 {
 			return fmt.Errorf("second argument to likelihood() must be a constant between 0.0 and 1.0")

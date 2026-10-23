@@ -1,0 +1,762 @@
+{
+  "file": "schema6.test",
+  "name": "schema6",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE);\n  INSERT INTO t1(a,b) VALUES(123,'Four score and seven years ago...');"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_size",
+          "variable": "pgsz"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(xyz INTEGER, abc, PRIMARY KEY(xyz), UNIQUE(abc));\n  INSERT INTO t1(xyz,abc) VALUES(123,'Four score and seven years ago...');"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_size",
+          "variable": "pgsz"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(xyz INTEGER, abc, UNIQUE(abc), PRIMARY KEY(xyz));\n  INSERT INTO t1(xyz,abc) VALUES(123,'Four score and seven years ago...');"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_size",
+          "variable": "pgsz"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY ASC, b UNIQUE);\n  INSERT INTO t1(a,b) VALUES(123,'Four score and seven years ago...');"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_size",
+          "variable": "pgsz"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE UNIQUE INDEX t1b ON t1(b);\n  INSERT INTO t1(a,b) VALUES(123,'Four score and seven years ago...');"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_size",
+          "variable": "pgsz"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1(a,b) VALUES(123,'Four score and seven years ago...');\n  CREATE UNIQUE INDEX t1b ON t1(b);"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_size",
+          "variable": "pgsz"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY UNIQUE, b UNIQUE);\n  INSERT INTO t1(a,b) VALUES(123,'Four score and seven years ago...');"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_size",
+          "variable": "pgsz"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, b UNIQUE);\n  INSERT INTO t1(a,b) VALUES(123,'Four score and seven years ago...');"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_size",
+          "variable": "pgsz"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, b UNIQUE, UNIQUE(a));\n  INSERT INTO t1(a,b) VALUES(123,'Four score and seven years ago...');"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_size",
+          "variable": "pgsz"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, b);\n  CREATE UNIQUE INDEX t1b ON t1(b);\n  INSERT INTO t1(a,b) VALUES(123,'Four score and seven years ago...');"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_size",
+          "variable": "pgsz"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, b);\n  INSERT INTO t1(a,b) VALUES(123,'Four score and seven years ago...');\n  CREATE UNIQUE INDEX t1b ON t1(b);"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_size",
+          "variable": "pgsz"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_12",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE) WITHOUT ROWID;\n  INSERT INTO t1(a,b) VALUES(123,'Four score and seven years ago...');"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_size",
+          "variable": "pgsz"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_13",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(xyz INTEGER, abc, PRIMARY KEY(xyz), UNIQUE(abc))WITHOUT ROWID;\n  INSERT INTO t1(xyz,abc) VALUES(123,'Four score and seven years ago...');"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_size",
+          "variable": "pgsz"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_14",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(xyz INTEGER, abc, UNIQUE(abc), PRIMARY KEY(xyz))WITHOUT ROWID;\n  INSERT INTO t1(xyz,abc) VALUES(123,'Four score and seven years ago...');"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_size",
+          "variable": "pgsz"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_15",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY ASC, b UNIQUE) WITHOUT ROWID;\n  INSERT INTO t1(a,b) VALUES(123,'Four score and seven years ago...');"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_size",
+          "variable": "pgsz"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_16",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY UNIQUE, b UNIQUE) WITHOUT ROWID;\n  INSERT INTO t1(a,b) VALUES(123,'Four score and seven years ago...');"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_size",
+          "variable": "pgsz"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_17",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, b UNIQUE) WITHOUT ROWID;\n  INSERT INTO t1(a,b) VALUES(123,'Four score and seven years ago...');"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_size",
+          "variable": "pgsz"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_18",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, b UNIQUE, UNIQUE(a))\n       WITHOUT ROWID;\n  INSERT INTO t1(a,b) VALUES(123,'Four score and seven years ago...');"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_size",
+          "variable": "pgsz"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_19",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t1b ON t1(b);\n  INSERT INTO t1(a,b) VALUES(123,'Four score and seven years ago...');"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_size",
+          "variable": "pgsz"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_20",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b) WITHOUT ROWID;\n  INSERT INTO t1(a,b) VALUES(123,'Four score and seven years ago...');\n  CREATE UNIQUE INDEX t1b ON t1(b);"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_size",
+          "variable": "pgsz"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_21",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE);\n  INSERT INTO t1(a,b) VALUES(123,'Four score and seven years ago...');"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_size",
+          "variable": "pgsz"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_22",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY UNIQUE, b UNIQUE);\n  INSERT INTO t1(a,b) VALUES(123,'Four score and seven years ago...');"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_size",
+          "variable": "pgsz"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_23",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE) WITHOUT ROWID;\n  INSERT INTO t1(a,b) VALUES(123,'Four score and seven years ago...');"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_size",
+          "variable": "pgsz"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    }
+  ]
+}

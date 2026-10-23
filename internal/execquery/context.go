@@ -23,8 +23,12 @@ import (
 // The planning fields (OrderBy..RefAllColumns) feed prepare-time xBestIndex
 // planning via BuildVtabIndexInfo (where.c allocateIndexInfo parity).
 type VtabScanOptions struct {
-	Where   sql.Expr
-	MaxRows int64 // -1 = unlimited
+	Where         sql.Expr
+	JoinOn        sql.Expr
+	TableName     string
+	OuterRow      RowMap
+	JoinPlanAware *bool // materializer reports whether instance implements PlanBestIndexer
+	MaxRows       int64 // -1 = unlimited
 	// Residual, when non-nil, is filled in by the materializer with the
 	// WHERE clause that remains after constraints the virtual table consumed
 	// are omitted (series.c argvConsumed/omit parity).
@@ -67,6 +71,13 @@ type VtabScanOptions struct {
 // SelectEngine depends on this interface rather than on the concrete engine
 // type (Dependency Inversion).
 type SelectContext interface {
+	// MarkStatsUsed records planner dependence on non-unique statistics for a table.
+	MarkStatsUsed(table string)
+	// RecordFullScanSteps / RecordSortOp feed SQLite's statement-status
+	// counters (SQLITE_STMTSTATUS_FULLSCAN_STEP / SQLITE_STMTSTATUS_SORT),
+	// which the testfixture reads through `db status step` / `db status sort`.
+	RecordFullScanSteps(n int)
+	RecordSortOp()
 	// Engine resources.
 	Functions() *function.Registry
 	Schema() *schema.Manager
@@ -74,6 +85,7 @@ type SelectContext interface {
 	MainDB() *DatabaseContext
 	VTables() *vtab.Registry
 	FullColumnNames() bool
+	ShortColumnNames() bool
 	FTSTables() map[string]*fts.FTS3Table
 	FTS5Tables() map[string]*fts5.Table
 	// SetFTS5Aux / ClearFTS5Aux drive the fts5 auxiliary-function context of
@@ -249,7 +261,8 @@ type SelectContext interface {
 // query planning) and owns the query-state fields that the Engine previously
 // carried on itself.
 type SelectEngine struct {
-	ctx SelectContext
+	ctx         SelectContext
+	rowCallback func([]interface{}) (bool, error)
 
 	// Sub-executors composing this engine (SOLID-03..08). They share this
 	// SelectEngine so inter-concern calls resolve through promoted methods.
@@ -358,8 +371,8 @@ type SelectEngine struct {
 	// name memo's entry cap. The resolved slot list is read-only after build
 	// and shared across statements — the per-statement output row copies the
 	// values out.
-	bareRefPlanFP   uint64
-	bareRefPlanMemo map[bareRefPlanKey][]int
+	bareRefPlanFP     uint64
+	bareRefPlanMemo   map[bareRefPlanKey][]int
 	cteScopes         [][]sql.CTEDef           // CTE scopes from enclosing statements (innermost last)
 	resolvingCTEs     map[*sql.SelectStmt]bool // CTE bodies currently being resolved (circular reference detection); keyed by the CTE body AST so a same-named inner WITH shadow is a different CTE
 	currentScanTable  string                   // table name being scanned (for qualified column resolution)
@@ -390,8 +403,9 @@ type SelectEngine struct {
 	// two is non-nil at a time, and AggRowMaps() materializes the maps from
 	// aggRows on first read (a positional group's rows only pay for maps
 	// when a nested aggregate actually resolves through them).
-	aggRowMaps []RowMap
-	aggRows    []Row
+	aggRowMaps  []RowMap
+	aggRows     []Row
+	aggCallRows map[*sql.FuncCall][]RowMap
 	// aggPendingErr captures an aggregate Step failure (e.g. zipfile's
 	// "out of memory") raised while the aggregate was evaluated inside a
 	// wrapping scalar expression, whose plumbing may not thread the error.
@@ -501,16 +515,26 @@ type SelectEngine struct {
 	subqSeq int
 }
 
-// AggRowMaps returns the aggregate row maps for aggregate function
-// evaluation (e.g. round(avg(x),2) over the aggregate row set). When the
-// aggregate row set is held positionally (aggRows), the maps materialize
-// on this first read and are cached.
+// AggRowMaps returns aggregate row maps for the current aggregate context.
+// Positional rows are materialized and cached on first read.
 func (e *SelectEngine) AggRowMaps() []RowMap {
 	if e.aggRowMaps != nil || e.aggRows == nil {
 		return e.aggRowMaps
 	}
 	e.aggRowMaps = rowsToRowMaps(e.aggRows)
 	return e.aggRowMaps
+}
+
+// AggRowMapsForCall returns rows assigned to fn, falling back to current context.
+func (e *SelectEngine) AggRowMapsForCall(fn *sql.FuncCall) []RowMap {
+	if rows, ok := e.aggCallRows[fn]; ok {
+		return rows
+	}
+	return e.AggRowMaps()
+}
+
+func (e *SelectEngine) setAggCallRows(rows map[*sql.FuncCall][]RowMap) {
+	e.aggCallRows = rows
 }
 
 // setAggRowMaps records a map-backed aggregate row set (clearing any
@@ -526,11 +550,11 @@ func (e *SelectEngine) setAggRows(rows []Row) {
 	e.aggRowMaps = nil
 }
 
-// clearAggRowState drops the aggregate row set (both forms). The deferred
-// per-statement teardown calls this.
+// clearAggRowState drops aggregate row state at statement teardown.
 func (e *SelectEngine) clearAggRowState() {
 	e.aggRowMaps = nil
 	e.aggRows = nil
+	e.aggCallRows = nil
 }
 
 // OuterRows returns the outer-row set for correlated aggregate evaluation.
@@ -705,6 +729,12 @@ func (e *SelectEngine) SetResultFrame(frame int) {
 	e.resultFrame = frame
 }
 
+// SetRowCallback installs a result-row callback for one Engine.ExecEach call.
+// The callback is cleared by the caller after statement execution.
+func (e *SelectEngine) SetRowCallback(callback func([]interface{}) (bool, error)) {
+	e.rowCallback = callback
+}
+
 func (e *SelectEngine) ExecSelect(s *sql.SelectStmt) *Result {
 	// View reference counting (select.c Table.nTabRef) accumulates across the
 	// WHOLE statement expansion — including every UNION branch — and resets
@@ -726,6 +756,19 @@ func (e *SelectEngine) ExecSelect(s *sql.SelectStmt) *Result {
 	e.viewRefDepth++
 	defer func() { e.viewRefDepth-- }()
 	res := e.execSelect(s)
+	if e.rowCallback != nil && e.viewRefDepth == 1 && res.Error == nil {
+		callback := e.rowCallback
+		e.rowCallback = nil // nested SQL from callback is a separate execution
+		for _, row := range res.Rows {
+			keepGoing, callbackErr := callback(append([]interface{}(nil), row...))
+			if callbackErr != nil {
+				return &Result{Error: callbackErr}
+			}
+			if !keepGoing {
+				break
+			}
+		}
+	}
 	// The result-width flag (buildColumnNames) must fire on every return
 	// path: finalizeSelectResult is bypassed when the FROM clause itself
 	// produces the result (ExecFrom over a subquery — sqllimits1-17.0).

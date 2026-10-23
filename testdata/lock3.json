@@ -1,13 +1,25 @@
 {
   "file": "lock3.test",
   "name": "lock3",
+  "ordered": true,
   "tests": [
     {
       "name": "lock3-1.1",
       "steps": [
         {
+          "type": "open_named_db",
+          "sql": "./tempdir/t1//t2/./t3//./../..//./../../tempdir/..//test.db//",
+          "database": "db2"
+        },
+        {
           "type": "exec",
           "sql": "CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1",
+          "database": "db2"
         }
       ]
     },
@@ -17,6 +29,20 @@
         {
           "type": "exec",
           "sql": "BEGIN DEFERRED TRANSACTION"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2)",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "END TRANSACTION"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2"
         }
       ]
     },
@@ -26,6 +52,12 @@
         {
           "type": "exec",
           "sql": "BEGIN IMMEDIATE TRANSACTION"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {1 2}",
+          "database": "db2"
         }
       ]
     },
@@ -33,9 +65,10 @@
       "name": "lock3-3.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1 VALUES(3)",
-          "expect": "1 {database is locked}"
+          "expect": "1 {database is locked}",
+          "database": "db2"
         }
       ]
     },
@@ -54,6 +87,12 @@
         {
           "type": "exec",
           "sql": "BEGIN EXCLUSIVE TRANSACTION"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database is locked}",
+          "database": "db2"
         }
       ]
     },
@@ -61,9 +100,10 @@
       "name": "lock3-4.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1 VALUES(3)",
-          "expect": "1 {database is locked}"
+          "expect": "1 {database is locked}",
+          "database": "db2"
         }
       ]
     },
@@ -73,46 +113,15 @@
         {
           "type": "exec",
           "sql": "END TRANSACTION"
-        },
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN DEFERRED TRANSACTION"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(2)"
-        },
-        {
-          "type": "exec",
-          "sql": "END TRANSACTION"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN IMMEDIATE TRANSACTION"
-        },
-        {
-          "type": "exec",
-          "sql": "END TRANSACTION"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN EXCLUSIVE TRANSACTION"
-        },
-        {
-          "type": "exec",
-          "sql": "END TRANSACTION"
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     }

@@ -1,16 +1,134 @@
 {
   "file": "sort2.test",
   "name": "sort2",
+  "ordered": true,
   "tests": [
     {
       "name": "setup_0",
       "steps": [
         {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "sort2-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 5;\n    WITH r(x,y) AS (\n      SELECT 1, randomblob(100)\n      UNION ALL\n      SELECT x+1, randomblob(100) FROM r\n      LIMIT 100000\n    )\n    SELECT count(x), length(y) FROM r GROUP BY (x%5)",
+          "expect": "\n    20000 100 20000 100 20000 100 20000 100 20000 100\n  "
+        }
+      ]
+    },
+    {
+      "name": "sort2-1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a, b);\n    WITH r(x,y) AS (\n      SELECT 1, randomblob(100)\n      UNION ALL\n      SELECT x+1, randomblob(100) FROM r\n      LIMIT 10000\n    ) INSERT INTO t1 SELECT * FROM r;"
+        }
+      ]
+    },
+    {
+      "name": "sort2-1.2.2",
+      "steps": [
+        {
           "type": "exec",
+          "sql": "CREATE UNIQUE INDEX i1 ON t1(b, a);"
+        }
+      ]
+    },
+    {
+      "name": "sort2-1.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE UNIQUE INDEX i2 ON t1(a);"
+        }
+      ]
+    },
+    {
+      "name": "sort2-1.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "PRAGMA threads=7"
         }
       ]
+    },
+    {
+      "name": "sort2-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 5;\n    WITH r(x,y) AS (\n      SELECT 1, randomblob(100)\n      UNION ALL\n      SELECT x+1, randomblob(100) FROM r\n      LIMIT 100000\n    )\n    SELECT count(x), length(y) FROM r GROUP BY (x%5)",
+          "expect": "\n    20000 100 20000 100 20000 100 20000 100 20000 100\n  "
+        }
+      ]
+    },
+    {
+      "name": "sort2-2.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a, b);\n    WITH r(x,y) AS (\n      SELECT 1, randomblob(100)\n      UNION ALL\n      SELECT x+1, randomblob(100) FROM r\n      LIMIT 10000\n    ) INSERT INTO t1 SELECT * FROM r;"
+        }
+      ]
+    },
+    {
+      "name": "sort2-2.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE UNIQUE INDEX i1 ON t1(b, a);"
+        }
+      ]
+    },
+    {
+      "name": "sort2-2.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE UNIQUE INDEX i2 ON t1(a);"
+        }
+      ]
+    },
+    {
+      "name": "sort2-2.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
     }
-  ],
-  "source": "capi"
+  ]
 }

@@ -1,9 +1,10 @@
 {
   "file": "windowC.test",
   "name": "windowC",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "windowC-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,40 +13,678 @@
       ]
     },
     {
-      "name": "2.0",
+      "name": "windowC-1.text.1.1",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA encoding=UTF16le;\n  WITH separator(x) AS (VALUES(',a,'),(',bc,')),\n       value(y) AS (VALUES(1),(x'5585d09013455178cd11ce4a'))\n  SELECT group_concat(y,x) OVER (ORDER BY x ROWS BETWEEN 1 PRECEDING AND 1 PRECEDING)\n  FROM separator, value;"
-        }
-      ]
-    },
-    {
-      "name": "2.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA encoding=UTF16be;\n  WITH separator(x) AS (VALUES(',a,'),(',bc,')),\n       value(y) AS (VALUES(1),(x'5585d09013455178cd11ce4a'))\n  SELECT group_concat(y,x) OVER (ORDER BY x ROWS BETWEEN 1 PRECEDING AND 1 PRECEDING)\n  FROM separator, value;"
-        },
         {
           "type": "exec",
           "sql": "DELETE FROM x1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, 'a')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, 'b')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, 'c')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, 'def')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, 'g')"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.text.1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.text.1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN 2 PRECEDING AND CURRENT ROW ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.text.1.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.blob.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM x1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST ('a' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST ('b' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST ('c' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST ('def' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST ('g' AS blob))"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.blob.1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.blob.1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN 2 PRECEDING AND CURRENT ROW ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.blob.1.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.text.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM x1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, 'abcdefg')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, '')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, '')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, 'abcdefg')"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.text.2.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.text.2.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN 2 PRECEDING AND CURRENT ROW ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.text.2.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.blob.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM x1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST ('abcdefg' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST ('' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST ('' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST ('abcdefg' AS blob))"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.blob.2.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.blob.2.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN 2 PRECEDING AND CURRENT ROW ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.blob.2.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.text.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM x1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, 'a')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, 'bc')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, 'def')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, 'ghij')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, 'klmno')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, 'pqrstu')"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.text.3.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.text.3.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN 2 PRECEDING AND CURRENT ROW ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.text.3.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.blob.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM x1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST ('a' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST ('bc' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST ('def' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST ('ghij' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST ('klmno' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST ('pqrstu' AS blob))"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.blob.3.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.blob.3.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN 2 PRECEDING AND CURRENT ROW ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.blob.3.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.text.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM x1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, 'a')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, 'bc')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, 'def')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, 'ghij')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, 'klmno')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, 'pqrstu')"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.text.4.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.text.4.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN 2 PRECEDING AND CURRENT ROW ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.text.4.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.blob.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM x1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST ('a' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST ('bc' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST ('def' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST ('ghij' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST ('klmno' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST ('pqrstu' AS blob))"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.blob.4.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.blob.4.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN 2 PRECEDING AND CURRENT ROW ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.blob.4.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.text.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM x1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, ',')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, ',')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, ',')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, ',')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, ',')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, ',')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, ',')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, ',')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, ',')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, ',')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, ',')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, ',')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, '.......')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, ',')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, ',')"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.text.5.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.text.5.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN 2 PRECEDING AND CURRENT ROW ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.text.5.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.blob.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM x1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST (',' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST (',' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST (',' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST (',' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST (',' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST (',' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST (',' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST (',' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST (',' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST (',' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST (',' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST (',' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST ('.......' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST (',' AS blob))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(NULL, CAST (',' AS blob))"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.blob.5.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.blob.5.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN 2 PRECEDING AND CURRENT ROW ) AS val FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "windowC-1.blob.5.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat('val', x) OVER ( ORDER BY i ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING ) AS val FROM x1"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "windowC-2.0",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "query",
+          "sql": "PRAGMA encoding=UTF16le;\n  WITH separator(x) AS (VALUES(',a,'),(',bc,')),\n       value(y) AS (VALUES(1),(x'5585d09013455178cd11ce4a'))\n  SELECT group_concat(y,x) OVER (ORDER BY x ROWS BETWEEN 1 PRECEDING AND 1 PRECEDING)\n  FROM separator, value;",
+          "expect": "{} 1 蕕郐䔓硑ᇍ䫎 1"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "windowC-2.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "query",
+          "sql": "PRAGMA encoding=UTF16be;\n  WITH separator(x) AS (VALUES(',a,'),(',bc,')),\n       value(y) AS (VALUES(1),(x'5585d09013455178cd11ce4a'))\n  SELECT group_concat(y,x) OVER (ORDER BY x ROWS BETWEEN 1 PRECEDING AND 1 PRECEDING)\n  FROM separator, value;",
+          "expect": "{} 1 喅킐ፅ典촑칊 1"
         }
       ]
     }

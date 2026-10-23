@@ -1,9 +1,10 @@
 {
   "file": "fts4min.test",
   "name": "fts4min",
+  "ordered": true,
   "tests": [
     {
-      "name": "0.0",
+      "name": "fts4min-0.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,7 @@
       ]
     },
     {
-      "name": "1.0",
+      "name": "fts4min-1.0",
       "steps": [
         {
           "type": "exec",
@@ -21,7 +22,25 @@
       ]
     },
     {
-      "name": "1.2.1",
+      "name": "fts4min-1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT max(rowid) FROM ft"
+        }
+      ]
+    },
+    {
+      "name": "fts4min-1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT min(rowid) FROM ft"
+        }
+      ]
+    },
+    {
+      "name": "fts4min-1.2.1",
       "steps": [
         {
           "type": "query",
@@ -31,7 +50,7 @@
       ]
     },
     {
-      "name": "1.2.2",
+      "name": "fts4min-1.2.2",
       "steps": [
         {
           "type": "query",

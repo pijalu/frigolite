@@ -1,21 +1,51 @@
 {
   "file": "exec.test",
   "name": "exec",
+  "ordered": true,
   "tests": [
     {
       "name": "exec-1.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    SELECT * FROM t1;",
           "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "exec-1.2",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "/* comment */;;; SELECT * FROM t1; /* comment */",
+          "expect": "0 {a b 1 2}"
+        }
+      ]
+    },
+    {
+      "name": "exec-1.3",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
         },
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    SELECT * FROM t1;"
+          "sql": "CREATE TABLE t2(x, y);",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {a b 1 2}"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

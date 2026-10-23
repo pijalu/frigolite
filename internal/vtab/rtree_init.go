@@ -402,6 +402,15 @@ func (v *rtreeVTab[T]) computeNodeSize() {
 // never re-seeds, so shadow-family corruption is not silently healed
 // (rtree8-2.1.5).
 func createShadowDDL[T coordType](v *rtreeVTab[T], fresh bool) error {
+	if fresh {
+		// rtree.c xCreate checks that the shadow-table names are free
+		// BEFORE creating them and reports the first taken name with
+		// `%S` (the quoted identifier): "table \"t1_rowid\" already
+		// exists" (rtree1-1.6.1).
+		if err := v.checkShadowNamesFree(); err != nil {
+			return err
+		}
+	}
 	q := func(s string) string { return strings.ReplaceAll(s, `"`, `""`) }
 	// Schema-qualify the family exactly like rtreeSqlInit's
 	// `CREATE TABLE "%w"."%w_rowid"`: an rtree created in an attached
@@ -425,6 +434,34 @@ func createShadowDDL[T coordType](v *rtreeVTab[T], fresh bool) error {
 	}
 	_, err := v.module.db.ExecSQL(ddl)
 	return err
+}
+
+// checkShadowNamesFree reports the first shadow-table name that is already
+// taken, in rtree.c's order (rowid, node, parent). The message uses the
+// quoted identifier, exactly like rtree.c's `sqlite3ErrorWithMsg(db,
+// SQLITE_ERROR, "table %S already exists", zTab)`.
+func (v *rtreeVTab[T]) checkShadowNamesFree() error {
+	db := v.dbName
+	if db == "" {
+		db = "main"
+	}
+	qual := ""
+	if !strings.EqualFold(db, "main") {
+		qual = dquoteIdent(db) + "."
+	}
+	for _, suffix := range []string{"_rowid", "_node", "_parent"} {
+		name := v.name + suffix
+		rows, err := v.module.db.ExecSQL(
+			fmt.Sprintf("SELECT name FROM %ssqlite_master WHERE name='%s'",
+				qual, strings.ReplaceAll(name, "'", "''")))
+		if err != nil {
+			return err
+		}
+		if len(rows) > 0 {
+			return fmt.Errorf("table %s already exists", dquoteIdent(name))
+		}
+	}
+	return nil
 }
 
 // auxColumnsSQL renders the %_rowid auxiliary column list: one aN column per

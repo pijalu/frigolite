@@ -1,0 +1,127 @@
+{
+  "file": "pagerfault2.test",
+  "name": "pagerfault2",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "a_string",
+          "callbackVars": {
+            "": "1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "a_string_counter": "1",
+            "testdir": ""
+          },
+          "functionProc": "a_string",
+          "functionArgs": [
+            "n"
+          ],
+          "functionBody": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "pagerfault2-1-pre1",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "a_string",
+          "callbackVars": {
+            "": "8466432",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "a_string_counter": "1",
+            "testdir": ""
+          },
+          "functionProc": "a_string",
+          "functionArgs": [
+            "n"
+          ],
+          "functionBody": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = DELETE;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(a_string(401), a_string(402));"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a_string(401), a_string(402) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a_string(401), a_string(402) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a_string(401), a_string(402) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a_string(401), a_string(402) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a_string(401), a_string(402) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a_string(401), a_string(402) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a_string(401), a_string(402) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a_string(401), a_string(402) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a_string(401), a_string(402) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a_string(401), a_string(402) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a_string(401), a_string(402) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a_string(401), a_string(402) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a_string(401), a_string(402) FROM t1",
+          "expect": "8466432"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault2-2-pre1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        }
+      ]
+    }
+  ]
+}

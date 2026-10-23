@@ -391,8 +391,10 @@ var skipTests = map[string]string{
 	// altertab 6.x / 16.x: tcl virtual-table module tests depend on the
 	// test-only register_tcl_module helper (not transpiled); the engine's tcl
 	// module is a NoopModule stub.
-	"altertab-6.0":   "tcl virtual table module (register_tcl_module) not implemented",
-	"altertab-6.1":   "tcl virtual table module (register_tcl_module) not implemented",
+	"altertab-6.0": "tcl virtual table module (register_tcl_module) not implemented",
+	"altertab-6.1": "tcl virtual table module (register_tcl_module) not implemented",
+	// 16.0/10/20 depend on the test-only Tcl virtual-table module; later
+	// 16.x cases exercise the registered FTS3 table directly.
 	"altertab-16.0":  "tcl virtual table module (register_tcl_module) not implemented",
 	"altertab-16.10": "tcl virtual table module (register_tcl_module) not implemented",
 	"altertab-16.20": "tcl virtual table module (register_tcl_module) not implemented",
@@ -424,13 +426,6 @@ var skipTests = map[string]string{
 	// after a view's base-table rename.
 	"altertab-15.4": "INSTEAD OF trigger column rename not re-validated",
 	"altertab-15.5": "INSTEAD OF trigger view rename stored SQL not matched",
-	// altertab 16.x: FTS3 shadow tables (y1_segments) with DEFENSIVE mode.
-	"altertab-16.22": "FTS3 shadow table rename not supported",
-	"altertab-16.23": "FTS3 shadow table rename not supported",
-	"altertab-16.24": "FTS3 shadow table rename not supported",
-	"altertab-16.25": "FTS3 shadow table rename not supported",
-	"altertab-16.30": "FTS3 shadow table rename not supported",
-	"altertab-16.40": "FTS3 shadow table rename not supported",
 	// altertab 19.100: rename inside a parenthesized FROM (t1, (t1 AS a0,
 	// t1)) — the view validation treats "(t1" as a table name.
 	"altertab-19.100": "parenthesized FROM rename validation not supported",

@@ -1,0 +1,733 @@
+{
+  "file": "tkt-2d1a5c67d.test",
+  "name": "tkt-2d1a5c67d",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "tkt-2d1a5c67d.1.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-wal"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.1.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=WAL;\n      CREATE TABLE t1(a,b);\n      CREATE INDEX t1b ON t1(b);\n      CREATE TABLE t2(x,y UNIQUE);\n      INSERT INTO t2 VALUES(3,4);\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT 'A', * FROM t2 WHERE y=4;\n      SELECT 'B', * FROM t1;\n      COMMIT;\n      SELECT 'C', * FROM t1;",
+          "expect": "wal A 3 4 B 1 2 C 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.1.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-wal"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.1.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=WAL;\n      CREATE TABLE t1(a,b);\n      CREATE INDEX t1b ON t1(b);\n      CREATE TABLE t2(x,y UNIQUE);\n      INSERT INTO t2 VALUES(3,4);\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT 'A', * FROM t2 WHERE y=4;\n      SELECT 'B', * FROM t1;\n      COMMIT;\n      SELECT 'C', * FROM t1;",
+          "expect": "wal A 3 4 B 1 2 C 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.1.3",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-wal"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.1.3",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=WAL;\n      CREATE TABLE t1(a,b);\n      CREATE INDEX t1b ON t1(b);\n      CREATE TABLE t2(x,y UNIQUE);\n      INSERT INTO t2 VALUES(3,4);\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT 'A', * FROM t2 WHERE y=4;\n      SELECT 'B', * FROM t1;\n      COMMIT;\n      SELECT 'C', * FROM t1;",
+          "expect": "wal A 3 4 B 1 2 C 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.1.4",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-wal"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.1.4",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=4"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=WAL;\n      CREATE TABLE t1(a,b);\n      CREATE INDEX t1b ON t1(b);\n      CREATE TABLE t2(x,y UNIQUE);\n      INSERT INTO t2 VALUES(3,4);\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT 'A', * FROM t2 WHERE y=4;\n      SELECT 'B', * FROM t1;\n      COMMIT;\n      SELECT 'C', * FROM t1;",
+          "expect": "wal A 3 4 B 1 2 C 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.1.5",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-wal"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.1.5",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=5"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=WAL;\n      CREATE TABLE t1(a,b);\n      CREATE INDEX t1b ON t1(b);\n      CREATE TABLE t2(x,y UNIQUE);\n      INSERT INTO t2 VALUES(3,4);\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT 'A', * FROM t2 WHERE y=4;\n      SELECT 'B', * FROM t1;\n      COMMIT;\n      SELECT 'C', * FROM t1;",
+          "expect": "wal A 3 4 B 1 2 C 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.1.6",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-wal"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.1.6",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=6"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=WAL;\n      CREATE TABLE t1(a,b);\n      CREATE INDEX t1b ON t1(b);\n      CREATE TABLE t2(x,y UNIQUE);\n      INSERT INTO t2 VALUES(3,4);\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT 'A', * FROM t2 WHERE y=4;\n      SELECT 'B', * FROM t1;\n      COMMIT;\n      SELECT 'C', * FROM t1;",
+          "expect": "wal A 3 4 B 1 2 C 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.1.7",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-wal"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.1.7",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=7"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=WAL;\n      CREATE TABLE t1(a,b);\n      CREATE INDEX t1b ON t1(b);\n      CREATE TABLE t2(x,y UNIQUE);\n      INSERT INTO t2 VALUES(3,4);\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT 'A', * FROM t2 WHERE y=4;\n      SELECT 'B', * FROM t1;\n      COMMIT;\n      SELECT 'C', * FROM t1;",
+          "expect": "wal A 3 4 B 1 2 C 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.1.8",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-wal"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.1.8",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=8"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=WAL;\n      CREATE TABLE t1(a,b);\n      CREATE INDEX t1b ON t1(b);\n      CREATE TABLE t2(x,y UNIQUE);\n      INSERT INTO t2 VALUES(3,4);\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT 'A', * FROM t2 WHERE y=4;\n      SELECT 'B', * FROM t1;\n      COMMIT;\n      SELECT 'C', * FROM t1;",
+          "expect": "wal A 3 4 B 1 2 C 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.1.9",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-wal"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.1.9",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=9"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=WAL;\n      CREATE TABLE t1(a,b);\n      CREATE INDEX t1b ON t1(b);\n      CREATE TABLE t2(x,y UNIQUE);\n      INSERT INTO t2 VALUES(3,4);\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT 'A', * FROM t2 WHERE y=4;\n      SELECT 'B', * FROM t1;\n      COMMIT;\n      SELECT 'C', * FROM t1;",
+          "expect": "wal A 3 4 B 1 2 C 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.1.10",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-wal"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.1.10",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=10"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=WAL;\n      CREATE TABLE t1(a,b);\n      CREATE INDEX t1b ON t1(b);\n      CREATE TABLE t2(x,y UNIQUE);\n      INSERT INTO t2 VALUES(3,4);\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT 'A', * FROM t2 WHERE y=4;\n      SELECT 'B', * FROM t1;\n      COMMIT;\n      SELECT 'C', * FROM t1;",
+          "expect": "wal A 3 4 B 1 2 C 1 2"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-wal"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=WAL;\n  CREATE TABLE t1(a,b);\n  CREATE INDEX t1b ON t1(b);\n  CREATE TABLE t2(x,y);\n  CREATE VIRTUAL TABLE nums USING wholenumber;\n  INSERT INTO t2 SELECT value, randomblob(1000) FROM nums\n                 WHERE value BETWEEN 1 AND 1000;"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT sum(length(y)) FROM t2;\n      COMMIT;\n      SELECT * FROM t1;",
+          "expect": "1000000 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT sum(length(y)) FROM t2;\n      COMMIT;\n      SELECT * FROM t1;",
+          "expect": "1000000 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=3"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT sum(length(y)) FROM t2;\n      COMMIT;\n      SELECT * FROM t1;",
+          "expect": "1000000 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=4"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT sum(length(y)) FROM t2;\n      COMMIT;\n      SELECT * FROM t1;",
+          "expect": "1000000 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=5"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT sum(length(y)) FROM t2;\n      COMMIT;\n      SELECT * FROM t1;",
+          "expect": "1000000 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=6"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT sum(length(y)) FROM t2;\n      COMMIT;\n      SELECT * FROM t1;",
+          "expect": "1000000 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=7"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT sum(length(y)) FROM t2;\n      COMMIT;\n      SELECT * FROM t1;",
+          "expect": "1000000 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.2.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=8"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT sum(length(y)) FROM t2;\n      COMMIT;\n      SELECT * FROM t1;",
+          "expect": "1000000 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.2.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=9"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT sum(length(y)) FROM t2;\n      COMMIT;\n      SELECT * FROM t1;",
+          "expect": "1000000 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d.2.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=10"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT sum(length(y)) FROM t2;\n      COMMIT;\n      SELECT * FROM t1;",
+          "expect": "1000000 1 2"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 10;\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t4(a);"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(NULL, randomblob(500));\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 2\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 4\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 8\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 16\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 32\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 64\n  INSERT INTO t3 SELECT NULL, b||b FROM t3;     -- 128"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t4 VALUES('xyz');"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d-3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4 WHERE a = 'xyz'",
+          "expect": "xyz"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d-3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4 WHERE a = 'xyz'",
+          "expect": "xyz"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2-wal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-2d1a5c67d-3.6",
+      "steps": [
+        {
+          "type": "copy_file",
+          "sql": "test.db-wal",
+          "fileTarget": "test.db2-wal"
+        },
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "test.db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db2",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4 WHERE a = 'xyz'",
+          "expect": "xyz",
+          "database": "db2"
+        }
+      ]
+    }
+  ]
+}

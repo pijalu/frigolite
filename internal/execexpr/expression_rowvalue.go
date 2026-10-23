@@ -263,6 +263,21 @@ func (ev *Evaluator) IsEqualNullSafe(left, right interface{}) bool {
 }
 
 func (ev *Evaluator) evalBinaryOp(v *sql.BinaryOp, row Row) (interface{}, error) {
+	if v.Operator == "IS" || v.Operator == "IS NOT" {
+		if truth, ok := v.Right.(*sql.ColumnRef); ok && truth.Table == "" && isBooleanLiteralName(truth.Name) {
+			if _, resolvesColumn := ev.rowLookupUnqualified(truth.Name, row); !resolvesColumn {
+				left, err := ev.evalExprWithCollation(v.Left, row)
+				if err != nil {
+					return nil, err
+				}
+				matches := ToBool(util.UnwrapColumnValue(left)) == strings.EqualFold(truth.Name, "TRUE")
+				if v.Operator == "IS NOT" {
+					matches = !matches
+				}
+				return boolToInt(matches), nil
+			}
+		}
+	}
 	if val, done, err := ev.evalBinaryOpMatchPreamble(v, row); done {
 		return val, err
 	}
@@ -368,6 +383,19 @@ func (ev *Evaluator) evalBinaryOpDispatched(v *sql.BinaryOp, left, right interfa
 func (ev *Evaluator) evalLikeWithEscape(v *sql.BinaryOp, left, right interface{}) (interface{}, error) {
 	if v.HasEscape && len([]rune(v.Escape)) != 1 {
 		return nil, fmt.Errorf("ESCAPE expression must be a single character")
+	}
+	// An application-registered `like` function replaces the built-in
+	// operator, ESCAPE included: SQLite compiles `X LIKE Y ESCAPE Z` into
+	// the three-argument call like(Y,X,Z).
+	if fn, ok := ev.userFunction("like"); ok {
+		out, err := fn.ScalarFn([]interface{}{right, left, v.Escape})
+		if err != nil {
+			return nil, err
+		}
+		if v.Operator == "NOT LIKE" {
+			return ev.sqlNot(out), nil
+		}
+		return out, nil
 	}
 	bumpLikeCallCount()
 	var result bool
@@ -637,6 +665,14 @@ func (ev *Evaluator) dispatchComparisonValues(op string, left, right interface{}
 // negations) over already-extracted values. Returns handled=false for other
 // operators.
 func (ev *Evaluator) dispatchMatchLikeValues(op string, left, right interface{}) (interface{}, error, bool) {
+	// SQLite rewrites `X LIKE Y` into the function call `like(Y,X)` and
+	// resolves the name through the function table, so an application
+	// function registered as like/glob/regexp REPLACES the built-in
+	// operator (expr.c sqlite3ExprCodeTarget, TK_LIKE_KW). The negated
+	// forms apply SQL NOT to the function's result.
+	if res, err, ok := ev.operatorFunctionOverride(op, left, right); ok {
+		return res, err, true
+	}
 	switch op {
 	case "LIKE":
 		return ev.evalLikeOp(left, right, false), nil, true
@@ -663,6 +699,67 @@ func (ev *Evaluator) dispatchMatchLikeValues(op string, left, right interface{})
 		return res, err, true
 	}
 	return nil, nil, false
+}
+
+// operatorFunctionOverride calls an application-registered like/glob/regexp
+// function for the LIKE/GLOB/REGEXP operators. SQLite passes the pattern
+// first (`X LIKE Y` becomes `like(Y,X)`), and the NOT variants negate the
+// function's result with SQL truthiness (NULL stays NULL).
+func (ev *Evaluator) operatorFunctionOverride(op string, left, right interface{}) (interface{}, error, bool) {
+	name := ""
+	negated := false
+	switch op {
+	case "LIKE":
+		name = "like"
+	case "NOT LIKE":
+		name, negated = "like", true
+	case "GLOB":
+		name = "glob"
+	case "NOT GLOB":
+		name, negated = "glob", true
+	case "REGEXP":
+		name = "regexp"
+	case "NOT REGEXP":
+		name, negated = "regexp", true
+	default:
+		return nil, nil, false
+	}
+	fn, ok := ev.userFunction(name)
+	if !ok {
+		return nil, nil, false
+	}
+	res, err := fn.ScalarFn([]interface{}{right, left})
+	if err != nil {
+		return nil, err, true
+	}
+	if negated {
+		return ev.sqlNot(res), nil, true
+	}
+	return res, nil, true
+}
+
+// userFunction returns the application-registered scalar function with the
+// given name (SQLite: a user registration shadows the built-in of the same
+// name).
+func (ev *Evaluator) userFunction(name string) (*function.Func, bool) {
+	registry := ev.ctx.Functions()
+	if registry == nil || !registry.IsUserRegistered(name) {
+		return nil, false
+	}
+	fn, ok := registry.Find(name)
+	if !ok || fn.ScalarFn == nil {
+		return nil, false
+	}
+	return fn, true
+}
+
+// sqlNot applies SQL's NOT to a value: NULL stays NULL, zero becomes 1 and
+// anything else 0 (SQLite's OP_Not truthiness rules).
+func (ev *Evaluator) sqlNot(v interface{}) interface{} {
+	if v == nil {
+		return nil
+	}
+	return boolToInt(!ToBool(util.UnwrapColumnValue(v)))
 }
 
 // dispatchAuxBinaryValues evaluates the remaining value-level binary

@@ -1,9 +1,55 @@
 {
   "file": "bestindex8.test",
   "name": "bestindex8",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "bestindex8",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "bestindex8"
+          },
+          "callbackProcs": [
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "src",
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE xxx(a, b)\"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set clist [$hdl constraints]\n      set orderby [$hdl orderby]\n      lappend ::lBestIndexDistinct [$hdl distinct]\n\n      #puts \"ORDERBY: $orderby\" \n      set iCons 0\n      set ret [list]\n      foreach cons $clist {\n        catch { array unset C }\n        array set C $cons\n        if {$C(usable)} {\n          lappend ret use $iCons\n        }\n        incr iCons\n      }\n      if {$orderby==\"{column 0 desc 0} {column 1 desc 0}\"\n       || $orderby==\"{column 0 desc 0}\"\n      } {\n        lappend ret orderby 1\n        lappend ret idxnum 1\n        set ::lOrderByConsumed 1\n      }\n      return $ret\n    }\n\n    xFilter {\n      set idxnum [lindex $args 0]\n      if {$idxnum} {\n        return [list sql \"SELECT rowid, a, b FROM $src order by 2, 3\"]\n      }\n      return [list sql \"SELECT rowid, a, b FROM $src\"]\n    }\n\n  }\n\n  return {}\n",
+              "Defaults": null
+            },
+            {
+              "Name": "do_vtab_test",
+              "Args": [
+                "tn",
+                "sql",
+                "vtsql",
+                "res {}"
+              ],
+              "Body": "\n  set ::lFilterSql [list]\n  uplevel [list do_execsql_test $tn.1 $sql $res]\n  uplevel [list do_test $tn.2 {set ::lFilterSql} [list {*}$vtsql]]\n",
+              "Defaults": {
+                "res": ""
+              }
+            }
+          ],
+          "moduleArgs": [
+            "db"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,216 +58,504 @@
       ]
     },
     {
-      "name": "1.1.1",
+      "name": "bestindex8-1.1.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a, b FROM vt1\"",
-          "expect": "a b c d a b c d}"
+          "sql": "SELECT a, b FROM vt1",
+          "expect": "a b c d a b c d"
         }
       ]
     },
     {
-      "name": "1.1.3",
+      "name": "bestindex8-1.1.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lBestIndexDistinct",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-1.1.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "explain SELECT a, b FROM vt1\""
+          "sql": "explain SELECT a, b FROM vt1",
+          "expect": "0"
         }
       ]
     },
     {
-      "name": "1.2.1",
+      "name": "bestindex8-1.1.4",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lOrderByConsumed",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-1.2.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT DISTINCT a, b FROM vt1\"",
-          "expect": "a b c d}"
+          "sql": "SELECT DISTINCT a, b FROM vt1",
+          "expect": "a b c d"
         }
       ]
     },
     {
-      "name": "1.2.3",
+      "name": "bestindex8-1.2.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lBestIndexDistinct",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-1.2.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "explain SELECT DISTINCT a, b FROM vt1\""
+          "sql": "explain SELECT DISTINCT a, b FROM vt1",
+          "expect": "0"
         }
       ]
     },
     {
-      "name": "1.3.1",
+      "name": "bestindex8-1.2.4",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lOrderByConsumed",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-1.3.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT DISTINCT a FROM vt1\"",
-          "expect": "a c}"
+          "sql": "SELECT DISTINCT a FROM vt1",
+          "expect": "a c"
         }
       ]
     },
     {
-      "name": "1.3.3",
+      "name": "bestindex8-1.3.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lBestIndexDistinct",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-1.3.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "explain SELECT DISTINCT a FROM vt1\""
+          "sql": "explain SELECT DISTINCT a FROM vt1",
+          "expect": "0"
         }
       ]
     },
     {
-      "name": "1.4.1",
+      "name": "bestindex8-1.3.4",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lOrderByConsumed",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-1.4.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT DISTINCT b FROM vt1\"",
-          "expect": "b d}"
+          "sql": "SELECT DISTINCT b FROM vt1",
+          "expect": "b d"
         }
       ]
     },
     {
-      "name": "1.4.3",
+      "name": "bestindex8-1.4.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lBestIndexDistinct",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-1.4.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "explain SELECT DISTINCT b FROM vt1\""
+          "sql": "explain SELECT DISTINCT b FROM vt1",
+          "expect": "1"
         }
       ]
     },
     {
-      "name": "1.5.1",
+      "name": "bestindex8-1.4.4",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lOrderByConsumed",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-1.5.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT DISTINCT b FROM vt1 ORDER BY a\"",
-          "expect": "b d}"
+          "sql": "SELECT DISTINCT b FROM vt1 ORDER BY a",
+          "expect": "b d"
         }
       ]
     },
     {
-      "name": "1.5.3",
+      "name": "bestindex8-1.5.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lBestIndexDistinct",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-1.5.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "explain SELECT DISTINCT b FROM vt1 ORDER BY a\""
+          "sql": "explain SELECT DISTINCT b FROM vt1 ORDER BY a",
+          "expect": "1"
         }
       ]
     },
     {
-      "name": "1.6.1",
+      "name": "bestindex8-1.5.4",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lOrderByConsumed",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-1.6.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT DISTINCT t0.c0 FROM vt1, t0 ORDER BY vt1.a\"",
-          "expect": "1 0}"
+          "sql": "SELECT DISTINCT t0.c0 FROM vt1, t0 ORDER BY vt1.a",
+          "expect": "1 0"
         }
       ]
     },
     {
-      "name": "1.6.3",
+      "name": "bestindex8-1.6.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lBestIndexDistinct",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-1.6.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "explain SELECT DISTINCT t0.c0 FROM vt1, t0 ORDER BY vt1.a\""
+          "sql": "explain SELECT DISTINCT t0.c0 FROM vt1, t0 ORDER BY vt1.a",
+          "expect": "1"
         }
       ]
     },
     {
-      "name": "1.7.1",
+      "name": "bestindex8-1.6.4",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lOrderByConsumed",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-1.7.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT DISTINCT a, b FROM vt1 ORDER BY a, b\"",
-          "expect": "a b c d}"
+          "sql": "SELECT DISTINCT a, b FROM vt1 ORDER BY a, b",
+          "expect": "a b c d"
         }
       ]
     },
     {
-      "name": "1.7.3",
+      "name": "bestindex8-1.7.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lBestIndexDistinct",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-1.7.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "explain SELECT DISTINCT a, b FROM vt1 ORDER BY a, b\""
+          "sql": "explain SELECT DISTINCT a, b FROM vt1 ORDER BY a, b",
+          "expect": "0"
         }
       ]
     },
     {
-      "name": "1.8.1",
+      "name": "bestindex8-1.7.4",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lOrderByConsumed",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-1.8.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT DISTINCT a, b FROM vt1 ORDER BY a\"",
-          "expect": "a b c d}"
+          "sql": "SELECT DISTINCT a, b FROM vt1 ORDER BY a",
+          "expect": "a b c d"
         }
       ]
     },
     {
-      "name": "1.8.3",
+      "name": "bestindex8-1.8.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lBestIndexDistinct",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-1.8.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "explain SELECT DISTINCT a, b FROM vt1 ORDER BY a\""
+          "sql": "explain SELECT DISTINCT a, b FROM vt1 ORDER BY a",
+          "expect": "1"
         }
       ]
     },
     {
-      "name": "1.9.1",
+      "name": "bestindex8-1.8.4",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lOrderByConsumed",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-1.9.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT DISTINCT a FROM vt1 ORDER BY a, b\"",
-          "expect": "a c}"
+          "sql": "SELECT DISTINCT a FROM vt1 ORDER BY a, b",
+          "expect": "a c"
         }
       ]
     },
     {
-      "name": "1.9.3",
+      "name": "bestindex8-1.9.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lBestIndexDistinct",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-1.9.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "explain SELECT DISTINCT a FROM vt1 ORDER BY a, b\""
+          "sql": "explain SELECT DISTINCT a FROM vt1 ORDER BY a, b",
+          "expect": "1"
         }
       ]
     },
     {
-      "name": "1.10.1",
+      "name": "bestindex8-1.9.4",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lOrderByConsumed",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-1.10.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT DISTINCT a, b FROM vt1 WHERE b='b'\"",
-          "expect": "a b}"
+          "sql": "SELECT DISTINCT a, b FROM vt1 WHERE b='b'",
+          "expect": "a b"
         }
       ]
     },
     {
-      "name": "1.10.3",
+      "name": "bestindex8-1.10.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lBestIndexDistinct",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-1.10.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "explain SELECT DISTINCT a, b FROM vt1 WHERE b='b'\""
+          "sql": "explain SELECT DISTINCT a, b FROM vt1 WHERE b='b'",
+          "expect": "0"
         }
       ]
     },
     {
-      "name": "1.11.1",
+      "name": "bestindex8-1.10.4",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lOrderByConsumed",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-1.11.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT DISTINCT a, b FROM vt1 WHERE +b='b'\"",
-          "expect": "a b}"
+          "sql": "SELECT DISTINCT a, b FROM vt1 WHERE +b='b'",
+          "expect": "a b"
         }
       ]
     },
     {
-      "name": "1.11.3",
+      "name": "bestindex8-1.11.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lBestIndexDistinct",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-1.11.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "explain SELECT DISTINCT a, b FROM vt1 WHERE +b='b'\""
+          "sql": "explain SELECT DISTINCT a, b FROM vt1 WHERE +b='b'",
+          "expect": "0"
         }
       ]
     },
     {
-      "name": "2.0",
+      "name": "bestindex8-1.11.4",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lOrderByConsumed",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "0",
+            "::lBestIndexDistinct": "",
+            "::lOrderByConsumed": "0",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "bConsumed": "1",
+            "bDistinct": "2",
+            "idxinsert": "0",
+            "res": "a b",
+            "sql": "SELECT DISTINCT a, b FROM vt1 WHERE +b='b'",
+            "testdir": "",
+            "testprefix": "bestindex8",
+            "tn": "11"
+          },
+          "callbackProcs": [
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "src",
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE xxx(a, b)\"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set clist [$hdl constraints]\n      set orderby [$hdl orderby]\n      lappend ::lBestIndexDistinct [$hdl distinct]\n\n      #puts \"ORDERBY: $orderby\" \n      set iCons 0\n      set ret [list]\n      foreach cons $clist {\n        catch { array unset C }\n        array set C $cons\n        if {$C(usable)} {\n          lappend ret use $iCons\n        }\n        incr iCons\n      }\n      if {$orderby==\"{column 0 desc 0} {column 1 desc 0}\"\n       || $orderby==\"{column 0 desc 0}\"\n      } {\n        lappend ret orderby 1\n        lappend ret idxnum 1\n        set ::lOrderByConsumed 1\n      }\n      return $ret\n    }\n\n    xFilter {\n      set idxnum [lindex $args 0]\n      if {$idxnum} {\n        return [list sql \"SELECT rowid, a, b FROM $src order by 2, 3\"]\n      }\n      return [list sql \"SELECT rowid, a, b FROM $src\"]\n    }\n\n  }\n\n  return {}\n",
+              "Defaults": null
+            },
+            {
+              "Name": "do_vtab_test",
+              "Args": [
+                "tn",
+                "sql",
+                "vtsql",
+                "res {}"
+              ],
+              "Body": "\n  set ::lFilterSql [list]\n  uplevel [list do_execsql_test $tn.1 $sql $res]\n  uplevel [list do_test $tn.2 {set ::lFilterSql} [list {*}$vtsql]]\n",
+              "Defaults": {
+                "res": ""
+              }
+            }
+          ],
+          "moduleArgs": [
+            "db"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-2.0",
       "steps": [
         {
           "type": "exec",
@@ -230,47 +564,121 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "bestindex8-2.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM vt1 LIMIT 10",
+          "sql": "SELECT * FROM vt1 LIMIT 10"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "lFilterArgs",
           "expect": "10"
         }
       ]
     },
     {
-      "name": "2.2",
+      "name": "bestindex8-2.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM vt1 LIMIT 5 OFFSET 50",
+          "sql": "SELECT * FROM vt1 LIMIT 5 OFFSET 50"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "lFilterArgs",
           "expect": "{50 5}"
         }
       ]
     },
     {
-      "name": "2.3",
+      "name": "bestindex8-2.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM vt1 ORDER BY a, b LIMIT 1 OFFSET 1",
+          "sql": "SELECT * FROM vt1 ORDER BY a, b LIMIT 1 OFFSET 1"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "lFilterArgs",
           "expect": "{1 1}"
         }
       ]
     },
     {
-      "name": "2.4",
+      "name": "bestindex8-2.4",
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM vt1 ORDER BY a, +b LIMIT 1 OFFSET 1",
+          "sql": "SELECT * FROM vt1 ORDER BY a, +b LIMIT 1 OFFSET 1"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "lFilterArgs",
           "expect": "{}"
         }
       ]
     },
     {
-      "name": "3.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "",
+            "::lBestIndexDistinct": "",
+            "::lFilterArgs": "",
+            "::lOrderByConsumed": "0",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "bConsumed": "1",
+            "bDistinct": "2",
+            "idxinsert": "0",
+            "res": "a b",
+            "sql": "SELECT DISTINCT a, b FROM vt1 WHERE +b='b'",
+            "testdir": "",
+            "testprefix": "bestindex8",
+            "tn": "11"
+          },
+          "callbackProcs": [
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "src",
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE xxx(a, b)\"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set ret [list]\n\n      set iCons 0\n      foreach cons [$hdl constraints] {\n        array set C $cons\n        if {($C(op)==\"limit\" || $C(op)==\"offset\") \u0026\u0026 $C(usable)} {\n          lappend ret use $iCons\n        }\n        incr iCons\n      }\n\n      return $ret\n    }\n\n    xFilter {\n      lappend ::lFilterArgs [lindex $args 2]\n      return [list sql \"SELECT rowid, a, b FROM $src\"]\n    }\n\n  }\n\n  return {}\n",
+              "Defaults": null
+            },
+            {
+              "Name": "do_vtab_test",
+              "Args": [
+                "tn",
+                "sql",
+                "vtsql",
+                "res {}"
+              ],
+              "Body": "\n  set ::lFilterSql [list]\n  uplevel [list do_execsql_test $tn.1 $sql $res]\n  uplevel [list do_test $tn.2 {set ::lFilterSql} [list {*}$vtsql]]\n",
+              "Defaults": {
+                "res": ""
+              }
+            }
+          ],
+          "moduleArgs": [
+            "db"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-3.0",
       "steps": [
         {
           "type": "exec",
@@ -279,61 +687,151 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "bestindex8-3.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM vt1 WHERE b IN (10, 20, 30)\""
+          "sql": "SELECT * FROM vt1 WHERE b IN (10, 20, 30)"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "lFilterArg",
+          "expect": "{10 20 30}"
         }
       ]
     },
     {
-      "name": "3.2",
+      "name": "bestindex8-3.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM vt1 WHERE b IN ('abc', 'def')\""
+          "sql": "SELECT * FROM vt1 WHERE b IN ('abc', 'def')"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "lFilterArg",
+          "expect": "{abc def}"
         }
       ]
     },
     {
-      "name": "3.3",
+      "name": "bestindex8-3.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM vt1 WHERE a IS NULL AND b IN ('abc', 'def')\""
+          "sql": "SELECT * FROM vt1 WHERE a IS NULL AND b IN ('abc', 'def')"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "lFilterArg",
+          "expect": "{} {abc def}"
         }
       ]
     },
     {
-      "name": "3.4",
+      "name": "bestindex8-3.4",
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM vt1 WHERE a IN (1,2,3) AND b IN ('abc', 'def')\""
+          "sql": "SELECT * FROM vt1 WHERE a IN (1,2,3) AND b IN ('abc', 'def')"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "lFilterArg",
+          "expect": "{1 2 3} {abc def}"
         }
       ]
     },
     {
-      "name": "3.5",
+      "name": "bestindex8-3.5",
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM vt1 \n     WHERE a IN (SELECT 1 UNION SELECT 2) AND b IN ('abc', 'def')\""
+          "sql": "SELECT * FROM vt1 \n     WHERE a IN (SELECT 1 UNION SELECT 2) AND b IN ('abc', 'def')"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "lFilterArg",
+          "expect": "{1 2} {abc def}"
         }
       ]
     },
     {
-      "name": "3.6",
+      "name": "bestindex8-3.6",
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM vt1 \n     WHERE b IN ('abc', 'def') AND a IN (SELECT 1 UNION SELECT 2)\""
+          "sql": "SELECT * FROM vt1 \n     WHERE b IN ('abc', 'def') AND a IN (SELECT 1 UNION SELECT 2)"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "lFilterArg",
+          "expect": "{abc def} {1 2}"
         }
       ]
     },
     {
-      "name": "4.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "",
+            "::lBestIndexDistinct": "",
+            "::lFilterArg": "",
+            "::lFilterArgs": "",
+            "::lOrderByConsumed": "0",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "bConsumed": "1",
+            "bDistinct": "2",
+            "idxinsert": "0",
+            "lfa": "{abc def} {1 2}",
+            "res": "a b",
+            "sql": "SELECT * FROM vt1 \n     WHERE b IN ('abc', 'def') AND a IN (SELECT 1 UNION SELECT 2)",
+            "testdir": "",
+            "testprefix": "bestindex8",
+            "tn": "6"
+          },
+          "callbackProcs": [
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "src",
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE xxx(a, b)\"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set lCons [$hdl constraints]\n\n      set ret [list]\n      for {set i 0} {$i \u003c [llength $lCons]} {incr i} {\n        array set C [lindex $lCons $i]\n        if {$C(usable)} {\n          lappend ret use $i\n          $hdl in $i 1\n        }\n      }\n      return $ret\n    }\n\n    xFilter {\n      set lArg [lindex $args 2]\n      lappend ::lFilterArg {*}$lArg\n      return [list sql \"SELECT rowid, a, b FROM $src\"]\n    }\n\n  }\n\n  return {}\n",
+              "Defaults": null
+            },
+            {
+              "Name": "do_vtab_test",
+              "Args": [
+                "tn",
+                "sql",
+                "vtsql",
+                "res {}"
+              ],
+              "Body": "\n  set ::lFilterSql [list]\n  uplevel [list do_execsql_test $tn.1 $sql $res]\n  uplevel [list do_test $tn.2 {set ::lFilterSql} [list {*}$vtsql]]\n",
+              "Defaults": {
+                "res": ""
+              }
+            }
+          ],
+          "moduleArgs": [
+            "db"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-4.0",
       "steps": [
         {
           "type": "exec",
@@ -342,56 +840,263 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "bestindex8-4.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM vt1 WHERE b = 10\""
+          "sql": "SELECT * FROM vt1 WHERE b = 10"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "lBestIndexRhs",
+          "expect": "10"
         }
       ]
     },
     {
-      "name": "4.2",
+      "name": "bestindex8-4.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM vt1 WHERE a = 'abc' AND b \u003c 30\""
+          "sql": "SELECT * FROM vt1 WHERE a = 'abc' AND b \u003c 30"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "lBestIndexRhs",
+          "expect": "abc 30"
         }
       ]
     },
     {
-      "name": "4.3",
+      "name": "bestindex8-4.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM vt1 WHERE a = 'abc' AND b \u003c 30+2\""
+          "sql": "SELECT * FROM vt1 WHERE a = 'abc' AND b \u003c 30+2"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "lBestIndexRhs",
+          "expect": "abc -"
         }
       ]
     },
     {
-      "name": "4.4",
+      "name": "bestindex8-4.4",
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM vt1 WHERE a IN (1,2,3) AND b \u003c 30+2\""
+          "sql": "SELECT * FROM vt1 WHERE a IN (1,2,3) AND b \u003c 30+2"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "lBestIndexRhs",
+          "expect": "- -"
         }
       ]
     },
     {
-      "name": "4.5",
+      "name": "bestindex8-4.5",
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM vt1 WHERE a IS 111 AND b \u003c 30+2\""
+          "sql": "SELECT * FROM vt1 WHERE a IS 111 AND b \u003c 30+2"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "lBestIndexRhs",
+          "expect": "111 -"
         }
       ]
     },
     {
-      "name": "5.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "",
+            "::lBestIndexDistinct": "",
+            "::lBestIndexRhs": "",
+            "::lFilterArg": "",
+            "::lFilterArgs": "",
+            "::lOrderByConsumed": "0",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "bConsumed": "1",
+            "bDistinct": "2",
+            "idxinsert": "0",
+            "lbir": "111 -",
+            "lfa": "{abc def} {1 2}",
+            "res": "a b",
+            "sql": "SELECT * FROM vt1 WHERE a IS 111 AND b \u003c 30+2",
+            "testdir": "",
+            "testprefix": "bestindex8",
+            "tn": "5"
+          },
+          "callbackProcs": [
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "src",
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE xxx(a, b, c)\"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set lCons [$hdl constraints]\n\n      set ret [list]\n      for {set i 0} {$i \u003c [llength $lCons]} {incr i} {\n        lappend ::lBestIndexRhs [$hdl rhs_value $i -]\n      }\n      return $ret\n    }\n\n    xFilter {\n      return [list sql \"SELECT rowid, a, b, c FROM $src\"]\n    }\n\n  }\n\n  return {}\n",
+              "Defaults": null
+            },
+            {
+              "Name": "do_vtab_test",
+              "Args": [
+                "tn",
+                "sql",
+                "vtsql",
+                "res {}"
+              ],
+              "Body": "\n  set ::lFilterSql [list]\n  uplevel [list do_execsql_test $tn.1 $sql $res]\n  uplevel [list do_test $tn.2 {set ::lFilterSql} [list {*}$vtsql]]\n",
+              "Defaults": {
+                "res": ""
+              }
+            }
+          ],
+          "moduleArgs": [
+            "db"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-5.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, c);\n  CREATE VIRTUAL TABLE vt1 USING tcl(vtab_command t1);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(2, 3, 4);\n  INSERT INTO t1 VALUES(3, 4, 5);\n  INSERT INTO t1 VALUES(1, 5, 6);\n  INSERT INTO t1 VALUES(2, 6, 7);\n  INSERT INTO t1 VALUES(3, 7, 8);\n  INSERT INTO t1 VALUES(1, 8, 9);\n  INSERT INTO t1 VALUES(2, 9, 0);"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-5.1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT a FROM vt1",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-5.1.1.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lFilterSql",
+          "expect": "{SELECT DISTINCT 0, a, 0, 0 FROM t1}"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-5.1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT a FROM vt1 ORDER BY a",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-5.1.2.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lFilterSql",
+          "expect": "{SELECT rowid, a, b, c FROM t1 ORDER BY a}"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-5.1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT a FROM vt1 WHERE c IN (4,5,6,7,8)",
+          "expect": "2 3 1"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-5.1.3.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lFilterSql",
+          "expect": "{SELECT DISTINCT 0, a, 0, 0 FROM t1 WHERE c IN (4,5,6,7,8)}"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-5.1.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  DISTINCT a FROM vt1 WHERE c IN (4,5,6,7,8)",
+          "expect": "2 3 1"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-5.1.4.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lFilterSql",
+          "expect": "{SELECT DISTINCT 0, a, 0, 0 FROM t1 WHERE c = 4} {SELECT DISTINCT 0, a, 0, 0 FROM t1 WHERE c = 5} {SELECT DISTINCT 0, a, 0, 0 FROM t1 WHERE c = 6} {SELECT DISTINCT 0, a, 0, 0 FROM t1 WHERE c = 7} {SELECT DISTINCT 0, a, 0, 0 FROM t1 WHERE c = 8}"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-5.1.5a.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c FROM vt1 WHERE c IN (4,5,6,7,8) LIMIT 2 OFFSET 2",
+          "expect": "1 5 6 2 6 7"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-5.1.5a.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lFilterSql",
+          "expect": "{SELECT rowid, a, b, c FROM t1 WHERE c IN (4,5,6,7,8) LIMIT 2 OFFSET 2}"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-5.1.5b.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c FROM vt1 WHERE c IN (4,5,6,7,8) LIMIT 2 OFFSET 2",
+          "expect": "1 5 6 2 6 7"
+        }
+      ]
+    },
+    {
+      "name": "bestindex8-5.1.5b.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "lFilterSql",
+          "expect": "{SELECT rowid, a, b, c FROM t1 WHERE c = 4} {SELECT rowid, a, b, c FROM t1 WHERE c = 5} {SELECT rowid, a, b, c FROM t1 WHERE c = 6} {SELECT rowid, a, b, c FROM t1 WHERE c = 7}"
         }
       ]
     }

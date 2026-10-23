@@ -8,7 +8,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT 't1', * FROM t1;\n    SELECT 't1''x1', * FROM \"t1'x1\";\n    SELECT * FROM ;",
+          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE [t1'x1](c UNIQUE, b PRIMARY KEY);\n    INSERT INTO [t1'x1] VALUES(3,4);\n    CREATE INDEX t1i1 ON T1(B);\n    CREATE INDEX t1i2 ON t1(a,b);\n    CREATE INDEX i3 ON [t1'x1](b,c);\n    CREATE TEMP TABLE \"temp table\"(e,f,g UNIQUE);\n    CREATE INDEX i2 ON [temp table](f);\n    INSERT INTO [temp table] VALUES(5,6,7);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 't1', * FROM t1;\n    SELECT 't1''x1', * FROM \"t1'x1\";\n    SELECT * FROM [temp table];",
           "expect": "t1 1 2 t1'x1 3 4 5 6 7"
         }
       ]
@@ -16,6 +20,10 @@
     {
       "name": "alter-1.2",
       "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE objlist(type, name, tbl_name);\n    INSERT INTO objlist SELECT type, name, tbl_name \n        FROM sqlite_master WHERE NAME!='objlist';"
+        },
         {
           "type": "exec",
           "sql": "INSERT INTO objlist SELECT type, name, tbl_name \n          FROM temp.sqlite_master WHERE NAME!='objlist';"
@@ -32,7 +40,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ALTER TABLE table t1 t1 index t1i1 t1 index t1i2 t1 table t1'x1 t1'x1 index i3 t1'x1 index sqlite_autoindex_t1'x1_1 t1'x1 index sqlite_autoindex_t1'x1_2 t1'x1 table {temp table} {temp table} index i2 {temp table} index {sqlite_autoindex_temp table_1} {temp table} RENAME to table t1 t1 index t1i1 t1 index t1i2 t1 table t1'x1 t1'x1 index i3 t1'x1 index sqlite_autoindex_t1'x1_1 t1'x1 index sqlite_autoindex_t1'x1_2 t1'x1 table {temp table} {temp table} index i2 {temp table} index {sqlite_autoindex_temp table_1} {temp table};\n    ALTER TABLE \"t1'x1\" RENAME TO T2;\n    ALTER TABLE table t1 t1 index t1i1 t1 index t1i2 t1 table t1'x1 t1'x1 index i3 t1'x1 index sqlite_autoindex_t1'x1_1 t1'x1 index sqlite_autoindex_t1'x1_2 t1'x1 table {temp table} {temp table} index i2 {temp table} index {sqlite_autoindex_temp table_1} {temp table} RENAME to TempTab;"
+          "sql": "ALTER TABLE [T1] RENAME to [-t1-];\n    ALTER TABLE \"t1'x1\" RENAME TO T2;\n    ALTER TABLE [temp table] RENAME to TempTab;"
         }
       ]
     },
@@ -41,7 +49,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT 't1', * FROM table t1 t1 index t1i1 t1 index t1i2 t1 table t1'x1 t1'x1 index i3 t1'x1 index sqlite_autoindex_t1'x1_1 t1'x1 index sqlite_autoindex_t1'x1_2 t1'x1 table {temp table} {temp table} index i2 {temp table} index {sqlite_autoindex_temp table_1} {temp table};\n    SELECT 't2', * FROM t2;\n    SELECT * FROM temptab;",
+          "sql": "SELECT 't1', * FROM [-t1-];\n    SELECT 't2', * FROM t2;\n    SELECT * FROM temptab;",
           "expect": "t1 1 2 t2 3 4 5 6 7"
         }
       ]
@@ -65,17 +73,125 @@
       ]
     },
     {
-      "name": "setup_0",
+      "name": "alter-1.6",
       "steps": [
         {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "exec",
-          "sql": "DROP TABLE TempTab;"
+          "sql": "CREATE TEMP TABLE objlist(type, name, tbl_name);\n      INSERT INTO objlist SELECT type, name, tbl_name FROM sqlite_master;\n      INSERT INTO objlist \n          SELECT type, name, tbl_name FROM temp.sqlite_master \n          WHERE NAME!='objlist';\n      SELECT type, name, tbl_name FROM objlist \n          ORDER BY tbl_name, type desc, name;",
+          "expect": "table -t1- -t1- index t1i1 -t1- index t1i2 -t1- table T2 T2 index i3 T2 index sqlite_autoindex_T2_1 T2 index sqlite_autoindex_T2_2 T2"
         }
       ]
     },
     {
       "name": "alter-1.7-prep",
       "steps": [
+        {
+          "type": "register_function",
+          "functionName": "substr",
+          "callbackVars": {
+            "": "",
+            "::temp": "TEMP",
+            "DB": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "failing_app_func",
+          "functionArgs": [
+            "args"
+          ],
+          "functionBody": "error \"bad function\"",
+          "maxArgs": -1
+        },
+        {
+          "type": "register_function",
+          "functionName": "like",
+          "callbackVars": {
+            "": "",
+            "::temp": "TEMP",
+            "DB": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "failing_app_func",
+          "functionArgs": [
+            "args"
+          ],
+          "functionBody": "error \"bad function\"",
+          "maxArgs": -1
+        },
+        {
+          "type": "register_function",
+          "functionName": "sqlite_rename_table",
+          "callbackVars": {
+            "": "",
+            "::temp": "TEMP",
+            "DB": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "failing_app_func",
+          "functionArgs": [
+            "args"
+          ],
+          "functionBody": "error \"bad function\"",
+          "maxArgs": -1
+        },
+        {
+          "type": "register_function",
+          "functionName": "sqlite_rename_trigger",
+          "callbackVars": {
+            "": "",
+            "::temp": "TEMP",
+            "DB": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "failing_app_func",
+          "functionArgs": [
+            "args"
+          ],
+          "functionBody": "error \"bad function\"",
+          "maxArgs": -1
+        },
+        {
+          "type": "register_function",
+          "functionName": "sqlite_rename_parent",
+          "callbackVars": {
+            "": "",
+            "::temp": "TEMP",
+            "DB": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "failing_app_func",
+          "functionArgs": [
+            "args"
+          ],
+          "functionBody": "error \"bad function\"",
+          "maxArgs": -1
+        },
         {
           "type": "catch",
           "sql": "SELECT substr(name,1,3) FROM sqlite_master",
@@ -88,6 +204,10 @@
       "steps": [
         {
           "type": "exec",
+          "sql": "ALTER TABLE [-t1-] RENAME to [*t1*];\n    ALTER TABLE T2 RENAME TO [\u003ct2\u003e];"
+        },
+        {
+          "type": "exec",
           "sql": "DELETE FROM objlist;\n    INSERT INTO objlist SELECT type, name, tbl_name\n        FROM sqlite_master WHERE NAME!='objlist';"
         },
         {
@@ -98,6 +218,24 @@
           "type": "exec",
           "sql": "SELECT type, name, tbl_name FROM objlist ORDER BY tbl_name, type desc, name;",
           "expect": "table *t1* *t1* index t1i1 *t1* index t1i2 *t1* table \u003ct2\u003e \u003ct2\u003e index i3 \u003ct2\u003e index sqlite_autoindex_\u003ct2\u003e_1 \u003ct2\u003e index sqlite_autoindex_\u003ct2\u003e_2 \u003ct2\u003e"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db-journal"
         }
       ]
     },
@@ -226,7 +364,7 @@
         },
         {
           "type": "catch",
-          "sql": "ALTER TABLE table *t1* *t1* index t1i1 *t1* index t1i2 *t1* table \u003ct2\u003e \u003ct2\u003e index i3 \u003ct2\u003e index sqlite_autoindex_\u003ct2\u003e_1 \u003ct2\u003e index sqlite_autoindex_\u003ct2\u003e_2 \u003ct2\u003e RENAME TO t3;",
+          "sql": "ALTER TABLE [\u003ct2\u003e] RENAME TO t3;",
           "expect": "1 {there is already another table or index with this name: t3}"
         }
       ]
@@ -236,7 +374,7 @@
       "steps": [
         {
           "type": "catch",
-          "sql": "ALTER TABLE table *t1* *t1* index t1i1 *t1* index t1i2 *t1* table \u003ct2\u003e \u003ct2\u003e index i3 \u003ct2\u003e index sqlite_autoindex_\u003ct2\u003e_1 \u003ct2\u003e index sqlite_autoindex_\u003ct2\u003e_2 \u003ct2\u003e RENAME TO i3;",
+          "sql": "ALTER TABLE [\u003ct2\u003e] RENAME TO i3;",
           "expect": "1 {there is already another table or index with this name: i3}"
         }
       ]
@@ -272,6 +410,31 @@
       ]
     },
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "trigfunc",
+          "callbackVars": {
+            "": "",
+            "::temp": "TEMP",
+            "DB": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "trigfunc",
+          "functionArgs": [
+            "args"
+          ],
+          "functionBody": "\n  set ::TRIGGER $args\n",
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
       "name": "alter-3.1.0",
       "steps": [
         {
@@ -285,7 +448,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t6 VALUES(1, 2, 3);",
+          "sql": "INSERT INTO t6 VALUES(1, 2, 3);"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "TRIGGER",
           "expect": "trig1 1 2 3"
         }
       ]
@@ -295,7 +462,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ALTER TABLE t6 RENAME TO t7;\n    INSERT INTO t7 VALUES(4, 5, 6);",
+          "sql": "ALTER TABLE t6 RENAME TO t7;\n    INSERT INTO t7 VALUES(4, 5, 6);"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "TRIGGER",
           "expect": "trig1 4 5 6"
         }
       ]
@@ -314,7 +485,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TRIGGER trig2 AFTER INSERT ON main.t7 BEGIN\n      SELECT trigfunc('trig2', new.a, new.b, new.c);\n    END;\n    INSERT INTO t7 VALUES(1, 2, 3);",
+          "sql": "CREATE TRIGGER trig2 AFTER INSERT ON main.t7 BEGIN\n      SELECT trigfunc('trig2', new.a, new.b, new.c);\n    END;\n    INSERT INTO t7 VALUES(1, 2, 3);"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "TRIGGER",
           "expect": "trig2 1 2 3"
         }
       ]
@@ -324,7 +499,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ALTER TABLE t7 RENAME TO t8;\n    INSERT INTO t8 VALUES(4, 5, 6);",
+          "sql": "ALTER TABLE t7 RENAME TO t8;\n    INSERT INTO t8 VALUES(4, 5, 6);"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "TRIGGER",
           "expect": "trig2 4 5 6"
         }
       ]
@@ -343,7 +522,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TRIGGER trig3 AFTER INSERT ON main.'t8'BEGIN\n      SELECT trigfunc('trig3', new.a, new.b, new.c);\n    END;\n    INSERT INTO t8 VALUES(1, 2, 3);",
+          "sql": "CREATE TRIGGER trig3 AFTER INSERT ON main.'t8'BEGIN\n      SELECT trigfunc('trig3', new.a, new.b, new.c);\n    END;\n    INSERT INTO t8 VALUES(1, 2, 3);"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "TRIGGER",
           "expect": "trig3 1 2 3"
         }
       ]
@@ -353,8 +536,30 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ALTER TABLE t8 RENAME TO t9;\n    INSERT INTO t9 VALUES(4, 5, 6);",
+          "sql": "ALTER TABLE t8 RENAME TO t9;\n    INSERT INTO t9 VALUES(4, 5, 6);"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "TRIGGER",
           "expect": "trig3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test3.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test3.db-journal"
         }
       ]
     },
@@ -463,11 +668,24 @@
       ]
     },
     {
+      "name": "alter-3.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tbl1(a, b, c);\n    CREATE TEMP TRIGGER trig1 AFTER INSERT ON tbl1 BEGIN\n      SELECT trigfunc('trig1', new.a, new.b, new.c);\n    END;"
+        }
+      ]
+    },
+    {
       "name": "alter-3.3.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO tbl1 VALUES('a', 'b', 'c');",
+          "sql": "INSERT INTO tbl1 VALUES('a', 'b', 'c');"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "TRIGGER",
           "expect": "trig1 a b c"
         }
       ]
@@ -477,8 +695,21 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ALTER TABLE tbl1 RENAME TO tbl2;\n    INSERT INTO tbl2 VALUES('d', 'e', 'f');",
+          "sql": "ALTER TABLE tbl1 RENAME TO tbl2;\n    INSERT INTO tbl2 VALUES('d', 'e', 'f');"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "TRIGGER",
           "expect": "trig1 d e f"
+        }
+      ]
+    },
+    {
+      "name": "alter-3.3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TRIGGER trig2 AFTER UPDATE ON tbl2 BEGIN\n      SELECT trigfunc('trig2', new.a, new.b, new.c);\n    END;"
         }
       ]
     },
@@ -487,7 +718,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ALTER TABLE tbl2 RENAME TO tbl3;\n    INSERT INTO tbl3 VALUES('g', 'h', 'i');",
+          "sql": "ALTER TABLE tbl2 RENAME TO tbl3;\n    INSERT INTO tbl3 VALUES('g', 'h', 'i');"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "TRIGGER",
           "expect": "trig1 g h i"
         }
       ]
@@ -497,7 +732,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE tbl3 SET a = 'G' where a = 'g';",
+          "sql": "UPDATE tbl3 SET a = 'G' where a = 'g';"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "TRIGGER",
           "expect": "trig2 G h i"
         }
       ]
@@ -571,9 +810,24 @@
       "name": "alter-5.2",
       "steps": [
         {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
           "type": "exec",
           "sql": "ALTER TABLE tbl1 RENAME TO tbl2;\n    SELECT * FROM tbl2;",
-          "expect": "x y z"
+          "expect": "x y z",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "alter-5.3",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     },
@@ -587,6 +841,10 @@
         {
           "type": "exec",
           "sql": "SELECT name FROM sqlite_master\n   WHERE type='table' AND name NOT GLOB 'sqlite*'"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE \"\""
         }
       ]
     },
@@ -595,16 +853,18 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE (a, b, c);"
+          "sql": "CREATE TABLE abcꯍdef(a, b, c);"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT max(oid) FROM sqlite_master",
+          "variable": "oid",
+          "resultAll": true
         },
         {
           "type": "exec",
-          "sql": "SELECT max(oid) FROM sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT sql FROM sqlite_master WHERE oid = 11;",
-          "expect": "{CREATE TABLE abcuABCDdef(a, b, c)}"
+          "sql": "SELECT sql FROM sqlite_master WHERE oid = $::oid;",
+          "expect": "{CREATE TABLE abcꯍdef(a, b, c)}"
         }
       ]
     },
@@ -613,7 +873,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM abcuABCDdef"
+          "sql": "SELECT * FROM abcꯍdef"
         }
       ]
     },
@@ -622,11 +882,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ALTER TABLE abcuABCDdef RENAME TO abcXdef"
+          "sql": "ALTER TABLE abcꯍdef RENAME TO abcXdef"
         },
         {
           "type": "exec",
-          "sql": "SELECT sql FROM sqlite_master WHERE oid = 11",
+          "sql": "SELECT sql FROM sqlite_master WHERE oid = $::oid",
           "expect": "{CREATE TABLE \"abcXdef\"(a, b, c)}"
         }
       ]
@@ -636,12 +896,12 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ALTER TABLE abcXdef RENAME TO abcuABCDdef"
+          "sql": "ALTER TABLE abcXdef RENAME TO abcꯍdef"
         },
         {
           "type": "exec",
-          "sql": "SELECT sql FROM sqlite_master WHERE oid = 11",
-          "expect": "{CREATE TABLE \"abcuABCDdef\"(a, b, c)}"
+          "sql": "SELECT sql FROM sqlite_master WHERE oid = $::oid",
+          "expect": "{CREATE TABLE \"abcꯍdef\"(a, b, c)}"
         }
       ]
     },
@@ -650,12 +910,12 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ALTER TABLE abcuABCDdef ADD COLUMN ghi1234jkl VARCHAR"
+          "sql": "ALTER TABLE abcꯍdef ADD COLUMN ghi1234jkl VARCHAR"
         },
         {
           "type": "exec",
-          "sql": "SELECT sql FROM sqlite_master WHERE oid = 11",
-          "expect": "{CREATE TABLE \"abcuABCDdef\"(a, b, c, ghi1234jkl VARCHAR)}"
+          "sql": "SELECT sql FROM sqlite_master WHERE oid = $::oid",
+          "expect": "{CREATE TABLE \"abcꯍdef\"(a, b, c, ghi1234jkl VARCHAR)}"
         }
       ]
     },
@@ -663,13 +923,20 @@
       "name": "alter-6.6",
       "steps": [
         {
-          "type": "exec",
-          "sql": "ALTER TABLE abcuABCDdef ADD COLUMN B3421A"
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         },
         {
           "type": "exec",
-          "sql": "SELECT sql FROM sqlite_master WHERE oid = 11",
-          "expect": "{CREATE TABLE \"abcuABCDdef\"(a, b, c, ghi1234jkl VARCHAR, B3421A)}"
+          "sql": "ALTER TABLE abcꯍdef ADD COLUMN B3421A"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sql FROM sqlite_master WHERE oid = $::oid",
+          "expect": "{CREATE TABLE \"abcꯍdef\"(a, b, c, ghi1234jkl VARCHAR, B3421A)}"
         }
       ]
     },
@@ -678,7 +945,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO abcuABCDdef VALUES(1, 2, 3, 4, 5);\n    SELECT ghi1234jkl, B3421A FROM abcuABCDdef;",
+          "sql": "INSERT INTO abcꯍdef VALUES(1, 2, 3, 4, 5);\n    SELECT ghi1234jkl, B3421A FROM abcꯍdef;",
           "expect": "4 5"
         }
       ]
@@ -700,6 +967,16 @@
           "type": "exec",
           "sql": "SELECT a, sum(b) FROM t2 GROUP BY a;",
           "expect": "1 18 2 9"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "internal_functions",
+          "sql": "enable",
+          "internalFunctions": true
         }
       ]
     },
@@ -744,6 +1021,15 @@
       ]
     },
     {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "internal_functions",
+          "sql": "disable"
+        }
+      ]
+    },
+    {
       "name": "alter-9.3",
       "steps": [
         {
@@ -762,12 +1048,12 @@
         },
         {
           "type": "exec",
-          "sql": "ALTER TABLE xyz RENAME TO xyzu1234abc"
+          "sql": "ALTER TABLE xyz RENAME TO xyzሴabc"
         },
         {
           "type": "exec",
           "sql": "SELECT name FROM sqlite_master WHERE name GLOB 'xyz*'",
-          "expect": "xyzu1234abc"
+          "expect": "xyzሴabc"
         }
       ]
     },
@@ -777,7 +1063,7 @@
         {
           "type": "exec",
           "sql": "SELECT name FROM sqlite_master WHERE name GLOB 'sqlite_autoindex*'",
-          "expect": "sqlite_autoindex_xyzu1234abc_1"
+          "expect": "sqlite_autoindex_xyzሴabc_1"
         }
       ]
     },
@@ -786,7 +1072,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ALTER TABLE xyzu1234abc RENAME TO xyzabc"
+          "sql": "ALTER TABLE xyzሴabc RENAME TO xyzabc"
         },
         {
           "type": "exec",
@@ -809,6 +1095,10 @@
       "name": "alter-11.1",
       "steps": [
         {
+          "type": "sqlite3_exec",
+          "sql": "CREATE TABLE t11(%c6%c6)"
+        },
+        {
           "type": "exec",
           "sql": "ALTER TABLE t11 ADD COLUMN abc;"
         },
@@ -820,11 +1110,24 @@
       ]
     },
     {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding"
+        }
+      ]
+    },
+    {
       "name": "alter-11.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t11 VALUES(1,2)",
+          "sql": "INSERT INTO t11 VALUES(1,2)"
+        },
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT %c6%c6 AS xyz, abc FROM t11",
           "expect": "0 {xyz abc 1 2}"
         }
       ]
@@ -832,6 +1135,10 @@
     {
       "name": "alter-11.3",
       "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "CREATE TABLE t11b(\"%81%82%83\" text)"
+        },
         {
           "type": "exec",
           "sql": "ALTER TABLE t11b ADD COLUMN abc;"
@@ -848,7 +1155,31 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t11b VALUES(3,4)",
+          "sql": "INSERT INTO t11b VALUES(3,4)"
+        },
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT %81%82%83 AS xyz, abc FROM t11b",
+          "expect": "0 {xyz abc 3 4}"
+        }
+      ]
+    },
+    {
+      "name": "alter-11.5",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT [%81%82%83] AS xyz, abc FROM t11b",
+          "expect": "0 {xyz abc 3 4}"
+        }
+      ]
+    },
+    {
+      "name": "alter-11.6",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT \"%81%82%83\" AS xyz, abc FROM t11b",
           "expect": "0 {xyz abc 3 4}"
         }
       ]
@@ -856,6 +1187,10 @@
     {
       "name": "alter-11.7",
       "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "CREATE TABLE t11c(%81%82%83 text)"
+        },
         {
           "type": "exec",
           "sql": "ALTER TABLE t11c ADD COLUMN abc;"
@@ -872,7 +1207,31 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t11c VALUES(5,6)",
+          "sql": "INSERT INTO t11c VALUES(5,6)"
+        },
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT %81%82%83 AS xyz, abc FROM t11c",
+          "expect": "0 {xyz abc 5 6}"
+        }
+      ]
+    },
+    {
+      "name": "alter-11.9",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT [%81%82%83] AS xyz, abc FROM t11c",
+          "expect": "0 {xyz abc 5 6}"
+        }
+      ]
+    },
+    {
+      "name": "alter-11.10",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT \"%81%82%83\" AS xyz, abc FROM t11c",
           "expect": "0 {xyz abc 5 6}"
         }
       ]
@@ -908,6 +1267,13 @@
     {
       "name": "alter-12.4",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
         {
           "type": "exec",
           "sql": "SELECT * FROM v1;"
@@ -975,7 +1341,7 @@
       ]
     },
     {
-      "name": "setup_3",
+      "name": "setup_6",
       "steps": [
         {
           "type": "catch",
@@ -1064,8 +1430,15 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        }
+      ]
     },
     {
       "name": "alter-17.100",

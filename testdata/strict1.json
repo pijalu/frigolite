@@ -1,12 +1,13 @@
 {
   "file": "strict1.test",
   "name": "strict1",
+  "ordered": true,
   "tests": [
     {
       "name": "strict1-1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t1(a) STRICT;",
           "expect": "1 {missing datatype for t1.a}"
         }
@@ -16,7 +17,7 @@
       "name": "strict1-1.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t1(a PRIMARY KEY) STRICT, WITHOUT ROWID;",
           "expect": "1 {missing datatype for t1.a}"
         }
@@ -26,7 +27,7 @@
       "name": "strict1-1.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t1(a PRIMARY KEY) WITHOUT ROWID, STRICT;",
           "expect": "1 {missing datatype for t1.a}"
         }
@@ -36,7 +37,7 @@
       "name": "strict1-1.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t1(a BANJO PRIMARY KEY) WITHOUT ROWID, STRICT;",
           "expect": "1 {unknown datatype for t1.a: \"BANJO\"}"
         }
@@ -46,7 +47,7 @@
       "name": "strict1-1.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t1(a TEXT PRIMARY KEY, b INT, c INTEGER, d REAL, e BLOB, f DATE) strict;",
           "expect": "1 {unknown datatype for t1.f: \"DATE\"}"
         }
@@ -56,7 +57,7 @@
       "name": "strict1-1.6",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t1(a TEXT PRIMARY KEY, b INT, c INTEGER, d REAL, e BLOB, f TEXT(50)) WITHOUT ROWID, STRICT;",
           "expect": "1 {unknown datatype for t1.f: \"TEXT(50)\"}"
         }
@@ -85,7 +86,7 @@
       "name": "strict1-2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1(a) VALUES('xyz');",
           "expect": "1 {cannot store TEXT value in INT column t1.a}"
         }
@@ -95,7 +96,7 @@
       "name": "strict1-2.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1(b) VALUES('xyz');",
           "expect": "1 {cannot store TEXT value in INTEGER column t1.b}"
         }
@@ -105,7 +106,7 @@
       "name": "strict1-2.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1(c) VALUES('xyz');",
           "expect": "1 {cannot store TEXT value in BLOB column t1.c}"
         }
@@ -115,7 +116,7 @@
       "name": "strict1-2.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1(d) VALUES(x'3142536475');",
           "expect": "1 {cannot store BLOB value in TEXT column t1.d}"
         }
@@ -125,7 +126,7 @@
       "name": "strict1-2.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1(e) VALUES('xyz');",
           "expect": "1 {cannot store TEXT value in REAL column t1.e}"
         }
@@ -145,7 +146,7 @@
       "name": "strict1-3.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1(a) VALUES(1.2);",
           "expect": "1 {cannot store REAL value in INT column t1.a}"
         }
@@ -155,7 +156,7 @@
       "name": "strict1-3.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1(a) VALUES(x'313233');",
           "expect": "1 {cannot store BLOB value in INT column t1.a}"
         }
@@ -165,7 +166,7 @@
       "name": "strict1-3.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1(b) VALUES(1.2);",
           "expect": "1 {cannot store REAL value in INTEGER column t1.b}"
         }
@@ -175,7 +176,7 @@
       "name": "strict1-3.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1(b) VALUES(x'313233');",
           "expect": "1 {cannot store BLOB value in INTEGER column t1.b}"
         }
@@ -195,7 +196,7 @@
       "name": "strict1-4.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1(c) VALUES('456');",
           "expect": "1 {cannot store TEXT value in BLOB column t1.c}"
         }
@@ -215,7 +216,7 @@
       "name": "strict1-5.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1(d) VALUES(x'4567');",
           "expect": "1 {cannot store BLOB value in TEXT column t1.d}"
         }
@@ -235,7 +236,7 @@
       "name": "strict1-6.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1(e) VALUES('xyz');",
           "expect": "1 {cannot store TEXT value in REAL column t1.e}"
         }
@@ -245,7 +246,7 @@
       "name": "strict1-6.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1(e) VALUES(x'3456');",
           "expect": "1 {cannot store BLOB value in REAL column t1.e}"
         }
@@ -265,7 +266,7 @@
       "name": "strict1-7.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "ALTER TABLE t4 ADD COLUMN d VARCHAR;",
           "expect": "1 {error in table t4 after add column: unknown datatype for t4.d: \"VARCHAR\"}"
         }
@@ -275,11 +276,15 @@
       "name": "strict1-7.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "ALTER TABLE t4 ADD COLUMN d;",
           "expect": "1 {error in table t4 after add column: missing datatype for t4.d}"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "strict1-8.1",
@@ -315,7 +320,7 @@
       "name": "strict1-9.2.13",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO strict(k) VALUES(13);",
           "expect": "1 {cannot store TEXT value in REAL column strict.c1}"
         }
@@ -325,7 +330,7 @@
       "name": "strict1-9.2.14",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO strict(k) VALUES(14);",
           "expect": "1 {cannot store BLOB value in REAL column strict.c1}"
         }
@@ -335,7 +340,7 @@
       "name": "strict1-9.2.21",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO strict(k) VALUES(21);",
           "expect": "1 {cannot store REAL value in INT column strict.c2}"
         }
@@ -345,7 +350,7 @@
       "name": "strict1-9.2.23",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO strict(k) VALUES(23);",
           "expect": "1 {cannot store TEXT value in INT column strict.c2}"
         }
@@ -355,7 +360,7 @@
       "name": "strict1-9.2.24",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO strict(k) VALUES(24);",
           "expect": "1 {cannot store BLOB value in INT column strict.c2}"
         }
@@ -365,7 +370,7 @@
       "name": "strict1-9.2.34",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO strict(k) VALUES(34);",
           "expect": "1 {cannot store BLOB value in TEXT column strict.c3}"
         }
@@ -375,7 +380,7 @@
       "name": "strict1-9.2.41",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO strict(k) VALUES(41);",
           "expect": "1 {cannot store REAL value in BLOB column strict.c4}"
         }
@@ -385,7 +390,7 @@
       "name": "strict1-9.2.42",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO strict(k) VALUES(42);",
           "expect": "1 {cannot store INT value in BLOB column strict.c4}"
         }
@@ -395,7 +400,7 @@
       "name": "strict1-9.2.43",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO strict(k) VALUES(43);",
           "expect": "1 {cannot store TEXT value in BLOB column strict.c4}"
         }
@@ -415,7 +420,7 @@
       "name": "strict1-9.4.13",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO strict(k) VALUES(13);",
           "expect": "1 {cannot store TEXT value in REAL column strict.c1}"
         }
@@ -425,7 +430,7 @@
       "name": "strict1-9.4.14",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO strict(k) VALUES(14);",
           "expect": "1 {cannot store BLOB value in REAL column strict.c1}"
         }
@@ -435,7 +440,7 @@
       "name": "strict1-9.4.21",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO strict(k) VALUES(21);",
           "expect": "1 {cannot store REAL value in INT column strict.c2}"
         }
@@ -445,7 +450,7 @@
       "name": "strict1-9.4.23",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO strict(k) VALUES(23);",
           "expect": "1 {cannot store TEXT value in INT column strict.c2}"
         }
@@ -455,7 +460,7 @@
       "name": "strict1-9.4.24",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO strict(k) VALUES(24);",
           "expect": "1 {cannot store BLOB value in INT column strict.c2}"
         }
@@ -465,7 +470,7 @@
       "name": "strict1-9.4.34",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO strict(k) VALUES(34);",
           "expect": "1 {cannot store BLOB value in TEXT column strict.c3}"
         }
@@ -475,7 +480,7 @@
       "name": "strict1-9.4.41",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO strict(k) VALUES(41);",
           "expect": "1 {cannot store REAL value in BLOB column strict.c4}"
         }
@@ -485,7 +490,7 @@
       "name": "strict1-9.4.42",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO strict(k) VALUES(42);",
           "expect": "1 {cannot store INT value in BLOB column strict.c4}"
         }
@@ -495,17 +500,9 @@
       "name": "strict1-9.4.43",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO strict(k) VALUES(43);",
           "expect": "1 {cannot store TEXT value in BLOB column strict.c4}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

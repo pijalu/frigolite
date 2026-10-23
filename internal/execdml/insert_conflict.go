@@ -24,7 +24,7 @@ import (
 // (for RETURNING). sh is the statement's pre-resolved table shape
 // (execInsertTuples); it threads through to the row writer.
 func (e *DMLExecutor) execInsertRowSh(dbCtx *DatabaseContext, tableEntry *schema.Entry, colDefs []sql.ColumnDef, tuple []sql.Expr, values []interface{}, s *sql.InsertStmt, lits []interface{}, sh *insertTableShape) (*Result, []interface{}) {
-	explicitRowID, res := e.explicitRowIDFromColumns(tableEntry, s, tuple, lits)
+	explicitRowID, res := e.explicitRowIDFromColumns(tableEntry, colDefs, s, tuple, lits)
 	if res != nil {
 		return res, nil
 	}
@@ -77,7 +77,7 @@ func (e *DMLExecutor) execInsertRowSh(dbCtx *DatabaseContext, tableEntry *schema
 // explicitRowIDFromColumns scans the INSERT column list for a rowid alias
 // column (rowid/_rowid_/oid, plus docid for FTS tables) and evaluates its
 // tuple value.
-func (e *DMLExecutor) explicitRowIDFromColumns(tableEntry *schema.Entry, s *sql.InsertStmt, tuple []sql.Expr, lits []interface{}) (*int64, *Result) {
+func (e *DMLExecutor) explicitRowIDFromColumns(tableEntry *schema.Entry, colDefs []sql.ColumnDef, s *sql.InsertStmt, tuple []sql.Expr, lits []interface{}) (*int64, *Result) {
 	// An explicit rowid/_rowid_/oid column in the INSERT list sets the
 	// new row's rowid (SQLite allows INSERT INTO t(rowid, ...) VALUES).
 	// FTS virtual tables also accept docid as the rowid alias
@@ -93,7 +93,14 @@ func (e *DMLExecutor) explicitRowIDFromColumns(tableEntry *schema.Entry, s *sql.
 		if i >= len(tuple) {
 			continue
 		}
-		iv, isRowidAlias, res := e.rowidAliasColumnValue(col, tuple[i], isFTS, tupleLit(lits, i))
+		declared := false
+		for _, def := range colDefs {
+			if strings.EqualFold(def.Name, col) {
+				declared = true
+				break
+			}
+		}
+		iv, isRowidAlias, res := e.rowidAliasColumnValue(col, tuple[i], isFTS, declared, tupleLit(lits, i))
 		if res != nil {
 			return nil, res
 		}
@@ -124,8 +131,8 @@ func (e *DMLExecutor) explicitRowIDFromColumns(tableEntry *schema.Entry, s *sql.
 // lit is the tuple slot's bound-value stash entry (nil when absent): a
 // non-nil lit IS the slot's evaluated value (bindStashValue contract) and is
 // read directly — the stash's placeholder node must never be evaluated.
-func (e *DMLExecutor) rowidAliasColumnValue(col string, expr sql.Expr, isFTS bool, lit interface{}) (*int64, bool, *Result) {
-	isRowIDCol := execquery.IsRowIDName(col) || (isFTS && strings.EqualFold(col, "docid"))
+func (e *DMLExecutor) rowidAliasColumnValue(col string, expr sql.Expr, isFTS, declared bool, lit interface{}) (*int64, bool, *Result) {
+	isRowIDCol := (!declared && execquery.IsRowIDName(col)) || (isFTS && strings.EqualFold(col, "docid"))
 	if !isRowIDCol {
 		return nil, false, nil
 	}
@@ -500,16 +507,20 @@ func compositeUniqueError(tableEntry *schema.Entry, colDefs []sql.ColumnDef, gro
 // (cached per table name).
 func buildRowMapFromValues(values []interface{}, colDefs []sql.ColumnDef, rowID int64) RowMap {
 	row := make(RowMap)
-	for i, v := range values {
-		if i < len(colDefs) {
-			// Rowid-alias convention: the IPK column reads back NULL from the
-			// record; its value is the rowid (trigger OLD/NEW and FK rows
-			// must expose the real value, not NULL).
-			if v == nil && isIPKRowidAliasCol(colDefs[i]) {
-				v = rowID
-			}
-			row[colDefs[i].Name] = wrapValueForRowMap(v, colDefs[i])
+	for i, col := range colDefs {
+		var v interface{}
+		if i < len(values) {
+			v = values[i]
 		}
+		// SQLite short records omit trailing fields; those columns read as NULL
+		// through OLD/NEW pseudo-tables as well as ordinary table scans.
+		// Rowid-alias convention: the IPK column reads back NULL from the
+		// record; its value is the rowid (trigger OLD/NEW and FK rows
+		// must expose the real value, not NULL).
+		if v == nil && isIPKRowidAliasCol(col) {
+			v = rowID
+		}
+		row[col.Name] = wrapValueForRowMap(v, col)
 	}
 	// A table may declare columns named rowid/oid/_rowid_; those shadow the
 	// pseudo-rowid for name resolution (see rowHasRowIDColumn).

@@ -1,6 +1,7 @@
 {
   "file": "collateB.test",
   "name": "collateB",
+  "ordered": true,
   "tests": [
     {
       "name": "collateB-1.1",
@@ -132,19 +133,15 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "collateB-2.1",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t4(a COLLATE binary);\n  CREATE INDEX i4 ON t4(a);\n  INSERT INTO t4 VALUES('one'), ('two'), ('three');\n  VACUUM;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

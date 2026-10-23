@@ -1,6 +1,7 @@
 {
   "file": "keyword1.test",
   "name": "keyword1",
+  "ordered": true,
   "tests": [
     {
       "name": "setup_0",
@@ -8,18 +9,2326 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(3, 'three');"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-abort.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abort(abort abort)"
         },
         {
           "type": "exec",
-          "sql": "CREATE TABLE \\"
+          "sql": "INSERT INTO abort VALUES(99)"
         },
         {
           "type": "exec",
-          "sql": "DROP TABLE \\"
+          "sql": "INSERT INTO abort SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM abort ORDER BY abort ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-abort.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE abort"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX \\"
+          "sql": "CREATE INDEX abort ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY abort WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-after.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE after(after after)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO after VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO after SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM after ORDER BY after ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-after.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE after"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX after ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY after WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-analyze.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE analyze(analyze analyze)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO analyze VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO analyze SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM analyze ORDER BY analyze ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-analyze.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE analyze"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX analyze ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY analyze WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-asc.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE asc(asc asc)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO asc VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO asc SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM asc ORDER BY asc ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-asc.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE asc"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX asc ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY asc WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-attach.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE attach(attach attach)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO attach VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO attach SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM attach ORDER BY attach ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-attach.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE attach"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX attach ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY attach WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-before.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE before(before before)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO before VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO before SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM before ORDER BY before ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-before.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE before"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX before ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY before WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-begin.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE begin(begin begin)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO begin VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO begin SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM begin ORDER BY begin ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-begin.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE begin"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX begin ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY begin WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-by.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE by(by by)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO by VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO by SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM by ORDER BY by ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-by.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE by"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX by ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY by WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-cascade.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE cascade(cascade cascade)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO cascade VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO cascade SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM cascade ORDER BY cascade ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-cascade.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE cascade"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX cascade ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY cascade WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-cast.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE cast(cast cast)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO cast VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO cast SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM cast ORDER BY \"cast\" ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-cast.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE cast"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX cast ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY cast WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-column.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE column(column column)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO column VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO column SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM column ORDER BY column ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-column.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE column"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX column ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY column WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-conflict.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE conflict(conflict conflict)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO conflict VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO conflict SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM conflict ORDER BY conflict ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-conflict.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE conflict"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX conflict ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY conflict WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-current_date.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE current_date(current_date current_date)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO current_date VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO current_date SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM current_date ORDER BY \"current_date\" ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-current_date.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE current_date"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX current_date ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY current_date WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-current_time.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE current_time(current_time current_time)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO current_time VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO current_time SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM current_time ORDER BY \"current_time\" ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-current_time.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE current_time"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX current_time ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY current_time WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-current_timestamp.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE current_timestamp(current_timestamp current_timestamp)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO current_timestamp VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO current_timestamp SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM current_timestamp ORDER BY \"current_timestamp\" ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-current_timestamp.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE current_timestamp"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX current_timestamp ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY current_timestamp WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-database.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE database(database database)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO database VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO database SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM database ORDER BY database ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-database.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE database"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX database ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY database WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-deferred.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE deferred(deferred deferred)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO deferred VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO deferred SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM deferred ORDER BY deferred ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-deferred.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE deferred"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX deferred ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY deferred WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-desc.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE desc(desc desc)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO desc VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO desc SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM desc ORDER BY desc ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-desc.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE desc"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX desc ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY desc WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-detach.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE detach(detach detach)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO detach VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO detach SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM detach ORDER BY detach ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-detach.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE detach"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX detach ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY detach WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-end.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE end(end end)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO end VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO end SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM end ORDER BY end ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-end.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE end"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX end ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY end WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-each.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE each(each each)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO each VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO each SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM each ORDER BY each ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-each.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE each"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX each ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY each WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-exclusive.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE exclusive(exclusive exclusive)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO exclusive VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO exclusive SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM exclusive ORDER BY exclusive ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-exclusive.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE exclusive"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX exclusive ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY exclusive WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-explain.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE explain(explain explain)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO explain VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO explain SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM explain ORDER BY explain ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-explain.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE explain"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX explain ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY explain WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-fail.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE fail(fail fail)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO fail VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO fail SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM fail ORDER BY fail ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-fail.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE fail"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX fail ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY fail WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-for.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE for(for for)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO for VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO for SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM for ORDER BY for ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-for.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE for"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX for ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY for WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-glob.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE glob(glob glob)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO glob VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO glob SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM glob ORDER BY glob ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-glob.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE glob"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX glob ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY glob WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-if.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE \"if\"(if if)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO if VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO if SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM if ORDER BY if ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-if.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE \"if\""
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX \"if\" ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY if WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-ignore.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE ignore(ignore ignore)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ignore VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ignore SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM ignore ORDER BY ignore ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-ignore.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE ignore"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX ignore ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY ignore WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-immediate.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE immediate(immediate immediate)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO immediate VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO immediate SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM immediate ORDER BY immediate ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-immediate.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE immediate"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX immediate ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY immediate WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-initially.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE initially(initially initially)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO initially VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO initially SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM initially ORDER BY initially ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-initially.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE initially"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX initially ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY initially WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-instead.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE instead(instead instead)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO instead VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO instead SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM instead ORDER BY instead ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-instead.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE instead"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX instead ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY instead WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-key.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE key(key key)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO key VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO key SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM key ORDER BY key ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-key.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE key"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX key ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY key WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-like.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE like(like like)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO like VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO like SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM like ORDER BY like ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-like.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE like"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX like ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY like WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-match.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE match(match match)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO match VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO match SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM match ORDER BY match ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-match.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE match"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX match ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY match WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-of.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE of(of of)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO of VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO of SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM of ORDER BY of ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-of.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE of"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX of ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY of WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-offset.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE offset(offset offset)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO offset VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO offset SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM offset ORDER BY offset ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-offset.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE offset"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX offset ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY offset WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-plan.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE plan(plan plan)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO plan VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO plan SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM plan ORDER BY plan ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-plan.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE plan"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX plan ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY plan WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-pragma.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE pragma(pragma pragma)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO pragma VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO pragma SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM pragma ORDER BY pragma ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-pragma.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE pragma"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX pragma ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY pragma WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-query.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE query(query query)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO query VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO query SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM query ORDER BY query ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-query.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE query"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX query ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY query WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-raise.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE raise(raise raise)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO raise VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO raise SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM raise ORDER BY \"raise\" ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-raise.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE raise"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX raise ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY raise WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-recursive.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE recursive(recursive recursive)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO recursive VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO recursive SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM recursive ORDER BY recursive ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-recursive.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE recursive"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX recursive ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY recursive WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-regexp.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE regexp(regexp regexp)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO regexp VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO regexp SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM regexp ORDER BY regexp ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-regexp.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE regexp"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX regexp ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY regexp WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-reindex.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE reindex(reindex reindex)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO reindex VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO reindex SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM reindex ORDER BY reindex ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-reindex.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE reindex"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX reindex ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY reindex WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-release.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE release(release release)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO release VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO release SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM release ORDER BY release ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-release.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE release"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX release ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY release WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-rename.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE rename(rename rename)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rename VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rename SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM rename ORDER BY rename ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-rename.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE rename"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX rename ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY rename WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-replace.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE replace(replace replace)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO replace VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO replace SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM replace ORDER BY replace ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-replace.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE replace"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX replace ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY replace WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-restrict.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE restrict(restrict restrict)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO restrict VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO restrict SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM restrict ORDER BY restrict ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-restrict.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE restrict"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX restrict ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY restrict WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-rollback.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE rollback(rollback rollback)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rollback VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rollback SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM rollback ORDER BY rollback ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-rollback.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE rollback"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX rollback ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY rollback WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-row.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE row(row row)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO row VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO row SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM row ORDER BY row ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-row.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE row"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX row ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY row WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-savepoint.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE savepoint(savepoint savepoint)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO savepoint VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO savepoint SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM savepoint ORDER BY savepoint ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-savepoint.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE savepoint"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX savepoint ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY savepoint WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-temp.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE temp(temp temp)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO temp VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO temp SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM temp ORDER BY temp ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-temp.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE temp"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX temp ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY temp WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-temporary.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE temporary(temporary temporary)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO temporary VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO temporary SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM temporary ORDER BY temporary ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-temporary.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE temporary"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX temporary ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY temporary WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-trigger.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE trigger(trigger trigger)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO trigger VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO trigger SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM trigger ORDER BY trigger ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-trigger.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE trigger"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX trigger ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY trigger WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-vacuum.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE vacuum(vacuum vacuum)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO vacuum VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO vacuum SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM vacuum ORDER BY vacuum ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-vacuum.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE vacuum"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX vacuum ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY vacuum WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-view.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE view(view view)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO view VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO view SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM view ORDER BY view ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-view.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE view"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX view ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY view WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-virtual.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE virtual(virtual virtual)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO virtual VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO virtual SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM virtual ORDER BY virtual ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-virtual.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE virtual"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX virtual ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY virtual WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-with.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE with(with with)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO with VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO with SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM with ORDER BY with ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-with.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE with"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX with ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY with WHERE a=2",
+          "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-without.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE without(without without)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO without VALUES(99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO without SELECT a FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM without ORDER BY without ASC",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "keyword1-without.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE without"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX without ON t1(a)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 INDEXED BY without WHERE a=2",
+          "expect": "two"
         }
       ]
     }

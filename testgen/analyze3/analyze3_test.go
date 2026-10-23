@@ -771,7 +771,21 @@ func Test_analyze3(t *testing.T) {
 		// sqlite3_finalize $S
 	}
 	{ // "analyze3-5.1.1" — skipped: C-API prepared-statement binding loop (sqlite3_step) not transpilable (SQL + file side effects only)
-		_res = db.Exec("\n    CREATE TABLE t1(x TEXT COLLATE NOCASE);\n    CREATE INDEX i1 ON t1(x);\n    INSERT INTO t1 VALUES('aaa');\n    INSERT INTO t1 VALUES('abb');\n    INSERT INTO t1 VALUES('acc');\n    INSERT INTO t1 VALUES('baa');\n    INSERT INTO t1 VALUES('bbb');\n    INSERT INTO t1 VALUES('bcc');\n  ")
+		_res = db.Exec("CREATE TABLE t1(x TEXT COLLATE NOCASE)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("CREATE INDEX i1 ON t1(x)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("INSERT INTO t1 VALUES('aaa')")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("INSERT INTO t1 VALUES('abb')")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("INSERT INTO t1 VALUES('acc')")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("INSERT INTO t1 VALUES('baa')")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("INSERT INTO t1 VALUES('bbb')")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("INSERT INTO t1 VALUES('bcc')")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "analyze3-5.1.2" — skipped: C-API prepared-statement binding loop (sqlite3_step) not transpilable

@@ -1,6 +1,7 @@
 {
   "file": "autoanalyze1.test",
   "name": "autoanalyze1",
+  "ordered": true,
   "tests": [
     {
       "name": "autoanalyze1-100",
@@ -83,6 +84,15 @@
       ]
     },
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
       "name": "autoanalyze1-300",
       "steps": [
         {
@@ -99,6 +109,15 @@
           "type": "query",
           "sql": "SELECT (flgs \u0026 0x0100)!=0 FROM pragma_stats WHERE tbl='t1' AND idx IS NULL;",
           "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         }
       ]
     },
@@ -123,6 +142,15 @@
       ]
     },
     {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
       "name": "autoanalyze1-320",
       "steps": [
         {
@@ -143,6 +171,15 @@
       ]
     },
     {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
       "name": "autoanalyze1-400",
       "steps": [
         {
@@ -159,6 +196,15 @@
           "type": "query",
           "sql": "SELECT (flgs \u0026 0x0100)!=0 FROM pragma_stats WHERE tbl='t1' AND idx IS NULL;",
           "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         }
       ]
     },

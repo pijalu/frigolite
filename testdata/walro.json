@@ -1,0 +1,16 @@
+{
+  "file": "walro.test",
+  "name": "walro",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    }
+  ]
+}

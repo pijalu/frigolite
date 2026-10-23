@@ -1,6 +1,7 @@
 {
   "file": "json104.test",
   "name": "json104",
+  "ordered": true,
   "tests": [
     {
       "name": "json104-100",
@@ -283,7 +284,7 @@
       ]
     },
     {
-      "name": "401",
+      "name": "json104-401",
       "steps": [
         {
           "type": "query",
@@ -293,7 +294,7 @@
       ]
     },
     {
-      "name": "402",
+      "name": "json104-402",
       "steps": [
         {
           "type": "query",
@@ -303,7 +304,7 @@
       ]
     },
     {
-      "name": "403",
+      "name": "json104-403",
       "steps": [
         {
           "type": "query",
@@ -313,7 +314,7 @@
       ]
     },
     {
-      "name": "404",
+      "name": "json104-404",
       "steps": [
         {
           "type": "query",
@@ -323,7 +324,7 @@
       ]
     },
     {
-      "name": "405",
+      "name": "json104-405",
       "steps": [
         {
           "type": "query",

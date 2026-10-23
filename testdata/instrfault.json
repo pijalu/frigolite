@@ -1,32 +1,69 @@
 {
   "file": "instrfault.test",
   "name": "instrfault",
+  "ordered": true,
   "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
     {
       "name": "setup_0",
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT instr(h, n) FROM t1"
-        },
+          "sql": "PRAGMA encoding = utf8"
+        }
+      ]
+    },
+    {
+      "name": "instrfault-1.utf8.1",
+      "steps": [
         {
           "type": "exec",
-          "sql": "SELECT instr(h, n) FROM t1"
-        },
+          "sql": "CREATE TABLE t1(n, h);\n    INSERT INTO t1 VALUES('abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz', '123123123123123123123123123123abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz456456456456456456456456456456');"
+        }
+      ]
+    },
+    {
+      "name": "instrfault-1.utf8.5.0",
+      "steps": [
         {
           "type": "exec",
-          "sql": "SELECT instr($::HAYSTACK, $::NEEDLE) FROM t1"
-        },
+          "sql": "CREATE TABLE h1(a, b);\n    INSERT INTO h1 VALUES('abcdefg%200hijkl', randomblob(200));\n    INSERT INTO h1 SELECT b, a FROM h1;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_1",
+      "steps": [
         {
           "type": "exec",
-          "sql": "SELECT instr($::HAYSTACK, $::NEEDLE) FROM t1"
-        },
+          "sql": "PRAGMA encoding = utf16"
+        }
+      ]
+    },
+    {
+      "name": "instrfault-1.utf16.1",
+      "steps": [
         {
           "type": "exec",
-          "sql": "SELECT rowid FROM h1 WHERE instr(a,b)"
+          "sql": "CREATE TABLE t1(n, h);\n    INSERT INTO t1 VALUES('abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz', '123123123123123123123123123123abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz456456456456456456456456456456');"
+        }
+      ]
+    },
+    {
+      "name": "instrfault-1.utf16.5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE h1(a, b);\n    INSERT INTO h1 VALUES('abcdefg%200hijkl', randomblob(200));\n    INSERT INTO h1 SELECT b, a FROM h1;"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

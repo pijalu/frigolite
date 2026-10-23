@@ -1,14 +1,23 @@
 {
   "file": "insert5.test",
   "name": "insert5",
+  "ordered": true,
   "tests": [
     {
-      "name": "insert5-2.10",
+      "name": "delete_file",
       "steps": [
         {
-          "type": "query",
-          "sql": "CREATE TABLE t1(a INT);\n  INSERT INTO t1 VALUES(2);\n  CREATE TABLE t2(c INT, d INT);\n  INSERT INTO t2 VALUES(3,4),(10,NULL);\n  SELECT (SELECT c FROM t2 ORDER BY coalesce(d,a) LIMIT 1) FROM t1;",
-          "expect": "10"
+          "type": "delete_file",
+          "sql": "test2.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db-journal"
         }
       ]
     },
@@ -25,19 +34,89 @@
       "name": "insert5-1.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "INSERT INTO B \n        SELECT * FROM B UNION ALL \n        SELECT * FROM MAIN WHERE exists (select * FROM B WHERE B.Id = MAIN.Id);\n      SELECT * FROM B;",
           "expect": "2 3 2 3 2 3"
         }
       ]
     },
     {
-      "name": "insert5-1.1",
+      "name": "insert5-2.1",
       "steps": [
         {
-          "type": "query",
-          "sql": "INSERT INTO B SELECT * FROM B;\n      INSERT INTO B\n        SELECT * FROM MAIN WHERE exists (select * FROM B WHERE B.Id = MAIN.Id);\n      SELECT * FROM B;",
-          "expect": "2 3 2 3 2 3"
+          "type": "exec",
+          "sql": "EXPLAIN  INSERT INTO b SELECT * FROM main",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "insert5-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  INSERT INTO b SELECT * FROM b",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "insert5-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  INSERT INTO b SELECT (SELECT id FROM b), id1 FROM main",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "insert5-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  INSERT INTO b SELECT id1, (SELECT id FROM b) FROM main",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "insert5-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  \n    INSERT INTO b \n      SELECT * FROM main WHERE id = (SELECT id1 FROM b WHERE main.id = b.id)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "insert5-2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  INSERT INTO b SELECT * FROM v1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "insert5-2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  INSERT INTO b SELECT * FROM v2",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "insert5-2.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  \n    INSERT INTO b \n    SELECT * FROM main WHERE id \u003e 10 AND max(id1, (SELECT id FROM b)) \u003e 10;",
+          "expect": "1"
         }
       ]
     },
@@ -45,21 +124,19 @@
       "name": "insert5-2.9",
       "steps": [
         {
-          "type": "exec",
-          "sql": "INSERT INTO b \n    SELECT * FROM main \n    WHERE id > 10 AND (SELECT count(*) FROM v2 GROUP BY main.id)",
+          "type": "catch",
+          "sql": "INSERT INTO b \n    SELECT * FROM main \n    WHERE id \u003e 10 AND (SELECT count(*) FROM v2 GROUP BY main.id)",
           "expect": "0 {}"
-        },
+        }
+      ]
+    },
+    {
+      "name": "insert5-2.10",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE MAIN(Id INTEGER, Id1 INTEGER); \n    CREATE TABLE B(Id INTEGER, Id1 INTEGER); \n    CREATE VIEW v1 AS SELECT * FROM B;\n    CREATE VIEW v2 AS SELECT * FROM MAIN;\n    INSERT INTO MAIN(Id,Id1) VALUES(2,3); \n    INSERT INTO B(Id,Id1) VALUES(2,3);"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO B \n        SELECT * FROM B UNION ALL \n        SELECT * FROM MAIN WHERE exists (select * FROM B WHERE B.Id = MAIN.Id);\n      SELECT * FROM B;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO B SELECT * FROM B;\n      INSERT INTO B\n        SELECT * FROM MAIN WHERE exists (select * FROM B WHERE B.Id = MAIN.Id);\n      SELECT * FROM B;"
+          "type": "query",
+          "sql": "CREATE TABLE t1(a INT);\n  INSERT INTO t1 VALUES(2);\n  CREATE TABLE t2(c INT, d INT);\n  INSERT INTO t2 VALUES(3,4),(10,NULL);\n  SELECT (SELECT c FROM t2 ORDER BY coalesce(d,a) LIMIT 1) FROM t1;",
+          "expect": "10"
         }
       ]
     }

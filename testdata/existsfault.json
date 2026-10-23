@@ -1,0 +1,28 @@
+{
+  "file": "existsfault.test",
+  "name": "existsfault",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "existsfault-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a, b);\n  INSERT INTO x1 VALUES(1, 2), (3, 4), (5, 6);\n  CREATE UNIQUE INDEX x1a ON x1(a);\n  CREATE INDEX x1b ON x1(b);\n\n  CREATE TABLE x2(x, y);\n  INSERT INTO x2 VALUES(1, 2), (3, 4), (5, 6);"
+        }
+      ]
+    }
+  ]
+}

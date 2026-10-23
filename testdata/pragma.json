@@ -4,12 +4,34 @@
   "ordered": true,
   "tests": [
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA default_cache_size",
+          "variable": "DFLT_CACHE_SZ"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA temp.default_cache_size",
+          "variable": "TEMP_CACHE_SZ"
+        }
+      ]
+    },
+    {
       "name": "pragma-1.1",
       "steps": [
         {
           "type": "exec",
           "sql": "PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;",
-          "expect": "pragma pragma 2"
+          "expect": "$DFLT_CACHE_SZ $DFLT_CACHE_SZ 2"
         }
       ]
     },
@@ -19,7 +41,7 @@
         {
           "type": "exec",
           "sql": "PRAGMA synchronous=OFF;\n    PRAGMA cache_size=1234;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;",
-          "expect": "1234 pragma 0"
+          "expect": "1234 $DFLT_CACHE_SZ 0"
         }
       ]
     },
@@ -27,9 +49,16 @@
       "name": "pragma-1.3",
       "steps": [
         {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "exec",
           "sql": "PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;",
-          "expect": "pragma pragma 2"
+          "expect": "$DFLT_CACHE_SZ $DFLT_CACHE_SZ 2"
         }
       ]
     },
@@ -39,7 +68,7 @@
         {
           "type": "exec",
           "sql": "PRAGMA synchronous=OFF;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;",
-          "expect": "pragma pragma 0"
+          "expect": "$DFLT_CACHE_SZ $DFLT_CACHE_SZ 0"
         }
       ]
     },
@@ -49,7 +78,7 @@
         {
           "type": "exec",
           "sql": "PRAGMA cache_size=-4321;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;",
-          "expect": "-4321 pragma 0"
+          "expect": "-4321 $DFLT_CACHE_SZ 0"
         }
       ]
     },
@@ -59,7 +88,7 @@
         {
           "type": "exec",
           "sql": "PRAGMA synchronous=ON;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;",
-          "expect": "-4321 pragma 1"
+          "expect": "-4321 $DFLT_CACHE_SZ 1"
         }
       ]
     },
@@ -67,9 +96,16 @@
       "name": "pragma-1.7",
       "steps": [
         {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "exec",
           "sql": "PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;",
-          "expect": "pragma pragma 2"
+          "expect": "$DFLT_CACHE_SZ $DFLT_CACHE_SZ 2"
         }
       ]
     },
@@ -86,6 +122,13 @@
     {
       "name": "pragma-1.9.1",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;",
@@ -136,6 +179,13 @@
     {
       "name": "pragma-1.12",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;",
@@ -218,7 +268,7 @@
         {
           "type": "query",
           "sql": "PRAGMA default_cache_size;",
-          "expect": "pragma"
+          "expectedExpr": "$DFLT_CACHE_SZ"
         }
       ]
     },
@@ -257,7 +307,31 @@
           "type": "query",
           "sql": "PRAGMA default_cache_size;",
           "expect": "500"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
         },
+        {
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileData": "FFFFFF00",
+          "fileTarget": "test.db",
+          "fileOffset": 48
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "pragma-1.15.4",
+      "steps": [
         {
           "type": "query",
           "sql": "PRAGMA default_cache_size;",
@@ -304,6 +378,24 @@
       ]
     },
     {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db-journal"
+        }
+      ]
+    },
+    {
       "name": "pragma-2.1",
       "steps": [
         {
@@ -343,12 +435,38 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "pragma-3.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
     },
     {
       "name": "pragma-3.1",
       "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum=OFF;\n    BEGIN;\n    CREATE TABLE t2(a,b,c);\n    CREATE INDEX i2 ON t2(a);\n    INSERT INTO t2 VALUES(11,2,3);\n    INSERT INTO t2 VALUES(22,3,4);\n    COMMIT;\n    SELECT rowid, * from t2;",
@@ -357,16 +475,51 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "pragma-3.19",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
     },
     {
       "name": "pragma-3.19",
       "steps": [
         {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "exec",
           "sql": "PRAGMA integrity_check",
           "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "0"
         }
       ]
     },
@@ -434,6 +587,13 @@
       "name": "pragma-3.30",
       "steps": [
         {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "exec",
           "sql": "CREATE TABLE t1(a,b,c);\n    WITH RECURSIVE\n      c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i\u003c100)\n    INSERT INTO t1(a,b,c) SELECT i, printf('xyz%08x',i), 2000-i FROM c;\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1bc ON t1(b,c);"
         },
@@ -463,7 +623,12 @@
           "type": "query",
           "sql": "SELECT integrity_check AS x FROM pragma_integrity_check ORDER BY 1;",
           "expect": "\n    {row 2 missing from index t1bcd}\n    {row 2 missing from index t2bcd}\n    {row 3 values differ from index t1bcd}\n    {row 3 values differ from index t2bcd}\n    {row 4 values differ from index t1bcd}\n    {row 4 values differ from index t2bcd}\n    {row 5 values differ from index t1bcd}\n    {row 5 values differ from index t2bcd}\n  "
-        },
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
         {
           "type": "exec",
           "sql": "DROP TABLE t2"
@@ -476,7 +641,7 @@
         {
           "type": "exec",
           "sql": "ATTACH 'test2.db' AS aux;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;",
-          "expect": "pragma pragma"
+          "expect": "$DFLT_CACHE_SZ $DFLT_CACHE_SZ"
         }
       ]
     },
@@ -486,7 +651,7 @@
         {
           "type": "exec",
           "sql": "pragma aux.cache_size = 50;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;",
-          "expect": "50 pragma"
+          "expect": "50 $DFLT_CACHE_SZ"
         }
       ]
     },
@@ -506,7 +671,7 @@
         {
           "type": "exec",
           "sql": "pragma cache_size;\n    pragma default_cache_size;",
-          "expect": "pragma pragma"
+          "expect": "$DFLT_CACHE_SZ $DFLT_CACHE_SZ"
         }
       ]
     },
@@ -516,7 +681,7 @@
         {
           "type": "exec",
           "sql": "DETACH aux;\n    ATTACH 'test3.db' AS aux;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;",
-          "expect": "pragma pragma"
+          "expect": "$DFLT_CACHE_SZ $DFLT_CACHE_SZ"
         }
       ]
     },
@@ -561,7 +726,7 @@
       ]
     },
     {
-      "name": "setup_0",
+      "name": "setup_4",
       "steps": [
         {
           "type": "catch",
@@ -592,7 +757,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t2(a TYPE_X, b , c \"TYPE_Z\");\n    pragma table_info(t2)",
+          "sql": "CREATE TABLE t2(a TYPE_X, b [TYPE_Y], c \"TYPE_Z\");\n    pragma table_info(t2)",
           "expect": "0 a TYPE_X 0 {} 0 1 b TYPE_Y 0 {} 0 2 c TYPE_Z 0 {} 0"
         }
       ]
@@ -607,12 +772,29 @@
       ]
     },
     {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "\u003c\u003cNULL\u003e\u003e"
+        }
+      ]
+    },
+    {
       "name": "pragma-6.2.2",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t5(\n      a TEXT DEFAULT CURRENT_TIMESTAMP, \n      b DEFAULT (5+3),\n      c TEXT,\n      d INTEGER DEFAULT NULL,\n      e TEXT DEFAULT '',\n      UNIQUE(b,c,d),\n      PRIMARY KEY(e,b,c)\n    );\n    PRAGMA table_info(t5);",
           "expect": "0 a TEXT 0 CURRENT_TIMESTAMP 0 1 b {} 0 5+3 2 2 c TEXT 0 \u003c\u003cNULL\u003e\u003e 3 3 d INTEGER 0 NULL 0 4 e TEXT 0 '' 1"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "nullvalue"
         }
       ]
     },
@@ -815,6 +997,13 @@
       "name": "pragma-7.1.1",
       "steps": [
         {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS temp.out"
         },
@@ -842,9 +1031,16 @@
       "name": "pragma-7.3",
       "steps": [
         {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "exec",
           "sql": "pragma lock_status;",
-          "expect": "main unlocked"
+          "expect": "main unlocked temp closed"
         }
       ]
     },
@@ -858,12 +1054,40 @@
       ]
     },
     {
+      "name": "pragma-8.1.2",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "PRAGMA schema_version;",
+          "expect": "schema_version 105"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "1"
+        }
+      ]
+    },
+    {
       "name": "pragma-8.1.3",
       "steps": [
         {
           "type": "query",
           "sql": "PRAGMA schema_version = 106;\n  PRAGMA schema_version;",
           "expect": "105"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "0"
         }
       ]
     },
@@ -901,9 +1125,15 @@
       "name": "pragma-8.1.7",
       "steps": [
         {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
           "type": "exec",
           "sql": "SELECT * FROM t4;",
-          "expect": "1 2 3"
+          "expect": "1 2 3",
+          "database": "db2"
         }
       ]
     },
@@ -913,6 +1143,55 @@
         {
           "type": "exec",
           "sql": "PRAGMA schema_version = 108;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.1.9",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t4",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t4",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_1__",
+          "expect": "SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.1.10",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t4",
+          "variable": "stmt_1",
+          "expect": "SQLITE_SCHEMA"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db-journal"
         }
       ]
     },
@@ -949,8 +1228,14 @@
       "name": "pragma-8.1.14",
       "steps": [
         {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
           "type": "exec",
-          "sql": "ATTACH 'test2.db' AS aux;\n      SELECT * FROM aux.t1;"
+          "sql": "ATTACH 'test2.db' AS aux;\n      SELECT * FROM aux.t1;",
+          "database": "db2"
         }
       ]
     },
@@ -964,6 +1249,56 @@
       ]
     },
     {
+      "name": "pragma-8.1.16",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM aux.t1",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM aux.t1",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_2__",
+          "expect": "SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.1.17",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM aux.t1",
+          "variable": "stmt_2",
+          "expect": "SQLITE_SCHEMA"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.1.18",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.2.1",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "PRAGMA user_version;",
+          "expect": "user_version 0"
+        }
+      ]
+    },
+    {
       "name": "pragma-8.2.2",
       "steps": [
         {
@@ -973,8 +1308,25 @@
       ]
     },
     {
+      "name": "pragma-8.2.3.1",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "PRAGMA user_version;",
+          "expect": "user_version 2"
+        }
+      ]
+    },
+    {
       "name": "pragma-8.2.3.2",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA user_version;",
@@ -1013,7 +1365,7 @@
       ]
     },
     {
-      "name": "setup_1",
+      "name": "setup_9",
       "steps": [
         {
           "type": "exec",
@@ -1152,6 +1504,13 @@
       "name": "pragma-9.1",
       "steps": [
         {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "exec",
           "sql": "PRAGMA temp_store;",
           "expect": "0"
@@ -1176,6 +1535,13 @@
       "name": "pragma-9.2",
       "steps": [
         {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "exec",
           "sql": "PRAGMA temp_store=file;\n    PRAGMA temp_store;",
           "expect": "1"
@@ -1199,6 +1565,13 @@
     {
       "name": "pragma-9.3",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA temp_store=memory;\n    PRAGMA temp_store;",
@@ -1234,7 +1607,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA temp_store_directory='1';"
+          "sql": "PRAGMA temp_store_directory='';"
         }
       ]
     },
@@ -1244,7 +1617,7 @@
         {
           "type": "exec",
           "sql": "PRAGMA temp_store_directory;",
-          "expect": "1"
+          "expect": "{}"
         }
       ]
     },
@@ -1343,7 +1716,9 @@
         {
           "type": "query",
           "sql": "SELECT t FROM temp_table",
-          "expect": "1 {temporary storage cannot be changed from within a transaction}"
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
         }
       ]
     },
@@ -1391,8 +1766,45 @@
       ]
     },
     {
+      "name": "pragma-11.1",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "pragma collation_list;",
+          "expect": "seq 0 name RTRIM seq 1 name NOCASE seq 2 name BINARY"
+        }
+      ]
+    },
+    {
       "name": "pragma-11.2",
       "steps": [
+        {
+          "type": "register_collation",
+          "collationName": "New_Collation",
+          "collationProc": "blah...",
+          "callbackVars": {
+            "": "",
+            "::DB": "",
+            "::DB2": "",
+            "::STMT": "stmt_2",
+            "DB": "",
+            "DFLT_CACHE_SZ": "$DFLT_CACHE_SZ",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "TEMP_CACHE_SZ": "$TEMP_CACHE_SZ",
+            "file": "",
+            "idx": "",
+            "msg": "$msg",
+            "name": "",
+            "pwd": "",
+            "rc": "$rc",
+            "res": " {}",
+            "testdir": "",
+            "testprefix": "pragma"
+          }
+        },
         {
           "type": "exec",
           "sql": "pragma collation_list;",
@@ -1404,8 +1816,23 @@
       "name": "pragma-12.1",
       "steps": [
         {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
           "type": "exec",
-          "sql": "PRAGMA temp.table_info('abc');"
+          "sql": "PRAGMA temp.table_info('abc');",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     },
@@ -1413,9 +1840,24 @@
       "name": "pragma-12.2",
       "steps": [
         {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
           "type": "exec",
           "sql": "PRAGMA temp.default_cache_size = 200;\n      PRAGMA temp.default_cache_size;",
-          "expect": "200"
+          "expect": "200",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     },
@@ -1423,9 +1865,24 @@
       "name": "pragma-12.3",
       "steps": [
         {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
           "type": "exec",
           "sql": "PRAGMA temp.cache_size = 400;\n      PRAGMA temp.cache_size;",
-          "expect": "400"
+          "expect": "400",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_12",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     },
@@ -1443,8 +1900,30 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "setup_13",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_14",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
     },
     {
       "name": "pragma-14.1",
@@ -1501,6 +1980,17 @@
       ]
     },
     {
+      "name": "pragma-14.4",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "pragma page_size",
+          "variable": "page_size",
+          "expect": "2"
+        }
+      ]
+    },
+    {
       "name": "pragma-14.5",
       "steps": [
         {
@@ -1511,15 +2001,30 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db"
+        }
+      ]
     },
     {
       "name": "pragma-14.6",
       "steps": [
         {
+          "type": "open_named_db",
+          "sql": "test2.db",
+          "database": "db2"
+        },
+        {
           "type": "exec",
-          "sql": "PRAGMA auto_vacuum = 0;\n      CREATE TABLE t1(a, b, c);\n      CREATE TABLE t2(a, b, c);\n      CREATE TABLE t3(a, b, c);\n      CREATE TABLE t4(a, b, c);"
+          "sql": "PRAGMA auto_vacuum = 0;\n      CREATE TABLE t1(a, b, c);\n      CREATE TABLE t2(a, b, c);\n      CREATE TABLE t3(a, b, c);\n      CREATE TABLE t4(a, b, c);",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
         },
         {
           "type": "exec",
@@ -1539,6 +2044,18 @@
       ]
     },
     {
+      "name": "setup_15",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
       "name": "pragma-15.1",
       "steps": [
         {
@@ -1552,8 +2069,18 @@
       "name": "pragma-15.2",
       "steps": [
         {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
           "type": "exec",
-          "sql": "CREATE TABLE newtable(a, b, c);"
+          "sql": "CREATE TABLE newtable(a, b, c);",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     },
@@ -1572,8 +2099,30 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "setup_16",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": ":memory:",
+          "database": "dbX"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp_store_directory = \"\"",
+          "database": "dbX"
+        },
+        {
+          "type": "close_named_db",
+          "database": "dbX"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
     },
     {
       "name": "pragma-16.1",
@@ -1593,8 +2142,23 @@
       "name": "pragma-16.2",
       "steps": [
         {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
           "type": "exec",
-          "sql": "PRAGMA lock_proxy_file=\"mylittleproxy\";"
+          "sql": "PRAGMA lock_proxy_file=\"mylittleproxy\";",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_17",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     },
@@ -1602,13 +2166,29 @@
       "name": "pragma-16.2.1",
       "steps": [
         {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
           "type": "exec",
-          "sql": "PRAGMA lock_proxy_file=\":auto:\";\n      select * from sqlite_master;"
+          "sql": "PRAGMA lock_proxy_file=\":auto:\";\n      select * from sqlite_master;",
+          "database": "db2"
         },
         {
           "type": "exec",
           "sql": "PRAGMA lock_proxy_file;",
-          "expect": "mylittleproxy"
+          "expect": "mylittleproxy",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_18",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     },
@@ -1616,13 +2196,20 @@
       "name": "pragma-16.3",
       "steps": [
         {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
           "type": "exec",
-          "sql": "PRAGMA lock_proxy_file=\"myotherproxy\";"
+          "sql": "PRAGMA lock_proxy_file=\"myotherproxy\";",
+          "database": "db2"
         },
         {
           "type": "catch",
           "sql": "select * from sqlite_master;",
-          "expect": "1 {database is locked}"
+          "expect": "1 {database is locked}",
+          "database": "db2"
         }
       ]
     },
@@ -1630,9 +2217,31 @@
       "name": "pragma-16.4",
       "steps": [
         {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
           "type": "exec",
           "sql": "PRAGMA lock_proxy_file=\"myoriginalproxy\";\n      PRAGMA lock_proxy_file=\"myotherproxy\";\n      PRAGMA lock_proxy_file;",
-          "expect": "myotherproxy"
+          "expect": "myotherproxy",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_19",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     },
@@ -1640,9 +2249,15 @@
       "name": "pragma-16.5",
       "steps": [
         {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
           "type": "exec",
           "sql": "PRAGMA lock_proxy_file=\":auto:\";\n      PRAGMA lock_proxy_file;",
-          "expect": "myotherproxy"
+          "expect": "myotherproxy",
+          "database": "db2"
         }
       ]
     },
@@ -1650,9 +2265,21 @@
       "name": "pragma-16.6",
       "steps": [
         {
-          "type": "exec",
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test2.db",
+          "database": "db2"
+        },
+        {
+          "type": "query_assign",
           "sql": "PRAGMA lock_proxy_file=\":auto:\";\n      PRAGMA lock_proxy_file;",
-          "expect": "1"
+          "variable": "lockpath",
+          "resultAll": true,
+          "expect": "1",
+          "database": "db2"
         }
       ]
     },
@@ -1660,9 +2287,21 @@
       "name": "pragma-16.7",
       "steps": [
         {
+          "type": "reopen_db",
+          "sql": "test2.db"
+        },
+        {
           "type": "catch",
           "sql": "PRAGMA lock_proxy_file=\":auto:\";\n        select * from sqlite_master;",
-          "expect": "1 {database is locked}"
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "setup_20",
+      "steps": [
+        {
+          "type": "close_db"
         }
       ]
     },
@@ -1670,9 +2309,22 @@
       "name": "pragma-16.8",
       "steps": [
         {
+          "type": "reopen_db",
+          "sql": "test2.db"
+        },
+        {
           "type": "catch",
           "sql": "select * from sqlite_master",
-          "expect": "1 {database is locked}"
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "setup_21",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     },
@@ -1696,22 +2348,38 @@
       ]
     },
     {
+      "name": "setup_22",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
       "name": "pragma-16.9",
       "steps": [
         {
-          "type": "exec",
+          "type": "reopen_db",
+          "sql": "proxytest.db"
+        },
+        {
+          "type": "query_assign",
           "sql": "PRAGMA lock_proxy_file=\":auto:\";\n      PRAGMA lock_proxy_file;",
+          "variable": "lockpath2",
+          "resultAll": true,
           "expect": "1"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
       "name": "pragma-17.1.0",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum=0;\n      PRAGMA auto_vacuum;",
@@ -1720,12 +2388,14 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
       "name": "pragma-17.1.1",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum=1;\n      PRAGMA auto_vacuum;",
@@ -1734,12 +2404,14 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
       "name": "pragma-17.1.2",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum=2;\n      PRAGMA auto_vacuum;",
@@ -1748,12 +2420,14 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
       "name": "pragma-17.1.3",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum=3;\n      PRAGMA auto_vacuum;",
@@ -1762,12 +2436,14 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
       "name": "pragma-17.1.-1",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum=-1;\n      PRAGMA auto_vacuum;",
@@ -1776,12 +2452,14 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
       "name": "pragma-17.1.none",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum=none;\n      PRAGMA auto_vacuum;",
@@ -1790,12 +2468,14 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
       "name": "pragma-17.1.NONE",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum=NONE;\n      PRAGMA auto_vacuum;",
@@ -1804,12 +2484,14 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
       "name": "pragma-17.1.NoNe",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum=NoNe;\n      PRAGMA auto_vacuum;",
@@ -1818,12 +2500,14 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
       "name": "pragma-17.1.full",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum=full;\n      PRAGMA auto_vacuum;",
@@ -1832,12 +2516,14 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
       "name": "pragma-17.1.FULL",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum=FULL;\n      PRAGMA auto_vacuum;",
@@ -1846,12 +2532,14 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
       "name": "pragma-17.1.incremental",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum=incremental;\n      PRAGMA auto_vacuum;",
@@ -1860,12 +2548,14 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
       "name": "pragma-17.1.INCREMENTAL",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum=INCREMENTAL;\n      PRAGMA auto_vacuum;",
@@ -1874,12 +2564,14 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
       "name": "pragma-17.1.-1234",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum=-1234;\n      PRAGMA auto_vacuum;",
@@ -1888,12 +2580,14 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
       "name": "pragma-17.1.1234",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum=1234;\n      PRAGMA auto_vacuum;",
@@ -1902,12 +2596,14 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
       "name": "pragma-18.1.0",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA temp_store=0;\n      PRAGMA temp_store=0;\n      PRAGMA temp_store;",
@@ -1916,12 +2612,14 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
       "name": "pragma-18.1.1",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA temp_store=1;\n      PRAGMA temp_store=1;\n      PRAGMA temp_store;",
@@ -1930,12 +2628,14 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
       "name": "pragma-18.1.2",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA temp_store=2;\n      PRAGMA temp_store=2;\n      PRAGMA temp_store;",
@@ -1944,12 +2644,14 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
       "name": "pragma-18.1.3",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA temp_store=3;\n      PRAGMA temp_store=3;\n      PRAGMA temp_store;",
@@ -1958,12 +2660,14 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
       "name": "pragma-18.1.-1",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA temp_store=-1;\n      PRAGMA temp_store=-1;\n      PRAGMA temp_store;",
@@ -1972,12 +2676,14 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
       "name": "pragma-18.1.file",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA temp_store=file;\n      PRAGMA temp_store=file;\n      PRAGMA temp_store;",
@@ -1986,12 +2692,14 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
       "name": "pragma-18.1.FILE",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA temp_store=FILE;\n      PRAGMA temp_store=FILE;\n      PRAGMA temp_store;",
@@ -2000,12 +2708,14 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
       "name": "pragma-18.1.fIlE",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA temp_store=fIlE;\n      PRAGMA temp_store=fIlE;\n      PRAGMA temp_store;",
@@ -2014,12 +2724,14 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
       "name": "pragma-18.1.memory",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA temp_store=memory;\n      PRAGMA temp_store=memory;\n      PRAGMA temp_store;",
@@ -2028,12 +2740,14 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
       "name": "pragma-18.1.MEMORY",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA temp_store=MEMORY;\n      PRAGMA temp_store=MEMORY;\n      PRAGMA temp_store;",
@@ -2042,16 +2756,30 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
       "name": "pragma-18.1.MeMoRy",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA temp_store=MeMoRy;\n      PRAGMA temp_store=MeMoRy;\n      PRAGMA temp_store;",
           "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "setup_23",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         }
       ]
     },
@@ -2106,12 +2834,29 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "pragma-21.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
     },
     {
       "name": "pragma-21.1",
       "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA page_size = 1024;\n      PRAGMA auto_vacuum = 0;\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(1, 1);"
@@ -2154,14 +2899,36 @@
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 SELECT a + (1 \u003c\u003c 9), b + (1 \u003c\u003c 9) FROM t1",
-          "expect": "100"
+          "sql": "INSERT INTO t1 SELECT a + (1 \u003c\u003c 9), b + (1 \u003c\u003c 9) FROM t1"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "testerr.db"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "testerr.db",
+          "expect": "100",
+          "fileData": "55555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555",
+          "fileTarget": "testerr.db",
+          "fileOffset": 15000
         }
       ]
     },
     {
       "name": "pragma-22.2",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "testerr.db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA integrity_check",
@@ -2172,6 +2939,13 @@
     {
       "name": "pragma-22.3.1",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
         {
           "type": "exec",
           "sql": "ATTACH 'testerr.db' AS 'aux';\n      PRAGMA integrity_check;",
@@ -2203,6 +2977,13 @@
       "name": "pragma-22.4.1",
       "steps": [
         {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "testerr.db"
+        },
+        {
           "type": "exec",
           "sql": "ATTACH 'test.db' AS 'aux';\n      PRAGMA integrity_check;",
           "expect": "/{\\*\\*\\* in database main \\*\\*\\*\nMultiple uses for byte 672 of page 15}.*/"
@@ -2230,16 +3011,66 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "setup_24",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-wal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "setup_25",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        }
+      ]
     },
     {
       "name": "pragma-23.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c,d);\n    CREATE INDEX i1 ON t1(b,c);\n    CREATE INDEX i2 ON t1(c,d);\n    CREATE INDEX i2x ON t1(d COLLATE nocase, c DESC);\n    CREATE INDEX i3 ON t1(d,b+c,c);\n    CREATE TABLE t2(x INTEGER REFERENCES t1);",
-          "expect": "t1 i1 i2 i2x i3 t2"
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c,d);\n    CREATE INDEX i1 ON t1(b,c);\n    CREATE INDEX i2 ON t1(c,d);\n    CREATE INDEX i2x ON t1(d COLLATE nocase, c DESC);\n    CREATE INDEX i3 ON t1(d,b+c,c);\n    CREATE TABLE t2(x INTEGER REFERENCES t1);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master",
+          "expect": "t1 i1 i2 i2x i3 t2",
+          "database": "db2"
         }
       ]
     },
@@ -2248,8 +3079,77 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP INDEX i2;\n    CREATE INDEX i2 ON t1(c,d,b);",
-          "expect": "2 c | 3 d | 1 b |"
+          "sql": "DROP INDEX i2;\n    CREATE INDEX i2 ON t1(c,d,b);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS temp.out",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA index_info(i2)",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT cid, name, '|' FROM out ORDER BY seqno",
+          "expect": "2 c | 3 d | 1 b |",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "pragma-23.2b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS temp.out",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA index_xinfo(i2)",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT cid, name, \"desc\", coll, \"key\", '|' FROM out ORDER BY seqno",
+          "expect": "2 c 0 BINARY 1 | 3 d 0 BINARY 1 | 1 b 0 BINARY 1 | -1 {} 0 BINARY 0 |",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "pragma-23.2c",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA index_xinfo(i2)",
+          "expect": "0 2 c 0 BINARY 1 1 3 d 0 BINARY 1 2 1 b 0 BINARY 1 3 -1 {} 0 BINARY 0",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "pragma-23.2d",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA index_xinfo(i2x)",
+          "expect": "0 3 d 0 nocase 1 1 2 c 1 BINARY 1 2 -1 {} 0 BINARY 0",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "pragma-23.2e",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA index_xinfo(i3)",
+          "expect": "0 3 d 0 BINARY 1 1 -2 {} 0 BINARY 1 2 2 c 0 BINARY 1 3 -1 {} 0 BINARY 0",
+          "database": "db2"
         }
       ]
     },
@@ -2258,8 +3158,23 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP INDEX IF EXISTS i3;\n    CREATE INDEX i3 ON t1(d,b,c);",
-          "expect": "0 i3 0 c | 1 i2 0 c | 2 i2x 0 c | 3 i1 0 c |"
+          "sql": "DROP INDEX IF EXISTS i3;\n    CREATE INDEX i3 ON t1(d,b,c);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS temp.out",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA index_list(t1)",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT seq, name, \"unique\", origin, '|' FROM out ORDER BY seq",
+          "expect": "0 i3 0 c | 1 i2 0 c | 2 i2x 0 c | 3 i1 0 c |",
+          "database": "db2"
         }
       ]
     },
@@ -2268,8 +3183,13 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ALTER TABLE t1 ADD COLUMN e;",
-          "expect": "/4 e {} 0 {} 0/"
+          "sql": "ALTER TABLE t1 ADD COLUMN e;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(t1);",
+          "expect": "/4 e {} 0 {} 0/",
+          "database": "db2"
         }
       ]
     },
@@ -2278,8 +3198,22 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP TABLE t2;\n    CREATE TABLE t2(x, y INTEGER REFERENCES t1);",
-          "expect": "0 0 t1 y {} {NO ACTION} {NO ACTION} NONE"
+          "sql": "DROP TABLE t2;\n    CREATE TABLE t2(x, y INTEGER REFERENCES t1);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_key_list(t2);",
+          "expect": "0 0 t1 y {} {NO ACTION} {NO ACTION} NONE",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_26",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     },

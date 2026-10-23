@@ -1,0 +1,20 @@
+{
+  "file": "fts3tok_err.test",
+  "name": "fts3tok_err",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3tok_err-2.prep",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts3tokenize(\"simple\");"
+        }
+      ]
+    }
+  ]
+}

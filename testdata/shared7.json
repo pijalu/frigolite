@@ -1,14 +1,44 @@
 {
   "file": "shared7.test",
   "name": "shared7",
+  "ordered": true,
   "tests": [
     {
       "name": "shared7-1.2",
       "steps": [
         {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "exec",
+          "sql": "CREATE TABLE t1(x);"
+        },
+        {
+          "type": "catch",
           "sql": "ATTACH 'test.db' AS err1;",
           "expect": "1 {database is already attached}"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db-journal"
         }
       ]
     },
@@ -17,6 +47,10 @@
       "steps": [
         {
           "type": "exec",
+          "sql": "ATTACH 'test2.db' AS test2;\n    CREATE TABLE test2.t2(y);"
+        },
+        {
+          "type": "catch",
           "sql": "ATTACH 'test2.db' AS err2;",
           "expect": "1 {database is already attached}"
         }
@@ -26,28 +60,11 @@
       "name": "shared7-1.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "ATTACH 'test.db' AS err1;",
           "expect": "1 {database is already attached}"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x);"
-        },
-        {
-          "type": "exec",
-          "sql": "ATTACH 'test2.db' AS test2;\n    CREATE TABLE test2.t2(y);"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

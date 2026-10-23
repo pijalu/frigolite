@@ -398,7 +398,13 @@ func Test_dbpage(t *testing.T) {
 	{ // "dbpage-710" — skipped: cross-connection page copy loop needs shared pager N-A (P7 concurrency) (SQL + file side effects only)
 		_res = db.Exec("\n    BEGIN;\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
-		_res = db.Exec("\n      SAVEPOINT abc;\n        INSERT INTO sqlite_dbpage VALUES(2, NULL);\n      ROLLBACK TO abc;\n    COMMIT;\n  ")
+		_res = db.Exec("SAVEPOINT abc")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("INSERT INTO sqlite_dbpage VALUES(2, NULL)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("ROLLBACK TO abc")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("COMMIT")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	db.Close()

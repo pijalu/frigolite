@@ -1,6 +1,7 @@
 {
   "file": "rowhash.test",
   "name": "rowhash",
+  "ordered": true,
   "tests": [
     {
       "name": "rowhash-1.1",
@@ -8,18 +9,106 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(id INTEGER PRIMARY KEY, a, b, c);\n    CREATE INDEX i1 ON t1(a);\n    CREATE INDEX i2 ON t1(b);\n    CREATE INDEX i3 ON t1(c);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(id INTEGER PRIMARY KEY, a, b, c);\n    CREATE INDEX i1 ON t1(a);\n    CREATE INDEX i2 ON t1(b);\n    CREATE INDEX i3 ON t1(c);"
-        },
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
         {
           "type": "exec",
           "sql": "DELETE FROM t1"
         },
         {
           "type": "exec",
-          "sql": "SELECT id FROM t1 WHERE a = 'a' OR b = 'b' OR c = 'c';"
+          "sql": "INSERT OR IGNORE INTO t1 VALUES(1, 'a', 'b', 'c')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR IGNORE INTO t1 VALUES(2, 'a', 'b', 'c')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR IGNORE INTO t1 VALUES(3, 'a', 'b', 'c')"
+        }
+      ]
+    },
+    {
+      "name": "rowhash-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT id FROM t1 WHERE a = 'a' OR b = 'b' OR c = 'c';",
+          "expect": "1 2 3",
+          "resultTransform": "lsort:integer"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR IGNORE INTO t1 VALUES(0, 'a', 'b', 'c')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR IGNORE INTO t1 VALUES(1, 'a', 'b', 'c')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR IGNORE INTO t1 VALUES(2, 'a', 'b', 'c')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR IGNORE INTO t1 VALUES(3, 'a', 'b', 'c')"
+        }
+      ]
+    },
+    {
+      "name": "rowhash-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT id FROM t1 WHERE a = 'a' OR b = 'b' OR c = 'c';",
+          "expect": "0 1 2 3",
+          "resultTransform": "lsort:integer"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR IGNORE INTO t1 VALUES(62, 'a', 'b', 'c')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR IGNORE INTO t1 VALUES(125, 'a', 'b', 'c')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR IGNORE INTO t1 VALUES(188, 'a', 'b', 'c')"
+        }
+      ]
+    },
+    {
+      "name": "rowhash-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT id FROM t1 WHERE a = 'a' OR b = 'b' OR c = 'c';",
+          "expect": "62 125 188",
+          "resultTransform": "lsort:integer"
         }
       ]
     }

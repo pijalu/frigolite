@@ -467,7 +467,11 @@ func Test_subquery(t *testing.T) {
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "subquery-3.4.1" — skipped: HAVING NOT EXISTS over a grouped correlated-avg subquery: outer-aggregate promotion across subquery boundary (T4 queue #2652 class) (SQL + file side effects only)
-		_res = db.Exec("\n    CREATE TABLE t34(x,y);\n    INSERT INTO t34 VALUES(106,4), (107,3), (106,5), (107,5);\n    SELECT a.x, avg(a.y)\n      FROM t34 AS a\n     GROUP BY a.x\n     HAVING NOT EXISTS( SELECT b.x, avg(b.y)\n                          FROM t34 AS b\n                         GROUP BY b.x\n                         HAVING avg(a.y) > avg(b.y));\n  ")
+		_res = db.Exec("CREATE TABLE t34(x,y)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("INSERT INTO t34 VALUES(106,4), (107,3), (106,5), (107,5)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("SELECT a.x, avg(a.y)\n      FROM t34 AS a\n     GROUP BY a.x\n     HAVING NOT EXISTS( SELECT b.x, avg(b.y)\n                          FROM t34 AS b\n                         GROUP BY b.x\n                         HAVING avg(a.y) > avg(b.y))")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // do_test "subquery-3.4.2"

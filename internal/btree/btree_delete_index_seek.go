@@ -348,17 +348,28 @@ func (t *BTree) indexCellPayloadAt(pg *pager.Page, page *storage.BTreePage, cell
 func (t *BTree) replaceInteriorCellRelocated(pg *pager.Page, page *storage.BTreePage, idx int, encoded []byte) (bool, error) {
 	coff := contentOffset(pg.PageNum)
 	ptrBase := coff + cellPtrOffset(page.PageType)
-	start := int(page.CellContent) - len(encoded)
-	if start < coff+cellPtrOffset(page.PageType)+(int(page.CellCount)+1)*2+2 {
-		return false, nil
+	oldCount := int(page.CellCount)
+	for i := idx; i < oldCount-1; i++ {
+		copy(pg.Data[ptrBase+i*2:ptrBase+i*2+2], pg.Data[ptrBase+(i+1)*2:ptrBase+(i+2)*2])
 	}
-	copy(pg.Data[start:], encoded)
-	binary.BigEndian.PutUint16(pg.Data[ptrBase+idx*2:], uint16(start))
-	binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(start))
-	page.CellContent = start
+	page.CellCount--
+	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], page.CellCount)
 	if err := t.defragmentInterior(pg, page); err != nil {
 		return false, err
 	}
+	start := int(page.CellContent) - len(encoded)
+	if start < ptrBase+oldCount*2 {
+		return false, nil
+	}
+	copy(pg.Data[start:], encoded)
+	for i := oldCount - 1; i > idx; i-- {
+		copy(pg.Data[ptrBase+i*2:ptrBase+i*2+2], pg.Data[ptrBase+(i-1)*2:ptrBase+i*2])
+	}
+	binary.BigEndian.PutUint16(pg.Data[ptrBase+idx*2:], uint16(start))
+	page.CellCount = uint16(oldCount)
+	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], page.CellCount)
+	page.CellContent = start
+	binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(start))
 	pg.RefreshParsedBTree(int(t.pageSize), coff, page)
 	if err := t.pager.WritePage(pg); err != nil {
 		return false, err

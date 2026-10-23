@@ -342,7 +342,24 @@
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA writable_schema = 1;\n    INSERT INTO sqlite_schema \n      VALUES('table', 't1', 't1', 2, 'CREATE TABLE t1(x INTEGER PRIMARY KEY)');"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
         },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "fkey6-6.1",
+      "steps": [
         {
           "type": "query",
           "sql": "PRAGMA foreign_keys = 1;\n    PRAGMA writable_schema = 1;"

@@ -5,7 +5,7 @@
   "ordered": true,
   "tests": [
     {
-      "name": "100",
+      "name": "whereL-100",
       "steps": [
         {
           "type": "exec",
@@ -14,7 +14,7 @@
       ]
     },
     {
-      "name": "110",
+      "name": "whereL-110",
       "steps": [
         {
           "type": "query",
@@ -23,7 +23,7 @@
       ]
     },
     {
-      "name": "120",
+      "name": "whereL-120",
       "steps": [
         {
           "type": "query",
@@ -32,7 +32,7 @@
       ]
     },
     {
-      "name": "121",
+      "name": "whereL-121",
       "steps": [
         {
           "type": "query",
@@ -41,7 +41,15 @@
       ]
     },
     {
-      "name": "122",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_test_funcs"
+        }
+      ]
+    },
+    {
+      "name": "whereL-122",
       "steps": [
         {
           "type": "query",
@@ -50,7 +58,7 @@
       ]
     },
     {
-      "name": "200",
+      "name": "whereL-200",
       "steps": [
         {
           "type": "query",
@@ -60,7 +68,7 @@
       ]
     },
     {
-      "name": "201",
+      "name": "whereL-201",
       "steps": [
         {
           "type": "query",
@@ -69,7 +77,7 @@
       ]
     },
     {
-      "name": "300",
+      "name": "whereL-300",
       "steps": [
         {
           "type": "query",
@@ -79,7 +87,7 @@
       ]
     },
     {
-      "name": "301",
+      "name": "whereL-301",
       "steps": [
         {
           "type": "query",
@@ -89,7 +97,7 @@
       ]
     },
     {
-      "name": "302",
+      "name": "whereL-302",
       "steps": [
         {
           "type": "query",
@@ -99,7 +107,7 @@
       ]
     },
     {
-      "name": "400",
+      "name": "whereL-400",
       "steps": [
         {
           "type": "query",
@@ -112,7 +120,7 @@
       "steps": null
     },
     {
-      "name": "500",
+      "name": "whereL-500",
       "steps": [
         {
           "type": "query",
@@ -121,7 +129,7 @@
       ]
     },
     {
-      "name": "510",
+      "name": "whereL-510",
       "steps": [
         {
           "type": "query",
@@ -130,7 +138,7 @@
       ]
     },
     {
-      "name": "520",
+      "name": "whereL-520",
       "steps": [
         {
           "type": "query",
@@ -139,7 +147,7 @@
       ]
     },
     {
-      "name": "530",
+      "name": "whereL-530",
       "steps": [
         {
           "type": "query",
@@ -152,7 +160,7 @@
       "steps": null
     },
     {
-      "name": "600",
+      "name": "whereL-600",
       "steps": [
         {
           "type": "query",
@@ -162,7 +170,7 @@
       ]
     },
     {
-      "name": "610",
+      "name": "whereL-610",
       "steps": [
         {
           "type": "query",
@@ -176,7 +184,7 @@
       "steps": null
     },
     {
-      "name": "700",
+      "name": "whereL-700",
       "steps": [
         {
           "type": "query",
@@ -186,7 +194,7 @@
       ]
     },
     {
-      "name": "710",
+      "name": "whereL-710",
       "steps": [
         {
           "type": "query",
@@ -199,7 +207,16 @@
       "steps": null
     },
     {
-      "name": "800",
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "whereL-800",
       "steps": [
         {
           "type": "query",
@@ -209,7 +226,7 @@
       ]
     },
     {
-      "name": "810",
+      "name": "whereL-810",
       "steps": [
         {
           "type": "query",
@@ -223,7 +240,7 @@
       "steps": null
     },
     {
-      "name": "900",
+      "name": "whereL-900",
       "steps": [
         {
           "type": "query",
@@ -233,7 +250,7 @@
       ]
     },
     {
-      "name": "910",
+      "name": "whereL-910",
       "steps": [
         {
           "type": "query",
@@ -243,7 +260,7 @@
       ]
     },
     {
-      "name": "920",
+      "name": "whereL-920",
       "steps": [
         {
           "type": "query",
@@ -253,7 +270,7 @@
       ]
     },
     {
-      "name": "930",
+      "name": "whereL-930",
       "steps": [
         {
           "type": "exec",
@@ -262,7 +279,7 @@
       ]
     },
     {
-      "name": "940",
+      "name": "whereL-940",
       "steps": [
         {
           "type": "query",
@@ -272,7 +289,7 @@
       ]
     },
     {
-      "name": "950",
+      "name": "whereL-950",
       "steps": [
         {
           "type": "query",

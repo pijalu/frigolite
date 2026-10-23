@@ -1,0 +1,250 @@
+{
+  "file": "loadext.test",
+  "name": "loadext",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "loadext-1.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT half(1.0);",
+          "expect": "1 {no such function: half}"
+        }
+      ]
+    },
+    {
+      "name": "loadext-1.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT half(1.0);",
+          "expect": "0 0.5"
+        }
+      ]
+    },
+    {
+      "name": "loadext-1.3",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT half(1.0);",
+          "expect": "1 {no such function: half}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "loadext-1.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT half(1.0);",
+          "expect": "0 0.5",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "loadext-1.5",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT half(1.0);",
+          "expect": "0 0.5",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "./libtestloadext.soxx"
+        }
+      ]
+    },
+    {
+      "name": "loadext-2.2",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "./notasharedlib.so",
+          "fileData": "blah\n"
+        },
+        {
+          "type": "write_file",
+          "sql": "./notasharedlib.dll",
+          "expect": "/1 {./notasharedlib.*: file too short}/",
+          "fileData": "blah\n"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "loadext-3.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT half(5);",
+          "expect": "1 {no such function: half}"
+        }
+      ]
+    },
+    {
+      "name": "loadext-3.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT load_extension('./libtestloadext.so')",
+          "expect": "/1 {./libtestloadext.so: undefined symbol: sqlite3_.*_init}/"
+        }
+      ]
+    },
+    {
+      "name": "loadext-3.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT load_extension('./libtestloadext.so','testloadext_init')",
+          "expect": "0 {{}}"
+        }
+      ]
+    },
+    {
+      "name": "loadext-3.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT half(5);",
+          "expect": "0 2.5"
+        }
+      ]
+    },
+    {
+      "name": "loadext-3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sqlite3_status('MEMORY_USED') AS mused",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "loadext-3.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT sqlite3_status('MEMORY_USED_X') AS mused",
+          "expect": "1 {unknown status property: MEMORY_USED_X}"
+        }
+      ]
+    },
+    {
+      "name": "loadext-3.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT sqlite3_status(4.53) AS mused",
+          "expect": "1 {unknown status type}"
+        }
+      ]
+    },
+    {
+      "name": "loadext-3.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT sqlite3_status(23) AS mused",
+          "expect": "1 {sqlite3_status(23,...) returns 21}"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "loadext-4.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT load_extension('./libtestloadext.so','testloadext_init')",
+          "expect": "1 {not authorized}"
+        }
+      ]
+    },
+    {
+      "name": "loadext-4.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT load_extension('./libtestloadext.so','testloadext_init')",
+          "expect": "0 {{}}"
+        }
+      ]
+    },
+    {
+      "name": "loadext-4.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT load_extension('./libtestloadext.so','testloadext_init')",
+          "expect": "1 {not authorized}"
+        }
+      ]
+    },
+    {
+      "name": "loadext-4.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT load_extension('./libtestloadext.so','testloadext_init')",
+          "expect": "1 {not authorized}"
+        }
+      ]
+    }
+  ]
+}

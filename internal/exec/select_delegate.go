@@ -17,6 +17,14 @@ import (
 // call the SELECT entry points without depending on the query sub-package.
 
 // execSelect executes a SELECT statement (delegated to execquery).
+// ExecEach executes one statement and synchronously offers each SELECT result row
+// to callback. Callback execution is scoped to this statement.
+func (e *Engine) ExecEach(stmt sql.Stmt, callback func([]interface{}) (bool, error)) *Result {
+	e.selectEngine.SetRowCallback(callback)
+	defer e.selectEngine.SetRowCallback(nil)
+	return e.Exec(stmt)
+}
+
 func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 	// A read inside an open transaction takes a transaction-level SHARED lock
 	// (held until COMMIT/ROLLBACK) so another connection's COMMIT cannot upgrade

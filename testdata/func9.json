@@ -1,6 +1,7 @@
 {
   "file": "func9.test",
   "name": "func9",
+  "ordered": true,
   "tests": [
     {
       "name": "func9-100",
@@ -26,7 +27,7 @@
       "name": "func9-120",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT concat();",
           "expect": "1 {wrong number of arguments to function concat()}"
         }
@@ -86,7 +87,7 @@
       "name": "func9-140",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT concat_ws(NULL,1,2,3,4,5,6,7,8,NULL,9,10,11,12);",
           "expect": "{}"
         }
@@ -96,7 +97,7 @@
       "name": "func9-150",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT concat_ws();",
           "expect": "1 {wrong number of arguments to function concat_ws()}"
         }
@@ -106,7 +107,7 @@
       "name": "func9-160",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT concat_ws(',');",
           "expect": "1 {wrong number of arguments to function concat_ws()}"
         }
@@ -118,7 +119,7 @@
         {
           "type": "query",
           "sql": "SELECT unistr('G\\u00e4ste');",
-          "expect": "G\u00e4ste"
+          "expect": "Gäste"
         }
       ]
     },
@@ -128,7 +129,7 @@
         {
           "type": "query",
           "sql": "SELECT unistr_quote(unistr('G\\u00e4ste'));",
-          "expect": "'G\u00e4ste'"
+          "expect": "'Gäste'"
         }
       ]
     },
@@ -138,7 +139,7 @@
         {
           "type": "query",
           "sql": "SELECT format('%#Q',unistr('G\\u00e4ste'));",
-          "expect": "'G\u00e4ste'"
+          "expect": "'Gäste'"
         }
       ]
     },

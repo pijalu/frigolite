@@ -1,9 +1,22 @@
 {
   "file": "mmapcorrupt.test",
   "name": "mmapcorrupt",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "mmapcorrupt-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +25,26 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileData": "800380",
+          "fileTarget": "test.db",
+          "fileOffset": -3
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mmapcorrupt-2.1",
       "steps": [
         {
           "type": "query",
@@ -22,22 +54,13 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "mmapcorrupt-2.2",
       "steps": [
         {
           "type": "exec",
           "sql": "INSERT INTO t0 SELECT * FROM t1;"
         }
       ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
     }
-  ],
-  "source": "capi"
+  ]
 }

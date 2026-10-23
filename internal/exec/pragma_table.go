@@ -7,6 +7,7 @@ import (
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/sql"
+	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/util"
 )
 
@@ -32,6 +33,7 @@ var pragmaTableFuncs = map[string]bool{
 	"pragma_database_list":     true,
 	"pragma_collation_list":    true,
 	"pragma_compile_options":   true,
+	"pragma_stats":             true,
 }
 
 func isPragmaTableFunc(name string) bool {
@@ -85,6 +87,8 @@ func (e *Engine) materializePragmaTableWithRowImpl(ref sql.TableRef, row Row) ([
 		return e.materializePragmaIndexInfo(ref)
 	case "index_list", "function_list", "module_list", "pragma_list":
 		return e.materializePragmaList(pragma, ref)
+	case "stats":
+		return e.materializePragmaStats()
 	case "compile_options":
 		// pragma_compile_options TVF: one compile_options column row per
 		// compile-time option (sqlite parity; json101 21.1 queries it via
@@ -240,7 +244,7 @@ func (e *Engine) materializePragmaPragmaList(ref sql.TableRef) ([]sql.ColumnDef,
 		"pragma_list", "function_list", "module_list", "table_list",
 		"table_info", "table_xinfo", "index_info", "index_xinfo", "index_list",
 		"foreign_key_list", "foreign_key_check", "collation_list", "database_list",
-		"compile_options", "integrity_check", "quick_check", "encoding",
+		"compile_options", "integrity_check", "quick_check", "stats", "encoding",
 		"journal_mode", "page_size", "cache_size", "cache_spill", "auto_vacuum",
 		"user_version", "application_id", "case_sensitive_like", "recursive_triggers",
 		"foreign_keys", "defer_foreign_keys", "writable_schema", "data_version",
@@ -257,10 +261,79 @@ func (e *Engine) materializePragmaPragmaList(ref sql.TableRef) ([]sql.ColumnDef,
 	return cols, rows, nil
 }
 
-// materializePragmaIntegrityCheck materializes pragma_integrity_check /
-// pragma_quick_check as table-valued functions with one column named after
-// the pragma ("integrity_check" or "quick_check"). Each row is a line of
-// the check output; a clean database yields a single "ok" row.
+// readStat1RowsForPragma returns decoded sqlite_stat1 records for pragma_stats.
+func (e *Engine) readStat1RowsForPragma() [][]interface{} {
+	entry, err := e.schema.FindTable("sqlite_stat1")
+	if err != nil || entry.RootPage == 0 {
+		return nil
+	}
+	tree := e.tableBTree("sqlite_stat1", entry.RootPage, true)
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return nil
+	}
+	defer cursor.Close()
+	var rows [][]interface{}
+	for {
+		cell, err := cursor.ReadCell()
+		if err != nil {
+			break
+		}
+		rec, err := storage.DecodeRecord(cell.Payload)
+		if err != nil {
+			break
+		}
+		rows = append(rows, rec.Values)
+		ok, err := cursor.Next()
+		if err != nil || !ok {
+			break
+		}
+	}
+	return rows
+}
+
+// materializePragmaStats exposes table and index flags for test-only planner diagnostics.
+func (e *Engine) materializePragmaStats() ([]sql.ColumnDef, [][]interface{}, error) {
+	cols := []sql.ColumnDef{{Name: "tbl"}, {Name: "idx"}, {Name: "flgs"}}
+	entries, err := e.schema.GetEntries("")
+	if err != nil {
+		return nil, nil, err
+	}
+	stat1Rows := e.readStat1RowsForPragma()
+	var rows [][]interface{}
+	for _, entry := range entries {
+		if entry.Type != "table" || strings.HasPrefix(strings.ToLower(entry.Name), "sqlite_") {
+			continue
+		}
+		flags := int64(0)
+		if e.statsUsed[strings.ToLower(entry.Name)] {
+			flags |= 0x100
+		}
+		for _, stat := range stat1Rows {
+			if len(stat) > 1 && strings.EqualFold(fmt.Sprint(stat[0]), entry.Name) && stat[1] == nil {
+				flags |= 0x10
+				break
+			}
+		}
+		rows = append(rows, []interface{}{entry.Name, nil, flags})
+		for _, idx := range entries {
+			if idx.Type != "index" || !strings.EqualFold(idx.TblName, entry.Name) {
+				continue
+			}
+			idxFlags := int64(0)
+			for _, stat := range stat1Rows {
+				if len(stat) > 1 && strings.EqualFold(fmt.Sprint(stat[0]), entry.Name) && strings.EqualFold(fmt.Sprint(stat[1]), idx.Name) {
+					idxFlags |= 0x10
+					break
+				}
+			}
+			rows = append(rows, []interface{}{entry.Name, idx.Name, idxFlags})
+		}
+	}
+	return cols, rows, nil
+}
+
+// materializePragmaIntegrityCheck materializes table-valued integrity checks.
 func (e *Engine) materializePragmaIntegrityCheck(ref sql.TableRef) ([]sql.ColumnDef, [][]interface{}, error) {
 	colName := "integrity_check"
 	if strings.HasSuffix(strings.ToLower(ref.Name), "quick_check") {

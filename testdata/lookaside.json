@@ -1,24 +1,58 @@
 {
   "file": "lookaside.test",
   "name": "lookaside",
+  "ordered": true,
   "tests": [
     {
       "name": "setup_0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(w,x,y,z);"
+          "type": "close_db"
         },
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(x);"
-        },
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "lookaside-1.4",
+      "steps": [
         {
           "type": "exec",
-          "sql": "SELECT 1"
+          "sql": "CREATE TABLE t1(w,x,y,z);",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "lookaside-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "lookaside-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "lookaside-4.1",
+      "steps": [
+        {
+          "type": "close_db",
+          "expect": "0"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

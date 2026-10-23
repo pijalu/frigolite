@@ -1,13 +1,1679 @@
 {
   "file": "cache.test",
   "name": "cache",
+  "ordered": true,
   "tests": [
+    {
+      "name": "cache-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=OFF;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "cache-1.3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc"
+        }
+      ]
+    },
+    {
+      "name": "cache-1.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc"
+        }
+      ]
+    },
+    {
+      "name": "cache-1.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc"
+        }
+      ]
+    },
+    {
+      "name": "cache-1.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc"
+        }
+      ]
+    },
+    {
+      "name": "cache-1.3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc"
+        }
+      ]
+    },
+    {
+      "name": "cache-1.3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc"
+        }
+      ]
+    },
+    {
+      "name": "cache-1.3.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc"
+        }
+      ]
+    },
+    {
+      "name": "cache-1.3.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc"
+        }
+      ]
+    },
+    {
+      "name": "cache-1.3.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc"
+        }
+      ]
+    },
+    {
+      "name": "cache-1.3.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
     {
       "name": "cache-2.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA auto_vacuum=OFF;\n  PRAGMA journal_mode=DELETE;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t1 VALUES('x', 'y');\n  INSERT INTO t2 VALUES('i', 'j');"
+          "sql": "PRAGMA auto_vacuum=OFF;\n  PRAGMA journal_mode=DELETE;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t1 VALUES('x', 'y');\n  INSERT INTO t2 VALUES('i', 'j');",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.0.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 0"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.0.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.0.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.0.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 1"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 2"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 3"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 4"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 5"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 6"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 7"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "7"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.7.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "7"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 8"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "8"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.8.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "8"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 9"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "9"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.9.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.9.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "9"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.10.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 10"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.10.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.10.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.11.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 11"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.11.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "11"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.11.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.11.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "11"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.12.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 12"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.12.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "12"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.12.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.12.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "12"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.13.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 13"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.13.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "13"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.13.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.13.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "13"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.14.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 14"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.14.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "14"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.14.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.14.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "14"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.15.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 15"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.15.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "15"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.15.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.15.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "15"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.16.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 16"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.16.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "16"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.16.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.16.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "16"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.17.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 17"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.17.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "17"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.17.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.17.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "17"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.18.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 18"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.18.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "18"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.18.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.18.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "18"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.19.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 19"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.19.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "19"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.19.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.1.19.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size",
+          "expect": "19"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.0.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size = 0"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.0.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.0.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.0.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size = 1"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size = 2"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size = 3"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size = 4"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size = 5"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size = 6"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size = 7"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "7"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.7.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "7"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size = 8"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "8"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.8.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "8"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size = 9"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "9"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.9.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.9.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "9"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.10.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size = 10"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.10.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.10.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.11.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size = 11"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.11.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "11"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.11.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.11.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "11"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.12.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size = 12"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.12.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "12"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.12.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.12.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "12"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.13.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size = 13"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.13.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "13"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.13.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.13.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "13"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.14.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size = 14"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.14.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "14"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.14.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.14.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "14"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.15.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size = 15"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.15.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "15"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.15.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.15.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "15"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.16.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size = 16"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.16.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "16"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.16.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.16.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "16"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.17.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size = 17"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.17.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "17"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.17.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.17.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "17"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.18.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size = 18"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.18.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "18"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.18.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.18.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "18"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.19.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size = 19"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.19.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "19"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.19.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.2.19.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "19"
         }
       ]
     },
@@ -28,6 +1694,15 @@
           "type": "query",
           "sql": "INSERT INTO t2 VALUES(1, 2);\n    PRAGMA lock_status;",
           "expect": "main exclusive temp closed"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
         }
       ]
     },
@@ -62,6 +1737,15 @@
       ]
     },
     {
+      "name": "cache-2.4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
       "name": "cache-2.4.7",
       "steps": [
         {
@@ -70,24 +1754,6 @@
           "expect": "1 2 i j x y"
         }
       ]
-    },
-    {
-      "name": "cache-1.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA auto_vacuum=OFF;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA auto_vacuum=OFF;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM abc"
-        }
-      ]
     }
-  ],
-  "source": "capi"
+  ]
 }

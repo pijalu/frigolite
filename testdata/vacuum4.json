@@ -1,9 +1,10 @@
 {
   "file": "vacuum4.test",
   "name": "vacuum4",
+  "ordered": true,
   "tests": [
     {
-      "name": "setup_0",
+      "name": "vacuum4-1.1",
       "steps": [
         {
           "type": "exec",

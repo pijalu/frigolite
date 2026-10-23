@@ -1,9 +1,10 @@
 {
   "file": "thread3.test",
   "name": "thread3",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "thread3-1.0",
       "steps": [
         {
           "type": "query",
@@ -13,15 +14,21 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "thread3-1.1",
       "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM t1"
-        },
         {
           "type": "exec",
           "sql": "SELECT count(*) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "thread3-1.Total BUSY errors: 0 .2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;",
+          "expect": "250"
         }
       ]
     }

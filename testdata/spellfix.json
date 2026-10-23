@@ -1,9 +1,1570 @@
 {
   "file": "spellfix.test",
   "name": "spellfix",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.11",
+      "name": "spellfix-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING spellfix1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rabbi')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rabbit')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rabbits')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rabble')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rabid')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rabies')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raccoon')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raccoons')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('race')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raced')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('racer')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('racers')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('races')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('racetrack')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('racial')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('racially')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('racing')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rack')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('racked')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('racket')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('racketeer')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('racketeering')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('racketeers')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rackets')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('racking')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('racks')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radar')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radars')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radial')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radially')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radian')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radiance')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radiant')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radiantly')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radiate')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radiated')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radiates')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radiating')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radiation')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radiations')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radiator')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radiators')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radical')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radically')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radicals')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radices')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radii')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radio')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radioactive')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radioastronomy')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radioed')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radiography')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radioing')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radiology')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radios')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radish')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radishes')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radium')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radius')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radix')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('radon')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raft')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rafter')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rafters')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rafts')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rag')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rage')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raged')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rages')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ragged')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raggedly')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raggedness')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raging')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rags')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ragweed')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raid')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raided')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raider')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raiders')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raiding')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raids')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rail')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('railed')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('railer')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('railers')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('railing')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('railroad')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('railroaded')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('railroader')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('railroaders')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('railroading')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('railroads')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rails')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('railway')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('railways')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raiment')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rain')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rainbow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raincoat')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raincoats')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raindrop')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raindrops')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rained')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rainfall')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rainier')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rainiest')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raining')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rains')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rainstorm')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rainy')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raise')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raised')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raiser')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raisers')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raises')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raisin')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raising')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rake')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raked')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rakes')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raking')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rallied')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rallies')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rally')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rallying')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ram')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ramble')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rambler')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rambles')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rambling')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ramblings')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ramification')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ramifications')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ramp')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rampage')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rampant')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rampart')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ramps')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ramrod')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rams')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ran')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ranch')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ranched')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rancher')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ranchers')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ranches')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ranching')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rancid')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('random')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('randomization')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('randomize')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('randomized')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('randomizes')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('randomly')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('randomness')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('randy')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rang')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('range')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ranged')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rangeland')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ranger')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rangers')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ranges')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ranging')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rangy')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rank')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ranked')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ranker')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rankers')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rankest')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ranking')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rankings')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rankle')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rankly')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rankness')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ranks')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ransack')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ransacked')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ransacking')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ransacks')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ransom')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ransomer')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ransoming')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ransoms')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rant')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ranted')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ranter')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ranters')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ranting')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rants')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rap')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rapacious')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rape')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raped')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raper')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rapes')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rapid')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rapidity')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rapidly')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rapids')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rapier')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raping')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rapport')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rapprochement')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raps')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rapt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raptly')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rapture')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raptures')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rapturous')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rare')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rarely')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rareness')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rarer')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rarest')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rarity')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rascal')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rascally')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rascals')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rash')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rasher')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rashly')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rashness')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rasp')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raspberry')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rasped')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rasping')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rasps')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raster')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rat')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rate')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rated')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rater')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raters')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rates')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rather')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ratification')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ratified')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ratifies')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ratify')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ratifying')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rating')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ratings')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ratio')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ration')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rational')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rationale')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rationales')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rationalities')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rationality')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rationalization')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rationalizations')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rationalize')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rationalized')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rationalizes')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rationalizing')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rationally')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rationals')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rationing')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rations')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ratios')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rats')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rattle')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rattled')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rattler')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rattlers')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rattles')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rattlesnake')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rattlesnakes')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rattling')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raucous')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ravage')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ravaged')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ravager')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ravagers')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ravages')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ravaging')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rave')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raved')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raven')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ravening')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ravenous')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ravenously')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ravens')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raves')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ravine')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ravines')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raving')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ravings')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raw')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rawer')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rawest')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rawly')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rawness')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ray')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('rays')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('raze')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('razor')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('razors')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('re')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reabbreviate')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reabbreviated')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reabbreviates')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reabbreviating')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reach')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reachability')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reachable')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reachably')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reached')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reacher')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reaches')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reaching')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reacquired')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('react')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reacted')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reacting')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reaction')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reactionaries')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reactionary')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reactions')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reactivate')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reactivated')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reactivates')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reactivating')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reactivation')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reactive')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reactively')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reactivity')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reactor')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reactors')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reacts')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('read')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('readability')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('readable')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reader')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('readers')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('readied')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('readier')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('readies')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('readiest')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('readily')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('readiness')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reading')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('readings')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('readjusted')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('readout')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('readouts')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reads')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('ready')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('readying')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('real')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('realest')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('realign')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('realigned')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('realigning')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('realigns')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('realism')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('realist')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('realistic')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('realistically')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('realists')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('realities')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(word) VALUES('reality')"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, matchlen FROM t1 WHERE word MATCH 'raxpi*' \n     ORDER BY score, word LIMIT 5",
+          "expect": "rasping 5 rasped 5 ragweed 5 raspberry 6 rasp 4"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, matchlen FROM t1 WHERE word MATCH 'ril*' \n     ORDER BY score, word LIMIT 5",
+          "expect": "rail 4 railed 4 railer 4 railers 4 railing 4"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-1.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, matchlen FROM t1 WHERE word MATCH 'rilis*' \n     ORDER BY score, word LIMIT 5",
+          "expect": "realism 6 realist 6 realistic 6 realistically 6 realists 6"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-1.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, matchlen FROM t1 WHERE word MATCH 'reail*' \n     ORDER BY score, word LIMIT 5",
+          "expect": "real 3 realest 3 realign 3 realigned 3 realigning 3"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-1.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, matchlen FROM t1 WHERE word MATCH 'ras*' \n     ORDER BY score, word LIMIT 5",
+          "expect": "rascal 3 rascally 3 rascals 3 rash 3 rasher 3"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-1.2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, matchlen FROM t1 WHERE word MATCH 'realistss*' \n     ORDER BY score, word LIMIT 5",
+          "expect": "realists 8 realigns 8 realistic 9 realistically 9 realest 7"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-1.2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, matchlen FROM t1 WHERE word MATCH 'realistss' \n     ORDER BY score, word LIMIT 5",
+          "expect": "realists 8 realist 7 realigns 8 realistic 9 realest 7"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-1.2.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, matchlen FROM t1 WHERE word MATCH 'rllation*' \n     ORDER BY score, word LIMIT 5",
+          "expect": "realities 9 reality 7 rallied 7 railed 4"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-1.2.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, matchlen FROM t1 WHERE word MATCH 'renstom*' \n     ORDER BY score, word LIMIT 5",
+          "expect": "rainstorm 8 ransom 6 ransomer 6 ransoming 6 ransoms 6"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-1.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE vocab(w TEXT PRIMARY KEY);\n    INSERT INTO vocab SELECT word FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-1.11",
       "steps": [
         {
           "type": "query",
@@ -13,7 +1574,7 @@
       ]
     },
     {
-      "name": "1.11sub",
+      "name": "spellfix-1.11sub",
       "steps": [
         {
           "type": "query",
@@ -23,7 +1584,7 @@
       ]
     },
     {
-      "name": "1.12",
+      "name": "spellfix-1.12",
       "steps": [
         {
           "type": "query",
@@ -33,7 +1594,7 @@
       ]
     },
     {
-      "name": "1.13",
+      "name": "spellfix-1.13",
       "steps": [
         {
           "type": "query",
@@ -43,7 +1604,17 @@
       ]
     },
     {
-      "name": "1.20",
+      "name": "spellfix-1.14",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT next_char('','xyzzy','a')",
+          "expect": "1 {no such table: xyzzy}"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-1.20",
       "steps": [
         {
           "type": "query",
@@ -53,7 +1624,7 @@
       ]
     },
     {
-      "name": "1.21",
+      "name": "spellfix-1.21",
       "steps": [
         {
           "type": "query",
@@ -63,7 +1634,7 @@
       ]
     },
     {
-      "name": "1.22",
+      "name": "spellfix-1.22",
       "steps": [
         {
           "type": "query",
@@ -73,7 +1644,7 @@
       ]
     },
     {
-      "name": "1.23",
+      "name": "spellfix-1.23",
       "steps": [
         {
           "type": "query",
@@ -83,7 +1654,7 @@
       ]
     },
     {
-      "name": "1.30",
+      "name": "spellfix-1.30",
       "steps": [
         {
           "type": "query",
@@ -93,7 +1664,7 @@
       ]
     },
     {
-      "name": "1.31",
+      "name": "spellfix-1.31",
       "steps": [
         {
           "type": "query",
@@ -103,7 +1674,7 @@
       ]
     },
     {
-      "name": "1.32",
+      "name": "spellfix-1.32",
       "steps": [
         {
           "type": "query",
@@ -113,7 +1684,17 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "spellfix-1.33",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1(rowid, word) VALUES(3000,'garden');",
+          "expect": "1 {constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-2.1",
       "steps": [
         {
           "type": "query",
@@ -123,7 +1704,7 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "spellfix-2.2",
       "steps": [
         {
           "type": "query",
@@ -133,7 +1714,7 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "spellfix-3.1",
       "steps": [
         {
           "type": "exec",
@@ -142,7 +1723,862 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "spellfix-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kangaroo')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kanji')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kappa')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('karate')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('keel')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('keeled')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('keeling')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('keels')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('keen')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('keener')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('keenest')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('keenly')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('keenness')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('keep')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('keeper')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('keepers')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('keeping')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('keeps')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('ken')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kennel')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kennels')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kept')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kerchief')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kerchiefs')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kern')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kernel')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kernels')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kerosene')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('ketchup')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kettle')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kettles')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('key')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('keyboard')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('keyboards')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('keyed')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('keyhole')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('keying')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('keynote')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('keypad')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('keypads')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('keys')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('keystroke')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('keystrokes')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('keyword')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('keywords')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kick')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kicked')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kicker')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kickers')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kicking')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kickoff')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kicks')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kid')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kidded')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kiddie')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kidding')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kidnap')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kidnapper')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kidnappers')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kidnapping')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kidnappings')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kidnaps')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kidney')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kidneys')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kids')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kill')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('killed')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('killer')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('killers')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('killing')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('killingly')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('killings')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('killjoy')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kills')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kilobit')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kilobits')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kiloblock')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kilobyte')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kilobytes')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kilogram')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kilograms')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kilohertz')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kilohm')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kilojoule')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kilometer')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kilometers')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kiloton')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kilovolt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kilowatt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kiloword')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kimono')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kin')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kind')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kinder')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kindergarten')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kindest')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kindhearted')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kindle')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kindled')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kindles')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kindling')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kindly')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kindness')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kindred')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kinds')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kinetic')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('king')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kingdom')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kingdoms')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kingly')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kingpin')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kings')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kink')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kinky')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kinship')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kinsman')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kiosk')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kiss')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kissed')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kisser')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kissers')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kisses')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kissing')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kit')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kitchen')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kitchenette')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kitchens')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kite')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kited')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kites')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kiting')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kits')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kitten')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kittenish')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kittens')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kitty')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('klaxon')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kludge')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kludges')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('klystron')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knack')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knapsack')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knapsacks')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knave')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knaves')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knead')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kneads')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knee')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kneecap')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kneed')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kneeing')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kneel')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kneeled')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kneeling')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kneels')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knees')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knell')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knells')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knelt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knew')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knife')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knifed')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knifes')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knifing')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knight')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knighted')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knighthood')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knighting')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knightly')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knights')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knit')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knits')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knives')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knob')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knobs')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knock')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knockdown')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knocked')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knocker')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knockers')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knocking')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knockout')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knocks')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knoll')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knolls')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knot')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knots')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knotted')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knotting')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('know')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knowable')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knower')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knowhow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knowing')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knowingly')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knowledge')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knowledgeable')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('known')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knows')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knuckle')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knuckled')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('knuckles')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('koala')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kosher')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(word) VALUES('kudo')"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-3.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, matchlen FROM t3 WHERE word MATCH 'kos*'\n     ORDER BY score, word LIMIT 5",
+          "expect": "kosher 3 kiosk 4 kudo 2 kiss 3 kissed 3"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-3.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, matchlen FROM t3 WHERE word MATCH 'kellj*'\n     ORDER BY score, word LIMIT 5",
+          "expect": "killjoy 5 kill 4 killed 4 killer 4 killers 4"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-3.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, matchlen FROM t3 WHERE word MATCH 'kellj'\n     ORDER BY score, word LIMIT 5",
+          "expect": "kill 4 kills 5 killjoy 7 keel 4 killed 6"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-4.0",
       "steps": [
         {
           "type": "exec",
@@ -151,7 +2587,37 @@
       ]
     },
     {
-      "name": "5.0",
+      "name": "spellfix-4.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, distance FROM t3 WHERE word MATCH 'kosher'\n     ORDER BY score, word LIMIT 5",
+          "expect": "kosher 0 kisser 51 kissers 76 kissed 126 kisses 126"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-4.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, distance FROM t3 WHERE word MATCH 'kellj'\n     ORDER BY score, word LIMIT 5",
+          "expect": "keels 60 killjoy 68 kills 80 keel 120 kill 125"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-4.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, distance FROM t3 WHERE word MATCH 'kashar'\n     ORDER BY score, word LIMIT 5",
+          "expect": "kosher 80 kisser 91 kissers 116 kissed 166 kisses 166"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-5.0",
       "steps": [
         {
           "type": "exec",
@@ -160,7 +2626,57 @@
       ]
     },
     {
-      "name": "6.1.1",
+      "name": "spellfix-5.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, distance FROM t3 WHERE word MATCH 'kasher'\n     ORDER BY score, word LIMIT 1",
+          "expect": "kosher 1"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-5.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, distance FROM t3 WHERE word MATCH 'kesher'\n     ORDER BY score, word LIMIT 1",
+          "expect": "kosher 4"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-5.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, distance FROM t3 WHERE word MATCH 'kisher'\n     ORDER BY score, word LIMIT 1",
+          "expect": "kosher 8"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-5.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, distance FROM t3 WHERE word MATCH 'kosher'\n     ORDER BY score, word LIMIT 1",
+          "expect": "kosher 0"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-5.1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, distance FROM t3 WHERE word MATCH 'kusher'\n     ORDER BY score, word LIMIT 1",
+          "expect": "kosher 16"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-6.1.1",
       "steps": [
         {
           "type": "query",
@@ -170,7 +2686,7 @@
       ]
     },
     {
-      "name": "6.1.2",
+      "name": "spellfix-6.1.2",
       "steps": [
         {
           "type": "query",
@@ -180,7 +2696,7 @@
       ]
     },
     {
-      "name": "6.1.3",
+      "name": "spellfix-6.1.3",
       "steps": [
         {
           "type": "query",
@@ -190,67 +2706,103 @@
       ]
     },
     {
-      "name": "7.1",
+      "name": "spellfix-6.2.1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT word FROM t3 WHERE rowid = 10;",
+          "variable": "vals",
+          "resultAll": true,
+          "expect": "keener {SELECT word, rank, NULL, langid, id FROM \"main\".\"t3_vocab\" WHERE rowid=?}"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-6.2.2",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT word, distance FROM t3 WHERE rowid = 10;",
+          "variable": "vals",
+          "resultAll": true,
+          "expect": "keener {} {SELECT word, rank, NULL, langid, id FROM \"main\".\"t3_vocab\" WHERE rowid=?}"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-6.2.3",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT word, distance FROM t3 WHERE rowid = 10 AND word MATCH 'kiiner';",
+          "variable": "vals",
+          "resultAll": true,
+          "expect": "keener 300 {SELECT id, word, rank, coalesce(k1,word)  FROM \"main\".\"t3_vocab\" WHERE langid=0 AND k2\u003e=?1 AND k2\u003c?2}"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-7.1",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE VIRTUAL TABLE t4 USING spellfix1;\n  PRAGMA table_info = t4;",
-          "expect": "0 word {} 0 {} 0 \n  1 rank {} 0 {} 0 \n  2 distance {} 0 {} 0 \n  3 langid {} 0 {} 0 \n  4 score {} 0 {} 0 \n  5 matchlen {} 0 {} 0"
+          "expect": "\n  0 word {} 0 {} 0 \n  1 rank {} 0 {} 0 \n  2 distance {} 0 {} 0 \n  3 langid {} 0 {} 0 \n  4 score {} 0 {} 0 \n  5 matchlen {} 0 {} 0\n"
         }
       ]
     },
     {
-      "name": "7.2.1",
+      "name": "spellfix-7.2.1",
       "steps": [
         {
           "type": "query",
           "sql": "INSERT INTO t4(rowid, word) VALUES(1, 'Archilles');\n  INSERT INTO t4(rowid, word) VALUES(2, 'Pluto');\n  INSERT INTO t4(rowid, word) VALUES(3, 'Atrides');\n  INSERT OR REPLACE INTO t4(rowid, word) VALUES(2, 'Apollo');\n  SELECT rowid, word FROM t4;",
-          "expect": "1 Archilles   2 Apollo   3 Atrides"
+          "expect": "\n  1 Archilles   2 Apollo   3 Atrides\n"
         }
       ]
     },
     {
-      "name": "7.2.2",
+      "name": "spellfix-7.2.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT OR ABORT INTO t4(rowid, word) VALUES(1, 'Leto');",
           "expect": "1 {constraint failed}"
         }
       ]
     },
     {
-      "name": "7.2.3",
+      "name": "spellfix-7.2.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT OR ROLLBACK INTO t4(rowid, word) VALUES(3, 'Zeus');",
           "expect": "1 {constraint failed}"
         }
       ]
     },
     {
-      "name": "7.2.4",
+      "name": "spellfix-7.2.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT OR FAIL INTO t4(rowid, word) VALUES(3, 'Zeus');",
           "expect": "1 {constraint failed}"
         }
       ]
     },
     {
-      "name": "7.2.5",
+      "name": "spellfix-7.2.5",
       "steps": [
         {
           "type": "query",
           "sql": "INSERT OR IGNORE INTO t4(rowid, word) VALUES(3, 'Zeus');\n  SELECT rowid, word FROM t4;",
-          "expect": "1 Archilles   2 Apollo   3 Atrides"
+          "expect": "\n  1 Archilles   2 Apollo   3 Atrides\n"
         }
       ]
     },
     {
-      "name": "7.3.1",
+      "name": "spellfix-7.3.1",
       "steps": [
         {
           "type": "query",
@@ -260,37 +2812,37 @@
       ]
     },
     {
-      "name": "7.3.2",
+      "name": "spellfix-7.3.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "UPDATE OR ABORT t4 SET rowid=3 WHERE rowid=2;",
           "expect": "1 {constraint failed}"
         }
       ]
     },
     {
-      "name": "7.3.3",
+      "name": "spellfix-7.3.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "UPDATE OR ROLLBACK t4 SET rowid=3 WHERE rowid=2;",
           "expect": "1 {constraint failed}"
         }
       ]
     },
     {
-      "name": "7.3.4",
+      "name": "spellfix-7.3.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "UPDATE OR FAIL t4 SET rowid=3 WHERE rowid=2;",
           "expect": "1 {constraint failed}"
         }
       ]
     },
     {
-      "name": "7.3.5",
+      "name": "spellfix-7.3.5",
       "steps": [
         {
           "type": "query",
@@ -300,7 +2852,7 @@
       ]
     },
     {
-      "name": "7.4.1",
+      "name": "spellfix-7.4.1",
       "steps": [
         {
           "type": "exec",
@@ -309,16 +2861,352 @@
       ]
     },
     {
-      "name": "8.1",
+      "name": "setup_0",
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE d(w);\n  INSERT INTO d VALUES(1);\n  WITH RECURSIVE cnt(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM cnt WHERE n<100)\n  SELECT sum(length(next_char(\n    printf('%.*c',1000000,'A'),\n    'd',\n    'substr(printf(''%.*c'',2000000,''A''),1,if(abs(random())%2=0,1000001,1))')))>0\n    FROM cnt;"
+          "sql": "BEGIN"
         }
       ]
     },
     {
-      "name": "8.2",
+      "name": "spellfix-7.4.2.0.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT  INTO t4(rowid, word) SELECT i, w FROM t5",
+          "expect": "1 {constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-7.4.2.0.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, word FROM t4",
+          "expect": "10 Agamemnon 20 Patroclus 30 Chryses"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-7.4.2.1.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT OR REPLACE INTO t4(rowid, word) SELECT i, w FROM t5",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-7.4.2.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, word FROM t4",
+          "expect": "5 Poseidon 10 Agamemnon 20 Chronos 30 Hera"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-7.4.2.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT OR ABORT INTO t4(rowid, word) SELECT i, w FROM t5",
+          "expect": "1 {constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-7.4.2.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, word FROM t4",
+          "expect": "10 Agamemnon 20 Patroclus 30 Chryses"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-7.4.2.3.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT OR ROLLBACK INTO t4(rowid, word) SELECT i, w FROM t5",
+          "expect": "1 {constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-7.4.2.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, word FROM t4",
+          "expect": "10 Agamemnon 20 Patroclus 30 Chryses"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-7.4.2.5.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT OR IGNORE INTO t4(rowid, word) SELECT i, w FROM t5",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-7.4.2.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, word FROM t4",
+          "expect": "5 Poseidon 10 Agamemnon 20 Patroclus 30 Chryses"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-7.5.2.0.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE  t4 SET rowid=rowid + (rowid/2)",
+          "expect": "1 {constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-7.5.2.0.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, word FROM t4",
+          "expect": "10 Agamemnon 20 Patroclus 30 Chryses"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-7.5.2.1.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE OR REPLACE t4 SET rowid=rowid + (rowid/2)",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-7.5.2.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, word FROM t4",
+          "expect": "15 Agamemnon 45 Chryses"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-7.5.2.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE OR ABORT t4 SET rowid=rowid + (rowid/2)",
+          "expect": "1 {constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-7.5.2.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, word FROM t4",
+          "expect": "10 Agamemnon 20 Patroclus 30 Chryses"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-7.5.2.3.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE OR ROLLBACK t4 SET rowid=rowid + (rowid/2)",
+          "expect": "1 {constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-7.5.2.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, word FROM t4",
+          "expect": "10 Agamemnon 20 Patroclus 30 Chryses"
+        }
+      ]
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-7.5.2.5.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE OR IGNORE t4 SET rowid=rowid + (rowid/2)",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-7.5.2.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, word FROM t4",
+          "expect": "15 Agamemnon 20 Patroclus 45 Chryses"
+        }
+      ]
+    },
+    {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE d(w);\n  INSERT INTO d VALUES(1);\n  WITH RECURSIVE cnt(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM cnt WHERE n\u003c100)\n  SELECT sum(length(next_char(\n    printf('%.*c',1000000,'A'),\n    'd',\n    'substr(printf(''%.*c'',2000000,''A''),1,if(abs(random())%2=0,1000001,1))')))\u003e0\n    FROM cnt;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "spellfix-8.2",
       "steps": [
         {
           "type": "query",
@@ -328,48 +3216,11 @@
       ]
     },
     {
-      "name": "8.3",
+      "name": "spellfix-8.3",
       "steps": [
         {
           "type": "exec",
           "sql": "DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING spellfix1;\n  INSERT INTO t1(command) VALUES('edit_cost_table=''xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');"
-        }
-      ]
-    },
-    {
-      "name": "1.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE t1 USING spellfix1"
-        }
-      ]
-    },
-    {
-      "name": "1.14",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT next_char('','xyzzy','a')",
-          "expect": "1 {no such table: xyzzy}"
-        }
-      ]
-    },
-    {
-      "name": "1.33",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1(rowid, word) VALUES(3000,'garden');",
-          "expect": "1 {constraint failed}"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE t1 USING spellfix1"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE vocab(w TEXT PRIMARY KEY);\n    INSERT INTO vocab SELECT word FROM t1;"
         }
       ]
     }

@@ -1,9 +1,10 @@
 {
   "file": "cost.test",
   "name": "cost",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.1",
+      "name": "cost-1.1",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,16 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "cost-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT e FROM t3, t4 WHERE b=c ORDER BY b, d;"
+        }
+      ]
+    },
+    {
+      "name": "cost-2.1",
       "steps": [
         {
           "type": "exec",
@@ -21,7 +31,16 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "cost-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1 ORDER BY a;"
+        }
+      ]
+    },
+    {
+      "name": "cost-3.1",
       "steps": [
         {
           "type": "exec",
@@ -30,7 +49,20 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "cost-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT a FROM t5 \n  WHERE b IS NULL OR c IS NULL OR d IS NULL \n  ORDER BY a;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "cost-4.1",
       "steps": [
         {
           "type": "exec",
@@ -39,7 +71,29 @@
       ]
     },
     {
-      "name": "5.1",
+      "name": "cost-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1 WHERE likelihood(a=?, 0.014) AND b BETWEEN ? AND ?;"
+        }
+      ]
+    },
+    {
+      "name": "cost-4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1 WHERE likelihood(a=?, 0.016) AND b BETWEEN ? AND ?;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "cost-5.1",
       "steps": [
         {
           "type": "exec",
@@ -48,7 +102,25 @@
       ]
     },
     {
-      "name": "6.1",
+      "name": "cost-5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t2 ORDER BY x, y;"
+        }
+      ]
+    },
+    {
+      "name": "cost-5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t2 WHERE x BETWEEN ? AND ? ORDER BY rowid;"
+        }
+      ]
+    },
+    {
+      "name": "cost-6.1",
       "steps": [
         {
           "type": "exec",
@@ -57,7 +129,20 @@
       ]
     },
     {
-      "name": "7.1",
+      "name": "cost-6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT a FROM t3 WHERE (b BETWEEN 2 AND 4) OR c=100 ORDER BY a"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "cost-7.1",
       "steps": [
         {
           "type": "exec",
@@ -66,7 +151,38 @@
       ]
     },
     {
-      "name": "8.1",
+      "name": "cost-7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT a FROM t1\n     WHERE (b\u003e=950 AND b\u003c=1010) OR (b IS NULL AND c NOT NULL)\n  ORDER BY a"
+        }
+      ]
+    },
+    {
+      "name": "cost-7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT rowid FROM t1\n  WHERE (+b IS NULL AND c NOT NULL AND d NOT NULL)\n        OR (b NOT NULL AND c IS NULL AND d NOT NULL)\n        OR (b NOT NULL AND c NOT NULL AND d IS NULL)"
+        }
+      ]
+    },
+    {
+      "name": "cost-7.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT rowid FROM t1 WHERE (+b IS NULL AND c NOT NULL) OR c IS NULL"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "cost-8.1",
       "steps": [
         {
           "type": "exec",
@@ -75,7 +191,16 @@
       ]
     },
     {
-      "name": "9.1",
+      "name": "cost-8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT DISTINCT aname\n    FROM album, composer, track\n   WHERE cname LIKE '%bach%'\n     AND unlikely(composer.cid=track.cid)\n     AND unlikely(album.aid=track.aid);"
+        }
+      ]
+    },
+    {
+      "name": "cost-9.1",
       "steps": [
         {
           "type": "exec",
@@ -84,17 +209,400 @@
       ]
     },
     {
-      "name": "10.1",
+      "name": "cost-9.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t6(a, b, c);\n    CREATE INDEX t6i1 ON t6(a, b);\n    CREATE INDEX t6i2 ON t6(c);"
-        }
-      ]
-    },
-    {
-      "name": "9.2",
-      "steps": [
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        },
         {
           "type": "exec",
           "sql": "INSERT INTO t1 DEFAULT VALUES"
@@ -110,34 +618,300 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "cost-9.3.1.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE likelihood(k=?, 0.09) AND a=?"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "cost-9.3.1.2",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE likelihood(k=?, 0.11) AND a=?"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "cost-9.3.2.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE likelihood(k=?, 0.09) AND a=? AND b=?"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "cost-9.3.2.2",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE likelihood(k=?, 0.11) AND a=? AND b=?"
+        }
+      ]
+    },
+    {
+      "name": "cost-9.3.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE likelihood(k=?, 0.07) AND a=? AND b=? AND c=?"
+        }
+      ]
+    },
+    {
+      "name": "cost-9.3.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE likelihood(k=?, 0.09) AND a=? AND b=? AND c=?"
+        }
+      ]
+    },
+    {
+      "name": "cost-9.3.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE likelihood(k=?, 0.06) AND a=? AND b=? AND c=? AND d=?"
+        }
+      ]
+    },
+    {
+      "name": "cost-9.3.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE likelihood(k=?, 0.08) AND a=? AND b=? AND c=? AND d=?"
+        }
+      ]
+    },
+    {
+      "name": "cost-9.3.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE likelihood(k=?, 0.06) AND a=? AND b=? AND c=? AND d=? AND e=?"
+        }
+      ]
+    },
+    {
+      "name": "cost-9.3.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE likelihood(k=?, 0.08) AND a=? AND b=? AND c=? AND d=? AND e=?"
+        }
+      ]
+    },
+    {
+      "name": "cost-9.3.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE likelihood(k=?, 0.04) AND a=? AND b=? AND c=? AND d=? AND e=? AND f=?"
+        }
+      ]
+    },
+    {
+      "name": "cost-9.3.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE likelihood(k=?, 0.06) AND a=? AND b=? AND c=? AND d=? AND e=? AND f=?"
+        }
+      ]
+    },
+    {
+      "name": "cost-9.3.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE likelihood(k=?, 0.04) AND a=? AND b=? AND c=? AND d=? AND e=? AND f=? AND g=?"
+        }
+      ]
+    },
+    {
+      "name": "cost-9.3.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE likelihood(k=?, 0.06) AND a=? AND b=? AND c=? AND d=? AND e=? AND f=? AND g=?"
+        }
+      ]
+    },
+    {
+      "name": "cost-9.3.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE likelihood(k=?, 0.04) AND a=? AND b=? AND c=? AND d=? AND e=? AND f=? AND g=? AND h=?"
+        }
+      ]
+    },
+    {
+      "name": "cost-9.3.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE likelihood(k=?, 0.06) AND a=? AND b=? AND c=? AND d=? AND e=? AND f=? AND g=? AND h=?"
+        }
+      ]
+    },
+    {
+      "name": "cost-9.3.9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE likelihood(k=?, 0.04) AND a=? AND b=? AND c=? AND d=? AND e=? AND f=? AND g=? AND h=? AND i=?"
+        }
+      ]
+    },
+    {
+      "name": "cost-9.3.9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE likelihood(k=?, 0.06) AND a=? AND b=? AND c=? AND d=? AND e=? AND f=? AND g=? AND h=? AND i=?"
+        }
+      ]
+    },
+    {
+      "name": "cost-9.3.10.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE likelihood(k=?, 0.04) AND a=? AND b=? AND c=? AND d=? AND e=? AND f=? AND g=? AND h=? AND i=? AND j=?"
+        }
+      ]
+    },
+    {
+      "name": "cost-9.3.10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE likelihood(k=?, 0.06) AND a=? AND b=? AND c=? AND d=? AND e=? AND f=? AND g=? AND h=? AND i=? AND j=?"
+        }
+      ]
+    },
+    {
+      "name": "cost-10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(a, b, c);\n    CREATE INDEX t6i1 ON t6(a, b);\n    CREATE INDEX t6i2 ON t6(c);"
+        }
+      ]
+    },
+    {
+      "name": "cost-10.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(0%4, 'xyz', 0%8)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(1%4, 'xyz', 1%8)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(2%4, 'xyz', 2%8)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(3%4, 'xyz', 3%8)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(4%4, 'xyz', 4%8)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(5%4, 'xyz', 5%8)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(6%4, 'xyz', 6%8)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(7%4, 'xyz', 7%8)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(8%4, 'xyz', 8%8)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(9%4, 'xyz', 9%8)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(10%4, 'xyz', 10%8)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(11%4, 'xyz', 11%8)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(12%4, 'xyz', 12%8)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(13%4, 'xyz', 13%8)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(14%4, 'xyz', 14%8)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(15%4, 'xyz', 15%8)"
+        },
+        {
+          "type": "exec",
+          "sql": "ANALYZE"
+        }
+      ]
+    },
+    {
+      "name": "cost-10.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT rowid FROM t6 WHERE a=0 AND c=0"
+        }
+      ]
+    },
+    {
+      "name": "cost-10.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT rowid FROM t6 WHERE a=0 AND b='xyz' AND c=0"
+        }
+      ]
+    },
+    {
+      "name": "cost-10.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT rowid FROM t6 WHERE likelihood(a=0, 0.1) AND c=0"
+        }
+      ]
+    },
+    {
+      "name": "cost-10.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT rowid FROM t6 WHERE likelihood(a=0, 0.1) AND b='xyz' AND c=0"
         }
       ]
     }

@@ -1,14 +1,94 @@
 {
   "file": "openv2.test",
   "name": "openv2",
+  "ordered": true,
   "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "openv2-1.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "expect": "1 {unable to open database file}"
+        }
+      ]
+    },
+    {
+      "name": "openv2-1.3",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x)"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master",
+          "expect": "t1"
+        }
+      ]
+    },
     {
       "name": "openv2-1.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1 VALUES(123)",
           "expect": "1 {attempt to write a readonly database}"
+        }
+      ]
+    },
+    {
+      "name": "openv2-2.1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_master"
         }
       ]
     },
@@ -16,37 +96,9 @@
       "name": "openv2-2.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t1(x)",
           "expect": "1 {attempt to write a readonly database}"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name FROM sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM sqlite_master"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

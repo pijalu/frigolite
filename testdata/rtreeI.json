@@ -1,0 +1,140 @@
+{
+  "file": "rtreeI.test",
+  "name": "rtreeI",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "rtreeI-1.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(2);\n  CREATE VIRTUAL TABLE t2 USING rtree(id,x0,x1);\n  INSERT INTO t2(id,x0,x1) VALUES(1,2,3);"
+        }
+      ]
+    },
+    {
+      "name": "rtreeI-1.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 123 FROM t1, t2 WHERE (a,0)\u003e(x0,0);"
+        }
+      ]
+    },
+    {
+      "name": "rtreeI-1.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 123 FROM t1, t2 WHERE (a,0.1)\u003e(x0,0);",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "rtreeI-1.22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 123 FROM t1, t2 WHERE (a,0)\u003e=(x0,0);",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "rtreeI-1.23",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 123 FROM t1, t2 WHERE (a,0)\u003c=(x0,0);",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "rtreeI-1.24",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 123 FROM t1, t2 WHERE (a,0)\u003c(x0,0);"
+        }
+      ]
+    },
+    {
+      "name": "rtreeI-1.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 123 FROM t1, t2 WHERE (x0,0)\u003c(a,0);"
+        }
+      ]
+    },
+    {
+      "name": "rtreeI-1.31",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 123 FROM t1, t2 WHERE (x0,0)\u003c(a,0.1);",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "rtreeI-1.40",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 123 FROM t1, t2 WHERE x1\u003c5 AND id\u003c99 AND (a,0)\u003e(x0,0);"
+        }
+      ]
+    },
+    {
+      "name": "rtreeI-1.41",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 123 FROM t1, t2 WHERE x1\u003c5 AND id\u003c99 AND (a,0.5)\u003e(x0,0);",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "rtreeI-1.42",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 123 FROM t1, t2 WHERE x1\u003c5 AND id\u003c99 AND (a,0)\u003e=(x0,0);",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "rtreeI-1.43",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 123 FROM t1, t2 WHERE x1\u003c5 AND id\u003c99 AND (a,0)\u003c(x0,0);"
+        }
+      ]
+    },
+    {
+      "name": "rtreeI-1.50",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 123 FROM t1, t2 WHERE 5\u003ex1 AND 99\u003eid AND (x0,0)\u003c(a,0);"
+        }
+      ]
+    },
+    {
+      "name": "rtreeI-1.51",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 123 FROM t1, t2 WHERE 5\u003ex1 AND 99\u003eid AND (x0,0)\u003c(a,0.5);",
+          "expect": "123"
+        }
+      ]
+    }
+  ]
+}

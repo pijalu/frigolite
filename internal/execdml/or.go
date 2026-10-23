@@ -19,8 +19,12 @@ import (
 // `+col = value`, which compares the raw value with no affinity conversion.
 
 // maxOrTerms caps the number of DNF-flattened OR terms before the OR-index
-// optimization is abandoned (SQLite similarly caps OR-term expansion).
-const maxOrTerms = 32
+// optimization is abandoned.
+//
+// SQLite has no 32-term cap: the OR clause is a normal expression, bounded
+// by SQLITE_MAX_EXPR_DEPTH (1000 by default) — where7's "a=11 OR b=11 OR .."
+// runs to hundreds of terms and SQLite still uses the multi-index plan.
+const maxOrTerms = 1000
 
 // planOrIndexScan builds an OR-index plan for a single-table WHERE clause of
 // the form (col1=v1 AND col2=v2) OR (col3=v3 AND col4=v4), where every OR
@@ -60,15 +64,22 @@ func (e *DMLExecutor) planOrIndexScan(where sql.Expr, tableName string, colDefs 
 
 	var branches []orBranchPlan
 	for _, term := range terms {
-		bestK, bestIdx, bestCols, bestPrefix := e.bestIndexForOrBranch(term, outerCols, indexes, constConstraints)
-		if bestK == 0 || bestIdx == nil {
+		bestK, bestIdx, bestCols, bestPrefix, bestRange := e.bestIndexForOrBranch(term, outerCols, indexes, constConstraints, colDefs)
+		// A branch served by the rowid (a range on the INTEGER PRIMARY KEY)
+		// has no index: SQLite renders it "SEARCH t2 USING INTEGER PRIMARY
+		// KEY (rowid>? AND rowid<?)".
+		if bestK == 0 || (bestIdx == nil && bestRange == nil && len(bestPrefix) == 0) {
 			return nil, false
 		}
-		branches = append(branches, orBranchPlan{
-			IndexName: bestIdx.Name,
+		branch := orBranchPlan{
 			IndexCols: bestCols,
 			Prefix:    bestPrefix,
-		})
+			Range:     bestRange,
+		}
+		if bestIdx != nil {
+			branch.IndexName = bestIdx.Name
+		}
+		branches = append(branches, branch)
 	}
 	return branches, true
 }
@@ -94,7 +105,7 @@ func (e *DMLExecutor) collectOrConstraintTerms(andTerms []sql.Expr, outerCols ma
 
 // bestIndexForOrBranch selects the index with the longest prefix of columns
 // covered by the branch's own constraints or a constant AND-context constraint.
-func (e *DMLExecutor) bestIndexForOrBranch(term sql.Expr, outerCols map[string]bool, indexes []*schema.Entry, constConstraints []orConstraint) (int, *schema.Entry, []string, []orConstraint) {
+func (e *DMLExecutor) bestIndexForOrBranch(term sql.Expr, outerCols map[string]bool, indexes []*schema.Entry, constConstraints []orConstraint, colDefs []sql.ColumnDef) (int, *schema.Entry, []string, []orConstraint, *orRange) {
 	// Extract this term's own equality constraints.
 	branchCols := make(map[string]orConstraint)
 	for _, sub := range splitAndTerms(term) {
@@ -102,28 +113,179 @@ func (e *DMLExecutor) bestIndexForOrBranch(term sql.Expr, outerCols map[string]b
 			branchCols[col] = orConstraint{Col: col, Val: val, ApplyAffinity: aff}
 		}
 	}
-	if len(branchCols) == 0 {
-		return 0, nil, nil, nil
+	// A range constraint on a column serves the branch too: SQLite scans the
+	// index over the range ("SEARCH t2 USING INDEX t2d (d>? AND d<?)").
+	branchRange := make(map[string]*orRange)
+	for _, sub := range splitAndTerms(term) {
+		if rng, ok := e.extractRange(sub, outerCols); ok {
+			branchRange[rng.Col] = rng
+		}
+	}
+	if len(branchCols) == 0 && len(branchRange) == 0 {
+		return 0, nil, nil, nil, nil
 	}
 
 	bestK := 0
+	bestScore := 0
 	var bestIdx *schema.Entry
 	var bestCols []string
 	var bestPrefix []orConstraint
+	var bestRange *orRange
+	// A constraint on the table's INTEGER PRIMARY KEY is served by the rowid
+	// itself: SQLite renders it "SEARCH t2 USING INTEGER PRIMARY KEY
+	// (rowid=?)" or "(rowid>? AND rowid<?)". The rowid order is the branch's
+	// order.
+	if ipk := ipkColumnName(colDefs); ipk != "" {
+		if rng, ok := branchRange[ipk]; ok {
+			return 1, nil, nil, nil, rng
+		}
+		if eq, ok := branchCols[ipk]; ok {
+			return 1, nil, nil, []orConstraint{eq}, nil
+		}
+	}
 	for _, idx := range indexes {
 		cols := indexPlainColumns(idx.SQL)
 		if len(cols) == 0 {
 			continue
 		}
 		prefix, k := orBranchPrefix(cols, branchCols, constConstraints)
-		if k > bestK {
+		// An equality prefix is worth more than a range: the prefix pins
+		// the index to one key, the range only bounds it.
+		score := k * 2
+		if score > bestScore {
+			bestScore = score
 			bestK = k
 			bestIdx = idx
 			bestCols = cols
 			bestPrefix = prefix
+			bestRange = nil
+		}
+		// A range on the index's leading column serves the branch even
+		// without an equality prefix.
+		if k == 0 && bestScore == 0 {
+			if rng, ok := branchRange[cols[0]]; ok {
+				bestScore = 1
+				bestK = 1
+				bestIdx = idx
+				bestCols = cols
+				bestPrefix = nil
+				bestRange = rng
+			}
 		}
 	}
-	return bestK, bestIdx, bestCols, bestPrefix
+	return bestK, bestIdx, bestCols, bestPrefix, bestRange
+}
+
+// extractRange extracts a range constraint on one column: "col > const",
+// "col >= const", "col < const", "col <= const" or "col BETWEEN a AND b".
+// The comparison the branch imposes is the one SQLite would render in its
+// plan ("d>? AND d<?").
+func (e *DMLExecutor) extractRange(expr sql.Expr, outerCols map[string]bool) (*orRange, bool) {
+	expr = unwrapParen(expr)
+	switch v := expr.(type) {
+	case *sql.BinaryOp:
+		switch v.Operator {
+		case "GLOB", "LIKE":
+			// A LIKE/GLOB prefix serves the branch as a range scan
+			// (SQLite: "SEARCH t2 USING INDEX t2f (f>? AND f<?)").
+			col, ok := columnRefName(v.Left)
+			if !ok {
+				return nil, false
+			}
+			pattern, ok := execquery.LikeGlobPatternConst(v.Right)
+			if !ok {
+				return nil, false
+			}
+			low, high, ok := execquery.LikeGlobRangeBounds(pattern, v.Escape, v.HasEscape, v.Operator == "GLOB")
+			if !ok {
+				return nil, false
+			}
+			return &orRange{Col: col, Lower: low, LowerInclusive: true, Upper: high, UpperInclusive: false, ApplyAffinity: false}, true
+		case ">", ">=", "<", "<=":
+			col, ok := columnRefName(v.Left)
+			var bound interface{}
+			op := v.Operator
+			if ok {
+				bound, ok = e.evalConstExpr(v.Right, outerCols)
+			}
+			if !ok {
+				// The constant may be on the left: "1000000 < b" is the
+				// range b > 1000000.
+				col, ok = columnRefName(v.Right)
+				if !ok {
+					return nil, false
+				}
+				bound, ok = e.evalConstExpr(v.Left, outerCols)
+				if !ok {
+					return nil, false
+				}
+				op = flipComparison(v.Operator)
+			}
+			rng := &orRange{Col: col, ApplyAffinity: true}
+			switch op {
+			case ">":
+				rng.Lower, rng.LowerInclusive = bound, false
+			case ">=":
+				rng.Lower, rng.LowerInclusive = bound, true
+			case "<":
+				rng.Upper, rng.UpperInclusive = bound, false
+			case "<=":
+				rng.Upper, rng.UpperInclusive = bound, true
+			}
+			return rng, true
+		}
+	case *sql.Between:
+		col, ok := columnRefName(v.Operand)
+		if !ok {
+			return nil, false
+		}
+		lower, okLower := e.evalConstExpr(v.Low, outerCols)
+		upper, okUpper := e.evalConstExpr(v.High, outerCols)
+		if !okLower || !okUpper {
+			return nil, false
+		}
+		return &orRange{Col: col, Lower: lower, LowerInclusive: true, Upper: upper, UpperInclusive: true, ApplyAffinity: true}, true
+	}
+	return nil, false
+}
+
+// flipComparison returns the comparison that is equivalent to the given one
+// with the operands swapped.
+func flipComparison(op string) string {
+	switch op {
+	case ">":
+		return "<"
+	case ">=":
+		return "<="
+	case "<":
+		return ">"
+	case "<=":
+		return ">="
+	}
+	return op
+}
+
+// ipkColumnName returns the table's INTEGER PRIMARY KEY alias column name
+// ("" when the table has none).
+func ipkColumnName(colDefs []sql.ColumnDef) string {
+	for i := range colDefs {
+		if IsIPKRowidAliasCol(colDefs[i]) {
+			return colDefs[i].Name
+		}
+	}
+	return ""
+}
+
+// columnRefName returns the bare column name of an expression that is a plain
+// column reference (a unary "+" wrapper does not qualify: it makes the term
+// unusable for an index).
+func columnRefName(expr sql.Expr) (string, bool) {
+	expr = unwrapParen(expr)
+	ref, ok := expr.(*sql.ColumnRef)
+	if !ok {
+		return "", false
+	}
+	return ref.Name, true
 }
 
 // orBranchPrefix builds the constraint prefix for one index column list,
@@ -244,8 +406,39 @@ func flattenOrTerms(expr sql.Expr) []sql.Expr {
 // constant scalar subquery (one that does not reference the outer table).
 func (e *DMLExecutor) extractEquality(expr sql.Expr, outerCols map[string]bool) (string, interface{}, bool, bool) {
 	expr = unwrapParen(expr)
+	// "col IS NULL" is an equality on NULL: SQLite serves it with an index
+	// seek ("SEARCH t2 USING INDEX t2e (e=?)"). No affinity applies.
+	if isNull, ok := expr.(*sql.IsNull); ok {
+		col, ok := columnRefName(isNull.Operand)
+		if !ok {
+			return "", nil, false, false
+		}
+		return col, nil, false, true
+	}
 	b, ok := expr.(*sql.BinaryOp)
-	if !ok || b.Operator != "=" {
+	if !ok {
+		return "", nil, false, false
+	}
+	if b.Operator == "IS" {
+		if _, isNull := b.Right.(*sql.NullLit); !isNull {
+			return "", nil, false, false
+		}
+		col, ok := columnRefName(b.Left)
+		if !ok {
+			return "", nil, false, false
+		}
+		return col, nil, false, true
+	}
+	if b.Operator != "=" {
+		return "", nil, false, false
+	}
+	// A unary "+" wrapper makes the term unusable for an index SEEK: an
+	// index constrains a term only when its operand is a bare column
+	// reference, so "+c=6" cannot drive t1c (SQLite falls back to a scan -
+	// where.c leaves WHERE_CONSTRAINT unset for such a term). The "+" still
+	// strips the column's affinity (columnRefSide's second result), but the
+	// term must not pick an index.
+	if isUnaryPlusColumn(b.Left) || isUnaryPlusColumn(b.Right) {
 		return "", nil, false, false
 	}
 	if col, aff, ok := columnRefSide(b.Left); ok {
@@ -263,6 +456,19 @@ func (e *DMLExecutor) extractEquality(expr sql.Expr, outerCols map[string]bool) 
 		return col, val, aff, true
 	}
 	return "", nil, false, false
+}
+
+// isUnaryPlusColumn reports whether an expression is a column wrapped in the
+// unary "+" operator (SQLite's "+col", which strips the column's affinity and
+// makes the term unusable for an index seek).
+func isUnaryPlusColumn(expr sql.Expr) bool {
+	expr = unwrapParen(expr)
+	u, ok := expr.(*sql.UnaryOp)
+	if !ok || u.Operator != "+" {
+		return false
+	}
+	_, ok = unwrapParen(u.Operand).(*sql.ColumnRef)
+	return ok
 }
 
 // columnRefSide extracts a column reference from one side of a comparison,
@@ -438,6 +644,10 @@ func (e *DMLExecutor) execSelectWithOrPlan(s *sql.SelectStmt, tableEntry *schema
 		return result
 	}
 	result := &Result{Columns: e.ctx.BuildColumnNames(s.Columns, colDefs, s), Rows: allRows}
+	// The rows come out in OR-branch order (each branch contributes its own
+	// index order), so an ORDER BY needs a comparator sort — SQLite's
+	// MULTI-INDEX OR always adds a temp b-tree for one.
+	result.RowsInBranchOrder = true
 	return e.ctx.FinalizeSelectResult(result, s, allRowMaps)
 }
 
@@ -484,7 +694,7 @@ func (e *DMLExecutor) collectOrBranchMatches(cursor *btree.Cursor, branches []or
 func (e *DMLExecutor) matchRowAgainstBranches(rec *storage.Record, rowID int64, rawKey string, branches []orBranchPlan, colDefs []sql.ColumnDef, colIndex map[string]int, matches [][]branchMatch) {
 	row := e.ctx.BuildRowMap(rec, colDefs, rowID)
 	for bi, br := range branches {
-		if !e.orRowMatchesPrefix(row, br.Prefix) {
+		if !e.orRowMatchesPrefix(row, br.Prefix) || !e.orRowMatchesRange(row, br.Range) {
 			continue
 		}
 		matches[bi] = append(matches[bi], branchMatch{rowID: rowID, rawKey: rawKey, key: branchKeyValues(rec, br, colIndex, rowID)})
@@ -617,11 +827,18 @@ func (e *DMLExecutor) orRowAfterWhere(cursor *btree.Cursor, s *sql.SelectStmt, r
 func (e *DMLExecutor) orRowMatchesPrefix(row RowMap, prefix []orConstraint) bool {
 	for _, pc := range prefix {
 		colVal, exists := row[pc.Col]
-		if !exists || colVal == nil {
+		if !exists {
 			return false
 		}
 		raw := util.UnwrapColumnValue(execexpr.UnwrapCollatedValue(colVal))
-		if raw == nil || pc.Val == nil {
+		if pc.Val == nil {
+			// "col IS NULL": the row matches when the column is NULL.
+			if raw == nil {
+				return true
+			}
+			return false
+		}
+		if raw == nil {
 			return false
 		}
 		var cmp int
@@ -631,6 +848,41 @@ func (e *DMLExecutor) orRowMatchesPrefix(row RowMap, prefix []orConstraint) bool
 			cmp = e.ctx.CompareValuesWithCollate(raw, pc.Val)
 		}
 		if cmp != 0 {
+			return false
+		}
+	}
+	return true
+}
+
+// orRowMatchesRange reports whether the row's value for the range's column
+// lies between the range's bounds.
+func (e *DMLExecutor) orRowMatchesRange(row RowMap, rng *orRange) bool {
+	if rng == nil {
+		return true
+	}
+	colVal, exists := row[rng.Col]
+	if !exists || colVal == nil {
+		return false
+	}
+	raw := util.UnwrapColumnValue(execexpr.UnwrapCollatedValue(colVal))
+	if raw == nil {
+		return false
+	}
+	compare := func(bound interface{}) int {
+		if rng.ApplyAffinity {
+			return e.ctx.CompareValuesWithCollate(colVal, bound)
+		}
+		return e.ctx.CompareValuesWithCollate(raw, bound)
+	}
+	if rng.Lower != nil {
+		cmp := compare(rng.Lower)
+		if cmp < 0 || (cmp == 0 && !rng.LowerInclusive) {
+			return false
+		}
+	}
+	if rng.Upper != nil {
+		cmp := compare(rng.Upper)
+		if cmp > 0 || (cmp == 0 && !rng.UpperInclusive) {
 			return false
 		}
 	}

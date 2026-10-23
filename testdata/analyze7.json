@@ -1,6 +1,7 @@
 {
   "file": "analyze7.test",
   "name": "analyze7",
+  "ordered": true,
   "tests": [
     {
       "name": "analyze7-1.0",
@@ -106,6 +107,16 @@
         {
           "type": "exec",
           "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=?;",
+          "expect": "/*SEARCH t1 USING INDEX t1cd (c=?)*/"
+        }
+      ]
+    },
+    {
+      "name": "analyze7-3.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=2;",
           "expect": "/*SEARCH t1 USING INDEX t1cd (c=?)*/"
         }
       ]

@@ -1,0 +1,313 @@
+{
+  "file": "changes.test",
+  "name": "changes",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "changes-1.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = off;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY) ;",
+          "expect": "off"
+        }
+      ]
+    },
+    {
+      "name": "changes-1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i \u003c 50\n    )\n    INSERT INTO t1 SELECT i FROM s;"
+        }
+      ]
+    },
+    {
+      "name": "changes-1.1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(-1)"
+        }
+      ]
+    },
+    {
+      "name": "changes-1.1.7a",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "51"
+        }
+      ]
+    },
+    {
+      "name": "changes-1.1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "changes-1.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = off;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY) WITHOUT ROWID;",
+          "expect": "off"
+        }
+      ]
+    },
+    {
+      "name": "changes-1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i \u003c 50\n    )\n    INSERT INTO t1 SELECT i FROM s;"
+        }
+      ]
+    },
+    {
+      "name": "changes-1.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(-1)"
+        }
+      ]
+    },
+    {
+      "name": "changes-1.2.7a",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "51"
+        }
+      ]
+    },
+    {
+      "name": "changes-1.2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "changes-1.3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = off;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY) ;",
+          "expect": "off"
+        }
+      ]
+    },
+    {
+      "name": "changes-1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i \u003c 5000\n    )\n    INSERT INTO t1 SELECT i FROM s;"
+        }
+      ]
+    },
+    {
+      "name": "changes-1.3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(-1)"
+        }
+      ]
+    },
+    {
+      "name": "changes-1.3.7a",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "5001"
+        }
+      ]
+    },
+    {
+      "name": "changes-1.3.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "changes-1.4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = off;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY) WITHOUT ROWID;",
+          "expect": "off"
+        }
+      ]
+    },
+    {
+      "name": "changes-1.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i \u003c 5000\n    )\n    INSERT INTO t1 SELECT i FROM s;"
+        }
+      ]
+    },
+    {
+      "name": "changes-1.4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(-1)"
+        }
+      ]
+    },
+    {
+      "name": "changes-1.4.7a",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "5001"
+        }
+      ]
+    },
+    {
+      "name": "changes-1.4.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "changes-1.5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = off;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY) ;",
+          "expect": "off"
+        }
+      ]
+    },
+    {
+      "name": "changes-1.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i \u003c 50000\n    )\n    INSERT INTO t1 SELECT i FROM s;"
+        }
+      ]
+    },
+    {
+      "name": "changes-1.5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(-1)"
+        }
+      ]
+    },
+    {
+      "name": "changes-1.5.7a",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "50001"
+        }
+      ]
+    },
+    {
+      "name": "changes-1.5.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "changes-1.6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = off;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY) WITHOUT ROWID;",
+          "expect": "off"
+        }
+      ]
+    },
+    {
+      "name": "changes-1.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i \u003c 50000\n    )\n    INSERT INTO t1 SELECT i FROM s;"
+        }
+      ]
+    },
+    {
+      "name": "changes-1.6.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(-1)"
+        }
+      ]
+    },
+    {
+      "name": "changes-1.6.7a",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "50001"
+        }
+      ]
+    },
+    {
+      "name": "changes-1.6.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        }
+      ]
+    }
+  ]
+}

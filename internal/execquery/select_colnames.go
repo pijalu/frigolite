@@ -185,6 +185,21 @@ func selectAliasTarget(s *sql.SelectStmt, name string) string {
 	return ""
 }
 
+func selectAliasName(s *sql.SelectStmt, name string) string {
+	if s == nil || name == "" {
+		return ""
+	}
+	if strings.EqualFold(s.From.As, name) {
+		return s.From.As
+	}
+	for _, j := range s.Joins {
+		if strings.EqualFold(j.Table.As, name) {
+			return j.Table.As
+		}
+	}
+	return ""
+}
+
 // tableRefAliasTarget resolves a name against one FROM table reference: the
 // table's alias when the alias matches, else the table name when the reference
 // is unaliased and matches. An alias shadows a same-named table.
@@ -261,14 +276,72 @@ func (e *SelectEngine) selectColumnName(col sql.SelectColumn, colDefs []sql.Colu
 // FROM/JOIN operand errors "no such table: tX" (build.c sqlite3TwoPartName;
 // select1-6.44a t5.*, 6.44b t3.* under an alias) — flagged and consumed on
 // the execSelect return paths like resultTooWide.
+func (e *SelectEngine) fullNamesForBareStar(names []string, colDefs []sql.ColumnDef, sel *sql.SelectStmt) []string {
+	owners := make(map[string][]string)
+	refs := []sql.TableRef{sel.From}
+	for _, join := range sel.Joins {
+		refs = append(refs, join.Table)
+	}
+	for _, ref := range refs {
+		if ref.Name == "" {
+			continue
+		}
+		source := ref.Name
+		qualifier := ref.Name
+		if ref.As != "" {
+			qualifier = ref.As
+		} else if entry, _, err := e.ctx.FindTable(source); err == nil {
+			source = entry.Name
+			qualifier = entry.Name
+		}
+		cols, err := e.tableColumnNames(source)
+		if err != nil {
+			continue
+		}
+		for _, name := range cols {
+			if e.hiddenColumnNames(source)[name] {
+				continue
+			}
+			key := strings.ToLower(name)
+			owners[key] = append(owners[key], qualifier+"."+name)
+		}
+	}
+	used := make(map[string]int)
+	out := make([]string, len(names))
+	for i, name := range names {
+		key := strings.ToLower(name)
+		if choices := owners[key]; used[key] < len(choices) {
+			out[i] = choices[used[key]]
+			used[key]++
+		} else {
+			out[i] = name
+		}
+	}
+	return out
+}
+
 func (e *SelectEngine) starColumnNamesFor(ref *sql.ColumnRef, colDefs []sql.ColumnDef, sel *sql.SelectStmt) []string {
 	if ref.Table != "" {
 		if !selectOperandVisible(sel, ref.Table) {
 			e.starNoSuchTable = ref.Table
 			return nil
 		}
-		return e.buildQualifiedStarNames(ref, colDefs, sel)
+		names := e.buildQualifiedStarNames(ref, colDefs, sel)
+		if e.ctx.FullColumnNames() {
+			table := ref.Table
+			if alias := selectAliasName(sel, ref.Table); alias != "" {
+				table = alias
+			} else if owner := e.columnOwnerOperand(sel, &sql.ColumnRef{Table: ref.Table, Name: names[0]}, colDefs); owner != "" {
+				table = owner
+			}
+			for i := range names {
+				names[i] = table + "." + names[i]
+			}
+		}
+		return names
 	}
+	// SQLite's full_column_names flag applies to direct column expressions,
+	// not the column names produced by expanding an unqualified `*`.
 	return expandStarColNames(colDefs)
 }
 
@@ -381,7 +454,11 @@ func expandStarColNames(colDefs []sql.ColumnDef) []string {
 		if cd.Dropped || IsHiddenColumnDef(cd) {
 			continue
 		}
-		names = append(names, cd.Name)
+		name := cd.Name
+		if dot := strings.LastIndex(name, "."); dot >= 0 {
+			name = name[dot+1:]
+		}
+		names = append(names, name)
 	}
 	return names
 }
@@ -553,12 +630,20 @@ func ordinalSuffix(n int) string {
 // reuses).
 func (e *SelectEngine) sortRowsWithMaps(result *Result, orderBy []sql.OrderByTerm, rowMaps []RowMap, s *sql.SelectStmt) error {
 	n := len(rowMaps)
-	if n <= 1 {
-		return nil
-	}
 	// Ensure result.Rows has at least as many elements as rowMaps
 	if len(result.Rows) < n {
 		n = len(result.Rows)
+	}
+	// The loop delivers the order when the index walk provides it. SQLite
+	// emits OP_Sort (and counts one SQLITE_STMTSTATUS_SORT) whenever the
+	// ORDER BY is NOT delivered by the loop — even when the result has no
+	// rows: the plan still carries a temp b-tree.
+	delivered := false
+	if !result.RowsInBranchOrder && len(result.Rows) > 0 {
+		delivered = e.emitIndexOrderedRows(result, rowMaps, s, orderBy)
+	}
+	if !delivered {
+		e.ctx.RecordSortOp()
 	}
 	if n <= 1 {
 		return nil
@@ -590,7 +675,8 @@ func (e *SelectEngine) sortRowsWithMaps(result *Result, orderBy []sql.OrderByTer
 	// (all-DESC) scan (memdb-6.6: ORDER BY c DESC over i2(c) ties in
 	// descending rowid). A temp-b-tree sort has no defined tie order, so
 	// without the index the stable scan order is kept.
-	if e.emitIndexOrderedRows(result, rowMaps, s, orderBy) {
+	if delivered {
+		// The index supplied the order — no sorter ran.
 		return nil
 	}
 	tie := e.orderByIndexRowidTie(s, orderBy)

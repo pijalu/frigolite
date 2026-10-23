@@ -1162,8 +1162,8 @@ func Test_zipfile(t *testing.T) {
 							_ = os.WriteFile(path, nil, 0644)
 							fd = path
 							_ = fd // suppress unused warning
-							tclChannelAppendAt(path, tclStringRepeat("1", sz), fileChannelSeek["fd"])
-							fileChannelSeek["fd"] += int64(len(tclStringRepeat("1", sz)))
+							tclChannelAppendAt(path, tclStringRepeat("1", sz), fileChannelSeek[path])
+							fileChannelSeek[path] += int64(len(tclStringRepeat("1", sz)))
 							// close $fd
 						}
 					}

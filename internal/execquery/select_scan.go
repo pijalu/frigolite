@@ -442,6 +442,13 @@ func (e *SelectEngine) scanTableRowsWithSQL(cursor *btree.Cursor, s *sql.SelectS
 	if err := st.runScan(cursor); err != nil {
 		return nil, nil, nil, err
 	}
+	// SQLITE_STMTSTATUS_FULLSCAN_STEP: the number of rows *advanced past* by
+	// this full table scan. SQLite reaches the first row with OP_Rewind (not
+	// counted) and increments the counter in OP_Next, so a scan of n rows
+	// counts n-1.
+	if st.rowsVisited > 1 {
+		e.ctx.RecordFullScanSteps(int(st.rowsVisited) - 1)
+	}
 	allRows := st.buildResultRows()
 	// PRAGMA reverse_unordered_selects: reverse the scan order of the
 	// top-level SELECT when it has no ORDER BY (SQLite's behavior).
@@ -490,6 +497,7 @@ func (st *scanState) runScan(cursor *btree.Cursor) error {
 // shape folds decode into output (scanRowBarePassthrough); scanRowDecoded is
 // the general pipeline both paths fall back to.
 func (st *scanState) scanRow(payload []byte, rowID int64) error {
+	st.rowsVisited++
 	if st.barePassthrough {
 		return st.scanRowBarePassthrough(payload, rowID)
 	}
@@ -523,10 +531,14 @@ func (st *scanState) scanRowDecoded(payload []byte, rowID int64) error {
 // scanState holds the per-scan configuration and output accumulators for
 // scanTableRows, keeping the scan loop body small and low-complexity.
 type scanState struct {
-	e            *SelectEngine
-	s            *sql.SelectStmt
-	colDefs      []sql.ColumnDef
-	hasJoins     bool
+	e        *SelectEngine
+	s        *sql.SelectStmt
+	colDefs  []sql.ColumnDef
+	hasJoins bool
+	// rowsVisited counts the rows this scan stepped (SQLite's
+	// SQLITE_STMTSTATUS_FULLSCAN_STEP counts the rows advanced past, i.e.
+	// one less than the rows visited).
+	rowsVisited  int64
 	affinityCols map[string]bool
 	// affPlan precomputes the per-column affinity/collation wrapping for the
 	// scan (nil exactly when affinityCols is nil, preserving the old gate).

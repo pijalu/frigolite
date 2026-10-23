@@ -1,6 +1,7 @@
 {
   "file": "affinity3.test",
   "name": "affinity3",
+  "ordered": true,
   "tests": [
     {
       "name": "affinity3-100",

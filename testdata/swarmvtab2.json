@@ -1,18 +1,51 @@
 {
   "file": "swarmvtab2.test",
   "name": "swarmvtab2",
+  "ordered": true,
   "tests": [
     {
-      "name": "100",
+      "name": "setup_0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(filename, tablename, istart, iend);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<99)\n  INSERT INTO t1 SELECT printf('test%03d.db',x),'t2',x*1000,x*1000+999 FROM c;\n  CREATE VIRTUAL TABLE temp.v1 USING swarmvtab(\n    'SELECT * FROM t1', 'create_database'\n  );"
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "create_database",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "swarmvtab2"
+          },
+          "functionProc": "create_database",
+          "functionArgs": [
+            "filename"
+          ],
+          "functionBody": "\n  sqlite3 dbx $filename\n  set num [regsub -all {[^0-9]+} $filename {}]\n  set num [string trimleft $num 0]\n  set start [expr {$num*1000}]\n  set end [expr {$start+999}]\n  dbx eval {\n    CREATE TABLE t2(a INTEGER PRIMARY KEY,b);\n    WITH RECURSIVE c(x) AS (\n      VALUES($start) UNION ALL SELECT x+1 FROM c WHERE x\u003c$end\n    )\n    INSERT INTO t2(a,b) SELECT x, printf('**%05d**',x) FROM c;\n  }\n  dbx close\n",
+          "minArgs": 1,
+          "maxArgs": -1
         }
       ]
     },
     {
-      "name": "110",
+      "name": "swarmvtab2-100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(filename, tablename, istart, iend);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c99)\n  INSERT INTO t1 SELECT printf('test%03d.db',x),'t2',x*1000,x*1000+999 FROM c;\n  CREATE VIRTUAL TABLE temp.v1 USING swarmvtab(\n    'SELECT * FROM t1', 'create_database'\n  );"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab2-110",
       "steps": [
         {
           "type": "query",
@@ -22,7 +55,7 @@
       ]
     },
     {
-      "name": "130",
+      "name": "swarmvtab2-130",
       "steps": [
         {
           "type": "query",
@@ -32,11 +65,11 @@
       ]
     },
     {
-      "name": "150",
+      "name": "swarmvtab2-150",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT b FROM v1 WHERE a>=99998;",
+          "sql": "SELECT b FROM v1 WHERE a\u003e=99998;",
           "expect": "**99998** **99999**"
         }
       ]

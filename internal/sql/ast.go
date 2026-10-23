@@ -191,7 +191,12 @@ type TableRef struct {
 	As       string
 	NameTok  TokenInfo   // byte position of the Name token in original SQL
 	Subquery *SelectStmt // subquery in FROM clause (optional)
-	Args     []Expr      // table-valued function arguments: FROM tablename(args)
+	// JoinGroup marks parser-synthesized parentheses around a JOIN group.
+	JoinGroup bool
+	// ParenthesizedCommaGroupSize is the number of comma-separated members
+	// flattened from a parenthesized table group; zero means no such grouping.
+	ParenthesizedCommaGroupSize int
+	Args                        []Expr // table-valued function arguments: FROM tablename(args)
 	// IsTabFunc marks FROM terms written with function-call syntax
 	// ("FROM name(...)"), including a zero-argument call. SQLite's resolver
 	// raises "'name' is not a function" when such a term resolves to an
@@ -301,8 +306,9 @@ func (s *UpdateStmt) stmt() {}
 
 // Assignment represents a SET x = y clause.
 type Assignment struct {
-	Column string
-	Value  Expr
+	Column    string
+	ColumnTok TokenInfo // byte position of assignment target in original SQL
+	Value     Expr
 }
 
 // DeleteStmt represents a DELETE statement.
@@ -572,6 +578,7 @@ type AlterTableStmt struct {
 	TableTok       TokenInfo // byte position of the Table name in original SQL
 	Action         string    // "RENAME", "ADD", "DROP", "ALTER"
 	NewName        string    // for RENAME
+	NewNameQuoted  bool      // true when rename target used quoted identifier or string syntax
 	Column         string    // for ADD/DROP columns
 	ColumnTok      TokenInfo // byte position of the Column name in original SQL (for RENAME COLUMN)
 	ColDef         ColumnDef // for ADD

@@ -1,0 +1,26 @@
+{
+  "file": "attachmalloc.test",
+  "name": "attachmalloc",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test3.db",
+          "database": "dbaux"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_master",
+          "database": "dbaux"
+        },
+        {
+          "type": "close_named_db",
+          "database": "dbaux"
+        }
+      ]
+    }
+  ]
+}

@@ -1,9 +1,19 @@
 {
   "file": "e_blobopen.test",
   "name": "e_blobopen",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +22,60 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "e_blobopen-3.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM x1 WHERE a=1;"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-3.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM x1 WHERE a=2;",
+          "expect": "xxx"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-3.3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM x1 WHERE a=3;",
+          "expect": "xxx"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-3.4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM x1 WHERE a=4;",
+          "expect": "xxx"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-3.5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM x1 WHERE a=5;",
+          "expect": "xxx"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "e_blobopen-4.0",
       "steps": [
         {
           "type": "exec",
@@ -21,7 +84,256 @@
       ]
     },
     {
-      "name": "11.1",
+      "name": "e_blobopen-4.1.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "1 SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-4.2.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "1 SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-4.3.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "1 SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-4.4.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "1 SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-4.5.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "1 SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-4.6.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "1 SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-4.7.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "1 SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-4.8.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "1 SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-4.8.1.1.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-4.8.1.2.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-4.8.1.3.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-4.8.1.4.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-4.8.1.5.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-4.8.1.6.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-4.8.2.1.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "1 SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-4.8.2.2.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "1 SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-4.8.2.3.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-4.8.2.4.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-4.8.2.5.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "1 SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-4.8.2.6.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "1 SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-4.9.1.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-4.9.2.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = ON"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-4.9.3.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-4.9.4.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "1 SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-11.1",
       "steps": [
         {
           "type": "exec",
@@ -30,7 +342,124 @@
       ]
     },
     {
-      "name": "12.1",
+      "name": "e_blobopen-11.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM b1 WHERE a = 1",
+          "expect": "1234567890"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-11.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM b1 WHERE a = 2",
+          "expect": "1 SQLITE_ABORT"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-11.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE b1 SET c = 42 WHERE a=4",
+          "expect": "1234567890"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-11.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE b1 SET c = 43 WHERE a=3",
+          "expect": "1 SQLITE_ABORT"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-11.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE INTO b1 VALUES(10, 'abcdefghij', 5)",
+          "expect": "1234567890"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-11.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE INTO b1 VALUES(11, 'abcdefghij', 6)",
+          "expect": "1 SQLITE_ABORT"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-11.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM b2 WHERE a = 1"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-11.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM b2 WHERE a = 2",
+          "expect": "1 SQLITE_ABORT"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-11.5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE b2 SET c = 42 WHERE a=4"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-11.5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE b2 SET c = 43 WHERE a=3",
+          "expect": "1 SQLITE_ABORT"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-11.6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE INTO b2 VALUES(10, 'abcdefghij', 5)"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-11.6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE INTO b2 VALUES(11, 'abcdefghij', 6)",
+          "expect": "1 SQLITE_ABORT"
+        }
+      ]
+    },
+    {
+      "name": "e_blobopen-12.1",
       "steps": [
         {
           "type": "exec",
@@ -39,7 +468,7 @@
       ]
     },
     {
-      "name": "12.3",
+      "name": "e_blobopen-12.3",
       "steps": [
         {
           "type": "exec",
@@ -48,7 +477,7 @@
       ]
     },
     {
-      "name": "12.5",
+      "name": "e_blobopen-12.5",
       "steps": [
         {
           "type": "query",
@@ -58,7 +487,7 @@
       ]
     },
     {
-      "name": "12.6",
+      "name": "e_blobopen-12.6",
       "steps": [
         {
           "type": "query",
@@ -68,7 +497,7 @@
       ]
     },
     {
-      "name": "13.1",
+      "name": "e_blobopen-13.1",
       "steps": [
         {
           "type": "exec",
@@ -77,186 +506,39 @@
       ]
     },
     {
-      "name": "11.2.2",
+      "name": "e_blobopen-13.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "DELETE FROM b1 WHERE a = 1"
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO c2 VALUES(11, ?)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO c2 VALUES(11, ?)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO c2 VALUES(11, ?)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "SQLITE_OK",
+          "expect": "SQLITE_OK"
         }
       ]
     },
     {
-      "name": "11.2.3",
+      "name": "e_blobopen-13.5",
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM b1 WHERE a = 2"
-        }
-      ]
-    },
-    {
-      "name": "11.3.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE b1 SET c = 42 WHERE a=4"
-        }
-      ]
-    },
-    {
-      "name": "11.3.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE b1 SET c = 43 WHERE a=3"
-        }
-      ]
-    },
-    {
-      "name": "11.4.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT OR REPLACE INTO b1 VALUES(10, 'abcdefghij', 5)"
-        }
-      ]
-    },
-    {
-      "name": "11.4.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT OR REPLACE INTO b1 VALUES(11, 'abcdefghij', 6)"
-        }
-      ]
-    },
-    {
-      "name": "11.4.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM b2 WHERE a = 1"
-        }
-      ]
-    },
-    {
-      "name": "11.4.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM b2 WHERE a = 2"
-        }
-      ]
-    },
-    {
-      "name": "11.5.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE b2 SET c = 42 WHERE a=4"
-        }
-      ]
-    },
-    {
-      "name": "11.5.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE b2 SET c = 43 WHERE a=3"
-        }
-      ]
-    },
-    {
-      "name": "11.6.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT OR REPLACE INTO b2 VALUES(10, 'abcdefghij', 5)"
-        }
-      ]
-    },
-    {
-      "name": "11.6.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT OR REPLACE INTO b2 VALUES(11, 'abcdefghij', 6)"
-        }
-      ]
-    },
-    {
-      "name": "13.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT j FROM c2"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA foreign_keys = ON"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM b1 WHERE a = 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM b1 WHERE a = 2"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE b1 SET c = 42 WHERE a=4"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE b1 SET c = 43 WHERE a=3"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT OR REPLACE INTO b1 VALUES(10, 'abcdefghij', 5)"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT OR REPLACE INTO b1 VALUES(11, 'abcdefghij', 6)"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM b2 WHERE a = 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM b2 WHERE a = 2"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE b2 SET c = 42 WHERE a=4"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE b2 SET c = 43 WHERE a=3"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT OR REPLACE INTO b2 VALUES(10, 'abcdefghij', 5)"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT OR REPLACE INTO b2 VALUES(11, 'abcdefghij', 6)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT j FROM c2"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
+          "sql": "SELECT j FROM c2",
+          "expect": "{} {}"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

@@ -1,38 +1,40 @@
 {
   "file": "with3.test",
   "name": "with3",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "with3-1.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "WITH i(x) AS (\n    WITH j AS (SELECT 10)\n    SELECT 5 FROM t0 UNION SELECT 8 FROM m\n  )\n  SELECT * FROM i;",
           "expect": "1 {no such table: m}"
         }
       ]
     },
     {
-      "name": "1.1",
+      "name": "with3-1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIEW v1(x,y) AS\n    WITH t1(a,b) AS (VALUES(1,2))\n    SELECT * FROM nosuchtable JOIN t1;\n  SELECT * FROM v1;",
           "expect": "1 {no such table: main.nosuchtable}"
         }
       ]
     },
     {
-      "name": "2.0",
+      "name": "with3-2.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH\n  x1 AS (SELECT 10),\n  x2 AS (SELECT 11),\n  x3 AS (\n    SELECT * FROM x1 UNION ALL SELECT * FROM x2\n  ),\n  x4 AS (\n    WITH\n    x1 AS (SELECT 12),\n    x2 AS (SELECT 13)\n    SELECT * FROM x3\n  )\n  SELECT * FROM x4;"
+          "type": "query",
+          "sql": "WITH\n  x1 AS (SELECT 10),\n  x2 AS (SELECT 11),\n  x3 AS (\n    SELECT * FROM x1 UNION ALL SELECT * FROM x2\n  ),\n  x4 AS (\n    WITH\n    x1 AS (SELECT 12),\n    x2 AS (SELECT 13)\n    SELECT * FROM x3\n  )\n  SELECT * FROM x4;",
+          "expect": "10 11"
         }
       ]
     },
     {
-      "name": "2.1",
+      "name": "with3-2.1",
       "steps": [
         {
           "type": "query",
@@ -42,7 +44,7 @@
       ]
     },
     {
-      "name": "3.1.1",
+      "name": "with3-3.1.1",
       "steps": [
         {
           "type": "exec",
@@ -51,7 +53,25 @@
       ]
     },
     {
-      "name": "3.2.1",
+      "name": "with3-3.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n    WITH cnt(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM cnt LIMIT 1)\n    SELECT * FROM cnt, y1 WHERE i=a"
+        }
+      ]
+    },
+    {
+      "name": "with3-3.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n    WITH cnt(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM cnt LIMIT 1000000)\n    SELECT * FROM cnt, y1 WHERE i=a"
+        }
+      ]
+    },
+    {
+      "name": "with3-3.2.1",
       "steps": [
         {
           "type": "exec",
@@ -60,16 +80,26 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "with3-3.2.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH t5(t5col1) AS (\n    SELECT (\n      WITH t3(t3col1) AS (\n        WITH t2 AS (\n          WITH t1 AS (SELECT 1 AS c1 GROUP BY 1) \n          SELECT a.c1 FROM t1 AS a, t1 AS b\n          WHERE anoncol1 = 1\n        )\n        SELECT (SELECT 1 FROM t2) FROM t2\n      ) \n      SELECT t3col1 FROM t3 WHERE t3col1\n    ) FROM (SELECT 1 AS anoncol1)\n  )\n  SELECT t5col1, t5col1 FROM t5"
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  WITH RECURSIVE c(w,id) AS (SELECT 0, (SELECT pk FROM w2 LIMIT 1)\n     UNION ALL SELECT c.w + 1, x FROM w1, c LIMIT 1)\n     SELECT * FROM c, w2, w1\n     WHERE c.id=w2.pk AND c.id=w1.pk;"
         }
       ]
     },
     {
-      "name": "4.1",
+      "name": "with3-4.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH t5(t5col1) AS (\n    SELECT (\n      WITH t3(t3col1) AS (\n        WITH t2 AS (\n          WITH t1 AS (SELECT 1 AS c1 GROUP BY 1) \n          SELECT a.c1 FROM t1 AS a, t1 AS b\n          WHERE anoncol1 = 1\n        )\n        SELECT (SELECT 1 FROM t2) FROM t2\n      ) \n      SELECT t3col1 FROM t3 WHERE t3col1\n    ) FROM (SELECT 1 AS anoncol1)\n  )\n  SELECT t5col1, t5col1 FROM t5",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "with3-4.1",
       "steps": [
         {
           "type": "query",
@@ -79,7 +109,7 @@
       ]
     },
     {
-      "name": "4.2",
+      "name": "with3-4.2",
       "steps": [
         {
           "type": "query",
@@ -89,30 +119,40 @@
       ]
     },
     {
-      "name": "5.2",
+      "name": "with3-5.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<1)\n  SELECT x1.x||x2.x||x3.x||x4.x FROM c AS x1, c AS x2, c AS x3, c AS x4\n  ORDER BY 1;"
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x\u003c1)\n  SELECT x1.x||x2.x||x3.x||x4.x FROM c AS x1, c AS x2, c AS x3, c AS x4\n  ORDER BY 1;"
         }
       ]
     },
     {
-      "name": "6.0",
+      "name": "with3-5.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x\u003c1)\n  SELECT x1.x||x2.x||x3.x||x4.x FROM c AS x1, c AS x2, c AS x3, c AS x4\n  ORDER BY 1;",
+          "expect": "0000 0001 0010 0011 0100 0101 0110 0111 1000 1001 1010 1011 1100 1101 1110 1111"
+        }
+      ]
+    },
+    {
+      "name": "with3-6.0",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "with\n    cte1(x, y) AS ( select 1, 2, 3 ),\n    cte2(z) as ( select 1 from cte1 )\n  select * from cte2, cte1;",
           "expect": "1 {table cte1 has 3 values for 2 columns}"
         }
       ]
     },
     {
-      "name": "6.1",
+      "name": "with3-6.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "with\n    cte1(x, y) AS ( select 1, 2, 3 ),\n    cte2(z) as ( select 1 from cte1 UNION ALL SELECT z+1 FROM cte2 WHERE z<5)\n  select * from cte2, cte1;",
+          "type": "catch",
+          "sql": "with\n    cte1(x, y) AS ( select 1, 2, 3 ),\n    cte2(z) as ( select 1 from cte1 UNION ALL SELECT z+1 FROM cte2 WHERE z\u003c5)\n  select * from cte2, cte1;",
           "expect": "1 {table cte1 has 3 values for 2 columns}"
         }
       ]

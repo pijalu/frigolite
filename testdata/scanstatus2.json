@@ -1,9 +1,10 @@
 {
   "file": "scanstatus2.test",
   "name": "scanstatus2",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "scanstatus2-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,16 +13,76 @@
       ]
     },
     {
-      "name": "3.0",
+      "name": "setup_0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE x1(a, b);\n  CREATE TABLE x2(c, d);\n\n  WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000)\n  INSERT INTO x1 SELECT i, i FROM s;\n  INSERT INTO x2 SELECT a, b FROM x1;"
+          "type": "query",
+          "sql": "SELECT (SELECT a FROM t1 WHERE b=x) FROM t2 WHERE y=2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT a FROM t1 WHERE b=x) FROM t2 WHERE y=2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT a FROM t1 WHERE b=x) FROM t2 WHERE y=2"
+        },
+        {
+          "type": "query",
+          "sql": "WITH v2(x,y) AS MATERIALIZED (\n    SELECT x,y FROM t2\n  )\n  SELECT * FROM t1, v2 ORDER BY y;"
         }
       ]
     },
     {
-      "name": "4.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "scanstatus2-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE ft USING fts5(a);\n    INSERT INTO ft VALUES('abc');\n    INSERT INTO ft VALUES('def');\n    INSERT INTO ft VALUES('ghi');"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM ft('def')"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "scanstatus2-3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a, b);\n  CREATE TABLE x2(c, d);\n\n  WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i\u003c1000)\n  INSERT INTO x1 SELECT i, i FROM s;\n  INSERT INTO x2 SELECT a, b FROM x1;"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1, x2 WHERE c=+a;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "scanstatus2-4.0",
       "steps": [
         {
           "type": "exec",
@@ -30,7 +91,36 @@
       ]
     },
     {
-      "name": "5.0",
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM rt1, rt2 WHERE rt1.id%2 AND rt2.x1=rt1.x1;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT rt2.id FROM rt1, rt2 WHERE rt1.id%2 AND rt2.x1=rt1.x1;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT rt2.id FROM rt1, rt2 WHERE rt1.id%2 AND (rt2.x1+1)=(rt1.x1+1);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT rt2.id FROM rt1, rt2 WHERE rt1.id%2 AND rt2.x1=(rt1.x1+1) AND rt2.id\u003e5;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT v1.cnt FROM rt1, (\n    SELECT count(*) AS cnt, rt2.x1 AS x1 FROM rt2 GROUP BY x1\n  ) AS v1 WHERE rt1.x1=v1.x1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "scanstatus2-5.0",
       "steps": [
         {
           "type": "exec",
@@ -39,7 +129,7 @@
       ]
     },
     {
-      "name": "5.1",
+      "name": "scanstatus2-5.1",
       "steps": [
         {
           "type": "exec",
@@ -48,58 +138,57 @@
       ]
     },
     {
-      "name": "6.0",
+      "name": "scanstatus2-5.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "trace_explain",
+          "expect": "{SCAN t1} {SCAN t1} {SCAN t1}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "scanstatus2-6.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(3, 'three');\n  INSERT INTO t1 VALUES(4, 'four');\n  INSERT INTO t1 VALUES(5, 'five');\n  INSERT INTO t1 VALUES(6, 'six');\n  INSERT INTO t1 VALUES(7, 'seven');\n  INSERT INTO t1 VALUES(8, 'eight');"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (a % 2), group_concat(b) FROM t1 GROUP BY 1"
         },
         {
-          "type": "exec",
+          "type": "query",
+          "sql": "WITH xy(x, y) AS ( SELECT (a % 2), group_concat(b) FROM t1 GROUP BY 1)\n  SELECT * FROM xy WHERE x=1"
+        },
+        {
+          "type": "query",
+          "sql": "WITH xy(x, y) AS ( SELECT (a % 2), group_concat(b) FROM t1 GROUP BY 1)\n  SELECT * FROM xy, xy AS xy2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "scanstatus2-7.0",
+      "steps": [
+        {
+          "type": "query",
           "sql": "SELECT * FROM sqlite_schema"
         }
       ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
     }
-  ],
-  "source": "capi"
+  ]
 }

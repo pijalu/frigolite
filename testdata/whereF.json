@@ -1,9 +1,10 @@
 {
   "file": "whereF.test",
   "name": "whereF",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "whereF-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,37 @@
       ]
     },
     {
-      "name": "2.0",
+      "name": "whereF-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1,           t2 WHERE t1.a=t2.e AND t2.d\u003ct1.b AND t1.c!=10",
+          "expect": "/.*SCAN t2\\y.*SEARCH t1\\y.*/"
+        }
+      ]
+    },
+    {
+      "name": "whereF-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t2,           t1 WHERE t1.a=t2.e AND t2.d\u003ct1.b AND t1.c!=10",
+          "expect": "/.*SCAN t2\\y.*SEARCH t1\\y.*/"
+        }
+      ]
+    },
+    {
+      "name": "whereF-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a=t2.e AND t2.d\u003ct1.b AND t1.c!=10",
+          "expect": "/.*SCAN t2\\y.*SEARCH t1\\y.*/"
+        }
+      ]
+    },
+    {
+      "name": "whereF-2.0",
       "steps": [
         {
           "type": "exec",
@@ -21,7 +52,37 @@
       ]
     },
     {
-      "name": "3.0",
+      "name": "whereF-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1,           t2 WHERE t1.a\u003e? AND t2.d\u003et1.c AND t1.b=t2.e",
+          "expect": "/.*SCAN t2\\y.*SEARCH t1\\y.*/"
+        }
+      ]
+    },
+    {
+      "name": "whereF-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t2,           t1 WHERE t1.a\u003e? AND t2.d\u003et1.c AND t1.b=t2.e",
+          "expect": "/.*SCAN t2\\y.*SEARCH t1\\y.*/"
+        }
+      ]
+    },
+    {
+      "name": "whereF-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a\u003e? AND t2.d\u003et1.c AND t1.b=t2.e",
+          "expect": "/.*SCAN t2\\y.*SEARCH t1\\y.*/"
+        }
+      ]
+    },
+    {
+      "name": "whereF-3.0",
       "steps": [
         {
           "type": "exec",
@@ -30,7 +91,37 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "whereF-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN SELECT t1.a, t1.b, t2.d, t2.e FROM t1, t2 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)",
+          "expect": "/.*SCAN t2\\y.*SEARCH t1\\y.*/"
+        }
+      ]
+    },
+    {
+      "name": "whereF-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN SELECT t1.a, t1.b, t2.d, t2.e FROM t2, t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)",
+          "expect": "/.*SCAN t2\\y.*SEARCH t1\\y.*/"
+        }
+      ]
+    },
+    {
+      "name": "whereF-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN SELECT t1.a, t1.b, t2.d, t2.e FROM t2 CROSS JOIN t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)",
+          "expect": "/.*SCAN t2\\y.*SEARCH t1\\y.*/"
+        }
+      ]
+    },
+    {
+      "name": "whereF-4.0",
       "steps": [
         {
           "type": "query",
@@ -40,46 +131,53 @@
       ]
     },
     {
-      "name": "5.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "whereF-5.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(f1);\n  CREATE TABLE t2(f2);\n  CREATE INDEX t2f ON t2(f2);\n\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n\n  WITH w(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM w WHERE i<1000\n  )\n  INSERT INTO t2 SELECT -1 FROM w;"
+          "type": "query",
+          "sql": "CREATE TABLE t1(f1);\n  CREATE TABLE t2(f2);\n  CREATE INDEX t2f ON t2(f2);\n\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n\n  WITH w(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM w WHERE i\u003c1000\n  )\n  INSERT INTO t2 SELECT -1 FROM w;"
         }
       ]
     },
     {
-      "name": "5.1",
+      "name": "whereF-5.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT count(*) FROM t1, t2 WHERE t2.rowid = +t1.rowid",
+          "stmtStatus": true,
           "expect": "4"
         }
       ]
     },
     {
-      "name": "5.3",
+      "name": "whereF-5.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT count(*) FROM t1, t2 WHERE (\n    t2.rowid = +t1.rowid OR t2.f2 = t1.f1\n  )",
+          "stmtStatus": true,
           "expect": "4000"
         }
       ]
     },
     {
-      "name": "5.5",
+      "name": "whereF-5.5",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT count(*) FROM t1, t2 WHERE (\n    t2.rowid = +t1.rowid OR (t2.f2 = t1.f1 AND t1.f1!=-1)\n  )",
+          "stmtStatus": true,
           "expect": "4"
         }
       ]
     },
     {
-      "name": "6.1",
+      "name": "whereF-6.1",
       "steps": [
         {
           "type": "query",
@@ -88,7 +186,17 @@
       ]
     },
     {
-      "name": "6.3",
+      "name": "whereF-6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t6;\n    CREATE TABLE t6(a,b,c);\n    INSERT INTO t6 VALUES\n     (0,null,'{\"a\":0,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (1,null,'{\"a\":1,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}'),\n     (2,null,'{\"a\":9,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}');\n    SELECT * FROM t6\n     WHERE (EXISTS (SELECT 1 FROM json_each(t6.c) AS x WHERE x.value=1));",
+          "expect": "1 {} {{\"a\":1,\"b\":[3,4,5],\"c\":{\"x\":4.5,\"y\":7.8}}}"
+        }
+      ]
+    },
+    {
+      "name": "whereF-6.3",
       "steps": [
         {
           "type": "query",
@@ -97,40 +205,42 @@
       ]
     },
     {
-      "name": "7.1",
+      "name": "whereF-6.4",
       "steps": [
         {
           "type": "query",
-          "sql": "DROP TABLE IF EXISTS cd;\n  CREATE TABLE cd ( cdid INTEGER PRIMARY KEY NOT NULL, genreid integer );\n  CREATE INDEX cd_idx_genreid ON cd (genreid);\n  INSERT INTO cd  ( cdid, genreid ) VALUES\n                     ( 1,    1 ),\n                     ( 2, NULL ),\n                     ( 3, NULL ),\n                     ( 4, NULL ),\n                     ( 5, NULL );\n  \n  SELECT cdid\n    FROM cd me\n  WHERE 2 > (\n    SELECT COUNT( * )\n      FROM cd rownum__emulation\n    WHERE\n      (\n        me.genreid IS NOT NULL\n          AND\n        rownum__emulation.genreid IS NULL\n      )\n        OR\n      (\n        me.genreid IS NOT NULL\n          AND\n        rownum__emulation.genreid IS NOT NULL\n          AND\n        rownum__emulation.genreid < me.genreid\n      )\n        OR\n      (\n        ( me.genreid = rownum__emulation.genreid OR ( me.genreid IS NULL\n  AND rownum__emulation.genreid IS NULL ) )\n          AND\n        rownum__emulation.cdid > me.cdid\n      )\n  );",
+          "sql": "INSERT INTO t VALUES('{\"xyzzy\":null}');\n    INSERT INTO t VALUES('{\"foo\":\"meep\",\"other\":12345}');\n    INSERT INTO t VALUES('{\"foo\":\"bingo\",\"alt\":5.25}');\n    SELECT * FROM t\n     WHERE(EXISTS(SELECT 1 FROM json_each(t.json,\"$.foo\") j\n                   WHERE j.value = 'meep'));",
+          "expect": "{{\"foo\":\"meep\",\"other\":12345}}"
+        }
+      ]
+    },
+    {
+      "name": "whereF-7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS cd;\n  CREATE TABLE cd ( cdid INTEGER PRIMARY KEY NOT NULL, genreid integer );\n  CREATE INDEX cd_idx_genreid ON cd (genreid);\n  INSERT INTO cd  ( cdid, genreid ) VALUES\n                     ( 1,    1 ),\n                     ( 2, NULL ),\n                     ( 3, NULL ),\n                     ( 4, NULL ),\n                     ( 5, NULL );\n  \n  SELECT cdid\n    FROM cd me\n  WHERE 2 \u003e (\n    SELECT COUNT( * )\n      FROM cd rownum__emulation\n    WHERE\n      (\n        me.genreid IS NOT NULL\n          AND\n        rownum__emulation.genreid IS NULL\n      )\n        OR\n      (\n        me.genreid IS NOT NULL\n          AND\n        rownum__emulation.genreid IS NOT NULL\n          AND\n        rownum__emulation.genreid \u003c me.genreid\n      )\n        OR\n      (\n        ( me.genreid = rownum__emulation.genreid OR ( me.genreid IS NULL\n  AND rownum__emulation.genreid IS NULL ) )\n          AND\n        rownum__emulation.cdid \u003e me.cdid\n      )\n  );",
           "expect": "4 5"
         }
       ]
     },
     {
-      "name": "7.2",
+      "name": "whereF-7.2",
       "steps": [
         {
           "type": "query",
-          "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1(a,b) VALUES(1,1);\n  CREATE TABLE t2(aa INTEGER PRIMARY KEY, bb);\n  INSERT INTO t2(aa,bb) VALUES(1,1),(2,NULL),(3,NULL);\n  SELECT (\n    SELECT COUNT(*) FROM t2\n     WHERE ( t1.b IS NOT NULL AND t2.bb IS NULL )\n        OR ( t2.bb < t1.b )\n        OR ( t1.b IS t2.bb AND t2.aa > t1.a )\n    )\n    FROM t1;",
+          "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1(a,b) VALUES(1,1);\n  CREATE TABLE t2(aa INTEGER PRIMARY KEY, bb);\n  INSERT INTO t2(aa,bb) VALUES(1,1),(2,NULL),(3,NULL);\n  SELECT (\n    SELECT COUNT(*) FROM t2\n     WHERE ( t1.b IS NOT NULL AND t2.bb IS NULL )\n        OR ( t2.bb \u003c t1.b )\n        OR ( t1.b IS t2.bb AND t2.aa \u003e t1.a )\n    )\n    FROM t1;",
           "expect": "2"
         }
       ]
     },
     {
-      "name": "7.3",
+      "name": "whereF-7.3",
       "steps": [
         {
           "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1(a,b) VALUES(1,'abcxyz');\n  CREATE TABLE t2(aa INTEGER PRIMARY KEY, bb TEXT);\n  INSERT INTO t2(aa,bb) VALUES(1,'abc'),(2,'wxyz'),(3,'xyz');\n  CREATE INDEX t2bb ON t2(bb);\n  EXPLAIN SELECT (\n    SELECT COUNT(*) FROM t2\n     WHERE ( t1.b GLOB 'a*z' AND t2.bb='xyz' )\n        OR ( t2.bb = t1.b )\n        OR ( t2.aa = t1.a )\n    )\n    FROM t1;",
           "expect": "~/ (Lt|Ge) /"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

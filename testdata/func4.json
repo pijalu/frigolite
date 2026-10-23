@@ -1,12 +1,30 @@
 {
   "file": "func4.test",
   "name": "func4",
+  "ordered": true,
   "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(9223372036854775807 + 1);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT toreal(-9223372036854775808 + 1);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT toreal(9007199254740992 + 1);"
+        }
+      ]
+    },
     {
       "name": "func4-1.1",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger(NULL);",
           "expect": "{}"
         }
@@ -16,7 +34,7 @@
       "name": "func4-1.2",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger('');",
           "expect": "{}"
         }
@@ -26,7 +44,7 @@
       "name": "func4-1.3",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger('   ');",
           "expect": "{}"
         }
@@ -46,7 +64,7 @@
       "name": "func4-1.5",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger('   1234');",
           "expect": "{}"
         }
@@ -56,7 +74,7 @@
       "name": "func4-1.6",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger('bad');",
           "expect": "{}"
         }
@@ -66,7 +84,7 @@
       "name": "func4-1.7",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger('0xBAD');",
           "expect": "{}"
         }
@@ -76,7 +94,7 @@
       "name": "func4-1.8",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger('123BAD');",
           "expect": "{}"
         }
@@ -86,7 +104,7 @@
       "name": "func4-1.9",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger('0x123BAD');",
           "expect": "{}"
         }
@@ -96,7 +114,7 @@
       "name": "func4-1.10",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger('123NO');",
           "expect": "{}"
         }
@@ -106,7 +124,7 @@
       "name": "func4-1.11",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger('0x123NO');",
           "expect": "{}"
         }
@@ -116,7 +134,7 @@
       "name": "func4-1.12",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger('-0x1');",
           "expect": "{}"
         }
@@ -126,7 +144,7 @@
       "name": "func4-1.13",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger('-0x0');",
           "expect": "{}"
         }
@@ -136,7 +154,7 @@
       "name": "func4-1.14",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger('0x0');",
           "expect": "{}"
         }
@@ -146,7 +164,7 @@
       "name": "func4-1.15",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger('0x1');",
           "expect": "{}"
         }
@@ -196,7 +214,7 @@
       "name": "func4-1.20",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger(-1.79769313486232e308 - 1);",
           "expect": "{}"
         }
@@ -206,7 +224,7 @@
       "name": "func4-1.21",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger(-1.79769313486232e308);",
           "expect": "{}"
         }
@@ -216,7 +234,7 @@
       "name": "func4-1.22",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger(-1.79769313486232e308 + 1);",
           "expect": "{}"
         }
@@ -226,7 +244,7 @@
       "name": "func4-1.23",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger(-9223372036854775808 - 1);",
           "expect": "{}"
         }
@@ -363,20 +381,10 @@
       ]
     },
     {
-      "name": "func4-1.37",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT tointeger(9223372036854775807 + 1);",
-          "expect": "{}"
-        }
-      ]
-    },
-    {
       "name": "func4-1.38",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger(1.79769313486232e308 - 1);",
           "expect": "{}"
         }
@@ -386,7 +394,7 @@
       "name": "func4-1.39",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger(1.79769313486232e308);",
           "expect": "{}"
         }
@@ -396,7 +404,7 @@
       "name": "func4-1.40",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger(1.79769313486232e308 + 1);",
           "expect": "{}"
         }
@@ -483,50 +491,10 @@
       ]
     },
     {
-      "name": "func4-1.49",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT tointeger(9223372036854775807 + 1);",
-          "expect": "{}"
-        }
-      ]
-    },
-    {
-      "name": "func4-1.50",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT tointeger(9223372036854775808 - 1);",
-          "expect": "{}"
-        }
-      ]
-    },
-    {
-      "name": "func4-1.51",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT tointeger(9223372036854775808);",
-          "expect": "{}"
-        }
-      ]
-    },
-    {
-      "name": "func4-1.52",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT tointeger(9223372036854775808 + 1);",
-          "expect": "{}"
-        }
-      ]
-    },
-    {
       "name": "func4-1.53",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger(18446744073709551616 - 1);",
           "expect": "{}"
         }
@@ -536,7 +504,7 @@
       "name": "func4-1.54",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger(18446744073709551616);",
           "expect": "{}"
         }
@@ -546,7 +514,7 @@
       "name": "func4-1.55",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger(18446744073709551616 + 1);",
           "expect": "{}"
         }
@@ -556,7 +524,7 @@
       "name": "func4-2.1",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal(NULL);",
           "expect": "{}"
         }
@@ -566,7 +534,7 @@
       "name": "func4-2.2",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal('');",
           "expect": "{}"
         }
@@ -576,7 +544,7 @@
       "name": "func4-2.3",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal('   ');",
           "expect": "{}"
         }
@@ -596,7 +564,7 @@
       "name": "func4-2.5",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal('   1234');",
           "expect": "{}"
         }
@@ -606,7 +574,7 @@
       "name": "func4-2.6",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal('bad');",
           "expect": "{}"
         }
@@ -616,7 +584,7 @@
       "name": "func4-2.7",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal('0xBAD');",
           "expect": "{}"
         }
@@ -626,7 +594,7 @@
       "name": "func4-2.8",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal('123BAD');",
           "expect": "{}"
         }
@@ -636,7 +604,7 @@
       "name": "func4-2.9",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal('0x123BAD');",
           "expect": "{}"
         }
@@ -646,7 +614,7 @@
       "name": "func4-2.10",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal('123NO');",
           "expect": "{}"
         }
@@ -656,7 +624,7 @@
       "name": "func4-2.11",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal('0x123NO');",
           "expect": "{}"
         }
@@ -666,7 +634,7 @@
       "name": "func4-2.12",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal('-0x1');",
           "expect": "{}"
         }
@@ -676,7 +644,7 @@
       "name": "func4-2.13",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal('-0x0');",
           "expect": "{}"
         }
@@ -686,7 +654,7 @@
       "name": "func4-2.14",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal('0x0');",
           "expect": "{}"
         }
@@ -696,7 +664,7 @@
       "name": "func4-2.15",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal('0x1');",
           "expect": "{}"
         }
@@ -786,18 +754,8 @@
       "name": "func4-2.24",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal(-9223372036854775808);",
-          "expect": "{}"
-        }
-      ]
-    },
-    {
-      "name": "func4-2.25",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT toreal(-9223372036854775808 + 1);",
           "expect": "{}"
         }
       ]
@@ -806,28 +764,8 @@
       "name": "func4-2.26",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal(-9223372036854775807 - 1);",
-          "expect": "{}"
-        }
-      ]
-    },
-    {
-      "name": "func4-2.27",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT toreal(-9223372036854775807);",
-          "expect": "{}"
-        }
-      ]
-    },
-    {
-      "name": "func4-2.28",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT toreal(-9223372036854775807 + 1);",
           "expect": "{}"
         }
       ]
@@ -889,26 +827,6 @@
           "type": "query",
           "sql": "SELECT toreal(2147483647 + 1);",
           "expect": "2147483648.0"
-        }
-      ]
-    },
-    {
-      "name": "func4-2.35",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT toreal(9223372036854775807 - 1);",
-          "expect": "{}"
-        }
-      ]
-    },
-    {
-      "name": "func4-2.36",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT toreal(9223372036854775807);",
-          "expect": "{}"
         }
       ]
     },
@@ -1008,16 +926,6 @@
         {
           "type": "query",
           "sql": "SELECT toreal(9007199254740992 + 1);",
-          "expect": "{}"
-        }
-      ]
-    },
-    {
-      "name": "func4-2.46",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT toreal(9007199254740992 + 1);",
           "expect": "9007199254740992.0"
         }
       ]
@@ -1036,28 +944,8 @@
       "name": "func4-2.48",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal(tointeger(9223372036854775808) - 1);",
-          "expect": "{}"
-        }
-      ]
-    },
-    {
-      "name": "func4-2.49",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT toreal(tointeger(9223372036854775808));",
-          "expect": "{}"
-        }
-      ]
-    },
-    {
-      "name": "func4-2.50",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT toreal(tointeger(9223372036854775808) + 1);",
           "expect": "{}"
         }
       ]
@@ -1066,7 +954,7 @@
       "name": "func4-2.51",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal(tointeger(18446744073709551616) - 1);",
           "expect": "{}"
         }
@@ -1076,7 +964,7 @@
       "name": "func4-2.52",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal(tointeger(18446744073709551616));",
           "expect": "{}"
         }
@@ -1086,7 +974,7 @@
       "name": "func4-2.53",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal(tointeger(18446744073709551616) + 1);",
           "expect": "{}"
         }
@@ -1102,11 +990,181 @@
       ]
     },
     {
+      "name": "func4-3.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 (x) VALUES (NULL);",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 (x) VALUES (NULL);",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 (x) VALUES ('');",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 (x) VALUES ('bad');",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 (x) VALUES ('1234bad');",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 (x) VALUES ('1234.56bad');",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 (x) VALUES (1234);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 (x) VALUES (1234.56);",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.10",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 (x) VALUES ('1234');",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.11",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 (x) VALUES ('1234.56');",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.12",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 (x) VALUES (ZEROBLOB(4));",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.13",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 (x) VALUES (X'');",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.14",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 (x) VALUES (X'1234');",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.15",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 (x) VALUES (X'12345678');",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.16",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 (x) VALUES ('1234.00');",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.17",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 (x) VALUES (1234.00);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.18",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 (x) VALUES ('-9223372036854775809');",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
       "name": "func4-3.20",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT x FROM t1 WHERE x>0 ORDER BY x;",
+          "sql": "SELECT x FROM t1 WHERE x\u003e0 ORDER BY x;",
           "expect": "1234 1234 1234 1234"
         }
       ]
@@ -1117,6 +1175,146 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t2(\n        x REAL CHECK(toreal(x) IS NOT NULL)\n      );"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t2 (x) VALUES (NULL);",
+          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t2 (x) VALUES (NULL);",
+          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t2 (x) VALUES ('');",
+          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t2 (x) VALUES ('bad');",
+          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t2 (x) VALUES ('1234bad');",
+          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t2 (x) VALUES ('1234.56bad');",
+          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t2 (x) VALUES (1234);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t2 (x) VALUES (1234.56);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.10",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t2 (x) VALUES ('1234');",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.11",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t2 (x) VALUES ('1234.56');",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.12",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t2 (x) VALUES (ZEROBLOB(4));",
+          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.13",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t2 (x) VALUES (X'');",
+          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.14",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t2 (x) VALUES (X'1234');",
+          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.15",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t2 (x) VALUES (X'12345678');",
+          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
         }
       ]
     },
@@ -1184,7 +1382,7 @@
       "name": "func4-5.6",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger(toreal(-9223372036854775808 - 1));",
           "expect": "{}"
         }
@@ -1194,18 +1392,8 @@
       "name": "func4-5.7",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger(toreal(-9223372036854775808));",
-          "expect": "{}"
-        }
-      ]
-    },
-    {
-      "name": "func4-5.8",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT tointeger(toreal(-9223372036854775808 + 1));",
           "expect": "{}"
         }
       ]
@@ -1274,28 +1462,8 @@
       "name": "func4-5.15",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger(toreal(9223372036854775807 - 1));",
-          "expect": "{}"
-        }
-      ]
-    },
-    {
-      "name": "func4-5.16",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT tointeger(toreal(9223372036854775807));",
-          "expect": "{}"
-        }
-      ]
-    },
-    {
-      "name": "func4-5.17",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT tointeger(toreal(9223372036854775807 + 1));",
           "expect": "{}"
         }
       ]
@@ -1356,16 +1524,6 @@
         {
           "type": "query",
           "sql": "SELECT tointeger(toreal(9007199254740992 + 1));",
-          "expect": "{}"
-        }
-      ]
-    },
-    {
-      "name": "func4-5.23",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT tointeger(toreal(9007199254740992 + 1));",
           "expect": "9007199254740992"
         }
       ]
@@ -1381,40 +1539,10 @@
       ]
     },
     {
-      "name": "func4-5.25",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT tointeger(toreal(9223372036854775808 - 1));",
-          "expect": "{}"
-        }
-      ]
-    },
-    {
-      "name": "func4-5.26",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT tointeger(toreal(9223372036854775808));",
-          "expect": "{}"
-        }
-      ]
-    },
-    {
-      "name": "func4-5.27",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT tointeger(toreal(9223372036854775808 + 1));",
-          "expect": "{}"
-        }
-      ]
-    },
-    {
       "name": "func4-5.28",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger(toreal(18446744073709551616 - 1));",
           "expect": "{}"
         }
@@ -1424,7 +1552,7 @@
       "name": "func4-5.29",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger(toreal(18446744073709551616));",
           "expect": "{}"
         }
@@ -1434,8 +1562,188 @@
       "name": "func4-5.30",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT tointeger(toreal(18446744073709551616 + 1));",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-6.1.0.1",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT tointeger(x'');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-6.1.0.2",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT toreal(x'');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-6.1.1.1",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT tointeger(x'01');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-6.1.1.2",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT toreal(x'01');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-6.1.2.1",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT tointeger(x'0101');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-6.1.2.2",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT toreal(x'0101');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-6.1.3.1",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT tointeger(x'010101');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-6.1.3.2",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT toreal(x'010101');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-6.1.4.1",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT tointeger(x'01010101');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-6.1.4.2",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT toreal(x'01010101');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-6.1.5.1",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT tointeger(x'0101010101');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-6.1.5.2",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT toreal(x'0101010101');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-6.1.6.1",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT tointeger(x'010101010101');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-6.1.6.2",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT toreal(x'010101010101');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-6.1.7.1",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT tointeger(x'01010101010101');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-6.1.7.2",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT toreal(x'01010101010101');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-6.1.9.1",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT tointeger(x'010101010101010101');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-6.1.9.2",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT toreal(x'010101010101010101');",
           "expect": "{}"
         }
       ]
@@ -1624,7 +1932,7 @@
       "name": "func4-6.3.17",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal(x'fff8000000000000');",
           "expect": "{}"
         }
@@ -1634,7 +1942,7 @@
       "name": "func4-6.3.18",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal(x'fff0000000000001');",
           "expect": "{}"
         }
@@ -1644,7 +1952,7 @@
       "name": "func4-6.3.19",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal(x'fff7ffffffffffff');",
           "expect": "{}"
         }
@@ -1654,7 +1962,7 @@
       "name": "func4-6.3.20",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal(x'7ff0000000000001');",
           "expect": "{}"
         }
@@ -1664,7 +1972,7 @@
       "name": "func4-6.3.21",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal(x'7ff7ffffffffffff');",
           "expect": "{}"
         }
@@ -1674,7 +1982,7 @@
       "name": "func4-6.3.22",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal(x'fff8000000000001');",
           "expect": "{}"
         }
@@ -1684,7 +1992,7 @@
       "name": "func4-6.3.23",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal(x'ffffffffffffffff');",
           "expect": "{}"
         }
@@ -1694,7 +2002,7 @@
       "name": "func4-6.3.24",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal(x'7ff8000000000000');",
           "expect": "{}"
         }
@@ -1704,341 +2012,9 @@
       "name": "func4-6.3.25",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT toreal(x'7fffffffffffffff');",
           "expect": "{}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES (NULL);",
-          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES (NULL);",
-          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES ('');",
-          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES ('bad');",
-          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES ('1234bad');",
-          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.7",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES ('1234.56bad');",
-          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.8",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES (1234);",
-          "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.9",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES (1234.56);",
-          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.10",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES ('1234');",
-          "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.11",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES ('1234.56');",
-          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.12",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES (ZEROBLOB(4));",
-          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.13",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES (X'');",
-          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.14",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES (X'1234');",
-          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.15",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES (X'12345678');",
-          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.16",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES ('1234.00');",
-          "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.17",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES (1234.00);",
-          "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.18",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES ('-9223372036854775809');",
-          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.19",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES (9223372036854775808);",
-          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-4.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 (x) VALUES (NULL);",
-          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-4.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 (x) VALUES (NULL);",
-          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-4.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 (x) VALUES ('');",
-          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-4.5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 (x) VALUES ('bad');",
-          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-4.6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 (x) VALUES ('1234bad');",
-          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-4.7",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 (x) VALUES ('1234.56bad');",
-          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-4.8",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 (x) VALUES (1234);",
-          "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "func4-4.9",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 (x) VALUES (1234.56);",
-          "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "func4-4.10",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 (x) VALUES ('1234');",
-          "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "func4-4.11",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 (x) VALUES ('1234.56');",
-          "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "func4-4.12",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 (x) VALUES (ZEROBLOB(4));",
-          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-4.13",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 (x) VALUES (X'');",
-          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-4.14",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 (x) VALUES (X'1234');",
-          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-4.15",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 (x) VALUES (X'12345678');",
-          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT tointeger(9223372036854775807 + 1);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT toreal(-9223372036854775808 + 1);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT toreal(9007199254740992 + 1);"
         }
       ]
     }

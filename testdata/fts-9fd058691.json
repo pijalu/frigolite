@@ -1,0 +1,79 @@
+{
+  "file": "fts-9fd058691.test",
+  "name": "fts-9fd058691",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "fts3-9fd058691-1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE fts USING fts3( tags TEXT);\n  INSERT INTO fts (tags) VALUES ('tag1');\n  SELECT * FROM fts WHERE tags MATCH 'tag1';",
+          "expect": "tag1"
+        }
+      ]
+    },
+    {
+      "name": "fts3-9fd058691-1.1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE fts SET tags = 'tag1' WHERE rowid = 1;\n    SELECT * FROM fts WHERE tags MATCH 'tag1';",
+          "expect": "tag1"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "fts3-9fd058691-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE fts USING fts3(tags TEXT);\n  INSERT INTO fts (docid, tags) VALUES (1, 'tag1');\n  INSERT INTO fts (docid, tags) VALUES (2, NULL);\n  INSERT INTO fts (docid, tags) VALUES (3, 'three');"
+        }
+      ]
+    },
+    {
+      "name": "fts3-9fd058691-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE fts SET tags = 'two' WHERE rowid = 2;\n    SELECT * FROM fts WHERE tags MATCH 'two';",
+          "expect": "two"
+        }
+      ]
+    }
+  ]
+}

@@ -153,6 +153,7 @@ type ExprContext interface {
 
 	// Aggregate evaluation state.
 	AggRowMaps() []RowMap
+	AggRowMapsForCall(*sql.FuncCall) []RowMap
 
 	// EnterAuxAggArg marks one aggregate-argument evaluation as in flight
 	// and returns the restore function (C resolves aggregate arguments to

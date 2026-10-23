@@ -9,11 +9,13 @@ package execquery
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
+	"github.com/pijalu/frigolite/internal/util"
 )
 
 // indexWhereRe captures the partial-index predicate after the column list.
@@ -59,6 +61,199 @@ func (e *SelectEngine) findIndexOnCols(tableName string, cols []string) string {
 	return e.findIndexOnColsForQuery(tableName, cols, nil)
 }
 
+// stat1EqualitySelectivity estimates equality range from sqlite_stat1 avg-equal counts.
+func (e *SelectEngine) stat1EqualitySelectivity(ref indexedRef) (float64, bool) {
+	tokens := e.stat1Tokens(ref.indexName)
+	cols := e.indexColumns(ref.indexName)
+	pos := indexColPos(cols, ref.colName)
+	if pos >= len(tokens)-1 || tokens[0] <= 0 || tokens[pos+1] <= 0 {
+		return 0, false
+	}
+	fraction := float64(tokens[pos+1]) / float64(tokens[0])
+	return fraction, true
+}
+
+func (e *SelectEngine) indexIsUnordered(indexName string) bool {
+	unordered := false
+	e.forEachStat1Row(func(rec *storage.Record) bool {
+		if len(rec.Values) < 3 || !strings.EqualFold(stat4Text(rec.Values[1]), indexName) {
+			return true
+		}
+		stat, _ := rec.Values[2].(string)
+		for _, token := range strings.Fields(stat) {
+			if strings.EqualFold(token, "unordered") {
+				unordered = true
+				return false
+			}
+		}
+		return true
+	})
+	return unordered
+}
+
+func (e *SelectEngine) stat4RangeSelectivity(ref indexedRef, refs []indexedRef, tableName string) (float64, bool, error) {
+	if _, err := e.ctx.Schema().FindTable("sqlite_stat4"); err != nil {
+		return 0, false, nil
+	}
+	if ref.constantExpr != nil {
+		value, err := e.ctx.EvalExpr(ref.constantExpr, nil)
+		if err != nil {
+			return 0, false, err
+		}
+		ref.constant = value
+	}
+	if ref.op != "BETWEEN" || ref.rangeLow == nil || ref.rangeHigh == nil {
+		return 0, false, nil
+	}
+	cols := e.indexColumns(ref.indexName)
+	pos := indexColPos(cols, ref.colName)
+	if pos >= len(cols) {
+		return 0, false, nil
+	}
+	prefix := make([]interface{}, pos)
+	for i := 0; i < pos; i++ {
+		found := false
+		for _, candidate := range refs {
+			if candidate.indexName == ref.indexName && strings.EqualFold(candidate.colName, cols[i]) && isEqualitySeekOp(candidate.op) {
+				prefix[i], found = candidate.constant, true
+				break
+			}
+		}
+		if !found {
+			return 0, false, nil
+		}
+	}
+	table, err := e.ctx.Schema().FindTable("sqlite_stat4")
+	if err != nil {
+		return 0, false, nil
+	}
+	tree := e.ctx.TableBTree("sqlite_stat4", table.RootPage, true)
+	defer tree.Close()
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return 0, false, nil
+	}
+	defer cursor.Close()
+	var samples []stat4PlannerSample
+	for {
+		cell, readErr := cursor.ReadCell()
+		if readErr != nil || cell == nil {
+			break
+		}
+		record, decodeErr := storage.DecodeRecord(cell.Payload)
+		if decodeErr == nil && len(record.Values) >= 6 && strings.EqualFold(stat4Text(record.Values[1]), ref.indexName) {
+			sampleBytes, sampleOK := record.Values[5].([]byte)
+			neq, neqOK := parseStat4Counts(record.Values[2])
+			nlt, nltOK := parseStat4Counts(record.Values[3])
+			if sampleOK && neqOK && nltOK {
+				if sampleRecord, sampleErr := storage.DecodeRecord(sampleBytes); sampleErr == nil && len(sampleRecord.Values) > pos {
+					samples = append(samples, stat4PlannerSample{values: sampleRecord.Values, neq: neq, nlt: nlt})
+				}
+			}
+		}
+		ok, nextErr := cursor.Next()
+		if nextErr != nil || !ok {
+			break
+		}
+	}
+	total := int64(0)
+	if pos == 0 {
+		stats := e.stat1Tokens(ref.indexName)
+		if len(stats) > 0 {
+			total = stats[0]
+		}
+	} else if len(samples) > 0 && len(samples[0].neq) > pos-1 {
+		total = samples[0].neq[pos-1]
+	}
+	fraction, ok := stat4RangeFraction(samples, prefix, pos, ref.rangeLow, ref.rangeHigh, total)
+	return fraction, ok, nil
+}
+
+type stat4PlannerSample struct {
+	values []interface{}
+	neq    []int64
+	nlt    []int64
+}
+
+func stat4Text(value interface{}) string {
+	switch text := value.(type) {
+	case string:
+		return text
+	case []byte:
+		return string(text)
+	default:
+		return fmt.Sprint(value)
+	}
+}
+
+func parseStat4Counts(value interface{}) ([]int64, bool) {
+	text := stat4Text(value)
+	fields := strings.Fields(text)
+	counts := make([]int64, len(fields))
+	for i, field := range fields {
+		count, err := strconv.ParseInt(field, 10, 64)
+		if err != nil {
+			return nil, false
+		}
+		counts[i] = count
+	}
+	return counts, len(counts) > 0
+}
+
+func stat4RangeFraction(samples []stat4PlannerSample, prefix []interface{}, col int, low, high interface{}, total int64) (float64, bool) {
+	var matching []stat4PlannerSample
+	for _, sample := range samples {
+		if len(sample.values) <= col || len(sample.nlt) <= col || len(sample.neq) <= col {
+			continue
+		}
+		matches := true
+		for i, value := range prefix {
+			if util.CompareValues(sample.values[i], value) != 0 {
+				matches = false
+				break
+			}
+		}
+		if matches {
+			matching = append(matching, sample)
+		}
+	}
+	if len(matching) < 2 {
+		return 0, false
+	}
+	base := int64(0)
+	if col > 0 {
+		base = matching[0].nlt[col-1]
+	}
+	if total <= 0 {
+		return 0, false
+	}
+	at := func(bound interface{}) float64 {
+		first := matching[0]
+		if util.CompareValues(bound, first.values[col]) <= 0 {
+			return 0
+		}
+		for i := 1; i < len(matching); i++ {
+			previous, current := matching[i-1], matching[i]
+			if util.CompareValues(bound, current.values[col]) <= 0 {
+				return float64(current.nlt[col] - base)
+			}
+			_ = previous
+		}
+		return float64(total)
+	}
+	lo, hi := at(low), at(high)
+	if hi < lo {
+		return 0, false
+	}
+	fraction := (hi - lo) / float64(total)
+	if fraction < 0 {
+		fraction = 0
+	} else if fraction > 1 {
+		fraction = 1
+	}
+	return fraction, true
+}
+
 // findIndexOnColsForQuery is like findIndexOnCols but additionally checks
 // that partial indexes are implied by the query's WHERE clause.
 func (e *SelectEngine) findIndexOnColsForQuery(tableName string, cols []string, where sql.Expr) string {
@@ -70,7 +265,7 @@ func (e *SelectEngine) findIndexOnColsForQuery(tableName string, cols []string, 
 		return ""
 	}
 	for _, entry := range entries {
-		if entry.Type != "index" || entry.TblName != tableName {
+		if entry.Type != "index" || entry.TblName != tableName || e.indexIsUnordered(entry.Name) {
 			continue
 		}
 		indexCols := e.indexEntryColumns(entry)
@@ -242,6 +437,9 @@ func (e *SelectEngine) joinNodeFor(t queryTable, planned []string, joins []joinR
 // (e.g. a subquery in the FROM clause).
 func joinSearchNode(t queryTable, jr *joinRef) []planNode {
 	if jr.indexName != "" {
+		if jr.indexName == "INTEGER PRIMARY KEY" {
+			return []planNode{{detail: fmt.Sprintf("SEARCH %s USING INTEGER PRIMARY KEY (rowid=?)", t.display)}}
+		}
 		return []planNode{{detail: fmt.Sprintf("SEARCH %s USING INDEX %s (%s=?)", t.display, indexSchemaName(jr.indexName), jr.col)}}
 	}
 	// No real index on the join column (e.g. a subquery in the FROM
@@ -380,17 +578,15 @@ func collectBinaryRef(binop *sql.BinaryOp, tableName string, e *SelectEngine, wh
 	if binop.Operator == "LIKE" {
 		return collectLikeRef(binop, tableName, e, where)
 	}
-	colRef, constVal := findColAndConst(binop)
-	// Only column-to-constant predicates can drive an index SEARCH;
-	// column-to-column predicates are join terms, not constants.
-	if colRef == nil || constVal == nil {
+	colRef, constVal, constExpr := findColAndConstExpr(binop, e)
+	if colRef == nil || constVal == nil && constExpr == nil {
 		return nil
 	}
 	idxName := e.findIndexOnColumn(tableName, colRef.Name, where)
 	if idxName == "" {
 		return nil
 	}
-	return []indexedRef{{indexName: idxName, colName: colRef.Name, constant: constVal, op: binop.Operator}}
+	return []indexedRef{{indexName: idxName, colName: colRef.Name, constant: constVal, constantExpr: constExpr, op: binop.Operator}}
 }
 
 // collectLikeRef collects the indexed ref for a LIKE predicate when its
@@ -450,12 +646,19 @@ func collectBetweenRef(bt *sql.Between, tableName string, e *SelectEngine, where
 	if idxName == "" {
 		return indexedRef{}, false
 	}
+	low, lowErr := e.ctx.EvalExpr(bt.Low, nil)
+	high, highErr := e.ctx.EvalExpr(bt.High, nil)
+	if lowErr != nil || highErr != nil {
+		low, high = nil, nil
+	}
 	return indexedRef{
 		indexName:   idxName,
 		colName:     colName,
 		constant:    float64(0),
 		op:          "BETWEEN",
 		selectivity: computeBetweenSelectivity(bt),
+		rangeLow:    low,
+		rangeHigh:   high,
 	}, true
 }
 
@@ -469,6 +672,13 @@ func collectBetweenRef(bt *sql.Between, tableName string, e *SelectEngine, where
 func (e *SelectEngine) findIndexOnColumn(tableName, colName string, where ...sql.Expr) string {
 	if e.isWithoutRowidPKColumn(tableName, colName) {
 		return "PRIMARY KEY"
+	}
+	if entry, _, err := e.ctx.FindTable(tableName); err == nil {
+		for _, def := range e.ctx.ParseColumnDefs(tableName, entry.SQL) {
+			if strings.EqualFold(def.Name, colName) && isIPKRowidAliasCol(def) {
+				return "INTEGER PRIMARY KEY"
+			}
+		}
 	}
 	entries, err := e.ctx.Schema().GetEntries("")
 	if err != nil {

@@ -1,6 +1,7 @@
 {
   "file": "minmax3.test",
   "name": "minmax3",
+  "ordered": true,
   "tests": [
     {
       "name": "minmax3-1.0",
@@ -8,6 +9,31 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(x, y, z);"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "header_format",
+          "fileFormat": 4
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES('1', 'I',   'one');\n    INSERT INTO t1 VALUES('2', 'IV',  'four');\n    INSERT INTO t1 VALUES('2', NULL,  'three');\n    INSERT INTO t1 VALUES('2', 'II',  'two');\n    INSERT INTO t1 VALUES('2', 'V',   'five');\n    INSERT INTO t1 VALUES('3', 'VI',  'six');\n    COMMIT;\n    PRAGMA automatic_index=OFF;"
+        }
+      ]
+    },
+    {
+      "name": "minmax3-1.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT max(y) FROM t1 WHERE x = '2';",
+          "expect": "V 5"
         }
       ]
     },
@@ -17,6 +43,11 @@
         {
           "type": "exec",
           "sql": "CREATE INDEX i1 ON t1(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(y) FROM t1 WHERE x = '2';",
+          "expect": "V 9"
         }
       ]
     },
@@ -26,6 +57,11 @@
         {
           "type": "exec",
           "sql": "CREATE INDEX i2 ON t1(x,y)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(y) FROM t1 WHERE x = '2';",
+          "expect": "V 1"
         }
       ]
     },
@@ -35,6 +71,36 @@
         {
           "type": "exec",
           "sql": "DROP INDEX i2 ; CREATE INDEX i2 ON t1(x, y DESC)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(y) FROM t1 WHERE x = '2';",
+          "expect": "V 1"
+        }
+      ]
+    },
+    {
+      "name": "minmax3-1.1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT max(y) FROM t1 WHERE x = '2' AND y != 'V';",
+          "expect": "IV 2"
+        }
+      ]
+    },
+    {
+      "name": "minmax3-1.1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT max(y) FROM t1 WHERE x = '2' AND y \u003c 'V';",
+          "expect": "IV 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(y) FROM t1 WHERE x = '2' AND z != 'five';",
+          "expect": "IV 4"
         }
       ]
     },
@@ -44,6 +110,11 @@
         {
           "type": "exec",
           "sql": "DROP INDEX i1 ; DROP INDEX i2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(y) FROM t1 WHERE x = '2';",
+          "expect": "II 5"
         }
       ]
     },
@@ -53,6 +124,11 @@
         {
           "type": "exec",
           "sql": "CREATE INDEX i1 ON t1(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(y) FROM t1 WHERE x = '2';",
+          "expect": "II 9"
         }
       ]
     },
@@ -62,6 +138,11 @@
         {
           "type": "exec",
           "sql": "CREATE INDEX i2 ON t1(x,y)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(y) FROM t1 WHERE x = '2';",
+          "expect": "II 1"
         }
       ]
     },
@@ -71,6 +152,11 @@
         {
           "type": "exec",
           "sql": "DROP INDEX i2 ; CREATE INDEX i2 ON t1(x, y DESC)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(y) FROM t1 WHERE x = '2';",
+          "expect": "II 1"
         }
       ]
     },
@@ -80,6 +166,11 @@
         {
           "type": "exec",
           "sql": "DROP INDEX i1 ; DROP INDEX i2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(y) FROM t1;",
+          "expect": "I 5"
         }
       ]
     },
@@ -89,6 +180,11 @@
         {
           "type": "exec",
           "sql": "CREATE INDEX i1 ON t1(y)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(y) FROM t1;",
+          "expect": "I 1"
         }
       ]
     },
@@ -98,6 +194,11 @@
         {
           "type": "exec",
           "sql": "DROP INDEX i1 ; CREATE INDEX i1 ON t1(y DESC)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(y) FROM t1;",
+          "expect": "I 1"
         }
       ]
     },
@@ -107,6 +208,11 @@
         {
           "type": "exec",
           "sql": "DROP INDEX i1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(y) FROM t1;",
+          "expect": "VI 5"
         }
       ]
     },
@@ -116,6 +222,11 @@
         {
           "type": "exec",
           "sql": "CREATE INDEX i1 ON t1(y)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(y) FROM t1;",
+          "expect": "VI 0"
         }
       ]
     },
@@ -125,6 +236,15 @@
         {
           "type": "exec",
           "sql": "DROP INDEX i1 ; CREATE INDEX i1 ON t1(y DESC)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y from t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(y) FROM t1;",
+          "expect": "VI 0"
         }
       ]
     },
@@ -150,7 +270,7 @@
       "name": "minmax3-2.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT min(b) FROM t2 WHERE a = 1;",
           "expect": "1"
         }
@@ -160,8 +280,8 @@
       "name": "minmax3-2.3",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT min(b) FROM t2 WHERE a = 1 AND b>1;",
+          "type": "exec",
+          "sql": "SELECT min(b) FROM t2 WHERE a = 1 AND b\u003e1;",
           "expect": "2"
         }
       ]
@@ -170,8 +290,8 @@
       "name": "minmax3-2.4",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT min(b) FROM t2 WHERE a = 1 AND b>-1;",
+          "type": "exec",
+          "sql": "SELECT min(b) FROM t2 WHERE a = 1 AND b\u003e-1;",
           "expect": "1"
         }
       ]
@@ -180,7 +300,7 @@
       "name": "minmax3-2.5",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT min(b) FROM t2 WHERE a = 1;",
           "expect": "1"
         }
@@ -190,8 +310,8 @@
       "name": "minmax3-2.6",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT min(b) FROM t2 WHERE a = 1 AND b<2;",
+          "type": "exec",
+          "sql": "SELECT min(b) FROM t2 WHERE a = 1 AND b\u003c2;",
           "expect": "1"
         }
       ]
@@ -200,8 +320,8 @@
       "name": "minmax3-2.7",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT min(b) FROM t2 WHERE a = 1 AND b<1;",
+          "type": "exec",
+          "sql": "SELECT min(b) FROM t2 WHERE a = 1 AND b\u003c1;",
           "expect": "{}"
         }
       ]
@@ -210,8 +330,8 @@
       "name": "minmax3-2.8",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT min(b) FROM t2 WHERE a = 3 AND b<1;",
+          "type": "exec",
+          "sql": "SELECT min(b) FROM t2 WHERE a = 3 AND b\u003c1;",
           "expect": "{}"
         }
       ]
@@ -229,7 +349,7 @@
       "name": "minmax3-3.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT min(b) FROM t2 WHERE a = 1;",
           "expect": "1"
         }
@@ -239,8 +359,8 @@
       "name": "minmax3-3.3",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT min(b) FROM t2 WHERE a = 1 AND b>1;",
+          "type": "exec",
+          "sql": "SELECT min(b) FROM t2 WHERE a = 1 AND b\u003e1;",
           "expect": "2"
         }
       ]
@@ -249,8 +369,8 @@
       "name": "minmax3-3.4",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT min(b) FROM t2 WHERE a = 1 AND b>-1;",
+          "type": "exec",
+          "sql": "SELECT min(b) FROM t2 WHERE a = 1 AND b\u003e-1;",
           "expect": "1"
         }
       ]
@@ -259,7 +379,7 @@
       "name": "minmax3-3.5",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT min(b) FROM t2 WHERE a = 1;",
           "expect": "1"
         }
@@ -269,8 +389,8 @@
       "name": "minmax3-3.6",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT min(b) FROM t2 WHERE a = 1 AND b<2;",
+          "type": "exec",
+          "sql": "SELECT min(b) FROM t2 WHERE a = 1 AND b\u003c2;",
           "expect": "1"
         }
       ]
@@ -279,8 +399,8 @@
       "name": "minmax3-3.7",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT min(b) FROM t2 WHERE a = 1 AND b<1;",
+          "type": "exec",
+          "sql": "SELECT min(b) FROM t2 WHERE a = 1 AND b\u003c1;",
           "expect": "{}"
         }
       ]
@@ -289,8 +409,8 @@
       "name": "minmax3-3.8",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT min(b) FROM t2 WHERE a = 3 AND b<1;",
+          "type": "exec",
+          "sql": "SELECT min(b) FROM t2 WHERE a = 3 AND b\u003c1;",
           "expect": "{}"
         }
       ]
@@ -299,7 +419,7 @@
       "name": "minmax3-4.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "CREATE TABLE t4(x);\n    INSERT INTO t4 VALUES('abc');\n    INSERT INTO t4 VALUES('BCD');\n    SELECT max(x) FROM t4;",
           "expect": "abc"
         }
@@ -309,7 +429,7 @@
       "name": "minmax3-4.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT max(x COLLATE nocase) FROM t4;",
           "expect": "BCD"
         }
@@ -319,7 +439,7 @@
       "name": "minmax3-4.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT max(x), max(x COLLATE nocase) FROM t4;",
           "expect": "abc BCD"
         }
@@ -329,7 +449,7 @@
       "name": "minmax3-4.4",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT max(x COLLATE binary), max(x COLLATE nocase) FROM t4;",
           "expect": "abc BCD"
         }
@@ -339,7 +459,7 @@
       "name": "minmax3-4.5",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT max(x COLLATE nocase), max(x COLLATE rtrim) FROM t4;",
           "expect": "BCD abc"
         }
@@ -349,7 +469,7 @@
       "name": "minmax3-4.6",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT max(x COLLATE nocase), max(x) FROM t4;",
           "expect": "BCD abc"
         }
@@ -359,7 +479,7 @@
       "name": "minmax3-4.10",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT min(x) FROM t4;",
           "expect": "BCD"
         }
@@ -369,7 +489,7 @@
       "name": "minmax3-4.11",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT min(x COLLATE nocase) FROM t4;",
           "expect": "abc"
         }
@@ -379,7 +499,7 @@
       "name": "minmax3-4.12",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT min(x), min(x COLLATE nocase) FROM t4;",
           "expect": "BCD abc"
         }
@@ -389,7 +509,7 @@
       "name": "minmax3-4.13",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT min(x COLLATE binary), min(x COLLATE nocase) FROM t4;",
           "expect": "BCD abc"
         }
@@ -399,7 +519,7 @@
       "name": "minmax3-4.14",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT min(x COLLATE nocase), min(x COLLATE rtrim) FROM t4;",
           "expect": "abc BCD"
         }
@@ -409,189 +529,9 @@
       "name": "minmax3-4.15",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT min(x COLLATE nocase), min(x) FROM t4;",
           "expect": "abc BCD"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x, y, z);"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    INSERT INTO t1 VALUES('1', 'I',   'one');\n    INSERT INTO t1 VALUES('2', 'IV',  'four');\n    INSERT INTO t1 VALUES('2', NULL,  'three');\n    INSERT INTO t1 VALUES('2', 'II',  'two');\n    INSERT INTO t1 VALUES('2', 'V',   'five');\n    INSERT INTO t1 VALUES('3', 'VI',  'six');\n    COMMIT;\n    PRAGMA automatic_index=OFF;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX i1 ON t1(x)"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX i2 ON t1(x,y)"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX i2 ; CREATE INDEX i2 ON t1(x, y DESC)"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX i1 ; DROP INDEX i2"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX i1 ON t1(x)"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX i2 ON t1(x,y)"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX i2 ; CREATE INDEX i2 ON t1(x, y DESC)"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX i1 ; DROP INDEX i2"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX i1 ON t1(y)"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX i1 ; CREATE INDEX i1 ON t1(y DESC)"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX i1"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX i1 ON t1(y)"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX i1 ; CREATE INDEX i1 ON t1(y DESC)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT y from t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX i1"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(a, b);\n    CREATE INDEX i3 ON t2(a, b);\n    INSERT INTO t2 VALUES(1, NULL);\n    INSERT INTO t2 VALUES(1, 1);\n    INSERT INTO t2 VALUES(1, 2);\n    INSERT INTO t2 VALUES(1, 3);\n    INSERT INTO t2 VALUES(2, NULL);\n    INSERT INTO t2 VALUES(2, 1);\n    INSERT INTO t2 VALUES(2, 2);\n    INSERT INTO t2 VALUES(2, 3);\n    INSERT INTO t2 VALUES(3, 1);\n    INSERT INTO t2 VALUES(3, 2);\n    INSERT INTO t2 VALUES(3, 3);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT min(b) FROM t2 WHERE a = 1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT min(b) FROM t2 WHERE a = 1 AND b>1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT min(b) FROM t2 WHERE a = 1 AND b>-1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT min(b) FROM t2 WHERE a = 1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT min(b) FROM t2 WHERE a = 1 AND b<2;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT min(b) FROM t2 WHERE a = 1 AND b<1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT min(b) FROM t2 WHERE a = 3 AND b<1;"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t2;\n    CREATE TABLE t2(a, b);\n    CREATE INDEX i3 ON t2(a, b DESC);\n    INSERT INTO t2 VALUES(1, NULL);\n    INSERT INTO t2 VALUES(1, 1);\n    INSERT INTO t2 VALUES(1, 2);\n    INSERT INTO t2 VALUES(1, 3);\n    INSERT INTO t2 VALUES(2, NULL);\n    INSERT INTO t2 VALUES(2, 1);\n    INSERT INTO t2 VALUES(2, 2);\n    INSERT INTO t2 VALUES(2, 3);\n    INSERT INTO t2 VALUES(3, 1);\n    INSERT INTO t2 VALUES(3, 2);\n    INSERT INTO t2 VALUES(3, 3);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT min(b) FROM t2 WHERE a = 1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT min(b) FROM t2 WHERE a = 1 AND b>1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT min(b) FROM t2 WHERE a = 1 AND b>-1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT min(b) FROM t2 WHERE a = 1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT min(b) FROM t2 WHERE a = 1 AND b<2;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT min(b) FROM t2 WHERE a = 1 AND b<1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT min(b) FROM t2 WHERE a = 3 AND b<1;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t4(x);\n    INSERT INTO t4 VALUES('abc');\n    INSERT INTO t4 VALUES('BCD');\n    SELECT max(x) FROM t4;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT max(x COLLATE nocase) FROM t4;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT max(x), max(x COLLATE nocase) FROM t4;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT max(x COLLATE binary), max(x COLLATE nocase) FROM t4;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT max(x COLLATE nocase), max(x COLLATE rtrim) FROM t4;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT max(x COLLATE nocase), max(x) FROM t4;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT min(x) FROM t4;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT min(x COLLATE nocase) FROM t4;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT min(x), min(x COLLATE nocase) FROM t4;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT min(x COLLATE binary), min(x COLLATE nocase) FROM t4;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT min(x COLLATE nocase), min(x COLLATE rtrim) FROM t4;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT min(x COLLATE nocase), min(x) FROM t4;"
         }
       ]
     }

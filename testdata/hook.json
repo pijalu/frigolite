@@ -1,253 +1,15 @@
 {
   "file": "hook.test",
   "name": "hook",
+  "ordered": true,
   "tests": [
-    {
-      "name": "hook-4.4.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t4 ORDER BY a;",
-          "expect": "1 c 2 b"
-        }
-      ]
-    },
-    {
-      "name": "hook-4.4.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t4 ORDER BY a;",
-          "expect": "1 d 2 b"
-        }
-      ]
-    },
-    {
-      "name": "7.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a, b); \n  CREATE TABLE t2(x, y); \n  CREATE TABLE t3(i, j, UNIQUE(i));\n\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');\n\n  INSERT INTO t3 VALUES(4, 16);\n  INSERT INTO t3 VALUES(5, 25);\n  INSERT INTO t3 VALUES(6, 36);"
-        }
-      ]
-    },
-    {
-      "name": "7.2.0",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT rowid FROM t1",
-          "expect": "1 2 3 4 5"
-        }
-      ]
-    },
-    {
-      "name": "7.3.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1;\n  DELETE FROM t2;\n  DELETE FROM t3;\n\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');\n\n  INSERT INTO t3 VALUES(4, 16);\n  INSERT INTO t3 VALUES(5, 25);\n  INSERT INTO t3 VALUES(6, 36);"
-        }
-      ]
-    },
-    {
-      "name": "7.3.4.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "INSERT INTO t3 VALUES(10, 100);\n  SELECT rowid, * FROM t3;",
-          "expect": "1 4 16   3 5 36   4 10 100"
-        }
-      ]
-    },
-    {
-      "name": "7.4.1.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t4(a, b);\n  INSERT INTO t4 VALUES('a', 1);\n  INSERT INTO t4 VALUES('b', 2);\n  INSERT INTO t4 VALUES('c', 3);\n\n  CREATE TRIGGER t4t BEFORE DELETE ON t4 BEGIN\n    DELETE FROM t4 WHERE b = 1;\n  END;"
-        }
-      ]
-    },
-    {
-      "name": "7.4.1.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t4(rowid, a, b) VALUES(1, 'a', 1);\n  INSERT INTO t4(rowid, a, b) VALUES(3, 'c', 3);"
-        }
-      ]
-    },
-    {
-      "name": "7.4.2.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t5(a, b);\n  INSERT INTO t5 VALUES('a', 1);\n  INSERT INTO t5 VALUES('b', 2);\n  INSERT INTO t5 VALUES('c', 3);\n\n  CREATE TRIGGER t5t BEFORE UPDATE ON t5 BEGIN\n    DELETE FROM t5 WHERE b = 1;\n  END;"
-        }
-      ]
-    },
-    {
-      "name": "7.4.2.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t5(rowid, a, b) VALUES(1, 'a', 1);"
-        }
-      ]
-    },
-    {
-      "name": "7.5.1.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t7(a, b);\n    INSERT INTO t7 VALUES('one', 'two');\n    INSERT INTO t7 VALUES('three', 'four');\n    ALTER TABLE t7 ADD COLUMN c DEFAULT NULL;"
-        }
-      ]
-    },
-    {
-      "name": "7.5.2.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t8(a, b);\n    INSERT INTO t8 VALUES('one', 'two');\n    INSERT INTO t8 VALUES('three', 'four');\n    ALTER TABLE t8 ADD COLUMN c DEFAULT 'xxx';"
-        }
-      ]
-    },
-    {
-      "name": "7.6.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t9(a, b INTEGER PRIMARY KEY, c)"
-        }
-      ]
-    },
-    {
-      "name": "7.6.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x PRIMARY KEY);\n  CREATE TABLE t2(x PRIMARY KEY);\n  CREATE TABLE t3(x PRIMARY KEY);\n  CREATE TABLE t4(x PRIMARY KEY);\n\n  CREATE TRIGGER a AFTER INSERT ON t1 BEGIN INSERT INTO t2 VALUES(new.x); END;\n  CREATE TRIGGER b AFTER INSERT ON t2 BEGIN INSERT INTO t3 VALUES(new.x); END;\n  CREATE TRIGGER c AFTER INSERT ON t3 BEGIN INSERT INTO t4 VALUES(new.x); END;\n\n  CREATE TRIGGER d AFTER UPDATE ON t1 BEGIN UPDATE t2 SET x = new.x; END;\n  CREATE TRIGGER e AFTER UPDATE ON t2 BEGIN UPDATE t3 SET x = new.x; END;\n  CREATE TRIGGER f AFTER UPDATE ON t3 BEGIN UPDATE t4 SET x = new.x; END;\n\n  CREATE TRIGGER g AFTER DELETE ON t1 BEGIN DELETE FROM t2 WHERE 1; END;\n  CREATE TRIGGER h AFTER DELETE ON t2 BEGIN DELETE FROM t3 WHERE 1; END;\n  CREATE TRIGGER i AFTER DELETE ON t3 BEGIN DELETE FROM t4 WHERE 1; END;"
-        }
-      ]
-    },
-    {
-      "name": "7.6.5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DROP TRIGGER a; DROP TRIGGER b; DROP TRIGGER c;\n  DROP TRIGGER d; DROP TRIGGER e; DROP TRIGGER f;\n  DROP TRIGGER g; DROP TRIGGER h; DROP TRIGGER i;\n\n  CREATE TRIGGER a BEFORE INSERT ON t1 BEGIN INSERT INTO t2 VALUES(new.x); END;\n  CREATE TRIGGER b BEFORE INSERT ON t2 BEGIN INSERT INTO t3 VALUES(new.x); END;\n  CREATE TRIGGER c BEFORE INSERT ON t3 BEGIN INSERT INTO t4 VALUES(new.x); END;\n\n  CREATE TRIGGER d BEFORE UPDATE ON t1 BEGIN UPDATE t2 SET x = new.x; END;\n  CREATE TRIGGER e BEFORE UPDATE ON t2 BEGIN UPDATE t3 SET x = new.x; END;\n  CREATE TRIGGER f BEFORE UPDATE ON t3 BEGIN UPDATE t4 SET x = new.x; END;\n\n  CREATE TRIGGER g BEFORE DELETE ON t1 BEGIN DELETE FROM t2 WHERE 1; END;\n  CREATE TRIGGER h BEFORE DELETE ON t2 BEGIN DELETE FROM t3 WHERE 1; END;\n  CREATE TRIGGER i BEFORE DELETE ON t3 BEGIN DELETE FROM t4 WHERE 1; END;"
-        }
-      ]
-    },
-    {
-      "name": "9.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n    CREATE TABLE t2(a, b INTEGER PRIMARY KEY);"
-        }
-      ]
-    },
-    {
-      "name": "9.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE t1 ADD COLUMN d;"
-        }
-      ]
-    },
-    {
-      "name": "10.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t3(a, b INTEGER PRIMARY KEY);"
-        }
-      ]
-    },
-    {
-      "name": "10.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t3",
-          "expect": "{} 1"
-        }
-      ]
-    },
-    {
-      "name": "11.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a, b);\n    CREATE INDEX idx1 ON t1(a);\n    CREATE INDEX idx2 ON t1(b);\n\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n    INSERT INTO t1 VALUES(5, 6);\n    INSERT INTO t1 VALUES(7, 8);"
-        }
-      ]
-    },
-    {
-      "name": "11.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(9, 10);\n    INSERT INTO t1 VALUES(11, 12);\n    INSERT INTO t1 VALUES(13, 14);\n    INSERT INTO t1 VALUES(15, 16);"
-        }
-      ]
-    },
-    {
-      "name": "12.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b) WITHOUT ROWID;\n\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t2 VALUES(5, 6);\n  INSERT INTO t2 VALUES(7, 8);\n\n  CREATE TABLE t3 (a INTEGER PRIMARY KEY, b) WITHOUT ROWID;"
-        }
-      ]
-    },
-    {
-      "name": "12.5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t4(a COLLATE nocase PRIMARY KEY, b) WITHOUT ROWID;\n  INSERT INTO t4 VALUES('abc', 1);\n  INSERT INTO t4 VALUES('DEF', 2);"
-        }
-      ]
-    },
-    {
-      "name": "12.6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t4 VALUES('def', 3);",
-          "expect": "1 {UNIQUE constraint failed: t4.a}"
-        }
-      ]
-    },
-    {
-      "name": "13.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(100), (200), (300), (400);"
-        }
-      ]
-    },
-    {
-      "name": "13.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE t1 ADD COLUMN b DEFAULT 1234;\n  ALTER TABLE t1 ADD COLUMN c DEFAULT 'abcdef';\n  ALTER TABLE t1 ADD COLUMN d DEFAULT NULL;"
-        }
-      ]
-    },
     {
       "name": "hook-3.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t2(a,b);"
+          "sql": "CREATE TABLE t2(a,b);",
+          "expect": "1"
         }
       ]
     },
@@ -256,7 +18,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t2 VALUES(1,2);\n    INSERT INTO t2 SELECT a+1, b+1 FROM t2;\n    INSERT INTO t2 SELECT a+2, b+2 FROM t2;"
+          "sql": "INSERT INTO t2 VALUES(1,2);\n    INSERT INTO t2 SELECT a+1, b+1 FROM t2;\n    INSERT INTO t2 SELECT a+2, b+2 FROM t2;",
+          "expect": "4"
         }
       ]
     },
@@ -264,8 +27,8 @@
       "name": "hook-3.5",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT * FROM t2",
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(5,6);",
           "expect": "1 2 2 3 3 4 4 5 5 6"
         }
       ]
@@ -274,9 +37,19 @@
       "name": "hook-3.6",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT * FROM t2",
+          "type": "catch",
+          "sql": "INSERT INTO t2 VALUES(6,7);",
           "expect": "1 {constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "hook-3.7",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "commit_cnt",
+          "expect": "1 2 2 3 3 4 4 5 5 6 6 7"
         }
       ]
     },
@@ -284,7 +57,7 @@
       "name": "hook-3.8",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM t2",
           "expect": "1 2 2 3 3 4 4 5 5 6"
         }
@@ -296,6 +69,28 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t2 VALUES(7,8);"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "commit_cnt"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db-journal"
         }
       ]
     },
@@ -303,9 +98,44 @@
       "name": "hook-3.10",
       "steps": [
         {
+          "type": "open_named_db",
+          "sql": "test2.db",
+          "database": "db2"
+        },
+        {
           "type": "exec",
+          "sql": "CREATE TABLE t3(x,y)",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
           "sql": "INSERT INTO t3 VALUES(1,2)",
-          "expect": "1 2 3 4"
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t3 VALUES(11,12)",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t3 VALUES(3,4)",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 ORDER BY x;",
+          "expect": "1 2 3 4",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     },
@@ -313,8 +143,16 @@
       "name": "hook-4.1.1a",
       "steps": [
         {
+          "type": "catch",
+          "sql": "DROP TABLE t1;"
+        },
+        {
           "type": "exec",
           "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    CREATE TABLE t1w(a INT PRIMARY KEY, b) WITHOUT ROWID;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "update_hook"
         }
       ]
     },
@@ -333,6 +171,11 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(4, 'four');\n    DELETE FROM t1 WHERE b = 'two';\n    UPDATE t1 SET b = '' WHERE a = 1 OR a = 3;\n    DELETE FROM t1 WHERE 1; -- Avoid the truncate optimization (for now)"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "update_hook",
+          "expect": "INSERT main t1 4 DELETE main t1 2 UPDATE main t1 1 UPDATE main t1 3 DELETE main t1 1 DELETE main t1 3 DELETE main t1 4"
         }
       ]
     },
@@ -342,6 +185,10 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1w VALUES(4, 'four');\n    DELETE FROM t1w WHERE b = 'two';\n    UPDATE t1w SET b = '' WHERE a = 1 OR a = 3;\n    DELETE FROM t1w WHERE 1; -- Avoid the truncate optimization (for now)"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "update_hook"
         }
       ]
     },
@@ -351,6 +198,10 @@
         {
           "type": "exec",
           "sql": "CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN SELECT RAISE(IGNORE); END;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "update_hook"
         }
       ]
     },
@@ -360,12 +211,20 @@
         {
           "type": "exec",
           "sql": "DROP TRIGGER r1;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "update_hook"
         }
       ]
     },
     {
       "name": "hook-4.2.1",
       "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t2;"
+        },
         {
           "type": "exec",
           "sql": "CREATE TABLE t2(c INTEGER PRIMARY KEY, d);\n      CREATE TRIGGER t1_trigger AFTER INSERT ON t1 BEGIN\n        INSERT INTO t2 VALUES(new.a, new.b);\n        UPDATE t2 SET d = d || ' via trigger' WHERE new.a = c;\n        DELETE FROM t2 WHERE new.a = c;\n      END;"
@@ -378,6 +237,20 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(1, 'one');\n      INSERT INTO t1 VALUES(2, 'two');"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "update_hook",
+          "expect": "INSERT main t1 1 INSERT main t2 1 UPDATE main t2 1 DELETE main t2 1 INSERT main t1 2 INSERT main t2 2 UPDATE main t2 2 DELETE main t2 2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db"
         }
       ]
     },
@@ -387,6 +260,20 @@
         {
           "type": "exec",
           "sql": "ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.t3(a INTEGER PRIMARY KEY, b);\n      INSERT INTO aux.t3 SELECT * FROM t1;\n      UPDATE t3 SET b = 'two or so' WHERE a = 2;\n      DELETE FROM t3 WHERE 1; -- Avoid the truncate optimization (for now)"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "update_hook",
+          "expect": "INSERT aux t3 1 INSERT aux t3 2 UPDATE aux t3 2 DELETE aux t3 1 DELETE aux t3 2"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER t1_trigger;"
         }
       ]
     },
@@ -395,7 +282,12 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX t1_i ON t1(b);\n    INSERT INTO t1 VALUES(3, 'three');\n    UPDATE t1 SET b = '';\n    DELETE FROM t1 WHERE a > 1;"
+          "sql": "CREATE INDEX t1_i ON t1(b);\n    INSERT INTO t1 VALUES(3, 'three');\n    UPDATE t1 SET b = '';\n    DELETE FROM t1 WHERE a \u003e 1;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "update_hook",
+          "expect": "INSERT main t1 3 UPDATE main t1 1 UPDATE main t1 2 UPDATE main t1 3 DELETE main t1 2 DELETE main t1 3"
         }
       ]
     },
@@ -403,8 +295,12 @@
       "name": "hook-4.3.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM t1 UNION SELECT * FROM t3;\n      SELECT * FROM t1 UNION ALL SELECT * FROM t3;\n      SELECT * FROM t1 INTERSECT SELECT * FROM t3;\n      SELECT * FROM t1 EXCEPT SELECT * FROM t3;\n      SELECT * FROM t1 ORDER BY b;\n      SELECT * FROM t1 GROUP BY b;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "update_hook"
         }
       ]
     },
@@ -414,6 +310,25 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t4(a UNIQUE, b);\n    INSERT INTO t4 VALUES(1, 'a');\n    INSERT INTO t4 VALUES(2, 'b');"
+        },
+        {
+          "type": "exec",
+          "sql": "REPLACE INTO t4 VALUES(1, 'c');"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "update_hook",
+          "expect": "INSERT main t4 3"
+        }
+      ]
+    },
+    {
+      "name": "hook-4.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t4 ORDER BY a;",
+          "expect": "1 c 2 b"
         }
       ]
     },
@@ -423,6 +338,21 @@
         {
           "type": "exec",
           "sql": "PRAGMA recursive_triggers = on;\n    REPLACE INTO t4 VALUES(1, 'd');"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "update_hook",
+          "expect": "INSERT main t4 4"
+        }
+      ]
+    },
+    {
+      "name": "hook-4.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t4 ORDER BY a;",
+          "expect": "1 d 2 b"
         }
       ]
     },
@@ -432,6 +362,11 @@
         {
           "type": "exec",
           "sql": "BEGIN;\n    ROLLBACK;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "rollback_hook",
+          "expect": "1"
         }
       ]
     },
@@ -439,8 +374,12 @@
       "name": "hook-5.2.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "DROP TABLE t1;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES('one', 'I');\n    INSERT INTO t1 VALUES('one', 'I');",
+          "type": "catch",
+          "sql": "DROP TABLE t1;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES('one', 'I');\n    INSERT INTO t1 VALUES('one', 'I');"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "rollback_hook",
           "expect": "1"
         }
       ]
@@ -449,7 +388,7 @@
       "name": "hook-5.2.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT count(*) FROM t1;",
           "expect": "1"
         }
@@ -459,136 +398,899 @@
       "name": "hook-6.1",
       "steps": [
         {
-          "type": "query",
+          "type": "catch",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('two', 'II');\n    COMMIT;"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT * FROM t1",
           "expect": "one I"
         }
       ]
     },
     {
-      "name": "12.3",
+      "name": "hook-6.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "INSERT INTO t3 SELECT a, b FROM t2"
+          "type": "runtime_var",
+          "variable": "hooks",
+          "expect": "COMMIT ROLLBACK"
         }
       ]
     },
     {
-      "name": "12.4",
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM t3"
-        },
+          "sql": "CREATE TABLE t1(a, b); \n  CREATE TABLE t2(x, y); \n  CREATE TABLE t3(i, j, UNIQUE(i));\n\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');\n\n  INSERT INTO t3 VALUES(4, 16);\n  INSERT INTO t3 VALUES(5, 25);\n  INSERT INTO t3 VALUES(6, 36);"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.1.1",
+      "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t2(a,b);"
+          "sql": "INSERT INTO t1 VALUES('x', 'y')"
         },
         {
-          "type": "exec",
-          "sql": "INSERT INTO t2 VALUES(1,2);\n    INSERT INTO t2 SELECT a+1, b+1 FROM t2;\n    INSERT INTO t2 SELECT a+2, b+2 FROM t2;"
-        },
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "INSERT main t1 1 1 x y"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.1.2.1",
+      "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM t2"
+          "sql": "INSERT INTO t1 SELECT y, x FROM t2;"
         },
         {
-          "type": "exec",
-          "sql": "INSERT INTO t2 VALUES(5,6);"
-        },
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "INSERT main t1 2 2 b a INSERT main t1 3 3 d c"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.1.2.2",
+      "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM t2"
+          "sql": "INSERT INTO t1 SELECT * FROM t2;"
         },
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t2"
-        },
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "INSERT main t1 4 4 a b INSERT main t1 5 5 c d"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.1.3",
+      "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t2 VALUES(7,8);"
+          "sql": "REPLACE INTO t1(rowid, a, b) VALUES(1, 1, 1);"
         },
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    CREATE TABLE t1w(a INT PRIMARY KEY, b) WITHOUT ROWID;"
-        },
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "DELETE main t1 1 1 x y INSERT main t1 1 1 1 1"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.1.4",
+      "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1w SELECT * FROM t1;"
+          "sql": "REPLACE INTO t3 VALUES(4, NULL);"
         },
         {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(4, 'four');\n    DELETE FROM t1 WHERE b = 'two';\n    UPDATE t1 SET b = '' WHERE a = 1 OR a = 3;\n    DELETE FROM t1 WHERE 1; -- Avoid the truncate optimization (for now)"
-        },
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "DELETE main t3 1 1 4 16 INSERT main t3 4 4 4 {}"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.1.5",
+      "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1w VALUES(4, 'four');\n    DELETE FROM t1w WHERE b = 'two';\n    UPDATE t1w SET b = '' WHERE a = 1 OR a = 3;\n    DELETE FROM t1w WHERE 1; -- Avoid the truncate optimization (for now)"
+          "sql": "REPLACE INTO t3(rowid, i, j) VALUES(2, 6, NULL);"
         },
         {
-          "type": "exec",
-          "sql": "CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN SELECT RAISE(IGNORE); END;"
-        },
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "DELETE main t3 2 2 5 25 DELETE main t3 3 3 6 36 INSERT main t3 2 2 6 {}"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1",
+          "expect": "1 2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.2.1",
+      "steps": [
         {
           "type": "exec",
-          "sql": "DROP TRIGGER r1;"
+          "sql": "DELETE FROM t1 WHERE rowid = 3"
         },
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(c INTEGER PRIMARY KEY, d);\n      CREATE TRIGGER t1_trigger AFTER INSERT ON t1 BEGIN\n        INSERT INTO t2 VALUES(new.a, new.b);\n        UPDATE t2 SET d = d || ' via trigger' WHERE new.a = c;\n        DELETE FROM t2 WHERE new.a = c;\n      END;"
-        },
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "DELETE main t1 3 3 d c"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.2.2",
+      "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(1, 'one');\n      INSERT INTO t1 VALUES(2, 'two');"
+          "sql": "DELETE FROM t1"
         },
         {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');"
-        },
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "DELETE main t1 1 1 1 1 DELETE main t1 2 2 b a DELETE main t1 4 4 a b DELETE main t1 5 5 c d"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.3.0",
+      "steps": [
         {
           "type": "exec",
-          "sql": "ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.t3(a INTEGER PRIMARY KEY, b);\n      INSERT INTO aux.t3 SELECT * FROM t1;\n      UPDATE t3 SET b = 'two or so' WHERE a = 2;\n      DELETE FROM t3 WHERE 1; -- Avoid the truncate optimization (for now)"
-        },
+          "sql": "DELETE FROM t1;\n  DELETE FROM t2;\n  DELETE FROM t3;\n\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');\n\n  INSERT INTO t3 VALUES(4, 16);\n  INSERT INTO t3 VALUES(5, 25);\n  INSERT INTO t3 VALUES(6, 36);"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.3.1",
+      "steps": [
         {
           "type": "exec",
-          "sql": "DROP TRIGGER t1_trigger;"
+          "sql": "UPDATE t2 SET y = y||y;"
         },
         {
-          "type": "exec",
-          "sql": "CREATE INDEX t1_i ON t1(b);\n    INSERT INTO t1 VALUES(3, 'three');\n    UPDATE t1 SET b = '';\n    DELETE FROM t1 WHERE a > 1;"
-        },
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "UPDATE main t2 1 1 a b a bb UPDATE main t2 2 2 c d c dd"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.3.2",
+      "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM t1 UNION SELECT * FROM t3;\n      SELECT * FROM t1 UNION ALL SELECT * FROM t3;\n      SELECT * FROM t1 INTERSECT SELECT * FROM t3;\n      SELECT * FROM t1 EXCEPT SELECT * FROM t3;\n      SELECT * FROM t1 ORDER BY b;\n      SELECT * FROM t1 GROUP BY b;"
+          "sql": "UPDATE t2 SET rowid = rowid-1;"
         },
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t4(a UNIQUE, b);\n    INSERT INTO t4 VALUES(1, 'a');\n    INSERT INTO t4 VALUES(2, 'b');"
-        },
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "UPDATE main t2 1 0 a bb a bb UPDATE main t2 2 1 c dd c dd"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.3.3",
+      "steps": [
         {
           "type": "exec",
-          "sql": "REPLACE INTO t4 VALUES(1, 'c');"
+          "sql": "UPDATE OR REPLACE t2 SET rowid = 1 WHERE x = 'a'"
         },
         {
-          "type": "exec",
-          "sql": "PRAGMA recursive_triggers = on;\n    REPLACE INTO t4 VALUES(1, 'd');"
-        },
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "DELETE main t2 1 1 c dd UPDATE main t2 0 1 a bb a bb"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.3.4.1",
+      "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    ROLLBACK;"
+          "sql": "UPDATE OR REPLACE t3 SET i = 5 WHERE i = 6"
         },
         {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1;"
-        },
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "DELETE main t3 2 2 5 25 UPDATE main t3 3 3 6 36 5 36"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.3.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t3 VALUES(10, 100);\n  SELECT rowid, * FROM t3;",
+          "expect": "1 4 16   3 5 36   4 10 100"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.3.5",
+      "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM t1"
+          "sql": "UPDATE OR REPLACE t3 SET rowid = 1, i = 5 WHERE j = 100;"
         },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "DELETE main t3 1 1 4 16 DELETE main t3 3 3 5 36 UPDATE main t3 4 1 10 100 5 100"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.4.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a, b);\n  INSERT INTO t4 VALUES('a', 1);\n  INSERT INTO t4 VALUES('b', 2);\n  INSERT INTO t4 VALUES('c', 3);\n\n  CREATE TRIGGER t4t BEFORE DELETE ON t4 BEGIN\n    DELETE FROM t4 WHERE b = 1;\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.4.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t4 WHERE b = 3"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "DELETE main t4 1 1 a 1 DELETE main t4 3 3 c 3"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.4.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4(rowid, a, b) VALUES(1, 'a', 1);\n  INSERT INTO t4(rowid, a, b) VALUES(3, 'c', 3);"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.4.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t4 WHERE b = 1"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "DELETE main t4 1 1 a 1"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.4.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a, b);\n  INSERT INTO t5 VALUES('a', 1);\n  INSERT INTO t5 VALUES('b', 2);\n  INSERT INTO t5 VALUES('c', 3);\n\n  CREATE TRIGGER t5t BEFORE UPDATE ON t5 BEGIN\n    DELETE FROM t5 WHERE b = 1;\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.4.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t5 SET b = 4 WHERE a = 'c'"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "DELETE main t5 1 1 a 1 UPDATE main t5 3 3 c 3 c 4"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.4.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5(rowid, a, b) VALUES(1, 'a', 1);"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.4.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t5 SET b = 5 WHERE a = 'a'"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "DELETE main t5 1 1 a 1"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.5.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t7(a, b);\n    INSERT INTO t7 VALUES('one', 'two');\n    INSERT INTO t7 VALUES('three', 'four');\n    ALTER TABLE t7 ADD COLUMN c DEFAULT NULL;"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.5.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t7 WHERE a = 'one'"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "DELETE main t7 1 1 one two {}"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.5.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t7 SET b = 'five'"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "UPDATE main t7 2 2 three four {} three five {}"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.5.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t8(a, b);\n    INSERT INTO t8 VALUES('one', 'two');\n    INSERT INTO t8 VALUES('three', 'four');\n    ALTER TABLE t8 ADD COLUMN c DEFAULT 'xxx';"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.5.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t8 WHERE a = 'one'"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "DELETE main t8 1 1 one two xxx"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.5.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t8 SET b = 'five'"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "UPDATE main t8 2 2 three four xxx three five xxx"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t9(a, b INTEGER PRIMARY KEY, c)"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t9 VALUES(1, 2, 3);\n  UPDATE t9 SET b = b+1, c = c+1;\n  DELETE FROM t9 WHERE a = 1;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "INSERT main t9 2 2 1 2 3 UPDATE main t9 2 3 1 2 3 1 3 4 DELETE main t9 3 3 1 3 4"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x PRIMARY KEY);\n  CREATE TABLE t2(x PRIMARY KEY);\n  CREATE TABLE t3(x PRIMARY KEY);\n  CREATE TABLE t4(x PRIMARY KEY);\n\n  CREATE TRIGGER a AFTER INSERT ON t1 BEGIN INSERT INTO t2 VALUES(new.x); END;\n  CREATE TRIGGER b AFTER INSERT ON t2 BEGIN INSERT INTO t3 VALUES(new.x); END;\n  CREATE TRIGGER c AFTER INSERT ON t3 BEGIN INSERT INTO t4 VALUES(new.x); END;\n\n  CREATE TRIGGER d AFTER UPDATE ON t1 BEGIN UPDATE t2 SET x = new.x; END;\n  CREATE TRIGGER e AFTER UPDATE ON t2 BEGIN UPDATE t3 SET x = new.x; END;\n  CREATE TRIGGER f AFTER UPDATE ON t3 BEGIN UPDATE t4 SET x = new.x; END;\n\n  CREATE TRIGGER g AFTER DELETE ON t1 BEGIN DELETE FROM t2 WHERE 1; END;\n  CREATE TRIGGER h AFTER DELETE ON t2 BEGIN DELETE FROM t3 WHERE 1; END;\n  CREATE TRIGGER i AFTER DELETE ON t3 BEGIN DELETE FROM t4 WHERE 1; END;"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('xyz');"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "INSERT main t1 1 1 0 xyz INSERT main t2 1 1 1 xyz INSERT main t3 1 1 2 xyz INSERT main t4 1 1 3 xyz"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET x = 'abc';"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "UPDATE main t1 1 1 0 xyz abc UPDATE main t2 1 1 1 xyz abc UPDATE main t3 1 1 2 xyz abc UPDATE main t4 1 1 3 xyz abc"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.6.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE 1;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "DELETE main t1 1 1 0 abc DELETE main t2 1 1 1 abc DELETE main t3 1 1 2 abc DELETE main t4 1 1 3 abc"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.6.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER a; DROP TRIGGER b; DROP TRIGGER c;\n  DROP TRIGGER d; DROP TRIGGER e; DROP TRIGGER f;\n  DROP TRIGGER g; DROP TRIGGER h; DROP TRIGGER i;\n\n  CREATE TRIGGER a BEFORE INSERT ON t1 BEGIN INSERT INTO t2 VALUES(new.x); END;\n  CREATE TRIGGER b BEFORE INSERT ON t2 BEGIN INSERT INTO t3 VALUES(new.x); END;\n  CREATE TRIGGER c BEFORE INSERT ON t3 BEGIN INSERT INTO t4 VALUES(new.x); END;\n\n  CREATE TRIGGER d BEFORE UPDATE ON t1 BEGIN UPDATE t2 SET x = new.x; END;\n  CREATE TRIGGER e BEFORE UPDATE ON t2 BEGIN UPDATE t3 SET x = new.x; END;\n  CREATE TRIGGER f BEFORE UPDATE ON t3 BEGIN UPDATE t4 SET x = new.x; END;\n\n  CREATE TRIGGER g BEFORE DELETE ON t1 BEGIN DELETE FROM t2 WHERE 1; END;\n  CREATE TRIGGER h BEFORE DELETE ON t2 BEGIN DELETE FROM t3 WHERE 1; END;\n  CREATE TRIGGER i BEFORE DELETE ON t3 BEGIN DELETE FROM t4 WHERE 1; END;"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.6.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('xyz');"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "INSERT main t4 1 1 3 xyz INSERT main t3 1 1 2 xyz INSERT main t2 1 1 1 xyz INSERT main t1 1 1 0 xyz"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET x = 'abc';"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "UPDATE main t4 1 1 3 xyz abc UPDATE main t3 1 1 2 xyz abc UPDATE main t2 1 1 1 xyz abc UPDATE main t1 1 1 0 xyz abc"
+        }
+      ]
+    },
+    {
+      "name": "hook-7.6.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE 1;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "DELETE main t4 1 1 3 abc DELETE main t3 1 1 2 abc DELETE main t2 1 1 1 abc DELETE main t1 1 1 0 abc"
+        }
+      ]
+    },
+    {
+      "name": "hook-8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(x, y);"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate"
+        }
+      ]
+    },
+    {
+      "name": "hook-8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE x1 ADD COLUMN z"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate"
+        }
+      ]
+    },
+    {
+      "name": "hook-8.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE x1 RENAME TO y1"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate"
+        }
+      ]
+    },
+    {
+      "name": "hook-8.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX y1x ON y1(x)"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate"
+        }
+      ]
+    },
+    {
+      "name": "hook-8.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v1 AS SELECT * FROM y1"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate"
+        }
+      ]
+    },
+    {
+      "name": "hook-8.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE y1"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "hook-9.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n    CREATE TABLE t2(a, b INTEGER PRIMARY KEY);"
+        }
+      ]
+    },
+    {
+      "name": "hook-9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(456, NULL, NULL);"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "INSERT main t1 456 456 0 456 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "hook-9.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 ADD COLUMN d;"
+        }
+      ]
+    },
+    {
+      "name": "hook-9.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b, c) VALUES(457, NULL, NULL);"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "INSERT main t1 457 457 0 457 {} {} {}"
+        }
+      ]
+    },
+    {
+      "name": "hook-9.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=456"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "DELETE main t1 456 456 0 456 {} {} {}"
+        }
+      ]
+    },
+    {
+      "name": "hook-9.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 DEFAULT VALUES;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "INSERT main t2 1 1 0 {} 1"
+        }
+      ]
+    },
+    {
+      "name": "hook-9.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "INSERT main t1 458 458 0 458 {} {} {}"
+        }
+      ]
+    },
+    {
+      "name": "hook-10.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a, b INTEGER PRIMARY KEY);"
+        }
+      ]
+    },
+    {
+      "name": "hook-10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 DEFAULT VALUES"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "INSERT main t3 1 1 0 {} 1"
+        }
+      ]
+    },
+    {
+      "name": "hook-10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3",
+          "expect": "{} 1"
+        }
+      ]
+    },
+    {
+      "name": "hook-10.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE b=1"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "DELETE main t3 1 1 0 {} 1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "hook-11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    CREATE INDEX idx1 ON t1(a);\n    CREATE INDEX idx2 ON t1(b);\n\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n    INSERT INTO t1 VALUES(5, 6);\n    INSERT INTO t1 VALUES(7, 8);"
+        }
+      ]
+    },
+    {
+      "name": "hook-11.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ANALYZE"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "preupdate {INSERT main sqlite_stat1 1 1} preupdate {INSERT main sqlite_stat1 2 2}"
+        }
+      ]
+    },
+    {
+      "name": "hook-11.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(9, 10);\n    INSERT INTO t1 VALUES(11, 12);\n    INSERT INTO t1 VALUES(13, 14);\n    INSERT INTO t1 VALUES(15, 16);"
+        }
+      ]
+    },
+    {
+      "name": "hook-11.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ANALYZE"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "preupdate {DELETE main sqlite_stat1 1 1} preupdate {DELETE main sqlite_stat1 2 2} preupdate {INSERT main sqlite_stat1 1 1} preupdate {INSERT main sqlite_stat1 2 2}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "hook-12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b) WITHOUT ROWID;\n\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t2 VALUES(5, 6);\n  INSERT INTO t2 VALUES(7, 8);\n\n  CREATE TABLE t3 (a INTEGER PRIMARY KEY, b) WITHOUT ROWID;"
+        }
+      ]
+    },
+    {
+      "name": "hook-12.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VACUUM"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "res"
+        }
+      ]
+    },
+    {
+      "name": "hook-12.3",
+      "steps": [
         {
           "type": "exec",
           "sql": "INSERT INTO t3 SELECT a, b FROM t2"
         },
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "preupdate {INSERT main t3 0 0} preupdate {INSERT main t3 0 0}"
+        }
+      ]
+    },
+    {
+      "name": "hook-12.4",
+      "steps": [
         {
           "type": "exec",
           "sql": "DELETE FROM t3"
@@ -596,33 +1298,104 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t3 SELECT * FROM t2"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "preupdate {INSERT main t3 0 0} preupdate {INSERT main t3 0 0}"
+        }
+      ]
+    },
+    {
+      "name": "hook-12.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a COLLATE nocase PRIMARY KEY, b) WITHOUT ROWID;\n  INSERT INTO t4 VALUES('abc', 1);\n  INSERT INTO t4 VALUES('DEF', 2);"
+        }
+      ]
+    },
+    {
+      "name": "hook-12.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VACUUM"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "res"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 VALUES('def', 3);",
+          "expect": "1 {UNIQUE constraint failed: t4.a}"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "hook-13.0",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(100), (200), (300), (400);"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "hook-13.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "ALTER TABLE t1 ADD COLUMN b DEFAULT 1234;\n  ALTER TABLE t1 ADD COLUMN c DEFAULT 'abcdef';\n  ALTER TABLE t1 ADD COLUMN d DEFAULT NULL;"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "hook-13.2",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=300"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "DELETE main t1 300 300 0 300 1234 abcdef {}"
+        }
+      ]
+    },
+    {
+      "name": "hook-13.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET d='hello world' WHERE a=200"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "UPDATE main t1 200 200 0 200 1234 abcdef {} 200 1234 abcdef {hello world}"
+        }
+      ]
+    },
+    {
+      "name": "hook-13.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "preupdate",
+          "expect": "INSERT main t1 401 401 0 401 1234 abcdef {}"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

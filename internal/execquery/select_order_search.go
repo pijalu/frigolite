@@ -10,6 +10,7 @@
 package execquery
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/sql"
@@ -51,33 +52,31 @@ type scanLoop struct {
 func (e *SelectEngine) scanLoopForQuery(t queryTable, s *sql.SelectStmt, wantConditions bool) scanLoop {
 	nRow := e.tableRowCount(t.display)
 	if nRow == 0 {
-		nRow = defaultPlanRowCount // default estimate
+		nRow = defaultPlanRowCount
 	}
-	return e.scanLoopForRowCount(t, s, nRow, wantConditions)
+	loop, _ := e.scanLoopForRowCount(t, s, nRow, wantConditions)
+	return loop
 }
 
-// defaultPlanRowCount is the planner's default row-count estimate for a table
-// whose b-tree holds no entry (where.c's default 1e6).
 const defaultPlanRowCount = 1000000
 
-// scanLoopForRowCount is scanLoopForQuery with a caller-supplied row count.
-// Every candidate ref's estimate scales linearly with it (refEstimate), so a
-// SCALED row count yields the same index choice, seek threshold and
-// tie-breaks while skipping the planner's per-statement b-tree page walk —
-// the seek path re-derives the loop for every statement it serves.
-func (e *SelectEngine) scanLoopForRowCount(t queryTable, s *sql.SelectStmt, nRow int64, wantConditions bool) scanLoop {
+func (e *SelectEngine) scanLoopForRowCount(t queryTable, s *sql.SelectStmt, nRow int64, wantConditions bool) (scanLoop, error) {
 	loop := scanLoop{bestEst: float64(nRow), nRow: float64(nRow)}
 	bestIndex := ""
 	if s.Where != nil {
-		bestIndex, _, loop = e.whereScanLoop(t, s, loop, nRow, wantConditions)
+		var err error
+		bestIndex, _, loop, err = e.whereScanLoop(t, s, loop, nRow, wantConditions)
+		if err != nil {
+			return scanLoop{}, err
+		}
 		if loop.kind != loopNone {
-			return loop
+			return loop, nil
 		}
 	}
 	if bestIndex == "" {
 		e.scanLoopForOrderIndex(t, s, &loop)
 	}
-	return loop
+	return loop, nil
 }
 
 // whereScanLoop resolves the WHERE-driven loop: a skip-scan, an INTEGER
@@ -87,25 +86,27 @@ func (e *SelectEngine) scanLoopForRowCount(t queryTable, s *sql.SelectStmt, nRow
 // Returns the best-index rendering inputs alongside; a loopNone result falls
 // through to the ORDER BY / GROUP BY index walks. rowCount is the loop's
 // planning row count (the caller's scale).
-func (e *SelectEngine) whereScanLoop(t queryTable, s *sql.SelectStmt, loop scanLoop, rowCount int64, wantConditions bool) (string, string, scanLoop) {
+func (e *SelectEngine) whereScanLoop(t queryTable, s *sql.SelectStmt, loop scanLoop, rowCount int64, wantConditions bool) (string, string, scanLoop, error) {
 	ret := loop
-	bestIndex, conditions := e.bestIndexForRowCount(t.display, s.Where, &ret.bestEst, rowCount, wantConditions)
+	bestIndex, conditions, err := e.bestIndexForRowCount(t.display, s.Where, &ret.bestEst, rowCount, wantConditions)
+	if err != nil {
+		return "", "", ret, err
+	}
 	if ss := e.trySkipScanPlan(t.display, s.Where, ret.bestEst); ss != nil {
 		ret.kind, ret.token, ret.seek, ret.conditions = loopSkipScan, ss.indexName, true, ss.conditions
-		return bestIndex, conditions, ret
+		return bestIndex, conditions, ret, nil
 	}
 	if detail, eq, ok := e.rowidSeekPlanDetail(t, s); ok {
 		ret.kind, ret.oneRow, ret.conditions = loopIPK, eq, detail
-		return bestIndex, conditions, ret
+		return bestIndex, conditions, ret, nil
 	}
 	if bestIndex != "" && (bestIndex == "PRIMARY KEY" || e.indexSeekChosen(bestIndex, ret.bestEst, ret.nRow)) {
 		ret.kind, ret.token, ret.seek, ret.conditions = loopIndex, bestIndex, true, conditions
-		return bestIndex, conditions, ret
+		return bestIndex, conditions, ret, nil
 	}
-	return bestIndex, conditions, ret
+	return bestIndex, conditions, ret, nil
 }
 
-// scanLoopForOrderIndex records the full index walk chosen for the ORDER BY
 // or the GROUP BY / DISTINCT optimization when no WHERE-driven seek exists.
 func (e *SelectEngine) scanLoopForOrderIndex(t queryTable, s *sql.SelectStmt, loop *scanLoop) {
 	if tok, ok := e.orderByIndexToken(t, s); ok {
@@ -575,6 +576,116 @@ func (e *SelectEngine) orderByConsumedByLoop(tables []queryTable, s *sql.SelectS
 	return e.sortCoveredByIndex(tables, s, orderByCols(s))
 }
 
+// rowsInRowidOrder reports whether the statement's rows are already in
+// rowid order and the ORDER BY asks for exactly that order: a plain
+// single-table scan whose ORDER BY terms are all the rowid pseudo-column or
+// the table's INTEGER PRIMARY KEY alias.
+//
+// SQLite's rule (where.c): a full table scan emits its rows in rowid order,
+// so an ORDER BY on the rowid needs no temp b-tree. A skip-scan, an index
+// seek and the OR-index plan all deliver a different order and are excluded.
+func (e *SelectEngine) rowsInRowidOrder(result *Result, s *sql.SelectStmt, orderBy []sql.OrderByTerm) bool {
+	if result == nil || result.RowsInBranchOrder || s == nil || len(orderBy) == 0 {
+		return false
+	}
+	if len(s.Joins) > 0 || s.Union != nil || len(s.GroupBy) > 0 || s.Distinct ||
+		s.From.Subquery != nil || s.From.Name == "" {
+		return false
+	}
+	// The scan must be a plain table scan: an index loop (seek, skip-scan or
+	// a covering walk) delivers its own order.
+	//
+	// A WHERE with a top-level OR is the exception: the OR-index plan
+	// decides the order, and when it is not applicable (a branch that no
+	// index can serve) the executor falls back to a plain table scan, whose
+	// rows are in rowid order. The OR plan itself marks its result
+	// RowsInBranchOrder, so the sort path never reaches this check for it.
+	loop, err := e.scanLoopForRowCount(queryTableFromRef(s.From), s, indexSeekPlanRowCount, false)
+	if err != nil {
+		return false
+	}
+	if loop.kind != loopNone && !whereHasOrConjunct(s.Where) {
+		return false
+	}
+	alias := e.rowidAliasColumnName(s.From.Name)
+	if alias == "" {
+		return false
+	}
+	for _, ob := range orderBy {
+		if ref, ok := ob.Expr.(*sql.ColumnRef); ok {
+			if !strings.EqualFold(ref.Name, alias) && !isRowidPseudoColumnName(ref.Name) {
+				return false
+			}
+			continue
+		}
+		// An ORDER BY ordinal names an output column: "ORDER BY 1" is the
+		// first column of the result.
+		lit, ok := ob.Expr.(*sql.NumericLit)
+		if !ok {
+			return false
+		}
+		n, err := strconv.Atoi(strings.TrimSpace(lit.Value))
+		if err != nil || n < 1 || n > len(result.Columns) {
+			return false
+		}
+		name := result.Columns[n-1]
+		if !strings.EqualFold(name, alias) && !isRowidPseudoColumnName(name) {
+			return false
+		}
+	}
+	return true
+}
+
+// rowidAliasColumnName returns the table's INTEGER PRIMARY KEY alias column
+// name ("" when the table has none, is a WITHOUT ROWID table, or declares a
+// column that shadows the rowid pseudo-column).
+func (e *SelectEngine) rowidAliasColumnName(tableName string) string {
+	entries, err := e.ctx.Schema().GetEntries("")
+	if err != nil {
+		return ""
+	}
+	for _, entry := range entries {
+		if entry.Name != tableName {
+			continue
+		}
+		if e.ctx.TableIsWithoutRowidEntry(entry) {
+			return ""
+		}
+		colDefs := e.ctx.ParseColumnDefs(tableName, entry.SQL)
+		if len(colDefs) > 0 && isRowidShadowColumn(colDefs) {
+			return ""
+		}
+		for i := range colDefs {
+			if isIPKRowidAliasCol(colDefs[i]) {
+				return colDefs[i].Name
+			}
+		}
+		return ""
+	}
+	return ""
+}
+
+// isRowidShadowColumn reports whether a declared column shadows the rowid
+// pseudo-column ("rowid"/"_rowid_"/"oid").
+func isRowidShadowColumn(colDefs []sql.ColumnDef) bool {
+	for i := range colDefs {
+		if isRowidPseudoColumnName(colDefs[i].Name) {
+			return true
+		}
+	}
+	return false
+}
+
+// isRowidPseudoColumnName reports whether a column name is one of the rowid
+// pseudo-column spellings.
+func isRowidPseudoColumnName(name string) bool {
+	switch strings.ToLower(name) {
+	case "rowid", "_rowid_", "oid":
+		return true
+	}
+	return false
+}
+
 // loopOrderedEmission reports the index whose b-tree order the executor must
 // emit a SEARCH plan's rows in, and the direction: the same loop-order gate
 // the planner used to drop the sorter (so the EQP shape and the emitted row
@@ -609,6 +720,14 @@ func (e *SelectEngine) loopOrderedEmission(s *sql.SelectStmt) (idxName string, b
 // the reverse direction and its rowid-descending ties. Returns false when
 // the comparator sort stays responsible.
 func (e *SelectEngine) emitIndexOrderedRows(result *Result, rowMaps []RowMap, s *sql.SelectStmt, orderBy []sql.OrderByTerm) bool {
+	// A plain table scan yields its rows in rowid order, so an ORDER BY on
+	// the rowid (or its INTEGER PRIMARY KEY alias) is already satisfied and
+	// no sorter runs (SQLite: where.c's "the loop delivers the ordering" for
+	// a full table scan). An OR-index plan is excluded: its rows are in
+	// branch order, not rowid order.
+	if e.rowsInRowidOrder(result, s, orderBy) {
+		return true
+	}
 	if idxName, backward, ok := e.indexOrderedScanForOrderBy(s, orderBy); ok &&
 		e.emitRowsInIndexOrder(result, rowMaps, s.From.Name, idxName, backward) {
 		return true

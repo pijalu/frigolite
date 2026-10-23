@@ -1,9 +1,10 @@
 {
   "file": "alterfault.test",
   "name": "alterfault",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "alterfault-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,11 @@
       ]
     },
     {
-      "name": "2.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "alterfault-2.0",
       "steps": [
         {
           "type": "exec",

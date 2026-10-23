@@ -1,7 +1,16 @@
 {
   "file": "vtab_alter.test",
   "name": "vtab_alter",
+  "ordered": true,
   "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_echo_module"
+        }
+      ]
+    },
     {
       "name": "vtab_alter-1.1",
       "steps": [
@@ -24,7 +33,7 @@
       "name": "vtab_alter-1.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM t1echo",
           "expect": "0 {}"
         }
@@ -43,7 +52,7 @@
       "name": "vtab_alter-1.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM t1echo",
           "expect": "1 {no such table: t1echo}"
         }
@@ -53,7 +62,7 @@
       "name": "vtab_alter-1.6",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM new",
           "expect": "0 {}"
         }
@@ -72,7 +81,7 @@
       "name": "vtab_alter-2.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "INSERT INTO t1_base VALUES(1, 2, 3);\n    SELECT * FROM t1;",
           "expect": "1 2 3"
         }
@@ -91,7 +100,7 @@
       "name": "vtab_alter-2.4",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM x;",
           "expect": "1 2 3"
         }
@@ -101,7 +110,7 @@
       "name": "vtab_alter-2.5",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM x_base;",
           "expect": "1 2 3"
         }
@@ -113,6 +122,11 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE y_base(a, b, c)"
+        },
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE x RENAME TO y",
+          "expect": "1 {SQL logic error}"
         }
       ]
     },
@@ -120,52 +134,11 @@
       "name": "vtab_alter-3.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM x",
           "expect": "1 2 3"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a, b VARCHAR, c INTEGER)"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE t1echo USING echo(t1)"
-        },
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE t1echo RENAME TO new"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE new;\n    DROP TABLE t1;\n    CREATE TABLE t1_base(a, b, c);\n    CREATE VIRTUAL TABLE t1 USING echo('*_base');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1_base VALUES(1, 2, 3);\n    SELECT * FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE t1 RENAME TO x"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM x;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM x_base;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE y_base(a, b, c)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM x"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

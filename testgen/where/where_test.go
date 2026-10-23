@@ -1030,7 +1030,11 @@ func Test_where(t *testing.T) {
 		}
 	}
 	{ // "where-15.1" — skipped: TEMP schema not supported (SQL + file side effects only)
-		_res = db.Exec("\n    CREATE TEMP TABLE t1 (a, b, c, d, e);\n    CREATE TEMP TABLE t2 (f);\n    SELECT t1.e AS alias FROM t2, t1 WHERE alias = 1 ;\n  ")
+		_res = db.Exec("CREATE TEMP TABLE t1 (a, b, c, d, e)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("CREATE TEMP TABLE t2 (f)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("SELECT t1.e AS alias FROM t2, t1 WHERE alias = 1")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // do_test "where-16.1"

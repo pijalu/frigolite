@@ -1,0 +1,42 @@
+{
+  "file": "mmapfault.test",
+  "name": "mmapfault",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "a_string",
+          "callbackVars": {
+            "": "1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "a_string_counter": "1",
+            "testdir": "",
+            "testprefix": "mmapfault"
+          },
+          "functionProc": "a_string",
+          "functionArgs": [
+            "n"
+          ],
+          "functionBody": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "mmapfault-1-pre",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;"
+        }
+      ]
+    }
+  ]
+}

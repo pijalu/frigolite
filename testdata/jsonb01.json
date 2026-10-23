@@ -1,6 +1,7 @@
 {
   "file": "jsonb01.test",
   "name": "jsonb01",
+  "ordered": true,
   "tests": [
     {
       "name": "jsonb01-1.1",

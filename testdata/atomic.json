@@ -1,9 +1,22 @@
 {
   "file": "atomic.test",
   "name": "atomic",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "atomic-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +25,7 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "atomic-1.2",
       "steps": [
         {
           "type": "exec",

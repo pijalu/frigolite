@@ -14,12 +14,6 @@ import (
 	"github.com/pijalu/frigolite/internal/storage"
 )
 
-// cookieOfLocked reads the cookie straight from the header image. Caller
-// holds p.mu (RLock is enough).
-func cookieOfLocked(p *Pager) uint32 {
-	return binary.BigEndian.Uint32(p.header[40:44])
-}
-
 func TestSchemaCookieCacheTracksMutations(t *testing.T) {
 	p := OpenInMemory(1024)
 	defer p.Close()

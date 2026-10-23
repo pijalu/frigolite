@@ -211,12 +211,29 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "alter3-4.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
     },
     {
       "name": "alter3-4.1",
       "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 100);\n    INSERT INTO t1 VALUES(2, 300);\n    SELECT * FROM t1;",
@@ -254,6 +271,24 @@
         {
           "type": "exec",
           "sql": "DROP TABLE t1;"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db-journal"
         }
       ]
     },

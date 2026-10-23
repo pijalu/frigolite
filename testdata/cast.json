@@ -1,7 +1,858 @@
 {
   "file": "cast.test",
   "name": "cast",
+  "ordered": true,
   "tests": [
+    {
+      "name": "cast-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x'616263'",
+          "expect": "abc"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(x'616263')",
+          "expect": "blob"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(x'616263' AS text)",
+          "expect": "abc"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(CAST(x'616263' AS text))",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(x'616263' AS numeric)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(CAST(x'616263' AS numeric))",
+          "expect": "integer"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(x'616263' AS blob)",
+          "expect": "abc"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(CAST(x'616263' AS blob))",
+          "expect": "blob"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(x'616263' AS integer)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(CAST(x'616263' AS integer))",
+          "expect": "integer"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT null",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(NULL)",
+          "expect": "null"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(NULL AS text)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(CAST(NULL AS text))",
+          "expect": "null"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(NULL AS numeric)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(CAST(NULL AS numeric))",
+          "expect": "null"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.17",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(NULL AS blob)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.18",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(CAST(NULL AS blob))",
+          "expect": "null"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.19",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(NULL AS integer)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(CAST(NULL AS integer))",
+          "expect": "null"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.21",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 123",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.22",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(123)",
+          "expect": "integer"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.23",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(123 AS text)",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.24",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(CAST(123 AS text))",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.25",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(123 AS numeric)",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.26",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(CAST(123 AS numeric))",
+          "expect": "integer"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.27",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(123 AS blob)",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.28",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(CAST(123 AS blob))",
+          "expect": "blob"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.29",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(123 AS integer)",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.30",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(CAST(123 AS integer))",
+          "expect": "integer"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.31",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 123.456",
+          "expect": "123.456"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.32",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(123.456)",
+          "expect": "real"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.33",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(123.456 AS text)",
+          "expect": "123.456"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.34",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(CAST(123.456 AS text))",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.35",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(123.456 AS numeric)",
+          "expect": "123.456"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.36",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(CAST(123.456 AS numeric))",
+          "expect": "real"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.37",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(123.456 AS blob)",
+          "expect": "123.456"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.38",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(CAST(123.456 AS blob))",
+          "expect": "blob"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.39",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(123.456 AS integer)",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.38",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(CAST(123.456 AS integer))",
+          "expect": "integer"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.41",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT '123abc'",
+          "expect": "123abc"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.42",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof('123abc')",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.43",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST('123abc' AS text)",
+          "expect": "123abc"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.44",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(CAST('123abc' AS text))",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.45",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST('123abc' AS numeric)",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.46",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(CAST('123abc' AS numeric))",
+          "expect": "integer"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.47",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST('123abc' AS blob)",
+          "expect": "123abc"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.48",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(CAST('123abc' AS blob))",
+          "expect": "blob"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.49",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST('123abc' AS integer)",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.50",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(CAST('123abc' AS integer))",
+          "expect": "integer"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.51",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST('123.5abc' AS numeric)",
+          "expect": "123.5"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.53",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST('123.5abc' AS integer)",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.60",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(null AS REAL)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.61",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(CAST(null AS REAL))",
+          "expect": "null"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.62",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(1 AS REAL)",
+          "expect": "1.0"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.63",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(CAST(1 AS REAL))",
+          "expect": "real"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.64",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST('1' AS REAL)",
+          "expect": "1.0"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.65",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(CAST('1' AS REAL))",
+          "expect": "real"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.66",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST('abc' AS REAL)",
+          "expect": "0.0"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.67",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(CAST('abc' AS REAL))",
+          "expect": "real"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.68",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(x'31' AS REAL)",
+          "expect": "1.0"
+        }
+      ]
+    },
+    {
+      "name": "cast-1.69",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(CAST(x'31' AS REAL))",
+          "expect": "real"
+        }
+      ]
+    },
+    {
+      "name": "cast-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST('   123' AS integer)",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "cast-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST('   -123.456' AS real)",
+          "expect": "-123.456"
+        }
+      ]
+    },
+    {
+      "name": "cast-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(9223372036854774800 AS integer)",
+          "expect": "9223372036854774800"
+        }
+      ]
+    },
+    {
+      "name": "cast-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(9223372036854774800 AS numeric)",
+          "expect": "9223372036854774800"
+        }
+      ]
+    },
+    {
+      "name": "cast-3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(CAST(9223372036854774800 AS real) AS integer)",
+          "expect": "9223372036854774784"
+        }
+      ]
+    },
+    {
+      "name": "cast-3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(-9223372036854774800 AS integer)",
+          "expect": "-9223372036854774800"
+        }
+      ]
+    },
+    {
+      "name": "cast-3.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(-9223372036854774800 AS numeric)",
+          "expect": "-9223372036854774800"
+        }
+      ]
+    },
+    {
+      "name": "cast-3.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(CAST(-9223372036854774800 AS real) AS integer)",
+          "expect": "-9223372036854774784"
+        }
+      ]
+    },
+    {
+      "name": "cast-3.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST('9223372036854774800' AS integer)",
+          "expect": "9223372036854774800"
+        }
+      ]
+    },
+    {
+      "name": "cast-3.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST('9223372036854774800' AS numeric)",
+          "expect": "9223372036854774800"
+        }
+      ]
+    },
+    {
+      "name": "cast-3.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(CAST('9223372036854774800' AS real) AS integer)",
+          "expect": "9223372036854774784"
+        }
+      ]
+    },
+    {
+      "name": "cast-3.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST('-9223372036854774800' AS integer)",
+          "expect": "-9223372036854774800"
+        }
+      ]
+    },
+    {
+      "name": "cast-3.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST('-9223372036854774800' AS numeric)",
+          "expect": "-9223372036854774800"
+        }
+      ]
+    },
+    {
+      "name": "cast-3.18",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(CAST('-9223372036854774800' AS real) AS integer)",
+          "expect": "-9223372036854774784"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding"
+        }
+      ]
+    },
+    {
+      "name": "cast-3.31",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(NULL AS numeric)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "cast-3.32.1",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT CAST(? AS real)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT CAST(? AS real)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_1__",
+          "expect": "SQLITE_ROW"
+        }
+      ]
+    },
+    {
+      "name": "cast-3.32.3",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT CAST(? AS real)",
+          "variable": "stmt_1",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "cast-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES('abc');\n    SELECT a, CAST(a AS integer) FROM t1;",
+          "expect": "abc 0"
+        }
+      ]
+    },
+    {
+      "name": "cast-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(a AS integer), a FROM t1;",
+          "expect": "0 abc"
+        }
+      ]
+    },
+    {
+      "name": "cast-4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, CAST(a AS integer), a FROM t1;",
+          "expect": "abc 0 abc"
+        }
+      ]
+    },
+    {
+      "name": "cast-4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(a AS integer), a, CAST(a AS real), a FROM t1;",
+          "expect": "0 abc 0.0 abc"
+        }
+      ]
+    },
     {
       "name": "cast-5.1",
       "steps": [
@@ -127,7 +978,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT -'.';"
+          "sql": "SELECT -'.';",
+          "expect": "0"
         }
       ]
     },
@@ -136,7 +988,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT '.'+0;"
+          "sql": "SELECT '.'+0;",
+          "expect": "0"
         }
       ]
     },
@@ -145,7 +998,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT CAST('.' AS numeric);"
+          "sql": "SELECT CAST('.' AS numeric);",
+          "expect": "0"
         }
       ]
     },
@@ -154,7 +1008,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT -CAST('.' AS numeric);"
+          "sql": "SELECT -CAST('.' AS numeric);",
+          "expect": "0"
         }
       ]
     },
@@ -163,7 +1018,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT CAST('-0.0' AS numeric);"
+          "sql": "SELECT CAST('-0.0' AS numeric);",
+          "expect": "0"
         }
       ]
     },
@@ -172,7 +1028,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT CAST('0.0' AS numeric);"
+          "sql": "SELECT CAST('0.0' AS numeric);",
+          "expect": "0"
         }
       ]
     },
@@ -181,7 +1038,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT CAST('+0.0' AS numeric);"
+          "sql": "SELECT CAST('+0.0' AS numeric);",
+          "expect": "0"
         }
       ]
     },
@@ -190,27 +1048,14 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT CAST('-1.0' AS numeric);"
+          "sql": "SELECT CAST('-1.0' AS numeric);",
+          "expect": "-1"
         }
       ]
     },
     {
-      "name": "cast-8.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT quote(X'310032003300')==quote(substr(X'310032003300', 1))"
-        }
-      ]
-    },
-    {
-      "name": "cast-8.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(X'310032003300' AS TEXT)\n         ==CAST(substr(X'310032003300', 1) AS TEXT)"
-        }
-      ]
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "cast-9.0",
@@ -317,7 +1162,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "VALUES(CAST(44 AS REAL)),(55);"
+          "sql": "VALUES(CAST(44 AS REAL)),(55);",
+          "expect": "44.0 55"
         }
       ]
     },
@@ -410,1126 +1256,6 @@
           "expect": "44.0 55"
         }
       ]
-    },
-    {
-      "name": "cast-1.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT x'616263'"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(x'616263')"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(x'616263' AS text)"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(CAST(x'616263' AS text))"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(x'616263' AS numeric)"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.6",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(CAST(x'616263' AS numeric))"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.7",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(x'616263' AS blob)"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.8",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(CAST(x'616263' AS blob))"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.9",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(x'616263' AS integer)"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.10",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(CAST(x'616263' AS integer))"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.11",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT null",
-          "expect": "{}"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.12",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(NULL)"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.13",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(NULL AS text)",
-          "expect": "{}"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.14",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(CAST(NULL AS text))"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.15",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(NULL AS numeric)",
-          "expect": "{}"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.16",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(CAST(NULL AS numeric))"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.17",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(NULL AS blob)",
-          "expect": "{}"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.18",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(CAST(NULL AS blob))"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.19",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(NULL AS integer)",
-          "expect": "{}"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.20",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(CAST(NULL AS integer))"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.21",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT 123",
-          "expect": "123"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.22",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(123)"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.23",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(123 AS text)",
-          "expect": "123"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.24",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(CAST(123 AS text))"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.25",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(123 AS numeric)"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.26",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(CAST(123 AS numeric))"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.27",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(123 AS blob)",
-          "expect": "123"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.28",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(CAST(123 AS blob))"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.29",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(123 AS integer)",
-          "expect": "123"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.30",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(CAST(123 AS integer))"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.31",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT 123.456",
-          "expect": "123.456"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.32",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(123.456)"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.33",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(123.456 AS text)",
-          "expect": "123.456"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.34",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(CAST(123.456 AS text))"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.35",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(123.456 AS numeric)"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.36",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(CAST(123.456 AS numeric))"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.37",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(123.456 AS blob)",
-          "expect": "123.456"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.38",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(CAST(123.456 AS blob))"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.39",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(123.456 AS integer)",
-          "expect": "123"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.38",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(CAST(123.456 AS integer))"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.41",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT '123abc'",
-          "expect": "123abc"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.42",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof('123abc')"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.43",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST('123abc' AS text)",
-          "expect": "123abc"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.44",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(CAST('123abc' AS text))"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.45",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST('123abc' AS numeric)"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.46",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(CAST('123abc' AS numeric))"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.47",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST('123abc' AS blob)",
-          "expect": "123abc"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.48",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(CAST('123abc' AS blob))"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.49",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST('123abc' AS integer)"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.50",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(CAST('123abc' AS integer))"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.51",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST('123.5abc' AS numeric)"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.53",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST('123.5abc' AS integer)"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.60",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(null AS REAL)",
-          "expect": "{}"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.61",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(CAST(null AS REAL))",
-          "expect": "null"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.62",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(1 AS REAL)",
-          "expect": "1.0"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.63",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(CAST(1 AS REAL))",
-          "expect": "real"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.64",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST('1' AS REAL)",
-          "expect": "1.0"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.65",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(CAST('1' AS REAL))",
-          "expect": "real"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.66",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST('abc' AS REAL)",
-          "expect": "0.0"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.67",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(CAST('abc' AS REAL))",
-          "expect": "real"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.68",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(x'31' AS REAL)",
-          "expect": "1.0"
-        }
-      ]
-    },
-    {
-      "name": "cast-1.69",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT typeof(CAST(x'31' AS REAL))",
-          "expect": "real"
-        }
-      ]
-    },
-    {
-      "name": "cast-2.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST('   123' AS integer)"
-        }
-      ]
-    },
-    {
-      "name": "cast-2.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST('   -123.456' AS real)"
-        }
-      ]
-    },
-    {
-      "name": "cast-3.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(9223372036854774800 AS integer)"
-        }
-      ]
-    },
-    {
-      "name": "cast-3.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(9223372036854774800 AS numeric)"
-        }
-      ]
-    },
-    {
-      "name": "cast-3.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(CAST(9223372036854774800 AS real) AS integer)"
-        }
-      ]
-    },
-    {
-      "name": "cast-3.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(-9223372036854774800 AS integer)"
-        }
-      ]
-    },
-    {
-      "name": "cast-3.6",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(-9223372036854774800 AS numeric)"
-        }
-      ]
-    },
-    {
-      "name": "cast-3.8",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(CAST(-9223372036854774800 AS real) AS integer)"
-        }
-      ]
-    },
-    {
-      "name": "cast-3.11",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST('9223372036854774800' AS integer)"
-        }
-      ]
-    },
-    {
-      "name": "cast-3.12",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST('9223372036854774800' AS numeric)"
-        }
-      ]
-    },
-    {
-      "name": "cast-3.14",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(CAST('9223372036854774800' AS real) AS integer)"
-        }
-      ]
-    },
-    {
-      "name": "cast-3.15",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST('-9223372036854774800' AS integer)"
-        }
-      ]
-    },
-    {
-      "name": "cast-3.16",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST('-9223372036854774800' AS numeric)"
-        }
-      ]
-    },
-    {
-      "name": "cast-3.18",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(CAST('-9223372036854774800' AS real) AS integer)"
-        }
-      ]
-    },
-    {
-      "name": "cast-3.21",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(x'39323233333732303336383534373734383030' AS integer)"
-        }
-      ]
-    },
-    {
-      "name": "cast-3.22",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(x'39323233333732303336383534373734383030' AS numeric)"
-        }
-      ]
-    },
-    {
-      "name": "cast-3.24",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(CAST(x'39323233333732303336383534373734383030' AS real)\n                  AS integer)"
-        }
-      ]
-    },
-    {
-      "name": "cast-3.31",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT CAST(NULL AS numeric)",
-          "expect": "{}"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x'616263'"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(x'616263')"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(x'616263' AS text)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(CAST(x'616263' AS text))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(x'616263' AS numeric)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(CAST(x'616263' AS numeric))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(x'616263' AS blob)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(CAST(x'616263' AS blob))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(x'616263' AS integer)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(CAST(x'616263' AS integer))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT null"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(NULL)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(NULL AS text)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(CAST(NULL AS text))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(NULL AS numeric)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(CAST(NULL AS numeric))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(NULL AS blob)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(CAST(NULL AS blob))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(NULL AS integer)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(CAST(NULL AS integer))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 123"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(123)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(123 AS text)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(CAST(123 AS text))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(123 AS numeric)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(CAST(123 AS numeric))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(123 AS blob)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(CAST(123 AS blob))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(123 AS integer)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(CAST(123 AS integer))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 123.456"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(123.456)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(123.456 AS text)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(CAST(123.456 AS text))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(123.456 AS numeric)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(CAST(123.456 AS numeric))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(123.456 AS blob)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(CAST(123.456 AS blob))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(123.456 AS integer)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(CAST(123.456 AS integer))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT '123abc'"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof('123abc')"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST('123abc' AS text)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(CAST('123abc' AS text))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST('123abc' AS numeric)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(CAST('123abc' AS numeric))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST('123abc' AS blob)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(CAST('123abc' AS blob))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST('123abc' AS integer)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(CAST('123abc' AS integer))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST('123.5abc' AS numeric)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST('123.5abc' AS integer)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(null AS REAL)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(CAST(null AS REAL))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(1 AS REAL)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(CAST(1 AS REAL))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST('1' AS REAL)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(CAST('1' AS REAL))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST('abc' AS REAL)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(CAST('abc' AS REAL))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(x'31' AS REAL)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(CAST(x'31' AS REAL))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST('   123' AS integer)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST('   -123.456' AS real)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(9223372036854774800 AS integer)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(9223372036854774800 AS numeric)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(9223372036854774800 AS real)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(CAST(9223372036854774800 AS real) AS integer)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(-9223372036854774800 AS integer)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(-9223372036854774800 AS numeric)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(-9223372036854774800 AS real)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(CAST(-9223372036854774800 AS real) AS integer)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST('9223372036854774800' AS integer)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST('9223372036854774800' AS numeric)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST('9223372036854774800' AS real)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(CAST('9223372036854774800' AS real) AS integer)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST('-9223372036854774800' AS integer)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST('-9223372036854774800' AS numeric)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST('-9223372036854774800' AS real)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(CAST('-9223372036854774800' AS real) AS integer)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(x'39323233333732303336383534373734383030' AS integer)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(x'39323233333732303336383534373734383030' AS numeric)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(x'39323233333732303336383534373734383030' AS real)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(CAST(x'39323233333732303336383534373734383030' AS real)\n                  AS integer)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(NULL AS numeric)"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA encoding='utf16'"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA encoding"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES('abc');\n    SELECT a, CAST(a AS integer) FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(a AS integer), a FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, CAST(a AS integer), a FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(a AS integer), a, CAST(a AS real), a FROM t1;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
     }
-  ],
-  "source": "capi"
+  ]
 }

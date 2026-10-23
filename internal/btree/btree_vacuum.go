@@ -109,18 +109,20 @@ func (t *BTree) RelocatePage(to, from uint32) (relocated bool, err error) {
 	// BEFORE the copy so a failure leaves both pages' content
 	// intact.
 	if err := t.updateParentChildPtr(parentPgno, from, to, parentType); err != nil {
-		// Parent update failed. The parent does not reference
-		// `from` (e.g. the btree's parent is wrong, or the page
-		// is genuinely an orphan). The caller (IncrVacuumStep)
-		// will see `relocated=false` and skip the truncation;
-		// the btree remains consistent. We must NOT corrupt
-		// `to` (it's still a free page in cache; the journal
-		// BEFORE image has its original free-page content), and
-		// we must NOT corrupt `from` (it's still a live btree
-		// page). Both buffers are unchanged: the copy hasn't
-		// happened yet, no MarkPageDirtyForVacuum was called
-		// for either page in this function.
-		return false, fmt.Errorf("btree: RelocatePage: update parent %d: %w", parentPgno, err)
+		// A stale PTRMAP_BTREE entry can name an ancestor that no
+		// longer directly references from (e.g. after balancing).
+		// Re-resolve the edge from current btree pages before failing.
+		actualParent, actualType, walkErr := t.findParentByWalk(from)
+		if walkErr != nil {
+			return false, fmt.Errorf("btree: RelocatePage: update parent %d: %w (tree-walk fallback: %v)", parentPgno, err, walkErr)
+		}
+		if actualParent == parentPgno {
+			return false, fmt.Errorf("btree: RelocatePage: update parent %d: %w", parentPgno, err)
+		}
+		if retryErr := t.updateParentChildPtr(actualParent, from, to, actualType); retryErr != nil {
+			return false, fmt.Errorf("btree: RelocatePage: update parent %d: %w (ptrmap parent %d also failed: %v)", actualParent, retryErr, parentPgno, err)
+		}
+		parentPgno, parentType = actualParent, actualType
 	}
 	// Copy `from` → `to`. After the parent update succeeded, the
 	// btree now references `to` (not `from`); the copy makes

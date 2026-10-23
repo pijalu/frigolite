@@ -1,0 +1,28 @@
+{
+  "file": "vtab_err.test",
+  "name": "vtab_err",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_echo_module"
+        }
+      ]
+    },
+    {
+      "name": "vtab_err-3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE r(a PRIMARY KEY, b, c);\n  CREATE VIRTUAL TABLE e USING echo(r);"
+        }
+      ]
+    }
+  ]
+}

@@ -9115,6 +9115,16 @@
       ]
     },
     {
+      "name": "setup_35",
+      "steps": [
+        {
+          "type": "internal_functions",
+          "sql": "enable",
+          "internalFunctions": true
+        }
+      ]
+    },
+    {
       "name": "without_rowid3-14.2.1.1",
       "steps": [
         {
@@ -9141,6 +9151,15 @@
           "type": "query",
           "sql": "SELECT sqlite_rename_table(\n        'main', 'table', 't1', 'CREATE TABLE t1(a REFERENCES \"t2\")', 't2', 't3', 0\n    )",
           "expect": "{CREATE TABLE t1(a REFERENCES \"t3\")}"
+        }
+      ]
+    },
+    {
+      "name": "setup_36",
+      "steps": [
+        {
+          "type": "internal_functions",
+          "sql": "disable"
         }
       ]
     },
@@ -9293,6 +9312,16 @@
       ]
     },
     {
+      "name": "setup_37",
+      "steps": [
+        {
+          "type": "internal_functions",
+          "sql": "enable",
+          "internalFunctions": true
+        }
+      ]
+    },
+    {
       "name": "without_rowid3-14.2tmp.1.1",
       "steps": [
         {
@@ -9319,6 +9348,15 @@
           "type": "query",
           "sql": "SELECT sqlite_rename_table(\n        'main', 'table', 't1', 'CREATE TABLE t1(a REFERENCES \"t2\")', 't2', 't3', 0\n    )",
           "expect": "{CREATE TABLE t1(a REFERENCES \"t3\")}"
+        }
+      ]
+    },
+    {
+      "name": "setup_38",
+      "steps": [
+        {
+          "type": "internal_functions",
+          "sql": "disable"
         }
       ]
     },
@@ -9471,6 +9509,16 @@
       ]
     },
     {
+      "name": "setup_39",
+      "steps": [
+        {
+          "type": "internal_functions",
+          "sql": "enable",
+          "internalFunctions": true
+        }
+      ]
+    },
+    {
       "name": "without_rowid3-14.2aux.1.1",
       "steps": [
         {
@@ -9497,6 +9545,15 @@
           "type": "query",
           "sql": "SELECT sqlite_rename_table(\n        'main', 'table', 't1', 'CREATE TABLE t1(a REFERENCES \"t2\")', 't2', 't3', 0\n    )",
           "expect": "{CREATE TABLE t1(a REFERENCES \"t3\")}"
+        }
+      ]
+    },
+    {
+      "name": "setup_40",
+      "steps": [
+        {
+          "type": "internal_functions",
+          "sql": "disable"
         }
       ]
     },
@@ -9744,6 +9801,14 @@
       ]
     },
     {
+      "name": "setup_41",
+      "steps": [
+        {
+          "type": "register_echo_module"
+        }
+      ]
+    },
+    {
       "name": "without_rowid3-2.14.4.3",
       "steps": [
         {
@@ -9775,11 +9840,25 @@
       ]
     },
     {
+      "name": "without_rowid3-15.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO pp VALUES(3, 'three')",
+          "expect": "0"
+        }
+      ]
+    },
+    {
       "name": "without_rowid3-15.1.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n      INSERT INTO cc VALUES('see', 4);    -- Violates deferred constraint",
+          "sql": "BEGIN;\n      INSERT INTO cc VALUES('see', 4);    -- Violates deferred constraint"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO pp VALUES(5, 'five')",
           "expect": "2"
         }
       ]
@@ -9789,7 +9868,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM cc WHERE x = 'see'",
+          "sql": "DELETE FROM cc WHERE x = 'see'"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO pp VALUES(6, 'six')",
           "expect": "0"
         }
       ]
@@ -9808,7 +9891,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM cc WHERE x = 'neung';\n    ROLLBACK;",
           "expect": "1"
         }
       ]
@@ -9818,7 +9905,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    DELETE FROM pp WHERE a = 2;",
+          "sql": "BEGIN;\n    DELETE FROM pp WHERE a = 2;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM cc WHERE x = 'neung';\n    ROLLBACK;",
           "expect": "2"
         }
       ]
@@ -10221,6 +10312,52 @@
       ]
     },
     {
+      "name": "without_rowid3-17.1.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO two VALUES(4, 5, 6)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO two VALUES(4, 5, 6)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_1__",
+          "expect": "SQLITE_CONSTRAINT"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-17.1.3",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO two VALUES(4, 5, 6)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_1__",
+          "expect": "SQLITE_CONSTRAINT"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-17.1.4",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO two VALUES(4, 5, 6)",
+          "variable": "stmt_1",
+          "expect": "SQLITE_CONSTRAINT"
+        }
+      ]
+    },
+    {
       "name": "without_rowid3-17.1.5",
       "steps": [
         {
@@ -10275,6 +10412,52 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE three(\n      g, h, i, \n      FOREIGN KEY(h, i) REFERENCES one(b, c) DEFERRABLE INITIALLY DEFERRED\n    );"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-17.1.11",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO three VALUES(7, 8, 9)",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO three VALUES(7, 8, 9)",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_2__",
+          "expect": "SQLITE_ROW"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-17.1.13",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO three VALUES(7, 8, 9)",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_2__",
+          "expect": "SQLITE_CONSTRAINT"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-17.1.14",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO three VALUES(7, 8, 9)",
+          "variable": "stmt_2",
+          "expect": "SQLITE_CONSTRAINT"
         }
       ]
     },
@@ -10341,7 +10524,7 @@
       ]
     },
     {
-      "name": "setup_35",
+      "name": "setup_42",
       "steps": [
         {
           "type": "exec",
@@ -10359,11 +10542,55 @@
       ]
     },
     {
+      "name": "setup_43",
+      "steps": [
+        {
+          "type": "auth_proc",
+          "authProc": "auth",
+          "callbackVars": {
+            "": "",
+            "FkeySimpleSchema": "\n  PRAGMA foreign_keys = on;\n  CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT rowid;\n  CREATE TABLE t2(c REFERENCES t1(a) /D/ , d);\n\n  CREATE TABLE t3(a PRIMARY KEY, b) WITHOUT rowid;\n  CREATE TABLE t4(c REFERENCES t3 /D/, d);\n\n  CREATE TABLE t7(a, b INT PRIMARY KEY) WITHOUT rowid;\n  CREATE TABLE t8(c REFERENCES t7 /D/, d);\n\n  CREATE TABLE t9(a REFERENCES nosuchtable, b);\n  CREATE TABLE t10(a REFERENCES t9(c) /D/, b);\n",
+            "FkeySimpleTests": "\n  1.1  \"INSERT INTO t2 VALUES(1, 3)\"      {1 {FOREIGN KEY constraint failed}}\n  1.2  \"INSERT INTO t1 VALUES(1, 2)\"      {0 {}}\n  1.3  \"INSERT INTO t2 VALUES(1, 3)\"      {0 {}}\n  1.4  \"INSERT INTO t2 VALUES(2, 4)\"      {1 {FOREIGN KEY constraint failed}}\n  1.5  \"INSERT INTO t2 VALUES(NULL, 4)\"   {0 {}}\n  1.6  \"UPDATE t2 SET c=2 WHERE d=4\"      {1 {FOREIGN KEY constraint failed}}\n  1.7  \"UPDATE t2 SET c=1 WHERE d=4\"      {0 {}}\n  1.9  \"UPDATE t2 SET c=1 WHERE d=4\"      {0 {}}\n  1.10 \"UPDATE t2 SET c=NULL WHERE d=4\"   {0 {}}\n  1.11 \"DELETE FROM t1 WHERE a=1\"         {1 {FOREIGN KEY constraint failed}}\n  1.12 \"UPDATE t1 SET a = 2\"              {1 {FOREIGN KEY constraint failed}}\n  1.13 \"UPDATE t1 SET a = 1\"              {0 {}}\n\n  2.1  \"INSERT INTO t4 VALUES(1, 3)\"      {1 {FOREIGN KEY constraint failed}}\n  2.2  \"INSERT INTO t3 VALUES(1, 2)\"      {0 {}}\n  2.3  \"INSERT INTO t4 VALUES(1, 3)\"      {0 {}}\n\n  4.1  \"INSERT INTO t8 VALUES(1, 3)\"      {1 {FOREIGN KEY constraint failed}}\n  4.2  \"INSERT INTO t7 VALUES(2, 1)\"      {0 {}}\n  4.3  \"INSERT INTO t8 VALUES(1, 3)\"      {0 {}}\n  4.4  \"INSERT INTO t8 VALUES(2, 4)\"      {1 {FOREIGN KEY constraint failed}}\n  4.5  \"INSERT INTO t8 VALUES(NULL, 4)\"   {0 {}}\n  4.6  \"UPDATE t8 SET c=2 WHERE d=4\"      {1 {FOREIGN KEY constraint failed}}\n  4.7  \"UPDATE t8 SET c=1 WHERE d=4\"      {0 {}}\n  4.9  \"UPDATE t8 SET c=1 WHERE d=4\"      {0 {}}\n  4.10 \"UPDATE t8 SET c=NULL WHERE d=4\"   {0 {}}\n  4.11 \"DELETE FROM t7 WHERE b=1\"         {1 {FOREIGN KEY constraint failed}}\n  4.12 \"UPDATE t7 SET b = 2\"              {1 {FOREIGN KEY constraint failed}}\n  4.13 \"UPDATE t7 SET b = 1\"              {0 {}}\n  4.14 \"INSERT INTO t8 VALUES('a', 'b')\"  {1 {FOREIGN KEY constraint failed}}\n  4.15 \"UPDATE t7 SET b = 5\"              {1 {FOREIGN KEY constraint failed}}\n  4.17 \"UPDATE t7 SET a = 10\"             {0 {}}\n\n  5.1  \"INSERT INTO t9 VALUES(1, 3)\"      {1 {no such table: main.nosuchtable}}\n  5.2  \"INSERT INTO t10 VALUES(1, 3)\"  \n                            {1 {foreign key mismatch - \"t10\" referencing \"t9\"}}\n",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "STMT": "stmt_2",
+            "fd": "",
+            "nTotal": "",
+            "rc": "0",
+            "res": "1 {foreign key mismatch - \"t10\" referencing \"t9\"}",
+            "stmt": "REPLACE INTO pp VALUES(1, 4, 5)",
+            "testdir": "",
+            "tn": "3",
+            "zSchema": " CREATE TABLE self(a UNIQUE, b INT PRIMARY KEY REFERENCES self(a))\n             WITHOUT rowid ",
+            "zSql": "\n  CREATE TABLE p(a COLLATE binary, b);\n  CREATE UNIQUE INDEX i ON p(a COLLATE nocase);\n  CREATE TABLE c(x REFERENCES p(a));\n"
+          },
+          "callbackProcs": [
+            {
+              "Name": "auth",
+              "Args": [
+                "args"
+              ],
+              "Body": "eval lappend ::authargs [lrange $args 0 4]; return SQLITE_OK",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "auth",
+          "functionBody": "eval lappend ::authargs [lrange $args 0 4]; return SQLITE_OK"
+        }
+      ]
+    },
+    {
       "name": "without_rowid3-18.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO long VALUES(1, 2, 3)",
+          "sql": "INSERT INTO long VALUES(1, 2, 3)"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "authargs",
           "expect": "SQLITE_INSERT long {} main {} SQLITE_READ mid i main {}"
         }
       ]
@@ -10373,7 +10600,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO short VALUES(1, 3, 2)",
+          "sql": "INSERT INTO short VALUES(1, 3, 2)"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "authargs",
           "expect": "SQLITE_INSERT short {} main {} SQLITE_READ long b main {}"
         }
       ]
@@ -10383,7 +10614,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO mid VALUES(1, 3, 2)",
+          "sql": "INSERT INTO mid VALUES(1, 3, 2)"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "authargs",
           "expect": "SQLITE_INSERT mid {} main {} SQLITE_READ long b main {}"
         }
       ]
@@ -10405,7 +10640,11 @@
         },
         {
           "type": "exec",
-          "sql": "UPDATE nought SET b = 5",
+          "sql": "UPDATE nought SET b = 5"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "authargs",
           "expect": "SQLITE_UPDATE nought b main {} SQLITE_READ cross e main {} SQLITE_READ cross e main {} SQLITE_READ nought b main {} SQLITE_READ nought b main {} SQLITE_READ nought b main {} SQLITE_UPDATE cross e main {} SQLITE_READ nought b main {} SQLITE_READ cross e main {} SQLITE_READ nought b main {} SQLITE_READ nought b main {}"
         }
       ]
@@ -10429,7 +10668,11 @@
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO two VALUES(100, 101);",
+          "sql": "INSERT INTO two VALUES(100, 101);"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "authargs",
           "expect": "SQLITE_INSERT two {} main {} SQLITE_READ one a main {}"
         }
       ]
@@ -10474,11 +10717,95 @@
       ]
     },
     {
+      "name": "setup_44",
+      "steps": [
+        {
+          "type": "auth_proc",
+          "callbackVars": {
+            "": "",
+            "FkeySimpleSchema": "\n  PRAGMA foreign_keys = on;\n  CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT rowid;\n  CREATE TABLE t2(c REFERENCES t1(a) /D/ , d);\n\n  CREATE TABLE t3(a PRIMARY KEY, b) WITHOUT rowid;\n  CREATE TABLE t4(c REFERENCES t3 /D/, d);\n\n  CREATE TABLE t7(a, b INT PRIMARY KEY) WITHOUT rowid;\n  CREATE TABLE t8(c REFERENCES t7 /D/, d);\n\n  CREATE TABLE t9(a REFERENCES nosuchtable, b);\n  CREATE TABLE t10(a REFERENCES t9(c) /D/, b);\n",
+            "FkeySimpleTests": "\n  1.1  \"INSERT INTO t2 VALUES(1, 3)\"      {1 {FOREIGN KEY constraint failed}}\n  1.2  \"INSERT INTO t1 VALUES(1, 2)\"      {0 {}}\n  1.3  \"INSERT INTO t2 VALUES(1, 3)\"      {0 {}}\n  1.4  \"INSERT INTO t2 VALUES(2, 4)\"      {1 {FOREIGN KEY constraint failed}}\n  1.5  \"INSERT INTO t2 VALUES(NULL, 4)\"   {0 {}}\n  1.6  \"UPDATE t2 SET c=2 WHERE d=4\"      {1 {FOREIGN KEY constraint failed}}\n  1.7  \"UPDATE t2 SET c=1 WHERE d=4\"      {0 {}}\n  1.9  \"UPDATE t2 SET c=1 WHERE d=4\"      {0 {}}\n  1.10 \"UPDATE t2 SET c=NULL WHERE d=4\"   {0 {}}\n  1.11 \"DELETE FROM t1 WHERE a=1\"         {1 {FOREIGN KEY constraint failed}}\n  1.12 \"UPDATE t1 SET a = 2\"              {1 {FOREIGN KEY constraint failed}}\n  1.13 \"UPDATE t1 SET a = 1\"              {0 {}}\n\n  2.1  \"INSERT INTO t4 VALUES(1, 3)\"      {1 {FOREIGN KEY constraint failed}}\n  2.2  \"INSERT INTO t3 VALUES(1, 2)\"      {0 {}}\n  2.3  \"INSERT INTO t4 VALUES(1, 3)\"      {0 {}}\n\n  4.1  \"INSERT INTO t8 VALUES(1, 3)\"      {1 {FOREIGN KEY constraint failed}}\n  4.2  \"INSERT INTO t7 VALUES(2, 1)\"      {0 {}}\n  4.3  \"INSERT INTO t8 VALUES(1, 3)\"      {0 {}}\n  4.4  \"INSERT INTO t8 VALUES(2, 4)\"      {1 {FOREIGN KEY constraint failed}}\n  4.5  \"INSERT INTO t8 VALUES(NULL, 4)\"   {0 {}}\n  4.6  \"UPDATE t8 SET c=2 WHERE d=4\"      {1 {FOREIGN KEY constraint failed}}\n  4.7  \"UPDATE t8 SET c=1 WHERE d=4\"      {0 {}}\n  4.9  \"UPDATE t8 SET c=1 WHERE d=4\"      {0 {}}\n  4.10 \"UPDATE t8 SET c=NULL WHERE d=4\"   {0 {}}\n  4.11 \"DELETE FROM t7 WHERE b=1\"         {1 {FOREIGN KEY constraint failed}}\n  4.12 \"UPDATE t7 SET b = 2\"              {1 {FOREIGN KEY constraint failed}}\n  4.13 \"UPDATE t7 SET b = 1\"              {0 {}}\n  4.14 \"INSERT INTO t8 VALUES('a', 'b')\"  {1 {FOREIGN KEY constraint failed}}\n  4.15 \"UPDATE t7 SET b = 5\"              {1 {FOREIGN KEY constraint failed}}\n  4.17 \"UPDATE t7 SET a = 10\"             {0 {}}\n\n  5.1  \"INSERT INTO t9 VALUES(1, 3)\"      {1 {no such table: main.nosuchtable}}\n  5.2  \"INSERT INTO t10 VALUES(1, 3)\"  \n                            {1 {foreign key mismatch - \"t10\" referencing \"t9\"}}\n",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "STMT": "stmt_2",
+            "authargs": "",
+            "fd": "",
+            "nTotal": "",
+            "rc": "0",
+            "res": "1 {foreign key mismatch - \"t10\" referencing \"t9\"}",
+            "stmt": "REPLACE INTO pp VALUES(1, 4, 5)",
+            "testdir": "",
+            "tn": "3",
+            "zSchema": " CREATE TABLE self(a UNIQUE, b INT PRIMARY KEY REFERENCES self(a))\n             WITHOUT rowid ",
+            "zSql": "\n  CREATE TABLE p(a COLLATE binary, b);\n  CREATE UNIQUE INDEX i ON p(a COLLATE nocase);\n  CREATE TABLE c(x REFERENCES p(a));\n"
+          }
+        }
+      ]
+    },
+    {
       "name": "without_rowid3-19.1",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE main(id INT PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE sub(id INT REFERENCES main(id));\n    INSERT INTO main VALUES(1);\n    INSERT INTO main VALUES(2);\n    INSERT INTO sub VALUES(2);"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-19.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "DELETE FROM main WHERE id = ?",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "DELETE FROM main WHERE id = ?",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_3__",
+          "expect": "SQLITE_CONSTRAINT"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-19.3",
+      "steps": [
+        {
+          "type": "stmt_reset",
+          "sql": "DELETE FROM main WHERE id = ?",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "SQLITE_OK",
+          "expect": "SQLITE_CONSTRAINT"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-19.4",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "DELETE FROM main WHERE id = ?",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_3__",
+          "expect": "SQLITE_DONE"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "DELETE FROM main WHERE id = ?",
+          "variable": "stmt_3",
+          "expect": "SQLITE_OK"
         }
       ]
     },
@@ -11870,8 +12197,15 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "setup_45",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        }
+      ]
     },
     {
       "name": "without_rowid3-30.1",

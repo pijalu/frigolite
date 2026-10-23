@@ -255,6 +255,10 @@ func (e *DDLExecutor) validateAddConstraint(tableName string, tableEntry *schema
 		return &Result{}
 	}
 	colDefs := e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
+	createStmt := &sql.CreateTableStmt{Name: tableEntry.Name, Columns: colDefs}
+	if res := e.validateCheckExprNodes(createStmt, tc.Expr); res != nil {
+		return res
+	}
 	tree := e.ctx.TableBTreeForName(tableName, tableEntry.RootPage, true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
@@ -390,19 +394,25 @@ func (e *DDLExecutor) execAlterTableAdd(s *sql.AlterTableStmt) *Result {
 	// ALTER TABLE ... ADD [CONSTRAINT nm] CHECK(expr): append a table-level
 	// constraint to the stored CREATE TABLE SQL and invalidate caches.
 	if s.NewConstraint != nil {
-		return e.addTableConstraint(tableName, tableEntry, ctx, s.NewConstraint)
+		return e.addTableConstraint(tableName, tableEntry, ctx, s.NewConstraint, alterTableConstraintText(s.RawSQL))
 	}
 	return e.addTableColumn(tableName, tableEntry, ctx, s.ColDef, alterColumnDefText(s.RawSQL, s.ColDef.Name))
 }
 
 // addTableConstraint appends a table-level constraint to the stored CREATE
 // TABLE SQL after validating it against existing rows.
-func (e *DDLExecutor) addTableConstraint(tableName string, tableEntry *schema.Entry, ctx *DatabaseContext, tc *sql.TableConstraint) *Result {
+func (e *DDLExecutor) addTableConstraint(tableName string, tableEntry *schema.Entry, ctx *DatabaseContext, tc *sql.TableConstraint, rawConstraint string) *Result {
+	if tc.Name != "" && sqlHasConstraintName(tableEntry.SQL, tc.Name) {
+		return &Result{Error: fmt.Errorf("constraint %s already exists", tc.Name)}
+	}
+	if isMalformedCreateTableSQL(tableEntry.SQL) {
+		return &Result{Error: fmt.Errorf("database disk image is malformed")}
+	}
 	// Validate the constraint against existing rows before committing.
 	if vres := e.validateAddConstraint(tableName, tableEntry, tc); vres.Error != nil {
 		return vres
 	}
-	newSQL := addConstraintToCreateTableSQL(tableEntry.SQL, tc)
+	newSQL := addConstraintToCreateTableSQL(tableEntry.SQL, tc, rawConstraint)
 	if newSQL == "" || newSQL == tableEntry.SQL {
 		return &Result{}
 	}
@@ -542,6 +552,20 @@ func (e *DDLExecutor) dropTableConstraint(tableName, constraintName string) *Res
 	if !sqlHasConstraintName(tableEntry.SQL, constraintName) {
 		return &Result{Error: fmt.Errorf("no such constraint: %s", constraintName)}
 	}
+	if isNonDroppableKeyConstraint(tableEntry.SQL, constraintName) {
+		return &Result{Error: fmt.Errorf("constraint may not be dropped: %s", constraintName)}
+	}
+	if e.ctx.WritableSchema() && isMalformedCreateTableSQL(tableEntry.SQL) {
+		newSQL := dropConstraintFromMalformedSQL(tableEntry.SQL, constraintName)
+		if newSQL != tableEntry.SQL {
+			tableEntry.SQL = newSQL
+			if res := e.commitAlterTableEntry(tableName, schemaMgr, tableEntry); res != nil {
+				return res
+			}
+			return &Result{}
+		}
+		return &Result{Error: fmt.Errorf("database disk image is malformed")}
+	}
 	newSQL := removeConstraintFromSQL(tableEntry.SQL, constraintName)
 	if newSQL == tableEntry.SQL {
 		return &Result{}
@@ -615,6 +639,16 @@ func isSchemaTableName(tableName string) bool {
 // removeDroppedColumn removes a column from the table's cached definitions,
 // stored SQL, and on-disk rows.
 func (e *DDLExecutor) removeDroppedColumn(tableName string, tableEntry *schema.Entry, columnName string) *Result {
+	for _, constraint := range e.ctx.TableConstraints(tableEntry.Name, tableEntry.SQL) {
+		if constraint.Type != sql.ConstraintPrimaryKey {
+			continue
+		}
+		for _, column := range constraint.Columns {
+			if strings.EqualFold(column.Name, columnName) {
+				return &Result{Error: fmt.Errorf("cannot drop PRIMARY KEY column: %q", columnName)}
+			}
+		}
+	}
 	colDefs := e.ctx.ColCache()[tableName]
 	if colDefs == nil {
 		colDefs = e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
@@ -658,6 +692,58 @@ func (e *DDLExecutor) removeDroppedColumn(tableName string, tableEntry *schema.E
 	return &Result{}
 }
 
+func dropConstraintFromMalformedSQL(createSQL, constraintName string) string {
+	tokens := ddlSQLTokens(createSQL)
+	for i := 0; i+1 < len(tokens); i++ {
+		if tokens[i].quoted || !strings.EqualFold(tokens[i].text, "CONSTRAINT") {
+			continue
+		}
+		name := strings.ReplaceAll(tokens[i+1].text, `""`, `"`)
+		if strings.EqualFold(name, constraintName) {
+			return createSQL[:tokens[i].start]
+		}
+	}
+	return createSQL
+}
+
+func dropNotNullFromMalformedSQL(createSQL, columnName string) string {
+	tokens := ddlSQLTokens(createSQL)
+	depth := 0
+	columnSeen := false
+	for i := 0; i+1 < len(tokens); i++ {
+		if tokens[i].text == "(" {
+			depth++
+			continue
+		}
+		if tokens[i].text == ")" {
+			depth--
+			continue
+		}
+		if depth == 1 && strings.EqualFold(tokens[i].text, columnName) {
+			columnSeen = true
+		}
+		if columnSeen && depth == 1 && strings.EqualFold(tokens[i].text, "NOT") && strings.EqualFold(tokens[i+1].text, "NULL") {
+			return strings.TrimRight(createSQL[:tokens[i].start], " \t\r\n") + " "
+		}
+	}
+	return createSQL
+}
+
+func cachedColumnDefsForAlter(cache map[string][]sql.ColumnDef, tableName string) []sql.ColumnDef {
+	prefix := tableName + "\x00"
+	var found []sql.ColumnDef
+	for key, cols := range cache {
+		if !strings.HasPrefix(key, prefix) {
+			continue
+		}
+		if found != nil {
+			return nil // ambiguous stale definitions; do not guess between schema versions
+		}
+		found = cols
+	}
+	return found
+}
+
 func (e *DDLExecutor) execAlterTableAlter(s *sql.AlterTableStmt) *Result {
 	// ALTER TABLE ... ALTER COLUMN SET NOT NULL / DROP NOT NULL
 	if s.AlterColAction == "" {
@@ -668,7 +754,11 @@ func (e *DDLExecutor) execAlterTableAlter(s *sql.AlterTableStmt) *Result {
 	// altered") and rejects ALTER COLUMN on a view ("cannot edit constraints
 	// of view").
 	if isProtectedSystemTable(tableName) {
-		return &Result{Error: fmt.Errorf("table %s may not be altered", tableName)}
+		displayName := tableName
+		if strings.EqualFold(displayName, "sqlite_schema") {
+			displayName = "sqlite_master"
+		}
+		return &Result{Error: fmt.Errorf("table %s may not be altered", displayName)}
 	}
 	if _, _, vErr := e.ctx.FindView(tableName); vErr == nil {
 		return &Result{Error: fmt.Errorf("cannot edit constraints of view %q", tableName)}
@@ -684,10 +774,28 @@ func (e *DDLExecutor) execAlterTableAlter(s *sql.AlterTableStmt) *Result {
 	// SQL is fundamentally broken AND no cached definition exists.
 	colDefs := e.ctx.ColCache()[tableEntry.Name]
 	if colDefs == nil {
+		colDefs = cachedColumnDefsForAlter(e.ctx.ColCache(), tableEntry.Name)
+	}
+	if colDefs == nil {
 		colDefs = e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
 	}
-	if isMalformedColumnDefs(colDefs, tableEntry.SQL) {
+	malformed := isMalformedColumnDefs(colDefs, tableEntry.SQL) || isMalformedCreateTableSQL(tableEntry.SQL)
+	if malformed && s.AlterColAction != "DROP NOT NULL" {
 		return &Result{Error: fmt.Errorf("database disk image is malformed")}
+	}
+	if malformed && s.AlterColAction == "DROP NOT NULL" {
+		if !strings.Contains(tableEntry.SQL, "(") {
+			return &Result{Error: fmt.Errorf("database disk image is malformed")}
+		}
+		updatedSQL := dropNotNullFromMalformedSQL(tableEntry.SQL, s.Column)
+		if updatedSQL != tableEntry.SQL {
+			tableEntry.SQL = updatedSQL
+			if res := e.commitAlterTableEntry(tableName, alterSchemaManager(e, tableCtx), tableEntry); res != nil {
+				return res
+			}
+			return &Result{}
+		}
+		return &Result{}
 	}
 
 	// Find and update the column.
@@ -696,7 +804,7 @@ func (e *DDLExecutor) execAlterTableAlter(s *sql.AlterTableStmt) *Result {
 		return &Result{Error: alterErr}
 	}
 	if !found {
-		return &Result{Error: fmt.Errorf("no such column: \"%s\"", s.Column)}
+		return &Result{Error: fmt.Errorf("no such column: %s", s.Column)}
 	}
 	e.ctx.ColCache()[tableEntry.Name] = colDefs
 
@@ -704,6 +812,9 @@ func (e *DDLExecutor) execAlterTableAlter(s *sql.AlterTableStmt) *Result {
 	// filtering out dropped columns.
 	sqlColDefs := visibleColDefs(colDefs)
 	updateSQL := rebuildCreateTableSQL(tableEntry.SQL, sqlColDefs)
+	if action := alterNotNullConflictAction(s.RawSQL); action != "" && s.AlterColAction == "SET NOT NULL" {
+		updateSQL = strings.Replace(updateSQL, " NOT NULL", " NOT NULL ON CONFLICT "+action, 1)
+	}
 	if updateSQL != "" {
 		tableEntry.SQL = updateSQL
 		schemaMgr := alterSchemaManager(e, tableCtx)
@@ -713,6 +824,17 @@ func (e *DDLExecutor) execAlterTableAlter(s *sql.AlterTableStmt) *Result {
 	}
 
 	return &Result{}
+}
+
+// alterNotNullConflictAction extracts optional ON CONFLICT action from SET NOT NULL.
+func alterNotNullConflictAction(rawSQL string) string {
+	tokens := ddlSQLTokens(rawSQL)
+	for i := 0; i+2 < len(tokens); i++ {
+		if strings.EqualFold(tokens[i].text, "ON") && strings.EqualFold(tokens[i+1].text, "CONFLICT") {
+			return tokens[i+2].text
+		}
+	}
+	return ""
 }
 
 // isMalformedColumnDefs reports whether no column definitions could be parsed
@@ -815,11 +937,34 @@ func removeColumnLevelConstraint(part, upperPart, upperName, upperQuotedName, qu
 		nameEnd = len(constraintName)
 	}
 	clauseStart := skipColumnConstraintTail(tail, nameEnd)
-	part = strings.TrimSpace(part[:conIdx])
+	prefix := part[:conIdx]
+	if lineComment := strings.Index(prefix, "--"); lineComment >= 0 {
+		prefix = prefix[:lineComment]
+	}
+	part = strings.TrimSpace(prefix)
 	if rest2 := strings.TrimSpace(tail[clauseStart:]); rest2 != "" {
 		part += " " + rest2
 	}
 	return part, true
+}
+
+// isNonDroppableKeyConstraint reports whether name labels PRIMARY KEY or UNIQUE.
+// SQLite cannot remove these constraints because their backing index is structural.
+func isNonDroppableKeyConstraint(createSQL, name string) bool {
+	tokens := ddlSQLTokens(createSQL)
+	for i := 0; i+2 < len(tokens); i++ {
+		if tokens[i].quoted || !strings.EqualFold(tokens[i].text, "CONSTRAINT") || !strings.EqualFold(tokens[i+1].text, name) {
+			continue
+		}
+		next := i + 2
+		if strings.EqualFold(tokens[next].text, "PRIMARY") && next+1 < len(tokens) && strings.EqualFold(tokens[next+1].text, "KEY") {
+			return true
+		}
+		if strings.EqualFold(tokens[next].text, "UNIQUE") {
+			return true
+		}
+	}
+	return false
 }
 
 // removeConstraintFromSQL removes a named constraint from a CREATE TABLE SQL string.
@@ -840,7 +985,7 @@ func removeConstraintFromSQL(origSQL, constraintName string) string {
 		trailingSQL = strings.TrimSpace(origSQL[parenEnd+1:])
 	}
 	upperName := strings.ToUpper(constraintName)
-	quotedName := `"` + constraintName + `"`
+	quotedName := `"` + strings.ReplaceAll(constraintName, `"`, `""`) + `"`
 	upperQuotedName := strings.ToUpper(quotedName)
 	keptParts := filterDroppedConstraintParts(splitTopLevelParts(origSQL[parenStart+1:parenEnd]),
 		constraintName, upperName, quotedName, upperQuotedName)
@@ -865,7 +1010,34 @@ func removeConstraintFromSQL(origSQL, constraintName string) string {
 // addConstraintToCreateTableSQL appends a table-level constraint (e.g.
 // CONSTRAINT nm CHECK(expr)) to the stored CREATE TABLE SQL, inserting it
 // before the closing parenthesis of the column list.
-func addConstraintToCreateTableSQL(origSQL string, tc *sql.TableConstraint) string {
+func trimAlterConstraintLineComment(rawConstraint string) string {
+	closeParen := strings.LastIndex(rawConstraint, ")")
+	if closeParen >= 0 {
+		if comment := strings.Index(rawConstraint[closeParen+1:], "--"); comment >= 0 {
+			return strings.TrimSpace(rawConstraint[:closeParen+1])
+		}
+	}
+	return rawConstraint
+}
+
+func alterTableConstraintText(rawSQL string) string {
+	tokens := ddlSQLTokens(rawSQL)
+	for i := 0; i+1 < len(tokens); i++ {
+		if !strings.EqualFold(tokens[i].text, "ADD") {
+			continue
+		}
+		j := i + 1
+		if j < len(tokens) && strings.EqualFold(tokens[j].text, "CONSTRAINT") {
+			return trimAlterConstraintLineComment(strings.TrimSpace(rawSQL[tokens[j].start:]))
+		}
+		if j < len(tokens) && strings.EqualFold(tokens[j].text, "CHECK") {
+			return trimAlterConstraintLineComment(strings.TrimSpace(rawSQL[tokens[j].start:]))
+		}
+	}
+	return ""
+}
+
+func addConstraintToCreateTableSQL(origSQL string, tc *sql.TableConstraint, rawConstraint string) string {
 	if tc == nil {
 		return origSQL
 	}
@@ -884,7 +1056,11 @@ func addConstraintToCreateTableSQL(origSQL string, tc *sql.TableConstraint) stri
 		buf.WriteString(",")
 	}
 	buf.WriteString(" ")
-	writeConstraintClause(&buf, tc)
+	if rawConstraint != "" {
+		buf.WriteString(rawConstraint)
+	} else {
+		writeConstraintClause(&buf, tc)
+	}
 	buf.WriteString(")")
 	if trailingSQL != "" {
 		buf.WriteString(" ")

@@ -1,6 +1,7 @@
 {
   "file": "tkt3929.test",
   "name": "tkt3929",
+  "ordered": true,
   "tests": [
     {
       "name": "tkt3929-1.0",
@@ -15,17 +16,402 @@
       "name": "tkt3929-1.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "INSERT INTO t1(a) VALUES(1);\n    INSERT INTO t1(a) VALUES(2);\n    SELECT * FROM t1;",
           "expect": "1 {value: 1} 2 {value: 2}"
+        }
+      ]
+    },
+    {
+      "name": "tkt3930-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(3)"
         },
         {
           "type": "exec",
-          "sql": "PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n    CREATE TRIGGER t1_t1 AFTER INSERT ON t1 BEGIN\n      UPDATE t1 SET b = 'value: ' || a WHERE t1.rowid = new.rowid;\n    END;"
+          "sql": "INSERT INTO t1(a) VALUES(4)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1(a) VALUES(1);\n    INSERT INTO t1(a) VALUES(2);\n    SELECT * FROM t1;"
+          "sql": "INSERT INTO t1(a) VALUES(5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(7)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(8)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(9)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(10)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(11)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(12)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(13)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(14)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(15)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(16)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(17)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(18)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(19)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(20)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(21)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(22)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(23)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(24)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(25)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(26)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(27)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(28)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(29)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(30)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(31)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(32)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(33)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(34)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(35)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(36)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(37)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(38)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(39)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(40)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(41)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(42)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(43)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(44)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(45)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(46)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(47)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(48)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(49)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(50)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(51)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(52)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(53)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(54)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(55)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(56)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(57)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(58)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(59)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(60)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(61)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(62)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(63)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(64)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(65)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(66)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(67)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(68)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(69)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(70)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(71)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(72)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(73)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(74)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(75)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(76)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(77)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(78)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(79)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(80)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(81)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(82)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(83)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(84)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(85)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(86)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(87)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(88)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(89)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(90)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(91)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(92)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(93)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(94)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(95)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(96)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(97)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(98)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(99)"
         }
       ]
     }

@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/auth"
+	"github.com/pijalu/frigolite/internal/execdml"
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
@@ -366,6 +367,13 @@ func (e *DDLExecutor) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 	if err := e.ctx.Authorize(auth.ActionCreateTrigger, s.Name, s.Table, "", ""); err != nil {
 		return &Result{Error: err}
 	}
+	// trigger.c sqlite3BeginTrigger (isTemp branch): a CREATE TEMP TRIGGER
+	// name may not be schema-qualified, and the check precedes schema
+	// resolution and the reserved-name check ("temporary trigger may not have
+	// qualified name", trigger7-1.1: CREATE TEMP TRIGGER main.r1).
+	if isTempTriggerSQL(s.RawSQL) && triggerNameQualified(s) {
+		return &Result{Error: fmt.Errorf("temporary trigger may not have qualified name")}
+	}
 	// build.c sqlite3CheckObjectName: the "sqlite_" prefix is reserved in
 	// every namespace, including triggers ("object name reserved for
 	// internal use: sqlite_tr1", index.test 7.x).
@@ -385,6 +393,19 @@ func (e *DDLExecutor) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 	// sqlite_temp_schema; altertab-9.4 creates a TEMP trigger on aux.t1).
 	ctx = e.consolidateTriggerSchema(ctx, tableName, explicitSchema, s.RawSQL)
 	isTempTrigger := isTempTriggerSQL(s.RawSQL) || ctx == e.ctx.GetDB("temp")
+	if !isTempTrigger {
+		if targetSchema, _ := execdml.ParseSchemaName(s.Table); targetSchema != "" {
+			storageSchema := e.ctx.MainDB().Name
+			if explicitSchema {
+				if dot := strings.IndexByte(s.Name, '.'); dot >= 0 {
+					storageSchema = s.Name[:dot]
+				}
+			}
+			if !strings.EqualFold(targetSchema, storageSchema) {
+				return &Result{Error: fmt.Errorf("trigger %s cannot reference objects in database %s", triggerName, targetSchema)}
+			}
+		}
+	}
 	if res := e.validateTriggerTarget(s, ctx, triggerName, tableName, isTempTrigger); res != nil {
 		return res
 	}
@@ -400,15 +421,18 @@ func (e *DDLExecutor) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 		return &Result{Error: fmt.Errorf("trigger cannot use variables")}
 	}
 
-	// Schema-scoping validations: a NON-temp trigger may not reference
-	// objects in an attached database ("trigger tr1 cannot reference objects
-	// in database aux"), and may not use qualified table names in its DML
-	// ("qualified table names are not allowed on INSERT, UPDATE, and DELETE
-	// statements within triggers"). TEMP triggers are exempt from both, and
-	// a trigger whose ON table lives in the TEMP database is stored in the
-	// TEMP schema (consolidateTriggerSchema above) — SQLite treats it as a
-	// temp trigger too (e_update-2.1.3: "Qualified table name is allowed as
-	// t4 is a temp table").
+	// Grammar-level restrictions parsed by SQLite's parse.y apply here
+	// (sqlite3BeginTrigger runs when trigger_decl reduces, before the body's
+	// trigger_cmd_list is parsed): INDEXED BY / NOT INDEXED is rejected on
+	// UPDATE/DELETE inside EVERY trigger, while a qualified DML target (trnm)
+	// is rejected only for non-temp triggers — a TEMP trigger may
+	// INSERT/UPDATE/DELETE fully qualified table names in any attached
+	// database (ori/sqlite/test temptrigger 8.x/9.x; e_update-2.1.3). Cross-
+	// database reference fixing (attach.c sqlite3FixTriggerStep) runs after
+	// the whole body parses and is skipped for temp triggers.
+	if err := e.validateTriggerGrammarRestrictions(s.Statements, isTempTrigger); err != nil {
+		return &Result{Error: err}
+	}
 	if !isTempTrigger {
 		if err := e.validateTriggerSchemaRefs(triggerName, s.Statements, ctx); err != nil {
 			return &Result{Error: err}
@@ -583,6 +607,44 @@ func isSystemTableName(tableName string) bool {
 		upper == "SQLITE_TEMP_MASTER" || upper == "SQLITE_TEMP_SCHEMA"
 }
 
+// validateTriggerGrammarRestrictions enforces the parse-time restrictions
+// SQLite's grammar applies to trigger bodies (parse.y trnm/tridxby). The
+// INDEXED BY / NOT INDEXED restriction holds for every trigger; the qualified
+// DML target restriction holds only for triggers not stored in the TEMP
+// schema. Statement order is preserved so the first violation wins, matching
+// the parser's left-to-right reductions.
+func (e *DDLExecutor) validateTriggerGrammarRestrictions(stmts []sql.Stmt, isTempTrigger bool) error {
+	for _, stmt := range stmts {
+		switch s := stmt.(type) {
+		case *sql.InsertStmt:
+			if !isTempTrigger {
+				if err := checkQualifiedDMLTable(s.Table); err != nil {
+					return err
+				}
+			}
+		case *sql.UpdateStmt:
+			if !isTempTrigger {
+				if err := checkQualifiedDMLTable(s.Table); err != nil {
+					return err
+				}
+			}
+			if s.IndexedBy != "" {
+				return e.indexedByTriggerError(s.IndexedBy)
+			}
+		case *sql.DeleteStmt:
+			if !isTempTrigger {
+				if err := checkQualifiedDMLTable(s.Table); err != nil {
+					return err
+				}
+			}
+			if s.IndexedBy != "" {
+				return e.indexedByTriggerError(s.IndexedBy)
+			}
+		}
+	}
+	return nil
+}
+
 // validateTriggerSchemaRefs validates all statements in a trigger body for
 // schema-scoping violations.
 func (e *DDLExecutor) validateTriggerSchemaRefs(trigName string, stmts []sql.Stmt, trigCtx *DatabaseContext) error {
@@ -610,11 +672,9 @@ func (e *DDLExecutor) validateTriggerStmtSchemaRefs(trigName string, stmt sql.St
 	return nil
 }
 
-// validateTriggerInsertRef checks an INSERT inside a trigger body.
+// validateTriggerInsertRef checks cross-database references for an INSERT
+// inside a trigger body.
 func (e *DDLExecutor) validateTriggerInsertRef(trigName string, s *sql.InsertStmt, trigCtx *DatabaseContext) error {
-	if err := checkQualifiedDMLTable(s.Table); err != nil {
-		return err
-	}
 	if err := e.checkTriggerSchemaRef(trigName, s.Table, trigCtx); err != nil {
 		return err
 	}
@@ -633,14 +693,9 @@ func (e *DDLExecutor) validateTriggerInsertRef(trigName string, s *sql.InsertStm
 	return nil
 }
 
-// validateTriggerUpdateRef checks an UPDATE inside a trigger body.
+// validateTriggerUpdateRef checks cross-database references for an UPDATE
+// inside a trigger body.
 func (e *DDLExecutor) validateTriggerUpdateRef(trigName string, s *sql.UpdateStmt, trigCtx *DatabaseContext) error {
-	if err := checkQualifiedDMLTable(s.Table); err != nil {
-		return err
-	}
-	if s.IndexedBy != "" {
-		return e.indexedByTriggerError(s.IndexedBy)
-	}
 	if err := e.checkTriggerSchemaRef(trigName, s.Table, trigCtx); err != nil {
 		return err
 	}
@@ -650,14 +705,9 @@ func (e *DDLExecutor) validateTriggerUpdateRef(trigName string, s *sql.UpdateStm
 	return nil
 }
 
-// validateTriggerDeleteRef checks a DELETE inside a trigger body.
+// validateTriggerDeleteRef checks cross-database references for a DELETE
+// inside a trigger body.
 func (e *DDLExecutor) validateTriggerDeleteRef(trigName string, s *sql.DeleteStmt, trigCtx *DatabaseContext) error {
-	if err := checkQualifiedDMLTable(s.Table); err != nil {
-		return err
-	}
-	if s.IndexedBy != "" {
-		return e.indexedByTriggerError(s.IndexedBy)
-	}
 	if err := e.checkTriggerSchemaRef(trigName, s.Table, trigCtx); err != nil {
 		return err
 	}

@@ -1,9 +1,10 @@
 {
   "file": "mjournal.test",
   "name": "mjournal",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "mjournal-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,72 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2journal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-1.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "test.db-journal"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db-journal",
+          "fileData": "746573742e6462326a6f75726e616c00",
+          "fileTarget": "test.db-journal"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db-journal",
+          "fileData": "00000010",
+          "fileTarget": "test.db-journal",
+          "fileOffset": 16
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db-journal",
+          "fileData": "000005e1",
+          "fileTarget": "test.db-journal",
+          "fileOffset": 20
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db-journal",
+          "fileData": "d9d505f920a163d7",
+          "fileTarget": "test.db-journal",
+          "fileOffset": 24
+        },
+        {
+          "type": "write_file",
+          "sql": "test.db2journal"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db2journal",
+          "expect": "2",
+          "fileData": "abcd",
+          "fileTarget": "test.db2journal"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-1.2",
       "steps": [
         {
           "type": "query",
@@ -21,7 +87,72 @@
       ]
     },
     {
-      "name": "1.4",
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test0db2journal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-1.3",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "test.db-journal"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db-journal",
+          "fileData": "74657374306462326a6f75726e616c00",
+          "fileTarget": "test.db-journal"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db-journal",
+          "fileData": "00000010",
+          "fileTarget": "test.db-journal",
+          "fileOffset": 16
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db-journal",
+          "fileData": "000005e3",
+          "fileTarget": "test.db-journal",
+          "fileOffset": 20
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db-journal",
+          "fileData": "d9d505f920a163d7",
+          "fileTarget": "test.db-journal",
+          "fileOffset": 24
+        },
+        {
+          "type": "write_file",
+          "sql": "test0db2journal"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test0db2journal",
+          "expect": "2",
+          "fileData": "abcd",
+          "fileTarget": "test0db2journal"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-1.4",
       "steps": [
         {
           "type": "query",
@@ -30,7 +161,91 @@
       ]
     },
     {
-      "name": "1.6",
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2-master"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test1"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-1.5",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "test.db-journal"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db-journal",
+          "fileData": "746573742e6462322d6d617374657200",
+          "fileTarget": "test.db-journal"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db-journal",
+          "fileData": "00000010",
+          "fileTarget": "test.db-journal",
+          "fileOffset": 16
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db-journal",
+          "fileData": "0000059f",
+          "fileTarget": "test.db-journal",
+          "fileOffset": 20
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db-journal",
+          "fileData": "d9d505f920a163d7",
+          "fileTarget": "test.db-journal",
+          "fileOffset": 24
+        },
+        {
+          "type": "write_file",
+          "sql": "test.db2-master"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db2-master",
+          "fileData": "746573743100",
+          "fileTarget": "test.db2-master"
+        },
+        {
+          "type": "write_file",
+          "sql": "test1"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test1",
+          "expect": "2",
+          "fileData": "abcd",
+          "fileTarget": "test1"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-1.6",
       "steps": [
         {
           "type": "query",
@@ -39,7 +254,51 @@
       ]
     },
     {
-      "name": "2.0",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db3"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-2.0",
       "steps": [
         {
           "type": "exec",
@@ -48,7 +307,41 @@
       ]
     },
     {
-      "name": "3.0",
+      "name": "mjournal-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t2 VALUES(1);\n  COMMIT;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t3 VALUES(1);\n  COMMIT;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t4 VALUES(1);\n  COMMIT;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "mjournal-3.0",
       "steps": [
         {
           "type": "exec",
@@ -57,7 +350,7 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "mjournal-3.1",
       "steps": [
         {
           "type": "exec",
@@ -66,7 +359,37 @@
       ]
     },
     {
-      "name": "3.3",
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-3.2",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "test.db-super"
+        },
+        {
+          "type": "write_file",
+          "sql": "test2.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-3.3",
       "steps": [
         {
           "type": "query",
@@ -76,35 +399,951 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "mjournal-4.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(x INTEGER PRIMARY KEY);"
-        },
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
         {
           "type": "exec",
           "sql": "PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;"
         },
         {
+          "type": "write_file",
+          "sql": "notamasterjournal"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-4.1.0.1",
+      "steps": [
+        {
           "type": "exec",
-          "sql": "SELECT * FROM t1"
+          "sql": "SELECT * FROM t1",
+          "expect": "1"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "delete_file",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "delete_file",
+          "sql": "notamasterjournal"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "setup_5",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "write_file",
+          "sql": "notamasterjournal"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-4.1.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "notamasterjournal"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "write_file",
+          "sql": "master.9FF"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-4.2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "master.9FF"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "write_file",
+          "sql": "master.9FF"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-4.2.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "master.9FF"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "write_file",
+          "sql": "master-mj1234569AA"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-4.3.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "master-mj1234569AA"
+        }
+      ]
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "write_file",
+          "sql": "master-mj1234569AA"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-4.3.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "master-mj1234569AA"
+        }
+      ]
+    },
+    {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "write_file",
+          "sql": "master-mj123456_AA"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-4.4.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "master-mj123456_AA"
+        }
+      ]
+    },
+    {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "write_file",
+          "sql": "master-mj123456_AA"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-4.4.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "master-mj123456_AA"
+        }
+      ]
+    },
+    {
+      "name": "setup_12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "write_file",
+          "sql": "abc"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-4.5.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "abc"
+        }
+      ]
+    },
+    {
+      "name": "setup_13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "write_file",
+          "sql": "abc"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-4.5.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "abc"
+        }
+      ]
+    },
+    {
+      "name": "setup_14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "write_file",
+          "sql": "masterr9FF"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-4.6.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "masterr9FF"
+        }
+      ]
+    },
+    {
+      "name": "setup_15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "write_file",
+          "sql": "masterr9FF"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-4.6.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "masterr9FF"
+        }
+      ]
+    },
+    {
+      "name": "setup_16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "write_file",
+          "sql": "master-fj123456_AA"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-4.7.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "master-fj123456_AA"
+        }
+      ]
+    },
+    {
+      "name": "setup_17",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "write_file",
+          "sql": "master-fj123456_AA"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-4.7.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "master-fj123456_AA"
+        }
+      ]
+    },
+    {
+      "name": "setup_18",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "write_file",
+          "sql": "-mj1234569AA"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-4.8.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "-mj1234569AA"
+        }
+      ]
+    },
+    {
+      "name": "setup_19",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "write_file",
+          "sql": "-mj1234569AA"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-4.8.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "-mj1234569AA"
+        }
+      ]
+    },
+    {
+      "name": "setup_20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "write_file",
+          "sql": "1-mj1234569AA"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-4.9.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "1-mj1234569AA"
+        }
+      ]
+    },
+    {
+      "name": "setup_21",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "write_file",
+          "sql": "1-mj1234569AA"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-4.9.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "1-mj1234569AA"
+        }
+      ]
+    },
+    {
+      "name": "setup_22",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "write_file",
+          "sql": ".9AB"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-4.10.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": ".9AB"
+        }
+      ]
+    },
+    {
+      "name": "setup_23",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "write_file",
+          "sql": ".9AB"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-4.10.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": ".9AB"
+        }
+      ]
+    },
+    {
+      "name": "setup_24",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "write_file",
+          "sql": "master.9X2"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-4.11.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "master.9X2"
+        }
+      ]
+    },
+    {
+      "name": "setup_25",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "write_file",
+          "sql": "master.9X2"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-4.11.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "master.9X2"
+        }
+      ]
+    },
+    {
+      "name": "setup_26",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "write_file",
+          "sql": "master.92X"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-4.12.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "master.92X"
+        }
+      ]
+    },
+    {
+      "name": "setup_27",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "write_file",
+          "sql": "master.92X"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-4.12.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "master.92X"
+        }
+      ]
+    },
+    {
+      "name": "setup_28",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "write_file",
+          "sql": "master-mj12G4569AA"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-4.13.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "master-mj12G4569AA"
+        }
+      ]
+    },
+    {
+      "name": "setup_29",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "write_file",
+          "sql": "master-mj12G4569AA"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "mjournal-4.13.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "master-mj12G4569AA"
         }
       ]
     }

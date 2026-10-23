@@ -314,7 +314,15 @@ func Test_where4(t *testing.T) {
 		}
 	}
 	{ // "where4-6.1" — skipped: covering-index scan ORDER for WHERE IN (planner, P7) — result set matches, order differs (SQL + file side effects only)
-		_res = db.Exec("\n    CREATE TABLE t5(a,b,c,d,e,f,UNIQUE(a,b,c,d,e,f));\n    INSERT INTO t5 VALUES(1,1,1,1,1,11111);\n    INSERT INTO t5 VALUES(2,2,2,2,2,22222);\n    INSERT INTO t5 VALUES(1,2,3,4,5,12345);\n    INSERT INTO t5 VALUES(2,3,4,5,6,23456);\n  ")
+		_res = db.Exec("CREATE TABLE t5(a,b,c,d,e,f,UNIQUE(a,b,c,d,e,f))")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("INSERT INTO t5 VALUES(1,1,1,1,1,11111)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("INSERT INTO t5 VALUES(2,2,2,2,2,22222)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("INSERT INTO t5 VALUES(1,2,3,4,5,12345)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("INSERT INTO t5 VALUES(2,3,4,5,6,23456)")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		_res = db.Exec("\n    SELECT rowid FROM t5\n     WHERE a IN (1,9,2) AND b=2 AND c IN (1,2,3,4) AND d>0\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests

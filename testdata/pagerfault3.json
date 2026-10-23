@@ -1,0 +1,27 @@
+{
+  "file": "pagerfault3.test",
+  "name": "pagerfault3",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "pagerfault3-pre1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 2048;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(1200));\n    PRAGMA page_count;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault3-pre2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n    VACUUM;\n    PRAGMA page_count;",
+          "expect": "3"
+        }
+      ]
+    }
+  ]
+}

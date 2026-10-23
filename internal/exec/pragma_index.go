@@ -363,7 +363,7 @@ func pkTableLevelColumns(out []indexPragmaColumn, tc sql.TableConstraint, colDef
 	}
 	for _, ic := range tc.Columns {
 		idx := resolveColumnIndex(ic.Name, colDefs, colIndex)
-		if idx < 0 {
+		if idx < 0 || inPK[idx] {
 			continue
 		}
 		inPK[idx] = true

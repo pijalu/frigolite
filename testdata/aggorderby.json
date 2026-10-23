@@ -1,6 +1,7 @@
 {
   "file": "aggorderby.test",
   "name": "aggorderby",
+  "ordered": true,
   "tests": [
     {
       "name": "aggorderby-1.1",
@@ -270,6 +271,10 @@
           "expect": "{[[1,1],[4,4],{\"a\":3},{\"x\":2}]}"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "aggorderby-10.0",

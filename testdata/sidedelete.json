@@ -1,33 +1,11 @@
 {
   "file": "sidedelete.test",
   "name": "sidedelete",
+  "ordered": true,
   "tests": [
     {
       "name": "sidedelete-1.1",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE sequence(a INTEGER PRIMARY KEY);\n    INSERT INTO sequence VALUES(1);\n    INSERT INTO sequence VALUES(2);"
-        }
-      ]
-    },
-    {
-      "name": "sidedelete-2.0",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE chng(a PRIMARY KEY, b);\n    SELECT count(*) FROM t1;\n    SELECT count(*) FROM chng;",
-          "expect": "0 0"
-        }
-      ]
-    },
-    {
-      "name": "sidedelete-3.0",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "DROP TABLE t1;\n     CREATE TABLE t1(a PRIMARY KEY);\n     SELECT * FROM t1;"
-        },
         {
           "type": "exec",
           "sql": "CREATE TABLE sequence(a INTEGER PRIMARY KEY);\n    INSERT INTO sequence VALUES(1);\n    INSERT INTO sequence VALUES(2);"
@@ -38,15 +16,2045 @@
         },
         {
           "type": "exec",
-          "sql": "SELECT count(*) FROM sequence"
+          "sql": "INSERT INTO sequence SELECT a+(SELECT max(a) FROM sequence) FROM sequence;"
         },
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE chng(a PRIMARY KEY, b);\n    SELECT count(*) FROM t1;\n    SELECT count(*) FROM chng;"
+          "sql": "INSERT INTO sequence SELECT a+(SELECT max(a) FROM sequence) FROM sequence;"
         },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO sequence SELECT a+(SELECT max(a) FROM sequence) FROM sequence;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO sequence SELECT a+(SELECT max(a) FROM sequence) FROM sequence;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO sequence SELECT a+(SELECT max(a) FROM sequence) FROM sequence;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO sequence SELECT a+(SELECT max(a) FROM sequence) FROM sequence;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO sequence SELECT a+(SELECT max(a) FROM sequence) FROM sequence;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM sequence",
+          "expect": "512"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE chng(a PRIMARY KEY, b);\n    SELECT count(*) FROM t1;\n    SELECT count(*) FROM chng;",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=2;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=2/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "2 3"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=3;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=3/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "2 3"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=4;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=4/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "3 8"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=5;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=5/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "3 8"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=6;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=6/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "4 15"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=7;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=7/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "4 15"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=8;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=8/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "5 24"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=9;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=9/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "5 24"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=10;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=10/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "6 35"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=11;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=11/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "6 35"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=12;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=12/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "7 48"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.13.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=13;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=13/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "7 48"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.14.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=14;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=14/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "8 63"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.15.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=15;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=15/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "8 63"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.16.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=16;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=16/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "9 80"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.17.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=17;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=17/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "9 80"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.18.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=18;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=18/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "10 99"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.19.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=19;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=19/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "10 99"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.20.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=20;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=20/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "11 120"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.21.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=21;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=21/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "11 120"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.22.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=22;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=22/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "12 143"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.23.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=23;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=23/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "12 143"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.24.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=24;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=24/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "13 168"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.25.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=25;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=25/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "13 168"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.26.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=26;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=26/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "14 195"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.27.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=27;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=27/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "14 195"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.28.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=28;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=28/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "15 224"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.29.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=29;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=29/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "15 224"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.30.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=30;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=30/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "16 255"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.31.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=31;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=31/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "16 255"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.32.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=32;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=32/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "17 288"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.33.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=33;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=33/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "17 288"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.34.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=34;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=34/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "18 323"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.35.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=35;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=35/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "18 323"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.36.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=36;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=36/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "19 360"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.37.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=37;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=37/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "19 360"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.38.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=38;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=38/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "20 399"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.39.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=39;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=39/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "20 399"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.40.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=40;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=40/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "21 440"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.41.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=41;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=41/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "21 440"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.42.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=42;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=42/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "22 483"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.43.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=43;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=43/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "22 483"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.44.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=44;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=44/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "23 528"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.45.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=45;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=45/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "23 528"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.46.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=46;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=46/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "24 575"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.47.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=47;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=47/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "24 575"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.48.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=48;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=48/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "25 624"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.49.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=49;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=49/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "25 624"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.50.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=50;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=50/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "26 675"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.51.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=51;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=51/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "26 675"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.52.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=52;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=52/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "27 728"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.53.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=53;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=53/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "27 728"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.54.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=54;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=54/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "28 783"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.55.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=55;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=55/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "28 783"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.56.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=56;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=56/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "29 840"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.57.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=57;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=57/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "29 840"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.58.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=58;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=58/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "30 899"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.59.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=59;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=59/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "30 899"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.60.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=60;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=60/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "31 960"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.61.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=61;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=61/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "31 960"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.62.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=62;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=62/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "32 1023"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.63.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=63;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=63/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "32 1023"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.64.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=64;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=64/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "33 1088"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.65.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=65;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=65/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "33 1088"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.66.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=66;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=66/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "34 1155"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.67.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=67;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=67/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "34 1155"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.68.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=68;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=68/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "35 1224"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.69.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=69;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=69/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "35 1224"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.70.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=70;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=70/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "36 1295"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.71.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=71;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=71/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "36 1295"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.72.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=72;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=72/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "37 1368"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.73.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=73;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=73/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "37 1368"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.74.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=74;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=74/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "38 1443"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.75.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=75;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=75/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "38 1443"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.76.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=76;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=76/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "39 1520"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.77.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=77;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=77/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "39 1520"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.78.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=78;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=78/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "40 1599"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.79.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=79;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=79/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "40 1599"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.80.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=80;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=80/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "41 1680"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.81.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=81;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=81/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "41 1680"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.82.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=82;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=82/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "42 1763"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.83.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=83;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=83/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "42 1763"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.84.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=84;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=84/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "43 1848"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.85.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=85;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=85/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "43 1848"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.86.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=86;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=86/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "44 1935"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.87.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=87;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=87/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "44 1935"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.88.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=88;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=88/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "45 2024"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.89.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=89;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=89/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "45 2024"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.90.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=90;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=90/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "46 2115"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.91.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=91;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=91/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "46 2115"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.92.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=92;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=92/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "47 2208"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.93.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=93;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=93/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "47 2208"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.94.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=94;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=94/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "48 2303"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.95.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=95;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=95/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "48 2303"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.96.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=96;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=96/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "49 2400"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.97.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=97;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=97/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "49 2400"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.98.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=98;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=98/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "50 2499"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.99.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=99;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=99/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "50 2499"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.100.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a\u003c=100;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a\u003c=100/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "51 2600"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.0",
+      "steps": [
         {
           "type": "exec",
           "sql": "DROP TABLE t1;\n     CREATE TABLE t1(a PRIMARY KEY);\n     SELECT * FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=1;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=2;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=3;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "2 6"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=4;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "2 6"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=5;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "3 12"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=6;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "3 12"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=7;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "4 20"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=8;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "4 20"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=9;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "5 30"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=10;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "5 30"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=11;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "6 42"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=12;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "6 42"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.13.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=13;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "7 56"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.14.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=14;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "7 56"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.15.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=15;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "8 72"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.16.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=16;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "8 72"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.17.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=17;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "9 90"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.18.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=18;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "9 90"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.19.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=19;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "10 110"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.20.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=20;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "10 110"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.21.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=21;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "11 132"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.22.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=22;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "11 132"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.23.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=23;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "12 156"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.24.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=24;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "12 156"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.25.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=25;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "13 182"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.26.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=26;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "13 182"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.27.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=27;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "14 210"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.28.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=28;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "14 210"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.29.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=29;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "15 240"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.30.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=30;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "15 240"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.31.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=31;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "16 272"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.32.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=32;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "16 272"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.33.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=33;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "17 306"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.34.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=34;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "17 306"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.35.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=35;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "18 342"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.36.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=36;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "18 342"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.37.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=37;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "19 380"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.38.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=38;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "19 380"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.39.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=39;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "20 420"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.40.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=40;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "20 420"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.41.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=41;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "21 462"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.42.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=42;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "21 462"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.43.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=43;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "22 506"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.44.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=44;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "22 506"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.45.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=45;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "23 552"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.46.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=46;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "23 552"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.47.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=47;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "24 600"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.48.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=48;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "24 600"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.49.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=49;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "25 650"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.50.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=50;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "25 650"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.51.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=51;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "26 702"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.52.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=52;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "26 702"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.53.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=53;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "27 756"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.54.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=54;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "27 756"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.55.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=55;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "28 812"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.56.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=56;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "28 812"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.57.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=57;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "29 870"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.58.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=58;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "29 870"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.59.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=59;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "30 930"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.60.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=60;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "30 930"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.61.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=61;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "31 992"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.62.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=62;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "31 992"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.63.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=63;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "32 1056"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.64.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=64;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "32 1056"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.65.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=65;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "33 1122"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.66.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=66;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "33 1122"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.67.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=67;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "34 1190"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.68.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=68;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "34 1190"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.69.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=69;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "35 1260"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.70.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=70;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "35 1260"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.71.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=71;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "36 1332"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.72.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=72;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "36 1332"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.73.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=73;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "37 1406"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.74.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=74;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "37 1406"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.75.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=75;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "38 1482"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.76.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=76;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "38 1482"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.77.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=77;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "39 1560"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.78.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=78;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "39 1560"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.79.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=79;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "40 1640"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.80.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=80;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "40 1640"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.81.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=81;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "41 1722"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.82.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=82;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "41 1722"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.83.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=83;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "42 1806"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.84.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=84;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "42 1806"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.85.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=85;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "43 1892"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.86.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=86;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "43 1892"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.87.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=87;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "44 1980"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.88.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=88;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "44 1980"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.89.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=89;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "45 2070"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.90.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=90;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "45 2070"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.91.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=91;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "46 2162"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.92.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=92;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "46 2162"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.93.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=93;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "47 2256"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.94.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=94;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "47 2256"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.95.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=95;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "48 2352"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.96.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=96;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "48 2352"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.97.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=97;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "49 2450"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.98.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=98;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "49 2450"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.99.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=99;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "50 2550"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.100.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a\u003c=100;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;",
+          "expect": "50 2550"
         }
       ]
     }

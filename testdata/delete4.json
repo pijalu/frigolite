@@ -170,8 +170,30 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
     },
     {
       "name": "delete4-5.0",
@@ -183,8 +205,30 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
     },
     {
       "name": "delete4-6.0",
@@ -240,6 +284,18 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t4(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE INDEX t4i ON t4(b);\n  INSERT INTO t4 VALUES(1, 'hello');\n  INSERT INTO t4 VALUES(2, 'world');\n\n  CREATE TABLE t5(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE INDEX t5i ON t5(b);\n  INSERT INTO t5 VALUES(1, 'hello');\n  INSERT INTO t5 VALUES(3, 'world');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_master SET rootpage = (\n    SELECT rootpage FROM sqlite_master WHERE name = 't5'\n  ) WHERE name = 't4';"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         }
       ]
     },

@@ -22,6 +22,14 @@ func (db *DB) RegisterEchoModule() {
 	}
 }
 
+// UnregisterEchoModule removes the echo test module from this connection,
+// matching connection-close/reopen lifecycle in SQLite's TCL test harness.
+func (db *DB) UnregisterEchoModule() {
+	if db != nil && db.engine != nil {
+		db.engine.UnregisterEchoModule()
+	}
+}
+
 // RegisterRtreeGeometry installs a harness-style r-tree geometry callback
 // under its SQL function name: "cube" and "circle" from SQLite's
 // src/test_rtree.c (the TCL procs register_cube_geom/register_circle_geom).
@@ -40,6 +48,14 @@ func (db *DB) RegisterRtreeGeometry(name string) error {
 		return fmt.Errorf("no such geometry: %s", name)
 	}
 	return nil
+}
+
+// ToggleInternalFunctions toggles visibility of SQLite test-only SQL functions.
+func (db *DB) ToggleInternalFunctions() bool {
+	if db == nil || db.engine == nil {
+		return false
+	}
+	return db.engine.ToggleInternalFunctions()
 }
 
 // RegisterFunction registers a scalar SQL function for this database
@@ -67,6 +83,13 @@ func (db *DB) UnregisterVTabModulesExcept(keep []string) {
 func (db *DB) RegisterFunctionFlags(name string, fn func(args []interface{}) (interface{}, error), minArgs, maxArgs int, innocuous, directOnly bool) {
 	if db != nil && db.engine != nil {
 		db.engine.RegisterFunctionFlags(name, fn, minArgs, maxArgs, innocuous, directOnly)
+	}
+}
+
+// RegisterFunctionDeterministic registers an application scalar function with SQLite function flags.
+func (db *DB) RegisterFunctionDeterministic(name string, fn func(args []interface{}) (interface{}, error), minArgs, maxArgs int, deterministic, innocuous, directOnly bool) {
+	if db != nil && db.engine != nil {
+		db.engine.RegisterFunctionDeterministic(name, fn, minArgs, maxArgs, deterministic, innocuous, directOnly)
 	}
 }
 

@@ -6,27 +6,18 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/fts"
+	"github.com/pijalu/frigolite/internal/parse"
+	"github.com/pijalu/frigolite/internal/rename"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/vtab"
 )
 
-func (e *DDLExecutor) renameUpdateRelatedEntries(oldName, newName string) {
-	// Always quote the new name with double quotes, matching SQLite's behavior
-	// in ALTER TABLE RENAME (the replacement text is always quoted).
+func (e *DDLExecutor) renameUpdateRelatedEntries(oldName, newName, targetSchema string) {
 	quotedNew := `"` + newName + `"`
-	ctx := &RenameContext{
-		OldName:   oldName,
-		NewName:   newName,
-		QuotedNew: quotedNew,
-		IsTable:   true,
-	}
-
-	// Update related entries in EVERY attached database (main, temp, and any
-	// ATTACHed schema). The rename target's schema owns the entry, but child
-	// tables/views/triggers referencing it may live in any database.
+	ctx := &RenameContext{OldName: oldName, NewName: newName, QuotedNew: quotedNew, IsTable: true}
 	for _, dbCtx := range e.ctx.Databases() {
-		e.renameUpdateRelatedEntriesInSchema(dbCtx.Schema, oldName, newName, quotedNew, ctx)
+		e.renameUpdateRelatedEntriesInSchema(dbCtx.Schema, dbCtx.Name, targetSchema, oldName, newName, quotedNew, ctx)
 	}
 }
 
@@ -114,10 +105,17 @@ func sqlHasConstraintName(origSQL, constraintName string) bool {
 	if constraintName == "" {
 		return false
 	}
-	upper := strings.ToUpper(origSQL)
-	upperName := strings.ToUpper(constraintName)
-	re := regexp.MustCompile(`(?i)\bCONSTRAINT\s+"?` + regexp.QuoteMeta(constraintName) + `"?\b`)
-	return re.MatchString(upper) || re.MatchString(origSQL) || strings.Contains(upper, "CONSTRAINT "+upperName)
+	tokens := ddlSQLTokens(origSQL)
+	for i := 0; i+1 < len(tokens); i++ {
+		if tokens[i].quoted || !strings.EqualFold(tokens[i].text, "CONSTRAINT") {
+			continue
+		}
+		name := strings.ReplaceAll(tokens[i+1].text, `""`, `"`)
+		if strings.EqualFold(name, constraintName) {
+			return true
+		}
+	}
+	return false
 }
 
 // NULL keyword as a top-level constraint (not inside a DEFAULT string or
@@ -376,6 +374,271 @@ func mainTableFromSchemaSQL(sqlStr string) string {
 // ("a", "b") untouched. Single quotes inside converted strings are doubled.
 // The first argument (schema name) is ignored — the function only rewrites
 // the SQL text.
+
+func renameColumnInTriggerSQL(source, oldName, newName string, renamePseudoColumns bool, forceQuoteOption ...bool) (string, error) {
+	forceQuote := len(forceQuoteOption) > 0 && forceQuoteOption[0]
+	ctx := &RenameContext{OldName: oldName, NewName: newName, QuotedNew: newName, ForceQuote: forceQuote}
+	ranges, err := FindRenameTokens(source, ctx)
+	if err != nil {
+		return "", err
+	}
+	appendRange := func(token sql.Token) {
+		for _, existing := range ranges {
+			if existing.Start == token.Pos && existing.End == token.End {
+				return
+			}
+		}
+		ranges = append(ranges, RenameRange{Start: token.Pos, End: token.End})
+	}
+	tokenizer := sql.NewTokenizer(source)
+	tokens := make([]sql.Token, 0, 32)
+	for {
+		token := tokenizer.Next()
+		if token.Type == sql.TokenEOF || token.Type == sql.TokenError {
+			break
+		}
+		tokens = append(tokens, token)
+	}
+	bodyStarted := false
+	updateOfList := false
+	updateKeyword := false
+	for i, token := range tokens {
+		if token.Type == sql.TokenKeyword && strings.EqualFold(token.Value, "BEGIN") {
+			bodyStarted = true
+		}
+		if !bodyStarted {
+			if strings.EqualFold(token.Value, "UPDATE") {
+				updateKeyword = true
+			} else if updateKeyword && strings.EqualFold(token.Value, "OF") {
+				updateOfList = true
+			} else if strings.EqualFold(token.Value, "ON") {
+				updateOfList = false
+			}
+		}
+		if !bodyStarted && renamePseudoColumns && updateOfList && token.Type == sql.TokenIdentifier && strings.EqualFold(token.Value, oldName) {
+			appendRange(token)
+		}
+		if !bodyStarted && renamePseudoColumns && (token.Type == sql.TokenIdentifier || token.Type == sql.TokenKeyword) && strings.EqualFold(token.Value, oldName) && i >= 2 && tokens[i-1].Type == sql.TokenDot && (strings.EqualFold(tokens[i-2].Value, "new") || strings.EqualFold(tokens[i-2].Value, "old")) {
+			appendRange(token)
+		}
+		if bodyStarted && (token.Type == sql.TokenIdentifier || token.Type == sql.TokenKeyword) && strings.EqualFold(token.Value, oldName) {
+			if !renamePseudoColumns && i >= 2 && tokens[i-1].Type == sql.TokenDot && (strings.EqualFold(tokens[i-2].Value, "new") || strings.EqualFold(tokens[i-2].Value, "old")) {
+				continue
+			}
+			alreadyAdded := false
+			for _, r := range ranges {
+				if r.Start == token.Pos && r.End == token.End {
+					alreadyAdded = true
+					break
+				}
+			}
+			if !alreadyAdded {
+				appendRange(token)
+			}
+			continue
+		}
+	}
+
+	return rename.ApplyContextRenames(source, ranges, ctx), nil
+}
+
+func findForeignKeyColumnRanges(source, tableName, oldName string) []RenameRange {
+	tokenizer := sql.NewTokenizer(source)
+	var tokens []sql.Token
+	for {
+		token := tokenizer.Next()
+		if token.Type == sql.TokenEOF || token.Type == sql.TokenError {
+			break
+		}
+		tokens = append(tokens, token)
+	}
+	var ranges []RenameRange
+	for i := 0; i+3 < len(tokens); i++ {
+		if tokens[i].Type != sql.TokenKeyword || !strings.EqualFold(tokens[i].Value, "REFERENCES") || !strings.EqualFold(tokens[i+1].Value, tableName) {
+			continue
+		}
+		if tokens[i+2].Type != sql.TokenLParen || !strings.EqualFold(tokens[i+3].Value, oldName) {
+			continue
+		}
+		token := tokens[i+3]
+		ranges = append(ranges, RenameRange{Start: token.Pos, End: token.End})
+	}
+	return ranges
+}
+
+func renameColumnInTableSQL(source, oldName, newName, tableName, objectName string, column int, quotedName string) (string, error) {
+	ctx := &RenameContext{OldName: oldName, NewName: newName, QuotedNew: quotedName, TableName: tableName}
+	ranges, err := FindRenameTokens(source, ctx)
+	if err != nil {
+		return "", err
+	}
+	statements, err := parse.ParseSQL(source)
+	if err != nil || len(statements) != 1 {
+		return "", err
+	}
+	create, ok := statements[0].(*sql.CreateTableStmt)
+	if !ok {
+		return "", nil
+	}
+	ranges = append(ranges, findForeignKeyColumnRanges(source, tableName, oldName)...)
+	if !strings.EqualFold(create.Name, objectName) {
+		return ApplyRenames(source, ranges, quotedName), nil
+	}
+	tokenizer := sql.NewTokenizer(source)
+	tokens := make([]sql.Token, 0, 32)
+	for {
+		token := tokenizer.Next()
+		if token.Type == sql.TokenEOF || token.Type == sql.TokenError {
+			break
+		}
+		tokens = append(tokens, token)
+	}
+	depth, columnIndex, targetToken := 0, 0, -1
+	inDefinitions := false
+	for i, token := range tokens {
+		if token.Type == sql.TokenLParen {
+			depth++
+			if depth == 1 {
+				inDefinitions = true
+				if i+1 < len(tokens) {
+					targetToken = i + 1
+				}
+			}
+			continue
+		}
+		if token.Type == sql.TokenRParen {
+			depth--
+			if depth == 0 {
+				inDefinitions = false
+			}
+			continue
+		}
+		if inDefinitions && depth == 1 && token.Type == sql.TokenComma {
+			columnIndex++
+			if columnIndex == column && i+1 < len(tokens) {
+				targetToken = i + 1
+			}
+		}
+	}
+	if targetToken < 0 || targetToken >= len(tokens) || !strings.EqualFold(tokens[targetToken].Value, oldName) {
+		return "", nil
+	}
+	target := tokens[targetToken]
+	ranges = append(ranges, RenameRange{Start: target.Pos, End: target.End})
+	return ApplyRenames(source, ranges, quotedName), nil
+}
+
+func renameColumnInIndexSQL(source, oldName, newName, tableName string, forceQuote bool) (string, error) {
+	ctx := &RenameContext{OldName: oldName, NewName: newName, QuotedNew: newName, ForceQuote: forceQuote, TableName: tableName}
+	ranges, err := FindRenameTokens(source, ctx)
+	if err != nil {
+		return "", err
+	}
+	tokenizer := sql.NewTokenizer(source)
+	tokens := make([]sql.Token, 0, 16)
+	for {
+		token := tokenizer.Next()
+		if token.Type == sql.TokenEOF || token.Type == sql.TokenError {
+			break
+		}
+		tokens = append(tokens, token)
+	}
+	depth := 1
+	indexStart := -1
+	for i, token := range tokens {
+		if token.Type == sql.TokenKeyword && strings.EqualFold(token.Value, "ON") && i+1 < len(tokens) && strings.EqualFold(tokens[i+1].Value, tableName) {
+			for j := i + 2; j < len(tokens); j++ {
+				if tokens[j].Type == sql.TokenLParen {
+					indexStart = j + 1
+					break
+				}
+			}
+			break
+		}
+	}
+	if indexStart < 0 {
+		return source, nil
+	}
+	for _, token := range tokens[indexStart:] {
+		if depth <= 0 {
+			break
+		}
+		if token.Type == sql.TokenLParen {
+			depth++
+			continue
+		}
+		if token.Type == sql.TokenRParen {
+			depth--
+			continue
+		}
+		if depth == 1 && (token.Type == sql.TokenIdentifier || token.Type == sql.TokenKeyword) && strings.EqualFold(token.Value, oldName) {
+			ranges = append(ranges, RenameRange{Start: token.Pos, End: token.End})
+		}
+	}
+	return rename.ApplyContextRenames(source, ranges, ctx), nil
+}
+
+// FnSQLiteRenameColumn rewrites an ALTER TABLE column rename expression using
+// the same parsed token-range machinery used by the DDL rename implementation.
+// The caller supplies the resolved old column name from the target schema.
+func FnSQLiteRenameColumn(args []interface{}, oldColumn string, column int) (interface{}, error) {
+	if len(args) < 9 || args[0] == nil || args[6] == nil {
+		return nil, nil
+	}
+	sqlText := fmt.Sprint(args[0])
+	newName := fmt.Sprint(args[6])
+	tableName := fmt.Sprint(args[4])
+	quote := false
+	if v, ok := args[7].(int64); ok {
+		quote = v != 0
+	} else if v, ok := args[7].(int); ok {
+		quote = v != 0
+	}
+	quotedName := newName
+	if quote {
+		quotedName = `"` + strings.ReplaceAll(newName, `"`, `""`) + `"`
+	}
+	ctx := &RenameContext{OldName: oldColumn, NewName: newName, QuotedNew: quotedName, TableName: tableName}
+	if strings.Contains(strings.ToUpper(sqlText), "CREATE TABLE") {
+		result, err := renameColumnInTableSQL(sqlText, oldColumn, newName, tableName, fmt.Sprint(args[2]), column, quotedName)
+		if err != nil || result == "" {
+			return nil, err
+		}
+		return result, nil
+	}
+	if strings.Contains(strings.ToUpper(sqlText), "CREATE INDEX") {
+		return renameColumnInIndexSQL(sqlText, oldColumn, newName, tableName, quote)
+	}
+	if strings.Contains(strings.ToUpper(sqlText), "CREATE TRIGGER") {
+		return renameColumnInTriggerSQL(sqlText, oldColumn, newName, true, quote)
+	}
+	ranges, err := FindRenameTokens(sqlText, ctx)
+	if err != nil {
+		return nil, err
+	}
+	return ApplyRenames(sqlText, ranges, quotedName), nil
+}
+
+// FnSQLiteRenameTable implements SQLite's internal sqlite_rename_table
+// rewrite helper (alter.c renameTableFunc). SQL text, old name, and new name
+// are required; NULL in any of those inputs produces SQL NULL.
+func FnSQLiteRenameTable(args []interface{}) (interface{}, error) {
+	if len(args) < 7 || args[3] == nil || args[4] == nil || args[5] == nil {
+		return nil, nil
+	}
+	sqlText := fmt.Sprint(args[3])
+	oldName, newName := fmt.Sprint(args[4]), fmt.Sprint(args[5])
+	ctx := &RenameContext{
+		OldName: oldName, NewName: newName,
+		QuotedNew: `"` + strings.ReplaceAll(newName, `"`, `""`) + `"`, IsTable: true,
+	}
+	ranges, err := FindRenameTokens(sqlText, ctx)
+	if err != nil {
+		return nil, err
+	}
+	return ApplyRenames(sqlText, ranges, ctx.QuotedNew), nil
+}
+
 func FnSQLiteRenameQuoteFix(args []interface{}) (interface{}, error) {
 	if len(args) < 2 || args[1] == nil {
 		return "", nil

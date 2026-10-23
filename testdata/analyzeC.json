@@ -1,9 +1,10 @@
 {
   "file": "analyzeC.test",
   "name": "analyzeC",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "analyzeC-1.0",
       "steps": [
         {
           "type": "query",
@@ -13,7 +14,7 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "analyzeC-1.1",
       "steps": [
         {
           "type": "query",
@@ -23,7 +24,7 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "analyzeC-1.2",
       "steps": [
         {
           "type": "query",
@@ -33,7 +34,7 @@
       ]
     },
     {
-      "name": "1.3",
+      "name": "analyzeC-1.3",
       "steps": [
         {
           "type": "query",
@@ -43,7 +44,7 @@
       ]
     },
     {
-      "name": "1.3x",
+      "name": "analyzeC-1.3x",
       "steps": [
         {
           "type": "query",
@@ -53,7 +54,7 @@
       ]
     },
     {
-      "name": "2.0",
+      "name": "analyzeC-2.0",
       "steps": [
         {
           "type": "query",
@@ -63,7 +64,7 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "analyzeC-2.1",
       "steps": [
         {
           "type": "query",
@@ -73,7 +74,7 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "analyzeC-2.2",
       "steps": [
         {
           "type": "query",
@@ -83,7 +84,7 @@
       ]
     },
     {
-      "name": "2.3",
+      "name": "analyzeC-2.3",
       "steps": [
         {
           "type": "query",
@@ -93,7 +94,7 @@
       ]
     },
     {
-      "name": "2.3x",
+      "name": "analyzeC-2.3x",
       "steps": [
         {
           "type": "query",
@@ -103,7 +104,7 @@
       ]
     },
     {
-      "name": "3.0",
+      "name": "analyzeC-3.0",
       "steps": [
         {
           "type": "query",
@@ -113,7 +114,7 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "analyzeC-3.1",
       "steps": [
         {
           "type": "query",
@@ -123,7 +124,7 @@
       ]
     },
     {
-      "name": "3.2",
+      "name": "analyzeC-3.2",
       "steps": [
         {
           "type": "query",
@@ -133,7 +134,7 @@
       ]
     },
     {
-      "name": "3.3",
+      "name": "analyzeC-3.3",
       "steps": [
         {
           "type": "query",
@@ -143,7 +144,7 @@
       ]
     },
     {
-      "name": "3.3x",
+      "name": "analyzeC-3.3x",
       "steps": [
         {
           "type": "query",
@@ -153,7 +154,7 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "analyzeC-4.0",
       "steps": [
         {
           "type": "query",
@@ -163,7 +164,7 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "analyzeC-4.1",
       "steps": [
         {
           "type": "query",
@@ -173,7 +174,7 @@
       ]
     },
     {
-      "name": "4.2",
+      "name": "analyzeC-4.2",
       "steps": [
         {
           "type": "query",
@@ -183,7 +184,7 @@
       ]
     },
     {
-      "name": "4.3",
+      "name": "analyzeC-4.3",
       "steps": [
         {
           "type": "query",
@@ -193,7 +194,7 @@
       ]
     },
     {
-      "name": "4.4",
+      "name": "analyzeC-4.4",
       "steps": [
         {
           "type": "query",
@@ -202,7 +203,7 @@
       ]
     },
     {
-      "name": "5.0",
+      "name": "analyzeC-5.0",
       "steps": [
         {
           "type": "query",
@@ -212,7 +213,7 @@
       ]
     },
     {
-      "name": "5.1",
+      "name": "analyzeC-5.1",
       "steps": [
         {
           "type": "query",
@@ -222,7 +223,7 @@
       ]
     },
     {
-      "name": "5.2",
+      "name": "analyzeC-5.2",
       "steps": [
         {
           "type": "query",
@@ -232,7 +233,7 @@
       ]
     },
     {
-      "name": "5.3",
+      "name": "analyzeC-5.3",
       "steps": [
         {
           "type": "query",

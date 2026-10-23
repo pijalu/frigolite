@@ -6,7 +6,46 @@ import (
 	"testing"
 )
 
+func TestP2JoinFullColumnNamesBareStar(t *testing.T) {
+	db, err := Open("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	mustExec(t, db, "CREATE TABLE t1(f1,f2); INSERT INTO t1 VALUES(11,22); PRAGMA full_column_names=ON")
+	star := db.Query("SELECT * FROM t1")
+	if star.Error != nil {
+		t.Fatal(star.Error)
+	}
+	if got := strings.Join(star.Columns, " "); got != "f1 f2" {
+		t.Fatalf("bare star column names = %q, want f1 f2", got)
+	}
+	ref := db.Query("SELECT f1 FROM t1")
+	if ref.Error != nil {
+		t.Fatal(ref.Error)
+	}
+	if got := strings.Join(ref.Columns, " "); got != "t1.f1" {
+		t.Fatalf("direct column name = %q, want t1.f1", got)
+	}
+}
+
 // TestP2JoinInner verifies INNER JOIN with an ON predicate.
+func TestP2JoinQualifiedAliasOrderBy(t *testing.T) {
+	db, err := Open("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	mustExec(t, db, "CREATE TABLE t1(x INTEGER)")
+	for i := 31; i >= 0; i-- {
+		mustExec(t, db, fmt.Sprintf("INSERT INTO t1 VALUES(%d)", i))
+	}
+	rows := p2QueryRows(t, db, "SELECT a.x, b.x FROM t1 AS a, t1 AS b ORDER BY a.x, b.x LIMIT 5")
+	if got, want := flattenRows(rows), "0 0 0 1 0 2 0 3 0 4"; got != want {
+		t.Fatalf("qualified alias ordering = %q, want %q", got, want)
+	}
+}
+
 func TestP2JoinInner(t *testing.T) {
 	db, err := Open("")
 	if err != nil {
@@ -60,7 +99,34 @@ func TestP2JoinRight(t *testing.T) {
 	}
 }
 
-// TestP2JoinFull verifies FULL OUTER JOIN NULL-filling on both sides.
+func TestP2JoinRightQualifiedNullSurvivesChainedUsing(t *testing.T) {
+	db, err := Open("")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	mustExec(t, db, `
+		CREATE TABLE t1(a INT);
+		CREATE TABLE t2(a INT);
+		CREATE TABLE t3(a INT);
+		CREATE TABLE t4(a INT);
+		CREATE TABLE t5(a INT);
+		INSERT INTO t1 VALUES(11),(12),(15),(17);
+		INSERT INTO t2 VALUES(12),(13),(15),(18);
+		INSERT INTO t3 VALUES(11),(12),(13),(15),(17),(18);
+		INSERT INTO t4 VALUES(11),(13),(15),(19);
+		INSERT INTO t5 VALUES(15),(17),(18),(19);
+	`)
+	rows := p2QueryRows(t, db, `SELECT a, t1.a
+			FROM t1 RIGHT JOIN t2 USING(a) INNER JOIN t3 USING(a)
+			INNER JOIN t4 USING(a) LEFT JOIN t5 USING(a)
+					ORDER BY 1;`)
+	want := "13 {} 15 15"
+	if got := flattenRows(rows); got != want {
+		t.Fatalf("chained RIGHT JOIN got %q want %q", got, want)
+	}
+}
+
 func TestP2JoinFull(t *testing.T) {
 	db, _ := Open("")
 	defer db.Close()

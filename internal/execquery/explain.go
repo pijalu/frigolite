@@ -740,11 +740,14 @@ func formatConditions(refs []indexedRef) string {
 }
 
 type indexedRef struct {
-	indexName   string
-	colName     string // column name for condition formatting
-	constant    interface{}
-	op          string
-	selectivity float64 // pre-computed selectivity (for non-standard ops)
+	indexName    string
+	colName      string // column name for condition formatting
+	constant     interface{}
+	constantExpr sql.Expr
+	op           string
+	selectivity  float64 // pre-computed selectivity (for non-standard ops)
+	rangeLow     interface{}
+	rangeHigh    interface{}
 }
 
 // likePrefix returns the non-wildcard leading prefix of a LIKE pattern that a
@@ -807,6 +810,57 @@ func likePatternConst(e sql.Expr) (string, bool) {
 		}
 	}
 	return "", false
+}
+
+// LikeGlobRangeBounds returns the range bounds a LIKE or GLOB pattern's
+// literal prefix implies: the rows whose value starts with the prefix. The
+// upper bound is the prefix with its last byte incremented (the BINARY
+// collation). ok is false when the pattern has no usable prefix (a leading
+// wildcard, a non-constant ESCAPE, ...).
+//
+// The OR-index planner uses it to serve a GLOB/LIKE branch with a range scan
+// (SQLite: "SEARCH t2 USING INDEX t2f (f>? AND f<?)").
+//
+// GLOB and LIKE have different wildcards: GLOB uses '*', '?' and the '[...]'
+// character class, LIKE uses '%' and '_'. isGlob selects the right one.
+func LikeGlobRangeBounds(pattern, escape string, hasEscape bool, isGlob bool) (low, high string, ok bool) {
+	var prefix string
+	if isGlob {
+		prefix, ok = globPrefix(pattern)
+	} else {
+		prefix, ok = likePrefix(pattern, escape, hasEscape)
+	}
+	if !ok {
+		return "", "", false
+	}
+	low, high, _ = likeRangeBounds(prefix, false, true)
+	return low, high, true
+}
+
+// globPrefix returns the literal leading prefix of a GLOB pattern: the
+// characters before the first wildcard ('*', '?' or the start of a '[...]'
+// character class). A pattern that starts with a wildcard has no prefix.
+//
+// SQLite's GLOB is always case sensitive and has no ESCAPE clause, so the
+// prefix needs no escape handling.
+func globPrefix(pattern string) (string, bool) {
+	for i := 0; i < len(pattern); i++ {
+		switch pattern[i] {
+		case '*', '?', '[':
+			if i == 0 {
+				return "", false
+			}
+			return pattern[:i], true
+		}
+	}
+	return pattern, pattern != ""
+}
+
+// LikeGlobPatternConst extracts the constant pattern of a LIKE/GLOB operand,
+// unwrapping an explicit COLLATE wrapper. It reports false when the pattern
+// is not a constant.
+func LikeGlobPatternConst(e sql.Expr) (string, bool) {
+	return likePatternConst(e)
 }
 
 // estimateLikePrefixSelectivity estimates the fraction of rows a LIKE prefix

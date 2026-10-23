@@ -1,0 +1,19 @@
+{
+  "file": "init.test",
+  "name": "init",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sqlite_compileoption_used('THREADSAFE=0')"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    }
+  ]
+}

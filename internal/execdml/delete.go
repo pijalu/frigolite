@@ -98,7 +98,7 @@ func (e *DMLExecutor) execDeleteInner(s *sql.DeleteStmt) *Result {
 		e.ctx.SetCurrentScanTable(prevScan)
 		return res
 	}
-	tree := e.ctx.TableBTreePg(dbCtx.Pager, tableEntry.Name, tableEntry.RootPage, true)
+	tree := e.ctx.TableBTreePg(dbCtx.Pager, tableEntry.Name, tableEntry.RootPage, !tableIsWithoutRowid(tableEntry.SQL))
 	deletedRows, derr := e.collectDeleteRows(tree, s, tableEntry, colDefs)
 	e.ctx.SetCurrentScanTable(prevScan)
 	if derr != nil {

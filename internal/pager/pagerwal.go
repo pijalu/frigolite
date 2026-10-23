@@ -175,6 +175,8 @@ func (p *Pager) walEndWriteLocked() {
 	if w := p.wal; w != nil && w.writeLock {
 		w.walUnlockExclusive(walLockWrite, 1)
 		w.writeLock = false
+		w.spillStarted = false
+		clear(w.spilled)
 	}
 }
 

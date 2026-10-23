@@ -53,6 +53,18 @@ func skipColumnConstraintTail(tail string, i int) int {
 		i++
 	}
 	kwUpper := strings.ToUpper(strings.TrimSpace(tail[kwStart:i]))
+	if kwUpper == "COLLATE" || kwUpper == "DEFAULT" {
+		return kwStart
+	}
+	if kwUpper == "AS" || kwUpper == "GENERATED" {
+		return kwStart
+	}
+	if kwUpper == "NOT" {
+		notNullEnd := skipSQLWhitespaceAndComments(tail, i)
+		if strings.HasPrefix(strings.ToUpper(tail[notNullEnd:]), "NULL") {
+			return notNullEnd + len("NULL")
+		}
+	}
 	// For REFERENCES <table>[(cols)] the target table name follows the keyword;
 	// skip it and its optional parenthesized column list so "CONSTRAINT fk
 	// REFERENCES p1(a)" removes the whole reference (altercons3-4.x).

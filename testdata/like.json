@@ -106,6 +106,16 @@
       ]
     },
     {
+      "name": "like-1.5.1",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "PRAGMA case_sensitive_like=on",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
       "name": "like-1.5.2",
       "steps": [
         {
@@ -178,6 +188,28 @@
       "name": "like-2.1",
       "steps": [
         {
+          "type": "register_function",
+          "functionName": "regexp",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "str": "ABC abc xyz",
+            "testdir": "",
+            "testprefix": "like"
+          },
+          "functionProc": "test_regexp",
+          "functionArgs": [
+            "a",
+            "b"
+          ],
+          "functionBody": "\n    return [regexp $a $b]\n  ",
+          "minArgs": 2,
+          "maxArgs": -1
+        },
+        {
           "type": "exec",
           "sql": "SELECT x FROM t1 WHERE x REGEXP 'abc' ORDER BY 1;",
           "expect": "{ABC abc xyz} abc abcd"
@@ -197,6 +229,28 @@
     {
       "name": "like-2.3",
       "steps": [
+        {
+          "type": "register_function",
+          "functionName": "match",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "str": "ABC abc xyz",
+            "testdir": "",
+            "testprefix": "like"
+          },
+          "functionProc": "test_match",
+          "functionArgs": [
+            "a",
+            "b"
+          ],
+          "functionBody": "\n    return [string match $a $b]\n  ",
+          "minArgs": 2,
+          "maxArgs": -1
+        },
         {
           "type": "exec",
           "sql": "SELECT x FROM t1 WHERE x MATCH '*abc*' ORDER BY 1;",
@@ -218,12 +272,17 @@
       "name": "like-3.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1;"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "ABC {ABC abc xyz} abc abcd sort t1 *"
         }
       ]
@@ -236,12 +295,36 @@
           "sql": "PRAGMA case_sensitive_like=on;\n    CREATE INDEX i1 ON t1(x);"
         },
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1;"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1;",
+          "variable": "eqp",
+          "resultAll": true,
+          "expect": "abc abcd nosort {} i1"
+        }
+      ]
+    },
+    {
+      "name": "like-3.3.102",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "EXPLAIN QUERY PLAN \n      SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abc abcd nosort {} i1"
         }
       ]
@@ -250,12 +333,17 @@
       "name": "like-3.3.104",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE x LIKE $::likepat ORDER BY 1;"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
-          "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t1 WHERE x LIKE $::likepat ORDER BY 1;",
+          "type": "query_assign",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abc abcd nosort {} i1"
         }
       ]
@@ -264,12 +352,17 @@
       "name": "like-3.3.105",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1;"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abc abcd nosort {} i1"
         }
       ]
@@ -278,12 +371,17 @@
       "name": "like-3.4.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE x LIKE 'a' ORDER BY 1;"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t1 WHERE x LIKE 'a' ORDER BY 1;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t1 WHERE x LIKE 'a' ORDER BY 1;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "a nosort {} i1"
         }
       ]
@@ -292,12 +390,17 @@
       "name": "like-3.4.3",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE x LIKE 'ab' ORDER BY 1;"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t1 WHERE x LIKE 'ab' ORDER BY 1;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t1 WHERE x LIKE 'ab' ORDER BY 1;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "ab nosort {} i1"
         }
       ]
@@ -306,12 +409,17 @@
       "name": "like-3.4.4",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE x LIKE 'abcd' ORDER BY 1;"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t1 WHERE x LIKE 'abcd' ORDER BY 1;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t1 WHERE x LIKE 'abcd' ORDER BY 1;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abcd nosort {} i1"
         }
       ]
@@ -320,12 +428,17 @@
       "name": "like-3.4.5",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE x LIKE 'abcde' ORDER BY 1;"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t1 WHERE x LIKE 'abcde' ORDER BY 1;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t1 WHERE x LIKE 'abcde' ORDER BY 1;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "nosort {} i1"
         }
       ]
@@ -334,12 +447,17 @@
       "name": "like-3.5",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE x LIKE 'a_c' ORDER BY 1;"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t1 WHERE x LIKE 'a_c' ORDER BY 1;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t1 WHERE x LIKE 'a_c' ORDER BY 1;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abc nosort {} i1"
         }
       ]
@@ -348,12 +466,17 @@
       "name": "like-3.7",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE x LIKE 'ab%d' ORDER BY 1;"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t1 WHERE x LIKE 'ab%d' ORDER BY 1;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t1 WHERE x LIKE 'ab%d' ORDER BY 1;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abcd abd nosort {} i1"
         }
       ]
@@ -362,12 +485,17 @@
       "name": "like-3.9",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE x LIKE 'a_c%' ORDER BY 1;"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t1 WHERE x LIKE 'a_c%' ORDER BY 1;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t1 WHERE x LIKE 'a_c%' ORDER BY 1;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abc abcd nosort {} i1"
         }
       ]
@@ -376,12 +504,17 @@
       "name": "like-3.11",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE x LIKE '%bcd' ORDER BY 1;"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t1 WHERE x LIKE '%bcd' ORDER BY 1;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t1 WHERE x LIKE '%bcd' ORDER BY 1;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abcd bcd nosort {} i1"
         }
       ]
@@ -394,12 +527,17 @@
           "sql": "PRAGMA case_sensitive_like=off;"
         },
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1;"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "ABC {ABC abc xyz} abc abcd nosort {} i1"
         }
       ]
@@ -412,12 +550,17 @@
           "sql": "PRAGMA case_sensitive_like=on;\n    DROP INDEX i1;"
         },
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1;"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abc abcd sort t1 *"
         }
       ]
@@ -426,12 +569,17 @@
       "name": "like-3.17",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE x GLOB 'abc*' ORDER BY 1;"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t1 WHERE x GLOB 'abc*' ORDER BY 1;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t1 WHERE x GLOB 'abc*' ORDER BY 1;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abc abcd sort t1 *"
         }
       ]
@@ -444,12 +592,17 @@
           "sql": "CREATE INDEX i1 ON t1(x);"
         },
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE x GLOB 'abc*' ORDER BY 1;"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t1 WHERE x GLOB 'abc*' ORDER BY 1;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t1 WHERE x GLOB 'abc*' ORDER BY 1;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abc abcd nosort {} i1"
         }
       ]
@@ -462,12 +615,17 @@
           "sql": "PRAGMA case_sensitive_like=on;"
         },
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE x GLOB 'abc*' ORDER BY 1;"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t1 WHERE x GLOB 'abc*' ORDER BY 1;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t1 WHERE x GLOB 'abc*' ORDER BY 1;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abc abcd nosort {} i1"
         }
       ]
@@ -480,12 +638,17 @@
           "sql": "PRAGMA case_sensitive_like=off;"
         },
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE x GLOB 'a[bc]d' ORDER BY 1;"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t1 WHERE x GLOB 'a[bc]d' ORDER BY 1;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t1 WHERE x GLOB 'a[bc]d' ORDER BY 1;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abd acd nosort {} i1"
         }
       ]
@@ -494,12 +657,17 @@
       "name": "like-3.25",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE x GLOB 'a' ORDER BY 1;"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t1 WHERE x GLOB 'a' ORDER BY 1;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t1 WHERE x GLOB 'a' ORDER BY 1;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "a nosort {} i1"
         }
       ]
@@ -508,12 +676,17 @@
       "name": "like-3.26",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE x GLOB 'abcd' ORDER BY 1;"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t1 WHERE x GLOB 'abcd' ORDER BY 1;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t1 WHERE x GLOB 'abcd' ORDER BY 1;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abcd nosort {} i1"
         }
       ]
@@ -522,12 +695,17 @@
       "name": "like-3.27",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE x GLOB 'abcde' ORDER BY 1;"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t1 WHERE x GLOB 'abcde' ORDER BY 1;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t1 WHERE x GLOB 'abcde' ORDER BY 1;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "nosort {} i1"
         }
       ]
@@ -540,12 +718,17 @@
           "sql": "PRAGMA case_sensitive_like=on"
         },
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abc abcd nosort {} i1"
         }
       ]
@@ -554,12 +737,17 @@
       "name": "like-4.3",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE +x LIKE 'abc%' ORDER BY 1"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t1 WHERE +x LIKE 'abc%' ORDER BY 1",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t1 WHERE +x LIKE 'abc%' ORDER BY 1",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abc abcd nosort {} i1"
         }
       ]
@@ -568,12 +756,17 @@
       "name": "like-4.5",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE x LIKE ('ab' || 'c%') ORDER BY 1"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t1 WHERE x LIKE ('ab' || 'c%') ORDER BY 1",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t1 WHERE x LIKE ('ab' || 'c%') ORDER BY 1",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abc abcd nosort {} i1"
         }
       ]
@@ -586,12 +779,17 @@
           "sql": "PRAGMA case_sensitive_like=off"
         },
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY 1",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "ABC {ABC abc xyz} abc abcd nosort {} i1"
         }
       ]
@@ -604,12 +802,17 @@
           "sql": "CREATE TABLE t2(x TEXT COLLATE NOCASE);\n    INSERT INTO t2 SELECT * FROM t1 ORDER BY rowid;\n    CREATE INDEX i2 ON t2(x COLLATE NOCASE);"
         },
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t2 WHERE x LIKE 'abc%' ORDER BY 1"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t2 WHERE x LIKE 'abc%' ORDER BY 1",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t2 WHERE x LIKE 'abc%' ORDER BY 1",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abc ABC {ABC abc xyz} abcd nosort {} i2"
         }
       ]
@@ -622,12 +825,17 @@
           "sql": "PRAGMA case_sensitive_like=on;"
         },
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t2 WHERE x LIKE 'abc%' ORDER BY 1"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t2 WHERE x LIKE 'abc%' ORDER BY 1",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t2 WHERE x LIKE 'abc%' ORDER BY 1",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abc abcd nosort {} i2"
         }
       ]
@@ -640,12 +848,17 @@
           "sql": "PRAGMA case_sensitive_like=off;"
         },
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t2 WHERE x GLOB 'abc*' ORDER BY 1"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t2 WHERE x GLOB 'abc*' ORDER BY 1",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t2 WHERE x GLOB 'abc*' ORDER BY 1",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abc abcd nosort {} i2"
         }
       ]
@@ -658,12 +871,17 @@
           "sql": "PRAGMA case_sensitive_like=off"
         },
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE x LIKE 'ABC%' ORDER BY 1"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t1 WHERE x LIKE 'ABC%' ORDER BY 1",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t1 WHERE x LIKE 'ABC%' ORDER BY 1",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "ABC {ABC abc xyz} abc abcd nosort {} i1"
         }
       ]
@@ -672,12 +890,17 @@
       "name": "like-5.13",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t2 WHERE x LIKE 'ABC%' ORDER BY 1"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t2 WHERE x LIKE 'ABC%' ORDER BY 1",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t2 WHERE x LIKE 'ABC%' ORDER BY 1",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abc ABC {ABC abc xyz} abcd nosort {} i2"
         }
       ]
@@ -690,12 +913,17 @@
           "sql": "PRAGMA case_sensitive_like=on;"
         },
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t2 WHERE x LIKE 'ABC%' ORDER BY 1"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t2 WHERE x LIKE 'ABC%' ORDER BY 1",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t2 WHERE x LIKE 'ABC%' ORDER BY 1",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "ABC {ABC abc xyz} nosort {} i2"
         }
       ]
@@ -708,12 +936,17 @@
           "sql": "PRAGMA case_sensitive_like=off;"
         },
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t2 WHERE x GLOB 'ABC*' ORDER BY 1"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t2 WHERE x GLOB 'ABC*' ORDER BY 1",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t2 WHERE x GLOB 'ABC*' ORDER BY 1",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "ABC {ABC abc xyz} nosort {} i2"
         }
       ]
@@ -726,12 +959,17 @@
           "sql": "PRAGMA case_sensitive_like=off;\n    INSERT INTO t2 VALUES('ZZ-upper-upper');\n    INSERT INTO t2 VALUES('zZ-lower-upper');\n    INSERT INTO t2 VALUES('Zz-upper-lower');\n    INSERT INTO t2 VALUES('zz-lower-lower');"
         },
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t2 WHERE x LIKE 'zz%';"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t2 WHERE x LIKE 'zz%';",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t2 WHERE x LIKE 'zz%';",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "zz-lower-lower zZ-lower-upper Zz-upper-lower ZZ-upper-upper nosort {} i2"
         }
       ]
@@ -740,12 +978,17 @@
       "name": "like-5.22",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t2 WHERE x LIKE 'zZ%';"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t2 WHERE x LIKE 'zZ%';",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t2 WHERE x LIKE 'zZ%';",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "zz-lower-lower zZ-lower-upper Zz-upper-lower ZZ-upper-upper nosort {} i2"
         }
       ]
@@ -754,12 +997,17 @@
       "name": "like-5.23",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t2 WHERE x LIKE 'Zz%';"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t2 WHERE x LIKE 'Zz%';",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t2 WHERE x LIKE 'Zz%';",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "zz-lower-lower zZ-lower-upper Zz-upper-lower ZZ-upper-upper nosort {} i2"
         }
       ]
@@ -768,12 +1016,17 @@
       "name": "like-5.24",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t2 WHERE x LIKE 'ZZ%';"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t2 WHERE x LIKE 'ZZ%';",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t2 WHERE x LIKE 'ZZ%';",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "zz-lower-lower zZ-lower-upper Zz-upper-lower ZZ-upper-upper nosort {} i2"
         }
       ]
@@ -786,12 +1039,17 @@
           "sql": "PRAGMA case_sensitive_like=on;\n    CREATE TABLE t3(x TEXT);\n    CREATE INDEX i3 ON t3(x);\n    INSERT INTO t3 VALUES('ZZ-upper-upper');\n    INSERT INTO t3 VALUES('zZ-lower-upper');\n    INSERT INTO t3 VALUES('Zz-upper-lower');\n    INSERT INTO t3 VALUES('zz-lower-lower');"
         },
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t3 WHERE x LIKE 'zz%';"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3 WHERE x LIKE 'zz%';",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t3 WHERE x LIKE 'zz%';",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "zz-lower-lower nosort {} i3"
         }
       ]
@@ -800,12 +1058,17 @@
       "name": "like-5.26",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t3 WHERE x LIKE 'zZ%';"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3 WHERE x LIKE 'zZ%';",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t3 WHERE x LIKE 'zZ%';",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "zZ-lower-upper nosort {} i3"
         }
       ]
@@ -814,12 +1077,17 @@
       "name": "like-5.27",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t3 WHERE x LIKE 'Zz%';"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3 WHERE x LIKE 'Zz%';",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t3 WHERE x LIKE 'Zz%';",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "Zz-upper-lower nosort {} i3"
         }
       ]
@@ -828,12 +1096,17 @@
       "name": "like-5.28",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x FROM t3 WHERE x LIKE 'ZZ%';"
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3 WHERE x LIKE 'ZZ%';",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x FROM t3 WHERE x LIKE 'ZZ%';",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "ZZ-upper-upper nosort {} i3"
         }
       ]
@@ -888,6 +1161,30 @@
       "name": "like-8.2",
       "steps": [
         {
+          "type": "register_function",
+          "functionName": "like",
+          "callbackVars": {
+            "": "",
+            "::likepat": "abc%",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "sqlite_like_count": "0",
+            "str": "ABC abc xyz",
+            "testdir": "",
+            "testprefix": "like",
+            "x": "'ax",
+            "x2": "'''ax'"
+          },
+          "functionProc": "newlike",
+          "functionArgs": [
+            "args"
+          ],
+          "functionBody": "return 1",
+          "maxArgs": -1
+        },
+        {
           "type": "query",
           "sql": "SELECT 1, x FROM t8 WHERE x LIKE '%h%';\n    SELECT 2, x FROM t8 WHERE x LIKE '%h%' ESCAPE 'x';",
           "expect": "1 ghijkl 2 ghijkl"
@@ -898,6 +1195,30 @@
       "name": "like-8.3",
       "steps": [
         {
+          "type": "register_function",
+          "functionName": "like",
+          "callbackVars": {
+            "": "",
+            "::likepat": "abc%",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "sqlite_like_count": "0",
+            "str": "ABC abc xyz",
+            "testdir": "",
+            "testprefix": "like",
+            "x": "'ax",
+            "x2": "'''ax'"
+          },
+          "functionProc": "newlike",
+          "functionArgs": [
+            "args"
+          ],
+          "functionBody": "return 1",
+          "maxArgs": -1
+        },
+        {
           "type": "query",
           "sql": "SELECT 1, x FROM t8 WHERE x LIKE '%h%';\n    SELECT 2, x FROM t8 WHERE x LIKE '%h%' ESCAPE 'x';",
           "expect": "1 abcdef 1 ghijkl 1 mnopqr 2 ghijkl"
@@ -907,6 +1228,30 @@
     {
       "name": "like-8.4",
       "steps": [
+        {
+          "type": "register_function",
+          "functionName": "like",
+          "callbackVars": {
+            "": "",
+            "::likepat": "abc%",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "sqlite_like_count": "0",
+            "str": "ABC abc xyz",
+            "testdir": "",
+            "testprefix": "like",
+            "x": "'ax",
+            "x2": "'''ax'"
+          },
+          "functionProc": "newlike",
+          "functionArgs": [
+            "args"
+          ],
+          "functionBody": "return 1",
+          "maxArgs": -1
+        },
         {
           "type": "query",
           "sql": "SELECT 1, x FROM t8 WHERE x LIKE '%h%';\n    SELECT 2, x FROM t8 WHERE x LIKE '%h%' ESCAPE 'x';",
@@ -932,12 +1277,17 @@
           "sql": "PRAGMA case_sensitive_like=OFF;"
         },
         {
-          "type": "exec",
-          "sql": "SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY a;"
+          "type": "query_assign",
+          "sql": "SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY a;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY a;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abc abcd ABC ABCD nosort t11 *"
         }
       ]
@@ -950,12 +1300,17 @@
           "sql": "PRAGMA case_sensitive_like=ON;"
         },
         {
-          "type": "exec",
-          "sql": "SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY a;"
+          "type": "query_assign",
+          "sql": "SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY a;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY a;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abc abcd nosort t11 *"
         }
       ]
@@ -968,12 +1323,17 @@
           "sql": "PRAGMA case_sensitive_like=OFF;\n    CREATE INDEX t11b ON t11(b);"
         },
         {
-          "type": "exec",
-          "sql": "SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY +a;"
+          "type": "query_assign",
+          "sql": "SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY +a;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY +a;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abc abcd ABC ABCD sort {} t11b"
         }
       ]
@@ -986,12 +1346,17 @@
           "sql": "PRAGMA case_sensitive_like=ON;"
         },
         {
-          "type": "exec",
-          "sql": "SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY a;"
+          "type": "query_assign",
+          "sql": "SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY a;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY a;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abc abcd nosort t11 *"
         }
       ]
@@ -1004,12 +1369,17 @@
           "sql": "PRAGMA case_sensitive_like=OFF;\n    DROP INDEX t11b;\n    CREATE INDEX t11bnc ON t11(b COLLATE nocase);"
         },
         {
-          "type": "exec",
-          "sql": "SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY +a;"
+          "type": "query_assign",
+          "sql": "SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY +a;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY +a;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abc abcd ABC ABCD sort {} t11bnc"
         }
       ]
@@ -1022,12 +1392,17 @@
           "sql": "CREATE INDEX t11bb ON t11(b COLLATE binary);"
         },
         {
-          "type": "exec",
-          "sql": "SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY +a;"
+          "type": "query_assign",
+          "sql": "SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY +a;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY +a;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abc abcd ABC ABCD sort {} t11bnc"
         }
       ]
@@ -1040,12 +1415,17 @@
           "sql": "PRAGMA case_sensitive_like=ON;"
         },
         {
-          "type": "exec",
-          "sql": "SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY +a;"
+          "type": "query_assign",
+          "sql": "SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY +a;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER BY +a;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abc abcd sort {} t11bb"
         }
       ]
@@ -1058,12 +1438,17 @@
           "sql": "PRAGMA case_sensitive_like=OFF;"
         },
         {
-          "type": "exec",
-          "sql": "SELECT b FROM t11 WHERE b GLOB 'abc*' ORDER BY +a;"
+          "type": "query_assign",
+          "sql": "SELECT b FROM t11 WHERE b GLOB 'abc*' ORDER BY +a;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT b FROM t11 WHERE b GLOB 'abc*' ORDER BY +a;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abc abcd sort {} t11bb"
         }
       ]
@@ -1076,12 +1461,17 @@
           "sql": "CREATE INDEX t11cnc ON t11(c COLLATE nocase);\n    CREATE INDEX t11cb ON t11(c COLLATE binary);"
         },
         {
-          "type": "exec",
-          "sql": "SELECT c FROM t11 WHERE c LIKE 'abc%' ORDER BY +a;"
+          "type": "query_assign",
+          "sql": "SELECT c FROM t11 WHERE c LIKE 'abc%' ORDER BY +a;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT c FROM t11 WHERE c LIKE 'abc%' ORDER BY +a;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abc abcd ABC ABCD sort {} t11cnc"
         }
       ]
@@ -1090,12 +1480,17 @@
       "name": "like-11.10",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT c FROM t11 WHERE c GLOB 'abc*' ORDER BY +a;"
+          "type": "query_assign",
+          "sql": "SELECT c FROM t11 WHERE c GLOB 'abc*' ORDER BY +a;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT c FROM t11 WHERE c GLOB 'abc*' ORDER BY +a;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "abc abcd sort {} t11cb"
         }
       ]
@@ -1323,8 +1718,12 @@
       "steps": null
     },
     {
-      "name": "like-17.1",
+      "name": "setup_0",
       "steps": [
+        {
+          "type": "defensive",
+          "sql": "1"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA trusted_schema=OFF"

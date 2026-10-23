@@ -1,7 +1,20 @@
 {
   "file": "speed1.test",
   "name": "speed1",
+  "ordered": true,
   "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
     {
       "name": "speed1-1.0",
       "steps": [
@@ -11,26 +24,151 @@
         },
         {
           "type": "exec",
-          "sql": "PRAGMA page_size=1024;\n    PRAGMA cache_size=8192;\n    PRAGMA locking_mode=EXCLUSIVE;\n    CREATE TABLE t1(a INTEGER, b INTEGER, c TEXT);\n    CREATE TABLE t2(a INTEGER, b INTEGER, c TEXT);\n    CREATE INDEX i2a ON t2(a);\n    CREATE INDEX i2b ON t2(b);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name FROM sqlite_master ORDER BY 1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT c FROM t1 ORDER BY random() LIMIT 50000"
+          "sql": "SELECT name FROM sqlite_master ORDER BY 1;",
+          "expect": "i2a i2b t1 t2"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "setup_1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t1 ORDER BY random() LIMIT 50000"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "speed1-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "30000"
+        }
+      ]
+    },
+    {
+      "name": "speed1-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "10000"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

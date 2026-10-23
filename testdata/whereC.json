@@ -1,13 +1,455 @@
 {
   "file": "whereC.test",
   "name": "whereC",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "whereC-1.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(i INTEGER PRIMARY KEY, a, b INTEGER);\n\n  INSERT INTO t1 VALUES(1, 1, 1);\n  INSERT INTO t1 VALUES(2, 1, 1);\n  INSERT INTO t1 VALUES(3, 1, 2);\n  INSERT INTO t1 VALUES(4, 1, 2);\n  INSERT INTO t1 VALUES(5, 1, 2);\n  INSERT INTO t1 VALUES(6, 1, 3);\n  INSERT INTO t1 VALUES(7, 1, 3);\n\n  INSERT INTO t1 VALUES(8, 2, 1);\n  INSERT INTO t1 VALUES(9, 2, 1);\n  INSERT INTO t1 VALUES(10, 2, 2);\n  INSERT INTO t1 VALUES(11, 2, 2);\n  INSERT INTO t1 VALUES(12, 2, 2);\n  INSERT INTO t1 VALUES(13, 2, 3);\n  INSERT INTO t1 VALUES(14, 2, 3);\n\n  INSERT INTO t1 VALUES(15, 2, 1);\n  INSERT INTO t1 VALUES(16, 2, 1);\n  INSERT INTO t1 VALUES(17, 2, 2);\n  INSERT INTO t1 VALUES(18, 2, 2);\n  INSERT INTO t1 VALUES(19, 2, 2);\n  INSERT INTO t1 VALUES(20, 2, 3);\n  INSERT INTO t1 VALUES(21, 2, 3);\n\n  CREATE INDEX i1 ON t1(a, b);"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=1 AND b=2 AND i\u003e3",
+          "expect": "4 5"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=1 AND b=2 AND i\u003e3 ORDER BY i ASC",
+          "expect": "4 5"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=1 AND b=2 AND i\u003e3 ORDER BY i DESC",
+          "expect": "4 5"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE rowid='12'",
+          "expect": "12"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE rowid='12' ORDER BY i ASC",
+          "expect": "12"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE rowid='12' ORDER BY i DESC",
+          "expect": "12"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=1 AND b='2'",
+          "expect": "3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=1 AND b='2' ORDER BY i ASC",
+          "expect": "3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=1 AND b='2' ORDER BY i DESC",
+          "expect": "3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=1 AND b='2' AND i\u003e'3'",
+          "expect": "4 5"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=1 AND b='2' AND i\u003e'3' ORDER BY i ASC",
+          "expect": "4 5"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=1 AND b='2' AND i\u003e'3' ORDER BY i DESC",
+          "expect": "4 5"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=1 AND b='2' AND i\u003c5",
+          "expect": "3 4"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=1 AND b='2' AND i\u003c5 ORDER BY i ASC",
+          "expect": "3 4"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=1 AND b='2' AND i\u003c5 ORDER BY i DESC",
+          "expect": "3 4"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=2 AND b=2 AND i\u003c12",
+          "expect": "10 11"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=2 AND b=2 AND i\u003c12 ORDER BY i ASC",
+          "expect": "10 11"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=2 AND b=2 AND i\u003c12 ORDER BY i DESC",
+          "expect": "10 11"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a IN(1, 2) AND b=2 AND i\u003c11",
+          "expect": "3 4 5 10"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a IN(1, 2) AND b=2 AND i\u003c11 ORDER BY i ASC",
+          "expect": "3 4 5 10"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a IN(1, 2) AND b=2 AND i\u003c11 ORDER BY i DESC",
+          "expect": "3 4 5 10"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=2 AND b=2 AND i BETWEEN 10 AND 12",
+          "expect": "10 11 12"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=2 AND b=2 AND i BETWEEN 10 AND 12 ORDER BY i ASC",
+          "expect": "10 11 12"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=2 AND b=2 AND i BETWEEN 10 AND 12 ORDER BY i DESC",
+          "expect": "10 11 12"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=2 AND b=2 AND i BETWEEN 11 AND 12",
+          "expect": "11 12"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=2 AND b=2 AND i BETWEEN 11 AND 12 ORDER BY i ASC",
+          "expect": "11 12"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.9.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=2 AND b=2 AND i BETWEEN 11 AND 12 ORDER BY i DESC",
+          "expect": "11 12"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.10.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=2 AND b=2 AND i BETWEEN 10 AND 11",
+          "expect": "10 11"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=2 AND b=2 AND i BETWEEN 10 AND 11 ORDER BY i ASC",
+          "expect": "10 11"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.10.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=2 AND b=2 AND i BETWEEN 10 AND 11 ORDER BY i DESC",
+          "expect": "10 11"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.11.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=2 AND b=2 AND i BETWEEN 12 AND 10"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.11.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=2 AND b=2 AND i BETWEEN 12 AND 10 ORDER BY i ASC"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.11.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=2 AND b=2 AND i BETWEEN 12 AND 10 ORDER BY i DESC"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.12.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=2 AND b=2 AND i\u003cNULL"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.12.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=2 AND b=2 AND i\u003cNULL ORDER BY i ASC"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.12.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=2 AND b=2 AND i\u003cNULL ORDER BY i DESC"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.13.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=2 AND b=2 AND i\u003e=NULL"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.13.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=2 AND b=2 AND i\u003e=NULL ORDER BY i ASC"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.13.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=2 AND b=2 AND i\u003e=NULL ORDER BY i DESC"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.14.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=1 AND b='2' AND i\u003c4.5",
+          "expect": "3 4"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.14.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=1 AND b='2' AND i\u003c4.5 ORDER BY i ASC",
+          "expect": "3 4"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.14.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE a=1 AND b='2' AND i\u003c4.5 ORDER BY i DESC",
+          "expect": "3 4"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.15.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE rowid IS '12'",
+          "expect": "12"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.15.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE rowid IS '12' ORDER BY i ASC",
+          "expect": "12"
+        }
+      ]
+    },
+    {
+      "name": "whereC-1.15.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT i FROM t1 WHERE rowid IS '12' ORDER BY i DESC",
+          "expect": "12"
         }
       ]
     }

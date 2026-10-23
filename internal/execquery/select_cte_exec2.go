@@ -642,12 +642,19 @@ func (e *SelectEngine) execRecursiveCTE(s *sql.SelectStmt, cte *sql.CTEDef, anch
 	}
 	savedScopes := e.withCTEBodyScope(cte)
 	anchorResult := e.execSelect(anchorFirst)
+	var bodyCollations []string
+	if anchorResult.Error == nil {
+		bodyCollations = e.selectOutputCollations(cte.Select)
+	}
 	e.cteScopes = savedScopes
 	if anchorResult.Error != nil {
 		return anchorResult
 	}
 	rowLimit, bodyLimit, bodyOffset := e.cteRowBudget(s, cte)
 	bodyOrderBy, _, _ := cteBodyLimitOffset(cte)
+	if len(bodyOrderBy) > 0 {
+		bodyOrderBy = e.applyCompoundOrderByCollations(bodyOrderBy, anchorResult.Columns, bodyCollations)
+	}
 	allRows, err := e.iterateRecursiveCTE(anchorResult.Rows, colDefs, anchorResult.Columns, cte, recursiveTerms, dedup, rowLimit, bodyOrderBy, bodyLimit, bodyOffset)
 	if err != nil {
 		return &Result{Error: err}

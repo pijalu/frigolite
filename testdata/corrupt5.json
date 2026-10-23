@@ -1,28 +1,32 @@
 {
   "file": "corrupt5.test",
   "name": "corrupt5",
+  "ordered": true,
   "tests": [
     {
       "name": "corrupt5-1.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a,b,c);\n    CREATE INDEX i1 ON t1(a,b);\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_master SET name=NULL, sql=NULL WHERE name='i1';"
+          "type": "defensive",
+          "sql": "0"
         },
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a,b,c);\n    CREATE INDEX i1 ON t1(a,b);\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_master SET name=NULL, sql=NULL WHERE name='i1';"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
+        },
         {
-          "type": "reset_db"
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {malformed database schema (?)}"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

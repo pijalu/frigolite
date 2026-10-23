@@ -1,24 +1,49 @@
 {
   "file": "exclusive2.test",
   "name": "exclusive2",
+  "ordered": true,
   "tests": [
     {
       "name": "exclusive2-1.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "BEGIN;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1(a, b) VALUES(randstr(10, 400), 0);\n    INSERT INTO t1(a, b) VALUES(randstr(10, 400), 0);\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    COMMIT;\n    SELECT count(*) FROM t1;",
           "expect": "64"
         }
       ]
     },
     {
-      "name": "exclusive2-1.2.1",
+      "name": "exclusive2-1.2",
       "steps": [
         {
-          "type": "query",
-          "sql": "PRAGMA cache_size",
+          "type": "exec",
+          "sql": "SELECT count(*), md5sum(a) FROM t1",
           "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "exclusive2-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), md5sum(a) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "exclusive2-1.4",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), md5sum(a) FROM t1",
+          "database": "db2"
         }
       ]
     },
@@ -27,116 +52,53 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE t1 SET b=a, a=0;"
-        }
-      ]
-    },
-    {
-      "name": "exclusive2-2.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "PRAGMA cache_size=1000;",
-          "expect": "64"
-        }
-      ]
-    },
-    {
-      "name": "exclusive2-2.2.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "PRAGMA cache_size",
-          "expect": "1"
-        }
-      ]
-    },
-    {
-      "name": "exclusive2-2.7",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "PRAGMA locking_mode = normal"
-        }
-      ]
-    },
-    {
-      "name": "exclusive2-3.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    CREATE TABLE t1(a UNIQUE);\n    INSERT INTO t1 VALUES(randstr(200, 200));\n    INSERT INTO t1 VALUES(randstr(200, 200));\n    COMMIT;"
-        }
-      ]
-    },
-    {
-      "name": "exclusive2-3.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(randstr(200, 200));"
-        }
-      ]
-    },
-    {
-      "name": "exclusive2-3.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(randstr(200, 200));"
-        }
-      ]
-    },
-    {
-      "name": "exclusive2-3.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA locking_mode = exclusive;\n    INSERT INTO t1 VALUES(randstr(200, 200));"
-        }
-      ]
-    },
-    {
-      "name": "exclusive2-3.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(randstr(200, 200));"
-        }
-      ]
-    },
-    {
-      "name": "exclusive2-3.5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA locking_mode = normal;\n    INSERT INTO t1 VALUES(randstr(200, 200));"
-        }
-      ]
-    },
-    {
-      "name": "exclusive2-3.6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(randstr(200, 200));"
+          "sql": "UPDATE t1 SET b=a, a=0;",
+          "database": "db2"
         },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), md5sum(a) FROM t1",
+          "expect": "0",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "exclusive2-1.9",
+      "steps": [
         {
           "type": "exec",
           "sql": "SELECT count(*), md5sum(a) FROM t1"
         },
         {
           "type": "exec",
-          "sql": "BEGIN;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1(a, b) VALUES(randstr(10, 400), 0);\n    INSERT INTO t1(a, b) VALUES(randstr(10, 400), 0);\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    COMMIT;\n    SELECT count(*) FROM t1;"
-        },
+          "sql": "SELECT count(*), md5sum(a) FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "exclusive2-1.11",
+      "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA cache_size"
-        },
+          "sql": "SELECT count(*), md5sum(a) FROM t1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "UPDATE t1 SET b=a, a=0;"
-        },
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "exclusive2-2.1",
+      "steps": [
         {
           "type": "exec",
           "sql": "PRAGMA cache_size=1000;"
@@ -147,46 +109,172 @@
         },
         {
           "type": "exec",
-          "sql": "BEGIN;\n    DELETE FROM t1;\n    INSERT INTO t1(a) VALUES(randstr(10, 400));\n    INSERT INTO t1(a) VALUES(randstr(10, 400));\n    INSERT INTO t1(a) SELECT randstr(10, 400) FROM t1;\n    INSERT INTO t1(a) SELECT randstr(10, 400) FROM t1;\n    INSERT INTO t1(a) SELECT randstr(10, 400) FROM t1;\n    INSERT INTO t1(a) SELECT randstr(10, 400) FROM t1;\n    INSERT INTO t1(a) SELECT randstr(10, 400) FROM t1;\n    COMMIT;\n    SELECT count(*) FROM t1;"
-        },
+          "sql": "BEGIN;\n    DELETE FROM t1;\n    INSERT INTO t1(a) VALUES(randstr(10, 400));\n    INSERT INTO t1(a) VALUES(randstr(10, 400));\n    INSERT INTO t1(a) SELECT randstr(10, 400) FROM t1;\n    INSERT INTO t1(a) SELECT randstr(10, 400) FROM t1;\n    INSERT INTO t1(a) SELECT randstr(10, 400) FROM t1;\n    INSERT INTO t1(a) SELECT randstr(10, 400) FROM t1;\n    INSERT INTO t1(a) SELECT randstr(10, 400) FROM t1;\n    COMMIT;\n    SELECT count(*) FROM t1;",
+          "expect": "64"
+        }
+      ]
+    },
+    {
+      "name": "exclusive2-2.2",
+      "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA cache_size"
-        },
+          "sql": "SELECT count(*), md5sum(a) FROM t1",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "exclusive2-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), md5sum(a) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "exclusive2-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), md5sum(a) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "exclusive2-2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), md5sum(a) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "exclusive2-2.7",
+      "steps": [
         {
           "type": "exec",
           "sql": "PRAGMA locking_mode = normal"
         },
         {
           "type": "exec",
-          "sql": "BEGIN;\n    CREATE TABLE t1(a UNIQUE);\n    INSERT INTO t1 VALUES(randstr(200, 200));\n    INSERT INTO t1 VALUES(randstr(200, 200));\n    COMMIT;"
+          "sql": "SELECT count(*), md5sum(a) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "exclusive2-2.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT count(*), md5sum(a) FROM t1",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "exclusive2-3.0",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(randstr(200, 200));"
-        },
+          "sql": "BEGIN;\n    CREATE TABLE t1(a UNIQUE);\n    INSERT INTO t1 VALUES(randstr(200, 200));\n    INSERT INTO t1 VALUES(randstr(200, 200));\n    COMMIT;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "exclusive2-3.1",
+      "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(randstr(200, 200));"
-        },
+          "sql": "INSERT INTO t1 VALUES(randstr(200, 200));",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "exclusive2-3.2",
+      "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA locking_mode = exclusive;\n    INSERT INTO t1 VALUES(randstr(200, 200));"
-        },
+          "sql": "INSERT INTO t1 VALUES(randstr(200, 200));",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "exclusive2-3.3",
+      "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(randstr(200, 200));"
-        },
+          "sql": "PRAGMA locking_mode = exclusive;\n    INSERT INTO t1 VALUES(randstr(200, 200));",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "exclusive2-3.4",
+      "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA locking_mode = normal;\n    INSERT INTO t1 VALUES(randstr(200, 200));"
-        },
+          "sql": "INSERT INTO t1 VALUES(randstr(200, 200));",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "exclusive2-3.5",
+      "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(randstr(200, 200));"
+          "sql": "PRAGMA locking_mode = normal;\n    INSERT INTO t1 VALUES(randstr(200, 200));",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "exclusive2-3.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(randstr(200, 200));",
+          "expect": "5"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

@@ -1,0 +1,3424 @@
+{
+  "file": "tkt-9d68c883.test",
+  "name": "tkt-9d68c883",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "tkt-9d68c88-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 2;\n    CREATE TABLE t3(x);\n    CREATE TABLE t4(x);\n    CREATE TABLE t5(x);\n    INSERT INTO t5 VALUES(randomblob(1500));\n    CREATE TABLE t7(x);\n    CREATE TABLE t8(x);"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_12",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_13",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_14",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_15",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_16",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_17",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.17",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_18",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.18",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_19",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.19",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_20",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_21",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.21",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_22",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.22",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_23",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.23",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_24",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.24",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_25",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.25",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_26",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.26",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_27",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.27",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_28",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.28",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_29",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.29",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_30",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.30",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_31",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.31",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_32",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.32",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_33",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.33",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_34",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.34",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_35",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.35",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_36",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.36",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_37",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.37",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_38",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.38",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_39",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.39",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_40",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.40",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_41",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.41",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_42",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.42",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_43",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.43",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_44",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.44",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_45",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.45",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_46",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.46",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_47",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.47",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_48",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.48",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_49",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.49",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_50",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.50",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_51",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.51",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_52",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.52",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_53",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.53",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_54",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.54",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_55",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.55",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_56",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.56",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_57",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.57",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_58",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.58",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_59",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.59",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_60",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.60",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_61",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.61",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_62",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.62",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_63",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.63",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_64",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.64",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_65",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.65",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_66",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.66",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_67",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.67",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_68",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.68",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_69",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.69",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_70",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.70",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_71",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.71",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_72",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.72",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_73",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.73",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_74",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.74",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_75",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.75",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_76",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.76",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_77",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.77",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_78",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.78",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_79",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.79",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_80",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.80",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_81",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.81",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_82",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.82",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_83",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.83",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_84",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.84",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_85",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.85",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_86",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.86",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_87",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.87",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_88",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.88",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_89",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.89",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_90",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.90",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_91",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.91",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_92",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.92",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_93",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.93",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_94",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.94",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_95",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.95",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_96",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.96",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_97",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.97",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_98",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.98",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_99",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9d68c88-2.99",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "catch",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_100",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    }
+  ]
+}

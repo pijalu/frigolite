@@ -4,6 +4,24 @@
   "ordered": true,
   "tests": [
     {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test3.db"
+        }
+      ]
+    },
+    {
       "name": "vacuum5-1.1",
       "steps": [
         {
@@ -57,7 +75,22 @@
         {
           "type": "exec",
           "sql": "VACUUM x3;"
-        },
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA temp.page_count",
+          "variable": "sizeTemp"
+        }
+      ]
+    },
+    {
+      "name": "vacuum5-1.4.1",
+      "steps": [
         {
           "type": "exec",
           "sql": "VACUUM temp;"
@@ -70,7 +103,7 @@
         {
           "type": "query",
           "sql": "PRAGMA temp.page_count;",
-          "expect": "1"
+          "expectedExpr": "$sizeTemp"
         }
       ]
     },

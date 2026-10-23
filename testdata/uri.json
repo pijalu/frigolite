@@ -1,9 +1,1576 @@
 {
   "file": "uri.test",
   "name": "uri",
+  "ordered": true,
   "tests": [
     {
-      "name": "7.3",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "xxx.db"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'test.db' AS aux"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "xxx.db"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'file:test.db' AS aux"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "xxx.db"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'file://test.db' AS aux"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "xxx.db"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'file:test.db' AS aux"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "xxx.db"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'file:test.db?mork=1' AS aux"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "xxx.db"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'file:test.db?mork=1\u0026tonglor=2' AS aux"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "xxx.db"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'file:test.db?mork=1#boris' AS aux"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "xxx.db"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'file:test.db#boris' AS aux"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db#boris"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db#boris"
+        }
+      ]
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "xxx.db"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'test.db#boris' AS aux"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "xxx.db"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'file:test%2Edb' AS aux"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "file"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "file"
+        }
+      ]
+    },
+    {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "xxx.db"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'file' AS aux"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "http:test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "http:test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_12",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "xxx.db"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'http:test.db' AS aux"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db?mork=1#boris"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db?mork=1#boris"
+        }
+      ]
+    },
+    {
+      "name": "setup_13",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "xxx.db"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'test.db?mork=1#boris' AS aux"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db?hello"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db?hello"
+        }
+      ]
+    },
+    {
+      "name": "setup_14",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "xxx.db"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'file://localhosttest.db%3Fhello' AS aux"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "uri-2.1.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "arglist",
+          "expect": "hello world"
+        }
+      ]
+    },
+    {
+      "name": "setup_15",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "xxx.db"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'file:test.db?hello=world' AS aux"
+        }
+      ]
+    },
+    {
+      "name": "uri-2.1.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "arglist",
+          "expect": "hello world"
+        }
+      ]
+    },
+    {
+      "name": "setup_16",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "uri-2.2.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "arglist",
+          "expect": "hello {} world {}"
+        }
+      ]
+    },
+    {
+      "name": "setup_17",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "xxx.db"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'file:test.db?hello\u0026world' AS aux"
+        }
+      ]
+    },
+    {
+      "name": "uri-2.2.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "arglist",
+          "expect": "hello {} world {}"
+        }
+      ]
+    },
+    {
+      "name": "setup_18",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "uri-2.3.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "arglist",
+          "expect": "hello 1 world 2 vfs tvfs"
+        }
+      ]
+    },
+    {
+      "name": "setup_19",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "xxx.db"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'file:test.db?hello=1\u0026world=2\u0026vfs=tvfs' AS aux"
+        }
+      ]
+    },
+    {
+      "name": "uri-2.3.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "arglist",
+          "expect": "hello 1 world 2 vfs tvfs"
+        }
+      ]
+    },
+    {
+      "name": "setup_20",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "uri-2.4.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "arglist"
+        }
+      ]
+    },
+    {
+      "name": "setup_21",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "xxx.db"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'file:test.db?hello=1\u0026world=2\u0026vfs=tvfs2' AS aux"
+        }
+      ]
+    },
+    {
+      "name": "uri-2.4.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "arglist"
+        }
+      ]
+    },
+    {
+      "name": "setup_22",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "uri-2.5.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "arglist",
+          "expect": "hello world"
+        }
+      ]
+    },
+    {
+      "name": "setup_23",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "xxx.db"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'file:test.db?%68%65%6C%6C%6F=%77%6F%72%6C%64' AS aux"
+        }
+      ]
+    },
+    {
+      "name": "uri-2.5.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "arglist",
+          "expect": "hello world"
+        }
+      ]
+    },
+    {
+      "name": "setup_24",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "uri-2.11.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "arglist"
+        }
+      ]
+    },
+    {
+      "name": "setup_25",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "xxx.db"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'file:test.db?=#ravada' AS aux"
+        }
+      ]
+    },
+    {
+      "name": "uri-2.11.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "arglist"
+        }
+      ]
+    },
+    {
+      "name": "setup_26",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "uri-2.12.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "arglist",
+          "expect": "hello world"
+        }
+      ]
+    },
+    {
+      "name": "setup_27",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "xxx.db"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'file:test.db?\u0026\u0026\u0026\u0026\u0026\u0026\u0026\u0026hello=world\u0026\u0026\u0026\u0026\u0026\u0026\u0026' AS aux"
+        }
+      ]
+    },
+    {
+      "name": "uri-2.12.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "arglist",
+          "expect": "hello world"
+        }
+      ]
+    },
+    {
+      "name": "setup_28",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "uri-2.13.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "arglist"
+        }
+      ]
+    },
+    {
+      "name": "setup_29",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "xxx.db"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db?\u0026\u0026\u0026\u0026\u0026\u0026\u0026\u0026hello=world\u0026\u0026\u0026\u0026\u0026\u0026\u0026' AS aux"
+        }
+      ]
+    },
+    {
+      "name": "uri-2.13.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "arglist"
+        }
+      ]
+    },
+    {
+      "name": "setup_30",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "uri-2.14.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "arglist"
+        }
+      ]
+    },
+    {
+      "name": "setup_31",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "xxx.db"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'http:test.db?hello\u0026world' AS aux"
+        }
+      ]
+    },
+    {
+      "name": "uri-2.14.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "arglist"
+        }
+      ]
+    },
+    {
+      "name": "setup_32",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "uri-3.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "setup_33",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "uri-4.1.1.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "setup_34",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_35",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b)"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "uri-4.1.1.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES(1, 2)",
+          "expect": "1 {attempt to write a readonly database}"
+        }
+      ]
+    },
+    {
+      "name": "uri-4.1.1.3",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "setup_36",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "uri-4.1.2.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "setup_37",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_38",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b)"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "uri-4.1.2.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES(1, 2)",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "uri-4.1.2.3",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "setup_39",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "uri-4.1.3.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "setup_40",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_41",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b)"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "uri-4.1.3.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES(1, 2)",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "uri-4.1.3.3",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "setup_42",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_43",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b)",
+          "database": "db2"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "uri-4.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; INSERT INTO t1 VALUES(1, 2);",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}"
+        }
+      ]
+    },
+    {
+      "name": "setup_44",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_45",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b)",
+          "database": "db2"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "uri-4.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; INSERT INTO t1 VALUES(1, 2);",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "setup_46",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_47",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b)",
+          "database": "db2"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "uri-4.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; INSERT INTO t1 VALUES(1, 2);",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}"
+        }
+      ]
+    },
+    {
+      "name": "setup_48",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_49",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b)",
+          "database": "db2"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "uri-4.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; INSERT INTO t1 VALUES(1, 2);",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "setup_50",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_51",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b)",
+          "database": "db2"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "uri-4.2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; INSERT INTO t1 VALUES(1, 2);",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "setup_52",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_53",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b)",
+          "database": "db2"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "uri-4.2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; INSERT INTO t1 VALUES(1, 2);",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}"
+        }
+      ]
+    },
+    {
+      "name": "setup_54",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "uri-4.3.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "uri-4.3.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "setup_55",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "uri-5.1.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db1"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'file:test.db2?vfs=tvfs2' AS aux;\n      PRAGMA main.journal_mode = PERSIST;\n      PRAGMA aux.journal_mode = PERSIST;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE aux.t2(a, b);\n      PRAGMA main.journal_mode = WAL;\n      PRAGMA aux.journal_mode = WAL;\n      INSERT INTO t1 VALUES('x', 'y');\n      INSERT INTO t2 VALUES('x', 'y');",
+          "expect": "test.db1 test.db1-journal test.db1-wal"
+        }
+      ]
+    },
+    {
+      "name": "setup_56",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "uri-7.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    ATTACH 'test.db2' AS aux;\n    CREATE TABLE aux.t2(a, b);\n    INSERT INTO t1 VALUES('a', 'b');"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "uri-7.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'file:test.db2?mode=rw' AS aux"
+        }
+      ]
+    },
+    {
+      "name": "uri-7.3",
       "steps": [
         {
           "type": "exec",
@@ -12,58 +1579,14 @@
       ]
     },
     {
-      "name": "7.4",
+      "name": "uri-7.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1 VALUES(3, 4)",
           "expect": "1 {attempt to write a readonly database}"
         }
       ]
-    },
-    {
-      "name": "5.1.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ATTACH 'file:test.db2?vfs=tvfs2' AS aux;\n      PRAGMA main.journal_mode = PERSIST;\n      PRAGMA aux.journal_mode = PERSIST;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE aux.t2(a, b);\n      PRAGMA main.journal_mode = WAL;\n      PRAGMA aux.journal_mode = WAL;\n      INSERT INTO t1 VALUES('x', 'y');\n      INSERT INTO t2 VALUES('x', 'y');"
-        }
-      ]
-    },
-    {
-      "name": "7.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    ATTACH 'test.db2' AS aux;\n    CREATE TABLE aux.t2(a, b);\n    INSERT INTO t1 VALUES('a', 'b');"
-        }
-      ]
-    },
-    {
-      "name": "7.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ATTACH 'file:test.db2?mode=rw' AS aux"
-        },
-        {
-          "type": "exec",
-          "sql": "ATTACH 'file:test.db2?vfs=tvfs2' AS aux;\n      PRAGMA main.journal_mode = PERSIST;\n      PRAGMA aux.journal_mode = PERSIST;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE aux.t2(a, b);\n      PRAGMA main.journal_mode = WAL;\n      PRAGMA aux.journal_mode = WAL;\n      INSERT INTO t1 VALUES('x', 'y');\n      INSERT INTO t2 VALUES('x', 'y');"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    ATTACH 'test.db2' AS aux;\n    CREATE TABLE aux.t2(a, b);\n    INSERT INTO t1 VALUES('a', 'b');"
-        },
-        {
-          "type": "exec",
-          "sql": "ATTACH 'file:test.db2?mode=rw' AS aux"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a, b)"
-        }
-      ]
     }
-  ],
-  "source": "capi"
+  ]
 }

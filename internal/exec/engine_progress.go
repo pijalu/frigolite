@@ -148,11 +148,19 @@ func (e *Engine) RegisterFunctionFlags(name string, fn func(args []interface{}) 
 	e.funcs.RegisterFlags(name, fn, minArgs, maxArgs, innocuous, directOnly)
 }
 
+// RegisterFunctionDeterministic registers an application scalar function with SQLite function flags.
+func (e *Engine) RegisterFunctionDeterministic(name string, fn func(args []interface{}) (interface{}, error), minArgs, maxArgs int, deterministic, innocuous, directOnly bool) {
+	e.funcs.RegisterDeterministic(name, fn, minArgs, maxArgs, deterministic, innocuous, directOnly)
+}
+
 // SchemaFunctionSafe reports whether a function may be used in a schema
 // object under the current trusted_schema setting.
 func (e *Engine) SchemaFunctionSafe(name string) bool {
 	return e.funcs.SchemaSafe(name, e.settings.trustedSchema)
 }
+
+// ToggleInternalFunctions toggles SQLite test-only internal SQL function visibility.
+func (e *Engine) ToggleInternalFunctions() bool { return e.funcs.ToggleInternalFunctions() }
 
 // FunctionExists reports whether a scalar/aggregate function of any arity is
 // registered (built-ins plus connection-defined functions).

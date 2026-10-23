@@ -1,13 +1,5396 @@
 {
   "file": "e_droptrigger.test",
   "name": "e_droptrigger",
+  "ordered": true,
   "tests": [
     {
-      "name": "setup_0",
+      "name": "e_createtable-1.1.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA database_list"
+          "sql": "DROP TRIGGER main.tr1"
+        },
+        {
+          "type": "tclquery",
+          "sql": "list_all_triggers",
+          "expect": "main.tr2 temp.tr1 aux.tr1 aux.tr2 aux.tr3"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER IF EXISTS main.tr1"
+        },
+        {
+          "type": "tclquery",
+          "sql": "list_all_triggers",
+          "expect": "main.tr2 temp.tr1 aux.tr1 aux.tr2 aux.tr3"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.3",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.3",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr1"
+        },
+        {
+          "type": "tclquery",
+          "sql": "list_all_triggers",
+          "expect": "main.tr1 main.tr2 aux.tr1 aux.tr2 aux.tr3"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.3",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.3",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.4",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.4",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER IF EXISTS tr1"
+        },
+        {
+          "type": "tclquery",
+          "sql": "list_all_triggers",
+          "expect": "main.tr1 main.tr2 aux.tr1 aux.tr2 aux.tr3"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.4",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.4",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.5",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.5",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER aux.tr1"
+        },
+        {
+          "type": "tclquery",
+          "sql": "list_all_triggers",
+          "expect": "main.tr1 main.tr2 temp.tr1 aux.tr2 aux.tr3"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.5",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.5",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.6",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.6",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER IF EXISTS aux.tr1"
+        },
+        {
+          "type": "tclquery",
+          "sql": "list_all_triggers",
+          "expect": "main.tr1 main.tr2 temp.tr1 aux.tr2 aux.tr3"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.6",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.6",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.7",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.7",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER IF EXISTS aux.xxx"
+        },
+        {
+          "type": "tclquery",
+          "sql": "list_all_triggers",
+          "expect": "main.tr1 main.tr2 temp.tr1 aux.tr1 aux.tr2 aux.tr3"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.7",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.7",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.8",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.8",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER IF EXISTS aux.xxx"
+        },
+        {
+          "type": "tclquery",
+          "sql": "list_all_triggers",
+          "expect": "main.tr1 main.tr2 temp.tr1 aux.tr1 aux.tr2 aux.tr3"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.8",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_createtable-1.1.8",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.1.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.1.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "",
+            "before": "temp.tr1",
+            "droptrigger": "DROP TRIGGER tr1",
+            "tbl": "t1",
+            "testdir": "",
+            "tn": "1"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('1', '2')"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "temp.tr1"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.1.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.1.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "",
+            "before": "temp.tr1",
+            "droptrigger": "DROP TRIGGER tr1",
+            "tbl": "t1",
+            "testdir": "",
+            "tn": "1"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('1', '2')"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.2.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.2.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "main.tr1 main.tr2",
+            "before": "main.tr1 main.tr2",
+            "droptrigger": "DROP TRIGGER tr1",
+            "tbl": "t2",
+            "testdir": "",
+            "tn": "2"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('1', '2')"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "main.tr1 main.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.2.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.2.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "main.tr1 main.tr2",
+            "before": "main.tr1 main.tr2",
+            "droptrigger": "DROP TRIGGER tr1",
+            "tbl": "t2",
+            "testdir": "",
+            "tn": "2"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('1', '2')"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "main.tr1 main.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.3.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.3.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "aux.tr1 aux.tr3 aux.tr2",
+            "before": "aux.tr1 aux.tr3 aux.tr2",
+            "droptrigger": "DROP TRIGGER tr1",
+            "tbl": "t3",
+            "testdir": "",
+            "tn": "3"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES('1', '2')"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "aux.tr1 aux.tr3 aux.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.3.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.3.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "aux.tr1 aux.tr3 aux.tr2",
+            "before": "aux.tr1 aux.tr3 aux.tr2",
+            "droptrigger": "DROP TRIGGER tr1",
+            "tbl": "t3",
+            "testdir": "",
+            "tn": "3"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES('1', '2')"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "aux.tr1 aux.tr3 aux.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.4.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.4.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "temp.tr1",
+            "before": "temp.tr1",
+            "droptrigger": "DROP TRIGGER tr2",
+            "tbl": "t1",
+            "testdir": "",
+            "tn": "4"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('1', '2')"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "temp.tr1"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.4.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.4.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "temp.tr1",
+            "before": "temp.tr1",
+            "droptrigger": "DROP TRIGGER tr2",
+            "tbl": "t1",
+            "testdir": "",
+            "tn": "4"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('1', '2')"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "temp.tr1"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.5.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.5.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "main.tr1",
+            "before": "main.tr1 main.tr2",
+            "droptrigger": "DROP TRIGGER tr2",
+            "tbl": "t2",
+            "testdir": "",
+            "tn": "5"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('1', '2')"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "main.tr1 main.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.5.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.5.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "main.tr1",
+            "before": "main.tr1 main.tr2",
+            "droptrigger": "DROP TRIGGER tr2",
+            "tbl": "t2",
+            "testdir": "",
+            "tn": "5"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('1', '2')"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "main.tr1"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.6.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.6.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "aux.tr1 aux.tr3 aux.tr2",
+            "before": "aux.tr1 aux.tr3 aux.tr2",
+            "droptrigger": "DROP TRIGGER tr2",
+            "tbl": "t3",
+            "testdir": "",
+            "tn": "6"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES('1', '2')"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "aux.tr1 aux.tr3 aux.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.6.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.6.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "aux.tr1 aux.tr3 aux.tr2",
+            "before": "aux.tr1 aux.tr3 aux.tr2",
+            "droptrigger": "DROP TRIGGER tr2",
+            "tbl": "t3",
+            "testdir": "",
+            "tn": "6"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES('1', '2')"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "aux.tr1 aux.tr3 aux.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.7.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.7.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "temp.tr1",
+            "before": "temp.tr1",
+            "droptrigger": "DROP TRIGGER tr3",
+            "tbl": "t1",
+            "testdir": "",
+            "tn": "7"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('1', '2')"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "temp.tr1"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.7.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.7.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "temp.tr1",
+            "before": "temp.tr1",
+            "droptrigger": "DROP TRIGGER tr3",
+            "tbl": "t1",
+            "testdir": "",
+            "tn": "7"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr3"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('1', '2')"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "temp.tr1"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.8.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.8.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "main.tr1 main.tr2",
+            "before": "main.tr1 main.tr2",
+            "droptrigger": "DROP TRIGGER tr3",
+            "tbl": "t2",
+            "testdir": "",
+            "tn": "8"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('1', '2')"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "main.tr1 main.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.8.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.8.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "main.tr1 main.tr2",
+            "before": "main.tr1 main.tr2",
+            "droptrigger": "DROP TRIGGER tr3",
+            "tbl": "t2",
+            "testdir": "",
+            "tn": "8"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr3"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('1', '2')"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "main.tr1 main.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.9.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.9.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "aux.tr1 aux.tr2",
+            "before": "aux.tr1 aux.tr3 aux.tr2",
+            "droptrigger": "DROP TRIGGER tr3",
+            "tbl": "t3",
+            "testdir": "",
+            "tn": "9"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES('1', '2')"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "aux.tr1 aux.tr3 aux.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.9.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-2.9.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "aux.tr1 aux.tr2",
+            "before": "aux.tr1 aux.tr3 aux.tr2",
+            "droptrigger": "DROP TRIGGER tr3",
+            "tbl": "t3",
+            "testdir": "",
+            "tn": "9"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr3"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES('1', '2')"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "aux.tr1 aux.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.1.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.1.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "",
+            "before": "temp.tr1",
+            "droptrigger": "DROP TRIGGER tr1",
+            "tbl": "t1",
+            "testdir": "",
+            "tn": "1"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER UPDATE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE UPDATE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  UPDATE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE UPDATE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 'abc'"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "temp.tr1"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.1.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.1.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "",
+            "before": "temp.tr1",
+            "droptrigger": "DROP TRIGGER tr1",
+            "tbl": "t1",
+            "testdir": "",
+            "tn": "1"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER UPDATE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE UPDATE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  UPDATE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE UPDATE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 'abc'"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.2.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.2.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "main.tr1 main.tr2",
+            "before": "main.tr1 main.tr2",
+            "droptrigger": "DROP TRIGGER tr1",
+            "tbl": "t2",
+            "testdir": "",
+            "tn": "2"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER UPDATE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE UPDATE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  UPDATE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE UPDATE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET a = 'abc'"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "main.tr1 main.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.2.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.2.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "main.tr1 main.tr2",
+            "before": "main.tr1 main.tr2",
+            "droptrigger": "DROP TRIGGER tr1",
+            "tbl": "t2",
+            "testdir": "",
+            "tn": "2"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER UPDATE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE UPDATE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  UPDATE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE UPDATE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET a = 'abc'"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "main.tr1 main.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.3.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.3.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "aux.tr1 aux.tr3 aux.tr2",
+            "before": "aux.tr1 aux.tr3 aux.tr2",
+            "droptrigger": "DROP TRIGGER tr1",
+            "tbl": "t3",
+            "testdir": "",
+            "tn": "3"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER UPDATE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE UPDATE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  UPDATE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE UPDATE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET a = 'abc'"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "aux.tr1 aux.tr3 aux.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.3.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.3.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "aux.tr1 aux.tr3 aux.tr2",
+            "before": "aux.tr1 aux.tr3 aux.tr2",
+            "droptrigger": "DROP TRIGGER tr1",
+            "tbl": "t3",
+            "testdir": "",
+            "tn": "3"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER UPDATE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE UPDATE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  UPDATE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE UPDATE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET a = 'abc'"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "aux.tr1 aux.tr3 aux.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.4.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.4.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "temp.tr1",
+            "before": "temp.tr1",
+            "droptrigger": "DROP TRIGGER tr2",
+            "tbl": "t1",
+            "testdir": "",
+            "tn": "4"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER UPDATE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE UPDATE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  UPDATE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE UPDATE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 'abc'"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "temp.tr1"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.4.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.4.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "temp.tr1",
+            "before": "temp.tr1",
+            "droptrigger": "DROP TRIGGER tr2",
+            "tbl": "t1",
+            "testdir": "",
+            "tn": "4"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER UPDATE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE UPDATE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  UPDATE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE UPDATE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 'abc'"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "temp.tr1"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.5.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.5.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "main.tr1",
+            "before": "main.tr1 main.tr2",
+            "droptrigger": "DROP TRIGGER tr2",
+            "tbl": "t2",
+            "testdir": "",
+            "tn": "5"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER UPDATE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE UPDATE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  UPDATE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE UPDATE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET a = 'abc'"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "main.tr1 main.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.5.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.5.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "main.tr1",
+            "before": "main.tr1 main.tr2",
+            "droptrigger": "DROP TRIGGER tr2",
+            "tbl": "t2",
+            "testdir": "",
+            "tn": "5"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER UPDATE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE UPDATE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  UPDATE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE UPDATE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET a = 'abc'"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "main.tr1"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.6.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.6.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "aux.tr1 aux.tr3 aux.tr2",
+            "before": "aux.tr1 aux.tr3 aux.tr2",
+            "droptrigger": "DROP TRIGGER tr2",
+            "tbl": "t3",
+            "testdir": "",
+            "tn": "6"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER UPDATE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE UPDATE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  UPDATE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE UPDATE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET a = 'abc'"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "aux.tr1 aux.tr3 aux.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.6.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.6.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "aux.tr1 aux.tr3 aux.tr2",
+            "before": "aux.tr1 aux.tr3 aux.tr2",
+            "droptrigger": "DROP TRIGGER tr2",
+            "tbl": "t3",
+            "testdir": "",
+            "tn": "6"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER UPDATE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE UPDATE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  UPDATE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE UPDATE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET a = 'abc'"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "aux.tr1 aux.tr3 aux.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.7.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.7.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "temp.tr1",
+            "before": "temp.tr1",
+            "droptrigger": "DROP TRIGGER tr3",
+            "tbl": "t1",
+            "testdir": "",
+            "tn": "7"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER UPDATE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE UPDATE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  UPDATE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE UPDATE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 'abc'"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "temp.tr1"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.7.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.7.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "temp.tr1",
+            "before": "temp.tr1",
+            "droptrigger": "DROP TRIGGER tr3",
+            "tbl": "t1",
+            "testdir": "",
+            "tn": "7"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER UPDATE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE UPDATE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  UPDATE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE UPDATE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr3"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 'abc'"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "temp.tr1"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.8.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.8.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "main.tr1 main.tr2",
+            "before": "main.tr1 main.tr2",
+            "droptrigger": "DROP TRIGGER tr3",
+            "tbl": "t2",
+            "testdir": "",
+            "tn": "8"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER UPDATE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE UPDATE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  UPDATE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE UPDATE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET a = 'abc'"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "main.tr1 main.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.8.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.8.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "main.tr1 main.tr2",
+            "before": "main.tr1 main.tr2",
+            "droptrigger": "DROP TRIGGER tr3",
+            "tbl": "t2",
+            "testdir": "",
+            "tn": "8"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER UPDATE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE UPDATE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  UPDATE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE UPDATE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr3"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET a = 'abc'"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "main.tr1 main.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.9.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.9.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "aux.tr1 aux.tr2",
+            "before": "aux.tr1 aux.tr3 aux.tr2",
+            "droptrigger": "DROP TRIGGER tr3",
+            "tbl": "t3",
+            "testdir": "",
+            "tn": "9"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER UPDATE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE UPDATE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  UPDATE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE UPDATE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET a = 'abc'"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "aux.tr1 aux.tr3 aux.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.9.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.1.9.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "aux.tr1 aux.tr2",
+            "before": "aux.tr1 aux.tr3 aux.tr2",
+            "droptrigger": "DROP TRIGGER tr3",
+            "tbl": "t3",
+            "testdir": "",
+            "tn": "9"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER UPDATE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE UPDATE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  UPDATE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE UPDATE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  UPDATE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr3"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET a = 'abc'"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "aux.tr1 aux.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.1.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.1.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "",
+            "before": "temp.tr1",
+            "droptrigger": "DROP TRIGGER tr1",
+            "tbl": "t1",
+            "testdir": "",
+            "tn": "1"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE DELETE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  DELETE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE DELETE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "temp.tr1"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.1.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.1.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "",
+            "before": "temp.tr1",
+            "droptrigger": "DROP TRIGGER tr1",
+            "tbl": "t1",
+            "testdir": "",
+            "tn": "1"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE DELETE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  DELETE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE DELETE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.2.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.2.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "main.tr1 main.tr2",
+            "before": "main.tr1 main.tr2",
+            "droptrigger": "DROP TRIGGER tr1",
+            "tbl": "t2",
+            "testdir": "",
+            "tn": "2"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE DELETE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  DELETE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE DELETE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "main.tr1 main.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.2.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.2.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "main.tr1 main.tr2",
+            "before": "main.tr1 main.tr2",
+            "droptrigger": "DROP TRIGGER tr1",
+            "tbl": "t2",
+            "testdir": "",
+            "tn": "2"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE DELETE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  DELETE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE DELETE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "main.tr1 main.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.3.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.3.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "aux.tr1 aux.tr3 aux.tr2",
+            "before": "aux.tr1 aux.tr3 aux.tr2",
+            "droptrigger": "DROP TRIGGER tr1",
+            "tbl": "t3",
+            "testdir": "",
+            "tn": "3"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE DELETE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  DELETE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE DELETE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "aux.tr1 aux.tr3 aux.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.3.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.3.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "aux.tr1 aux.tr3 aux.tr2",
+            "before": "aux.tr1 aux.tr3 aux.tr2",
+            "droptrigger": "DROP TRIGGER tr1",
+            "tbl": "t3",
+            "testdir": "",
+            "tn": "3"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE DELETE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  DELETE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE DELETE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "aux.tr1 aux.tr3 aux.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.4.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.4.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "temp.tr1",
+            "before": "temp.tr1",
+            "droptrigger": "DROP TRIGGER tr2",
+            "tbl": "t1",
+            "testdir": "",
+            "tn": "4"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE DELETE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  DELETE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE DELETE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "temp.tr1"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.4.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.4.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "temp.tr1",
+            "before": "temp.tr1",
+            "droptrigger": "DROP TRIGGER tr2",
+            "tbl": "t1",
+            "testdir": "",
+            "tn": "4"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE DELETE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  DELETE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE DELETE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "temp.tr1"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.5.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.5.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "main.tr1",
+            "before": "main.tr1 main.tr2",
+            "droptrigger": "DROP TRIGGER tr2",
+            "tbl": "t2",
+            "testdir": "",
+            "tn": "5"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE DELETE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  DELETE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE DELETE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "main.tr1 main.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.5.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.5.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "main.tr1",
+            "before": "main.tr1 main.tr2",
+            "droptrigger": "DROP TRIGGER tr2",
+            "tbl": "t2",
+            "testdir": "",
+            "tn": "5"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE DELETE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  DELETE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE DELETE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "main.tr1"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.6.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.6.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "aux.tr1 aux.tr3 aux.tr2",
+            "before": "aux.tr1 aux.tr3 aux.tr2",
+            "droptrigger": "DROP TRIGGER tr2",
+            "tbl": "t3",
+            "testdir": "",
+            "tn": "6"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE DELETE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  DELETE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE DELETE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "aux.tr1 aux.tr3 aux.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.6.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.6.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "aux.tr1 aux.tr3 aux.tr2",
+            "before": "aux.tr1 aux.tr3 aux.tr2",
+            "droptrigger": "DROP TRIGGER tr2",
+            "tbl": "t3",
+            "testdir": "",
+            "tn": "6"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE DELETE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  DELETE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE DELETE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "aux.tr1 aux.tr3 aux.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.7.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.7.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "temp.tr1",
+            "before": "temp.tr1",
+            "droptrigger": "DROP TRIGGER tr3",
+            "tbl": "t1",
+            "testdir": "",
+            "tn": "7"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE DELETE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  DELETE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE DELETE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "temp.tr1"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.7.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.7.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "temp.tr1",
+            "before": "temp.tr1",
+            "droptrigger": "DROP TRIGGER tr3",
+            "tbl": "t1",
+            "testdir": "",
+            "tn": "7"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE DELETE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  DELETE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE DELETE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr3"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "temp.tr1"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.8.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.8.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "main.tr1 main.tr2",
+            "before": "main.tr1 main.tr2",
+            "droptrigger": "DROP TRIGGER tr3",
+            "tbl": "t2",
+            "testdir": "",
+            "tn": "8"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE DELETE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  DELETE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE DELETE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "main.tr1 main.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.8.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.8.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "main.tr1 main.tr2",
+            "before": "main.tr1 main.tr2",
+            "droptrigger": "DROP TRIGGER tr3",
+            "tbl": "t2",
+            "testdir": "",
+            "tn": "8"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE DELETE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  DELETE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE DELETE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr3"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "main.tr1 main.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.9.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.9.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "aux.tr1 aux.tr2",
+            "before": "aux.tr1 aux.tr3 aux.tr2",
+            "droptrigger": "DROP TRIGGER tr3",
+            "tbl": "t3",
+            "testdir": "",
+            "tn": "9"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE DELETE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  DELETE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE DELETE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "aux.tr1 aux.tr3 aux.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.9.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-3.2.9.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "aux.tr1 aux.tr2",
+            "before": "aux.tr1 aux.tr3 aux.tr2",
+            "droptrigger": "DROP TRIGGER tr3",
+            "tbl": "t3",
+            "testdir": "",
+            "tn": "9"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE DELETE ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  DELETE ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE DELETE ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  DELETE ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr3"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "triggers_fired",
+          "expect": "aux.tr1 aux.tr2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-4.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-4.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "aux.tr1 aux.tr2",
+            "before": "aux.tr1 aux.tr3 aux.tr2",
+            "droptrigger": "DROP TRIGGER tr3",
+            "tbl": "t3",
+            "testdir": "",
+            "tn": "9"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA database_list",
+          "expect": "main.tr1 main.tr2 temp.tr1 aux.tr1 aux.tr2 aux.tr3"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-4.2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-4.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "aux.tr1 aux.tr2",
+            "before": "aux.tr1 aux.tr3 aux.tr2",
+            "droptrigger": "DROP TRIGGER tr3",
+            "tbl": "t3",
+            "testdir": "",
+            "tn": "9"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA database_list",
+          "expect": "main.tr1 main.tr2 aux.tr1 aux.tr2 aux.tr3"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-4.3",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-4.3",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "aux.tr1 aux.tr2",
+            "before": "aux.tr1 aux.tr3 aux.tr2",
+            "droptrigger": "DROP TRIGGER tr3",
+            "tbl": "t3",
+            "testdir": "",
+            "tn": "9"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA database_list",
+          "expect": "main.tr1 main.tr2 aux.tr1 aux.tr2 aux.tr3"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-4.4",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "e_droptrigger-4.4",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "e_droptrigger",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "aux.tr1 aux.tr2",
+            "before": "aux.tr1 aux.tr3 aux.tr2",
+            "droptrigger": "DROP TRIGGER tr3",
+            "tbl": "t3",
+            "testdir": "",
+            "tn": "9"
+          },
+          "functionProc": "r",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": " lappend ::triggers_fired $x ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE INSERT ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  INSERT ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE INSERT ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  INSERT ON t3 BEGIN SELECT r('aux.tr3') ; END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA database_list",
+          "expect": "main.tr1 main.tr2 aux.tr1 aux.tr2 aux.tr3"
         }
       ]
     }

@@ -1,0 +1,52 @@
+{
+  "file": "tkt-5ee23731f.test",
+  "name": "tkt-5ee23731f",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "tkt-5ee237-1.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-5ee237-1.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x UNIQUE);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 SELECT x+2 FROM t1;\n    INSERT INTO t1 SELECT x+4 FROM t1;\n    INSERT INTO t1 SELECT x+8 FROM t1;"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT rowid, x FROM t1 ORDER BY x",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "expect": "1 {attempt to write a readonly database}"
+        }
+      ]
+    }
+  ]
+}

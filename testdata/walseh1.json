@@ -1,0 +1,35 @@
+{
+  "file": "walseh1.test",
+  "name": "walseh1",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "walseh1-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    }
+  ]
+}

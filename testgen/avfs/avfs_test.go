@@ -225,8 +225,8 @@ func Test_avfs(t *testing.T) {
 		vtab.TclVarSet("tlo", "", " \"Just some text,\" \"and more text,\" \"ending at 3 lines.\" ")
 		tlo = " \"Just some text,\" \"and more text,\" \"ending at 3 lines.\" " // TCL namespace variable
 		_ = tlo // suppress unused warning
-		tclChannelAppendAt(fa, strings.Join(tclSplitList(tlo), "\n")+"\n", fileChannelSeek["out"])
-		fileChannelSeek["out"] += int64(len(strings.Join(tclSplitList(tlo), "\n")+"\n"))
+		tclChannelAppendAt(fa, strings.Join(tclSplitList(tlo), "\n")+"\n", fileChannelSeek[fa])
+		fileChannelSeek[fa] += int64(len(strings.Join(tclSplitList(tlo), "\n")+"\n"))
 		// close $out
 		adbSz = strconv.Itoa(tclFileSize(fa))
 		_ = adbSz // suppress unused warning
@@ -480,14 +480,14 @@ func Test_avfs(t *testing.T) {
 		_ = os.WriteFile(fake, nil, 0644)
 		ofd = fake
 		_ = ofd // suppress unused warning
-		tclChannelAppendAt(fake, "SQLite format 3", fileChannelSeek["ofd"])
-		fileChannelSeek["ofd"] += int64(len("SQLite format 3"))
-		tclChannelAppendAt(fake, "", fileChannelSeek["ofd"])
-		fileChannelSeek["ofd"] += int64(len(""))
-		tclChannelAppendAt(fake, "Start-Of-SQLite3-", fileChannelSeek["ofd"])
-		fileChannelSeek["ofd"] += int64(len("Start-Of-SQLite3-"))
-		tclChannelAppendAt(fake, "", fileChannelSeek["ofd"])
-		fileChannelSeek["ofd"] += int64(len(""))
+		tclChannelAppendAt(fake, "SQLite format 3", fileChannelSeek[fake])
+		fileChannelSeek[fake] += int64(len("SQLite format 3"))
+		tclChannelAppendAt(fake, "", fileChannelSeek[fake])
+		fileChannelSeek[fake] += int64(len(""))
+		tclChannelAppendAt(fake, "Start-Of-SQLite3-", fileChannelSeek[fake])
+		fileChannelSeek[fake] += int64(len("Start-Of-SQLite3-"))
+		tclChannelAppendAt(fake, "", fileChannelSeek[fake])
+		fileChannelSeek[fake] += int64(len(""))
 		// close $ofd
 		if tclBool(func() string { _ = func() string { adb, err = frigolite.Open("file:" + fake + "?mode=rw" + vf); if err != nil { t.Fatal(err) }; return "" }(); return "0" }()) {
 			vtab.TclVarSet("res", "", "Open failed.")
@@ -515,16 +515,16 @@ func Test_avfs(t *testing.T) {
 		vtab.TclVarSet("fakeAppendee", "", "Dog ate my homework.\n")
 		fakeAppendee = "Dog ate my homework.\n"
 		_ = fakeAppendee // suppress unused warning
-		tclChannelAppendAt(fake, fakeAppendee, fileChannelSeek["ofd"])
-		fileChannelSeek["ofd"] += int64(len(fakeAppendee))
-		tclChannelAppendAt(fake, "SQLite format 3", fileChannelSeek["ofd"])
-		fileChannelSeek["ofd"] += int64(len("SQLite format 3"))
-		tclChannelAppendAt(fake, "", fileChannelSeek["ofd"])
-		fileChannelSeek["ofd"] += int64(len(""))
-		tclChannelAppendAt(fake, "Start-Of-SQLite3-", fileChannelSeek["ofd"])
-		fileChannelSeek["ofd"] += int64(len("Start-Of-SQLite3-"))
-		tclChannelAppendAt(fake, "", fileChannelSeek["ofd"])
-		fileChannelSeek["ofd"] += int64(len(""))
+		tclChannelAppendAt(fake, fakeAppendee, fileChannelSeek[fake])
+		fileChannelSeek[fake] += int64(len(fakeAppendee))
+		tclChannelAppendAt(fake, "SQLite format 3", fileChannelSeek[fake])
+		fileChannelSeek[fake] += int64(len("SQLite format 3"))
+		tclChannelAppendAt(fake, "", fileChannelSeek[fake])
+		fileChannelSeek[fake] += int64(len(""))
+		tclChannelAppendAt(fake, "Start-Of-SQLite3-", fileChannelSeek[fake])
+		fileChannelSeek[fake] += int64(len("Start-Of-SQLite3-"))
+		tclChannelAppendAt(fake, "", fileChannelSeek[fake])
+		fileChannelSeek[fake] += int64(len(""))
 		// close $ofd
 		if tclBool(func() string { _ = func() string { adb, err = frigolite.Open("file:" + fake + "?mode=rw" + vf); if err != nil { t.Fatal(err) }; return "" }(); return "0" }()) {
 			vtab.TclVarSet("res", "", "Open failed.")

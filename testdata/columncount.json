@@ -1,16 +1,166 @@
 {
   "file": "columncount.test",
   "name": "columncount",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "columncount-1.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(x, y, z);\n  INSERT INTO t1 VALUES('a', 'b', 'c');"
         }
       ]
+    },
+    {
+      "name": "columncount-1.1",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "stmt_1",
+          "expect": "3 a b c"
+        }
+      ]
+    },
+    {
+      "name": "columncount-1.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "CREATE TABLE t2(a, b)",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "CREATE TABLE t2(a, b)",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "CREATE TABLE t2(a, b)",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "stmt_2",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "columncount-1.3",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "ALTER TABLE t2 RENAME TO t3",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "ALTER TABLE t2 RENAME TO t3",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "ALTER TABLE t2 RENAME TO t3",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "stmt_3",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "columncount-1.4",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "ALTER TABLE t3 RENAME b TO ccc",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "ALTER TABLE t3 RENAME b TO ccc",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "ALTER TABLE t3 RENAME b TO ccc",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "stmt_4",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "columncount-1.5",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "ALTER TABLE t3 ADD COLUMN d",
+          "variable": "stmt_5"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "ALTER TABLE t3 ADD COLUMN d",
+          "variable": "stmt_5"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "ALTER TABLE t3 ADD COLUMN d",
+          "variable": "stmt_5"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "stmt_5",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "columncount-1.6",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "DROP TABLE t3",
+          "variable": "stmt_6"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "DROP TABLE t3",
+          "variable": "stmt_6"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "DROP TABLE t3",
+          "variable": "stmt_6"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "stmt_6",
+          "expect": "0"
+        }
+      ]
     }
-  ],
-  "source": "capi"
+  ]
 }

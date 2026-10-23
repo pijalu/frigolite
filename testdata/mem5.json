@@ -1,0 +1,43 @@
+{
+  "file": "mem5.test",
+  "name": "mem5",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "mem5-1.1",
+      "steps": [
+        {
+          "type": "close_db",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "mem5-1.2",
+      "steps": [
+        {
+          "type": "close_db",
+          "expect": "SQLITE_NOMEM"
+        }
+      ]
+    },
+    {
+      "name": "mem5-1.3",
+      "steps": [
+        {
+          "type": "close_db",
+          "expect": "SQLITE_NOMEM"
+        }
+      ]
+    },
+    {
+      "name": "mem5-1.4",
+      "steps": [
+        {
+          "type": "close_db",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    }
+  ]
+}

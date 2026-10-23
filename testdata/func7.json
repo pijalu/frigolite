@@ -1,6 +1,7 @@
 {
   "file": "func7.test",
   "name": "func7",
+  "ordered": true,
   "tests": [
     {
       "name": "func7-100",
@@ -476,7 +477,7 @@
       "name": "func7-mysql-110",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT acos(1.0001);",
           "expect": "{}"
         }
@@ -506,7 +507,7 @@
       "name": "func7-mysql-140",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT asin('foo');",
           "expect": "{}"
         }
@@ -559,12 +560,7 @@
           "type": "query",
           "sql": "SELECT degrees(pi()), degrees(pi()/2);",
           "expect": "180.0 90.0"
-        }
-      ]
-    },
-    {
-      "name": "func7-mysql-190",
-      "steps": [
+        },
         {
           "type": "query",
           "sql": "SELECT round( exp(2), 7), round( exp(-2), 7), exp(0);",
@@ -589,15 +585,6 @@
           "type": "query",
           "sql": "SELECT round(ln(2),7), quote(ln(-2));",
           "expect": "0.6931472 NULL"
-        }
-      ]
-    },
-    {
-      "name": "func7-mysql-220",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "#   SELECT round(log(2),7), log(-2);\n#"
         }
       ]
     },

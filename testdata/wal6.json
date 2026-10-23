@@ -1,0 +1,793 @@
+{
+  "file": "wal6.test",
+  "name": "wal6",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "wal6-1.0.delete",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = delete;",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "wal6-1.1.delete",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t1;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "wal6-1.2.delete",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=WAL;\n    INSERT INTO t1 VALUES(3,4);\n    SELECT * FROM t1 ORDER BY a;",
+          "expect": "wal 1 2 3 4",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal6-1.3.delete",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY a;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "wal6-1.0.persist",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = persist;",
+          "expect": "persist"
+        }
+      ]
+    },
+    {
+      "name": "wal6-1.1.persist",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t1;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "wal6-1.2.persist",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=WAL;\n    INSERT INTO t1 VALUES(3,4);\n    SELECT * FROM t1 ORDER BY a;",
+          "expect": "wal 1 2 3 4",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal6-1.3.persist",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY a;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "wal6-1.0.truncate",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = truncate;",
+          "expect": "truncate"
+        }
+      ]
+    },
+    {
+      "name": "wal6-1.1.truncate",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t1;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "wal6-1.2.truncate",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=WAL;\n    INSERT INTO t1 VALUES(3,4);\n    SELECT * FROM t1 ORDER BY a;",
+          "expect": "wal 1 2 3 4",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal6-1.3.truncate",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY a;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "wal6-1.0.memory",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = memory;",
+          "expect": "memory"
+        }
+      ]
+    },
+    {
+      "name": "wal6-1.1.memory",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t1;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "wal6-1.2.memory",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=WAL;\n    INSERT INTO t1 VALUES(3,4);\n    SELECT * FROM t1 ORDER BY a;",
+          "expect": "wal 1 2 3 4",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal6-1.3.memory",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY a;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "wal6-1.0.off",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = off;",
+          "expect": "off"
+        }
+      ]
+    },
+    {
+      "name": "wal6-1.1.off",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t1;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "wal6-1.2.off",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=WAL;\n    INSERT INTO t1 VALUES(3,4);\n    SELECT * FROM t1 ORDER BY a;",
+          "expect": "wal 1 2 3 4",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal6-1.3.off",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY a;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal6-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = WAL;\n  CREATE TABLE t1(a PRIMARY KEY, b TEXT);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  BEGIN;\n    SELECT * FROM t1;",
+          "expect": "wal 1 one 2 two"
+        }
+      ]
+    },
+    {
+      "name": "wal6-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;\n    INSERT INTO t1 VALUES(3, 'three');",
+          "expect": "1 one 2 two",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal6-2.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES('x', 'x')",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "wal6-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;\n  COMMIT;\n  INSERT INTO t1 VALUES('x', 'x')",
+          "expect": "1 one 2 two"
+        }
+      ]
+    },
+    {
+      "name": "wal6-2.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "wal6-2.6.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "wal6-2.6.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('x', 'x')",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal6-2.6.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('y', 'y')"
+        }
+      ]
+    },
+    {
+      "name": "wal6-2.6.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "test3",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "all_journal_modes": "delete persist truncate memory off",
+            "jmode": "off",
+            "testdir": "",
+            "testprefix": "wal6"
+          },
+          "functionProc": "test3",
+          "functionArgs": [
+            "prefix"
+          ],
+          "functionBody": "\n  do_test $prefix.1 {\n    execsql { SELECT count(*) FROM t1 } \n  } {0}\n  do_test $prefix.2 {\n    execsql { INSERT INTO t1 VALUES('x', 'x') } db2\n  } {}\n  do_test $prefix.3 {\n    execsql { INSERT INTO t1 VALUES('y', 'y') }\n  } {}\n  do_test $prefix.4 {\n    execsql { SELECT count(*) FROM t1 } \n  } {2}\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "wal6-2.6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test3('2.6.4')"
+        }
+      ]
+    },
+    {
+      "name": "wal6-2.x",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal6-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n  CREATE TABLE ab(a PRIMARY KEY, b);",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "wal6-3.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO ab VALUES(1, 2);",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal6-3.2.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "BEGIN IMMEDIATE",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "wal6-3.2.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal6-3.2.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN IMMEDIATE"
+        }
+      ]
+    },
+    {
+      "name": "wal6-3.2.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "test4",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "all_journal_modes": "delete persist truncate memory off",
+            "jmode": "off",
+            "testdir": "",
+            "testprefix": "wal6"
+          },
+          "functionProc": "test4",
+          "functionArgs": [
+            "prefix"
+          ],
+          "functionBody": "\n  do_test $prefix.1 {\n    catchsql { BEGIN IMMEDIATE }\n  } {1 {database is locked}}\n\n  do_test $prefix.2 {\n    execsql { COMMIT } db2\n  } {}\n\n  do_test $prefix.3 {\n    execsql { BEGIN IMMEDIATE }\n  } {}\n  do_test $prefix.4 {\n    execsql { COMMIT }\n  } {}\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "wal6-3.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO ab VALUES(3, 4);",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test4('3.3.2')"
+        }
+      ]
+    },
+    {
+      "name": "wal6-3.x",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "wal6-4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size = 1024;\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  PRAGMA wal_checkpoint = truncate;",
+          "expect": "wal 0 0 0"
+        }
+      ]
+    },
+    {
+      "name": "wal6-4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 2)"
+        }
+      ]
+    },
+    {
+      "name": "wal6-4.3",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t2 VALUES(3, 4);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint = passive",
+          "expect": "0 1 1",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db-wal",
+          "fileData": "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          "fileTarget": "test.db-wal"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal6-4.4.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {1 2}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal6-4.4.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2",
+          "expect": "1 {database disk image is malformed}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_12",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_13",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal6-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "wal6-5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database is locked} SQLITE_BUSY_SNAPSHOT"
+        }
+      ]
+    }
+  ]
+}

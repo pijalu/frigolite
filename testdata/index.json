@@ -35,6 +35,13 @@
       "name": "index-1.1c",
       "steps": [
         {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "exec",
           "sql": "SELECT name, sql, tbl_name, type FROM sqlite_master \n           WHERE name='index1'",
           "expect": "index1 {CREATE INDEX index1 ON test1(f1)} test1 index"
@@ -44,6 +51,13 @@
     {
       "name": "index-1.1d",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
         {
           "type": "exec",
           "sql": "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name",
@@ -70,6 +84,9 @@
         {
           "type": "catch",
           "sql": "CREATE INDEX index1 ON test1(f1)",
+          "variable": "v",
+          "catchResult": true,
+          "catchMessage": "msg",
           "expect": "1 {no such table: main.test1}"
         }
       ]
@@ -84,6 +101,9 @@
         {
           "type": "catch",
           "sql": "CREATE INDEX index1 ON test1(f4)",
+          "variable": "v",
+          "catchResult": true,
+          "catchMessage": "msg",
           "expect": "1 {no such column: f4}"
         }
       ]
@@ -93,7 +113,10 @@
       "steps": [
         {
           "type": "catch",
-          "sql": "CREATE INDEX index1 ON test1(f1, f2, f4, f3)"
+          "sql": "CREATE INDEX index1 ON test1(f1, f2, f4, f3)",
+          "variable": "v",
+          "catchResult": true,
+          "catchMessage": "msg"
         },
         {
           "type": "exec",
@@ -111,404 +134,404 @@
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 1 ON test1(f2)"
+          "sql": "CREATE INDEX index01 ON test1(f2)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 2 ON test1(f3)"
+          "sql": "CREATE INDEX index02 ON test1(f3)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 3 ON test1(f4)"
+          "sql": "CREATE INDEX index03 ON test1(f4)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 4 ON test1(f5)"
+          "sql": "CREATE INDEX index04 ON test1(f5)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 5 ON test1(f1)"
+          "sql": "CREATE INDEX index05 ON test1(f1)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 6 ON test1(f2)"
+          "sql": "CREATE INDEX index06 ON test1(f2)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 7 ON test1(f3)"
+          "sql": "CREATE INDEX index07 ON test1(f3)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 8 ON test1(f4)"
+          "sql": "CREATE INDEX index08 ON test1(f4)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 9 ON test1(f5)"
+          "sql": "CREATE INDEX index09 ON test1(f5)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 10 ON test1(f1)"
+          "sql": "CREATE INDEX index10 ON test1(f1)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 11 ON test1(f2)"
+          "sql": "CREATE INDEX index11 ON test1(f2)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 12 ON test1(f3)"
+          "sql": "CREATE INDEX index12 ON test1(f3)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 13 ON test1(f4)"
+          "sql": "CREATE INDEX index13 ON test1(f4)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 14 ON test1(f5)"
+          "sql": "CREATE INDEX index14 ON test1(f5)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 15 ON test1(f1)"
+          "sql": "CREATE INDEX index15 ON test1(f1)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 16 ON test1(f2)"
+          "sql": "CREATE INDEX index16 ON test1(f2)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 17 ON test1(f3)"
+          "sql": "CREATE INDEX index17 ON test1(f3)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 18 ON test1(f4)"
+          "sql": "CREATE INDEX index18 ON test1(f4)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 19 ON test1(f5)"
+          "sql": "CREATE INDEX index19 ON test1(f5)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 20 ON test1(f1)"
+          "sql": "CREATE INDEX index20 ON test1(f1)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 21 ON test1(f2)"
+          "sql": "CREATE INDEX index21 ON test1(f2)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 22 ON test1(f3)"
+          "sql": "CREATE INDEX index22 ON test1(f3)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 23 ON test1(f4)"
+          "sql": "CREATE INDEX index23 ON test1(f4)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 24 ON test1(f5)"
+          "sql": "CREATE INDEX index24 ON test1(f5)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 25 ON test1(f1)"
+          "sql": "CREATE INDEX index25 ON test1(f1)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 26 ON test1(f2)"
+          "sql": "CREATE INDEX index26 ON test1(f2)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 27 ON test1(f3)"
+          "sql": "CREATE INDEX index27 ON test1(f3)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 28 ON test1(f4)"
+          "sql": "CREATE INDEX index28 ON test1(f4)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 29 ON test1(f5)"
+          "sql": "CREATE INDEX index29 ON test1(f5)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 30 ON test1(f1)"
+          "sql": "CREATE INDEX index30 ON test1(f1)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 31 ON test1(f2)"
+          "sql": "CREATE INDEX index31 ON test1(f2)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 32 ON test1(f3)"
+          "sql": "CREATE INDEX index32 ON test1(f3)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 33 ON test1(f4)"
+          "sql": "CREATE INDEX index33 ON test1(f4)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 34 ON test1(f5)"
+          "sql": "CREATE INDEX index34 ON test1(f5)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 35 ON test1(f1)"
+          "sql": "CREATE INDEX index35 ON test1(f1)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 36 ON test1(f2)"
+          "sql": "CREATE INDEX index36 ON test1(f2)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 37 ON test1(f3)"
+          "sql": "CREATE INDEX index37 ON test1(f3)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 38 ON test1(f4)"
+          "sql": "CREATE INDEX index38 ON test1(f4)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 39 ON test1(f5)"
+          "sql": "CREATE INDEX index39 ON test1(f5)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 40 ON test1(f1)"
+          "sql": "CREATE INDEX index40 ON test1(f1)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 41 ON test1(f2)"
+          "sql": "CREATE INDEX index41 ON test1(f2)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 42 ON test1(f3)"
+          "sql": "CREATE INDEX index42 ON test1(f3)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 43 ON test1(f4)"
+          "sql": "CREATE INDEX index43 ON test1(f4)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 44 ON test1(f5)"
+          "sql": "CREATE INDEX index44 ON test1(f5)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 45 ON test1(f1)"
+          "sql": "CREATE INDEX index45 ON test1(f1)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 46 ON test1(f2)"
+          "sql": "CREATE INDEX index46 ON test1(f2)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 47 ON test1(f3)"
+          "sql": "CREATE INDEX index47 ON test1(f3)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 48 ON test1(f4)"
+          "sql": "CREATE INDEX index48 ON test1(f4)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 49 ON test1(f5)"
+          "sql": "CREATE INDEX index49 ON test1(f5)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 50 ON test1(f1)"
+          "sql": "CREATE INDEX index50 ON test1(f1)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 51 ON test1(f2)"
+          "sql": "CREATE INDEX index51 ON test1(f2)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 52 ON test1(f3)"
+          "sql": "CREATE INDEX index52 ON test1(f3)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 53 ON test1(f4)"
+          "sql": "CREATE INDEX index53 ON test1(f4)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 54 ON test1(f5)"
+          "sql": "CREATE INDEX index54 ON test1(f5)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 55 ON test1(f1)"
+          "sql": "CREATE INDEX index55 ON test1(f1)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 56 ON test1(f2)"
+          "sql": "CREATE INDEX index56 ON test1(f2)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 57 ON test1(f3)"
+          "sql": "CREATE INDEX index57 ON test1(f3)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 58 ON test1(f4)"
+          "sql": "CREATE INDEX index58 ON test1(f4)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 59 ON test1(f5)"
+          "sql": "CREATE INDEX index59 ON test1(f5)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 60 ON test1(f1)"
+          "sql": "CREATE INDEX index60 ON test1(f1)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 61 ON test1(f2)"
+          "sql": "CREATE INDEX index61 ON test1(f2)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 62 ON test1(f3)"
+          "sql": "CREATE INDEX index62 ON test1(f3)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 63 ON test1(f4)"
+          "sql": "CREATE INDEX index63 ON test1(f4)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 64 ON test1(f5)"
+          "sql": "CREATE INDEX index64 ON test1(f5)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 65 ON test1(f1)"
+          "sql": "CREATE INDEX index65 ON test1(f1)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 66 ON test1(f2)"
+          "sql": "CREATE INDEX index66 ON test1(f2)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 67 ON test1(f3)"
+          "sql": "CREATE INDEX index67 ON test1(f3)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 68 ON test1(f4)"
+          "sql": "CREATE INDEX index68 ON test1(f4)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 69 ON test1(f5)"
+          "sql": "CREATE INDEX index69 ON test1(f5)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 70 ON test1(f1)"
+          "sql": "CREATE INDEX index70 ON test1(f1)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 71 ON test1(f2)"
+          "sql": "CREATE INDEX index71 ON test1(f2)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 72 ON test1(f3)"
+          "sql": "CREATE INDEX index72 ON test1(f3)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 73 ON test1(f4)"
+          "sql": "CREATE INDEX index73 ON test1(f4)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 74 ON test1(f5)"
+          "sql": "CREATE INDEX index74 ON test1(f5)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 75 ON test1(f1)"
+          "sql": "CREATE INDEX index75 ON test1(f1)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 76 ON test1(f2)"
+          "sql": "CREATE INDEX index76 ON test1(f2)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 77 ON test1(f3)"
+          "sql": "CREATE INDEX index77 ON test1(f3)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 78 ON test1(f4)"
+          "sql": "CREATE INDEX index78 ON test1(f4)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 79 ON test1(f5)"
+          "sql": "CREATE INDEX index79 ON test1(f5)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 80 ON test1(f1)"
+          "sql": "CREATE INDEX index80 ON test1(f1)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 81 ON test1(f2)"
+          "sql": "CREATE INDEX index81 ON test1(f2)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 82 ON test1(f3)"
+          "sql": "CREATE INDEX index82 ON test1(f3)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 83 ON test1(f4)"
+          "sql": "CREATE INDEX index83 ON test1(f4)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 84 ON test1(f5)"
+          "sql": "CREATE INDEX index84 ON test1(f5)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 85 ON test1(f1)"
+          "sql": "CREATE INDEX index85 ON test1(f1)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 86 ON test1(f2)"
+          "sql": "CREATE INDEX index86 ON test1(f2)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 87 ON test1(f3)"
+          "sql": "CREATE INDEX index87 ON test1(f3)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 88 ON test1(f4)"
+          "sql": "CREATE INDEX index88 ON test1(f4)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 89 ON test1(f5)"
+          "sql": "CREATE INDEX index89 ON test1(f5)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 90 ON test1(f1)"
+          "sql": "CREATE INDEX index90 ON test1(f1)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 91 ON test1(f2)"
+          "sql": "CREATE INDEX index91 ON test1(f2)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 92 ON test1(f3)"
+          "sql": "CREATE INDEX index92 ON test1(f3)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 93 ON test1(f4)"
+          "sql": "CREATE INDEX index93 ON test1(f4)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 94 ON test1(f5)"
+          "sql": "CREATE INDEX index94 ON test1(f5)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 95 ON test1(f1)"
+          "sql": "CREATE INDEX index95 ON test1(f1)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 96 ON test1(f2)"
+          "sql": "CREATE INDEX index96 ON test1(f2)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 97 ON test1(f3)"
+          "sql": "CREATE INDEX index97 ON test1(f3)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 98 ON test1(f4)"
+          "sql": "CREATE INDEX index98 ON test1(f4)"
         },
         {
           "type": "exec",
-          "sql": "CREATE INDEX 99 ON test1(f5)"
+          "sql": "CREATE INDEX index99 ON test1(f5)"
         },
         {
           "type": "exec",
           "sql": "SELECT name FROM sqlite_master \n           WHERE type='index' AND tbl_name='test1'\n           ORDER BY name",
-          "expect": "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99"
+          "expect": "index01 index02 index03 index04 index05 index06 index07 index08 index09 index10 index11 index12 index13 index14 index15 index16 index17 index18 index19 index20 index21 index22 index23 index24 index25 index26 index27 index28 index29 index30 index31 index32 index33 index34 index35 index36 index37 index38 index39 index40 index41 index42 index43 index44 index45 index46 index47 index48 index49 index50 index51 index52 index53 index54 index55 index56 index57 index58 index59 index60 index61 index62 index63 index64 index65 index66 index67 index68 index69 index70 index71 index72 index73 index74 index75 index76 index77 index78 index79 index80 index81 index82 index83 index84 index85 index86 index87 index88 index89 index90 index91 index92 index93 index94 index95 index96 index97 index98 index99"
         }
       ]
     },
@@ -777,6 +800,9 @@
         {
           "type": "catch",
           "sql": "CREATE INDEX index1 ON sqlite_master(name)",
+          "variable": "v",
+          "catchResult": true,
+          "catchMessage": "msg",
           "expect": "1 {table sqlite_master may not be indexed}"
         }
       ]
@@ -808,6 +834,9 @@
         {
           "type": "catch",
           "sql": "CREATE INDEX index1 ON test2(g1)",
+          "variable": "v",
+          "catchResult": true,
+          "catchMessage": "msg",
           "expect": "1 {index index1 already exists}"
         }
       ]
@@ -817,7 +846,7 @@
       "steps": [
         {
           "type": "catch",
-          "sql": "CREATE INDEX 0 {} ON test2(g1)",
+          "sql": "CREATE INDEX [index1] ON test2(g1)",
           "expect": "1 {index index1 already exists}"
         }
       ]
@@ -848,6 +877,9 @@
         {
           "type": "catch",
           "sql": "CREATE INDEX test1 ON test2(g1)",
+          "variable": "v",
+          "catchResult": true,
+          "catchMessage": "msg",
           "expect": "1 {there is already a table named test1}"
         }
       ]
@@ -1017,6 +1049,9 @@
         {
           "type": "catch",
           "sql": "DROP INDEX index1",
+          "variable": "v",
+          "catchResult": true,
+          "catchMessage": "msg",
           "expect": "1 {no such index: index1}"
         }
       ]
@@ -1107,7 +1142,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM t1 WHERE b = 2 OR b = 4 OR b = 6 OR b = 8;"
+          "sql": "DELETE FROM t1 WHERE b IN (2, 4, 6, 8);"
         },
         {
           "type": "exec",
@@ -1443,8 +1478,10 @@
       "name": "index-13.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='t5';",
+          "variable": "idxlist",
+          "resultAll": true,
           "expect": "3"
         }
       ]
@@ -1454,17 +1491,7 @@
       "steps": [
         {
           "type": "catch",
-          "sql": "DROP INDEX '0';",
-          "expect": "1 {index associated with UNIQUE or PRIMARY KEY constraint cannot be dropped}"
-        }
-      ]
-    },
-    {
-      "name": "index-13.3.1",
-      "steps": [
-        {
-          "type": "catch",
-          "sql": "DROP INDEX '0';",
+          "sql": "DROP INDEX '$::idxlist';",
           "expect": "1 {index associated with UNIQUE or PRIMARY KEY constraint cannot be dropped}"
         }
       ]
@@ -1725,6 +1752,15 @@
           "type": "catch",
           "sql": "CREATE TABLE sqlite_t1(a, b, c);",
           "expect": "1 {object name reserved for internal use: sqlite_t1}"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "0"
         }
       ]
     },

@@ -1,0 +1,71 @@
+{
+  "file": "dbpagefault.test",
+  "name": "dbpagefault",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "dbpagefault-3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(z, b);\n  CREATE TRIGGER BEFORE INSERT ON x1 BEGIN\n    DELETE FROM sqlite_dbpage WHERE pgno=100;\n    UPDATE sqlite_dbpage SET data=null WHERE pgno=100;\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "dbpagefault-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA trusted_schema = 1;"
+        }
+      ]
+    },
+    {
+      "name": "dbpagefault-3.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "PRAGMA trusted_schema = 1;\n  INSERT INTO x1 DEFAULT VALUES;",
+          "expect": "1 {unsafe use of virtual table \"sqlite_dbpage\"}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "dbpagefault-4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('one');\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('two');\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.x1(x);"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT max(rootpage) FROM sqlite_schema",
+          "variable": "pgno"
+        }
+      ]
+    }
+  ]
+}

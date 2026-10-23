@@ -1,9 +1,428 @@
 {
   "file": "minmax4.test",
   "name": "minmax4",
+  "ordered": true,
   "tests": [
     {
-      "name": "4.0",
+      "name": "minmax4-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(p,q);\n    SELECT p, max(q) FROM t1;",
+          "expect": "{} {}"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT p, min(q) FROM t1;",
+          "expect": "{} {}"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,2);\n    SELECT p, max(q) FROM t1;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT p, min(q) FROM t1;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,4);\n    SELECT p, max(q) FROM t1;",
+          "expect": "3 4"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT p, min(q) FROM t1;\n    SELECT p FROM (SELECT p, min(q) FROM t1);",
+          "expect": "1 2 1"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,0);\n    SELECT p, max(q) FROM t1;\n    SELECT p FROM (SELECT max(q), p FROM t1);",
+          "expect": "3 4 3"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT p, min(q) FROM t1;",
+          "expect": "5 0"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-1.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,1);\n    SELECT p, max(q) FROM t1;\n    SELECT p FROM (SELECT max(q), p FROM t1);",
+          "expect": "3 4 3"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT p, min(q) FROM t1;",
+          "expect": "5 0"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-1.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(7,NULL);\n    SELECT p, max(q) FROM t1;",
+          "expect": "3 4"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-1.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT p, min(q) FROM t1;",
+          "expect": "5 0"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-1.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE q IS NOT NULL;\n    SELECT p, max(q) FROM t1;",
+          "expect": "7 {}"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-1.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT p, min(q) FROM t1;",
+          "expect": "7 {}"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES\n         (1,null,2),\n         (1,2,3),\n         (1,1,4),\n         (2,3,5);\n    SELECT a, max(b), c FROM t2 GROUP BY a ORDER BY a;",
+          "expect": "1 2 3 2 3 5"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, min(b), c FROM t2 GROUP BY a ORDER BY a;",
+          "expect": "1 1 4 2 3 5"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, min(b), avg(b), count(b), c FROM t2 GROUP BY a ORDER BY a DESC;",
+          "expect": "2 3 3.0 1 5 1 1 1.5 2 4"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, min(b), max(b), c FROM t2 GROUP BY a ORDER BY a;",
+          "expect": "1 1 2 3 2 3 3 5"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, max(b), min(b), c FROM t2 GROUP BY a ORDER BY a;",
+          "expect": "1 2 1 4 2 3 3 5"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, max(b), b, max(c), c FROM t2 GROUP BY a ORDER BY a;",
+          "expect": "1 2 1 4 4 2 3 3 5 5"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, min(b), b, min(c), c FROM t2 GROUP BY a ORDER BY a;",
+          "expect": "1 1 {} 2 2 2 3 3 5 5"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "minmax4-3.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(NULL, 1);"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(a)"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-3.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT min(a), b FROM t1;",
+          "expect": "{} 1"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-3.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT min(a), b FROM t1 WHERE a\u003c50;",
+          "expect": "{} {}"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-3.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2, 2);"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-3.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT min(a), b FROM t1;",
+          "expect": "2 2"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-3.1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT min(a), b FROM t1 WHERE a\u003c50;",
+          "expect": "2 2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "minmax4-3.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(NULL, 1);"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(a DESC)"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-3.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT min(a), b FROM t1;",
+          "expect": "{} 1"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-3.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT min(a), b FROM t1 WHERE a\u003c50;",
+          "expect": "{} {}"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-3.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2, 2);"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-3.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT min(a), b FROM t1;",
+          "expect": "2 2"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-3.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT min(a), b FROM t1 WHERE a\u003c50;",
+          "expect": "2 2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "minmax4-3.3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(NULL, 1);"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-3.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT min(a), b FROM t1;",
+          "expect": "{} 1"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-3.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT min(a), b FROM t1 WHERE a\u003c50;",
+          "expect": "{} {}"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-3.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2, 2);"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-3.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT min(a), b FROM t1;",
+          "expect": "2 2"
+        }
+      ]
+    },
+    {
+      "name": "minmax4-3.3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT min(a), b FROM t1 WHERE a\u003c50;",
+          "expect": "2 2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "minmax4-4.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +431,7 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "minmax4-4.1",
       "steps": [
         {
           "type": "query",
@@ -22,7 +441,11 @@
       ]
     },
     {
-      "name": "5.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "minmax4-5.0",
       "steps": [
         {
           "type": "exec",
@@ -31,7 +454,7 @@
       ]
     },
     {
-      "name": "5.1",
+      "name": "minmax4-5.1",
       "steps": [
         {
           "type": "query",
@@ -41,7 +464,11 @@
       ]
     },
     {
-      "name": "6.1.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "minmax4-6.1.0",
       "steps": [
         {
           "type": "exec",
@@ -50,7 +477,7 @@
       ]
     },
     {
-      "name": "6.1.1",
+      "name": "minmax4-6.1.1",
       "steps": [
         {
           "type": "query",
@@ -60,7 +487,7 @@
       ]
     },
     {
-      "name": "6.1.2",
+      "name": "minmax4-6.1.2",
       "steps": [
         {
           "type": "exec",
@@ -69,7 +496,7 @@
       ]
     },
     {
-      "name": "6.1.3",
+      "name": "minmax4-6.1.3",
       "steps": [
         {
           "type": "query",
@@ -79,7 +506,7 @@
       ]
     },
     {
-      "name": "6.2.0",
+      "name": "minmax4-6.2.0",
       "steps": [
         {
           "type": "exec",
@@ -88,7 +515,7 @@
       ]
     },
     {
-      "name": "6.2.1",
+      "name": "minmax4-6.2.1",
       "steps": [
         {
           "type": "query",
@@ -98,120 +525,12 @@
       ]
     },
     {
-      "name": "6.2.2",
+      "name": "minmax4-6.2.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT v0.c0, MIN(v0.c1) FROM v0;",
           "expect": "0 {}"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(p,q);\n    SELECT p, max(q) FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT p, min(q) FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(1,2);\n    SELECT p, max(q) FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT p, min(q) FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(3,4);\n    SELECT p, max(q) FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT p, min(q) FROM t1;\n    SELECT p FROM (SELECT p, min(q) FROM t1);"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(5,0);\n    SELECT p, max(q) FROM t1;\n    SELECT p FROM (SELECT max(q), p FROM t1);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT p, min(q) FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(6,1);\n    SELECT p, max(q) FROM t1;\n    SELECT p FROM (SELECT max(q), p FROM t1);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT p, min(q) FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(7,NULL);\n    SELECT p, max(q) FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT p, min(q) FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE q IS NOT NULL;\n    SELECT p, max(q) FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT p, min(q) FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES\n         (1,null,2),\n         (1,2,3),\n         (1,1,4),\n         (2,3,5);\n    SELECT a, max(b), c FROM t2 GROUP BY a ORDER BY a;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, min(b), c FROM t2 GROUP BY a ORDER BY a;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, min(b), avg(b), count(b), c FROM t2 GROUP BY a ORDER BY a DESC;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, min(b), max(b), c FROM t2 GROUP BY a ORDER BY a;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, max(b), min(b), c FROM t2 GROUP BY a ORDER BY a;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, max(b), b, max(c), c FROM t2 GROUP BY a ORDER BY a;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, min(b), b, min(c), c FROM t2 GROUP BY a ORDER BY a;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

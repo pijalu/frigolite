@@ -199,4 +199,3 @@ func indexSeekCurrentCell(run *indexSeekRun, cursor *btree.Cursor) (*storage.Cel
 	}
 	return cell, true, true
 }
-

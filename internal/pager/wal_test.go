@@ -31,8 +31,6 @@ import (
 // SQLite-format compatible.
 // ---------------------------------------------------------------------------
 
-// newFilePager opens a file-backed pager at a temp path (required for WAL,
-// which needs a "-wal"/"-shm" companion and recovery on reopen).
 func newFilePager(t *testing.T) (*Pager, string) {
 	t.Helper()
 	dir := t.TempDir()
@@ -178,6 +176,75 @@ func TestWalCrashRecovery(t *testing.T) {
 	if string(rec.Data[100:104]) != "t1-a" {
 		t.Fatalf("recovered page 1 data = %q, want t1-a", rec.Data[100:104])
 	}
+}
+
+func TestWalCacheFlushSpillsUncommittedFramesAndRollbackRewinds(t *testing.T) {
+	p, _ := newFilePager(t)
+	defer p.Close()
+	if err := p.SetJournalMode("wal"); err != nil {
+		t.Fatal(err)
+	}
+	pg := p.AllocatePage()
+	copy(pg.Data[100:], []byte("before"))
+	if err := p.WritePage(pg); err != nil {
+		t.Fatal(err)
+	}
+	if err := p.Flush(); err != nil {
+		t.Fatal(err)
+	}
+	baseSize := p.WalFileSize()
+	baseCommit := LastCommitFrame(readWalFramesMust(t, p))
+	snapshot := p.Snapshot()
+	pg, err := p.ReadPage(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	p.PrepareWrite(pg)
+	copy(pg.Data[100:], []byte("after!"))
+	if err := p.WritePage(pg); err != nil {
+		t.Fatal(err)
+	}
+	if err := p.CacheFlush(); err != nil {
+		t.Fatal(err)
+	}
+	frames := readWalFramesMust(t, p)
+	if p.WalFileSize() <= baseSize {
+		t.Fatal("cacheflush did not append WAL spill frame")
+	}
+	if got := LastCommitFrame(frames); got != baseCommit {
+		t.Fatalf("spill published commit frame %d, want %d", got, baseCommit)
+	}
+	p.Restore(snapshot)
+	if got := p.WalFileSize(); got != baseSize {
+		t.Fatalf("rollback WAL size=%d, want %d", got, baseSize)
+	}
+	pg, err = p.ReadPage(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	p.PrepareWrite(pg)
+	copy(pg.Data[100:], []byte("commit"))
+	if err := p.WritePage(pg); err != nil {
+		t.Fatal(err)
+	}
+	if err := p.CacheFlush(); err != nil {
+		t.Fatal(err)
+	}
+	if err := p.Flush(); err != nil {
+		t.Fatal(err)
+	}
+	if got := LastCommitFrame(readWalFramesMust(t, p)); got <= baseCommit {
+		t.Fatalf("commit frame=%d, want > %d", got, baseCommit)
+	}
+}
+
+func readWalFramesMust(t *testing.T, p *Pager) []WalFrame {
+	t.Helper()
+	frames, err := readWalFrames(t, p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return frames
 }
 
 // TestWalRecoverDiscardsPartial verifies that frames written WITHOUT a commit

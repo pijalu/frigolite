@@ -18,7 +18,12 @@ import (
 //   - CREATE TABLE ... AS SELECT parses but is rejected →
 //     "declare_vtab: SQL logic error";
 //   - valid schemas expose their declared columns.
-type TclCommandModule struct{}
+type TclCommandModule struct{ runtime TclCallbackRuntime }
+
+// NewTclCommandModuleWithRuntime creates a fixture-scoped Tcl callback module.
+func NewTclCommandModuleWithRuntime(runtime TclCallbackRuntime) *TclCommandModule {
+	return &TclCommandModule{runtime: runtime}
+}
 
 // NewTclCommandModule builds the tcl module.
 func NewTclCommandModule() *TclCommandModule { return &TclCommandModule{} }
@@ -29,7 +34,11 @@ func (m *TclCommandModule) Eponymous() bool { return true }
 
 // tclCmdVTab is one instance bound to a validated schema.
 type tclCmdVTab struct {
-	columns []string
+	columns    []string
+	types      []string
+	runtime    TclCallbackRuntime
+	procName   string
+	moduleArgs []string
 }
 
 // Create implements Module.
@@ -39,56 +48,62 @@ func (m *TclCommandModule) Create(args []string) (VirtualTable, error) {
 
 // Connect implements Module.
 func (m *TclCommandModule) Connect(args []string) (VirtualTable, error) {
+	if len(args) == 1 && m.runtime != nil {
+		words := moduleCommandWords(args[0])
+		if len(words) < 1 || !m.runtime.HasProc(words[0]) {
+			return nil, fmt.Errorf("wrong number of arguments")
+		}
+	}
 	return m.connect(args)
 }
 
 func (m *TclCommandModule) connect(args []string) (VirtualTable, error) {
-	procName := ""
+	moduleWords := []string(nil)
 	if len(args) > 0 {
-		procName = strings.TrimSpace(args[0])
+		moduleWords = moduleCommandWords(args[0])
 	}
-	schema := TclVarGet(procName, "")
+	if len(args) > 1 {
+		moduleWords = append(moduleWords, args[1:]...)
+	}
+	procName := ""
+	if len(moduleWords) > 0 {
+		procName = moduleWords[0]
+	}
+	moduleArgs := []string{}
+	if len(moduleWords) > 1 {
+		moduleArgs = append(moduleArgs, moduleWords[1:]...)
+	}
+	schema := ""
+	var err error
+	if m.runtime != nil {
+		schema, err = m.runtime.Connect(procName, moduleArgs)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		schema = TclVarGet(procName, "")
+		if schema == "" && len(args) > 0 {
+			schema = TclVarGet("create_table_sql", "")
+		}
+	}
 	if os.Getenv("CL_DBG") != "" {
-		fmt.Fprintf(os.Stderr, "TCLCMD proc=%q schema=%q\n", procName, schema)
-	}
-	if schema == "" && len(args) > 0 {
-		// Fallback: the transpiler may register the variable under its bare
-		// namespace-free name while the module arg carries a different
-		// proc name; try the conventional create_table_sql slot.
-		schema = TclVarGet("create_table_sql", "")
+		fmt.Fprintf(os.Stderr, "TCLCMD proc=%q schema=%q\\n", procName, schema)
 	}
 	cols, err := classifyDeclareSchema(schema)
 	if err != nil {
 		return nil, err
 	}
-	return &tclCmdVTab{columns: cols}, nil
+	_, types, err := columnDefsFromSchema(schema)
+	if err != nil {
+		return nil, err
+	}
+	return &tclCmdVTab{columns: cols, types: types, runtime: m.runtime, procName: procName, moduleArgs: moduleArgs}, nil
 }
-
-// Columns implements ColumnInfo.
-func (v *tclCmdVTab) Columns() []string { return v.columns }
+func (v *tclCmdVTab) Columns() []string     { return v.columns }
+func (v *tclCmdVTab) ColumnTypes() []string { return v.types }
 
 // BestIndex accepts the default full-scan plan.
 func (v *tclCmdVTab) BestIndex(input []byte) ([]byte, error) { return nil, nil }
-
-// Open yields no rows: the tcl module has no data source of its own; scans
-// over it exist to exercise declare-time validation.
-func (v *tclCmdVTab) Open() (Cursor, error) {
-	return &emptyCursor{}, nil
-}
-
-// emptyCursor is a cursor over zero rows.
-type emptyCursor struct{}
-
-// Next implements Cursor.
-func (c *emptyCursor) Next() bool { return false }
-
-// Column implements Cursor.
-func (c *emptyCursor) Column(idx int) (interface{}, error) {
-	return nil, fmt.Errorf("no row")
-}
-
-// Close implements Cursor.
-func (c *emptyCursor) Close() error { return nil }
 
 // classifyDeclareSchema emulates sqlite3DeclareVTab's acceptance rules and
 // extracts the declared column names:

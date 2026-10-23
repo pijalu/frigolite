@@ -1,21 +1,13 @@
 {
   "file": "notnull.test",
   "name": "notnull",
+  "ordered": true,
   "tests": [
-    {
-      "name": "notnull-6.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a UNIQUE);\n  CREATE TABLE t2(a NOT NULL UNIQUE);\n  CREATE TABLE t3(a UNIQUE NOT NULL);\n  CREATE TABLE t4(a NOT NULL);\n  CREATE UNIQUE INDEX t4a ON t4(a);\n\n  CREATE TABLE t5(a PRIMARY KEY);\n  CREATE TABLE t6(a PRIMARY KEY NOT NULL);\n  CREATE TABLE t7(a NOT NULL PRIMARY KEY);\n  CREATE TABLE t8(a PRIMARY KEY) WITHOUT ROWID;\n\n  CREATE TABLE t9(a PRIMARY KEY UNIQUE NOT NULL);\n  CREATE TABLE t10(a UNIQUE PRIMARY KEY NOT NULL);"
-        }
-      ]
-    },
     {
       "name": "notnull-1.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "CREATE TABLE t1 (\n      a NOT NULL,\n      b NOT NULL DEFAULT 5,\n      c NOT NULL ON CONFLICT REPLACE DEFAULT 6,\n      d NOT NULL ON CONFLICT IGNORE DEFAULT 7,\n      e NOT NULL ON CONFLICT ABORT DEFAULT 8\n    );\n    SELECT * FROM t1;"
         }
       ]
@@ -24,7 +16,7 @@
       "name": "notnull-1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {1 2 3 4 5}"
         }
@@ -34,7 +26,7 @@
       "name": "notnull-1.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "1 {NOT NULL constraint failed: t1.a}"
         }
@@ -44,7 +36,7 @@
       "name": "notnull-1.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {}"
         }
@@ -54,7 +46,7 @@
       "name": "notnull-1.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "1 {NOT NULL constraint failed: t1.a}"
         }
@@ -64,7 +56,7 @@
       "name": "notnull-1.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR ABORT INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "1 {NOT NULL constraint failed: t1.a}"
         }
@@ -74,7 +66,7 @@
       "name": "notnull-1.6",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {1 5 3 4 5}"
         }
@@ -84,7 +76,7 @@
       "name": "notnull-1.7",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {1 5 3 4 5}"
         }
@@ -94,7 +86,7 @@
       "name": "notnull-1.8",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {1 5 3 4 5}"
         }
@@ -104,7 +96,7 @@
       "name": "notnull-1.9",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {1 5 3 4 5}"
         }
@@ -114,7 +106,7 @@
       "name": "notnull-1.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "1 {NOT NULL constraint failed: t1.b}"
         }
@@ -124,7 +116,7 @@
       "name": "notnull-1.11",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {}"
         }
@@ -134,7 +126,7 @@
       "name": "notnull-1.12",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {1 5 3 4 5}"
         }
@@ -144,7 +136,7 @@
       "name": "notnull-1.13",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {1 2 6 4 5}"
         }
@@ -154,7 +146,7 @@
       "name": "notnull-1.14",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {}"
         }
@@ -164,7 +156,7 @@
       "name": "notnull-1.15",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {1 2 6 4 5}"
         }
@@ -174,7 +166,7 @@
       "name": "notnull-1.16",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "1 {NOT NULL constraint failed: t1.c}"
         }
@@ -184,7 +176,7 @@
       "name": "notnull-1.17",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,d,e) VALUES(1,2,3,null,5);\n    SELECT * FROM t1 order by a;",
           "expect": "1 {NOT NULL constraint failed: t1.d}"
         }
@@ -194,7 +186,7 @@
       "name": "notnull-1.18",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,e) VALUES(1,2,3,5);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {1 2 3 7 5}"
         }
@@ -204,7 +196,7 @@
       "name": "notnull-1.19",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d) VALUES(1,2,3,4);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {1 2 3 4 8}"
         }
@@ -214,7 +206,7 @@
       "name": "notnull-1.20",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,null);\n    SELECT * FROM t1 order by a;",
           "expect": "1 {NOT NULL constraint failed: t1.e}"
         }
@@ -224,7 +216,7 @@
       "name": "notnull-1.21",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(e,d,c,b,a) VALUES(1,2,3,null,5);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {5 5 3 2 1}"
         }
@@ -234,7 +226,7 @@
       "name": "notnull-2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;",
           "expect": "1 {NOT NULL constraint failed: t1.a}"
         }
@@ -244,7 +236,7 @@
       "name": "notnull-2.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR REPLACE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;",
           "expect": "1 {NOT NULL constraint failed: t1.a}"
         }
@@ -254,7 +246,7 @@
       "name": "notnull-2.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR IGNORE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;",
           "expect": "0 {1 2 3 4 5}"
         }
@@ -264,7 +256,7 @@
       "name": "notnull-2.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR ABORT t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;",
           "expect": "1 {NOT NULL constraint failed: t1.a}"
         }
@@ -274,7 +266,7 @@
       "name": "notnull-2.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET b=null;\n    SELECT * FROM t1 ORDER BY a;",
           "expect": "1 {NOT NULL constraint failed: t1.b}"
         }
@@ -284,7 +276,7 @@
       "name": "notnull-2.6",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR REPLACE t1 SET b=null, d=e, e=d;\n    SELECT * FROM t1 ORDER BY a;",
           "expect": "0 {1 5 3 5 4}"
         }
@@ -294,7 +286,7 @@
       "name": "notnull-2.7",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR IGNORE t1 SET b=null, d=e, e=d;\n    SELECT * FROM t1 ORDER BY a;",
           "expect": "0 {1 2 3 4 5}"
         }
@@ -304,7 +296,7 @@
       "name": "notnull-2.8",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET c=null, d=e, e=d;\n    SELECT * FROM t1 ORDER BY a;",
           "expect": "0 {1 2 6 5 4}"
         }
@@ -314,7 +306,7 @@
       "name": "notnull-2.9",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET d=null, a=b, b=a;\n    SELECT * FROM t1 ORDER BY a;",
           "expect": "0 {1 2 3 4 5}"
         }
@@ -324,7 +316,7 @@
       "name": "notnull-2.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET e=null, a=b, b=a;\n    SELECT * FROM t1 ORDER BY a;",
           "expect": "1 {NOT NULL constraint failed: t1.e}"
         }
@@ -343,7 +335,7 @@
       "name": "notnull-3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {1 2 3 4 5}"
         }
@@ -353,7 +345,7 @@
       "name": "notnull-3.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "1 {NOT NULL constraint failed: t1.a}"
         }
@@ -363,7 +355,7 @@
       "name": "notnull-3.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {}"
         }
@@ -373,7 +365,7 @@
       "name": "notnull-3.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "1 {NOT NULL constraint failed: t1.a}"
         }
@@ -383,7 +375,7 @@
       "name": "notnull-3.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR ABORT INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "1 {NOT NULL constraint failed: t1.a}"
         }
@@ -393,7 +385,7 @@
       "name": "notnull-3.6",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {1 5 3 4 5}"
         }
@@ -403,7 +395,7 @@
       "name": "notnull-3.7",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {1 5 3 4 5}"
         }
@@ -413,7 +405,7 @@
       "name": "notnull-3.8",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {1 5 3 4 5}"
         }
@@ -423,7 +415,7 @@
       "name": "notnull-3.9",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {1 5 3 4 5}"
         }
@@ -433,7 +425,7 @@
       "name": "notnull-3.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "1 {NOT NULL constraint failed: t1.b}"
         }
@@ -443,7 +435,7 @@
       "name": "notnull-3.11",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {}"
         }
@@ -453,7 +445,7 @@
       "name": "notnull-3.12",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {1 5 3 4 5}"
         }
@@ -463,7 +455,7 @@
       "name": "notnull-3.13",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {1 2 6 4 5}"
         }
@@ -473,7 +465,7 @@
       "name": "notnull-3.14",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {}"
         }
@@ -483,7 +475,7 @@
       "name": "notnull-3.15",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {1 2 6 4 5}"
         }
@@ -493,7 +485,7 @@
       "name": "notnull-3.16",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;",
           "expect": "1 {NOT NULL constraint failed: t1.c}"
         }
@@ -503,7 +495,7 @@
       "name": "notnull-3.17",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,d,e) VALUES(1,2,3,null,5);\n    SELECT * FROM t1 order by a;",
           "expect": "1 {NOT NULL constraint failed: t1.d}"
         }
@@ -513,7 +505,7 @@
       "name": "notnull-3.18",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,e) VALUES(1,2,3,5);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {1 2 3 7 5}"
         }
@@ -523,7 +515,7 @@
       "name": "notnull-3.19",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d) VALUES(1,2,3,4);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {1 2 3 4 8}"
         }
@@ -533,7 +525,7 @@
       "name": "notnull-3.20",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,null);\n    SELECT * FROM t1 order by a;",
           "expect": "1 {NOT NULL constraint failed: t1.e}"
         }
@@ -543,7 +535,7 @@
       "name": "notnull-3.21",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(e,d,c,b,a) VALUES(1,2,3,null,5);\n    SELECT * FROM t1 order by a;",
           "expect": "0 {5 5 3 2 1}"
         }
@@ -553,7 +545,7 @@
       "name": "notnull-4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;",
           "expect": "1 {NOT NULL constraint failed: t1.a}"
         }
@@ -563,7 +555,7 @@
       "name": "notnull-4.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR REPLACE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;",
           "expect": "1 {NOT NULL constraint failed: t1.a}"
         }
@@ -573,7 +565,7 @@
       "name": "notnull-4.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR IGNORE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;",
           "expect": "0 {1 2 3 4 5}"
         }
@@ -583,7 +575,7 @@
       "name": "notnull-4.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR ABORT t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;",
           "expect": "1 {NOT NULL constraint failed: t1.a}"
         }
@@ -593,7 +585,7 @@
       "name": "notnull-4.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET b=null;\n    SELECT * FROM t1 ORDER BY a;",
           "expect": "1 {NOT NULL constraint failed: t1.b}"
         }
@@ -603,7 +595,7 @@
       "name": "notnull-4.6",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR REPLACE t1 SET b=null, d=e, e=d;\n    SELECT * FROM t1 ORDER BY a;",
           "expect": "0 {1 5 3 5 4}"
         }
@@ -613,7 +605,7 @@
       "name": "notnull-4.7",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR IGNORE t1 SET b=null, d=e, e=d;\n    SELECT * FROM t1 ORDER BY a;",
           "expect": "0 {1 2 3 4 5}"
         }
@@ -623,7 +615,7 @@
       "name": "notnull-4.8",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET c=null, d=e, e=d;\n    SELECT * FROM t1 ORDER BY a;",
           "expect": "0 {1 2 6 5 4}"
         }
@@ -633,7 +625,7 @@
       "name": "notnull-4.9",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET d=null, a=b, b=a;\n    SELECT * FROM t1 ORDER BY a;",
           "expect": "0 {1 2 3 4 5}"
         }
@@ -643,7 +635,7 @@
       "name": "notnull-4.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET e=null, a=b, b=a;\n    SELECT * FROM t1 ORDER BY a;",
           "expect": "1 {NOT NULL constraint failed: t1.e}"
         }
@@ -662,7 +654,7 @@
       "name": "notnull-5.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 SELECT * FROM t2;",
           "expect": "1 {NOT NULL constraint failed: t1.b}"
         }
@@ -672,7 +664,7 @@
       "name": "notnull-5.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM t1",
           "expect": "1 2"
         }
@@ -682,7 +674,7 @@
       "name": "notnull-5.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1;\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 SELECT * FROM t2;\n    COMMIT;",
           "expect": "1 {NOT NULL constraint failed: t1.b}"
         }
@@ -692,37 +684,122 @@
       "name": "notnull-5.5",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM t1",
           "expect": "1 2"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1 (\n      a NOT NULL,\n      b NOT NULL DEFAULT 5,\n      c NOT NULL ON CONFLICT REPLACE DEFAULT 6,\n      d NOT NULL ON CONFLICT IGNORE DEFAULT 7,\n      e NOT NULL ON CONFLICT ABORT DEFAULT 8\n    );\n    SELECT * FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n    CREATE INDEX t1c ON t1(c);\n    CREATE INDEX t1d ON t1(d);\n    CREATE INDEX t1e ON t1(e);\n    CREATE INDEX t1abc ON t1(a,b,c);"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(a, b NOT NULL);\n    CREATE TABLE t2(c, d);\n    INSERT INTO t2 VALUES(3, 4);\n    INSERT INTO t2 VALUES(5, NULL);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "notnull-6.0",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a UNIQUE);\n  CREATE TABLE t2(a NOT NULL UNIQUE);\n  CREATE TABLE t3(a UNIQUE NOT NULL);\n  CREATE TABLE t4(a NOT NULL);\n  CREATE UNIQUE INDEX t4a ON t4(a);\n\n  CREATE TABLE t5(a PRIMARY KEY);\n  CREATE TABLE t6(a PRIMARY KEY NOT NULL);\n  CREATE TABLE t7(a NOT NULL PRIMARY KEY);\n  CREATE TABLE t8(a PRIMARY KEY) WITHOUT ROWID;\n\n  CREATE TABLE t9(a PRIMARY KEY UNIQUE NOT NULL);\n  CREATE TABLE t10(a UNIQUE PRIMARY KEY NOT NULL);"
+        }
+      ]
+    },
+    {
+      "name": "notnull-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT * FROM t1 WHERE a IS ?",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "notnull-6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT * FROM t2 WHERE a IS ?",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "notnull-6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT * FROM t3 WHERE a IS ?",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "notnull-6.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT * FROM t4 WHERE a IS ?",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "notnull-6.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT * FROM t5 WHERE a IS ?",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "notnull-6.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT * FROM t6 WHERE a IS ?",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "notnull-6.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT * FROM t7 WHERE a IS ?",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "notnull-6.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT * FROM t8 WHERE a IS ?",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "notnull-6.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT * FROM t8 WHERE a IS ?",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "notnull-6.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT * FROM t8 WHERE a IS ?",
+          "expect": "0"
         }
       ]
     }

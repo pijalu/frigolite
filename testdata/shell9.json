@@ -1,9 +1,10 @@
 {
   "file": "shell9.test",
   "name": "shell9",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "shell9-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,38 @@
       ]
     },
     {
-      "name": "1.1.2",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "write_file",
+          "sql": "testdump.txt",
+          "fileData": "\n"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "shell9-1.1.2",
       "steps": [
         {
           "type": "query",
@@ -22,7 +54,11 @@
       ]
     },
     {
-      "name": "1.2.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "shell9-1.2.1",
       "steps": [
         {
           "type": "exec",
@@ -31,7 +67,46 @@
       ]
     },
     {
-      "name": "2.0.1",
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "shell9-2.0.1",
       "steps": [
         {
           "type": "exec",
@@ -40,7 +115,7 @@
       ]
     },
     {
-      "name": "2.1.1",
+      "name": "shell9-2.1.1",
       "steps": [
         {
           "type": "exec",
@@ -49,7 +124,11 @@
       ]
     },
     {
-      "name": "3.1.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "shell9-3.1.0",
       "steps": [
         {
           "type": "exec",
@@ -58,29 +137,26 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "setup_3",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "close_db"
+        },
+        {
+          "type": "write_file",
+          "sql": "testdump.txt",
+          "fileData": "\n"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "delete_file",
       "steps": [
         {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
+          "type": "delete_file",
+          "sql": "test.db"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

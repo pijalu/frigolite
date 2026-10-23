@@ -24,6 +24,11 @@ import (
 // number of member result columns converted; 0 means the optimization did
 // not apply and sub is left untouched. declared is the view's declared
 // column list (CREATE VIEW v(x,y) AS ...) when sub is a view body, else nil.
+// sourceNames lists the names under which sub is referenced by outer (a view
+// body's view name): join columns of a named-view source must be marked used
+// like a derived subquery's (markJoinSourceColumns), else a NATURAL/USING join
+// on the view NULLs the very column its generated condition reads. Nil for
+// derived subqueries, which match by AST pointer instead.
 //
 // The select.c eligibility conditions are mirrored: the compound chain may
 // only use UNION ALL, every member must be non-DISTINCT and free of
@@ -34,7 +39,7 @@ import (
 // iColumn on the subquery source and sets that colUsed bit) — and the
 // subquery's own ORDER BY columns are exempt (select.c marks iOrderByCol
 // columns in colUsed).
-func (e *SelectEngine) disableUnusedSubqueryColumns(outer *sql.SelectStmt, qualifiers []string, declared []string, sub *sql.SelectStmt) int {
+func (e *SelectEngine) disableUnusedSubqueryColumns(outer *sql.SelectStmt, qualifiers, sourceNames, declared []string, sub *sql.SelectStmt) int {
 	if outer == nil || sub == nil {
 		return 0
 	}
@@ -71,6 +76,7 @@ func (e *SelectEngine) disableUnusedSubqueryColumns(outer *sql.SelectStmt, quali
 		use.declaredNames = declared
 	}
 	use.markOuterReferences(outer)
+	use.markJoinSourceColumns(e, outer, sub, sourceNames)
 	use.markSubqueryOrderBy(sub)
 	return rewriteUnusedSubqueryColumns(members, expanded, use.used)
 }
@@ -335,18 +341,98 @@ func (u *subqueryColumnUse) markReferencedExpr(expr sql.Expr) {
 	u.markExprWalk(expr, u.markColumnRef)
 }
 
-// markOuterReferences marks the subquery output columns observed by the
-// outer statement's clauses and by the WINDOW-clause definitions its OVER
-// clauses reference.
+// markJoinSourceColumns marks the columns a USING/NATURAL join constrains
+// against sub's output: the join condition the executor later generates reads
+// those columns, so they must survive the omit-unused-column rewriting. A
+// source belongs to sub when it is the derived table itself (`ref.Subquery ==
+// sub`) or — for view bodies, which have no Subquery node — when its table
+// name or alias matches one of sourceNames. Over-matching only marks extra
+// columns used (shrinking the optimization), which is safe; under-matching
+// NULLs a constrained column and drops every joined row.
+func (u *subqueryColumnUse) markJoinSourceColumns(e *SelectEngine, outer, sub *sql.SelectStmt, sourceNames []string) {
+	if outer == nil || sub == nil {
+		return
+	}
+	isThisSource := func(ref sql.TableRef) bool {
+		if ref.Subquery != nil && ref.Subquery == sub {
+			return true
+		}
+		for _, n := range sourceNames {
+			if n == "" {
+				continue
+			}
+			if ref.Name != "" && strings.EqualFold(ref.Name, n) {
+				return true
+			}
+			if ref.As != "" && strings.EqualFold(ref.As, n) {
+				return true
+			}
+		}
+		return false
+	}
+	fromIsSubquery := isThisSource(outer.From)
+	subNames := e.subqueryJoinColNames(sub)
+	subNameSet := make(map[string]bool, len(subNames))
+	for _, name := range subNames {
+		subNameSet[strings.ToLower(name)] = true
+	}
+	refNames := func(ref sql.TableRef) []string {
+		if ref.Subquery != nil {
+			return e.subqueryJoinColNames(ref.Subquery)
+		}
+		names, _ := e.resolveTableColumnNames(outer, ref.Name)
+		return names
+	}
+	leftNames := make(map[string]bool)
+	for _, name := range refNames(outer.From) {
+		leftNames[strings.ToLower(name)] = true
+	}
+	for _, join := range outer.Joins {
+		rightNames := refNames(join.Table)
+		if isThisSource(join.Table) {
+			if isNaturalJoinType(join.JoinType) {
+				for name := range subNameSet {
+					if leftNames[name] {
+						u.markName(name)
+					}
+				}
+			} else {
+				for _, name := range join.Using {
+					if subNameSet[strings.ToLower(name)] {
+						u.markName(name)
+					}
+				}
+			}
+		}
+		if fromIsSubquery {
+			if isNaturalJoinType(join.JoinType) {
+				for _, name := range rightNames {
+					if subNameSet[strings.ToLower(name)] {
+						u.markName(name)
+					}
+				}
+			} else {
+				for _, name := range join.Using {
+					if subNameSet[strings.ToLower(name)] {
+						u.markName(name)
+					}
+				}
+			}
+		}
+		for _, name := range rightNames {
+			leftNames[strings.ToLower(name)] = true
+		}
+	}
+}
+
+// markOuterReferences marks the subquery output columns observed by outer clauses.
 func (u *subqueryColumnUse) markOuterReferences(outer *sql.SelectStmt) {
 	u.markClauseReferences(outer)
 	u.markReferencedNamedWindows(outer)
 }
 
-// markClauseReferences walks the column references of a statement's clauses
-// (columns, WHERE, join ONs, GROUP BY, HAVING, ORDER BY, LIMIT, OFFSET).
-// Shared with expression-subquery bodies, whose references resolve against
-// enclosing sources exactly like these clauses do.
+// markClauseReferences walks references in SELECT, WHERE, JOIN ON, GROUP BY,
+// HAVING, ORDER BY, LIMIT, OFFSET, and correlated expression subqueries.
 func (u *subqueryColumnUse) markClauseReferences(s *sql.SelectStmt) {
 	if s == nil {
 		return

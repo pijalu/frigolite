@@ -1,91 +1,133 @@
 {
   "file": "tclsqlite.test",
   "name": "tclsqlite",
+  "nullToken": "banunull",
+  "ordered": true,
   "tests": [
-    {
-      "name": "tcl-14.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t6(x);\n  INSERT INTO t6 VALUES(1);"
-        }
-      ]
-    },
-    {
-      "name": "tcl-16.100",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1,2),(2,NULL),(3,'xyz');"
-        }
-      ]
-    },
-    {
-      "name": "17.0",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT quote( add_i(2, 3) );\n  SELECT quote( add_r(2, 3) );\n  SELECT quote( add_t(2, 3) );\n  SELECT quote( add_b(2, 3) );\n  SELECT quote( add_a(2, 3) );",
-          "expect": "5 5.0 '5' X'35' 5"
-        }
-      ]
-    },
-    {
-      "name": "17.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT quote( add_i(2.2, 3.3) );\n  SELECT quote( add_r(2.2, 3.3) );\n  SELECT quote( add_t(2.2, 3.3) );\n  SELECT quote( add_b(2.2, 3.3) );\n  SELECT quote( add_a(2.2, 3.3) );",
-          "expect": "5.5 5.5 '5.5' X'352E35' 5.5"
-        }
-      ]
-    },
-    {
-      "name": "17.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT quote( ret_i(2.5) );\n  SELECT quote( ret_r(2.5) );\n  SELECT quote( ret_t(2.5) );\n  SELECT quote( ret_b(2.5) );\n  SELECT quote( ret_a(2.5) );",
-          "expect": "2.5 2.5 '2.5' X'322E35' 2.5"
-        }
-      ]
-    },
-    {
-      "name": "17.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT quote( ret_i('2.5') );\n  SELECT quote( ret_r('2.5') );\n  SELECT quote( ret_t('2.5') );\n  SELECT quote( ret_b('2.5') );\n  SELECT quote( ret_a('2.5') );",
-          "expect": "2.5 2.5 '2.5' X'322E35' '2.5'"
-        }
-      ]
-    },
-    {
-      "name": "17.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT quote( ret_i('abc') );\n  SELECT quote( ret_r('abc') );\n  SELECT quote( ret_t('abc') );\n  SELECT quote( ret_b('abc') );\n  SELECT quote( ret_a('abc') );",
-          "expect": "'abc' 'abc' 'abc' X'616263' 'abc'"
-        }
-      ]
-    },
-    {
-      "name": "17.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT quote( ret_i(X'616263') );\n  SELECT quote( ret_r(X'616263') );\n  SELECT quote( ret_t(X'616263') );\n  SELECT quote( ret_b(X'616263') );\n  SELECT quote( ret_a(X'616263') );",
-          "expect": "'abc' 'abc' 'abc' X'616263' X'616263'"
-        }
-      ]
-    },
     {
       "name": "tcl-1.3",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a int, b int)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(10,20)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "variable": "v",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "expect": "1 {The error message}"
+        }
+      ]
+    },
+    {
+      "name": "tcl-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2",
+          "variable": "v",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "expect": "1 {no such table: t2}"
+        }
+      ]
+    },
+    {
+      "name": "tcl-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "variable": "v",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "tcl-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "variable": "v",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "expect": "1 $msg"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "auth_proc",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "msg": "$msg",
+            "r": "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?",
+            "testdir": "",
+            "testprefix": "tcl",
+            "v": "0 $msg"
+          }
+        }
+      ]
+    },
+    {
+      "name": "tcl-1.23",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "variable": "v",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "expect": "1 {no such vfs: nosuchvfs}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "tcl-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tģx(a int, bስ float)"
+        }
+      ]
+    },
+    {
+      "name": "tcl-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(tģx)",
+          "expect": "0 a INT 0 {} 0 1 bስ float 0 {} 0"
+        }
+      ]
+    },
+    {
+      "name": "tcl-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tģx VALUES(1,2.3)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM tģx",
+          "expect": "a bስ"
         }
       ]
     },
@@ -95,6 +137,75 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1 SELECT a*2, b*2 FROM t1;\n    INSERT INTO t1 SELECT a*2+1, b*2+1 FROM t1;\n    INSERT INTO t1 SELECT a*2+3, b*2+3 FROM t1;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY a",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "expect": "0 10"
+        }
+      ]
+    },
+    {
+      "name": "tcl-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE a\u003c0"
+        }
+      ]
+    },
+    {
+      "name": "tcl-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT bogus",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "errmsg",
+          "expect": "1 {no such column: bogus}"
+        }
+      ]
+    },
+    {
+      "name": "tcl-3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE b\u003e50",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "expect": "0 41"
+        }
+      ]
+    },
+    {
+      "name": "tcl-3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE b\u003e500",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "tcl-3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(99,510);\n      SELECT * FROM t1 WHERE b\u003e500",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "expect": "0 99"
         }
       ]
     },
@@ -104,6 +215,11 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t3(a,b,c)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES('A','B',$::x(3));\n      SELECT * FROM t3",
+          "expect": "A B {}"
         }
       ]
     },
@@ -111,7 +227,7 @@
       "name": "tcl-5.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT typeof(a), typeof(b), typeof(c) FROM t3",
           "expect": "text text null"
         }
@@ -122,7 +238,12 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE t3 SET a=$::x;"
+          "sql": "UPDATE t3 SET a='';"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t3",
+          "expect": "686900686f00"
         }
       ]
     },
@@ -130,9 +251,78 @@
       "name": "tcl-5.4",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT typeof(a), typeof(b), typeof(c) FROM t3",
           "expect": "blob text null"
+        }
+      ]
+    },
+    {
+      "name": "tcl-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "10 20"
+        }
+      ]
+    },
+    {
+      "name": "tcl-6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "tcl-6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "tcl-6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "20"
+        }
+      ]
+    },
+    {
+      "name": "tcl-6.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "40"
+        }
+      ]
+    },
+    {
+      "name": "tcl-6.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "510"
+        }
+      ]
+    },
+    {
+      "name": "tcl-6.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1"
         }
       ]
     },
@@ -140,8 +330,120 @@
       "name": "tcl-8.1",
       "steps": [
         {
+          "type": "nullvalue",
+          "sql": "NaN"
+        },
+        {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(30,NULL)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE b IS NULL",
+          "expect": "30 NaN"
+        }
+      ]
+    },
+    {
+      "name": "tcl-8.2",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "concat",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "a": "500",
+            "b": "500",
+            "cnt": "0",
+            "errmsg": "$errmsg",
+            "msg": "$msg",
+            "r": "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?",
+            "rc": "$rc $msg",
+            "testdir": "",
+            "testprefix": "tcl",
+            "v": "$v $msg",
+            "x": "",
+            "x(1)": "A",
+            "x(2)": "B"
+          },
+          "functionProc": "concatFunc",
+          "functionArgs": [
+            "args"
+          ],
+          "functionBody": "return [join $args {}]",
+          "maxArgs": -1
+        },
+        {
+          "type": "query",
+          "sql": "SELECT concat('a', b, 'z') FROM t1 WHERE b is NULL",
+          "expect": "aNaNz"
+        }
+      ]
+    },
+    {
+      "name": "tcl-8.3",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "tcl-8.4",
+      "steps": [
+        {
+          "type": "nullvalue"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE b IS NULL",
+          "expect": "30 {}"
+        }
+      ]
+    },
+    {
+      "name": "tcl-8.5",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "concat",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "a": "500",
+            "b": "500",
+            "cnt": "0",
+            "errmsg": "$errmsg",
+            "msg": "$msg",
+            "r": "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?",
+            "rc": "$rc $msg",
+            "testdir": "",
+            "testprefix": "tcl",
+            "v": "$v $msg",
+            "x": "",
+            "x(1)": "A",
+            "x(2)": "B"
+          },
+          "functionProc": "concatFunc",
+          "functionArgs": [
+            "args"
+          ],
+          "functionBody": "return [join $args {}]",
+          "maxArgs": -1
+        },
+        {
+          "type": "query",
+          "sql": "SELECT concat('a', b, 'z') FROM t1 WHERE b is NULL",
+          "expect": "az"
         }
       ]
     },
@@ -149,7 +451,34 @@
       "name": "tcl-9.1",
       "steps": [
         {
-          "type": "query",
+          "type": "register_function",
+          "functionName": "ret_str",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "a": "500",
+            "b": "500",
+            "cnt": "0",
+            "errmsg": "$errmsg",
+            "msg": "$msg",
+            "r": "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?",
+            "rc": "$rc $msg",
+            "testdir": "",
+            "testprefix": "tcl",
+            "v": "$v $msg",
+            "x": "",
+            "x(1)": "A",
+            "x(2)": "B"
+          },
+          "functionProc": "return \"hi\"",
+          "minArgs": -1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
           "sql": "SELECT typeof(ret_str())",
           "expect": "text"
         }
@@ -159,7 +488,34 @@
       "name": "tcl-9.2",
       "steps": [
         {
-          "type": "query",
+          "type": "register_function",
+          "functionName": "ret_dbl",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "a": "500",
+            "b": "500",
+            "cnt": "0",
+            "errmsg": "$errmsg",
+            "msg": "$msg",
+            "r": "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?",
+            "rc": "$rc $msg",
+            "testdir": "",
+            "testprefix": "tcl",
+            "v": "$v $msg",
+            "x": "",
+            "x(1)": "A",
+            "x(2)": "B"
+          },
+          "functionProc": "return [expr {rand()*0.5}]",
+          "minArgs": -1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
           "sql": "SELECT typeof(ret_dbl())",
           "expect": "real"
         }
@@ -169,7 +525,34 @@
       "name": "tcl-9.3",
       "steps": [
         {
-          "type": "query",
+          "type": "register_function",
+          "functionName": "ret_int",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "a": "500",
+            "b": "500",
+            "cnt": "0",
+            "errmsg": "$errmsg",
+            "msg": "$msg",
+            "r": "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?",
+            "rc": "$rc $msg",
+            "testdir": "",
+            "testprefix": "tcl",
+            "v": "$v $msg",
+            "x": "",
+            "x(1)": "A",
+            "x(2)": "B"
+          },
+          "functionProc": "return [expr {int(rand()*200)}]",
+          "minArgs": -1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
           "sql": "SELECT typeof(ret_int())",
           "expect": "integer"
         }
@@ -179,9 +562,53 @@
       "name": "tcl-9.4",
       "steps": [
         {
-          "type": "query",
+          "type": "register_function",
+          "functionName": "banu",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "a": "500",
+            "b": "500",
+            "cnt": "0",
+            "errmsg": "$errmsg",
+            "msg": "$msg",
+            "r": "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?",
+            "rc": "$rc $msg",
+            "testdir": "",
+            "testprefix": "tcl",
+            "v": "$v $msg",
+            "x": "",
+            "x(1)": "A",
+            "x(2)": "B"
+          },
+          "functionProc": "breakAsNullUdf",
+          "functionArgs": [
+            "args"
+          ],
+          "functionBody": "\n  if {\"1\" eq [lindex $args 0]} {return -code break}\n",
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
           "sql": "SELECT typeof(banu()), typeof(banu(1))",
           "expect": "text null"
+        }
+      ]
+    },
+    {
+      "name": "tcl-9.5",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "banunull"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT banu(), banu(1)",
+          "expect": "{} banunull"
         }
       ]
     },
@@ -189,170 +616,46 @@
       "name": "tcl-9.10",
       "steps": [
         {
-          "type": "query",
+          "type": "register_function",
+          "functionName": "r1",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "a": "500",
+            "b": "500",
+            "cnt": "0",
+            "errmsg": "$errmsg",
+            "msg": "$msg",
+            "r": "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?",
+            "rc": "$rc $msg",
+            "testdir": "",
+            "testprefix": "tcl",
+            "v": "$v $msg",
+            "x": "",
+            "x(1)": "A",
+            "x(2)": "B"
+          },
+          "functionProc": "userfunc_r1",
+          "functionArgs": [
+            "n"
+          ],
+          "functionBody": "\n      if {$n\u003c=0} {return 0}\n      set nm1 [expr {$n-1}]\n      return [expr {[db eval {SELECT r1($nm1)}]+$n}]\n    ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
           "sql": "SELECT r1(10)",
           "expect": "55"
         }
       ]
     },
     {
-      "name": "tcl-9.11",
+      "name": "tcl-10.7",
       "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT r1(100)",
-          "expect": "5050"
-        }
-      ]
-    },
-    {
-      "name": "20.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE tad(a,b)"
-        }
-      ]
-    },
-    {
-      "name": "20.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DROP TABLE tad"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a int, b int)"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(10,20)"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 SELECT a*2, b*2 FROM t1;\n    INSERT INTO t1 SELECT a*2+1, b*2+1 FROM t1;\n    INSERT INTO t1 SELECT a*2+3, b*2+3 FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(99,510)"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t3(a,b,c)"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t3 VALUES($::x(1),$::x(2),$::x(3));\n      SELECT * FROM t3"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(a), typeof(b), typeof(c) FROM t3"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t3 SET a=$::x;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(a), typeof(b), typeof(c) FROM t3"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(30,NULL)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(ret_str())"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(ret_dbl())"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(ret_int())"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(banu()), typeof(banu(1))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT r1(10)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT r1(100)"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE tad(a,b)"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO tad(a,b) VALUES('aa','bb'),('AA','BB')"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE tad"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t3"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE b IS NULL"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT concat('a', b, 'z') FROM t1 WHERE b is NULL"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE b IS NULL"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT concat('a', b, 'z') FROM t1 WHERE b is NULL"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT banu(), banu(1)"
-        },
         {
           "type": "exec",
           "sql": "CREATE TABLE t4(x)"
@@ -362,85 +665,176 @@
           "sql": "INSERT INTO t4 VALUES(1)"
         },
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t4"
+          "type": "query",
+          "sql": "SELECT * FROM t4",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tcl-10.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 VALUES(2)"
         },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 VALUES(3)"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 VALUES(4)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t4",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tcl-10.9",
+      "steps": [
         {
           "type": "exec",
           "sql": "INSERT INTO t4 VALUES(2)"
         },
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t4 VALUES(3)"
         },
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t4 VALUES(4)"
         },
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t4"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t4 VALUES(2)"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t4 VALUES(3)"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t4 VALUES(4)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t4"
-        },
+          "type": "query",
+          "sql": "SELECT * FROM t4",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "tcl-10.10",
+      "steps": [
         {
           "type": "exec",
           "sql": "INSERT INTO t4 VALUES(5)"
         },
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t4"
-        },
+          "type": "query",
+          "sql": "SELECT * FROM t4",
+          "expect": "1 2 5"
+        }
+      ]
+    },
+    {
+      "name": "tcl-10.11",
+      "steps": [
         {
           "type": "exec",
           "sql": "INSERT INTO t4 VALUES(6)"
         },
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t4"
-        },
+          "type": "query",
+          "sql": "SELECT * FROM t4",
+          "expect": "1 2 5 6"
+        }
+      ]
+    },
+    {
+      "name": "tcl-10.12",
+      "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t4 VALUES(7)"
         },
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t4"
+          "type": "catch",
+          "sql": "INSERT INTO t4 VALUES(7)"
         },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 VALUES(7)"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 VALUES(7)"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 VALUES(7)"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 VALUES(7)"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 VALUES(7)"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 VALUES(7)"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 VALUES(7)"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 VALUES(7)",
+          "variable": "rc",
+          "catchResult": true,
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "tcl-10.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t4",
+          "expect": "1 2 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "tcl-10.14",
+      "steps": [
         {
           "type": "exec",
           "sql": "DELETE FROM t4;\n      INSERT INTO t4 VALUES('one');"
         },
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t4 VALUES('two')"
         },
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t4 VALUES('three')"
         },
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t4"
-        },
+          "type": "query",
+          "sql": "SELECT * FROM t4",
+          "expect": "one"
+        }
+      ]
+    },
+    {
+      "name": "tcl-10.15",
+      "steps": [
         {
           "type": "exec",
           "sql": "BEGIN ; COMMIT"
-        },
+        }
+      ]
+    },
+    {
+      "name": "tcl-10.16",
+      "steps": [
         {
           "type": "exec",
           "sql": "INSERT INTO t4 VALUES('two');"
@@ -454,100 +848,1090 @@
           "sql": "INSERT INTO t4 VALUES('four')"
         },
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t4"
-        },
+          "type": "query",
+          "sql": "SELECT * FROM t4",
+          "expect": "one two three four"
+        }
+      ]
+    },
+    {
+      "name": "tcl-10.17",
+      "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t4 VALUES('A');"
         },
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t4 VALUES('B')"
         },
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t4 VALUES('C')"
         },
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t4"
-        },
+          "type": "query",
+          "sql": "SELECT * FROM t4",
+          "expect": "one two three four"
+        }
+      ]
+    },
+    {
+      "name": "tcl-10.18",
+      "steps": [
         {
           "type": "exec",
           "sql": "BEGIN ; COMMIT"
         },
         {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
           "type": "exec",
-          "sql": "INSERT INTO t4 VALUES('five')"
+          "sql": "BEGIN;\n    SELECT * FROM sqlite_master;",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 VALUES('five')",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "tcl-10.19",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN ; COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "tcl-10.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    BEGIN EXCLUSIVE;",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 VALUES('five')",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "tcl-10.21",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
         },
         {
           "type": "exec",
           "sql": "BEGIN ; COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "tcl-10.22",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
         },
         {
-          "type": "exec",
-          "sql": "INSERT INTO t4 VALUES('five')"
-        },
+          "type": "runtime_var",
+          "variable": "msg",
+          "expect": "db2: database is locked"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "tcl-11.1",
+      "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN ; COMMIT"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t4 VALUES(6)"
-        },
+          "sql": "INSERT INTO t4 VALUES(6)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tcl-13.1",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t5(x BLOB)"
         },
         {
           "type": "exec",
-          "sql": "SELECT typeof(x) FROM t5"
+          "sql": "INSERT INTO t5 VALUES('abc123')"
         },
         {
-          "type": "exec",
-          "sql": "DELETE FROM t5;\n      INSERT INTO t5 VALUES(@x);\n      SELECT typeof(x) FROM t5;"
-        },
+          "type": "query",
+          "sql": "SELECT typeof(x) FROM t5",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "tcl-13.2",
+      "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM t5;\n      INSERT INTO t5 VALUES(@y);\n      SELECT hex(x), typeof(x) FROM t5"
+          "sql": "DELETE FROM t5;\n      INSERT INTO t5 VALUES('abc123');\n      SELECT typeof(x) FROM t5;",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "tcl-13.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t5;\n      INSERT INTO t5 VALUES(@x);\n      SELECT typeof(x) FROM t5;",
+          "expect": "blob"
+        }
+      ]
+    },
+    {
+      "name": "tcl-13.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t5;\n      INSERT INTO t5 VALUES(@y);\n      SELECT hex(x), typeof(x) FROM t5",
+          "expect": "31323334 blob"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "xCall",
+          "callbackVars": {
+            "": "1234",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "cnt": "0",
+            "errmsg": "$errmsg",
+            "i": "10",
+            "msg": "$msg",
+            "r": "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?",
+            "rc": "$rc",
+            "testdir": "",
+            "testprefix": "tcl",
+            "v": "$v $msg",
+            "version": "",
+            "x": "abc123",
+            "x(1)": "A",
+            "x(2)": "B",
+            "y": "1234"
+          },
+          "functionProc": "xCall",
+          "minArgs": -1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "tcl-14.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(x);\n  INSERT INTO t6 VALUES(1);"
+        }
+      ]
+    },
+    {
+      "name": "tcl-14.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t6 WHERE xCall()!='value'"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_db"
         },
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "tcl-15.0",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a); INSERT INTO t1 VALUES(1),(2),(3);"
         },
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE a\u003e2",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "tcl-15.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE a\u003e2",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "tcl-16.100",
+      "steps": [
         {
           "type": "exec",
-          "sql": "SELECT quote(@def), typeof(@def)"
-        },
+          "sql": "CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1,2),(2,NULL),(3,'xyz');"
+        }
+      ]
+    },
+    {
+      "name": "tcl-16.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {a b *} 2 {a b *} 3 {a b *}"
+        }
+      ]
+    },
+    {
+      "name": "tcl-16.102",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "-unknown",
+          "variable": "res",
+          "catchResult": true,
+          "catchMessage": "rc",
+          "expect": "1 {unknown option: \"-unknown\"}"
+        }
+      ]
+    },
+    {
+      "name": "tcl-16.103",
+      "steps": [
         {
           "type": "exec",
-          "sql": "SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3"
+          "sql": "-withoutnulls"
         },
         {
-          "type": "exec",
-          "sql": "SELECT closedb(),func1() UNION ALL SELECT 20,30 UNION ALL SELECT 30,40"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 1 2 3;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t\\u0123x"
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "1 {a b *} 2 {a *} 3 {a b *}"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_6",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "register_function",
+          "functionName": "add_i",
+          "callbackVars": {
+            "": "$res",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "cnt": "0",
+            "errmsg": "$errmsg",
+            "i": "10",
+            "msg": "$msg",
+            "r": "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?",
+            "rc": "$rc",
+            "res": "$res",
+            "testdir": "",
+            "testprefix": "tcl",
+            "v": "$v $msg",
+            "version": "",
+            "x(1)": "A",
+            "x(2)": "B",
+            "y": "1234"
+          },
+          "functionProc": "add",
+          "functionArgs": [
+            "a",
+            "b"
+          ],
+          "functionBody": " return [expr $a + $b] ",
+          "minArgs": 2,
+          "maxArgs": -1
+        },
+        {
+          "type": "register_function",
+          "functionName": "add_r",
+          "callbackVars": {
+            "": "$res",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "cnt": "0",
+            "errmsg": "$errmsg",
+            "i": "10",
+            "msg": "$msg",
+            "r": "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?",
+            "rc": "$rc",
+            "res": "$res",
+            "testdir": "",
+            "testprefix": "tcl",
+            "v": "$v $msg",
+            "version": "",
+            "x(1)": "A",
+            "x(2)": "B",
+            "y": "1234"
+          },
+          "functionProc": "add",
+          "functionArgs": [
+            "a",
+            "b"
+          ],
+          "functionBody": " return [expr $a + $b] ",
+          "minArgs": 2,
+          "maxArgs": -1
+        },
+        {
+          "type": "register_function",
+          "functionName": "add_t",
+          "callbackVars": {
+            "": "$res",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "cnt": "0",
+            "errmsg": "$errmsg",
+            "i": "10",
+            "msg": "$msg",
+            "r": "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?",
+            "rc": "$rc",
+            "res": "$res",
+            "testdir": "",
+            "testprefix": "tcl",
+            "v": "$v $msg",
+            "version": "",
+            "x(1)": "A",
+            "x(2)": "B",
+            "y": "1234"
+          },
+          "functionProc": "add",
+          "functionArgs": [
+            "a",
+            "b"
+          ],
+          "functionBody": " return [expr $a + $b] ",
+          "minArgs": 2,
+          "maxArgs": -1
+        },
+        {
+          "type": "register_function",
+          "functionName": "add_b",
+          "callbackVars": {
+            "": "$res",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "cnt": "0",
+            "errmsg": "$errmsg",
+            "i": "10",
+            "msg": "$msg",
+            "r": "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?",
+            "rc": "$rc",
+            "res": "$res",
+            "testdir": "",
+            "testprefix": "tcl",
+            "v": "$v $msg",
+            "version": "",
+            "x(1)": "A",
+            "x(2)": "B",
+            "y": "1234"
+          },
+          "functionProc": "add",
+          "functionArgs": [
+            "a",
+            "b"
+          ],
+          "functionBody": " return [expr $a + $b] ",
+          "minArgs": 2,
+          "maxArgs": -1
+        },
+        {
+          "type": "register_function",
+          "functionName": "add_a",
+          "callbackVars": {
+            "": "$res",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "cnt": "0",
+            "errmsg": "$errmsg",
+            "i": "10",
+            "msg": "$msg",
+            "r": "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?",
+            "rc": "$rc",
+            "res": "$res",
+            "testdir": "",
+            "testprefix": "tcl",
+            "v": "$v $msg",
+            "version": "",
+            "x(1)": "A",
+            "x(2)": "B",
+            "y": "1234"
+          },
+          "functionProc": "add",
+          "functionArgs": [
+            "a",
+            "b"
+          ],
+          "functionBody": " return [expr $a + $b] ",
+          "minArgs": 2,
+          "maxArgs": -1
+        },
+        {
+          "type": "register_function",
+          "functionName": "ret_i",
+          "callbackVars": {
+            "": "$res",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "cnt": "0",
+            "errmsg": "$errmsg",
+            "i": "10",
+            "msg": "$msg",
+            "r": "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?",
+            "rc": "$rc",
+            "res": "$res",
+            "testdir": "",
+            "testprefix": "tcl",
+            "v": "$v $msg",
+            "version": "",
+            "x(1)": "A",
+            "x(2)": "B",
+            "y": "1234"
+          },
+          "functionProc": "ret",
+          "functionArgs": [
+            "a"
+          ],
+          "functionBody": " return $a ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "register_function",
+          "functionName": "ret_r",
+          "callbackVars": {
+            "": "$res",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "cnt": "0",
+            "errmsg": "$errmsg",
+            "i": "10",
+            "msg": "$msg",
+            "r": "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?",
+            "rc": "$rc",
+            "res": "$res",
+            "testdir": "",
+            "testprefix": "tcl",
+            "v": "$v $msg",
+            "version": "",
+            "x(1)": "A",
+            "x(2)": "B",
+            "y": "1234"
+          },
+          "functionProc": "ret",
+          "functionArgs": [
+            "a"
+          ],
+          "functionBody": " return $a ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "register_function",
+          "functionName": "ret_t",
+          "callbackVars": {
+            "": "$res",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "cnt": "0",
+            "errmsg": "$errmsg",
+            "i": "10",
+            "msg": "$msg",
+            "r": "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?",
+            "rc": "$rc",
+            "res": "$res",
+            "testdir": "",
+            "testprefix": "tcl",
+            "v": "$v $msg",
+            "version": "",
+            "x(1)": "A",
+            "x(2)": "B",
+            "y": "1234"
+          },
+          "functionProc": "ret",
+          "functionArgs": [
+            "a"
+          ],
+          "functionBody": " return $a ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "register_function",
+          "functionName": "ret_b",
+          "callbackVars": {
+            "": "$res",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "cnt": "0",
+            "errmsg": "$errmsg",
+            "i": "10",
+            "msg": "$msg",
+            "r": "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?",
+            "rc": "$rc",
+            "res": "$res",
+            "testdir": "",
+            "testprefix": "tcl",
+            "v": "$v $msg",
+            "version": "",
+            "x(1)": "A",
+            "x(2)": "B",
+            "y": "1234"
+          },
+          "functionProc": "ret",
+          "functionArgs": [
+            "a"
+          ],
+          "functionBody": " return $a ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "register_function",
+          "functionName": "ret_a",
+          "callbackVars": {
+            "": "$res",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "cnt": "0",
+            "errmsg": "$errmsg",
+            "i": "10",
+            "msg": "$msg",
+            "r": "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?",
+            "rc": "$rc",
+            "res": "$res",
+            "testdir": "",
+            "testprefix": "tcl",
+            "v": "$v $msg",
+            "version": "",
+            "x(1)": "A",
+            "x(2)": "B",
+            "y": "1234"
+          },
+          "functionProc": "ret",
+          "functionArgs": [
+            "a"
+          ],
+          "functionBody": " return $a ",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "tcl-17.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote( add_i(2, 3) );\n  SELECT quote( add_r(2, 3) );\n  SELECT quote( add_t(2, 3) );\n  SELECT quote( add_b(2, 3) );\n  SELECT quote( add_a(2, 3) );",
+          "expect": "5 5.0 '5' X'35' 5"
+        }
+      ]
+    },
+    {
+      "name": "tcl-17.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote( add_i(2.2, 3.3) );\n  SELECT quote( add_r(2.2, 3.3) );\n  SELECT quote( add_t(2.2, 3.3) );\n  SELECT quote( add_b(2.2, 3.3) );\n  SELECT quote( add_a(2.2, 3.3) );",
+          "expect": "5.5 5.5 '5.5' X'352E35' 5.5"
+        }
+      ]
+    },
+    {
+      "name": "tcl-17.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote( ret_i(2.5) );\n  SELECT quote( ret_r(2.5) );\n  SELECT quote( ret_t(2.5) );\n  SELECT quote( ret_b(2.5) );\n  SELECT quote( ret_a(2.5) );",
+          "expect": "2.5 2.5 '2.5' X'322E35' 2.5"
+        }
+      ]
+    },
+    {
+      "name": "tcl-17.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote( ret_i('2.5') );\n  SELECT quote( ret_r('2.5') );\n  SELECT quote( ret_t('2.5') );\n  SELECT quote( ret_b('2.5') );\n  SELECT quote( ret_a('2.5') );",
+          "expect": "2.5 2.5 '2.5' X'322E35' '2.5'"
+        }
+      ]
+    },
+    {
+      "name": "tcl-17.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote( ret_i('abc') );\n  SELECT quote( ret_r('abc') );\n  SELECT quote( ret_t('abc') );\n  SELECT quote( ret_b('abc') );\n  SELECT quote( ret_a('abc') );",
+          "expect": "'abc' 'abc' 'abc' X'616263' 'abc'"
+        }
+      ]
+    },
+    {
+      "name": "tcl-17.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote( ret_i(X'616263') );\n  SELECT quote( ret_r(X'616263') );\n  SELECT quote( ret_t(X'616263') );\n  SELECT quote( ret_b(X'616263') );\n  SELECT quote( ret_a(X'616263') );",
+          "expect": "'abc' 'abc' 'abc' X'616263' X'616263'"
+        }
+      ]
+    },
+    {
+      "name": "tcl-17.6.1",
+      "steps": [
+        {
+          "type": "register_function",
+          "catchMessage": "msg",
+          "functionName": "xyz",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "cnt": "0",
+            "errmsg": "$errmsg",
+            "i": "10",
+            "msg": "$msg",
+            "r": "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?",
+            "rc": "$rc",
+            "res": "$res",
+            "testdir": "",
+            "testprefix": "tcl",
+            "v": "$v $msg",
+            "version": "",
+            "x(1)": "A",
+            "x(2)": "B",
+            "y": "1234"
+          },
+          "functionProc": "ret",
+          "functionArgs": [
+            "a"
+          ],
+          "functionBody": " return $a ",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "tcl-17.6.2",
+      "steps": [
+        {
+          "type": "register_function",
+          "catchMessage": "msg",
+          "functionName": "xyz",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "cnt": "0",
+            "errmsg": "$errmsg",
+            "i": "10",
+            "msg": "$msg",
+            "r": "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?",
+            "rc": "$rc",
+            "res": "$res",
+            "testdir": "",
+            "testprefix": "tcl",
+            "v": "$v $msg",
+            "version": "",
+            "x(1)": "A",
+            "x(2)": "B",
+            "y": "1234"
+          },
+          "functionProc": "ret",
+          "functionArgs": [
+            "a"
+          ],
+          "functionBody": " return $a ",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "tcl-17.6.3",
+      "steps": [
+        {
+          "type": "register_function",
+          "catchMessage": "msg",
+          "functionName": "xyz",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "cnt": "0",
+            "errmsg": "$errmsg",
+            "i": "10",
+            "msg": "$msg",
+            "r": "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?",
+            "rc": "$rc",
+            "res": "$res",
+            "testdir": "",
+            "testprefix": "tcl",
+            "v": "$v $msg",
+            "version": "",
+            "x(1)": "A",
+            "x(2)": "B",
+            "y": "1234"
+          },
+          "functionProc": "ret",
+          "functionArgs": [
+            "a"
+          ],
+          "functionBody": " return $a ",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "tcl-18.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT $abc, typeof($abc), $def, typeof($def), $ghi, typeof($ghi)",
+          "expect": "3 integer hello text 3.1415926 real"
+        }
+      ]
+    },
+    {
+      "name": "tcl-18.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(@def), typeof(@def)",
+          "expect": "X'68656C6C6F' blob"
+        }
+      ]
+    },
+    {
+      "name": "tcl-18.120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof($mno);",
+          "expect": "null"
+        }
+      ]
+    },
+    {
+      "name": "tcl-18.130",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT $e01;",
+          "expect": "1 {no such variable: $e01}"
+        }
+      ]
+    },
+    {
+      "name": "tcl-18.200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT $abc, typeof($abc), $def, typeof($def), $ghi, typeof($ghi)",
+          "expect": "{} null {} null {} null"
+        }
+      ]
+    },
+    {
+      "name": "tcl-18.300",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT $abc, @def, $ghi(123), :mno",
+          "expect": "{$abc} @def {$ghi(123)} :mno"
+        }
+      ]
+    },
+    {
+      "name": "tcl-19.911",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT $abc, typeof($abc), $def, typeof($def), $ghi, typeof($ghi);",
+          "expect": "1 {invalid command name \"bind_fallback_does_not_exist\"}"
+        }
+      ]
+    },
+    {
+      "name": "tcl-20.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tad(a,b)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tad(a,b) VALUES('aa','bb'),('AA','BB')"
+        },
+        {
+          "type": "exec",
+          "sql": "-asdict",
+          "expect": "* {a b}"
+        }
+      ]
+    },
+    {
+      "name": "tcl-20.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "-asdict"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "1 AA BB 2 aa bb {a b}"
+        }
+      ]
+    },
+    {
+      "name": "tcl-20.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "-asdict"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE tad"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "{1 aa} {2 bb}"
+        }
+      ]
+    },
+    {
+      "name": "tcl-21.0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "tcl-21.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "closedb",
+          "callbackVars": {
+            "": "$rc $msg",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "bindings(abc)": "3",
+            "bindings(def)": "hello",
+            "bindings(ghi)": "3.1415926",
+            "cnt": "0",
+            "colNames": "",
+            "errmsg": "$errmsg",
+            "i": "0",
+            "msg": "$msg",
+            "r": "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?",
+            "rc": "$rc",
+            "res": "$res",
+            "testdir": "",
+            "testprefix": "tcl",
+            "v": "$v $msg",
+            "version": "",
+            "x(1)": "A",
+            "x(2)": "B",
+            "y": "1234"
+          },
+          "functionProc": "closedb",
+          "functionBody": "\n  db close\n  return 10\n"
+        },
+        {
+          "type": "register_function",
+          "functionName": "func1",
+          "callbackVars": {
+            "": "$rc $msg",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "bindings(abc)": "3",
+            "bindings(def)": "hello",
+            "bindings(ghi)": "3.1415926",
+            "cnt": "0",
+            "colNames": "",
+            "errmsg": "$errmsg",
+            "i": "0",
+            "msg": "$msg",
+            "r": "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?",
+            "rc": "$rc",
+            "res": "$res",
+            "testdir": "",
+            "testprefix": "tcl",
+            "v": "$v $msg",
+            "version": "",
+            "x(1)": "A",
+            "x(2)": "B",
+            "y": "1234"
+          },
+          "functionProc": "func1",
+          "functionBody": " return 1 "
+        }
+      ]
+    },
+    {
+      "name": "tcl-21.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT closedb(),func1() UNION ALL SELECT 20,30 UNION ALL SELECT 30,40",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "tcl-22.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 2 3;",
+          "catchMessage": "msg",
+          "expect": "9"
         }
       ]
     }

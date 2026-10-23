@@ -680,6 +680,18 @@
       ]
     },
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
       "name": "in4-8.1",
       "steps": [
         {

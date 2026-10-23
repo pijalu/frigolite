@@ -1,0 +1,3128 @@
+{
+  "file": "join7.test",
+  "name": "join7",
+  "nullToken": "NULL",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "join7-1.setup",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE INDEX t1a ON t1(a);\n    CREATE TABLE t2(c INT, d INT);\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE INDEX t2c ON t2(c);\n    CREATE VIEW dual(dummy) AS VALUES('x');"
+        }
+      ]
+    },
+    {
+      "name": "join7-1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b, d FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL 55\n    2    NULL\n    3    33\n    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, c FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL  5\n    1     NULL\n    1     3\n    1     4\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.31",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.32",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b=c\n     ORDER BY +b;",
+          "expect": "\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.33",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b\u003e0\n     ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.34",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b\u003e0 OR b IS NULL\n     ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.35",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b\u003e3 AND c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    NULL NULL 4    44\n    1    4    NULL NULL\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.36",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b\u003e3 WHERE c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.37",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b\u003e3 AND c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.38",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b\u003e3 OR c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    4    4    44\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.39",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND (b\u003e3 OR c\u003e4)\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    1    4    4    44\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.40",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.50",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 LEFT OUTER JOIN t1 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.60",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM dual JOIN t1 ON true RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.70",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* \n      FROM t2 LEFT JOIN (dual JOIN t1 ON true) ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.80",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM dual CROSS JOIN t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.81",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT dual.*, t1.*, t2.*\n      FROM t1 CROSS JOIN dual RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.90",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND a=1 ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND a=1 ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a=1 ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.111",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE a=1 ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.115",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.116",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a IS NULL ORDER BY +d;",
+          "expect": "\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND d\u003c=0 ORDER BY +b, +d;",
+          "expect": "\n    NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d\u003c=0 ORDER BY +b, +d;",
+          "expect": "\n    NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-1.141",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d\u003c=0\n     ORDER BY +b, +d LIMIT 2 OFFSET 2",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "join7-2.setup",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE INDEX t1ab ON t1(a,b);\n    CREATE TABLE t2(c INT, d INT);\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE INDEX t2cd ON t2(c,d);\n    CREATE VIEW dual(dummy) AS VALUES('x');"
+        }
+      ]
+    },
+    {
+      "name": "join7-2.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b, d FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL 55\n    2    NULL\n    3    33\n    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, c FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL  5\n    1     NULL\n    1     3\n    1     4\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.31",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.32",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b=c\n     ORDER BY +b;",
+          "expect": "\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.33",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b\u003e0\n     ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.34",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b\u003e0 OR b IS NULL\n     ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.35",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b\u003e3 AND c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    NULL NULL 4    44\n    1    4    NULL NULL\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.36",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b\u003e3 WHERE c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.37",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b\u003e3 AND c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.38",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b\u003e3 OR c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    4    4    44\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.39",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND (b\u003e3 OR c\u003e4)\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    1    4    4    44\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.40",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.50",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 LEFT OUTER JOIN t1 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.60",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM dual JOIN t1 ON true RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.70",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* \n      FROM t2 LEFT JOIN (dual JOIN t1 ON true) ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.80",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM dual CROSS JOIN t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.81",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT dual.*, t1.*, t2.*\n      FROM t1 CROSS JOIN dual RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.90",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND a=1 ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND a=1 ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a=1 ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.111",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE a=1 ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.115",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.116",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a IS NULL ORDER BY +d;",
+          "expect": "\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND d\u003c=0 ORDER BY +b, +d;",
+          "expect": "\n    NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d\u003c=0 ORDER BY +b, +d;",
+          "expect": "\n    NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-2.141",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d\u003c=0\n     ORDER BY +b, +d LIMIT 2 OFFSET 2",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "join7-3.setup",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE INDEX t1a ON t1(a);\n    CREATE TABLE t2(c INT, d INT PRIMARY KEY) WITHOUT ROWID;\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE INDEX t2c ON t2(c);\n    CREATE VIEW dual(dummy) AS VALUES('x');"
+        }
+      ]
+    },
+    {
+      "name": "join7-3.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b, d FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL 55\n    2    NULL\n    3    33\n    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, c FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL  5\n    1     NULL\n    1     3\n    1     4\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.31",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.32",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b=c\n     ORDER BY +b;",
+          "expect": "\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.33",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b\u003e0\n     ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.34",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b\u003e0 OR b IS NULL\n     ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.35",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b\u003e3 AND c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    NULL NULL 4    44\n    1    4    NULL NULL\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.36",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b\u003e3 WHERE c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.37",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b\u003e3 AND c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.38",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b\u003e3 OR c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    4    4    44\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.39",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND (b\u003e3 OR c\u003e4)\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    1    4    4    44\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.40",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.50",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 LEFT OUTER JOIN t1 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.60",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM dual JOIN t1 ON true RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.70",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* \n      FROM t2 LEFT JOIN (dual JOIN t1 ON true) ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.80",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM dual CROSS JOIN t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.81",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT dual.*, t1.*, t2.*\n      FROM t1 CROSS JOIN dual RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.90",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND a=1 ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND a=1 ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a=1 ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.111",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE a=1 ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.115",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.116",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a IS NULL ORDER BY +d;",
+          "expect": "\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND d\u003c=0 ORDER BY +b, +d;",
+          "expect": "\n    NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d\u003c=0 ORDER BY +b, +d;",
+          "expect": "\n    NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-3.141",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d\u003c=0\n     ORDER BY +b, +d LIMIT 2 OFFSET 2",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "join7-4.setup",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE TABLE t2(c INTEGER PRIMARY KEY, d INT);\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE VIEW dual(dummy) AS VALUES('x');"
+        }
+      ]
+    },
+    {
+      "name": "join7-4.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b, d FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL 55\n    2    NULL\n    3    33\n    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, c FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL  5\n    1     NULL\n    1     3\n    1     4\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.31",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.32",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b=c\n     ORDER BY +b;",
+          "expect": "\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.33",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b\u003e0\n     ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.34",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b\u003e0 OR b IS NULL\n     ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.35",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b\u003e3 AND c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    NULL NULL 4    44\n    1    4    NULL NULL\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.36",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b\u003e3 WHERE c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.37",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b\u003e3 AND c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.38",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b\u003e3 OR c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    4    4    44\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.39",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND (b\u003e3 OR c\u003e4)\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    1    4    4    44\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.40",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.50",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 LEFT OUTER JOIN t1 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.60",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM dual JOIN t1 ON true RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.70",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* \n      FROM t2 LEFT JOIN (dual JOIN t1 ON true) ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.80",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM dual CROSS JOIN t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.81",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT dual.*, t1.*, t2.*\n      FROM t1 CROSS JOIN dual RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.90",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND a=1 ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND a=1 ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a=1 ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.111",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE a=1 ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.115",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.116",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a IS NULL ORDER BY +d;",
+          "expect": "\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND d\u003c=0 ORDER BY +b, +d;",
+          "expect": "\n    NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d\u003c=0 ORDER BY +b, +d;",
+          "expect": "\n    NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-4.141",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d\u003c=0\n     ORDER BY +b, +d LIMIT 2 OFFSET 2",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "join7-5.setup",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE TABLE t2(c INT PRIMARY KEY, d INT) WITHOUT ROWID;\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE VIEW dual(dummy) AS VALUES('x');"
+        }
+      ]
+    },
+    {
+      "name": "join7-5.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b, d FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL 55\n    2    NULL\n    3    33\n    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, c FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL  5\n    1     NULL\n    1     3\n    1     4\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.31",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.32",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b=c\n     ORDER BY +b;",
+          "expect": "\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.33",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b\u003e0\n     ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.34",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b\u003e0 OR b IS NULL\n     ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.35",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b\u003e3 AND c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    NULL NULL 4    44\n    1    4    NULL NULL\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.36",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b\u003e3 WHERE c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.37",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b\u003e3 AND c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.38",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b\u003e3 OR c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    4    4    44\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.39",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND (b\u003e3 OR c\u003e4)\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    1    4    4    44\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.40",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.50",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 LEFT OUTER JOIN t1 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.60",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM dual JOIN t1 ON true RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.70",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* \n      FROM t2 LEFT JOIN (dual JOIN t1 ON true) ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.80",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM dual CROSS JOIN t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.81",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT dual.*, t1.*, t2.*\n      FROM t1 CROSS JOIN dual RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.90",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND a=1 ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND a=1 ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a=1 ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.111",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE a=1 ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.115",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.116",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a IS NULL ORDER BY +d;",
+          "expect": "\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND d\u003c=0 ORDER BY +b, +d;",
+          "expect": "\n    NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d\u003c=0 ORDER BY +b, +d;",
+          "expect": "\n    NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-5.141",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d\u003c=0\n     ORDER BY +b, +d LIMIT 2 OFFSET 2",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "join7-6.setup",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE VIEW t2(c,d) AS VALUES(3,33),(4,44),(5,55);\n    CREATE VIEW dual(dummy) AS VALUES('x');"
+        }
+      ]
+    },
+    {
+      "name": "join7-6.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b, d FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL 55\n    2    NULL\n    3    33\n    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, c FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL  5\n    1     NULL\n    1     3\n    1     4\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.31",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.32",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b=c\n     ORDER BY +b;",
+          "expect": "\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.33",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b\u003e0\n     ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.34",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b\u003e0 OR b IS NULL\n     ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.35",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b\u003e3 AND c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    NULL NULL 4    44\n    1    4    NULL NULL\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.36",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b\u003e3 WHERE c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.37",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b\u003e3 AND c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.38",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b\u003e3 OR c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    4    4    44\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.39",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND (b\u003e3 OR c\u003e4)\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    1    4    4    44\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.40",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.50",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 LEFT OUTER JOIN t1 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.60",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM dual JOIN t1 ON true RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.70",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* \n      FROM t2 LEFT JOIN (dual JOIN t1 ON true) ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.80",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM dual CROSS JOIN t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.81",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT dual.*, t1.*, t2.*\n      FROM t1 CROSS JOIN dual RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.90",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND a=1 ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND a=1 ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a=1 ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.111",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE a=1 ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.115",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.116",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a IS NULL ORDER BY +d;",
+          "expect": "\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND d\u003c=0 ORDER BY +b, +d;",
+          "expect": "\n    NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d\u003c=0 ORDER BY +b, +d;",
+          "expect": "\n    NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-6.141",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d\u003c=0\n     ORDER BY +b, +d LIMIT 2 OFFSET 2",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "join7-7.setup",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW t1(a,b) AS VALUES(1,2),(1,3),(1,4);\n    CREATE TABLE t2(c INTEGER PRIMARY KEY, d INT);\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE VIEW dual(dummy) AS VALUES('x');"
+        }
+      ]
+    },
+    {
+      "name": "join7-7.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b, d FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL 55\n    2    NULL\n    3    33\n    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, c FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL  5\n    1     NULL\n    1     3\n    1     4\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.31",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.32",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b=c\n     ORDER BY +b;",
+          "expect": "\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.33",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b\u003e0\n     ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.34",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b\u003e0 OR b IS NULL\n     ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.35",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b\u003e3 AND c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    NULL NULL 4    44\n    1    4    NULL NULL\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.36",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b\u003e3 WHERE c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.37",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b\u003e3 AND c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.38",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b\u003e3 OR c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    4    4    44\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.39",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND (b\u003e3 OR c\u003e4)\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    1    4    4    44\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.40",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.50",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 LEFT OUTER JOIN t1 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.60",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM dual JOIN t1 ON true RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.70",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* \n      FROM t2 LEFT JOIN (dual JOIN t1 ON true) ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.80",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM dual CROSS JOIN t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.81",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT dual.*, t1.*, t2.*\n      FROM t1 CROSS JOIN dual RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.90",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND a=1 ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND a=1 ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a=1 ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.111",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE a=1 ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.115",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.116",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a IS NULL ORDER BY +d;",
+          "expect": "\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND d\u003c=0 ORDER BY +b, +d;",
+          "expect": "\n    NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d\u003c=0 ORDER BY +b, +d;",
+          "expect": "\n    NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-7.141",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d\u003c=0\n     ORDER BY +b, +d LIMIT 2 OFFSET 2",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "join7-8.setup",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE TABLE t2(c INT, d INT);\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE VIEW dual(dummy) AS VALUES('x');"
+        }
+      ]
+    },
+    {
+      "name": "join7-8.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b, d FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL 55\n    2    NULL\n    3    33\n    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, c FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL  5\n    1     NULL\n    1     3\n    1     4\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.31",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.32",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b=c\n     ORDER BY +b;",
+          "expect": "\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.33",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b\u003e0\n     ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.34",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b\u003e0 OR b IS NULL\n     ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.35",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b\u003e3 AND c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    NULL NULL 4    44\n    1    4    NULL NULL\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.36",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b\u003e3 WHERE c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.37",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b\u003e3 AND c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.38",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b\u003e3 OR c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    4    4    44\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.39",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND (b\u003e3 OR c\u003e4)\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    1    4    4    44\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.40",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.50",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 LEFT OUTER JOIN t1 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.60",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM dual JOIN t1 ON true RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.70",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* \n      FROM t2 LEFT JOIN (dual JOIN t1 ON true) ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.80",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM dual CROSS JOIN t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.81",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT dual.*, t1.*, t2.*\n      FROM t1 CROSS JOIN dual RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.90",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND a=1 ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND a=1 ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a=1 ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.111",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE a=1 ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.115",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.116",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a IS NULL ORDER BY +d;",
+          "expect": "\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND d\u003c=0 ORDER BY +b, +d;",
+          "expect": "\n    NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d\u003c=0 ORDER BY +b, +d;",
+          "expect": "\n    NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-8.141",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d\u003c=0\n     ORDER BY +b, +d LIMIT 2 OFFSET 2",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "join7-9.setup",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE TABLE t2a(c INTEGER PRIMARY KEY, i1 INT);\n    CREATE TABLE t2b(i1 INTEGER PRIMARY KEY, d INT);\n    CREATE VIEW t2(c,d) AS SELECT c, d FROM t2a NATURAL JOIN t2b;\n    INSERT INTO t2a VALUES(3,93),(4,94),(5,95),(6,96),(7,97);\n    INSERT INTO t2b VALUES(91,11),(92,22),(93,33),(94,44),(95,55);\n    CREATE TABLE dual(dummy TEXT);\n    INSERT INTO dual(dummy) VALUES('x');"
+        }
+      ]
+    },
+    {
+      "name": "join7-9.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b, d FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL 55\n    2    NULL\n    3    33\n    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, c FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL  5\n    1     NULL\n    1     3\n    1     4\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.31",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.32",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b=c\n     ORDER BY +b;",
+          "expect": "\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.33",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b\u003e0\n     ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.34",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b\u003e0 OR b IS NULL\n     ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.35",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b\u003e3 AND c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    NULL NULL 4    44\n    1    4    NULL NULL\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.36",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b\u003e3 WHERE c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.37",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b\u003e3 AND c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.38",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b\u003e3 OR c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    4    4    44\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.39",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND (b\u003e3 OR c\u003e4)\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    1    4    4    44\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.40",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.50",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 LEFT OUTER JOIN t1 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.60",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM dual JOIN t1 ON true RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.70",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* \n      FROM t2 LEFT JOIN (dual JOIN t1 ON true) ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.80",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM dual CROSS JOIN t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.81",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT dual.*, t1.*, t2.*\n      FROM t1 CROSS JOIN dual RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.90",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND a=1 ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND a=1 ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a=1 ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.111",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE a=1 ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.115",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.116",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a IS NULL ORDER BY +d;",
+          "expect": "\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND d\u003c=0 ORDER BY +b, +d;",
+          "expect": "\n    NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d\u003c=0 ORDER BY +b, +d;",
+          "expect": "\n    NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-9.141",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d\u003c=0\n     ORDER BY +b, +d LIMIT 2 OFFSET 2",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "join7-10.setup",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT, b INT, PRIMARY KEY(a,b)) WITHOUT ROWID;\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE TABLE t2a(c INTEGER PRIMARY KEY, i1 INT);\n    CREATE TABLE t2b(i1 INTEGER PRIMARY KEY, d INT);\n    CREATE VIEW t2(c,d) AS SELECT c, d FROM t2a NATURAL JOIN t2b;\n    INSERT INTO t2a VALUES(3,93),(4,94),(5,95),(6,96),(7,97);\n    INSERT INTO t2b VALUES(91,11),(92,22),(93,33),(94,44),(95,55);\n    CREATE TABLE dual(dummy TEXT);\n    INSERT INTO dual(dummy) VALUES('x');"
+        }
+      ]
+    },
+    {
+      "name": "join7-10.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b, d FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL 55\n    2    NULL\n    3    33\n    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, c FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL  5\n    1     NULL\n    1     3\n    1     4\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.31",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.32",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b=c\n     ORDER BY +b;",
+          "expect": "\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.33",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b\u003e0\n     ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.34",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b\u003e0 OR b IS NULL\n     ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.35",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b\u003e3 AND c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    NULL NULL 4    44\n    1    4    NULL NULL\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.36",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b\u003e3 WHERE c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.37",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b\u003e3 AND c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.38",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b\u003e3 OR c\u003e4\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    4    4    44\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.39",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND (b\u003e3 OR c\u003e4)\n     ORDER BY coalesce(b,c,0);",
+          "expect": "\n    1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    1    4    4    44\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.40",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.50",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 LEFT OUTER JOIN t1 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.60",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM dual JOIN t1 ON true RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.70",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* \n      FROM t2 LEFT JOIN (dual JOIN t1 ON true) ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.80",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM dual CROSS JOIN t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.81",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT dual.*, t1.*, t2.*\n      FROM t1 CROSS JOIN dual RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.90",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT OUTER JOIN t2 ON b=c ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND a=1 ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND a=1 ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a=1 ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.111",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE a=1 ORDER BY +b;",
+          "expect": "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.115",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.116",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a IS NULL ORDER BY +d;",
+          "expect": "\n    NULL NULL 5    55\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND d\u003c=0 ORDER BY +b, +d;",
+          "expect": "\n    NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d\u003c=0 ORDER BY +b, +d;",
+          "expect": "\n    NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL\n  "
+        }
+      ]
+    },
+    {
+      "name": "join7-10.141",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d\u003c=0\n     ORDER BY +b, +d LIMIT 2 OFFSET 2",
+          "expect": "\n    NULL NULL 5    55\n    1    2    NULL NULL\n  "
+        }
+      ]
+    }
+  ]
+}

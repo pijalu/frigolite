@@ -1,13 +1,14 @@
 {
   "file": "fuzz4.test",
   "name": "fuzz4",
+  "ordered": true,
   "tests": [
     {
       "name": "fuzz4-100",
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE TABLE Table0 (Col0  NOT NULL DEFAULT (CURRENT_TIME IS 1 > 1));\n  INSERT OR REPLACE INTO Table0 DEFAULT VALUES ;\n  SELECT * FROM Table0;",
+          "sql": "CREATE TABLE Table0 (Col0  NOT NULL DEFAULT (CURRENT_TIME IS 1 \u003e 1));\n  INSERT OR REPLACE INTO Table0 DEFAULT VALUES ;\n  SELECT * FROM Table0;",
           "expect": "0"
         }
       ]
@@ -27,7 +28,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE TABLE Table2a(\n     Col0  NOT NULL   DEFAULT (CURRENT_TIME IS 1  IS NOT 1  > 1)\n  );\n  INSERT OR REPLACE INTO Table2a DEFAULT VALUES;\n  SELECT * FROM Table2a;",
+          "sql": "CREATE TABLE Table2a(\n     Col0  NOT NULL   DEFAULT (CURRENT_TIME IS 1  IS NOT 1  \u003e 1)\n  );\n  INSERT OR REPLACE INTO Table2a DEFAULT VALUES;\n  SELECT * FROM Table2a;",
           "expect": "0"
         }
       ]

@@ -1,7 +1,16 @@
 {
   "file": "vtab7.test",
   "name": "vtab7",
+  "ordered": true,
   "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_echo_module"
+        }
+      ]
+    },
     {
       "name": "vtab7-1.1",
       "steps": [
@@ -17,6 +26,11 @@
         {
           "type": "exec",
           "sql": "INSERT INTO abc2 VALUES(1, 2, 3);"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "counter",
+          "expect": "1"
         }
       ]
     },
@@ -25,7 +39,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO log VALUES('xSync');"
+          "sql": "CREATE TABLE log(msg);\n    INSERT INTO abc2 VALUES(4, 5, 6);\n    SELECT * FROM log;",
+          "expect": "xSync"
         }
       ]
     },
@@ -33,7 +48,7 @@
       "name": "vtab7-2.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "INSERT INTO abc2 VALUES(4, 5, 6);\n    SELECT * FROM log;",
           "expect": "xSync xSync"
         }
@@ -43,7 +58,7 @@
       "name": "vtab7-2.4",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "INSERT INTO abc2 VALUES(4, 5, 6);\n    SELECT * FROM log;",
           "expect": "xSync xSync xSync"
         }
@@ -54,7 +69,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE newtab(d, e, f);"
+          "sql": "INSERT INTO abc2 VALUES(1, 2, 3);\n    SELECT name FROM sqlite_master ORDER BY name;",
+          "expect": "abc abc2 log newtab"
         }
       ]
     },
@@ -62,9 +78,46 @@
       "name": "vtab7-2.6",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "INSERT INTO abc2 VALUES(1, 2, 3);\n    SELECT name FROM sqlite_master ORDER BY name;",
           "expect": "abc abc2 log newtab"
+        }
+      ]
+    },
+    {
+      "name": "vtab7-2.6.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "rc",
+          "expect": "1 {database table is locked}"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE newtab"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db-journal"
         }
       ]
     },
@@ -74,15 +127,11 @@
         {
           "type": "exec",
           "sql": "ATTACH 'test2.db' AS db2;\n      CREATE TABLE db2.stuff(description, shape, color);"
-        }
-      ]
-    },
-    {
-      "name": "vtab7-4.1",
-      "steps": [
+        },
         {
           "type": "exec",
-          "sql": "INSERT INTO log VALUES('hello')"
+          "sql": "INSERT INTO abc2 VALUES(1, 2, 3);\n      SELECT * from stuff;",
+          "expect": "abc square green"
         }
       ]
     },
@@ -92,6 +141,15 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE def(d, e, f);\n    CREATE VIRTUAL TABLE def2 USING echo(def);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc2 VALUES(1, 2, 3);"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "error",
+          "expect": "1 {database table is locked}"
         }
       ]
     },
@@ -101,6 +159,11 @@
         {
           "type": "exec",
           "sql": "INSERT INTO abc2 VALUES(1, 2, 3);"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "error",
+          "expect": "1 {database table is locked}"
         }
       ]
     },
@@ -108,84 +171,15 @@
       "name": "vtab7-4.3",
       "steps": [
         {
-          "type": "query",
-          "sql": "INSERT INTO abc2 VALUES(1, 2, 3);\n    SELECT name FROM sqlite_master ORDER BY name;",
+          "type": "exec",
+          "sql": "INSERT INTO abc2 VALUES(1, 2, 3);\n    SELECT name FROM sqlite_master ORDER BY name;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "error",
           "expect": "1 {database table is locked}"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE abc(a, b, c);\n    CREATE VIRTUAL TABLE abc2 USING echo(abc);"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO abc2 VALUES(1, 2, 3);"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO log VALUES('xSync');"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE log(msg);\n    INSERT INTO abc2 VALUES(4, 5, 6);\n    SELECT * FROM log;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO abc2 VALUES(4, 5, 6);\n    SELECT * FROM log;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO abc2 VALUES(4, 5, 6);\n    SELECT * FROM log;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE newtab(d, e, f);"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO abc2 VALUES(1, 2, 3);\n    SELECT name FROM sqlite_master ORDER BY name;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO abc2 VALUES(1, 2, 3);\n    SELECT name FROM sqlite_master ORDER BY name;"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE newtab"
-        },
-        {
-          "type": "exec",
-          "sql": "ATTACH 'test2.db' AS db2;\n      CREATE TABLE db2.stuff(description, shape, color);"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO db2.stuff VALUES('abc', 'square', 'green');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO abc2 VALUES(1, 2, 3);\n      SELECT * from stuff;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO log VALUES('hello')"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE def(d, e, f);\n    CREATE VIRTUAL TABLE def2 USING echo(def);"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO abc2 VALUES(1, 2, 3);"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO abc2 VALUES(1, 2, 3);"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO abc2 VALUES(1, 2, 3);\n    SELECT name FROM sqlite_master ORDER BY name;"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

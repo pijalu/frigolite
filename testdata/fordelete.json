@@ -1,9 +1,10 @@
 {
   "file": "fordelete.test",
   "name": "fordelete",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "fordelete-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,79 @@
       ]
     },
     {
-      "name": "2.0",
+      "name": "fordelete-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name, rootpage FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  DELETE FROM t1 WHERE a=?"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  DELETE FROM t1 WHERE a=?",
+          "expect": "sqlite_autoindex_t1_1 t1*+"
+        }
+      ]
+    },
+    {
+      "name": "fordelete-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name, rootpage FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  DELETE FROM t1 WHERE a=? AND b=?"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  DELETE FROM t1 WHERE a=? AND b=?",
+          "expect": "sqlite_autoindex_t1_1 t1+"
+        }
+      ]
+    },
+    {
+      "name": "fordelete-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name, rootpage FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  DELETE FROM t1 WHERE a\u003e?"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  DELETE FROM t1 WHERE a\u003e?",
+          "expect": "sqlite_autoindex_t1_1 t1*+"
+        }
+      ]
+    },
+    {
+      "name": "fordelete-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name, rootpage FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  DELETE FROM t1 WHERE rowid=?"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  DELETE FROM t1 WHERE rowid=?",
+          "expect": "sqlite_autoindex_t1_1* t1"
+        }
+      ]
+    },
+    {
+      "name": "fordelete-2.0",
       "steps": [
         {
           "type": "exec",
@@ -21,7 +94,97 @@
       ]
     },
     {
-      "name": "3.0",
+      "name": "fordelete-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name, rootpage FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  DELETE FROM t2 WHERE a=?"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  DELETE FROM t2 WHERE a=?",
+          "expect": "t2*+ t2a t2b* t2c*"
+        }
+      ]
+    },
+    {
+      "name": "fordelete-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name, rootpage FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  DELETE FROM t2 WHERE a=? AND +b=?"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  DELETE FROM t2 WHERE a=? AND +b=?",
+          "expect": "t2+ t2a t2b* t2c*"
+        }
+      ]
+    },
+    {
+      "name": "fordelete-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name, rootpage FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  DELETE FROM t2 WHERE a=? OR b=?"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  DELETE FROM t2 WHERE a=? OR b=?",
+          "expect": "t2 t2a* t2b* t2c*"
+        }
+      ]
+    },
+    {
+      "name": "fordelete-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name, rootpage FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  DELETE FROM t2 WHERE +a=?"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  DELETE FROM t2 WHERE +a=?",
+          "expect": "t2 t2a* t2b* t2c*"
+        }
+      ]
+    },
+    {
+      "name": "fordelete-2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name, rootpage FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  DELETE FROM t2 WHERE rowid=?"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN  DELETE FROM t2 WHERE rowid=?",
+          "expect": "t2 t2a* t2b* t2c*"
+        }
+      ]
+    },
+    {
+      "name": "fordelete-3.0",
       "steps": [
         {
           "type": "exec",
@@ -30,7 +193,57 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "fordelete-3.1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT rootpage FROM sqlite_master WHERE name = 'x1'",
+          "variable": "root"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN IMMEDIATE;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1;",
+          "expect": "5 {} {} {}"
+        }
+      ]
+    },
+    {
+      "name": "fordelete-3.2",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT rootpage FROM sqlite_master WHERE name = 'x2'",
+          "variable": "root"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN IMMEDIATE;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x2;",
+          "expect": "6 {} {} {}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fordelete-4.0",
       "steps": [
         {
           "type": "exec",
@@ -39,7 +252,11 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fordelete-4.1",
       "steps": [
         {
           "type": "exec",
@@ -48,7 +265,11 @@
       ]
     },
     {
-      "name": "5.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fordelete-5.1",
       "steps": [
         {
           "type": "exec",
@@ -57,7 +278,7 @@
       ]
     },
     {
-      "name": "5.2",
+      "name": "fordelete-5.2",
       "steps": [
         {
           "type": "query",
@@ -67,63 +288,11 @@
       ]
     },
     {
-      "name": "5.3",
+      "name": "fordelete-5.3",
       "steps": [
         {
           "type": "exec",
           "sql": "DELETE FROM t1 WHERE a = 2;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name, rootpage FROM sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN IMMEDIATE;"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM x1;"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN IMMEDIATE;"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM x2;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

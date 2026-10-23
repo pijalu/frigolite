@@ -1,6 +1,7 @@
 {
   "file": "subtype1.test",
   "name": "subtype1",
+  "ordered": true,
   "tests": [
     {
       "name": "subtype1-100",
@@ -43,6 +44,10 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
       "name": "subtype1-200",
       "steps": [
         {
@@ -75,8 +80,9 @@
       "name": "subtype1-230",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH t4(a) AS MATERIALIZED (SELECT json(1)) SELECT subtype(a) FROM t4;"
+          "type": "query",
+          "sql": "WITH t4(a) AS MATERIALIZED (SELECT json(1)) SELECT subtype(a) FROM t4;",
+          "expect": "0"
         }
       ]
     },
@@ -84,8 +90,9 @@
       "name": "subtype1-231",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH t4(a) AS NOT MATERIALIZED (SELECT json(1)) SELECT subtype(a) FROM t4;"
+          "type": "query",
+          "sql": "WITH t4(a) AS NOT MATERIALIZED (SELECT json(1)) SELECT subtype(a) FROM t4;",
+          "expect": "0"
         }
       ]
     },
@@ -120,18 +127,145 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "subtype1-400",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "query",
+          "sql": "WITH t400(id,j) AS (VALUES\n    (1,'{a:{x:1,y:2},b:{x:3,y:4}}'),\n    (2,'not json')\n  )\n  SELECT id, subtype(if(json_valid(j,6),j-\u003e'a')) FROM t400;",
+          "expect": "1 74 2 0"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "subtype1-500",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE TABLE t1(id, j);\n  INSERT INTO t1 VALUES (1,'{a:{x:1,y:2},b:{x:3,y:4}}'), (2,'not json');"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-510.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, subtype( (CASE WHEN json_valid(j, 6) THEN j-\u003e'a' ELSE j END) ) FROM t1;",
+          "expect": "1 74 2 0"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-510.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP INDEX IF EXISTS i1;\n    CREATE INDEX i1 ON t1( (CASE WHEN json_valid(j, 6) THEN j-\u003e'a' ELSE j END) );\n    SELECT id, subtype( (CASE WHEN json_valid(j, 6) THEN j-\u003e'a' ELSE j END) ) FROM t1 INDEXED BY i1 ORDER BY id;",
+          "expect": "1 74 2 0"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-520.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, subtype( +(CASE WHEN json_valid(j, 6) THEN j-\u003e'a' ELSE j END) ) FROM t1;",
+          "expect": "1 74 2 0"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-520.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP INDEX IF EXISTS i1;\n    CREATE INDEX i1 ON t1( +(CASE WHEN json_valid(j, 6) THEN j-\u003e'a' ELSE j END) );\n    SELECT id, subtype( +(CASE WHEN json_valid(j, 6) THEN j-\u003e'a' ELSE j END) ) FROM t1 INDEXED BY i1 ORDER BY id;",
+          "expect": "1 74 2 0"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-530.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, subtype( -(CASE WHEN json_valid(j, 6) THEN j-\u003e'a' ELSE j END) ) FROM t1;",
+          "expect": "1 0 2 0"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-530.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP INDEX IF EXISTS i1;\n    CREATE INDEX i1 ON t1( -(CASE WHEN json_valid(j, 6) THEN j-\u003e'a' ELSE j END) );\n    SELECT id, subtype( -(CASE WHEN json_valid(j, 6) THEN j-\u003e'a' ELSE j END) ) FROM t1 INDEXED BY i1 ORDER BY id;",
+          "expect": "1 0 2 0"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-540.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, subtype( if( json_valid(j, 6), j-\u003e'a' )  ) FROM t1;",
+          "expect": "1 74 2 0"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-540.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP INDEX IF EXISTS i1;\n    CREATE INDEX i1 ON t1( if( json_valid(j, 6), j-\u003e'a' )  );\n    SELECT id, subtype( if( json_valid(j, 6), j-\u003e'a' )  ) FROM t1 INDEXED BY i1 ORDER BY id;",
+          "expect": "1 74 2 0"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-550.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, subtype( if( json_valid(j, 6), j-\u003e'a' ) COLLATE nocase ) FROM t1;",
+          "expect": "1 74 2 0"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-550.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP INDEX IF EXISTS i1;\n    CREATE INDEX i1 ON t1( if( json_valid(j, 6), j-\u003e'a' ) COLLATE nocase );\n    SELECT id, subtype( if( json_valid(j, 6), j-\u003e'a' ) COLLATE nocase ) FROM t1 INDEXED BY i1 ORDER BY id;",
+          "expect": "1 74 2 0"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-560.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, subtype( CAST( if( json_valid(j, 6), j-\u003e'a' ) AS TEXT ) ) FROM t1;",
+          "expect": "1 74 2 0"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-560.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP INDEX IF EXISTS i1;\n    CREATE INDEX i1 ON t1( CAST( if( json_valid(j, 6), j-\u003e'a' ) AS TEXT ) );\n    SELECT id, subtype( CAST( if( json_valid(j, 6), j-\u003e'a' ) AS TEXT ) ) FROM t1 INDEXED BY i1 ORDER BY id;",
+          "expect": "1 74 2 0"
         }
       ]
     }

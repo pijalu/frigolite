@@ -442,8 +442,30 @@ func (e *Engine) AttachFileLockError(path string) error {
 	}
 }
 
-// ReadLockedByOther reports whether another connection has an active prepared
-// SELECT holding a read lock on the named database.
+// CacheFlush writes dirty pages from active write transactions without committing them.
+// Attached databases are visited in attach order; a busy pager does not prevent later pagers from flushing.
+func (e *Engine) CacheFlush() error {
+	var busy bool
+	for _, ctx := range e.dbList {
+		if ctx == nil || ctx.Pager == nil || !ctx.Pager.HasDirtyPages() {
+			continue
+		}
+		key := e.LockKeyForDB(ctx.Name)
+		if e.ReadLockedByOther(ctx.Name) || (key != "" && lockreg.Global.SharedTxByOther(key, e.connID)) {
+			busy = true
+			continue
+		}
+		if err := ctx.Pager.CacheFlush(); err != nil {
+			return err
+		}
+	}
+	if busy {
+		return fmt.Errorf("database is locked")
+	}
+	return nil
+}
+
+// ReadLockedByOther reports whether another connection has an active prepared SELECT on the named database.
 func (e *Engine) ReadLockedByOther(name string) bool {
 	key := e.LockKeyForDB(name)
 	return key != "" && lockreg.Global.ReadTxByOther(key, e.connID)

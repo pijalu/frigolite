@@ -1,0 +1,42 @@
+{
+  "file": "tkt-26ff0c2d1e.test",
+  "name": "tkt-26ff0c2d1e",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "bug-20100512-1",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT case when 1 then 99 else ? end + ?",
+          "variable": "stmt_1"
+        }
+      ]
+    },
+    {
+      "name": "bug-20100512-3",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT case when 1 then 99 else ? end + ?",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_1__",
+          "expect": "555"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT case when 1 then 99 else ? end + ?",
+          "variable": "stmt_1"
+        }
+      ]
+    }
+  ]
+}

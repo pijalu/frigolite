@@ -297,10 +297,14 @@ func (e *Engine) FTS5Tables() map[string]*fts5.Table {
 	return e.fts5Tables
 }
 
-// AggRowMaps returns the aggregate row maps for aggregate function
-// evaluation (e.g. round(avg(x),2) over the aggregate row set).
+// AggRowMaps returns aggregate rows for the current evaluation context.
 func (e *Engine) AggRowMaps() []RowMap {
 	return e.selectEngine.AggRowMaps()
+}
+
+// AggRowMapsForCall returns aggregate rows assigned to a specific function call.
+func (e *Engine) AggRowMapsForCall(fn *sql.FuncCall) []RowMap {
+	return e.selectEngine.AggRowMapsForCall(fn)
 }
 
 // EnterAuxAggArg marks one aggregate-argument evaluation as in flight and

@@ -1,9 +1,10 @@
 {
   "file": "hidden.test",
   "name": "hidden",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.1",
+      "name": "hidden-1.1",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,7 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "hidden-1.2",
       "steps": [
         {
           "type": "query",
@@ -22,7 +23,7 @@
       ]
     },
     {
-      "name": "1.3",
+      "name": "hidden-1.3",
       "steps": [
         {
           "type": "query",
@@ -32,7 +33,131 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "hidden-2.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a, b, c);\n    INSERT INTO x1 VALUES(1, 2, 3);"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP VIEW v1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v1(a, b, __hidden__c) AS SELECT a, b, c FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "hidden-2.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, __hidden__c FROM v1;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "hidden-2.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM v1;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "hidden-2.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TRIGGER tr1 INSTEAD OF INSERT ON v1 BEGIN\n      INSERT INTO x1 VALUES(new.a, new.b, new.__hidden__c);\n    END;\n  \n    INSERT INTO v1 VALUES(4, 5);\n    SELECT * FROM x1;",
+          "expect": "1 2 3 4 5 {}"
+        }
+      ]
+    },
+    {
+      "name": "hidden-2.1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO v1(a, b, __hidden__c) VALUES(7, 8, 9);\n    SELECT * FROM x1;",
+          "expect": "1 2 3 4 5 {} 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "hidden-2.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a, b, c);\n    INSERT INTO x1 VALUES(1, 2, 3);"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP VIEW v1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v1 AS SELECT a, b, c AS __hidden__c FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "hidden-2.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, __hidden__c FROM v1;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "hidden-2.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM v1;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "hidden-2.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TRIGGER tr1 INSTEAD OF INSERT ON v1 BEGIN\n      INSERT INTO x1 VALUES(new.a, new.b, new.__hidden__c);\n    END;\n  \n    INSERT INTO v1 VALUES(4, 5);\n    SELECT * FROM x1;",
+          "expect": "1 2 3 4 5 {}"
+        }
+      ]
+    },
+    {
+      "name": "hidden-2.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO v1(a, b, __hidden__c) VALUES(7, 8, 9);\n    SELECT * FROM x1;",
+          "expect": "1 2 3 4 5 {} 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "hidden-3.1",
       "steps": [
         {
           "type": "query",
@@ -42,7 +167,7 @@
       ]
     },
     {
-      "name": "3.2.1",
+      "name": "hidden-3.2.1",
       "steps": [
         {
           "type": "exec",
@@ -51,7 +176,7 @@
       ]
     },
     {
-      "name": "3.2.2",
+      "name": "hidden-3.2.2",
       "steps": [
         {
           "type": "query",
@@ -61,7 +186,7 @@
       ]
     },
     {
-      "name": "3.2.3",
+      "name": "hidden-3.2.3",
       "steps": [
         {
           "type": "query",
@@ -71,7 +196,7 @@
       ]
     },
     {
-      "name": "3.3.1",
+      "name": "hidden-3.3.1",
       "steps": [
         {
           "type": "exec",
@@ -80,7 +205,7 @@
       ]
     },
     {
-      "name": "3.3.2",
+      "name": "hidden-3.3.2",
       "steps": [
         {
           "type": "query",
@@ -90,7 +215,7 @@
       ]
     },
     {
-      "name": "3.3.3",
+      "name": "hidden-3.3.3",
       "steps": [
         {
           "type": "query",
@@ -100,7 +225,7 @@
       ]
     },
     {
-      "name": "3.4.1",
+      "name": "hidden-3.4.1",
       "steps": [
         {
           "type": "exec",
@@ -109,7 +234,7 @@
       ]
     },
     {
-      "name": "3.4.2",
+      "name": "hidden-3.4.2",
       "steps": [
         {
           "type": "query",
@@ -119,7 +244,7 @@
       ]
     },
     {
-      "name": "3.4.3",
+      "name": "hidden-3.4.3",
       "steps": [
         {
           "type": "query",
@@ -129,7 +254,11 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "hidden-4.1",
       "steps": [
         {
           "type": "query",
@@ -139,20 +268,12 @@
       ]
     },
     {
-      "name": "4.2",
+      "name": "hidden-4.2",
       "steps": [
         {
           "type": "query",
           "sql": "VACUUM;\n  SELECT rowid, a, __hidden__b, c FROM t1;",
           "expect": "1 1 2 3   3 7 8 9"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

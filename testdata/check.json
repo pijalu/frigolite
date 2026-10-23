@@ -192,6 +192,18 @@
       ]
     },
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
       "name": "check-2.3",
       "steps": [
         {
@@ -652,7 +664,33 @@
       "steps": null
     },
     {
-      "name": "7.1",
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "myfunc",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "check",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "myfunc",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": "expr $x \u003c 10",
+          "minArgs": 1,
+          "maxArgs": -1,
+          "deterministic": true
+        }
+      ]
+    },
+    {
+      "name": "check-7.1",
       "steps": [
         {
           "type": "exec",
@@ -661,7 +699,7 @@
       ]
     },
     {
-      "name": "7.2",
+      "name": "check-7.2",
       "steps": [
         {
           "type": "exec",
@@ -670,7 +708,7 @@
       ]
     },
     {
-      "name": "7.3",
+      "name": "check-7.3",
       "steps": [
         {
           "type": "catch",
@@ -680,56 +718,108 @@
       ]
     },
     {
-      "name": "7.4",
+      "name": "check-7.4",
       "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
         {
           "type": "exec",
           "sql": "SELECT * FROM t6",
-          "expect": "9"
+          "expect": "9",
+          "database": "db2"
         }
       ]
     },
     {
-      "name": "7.5",
+      "name": "check-7.5",
       "steps": [
         {
           "type": "catch",
           "sql": "INSERT INTO t6 VALUES(8)",
-          "expect": "1 {unknown function: myfunc()}"
+          "expect": "1 {unknown function: myfunc()}",
+          "database": "db2"
         }
       ]
     },
     {
-      "name": "7.6",
+      "name": "check-7.6",
       "steps": [
         {
           "type": "catch",
           "sql": "CREATE TABLE t7(a CHECK (myfunc(a)))",
-          "expect": "1 {no such function: myfunc}"
+          "expect": "1 {no such function: myfunc}",
+          "database": "db2"
         }
       ]
     },
     {
-      "name": "7.7",
+      "name": "check-7.7",
       "steps": [
         {
+          "type": "register_function",
+          "functionName": "myfunc",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "check",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "myfunc",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": "expr $x \u003c 10",
+          "minArgs": 1,
+          "maxArgs": -1,
+          "database": "db2"
+        },
+        {
           "type": "exec",
-          "sql": "INSERT INTO t6 VALUES(8)"
+          "sql": "INSERT INTO t6 VALUES(8)",
+          "database": "db2"
         }
       ]
     },
     {
-      "name": "7.8",
+      "name": "check-7.8",
       "steps": [
+        {
+          "type": "register_function",
+          "functionName": "myfunc",
+          "callbackVars": {
+            "": "",
+            "::testprefix": "check",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "myfunc",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": "expr $x \u003c 10",
+          "minArgs": 1,
+          "maxArgs": -1,
+          "database": "db2"
+        },
         {
           "type": "catch",
           "sql": "INSERT INTO t6 VALUES(12)",
-          "expect": "1 {CHECK constraint failed: myfunc(a)}"
+          "expect": "1 {CHECK constraint failed: myfunc(a)}",
+          "database": "db2"
         }
       ]
     },
     {
-      "name": "8.1",
+      "name": "check-8.1",
       "steps": [
         {
           "type": "exec",
@@ -738,7 +828,7 @@
       ]
     },
     {
-      "name": "9.1",
+      "name": "check-9.1",
       "steps": [
         {
           "type": "exec",
@@ -747,7 +837,7 @@
       ]
     },
     {
-      "name": "9.2",
+      "name": "check-9.2",
       "steps": [
         {
           "type": "catch",
@@ -757,7 +847,7 @@
       ]
     },
     {
-      "name": "9.3",
+      "name": "check-9.3",
       "steps": [
         {
           "type": "catch",
@@ -767,11 +857,37 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
     },
     {
-      "name": "10.1",
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "check-10.1",
       "steps": [
         {
           "type": "query",
@@ -785,7 +901,7 @@
       "steps": null
     },
     {
-      "name": "11.0",
+      "name": "check-11.0",
       "steps": [
         {
           "type": "exec",
@@ -794,7 +910,7 @@
       ]
     },
     {
-      "name": "11.1",
+      "name": "check-11.1",
       "steps": [
         {
           "type": "exec",
@@ -803,7 +919,7 @@
       ]
     },
     {
-      "name": "11.2",
+      "name": "check-11.2",
       "steps": [
         {
           "type": "exec",
@@ -812,7 +928,7 @@
       ]
     },
     {
-      "name": "11.3",
+      "name": "check-11.3",
       "steps": [
         {
           "type": "exec",
@@ -821,7 +937,7 @@
       ]
     },
     {
-      "name": "11.4",
+      "name": "check-11.4",
       "steps": [
         {
           "type": "exec",
@@ -830,7 +946,7 @@
       ]
     },
     {
-      "name": "11.5",
+      "name": "check-11.5",
       "steps": [
         {
           "type": "exec",
@@ -839,7 +955,7 @@
       ]
     },
     {
-      "name": "11.6",
+      "name": "check-11.6",
       "steps": [
         {
           "type": "exec",
@@ -852,7 +968,7 @@
       "steps": null
     },
     {
-      "name": "12.10",
+      "name": "check-12.10",
       "steps": [
         {
           "type": "query",
@@ -862,7 +978,7 @@
       ]
     },
     {
-      "name": "12.20",
+      "name": "check-12.20",
       "steps": [
         {
           "type": "exec",
@@ -871,7 +987,7 @@
       ]
     },
     {
-      "name": "12.21",
+      "name": "check-12.21",
       "steps": [
         {
           "type": "catch",
@@ -881,7 +997,7 @@
       ]
     },
     {
-      "name": "12.22",
+      "name": "check-12.22",
       "steps": [
         {
           "type": "catch",
@@ -891,7 +1007,7 @@
       ]
     },
     {
-      "name": "12.30",
+      "name": "check-12.30",
       "steps": [
         {
           "type": "exec",
@@ -900,7 +1016,7 @@
       ]
     },
     {
-      "name": "12.31",
+      "name": "check-12.31",
       "steps": [
         {
           "type": "catch",
@@ -910,7 +1026,7 @@
       ]
     },
     {
-      "name": "12.32",
+      "name": "check-12.32",
       "steps": [
         {
           "type": "catch",
@@ -920,7 +1036,7 @@
       ]
     },
     {
-      "name": "12.40",
+      "name": "check-12.40",
       "steps": [
         {
           "type": "query",
@@ -930,7 +1046,7 @@
       ]
     },
     {
-      "name": "12.50",
+      "name": "check-12.50",
       "steps": [
         {
           "type": "query",
@@ -940,7 +1056,7 @@
       ]
     },
     {
-      "name": "12.60",
+      "name": "check-12.60",
       "steps": [
         {
           "type": "query",
@@ -950,7 +1066,7 @@
       ]
     },
     {
-      "name": "12.61",
+      "name": "check-12.61",
       "steps": [
         {
           "type": "catch",
@@ -960,7 +1076,7 @@
       ]
     },
     {
-      "name": "12.70",
+      "name": "check-12.70",
       "steps": [
         {
           "type": "query",
@@ -970,7 +1086,7 @@
       ]
     },
     {
-      "name": "12.80",
+      "name": "check-12.80",
       "steps": [
         {
           "type": "query",
@@ -980,7 +1096,7 @@
       ]
     },
     {
-      "name": "12.81",
+      "name": "check-12.81",
       "steps": [
         {
           "type": "catch",
@@ -994,7 +1110,7 @@
       "steps": null
     },
     {
-      "name": "13.1.0",
+      "name": "check-13.1.0",
       "steps": [
         {
           "type": "exec",
@@ -1003,7 +1119,7 @@
       ]
     },
     {
-      "name": "13.1.2",
+      "name": "check-13.1.2",
       "steps": [
         {
           "type": "exec",
@@ -1012,7 +1128,7 @@
       ]
     },
     {
-      "name": "13.1.4",
+      "name": "check-13.1.4",
       "steps": [
         {
           "type": "query",
@@ -1022,7 +1138,7 @@
       ]
     },
     {
-      "name": "13.2.0",
+      "name": "check-13.2.0",
       "steps": [
         {
           "type": "exec",
@@ -1031,7 +1147,7 @@
       ]
     },
     {
-      "name": "13.2.1",
+      "name": "check-13.2.1",
       "steps": [
         {
           "type": "query",
@@ -1041,7 +1157,7 @@
       ]
     },
     {
-      "name": "13.2.2",
+      "name": "check-13.2.2",
       "steps": [
         {
           "type": "exec",
@@ -1050,7 +1166,7 @@
       ]
     },
     {
-      "name": "13.2.3",
+      "name": "check-13.2.3",
       "steps": [
         {
           "type": "query",

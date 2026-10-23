@@ -196,7 +196,7 @@ func TestMemoRefresh_GenericRewriteServesRefreshedMemo(t *testing.T) {
 	armMemo(t, memoTestPage(t, pg), pager.DefaultPageSize, coff)
 	n, err := bt.deleteAllMatchingFromLeaf(1, func(cell *storage.Cell) bool {
 		return cell.RowID == 2 || cell.RowID == 4
-	})
+	}, false)
 	if err != nil || n != 2 {
 		t.Fatalf("deleteAllMatchingFromLeaf: n=%d err=%v", n, err)
 	}

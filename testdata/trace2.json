@@ -1,0 +1,214 @@
+{
+  "file": "trace2.test",
+  "name": "trace2",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "sql",
+          "callbackVars": {
+            "": "trace2",
+            "::testprefix": "trace2",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "sql",
+          "functionArgs": [
+            "zSql"
+          ],
+          "functionBody": " db one $zSql ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1, 2, 3;"
+        }
+      ]
+    },
+    {
+      "name": "trace2-1.1.a",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "trace",
+          "expect": "{SELECT 1, 2, 3;}"
+        }
+      ]
+    },
+    {
+      "name": "trace2-1.1.b",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "trace"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT sql('SELECT 1, 2, 3');"
+        }
+      ]
+    },
+    {
+      "name": "trace2-1.2.a",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "trace",
+          "expect": "{SELECT sql('SELECT 1, 2, 3');} {-- SELECT 1, 2, 3}"
+        }
+      ]
+    },
+    {
+      "name": "trace2-1.2.b",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "trace"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT sql('SELECT 1, \n    2, \n    3'\n  );"
+        }
+      ]
+    },
+    {
+      "name": "trace2-1.3.a",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "trace",
+          "expect": "{SELECT sql('SELECT 1, \n    2, \n    3'\n  );} {-- SELECT 1, \n--     2, \n--     3}"
+        }
+      ]
+    },
+    {
+      "name": "trace2-1.3.b",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "trace"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT sql('SELECT 1, \n\n\n    3'\n  );"
+        }
+      ]
+    },
+    {
+      "name": "trace2-1.4.a",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "trace",
+          "expect": "{SELECT sql('SELECT 1, \n\n\n    3'\n  );} {-- SELECT 1, \n-- \n-- \n--     3}"
+        }
+      ]
+    },
+    {
+      "name": "trace2-1.4.b",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "trace"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT $var, sql('SELECT 1, \n    $var, \n    3'\n  );"
+        }
+      ]
+    },
+    {
+      "name": "trace2-1.5.a",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "trace",
+          "expect": "{SELECT NULL, sql('SELECT 1, \n    $var, \n    3'\n  );} {-- SELECT 1, \n--     $var, \n--     3}"
+        }
+      ]
+    },
+    {
+      "name": "trace2-1.5.b",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "trace"
+        }
+      ]
+    },
+    {
+      "name": "trace2-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE x1 USING fts4;\n    INSERT INTO x1 VALUES('Cloudy, with a high near 16');\n    INSERT INTO x1 VALUES('Wind chill values as low as -13');"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES('North northwest wind between 8 and 14 mph');"
+        }
+      ]
+    },
+    {
+      "name": "trace2-2.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "trace",
+          "expect": "{INSERT INTO x1 VALUES('North northwest wind between 8 and 14 mph');} {-- DELETE FROM 'main'.'x1_segdir' WHERE level = ?} {-- INSERT INTO 'main'.'x1_content' VALUES(?,(?))} {-- REPLACE INTO 'main'.'x1_docsize' VALUES(?,?)} {-- SELECT value FROM 'main'.'x1_stat' WHERE id=?} {-- REPLACE INTO 'main'.'x1_stat' VALUES(?,?)} {-- SELECT (SELECT max(idx) FROM 'main'.'x1_segdir' WHERE level = ?) + 1} {-- SELECT coalesce((SELECT max(blockid) FROM 'main'.'x1_segments') + 1, 1)} {-- REPLACE INTO 'main'.'x1_segdir' VALUES(?,?,?,?,?,?)} {-- SELECT level, idx, end_block FROM 'main'.'x1_segdir' WHERE level BETWEEN ? AND ? ORDER BY level DESC, idx ASC}"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1(x1) VALUES('optimize');"
+        }
+      ]
+    },
+    {
+      "name": "trace2-2.3",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "trace",
+          "expect": "{INSERT INTO x1(x1) VALUES('optimize');} {-- SELECT ? UNION SELECT level / (1024 * ?) FROM 'main'.'x1_segdir'} {-- SELECT idx, start_block, leaves_end_block, end_block, root FROM 'main'.'x1_segdir' WHERE level BETWEEN ? AND ?ORDER BY level DESC, idx ASC} {-- SELECT max(level) FROM 'main'.'x1_segdir' WHERE level BETWEEN ? AND ?} {-- SELECT coalesce((SELECT max(blockid) FROM 'main'.'x1_segments') + 1, 1)} {-- DELETE FROM 'main'.'x1_segdir' WHERE level BETWEEN ? AND ?} {-- REPLACE INTO 'main'.'x1_segdir' VALUES(?,?,?,?,?,?)}"
+        }
+      ]
+    }
+  ]
+}

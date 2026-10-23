@@ -7,9 +7,10 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/schema"
+	"github.com/pijalu/frigolite/internal/sql"
 )
 
-func (e *DDLExecutor) renameUpdateRelatedEntriesInSchema(schemaMgr *schema.Manager, oldName, newName, quotedNew string, ctx *RenameContext) {
+func (e *DDLExecutor) renameUpdateRelatedEntriesInSchema(schemaMgr *schema.Manager, ownerSchema, targetSchema, oldName, newName, quotedNew string, ctx *RenameContext) {
 	entries, err := schemaMgr.GetEntries("")
 	if err != nil {
 		return
@@ -25,7 +26,7 @@ func (e *DDLExecutor) renameUpdateRelatedEntriesInSchema(schemaMgr *schema.Manag
 		if !entryReferencesTable(entry, oldName) {
 			continue
 		}
-		if !e.entryRenameAllowed(schemaMgr, entry, oldName, newName) {
+		if !e.entryRenameAllowed(schemaMgr, ownerSchema, targetSchema, entry, oldName, newName) {
 			continue
 		}
 		if e.entrySQLRenamed(schemaMgr, entry, oldName, newName, quotedNew, ctx) {
@@ -55,12 +56,12 @@ func baseTableName(name string) string {
 
 // entryRenameAllowed applies per-type rename rules (TblName updates, legacy
 // mode skips) and reports whether the entry's SQL should be rewritten.
-func (e *DDLExecutor) entryRenameAllowed(schemaMgr *schema.Manager, entry *schema.Entry, oldName, newName string) bool {
+func (e *DDLExecutor) entryRenameAllowed(schemaMgr *schema.Manager, ownerSchema, targetSchema string, entry *schema.Entry, oldName, newName string) bool {
 	switch entry.Type {
 	case schema.TypeView:
 		return !e.ctx.LegacyAlterTable()
 	case schema.TypeTrigger:
-		return e.triggerEntryRenameAllowed(schemaMgr, entry, oldName, newName)
+		return e.triggerEntryRenameAllowed(schemaMgr, ownerSchema, targetSchema, entry, oldName, newName)
 	case schema.TypeIndex:
 		return e.indexEntryRenameAllowed(schemaMgr, entry, oldName, newName)
 	case schema.TypeTable:
@@ -73,7 +74,10 @@ func (e *DDLExecutor) entryRenameAllowed(schemaMgr *schema.Manager, entry *schem
 // triggerEntryRenameAllowed retargets a trigger whose TblName is the renamed
 // table and reports whether its SQL should be rewritten. In legacy mode the
 // ON-table token is still rewritten (quoted) before skipping the rewrite.
-func (e *DDLExecutor) triggerEntryRenameAllowed(schemaMgr *schema.Manager, entry *schema.Entry, oldName, newName string) bool {
+func (e *DDLExecutor) triggerEntryRenameAllowed(schemaMgr *schema.Manager, ownerSchema, targetSchema string, entry *schema.Entry, oldName, newName string) bool {
+	if strings.EqualFold(ownerSchema, "temp") && !strings.EqualFold(triggerTargetSchema(entry.SQL), targetSchema) {
+		return false
+	}
 	legacy := e.ctx.LegacyAlterTable()
 	onRenamedTable := strings.EqualFold(entry.TblName, baseTableName(oldName))
 	if onRenamedTable {
@@ -93,6 +97,14 @@ func (e *DDLExecutor) triggerEntryRenameAllowed(schemaMgr *schema.Manager, entry
 		_ = schemaMgr.AddEntry(entry)
 	}
 	return !legacy
+}
+func triggerTargetSchema(sqlText string) string {
+	re := regexp.MustCompile(`(?is)\bON\s+(?:((?:"[^"]*"|\[[^]]*\]|` + "`[^`]*`" + `|[A-Za-z_][A-Za-z0-9_$]*))\s*\.\s*)?`)
+	match := re.FindStringSubmatch(sqlText)
+	if len(match) < 2 || strings.TrimSpace(match[1]) == "" {
+		return "main"
+	}
+	return dequoteSQLToken(strings.TrimSpace(match[1]))
 }
 
 // renameTriggerTargetToken rewrites the ON-table name of a trigger's stored
@@ -311,15 +323,97 @@ func otherSchemaQualifiedRef(sql string, pos int) bool {
 	return qual != "MAIN"
 }
 
+func createTableTypeQuoteOffsets(source string) map[int]bool {
+	tokenizer := sql.NewTokenizer(source)
+	var tokens []sql.Token
+	for {
+		tok := tokenizer.Next()
+		if tok.Type == sql.TokenEOF || tok.Type == sql.TokenError {
+			break
+		}
+		tokens = append(tokens, tok)
+	}
+	open := -1
+	for i, tok := range tokens {
+		if tok.Type == sql.TokenLParen {
+			open = i
+			break
+		}
+	}
+	if open < 0 {
+		return nil
+	}
+	preserve := make(map[int]bool)
+	start, depth := open+1, 1
+	flush := func(segment []sql.Token) {
+		if len(segment) < 2 || tableConstraintKeyword(segment[0].Value) {
+			return
+		}
+		localDepth := 0
+		for _, tok := range segment[1:] {
+			if localDepth == 0 && tableConstraintKeyword(tok.Value) {
+				break
+			}
+			switch tok.Type {
+			case sql.TokenLParen:
+				localDepth++
+			case sql.TokenRParen:
+				localDepth--
+			default:
+				if tok.QuotedIdent {
+					preserve[tok.Pos] = true
+				}
+			}
+		}
+	}
+	for i := open + 1; i < len(tokens); i++ {
+		switch tokens[i].Type {
+		case sql.TokenLParen:
+			depth++
+		case sql.TokenRParen:
+			depth--
+			if depth == 0 {
+				flush(tokens[start:i])
+				return preserve
+			}
+		case sql.TokenComma:
+			if depth == 1 {
+				flush(tokens[start:i])
+				start = i + 1
+			}
+		}
+	}
+	return preserve
+}
+
+func tableConstraintKeyword(value string) bool {
+	switch strings.ToUpper(value) {
+	case "CONSTRAINT", "PRIMARY", "NOT", "UNIQUE", "CHECK", "DEFAULT", "COLLATE", "REFERENCES", "GENERATED", "AS", "AUTOINCREMENT":
+		return true
+	default:
+		return false
+	}
+}
+
 // quoteFixSQLWithColumns rewrites double-quoted tokens that are not valid
 // identifiers into single-quoted string literals, preserving genuine
 // double-quoted identifiers (optionally restricted to the given column set).
 func quoteFixSQLWithColumns(sqlStr string, colSet map[string]bool) string {
+	var preserve map[int]bool
+	if strings.HasPrefix(strings.ToUpper(strings.TrimSpace(sqlStr)), "CREATE TABLE") {
+		preserve = createTableTypeQuoteOffsets(sqlStr)
+	}
 	var b strings.Builder
 	b.Grow(len(sqlStr))
 	for i := 0; i < len(sqlStr); i++ {
 		if sqlStr[i] != '"' {
 			b.WriteByte(sqlStr[i])
+			continue
+		}
+		if preserve[i] {
+			end := quotedTokenEnd(sqlStr, i)
+			b.WriteString(sqlStr[i : end+1])
+			i = end
 			continue
 		}
 		end := quotedTokenEnd(sqlStr, i)
@@ -357,7 +451,8 @@ func quotedTokenEnd(sqlStr string, i int) int {
 func quoteFixToken(sqlStr string, i, end int, colSet map[string]bool) (string, int) {
 	content := sqlStr[i+1 : end]
 	content = strings.ReplaceAll(content, `""`, `"`)
-	if isSQLIdentifier(content) && (colSet == nil || colSet[strings.ToUpper(content)]) {
+	resolvedColumn := colSet != nil && colSet[strings.ToUpper(content)]
+	if resolvedColumn || colSet == nil && isSQLIdentifier(content) {
 		return sqlStr[i : end+1], end
 	}
 	var b strings.Builder

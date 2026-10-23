@@ -9,6 +9,37 @@ import (
 
 // TestP5PragmaTableInfo verifies PRAGMA table_info / table_xinfo output:
 // column order, types, notnull, dflt_value, pk, and hidden columns.
+func TestNativePragmaIndexXInfoDeduplicatesWithoutRowidPrimaryKey(t *testing.T) {
+	db, err := Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if result := db.Exec("CREATE TABLE t1(a,b,c,d,e, PRIMARY KEY(a,b,c,a,b,c,d,a,b,c)) WITHOUT ROWID; CREATE INDEX t1a ON t1(b,b);"); result.Error != nil {
+		t.Fatal(result.Error)
+	}
+	result := db.Query("SELECT name,key FROM pragma_index_xinfo('t1')")
+	if result.Error != nil {
+		t.Fatal(result.Error)
+	}
+	if len(result.Rows) != 5 {
+		t.Fatalf("pragma_index_xinfo rows = %#v, want five unique PK/payload rows", result.Rows)
+	}
+	wantNames := []string{"a", "b", "c", "d", "e"}
+	for i, row := range result.Rows {
+		if row[0] != wantNames[i] {
+			t.Errorf("row %d name = %v, want %q", i, row[0], wantNames[i])
+		}
+		wantKey := int64(1)
+		if i >= 4 {
+			wantKey = 0
+		}
+		if row[1] != wantKey {
+			t.Errorf("row %d key = %v, want %d", i, row[1], wantKey)
+		}
+	}
+}
+
 func TestP5PragmaTableInfo(t *testing.T) {
 	db, err := Open(":memory:")
 	if err != nil {

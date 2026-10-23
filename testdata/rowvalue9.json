@@ -1,9 +1,10 @@
 {
   "file": "rowvalue9.test",
   "name": "rowvalue9",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0.1",
+      "name": "rowvalue9-1.0.1",
       "steps": [
         {
           "type": "exec",
@@ -12,17 +13,17 @@
       ]
     },
     {
-      "name": "1.0.2",
+      "name": "rowvalue9-1.0.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT x, typeof(x), y, typeof(y) FROM a2 ORDER BY rowid",
-          "expect": "1 integer 1 integer \n  2 integer 2 text \n  3 text    3 integer \n  4 text    4 text"
+          "expect": "\n  1 integer 1 integer \n  2 integer 2 text \n  3 text    3 integer \n  4 text    4 text\n"
         }
       ]
     },
     {
-      "name": "1.1.1",
+      "name": "rowvalue9-1.1.1",
       "steps": [
         {
           "type": "query",
@@ -32,7 +33,7 @@
       ]
     },
     {
-      "name": "1.1.2",
+      "name": "rowvalue9-1.1.2",
       "steps": [
         {
           "type": "query",
@@ -42,7 +43,7 @@
       ]
     },
     {
-      "name": "1.2.3",
+      "name": "rowvalue9-1.2.3",
       "steps": [
         {
           "type": "query",
@@ -52,7 +53,7 @@
       ]
     },
     {
-      "name": "1.2.4",
+      "name": "rowvalue9-1.2.4",
       "steps": [
         {
           "type": "query",
@@ -62,7 +63,7 @@
       ]
     },
     {
-      "name": "1.3.1",
+      "name": "rowvalue9-1.3.1",
       "steps": [
         {
           "type": "query",
@@ -72,7 +73,7 @@
       ]
     },
     {
-      "name": "1.3.2",
+      "name": "rowvalue9-1.3.2",
       "steps": [
         {
           "type": "query",
@@ -82,7 +83,7 @@
       ]
     },
     {
-      "name": "1.4.1",
+      "name": "rowvalue9-1.4.1",
       "steps": [
         {
           "type": "query",
@@ -92,7 +93,7 @@
       ]
     },
     {
-      "name": "1.4.2",
+      "name": "rowvalue9-1.4.2",
       "steps": [
         {
           "type": "query",
@@ -102,7 +103,7 @@
       ]
     },
     {
-      "name": "1.5.1",
+      "name": "rowvalue9-1.5.1",
       "steps": [
         {
           "type": "query",
@@ -112,7 +113,7 @@
       ]
     },
     {
-      "name": "1.5.2",
+      "name": "rowvalue9-1.5.2",
       "steps": [
         {
           "type": "query",
@@ -122,7 +123,7 @@
       ]
     },
     {
-      "name": "1.5.3",
+      "name": "rowvalue9-1.5.3",
       "steps": [
         {
           "type": "query",
@@ -132,7 +133,7 @@
       ]
     },
     {
-      "name": "1.6.1",
+      "name": "rowvalue9-1.6.1",
       "steps": [
         {
           "type": "query",
@@ -142,7 +143,7 @@
       ]
     },
     {
-      "name": "1.6.2",
+      "name": "rowvalue9-1.6.2",
       "steps": [
         {
           "type": "query",
@@ -152,7 +153,7 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "rowvalue9-2.1",
       "steps": [
         {
           "type": "exec",
@@ -161,7 +162,7 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "rowvalue9-2.2",
       "steps": [
         {
           "type": "query",
@@ -170,7 +171,7 @@
       ]
     },
     {
-      "name": "2.3",
+      "name": "rowvalue9-2.3",
       "steps": [
         {
           "type": "query",
@@ -179,7 +180,7 @@
       ]
     },
     {
-      "name": "2.4",
+      "name": "rowvalue9-2.4",
       "steps": [
         {
           "type": "exec",
@@ -188,7 +189,7 @@
       ]
     },
     {
-      "name": "2.5",
+      "name": "rowvalue9-2.5",
       "steps": [
         {
           "type": "query",
@@ -197,7 +198,7 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "rowvalue9-3.1",
       "steps": [
         {
           "type": "exec",
@@ -206,7 +207,7 @@
       ]
     },
     {
-      "name": "3.2",
+      "name": "rowvalue9-3.2",
       "steps": [
         {
           "type": "query",
@@ -215,7 +216,7 @@
       ]
     },
     {
-      "name": "3.3",
+      "name": "rowvalue9-3.3",
       "steps": [
         {
           "type": "query",
@@ -224,7 +225,7 @@
       ]
     },
     {
-      "name": "3.4",
+      "name": "rowvalue9-3.4",
       "steps": [
         {
           "type": "query",
@@ -233,7 +234,7 @@
       ]
     },
     {
-      "name": "3.5",
+      "name": "rowvalue9-3.5",
       "steps": [
         {
           "type": "query",
@@ -242,7 +243,7 @@
       ]
     },
     {
-      "name": "3.6",
+      "name": "rowvalue9-3.6",
       "steps": [
         {
           "type": "query",
@@ -251,7 +252,7 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "rowvalue9-4.0",
       "steps": [
         {
           "type": "exec",
@@ -260,175 +261,8 @@
       ]
     },
     {
-      "name": "5.0",
+      "name": "setup_0",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE e1(a TEXT, c NUMERIC);\n  CREATE TABLE e2(x BLOB, y BLOB);\n\n  INSERT INTO e1 VALUES(2, 2);\n\n  INSERT INTO e2 VALUES ('2', 2);\n  INSERT INTO e2 VALUES ('2', '2');\n  INSERT INTO e2 VALUES ('2', '2.0');\n\n  CREATE INDEX e1c ON e1(c);"
-        }
-      ]
-    },
-    {
-      "name": "5.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT rowid FROM e1 WHERE (a, c) IN (SELECT x, y FROM e2);",
-          "expect": "1"
-        }
-      ]
-    },
-    {
-      "name": "5.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT rowid FROM e2 WHERE rowid IN (SELECT +c FROM e1);",
-          "expect": "2"
-        }
-      ]
-    },
-    {
-      "name": "5.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT rowid FROM e2 WHERE rowid IN (SELECT 0+c FROM e1);",
-          "expect": "2"
-        }
-      ]
-    },
-    {
-      "name": "6.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE f1(a, b);\n  CREATE TABLE f2(c, d);\n  CREATE TABLE f3(e, f);"
-        }
-      ]
-    },
-    {
-      "name": "6.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM f3 WHERE (e, f) IN (\n    SELECT a, b FROM f1 UNION ALL SELECT c, d FROM f2\n  );"
-        }
-      ]
-    },
-    {
-      "name": "6.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE INDEX f3e ON f3(e);\n  SELECT * FROM f3 WHERE (e, f) IN (\n    SELECT a, b FROM f1 UNION ALL SELECT c, d FROM f2\n  );"
-        }
-      ]
-    },
-    {
-      "name": "7.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE g1(a, b); \n  INSERT INTO g1 VALUES\n      (1, 1), (1, 2), (1, 3), (1, 'i'), (1, 'j'),\n      (1, 6), (1, 7), (1, 8), (1, 9), (1, 10),\n      (1, 4), (1, 5);\n\n  CREATE TABLE g2(x, y);\n  CREATE INDEX g2x ON g2(x);\n\n  INSERT INTO g2 VALUES(1, 4);\n  INSERT INTO g2 VALUES(1, 5);"
-        }
-      ]
-    },
-    {
-      "name": "7.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM g2 WHERE (x, y) IN (\n    SELECT a, b FROM g1 ORDER BY +a, +b LIMIT 10\n  );",
-          "expect": "1 4 1 5"
-        }
-      ]
-    },
-    {
-      "name": "7.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM g2 WHERE (x, y) IN (\n    SELECT a, b FROM g1 ORDER BY a, b LIMIT 10\n  );",
-          "expect": "1 4 1 5"
-        }
-      ]
-    },
-    {
-      "name": "7.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM g2 WHERE (x, y) IN (\n    SELECT a, b FROM g1 ORDER BY 1, 2 LIMIT 10\n  );",
-          "expect": "1 4 1 5"
-        }
-      ]
-    },
-    {
-      "name": "8.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a ,b FLOAT);\n  CREATE INDEX t1x1 ON t1(a,b,a,a,a,a,a,a,a,a,a,b);"
-        }
-      ]
-    },
-    {
-      "name": "8.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 NATURAL JOIN t1 WHERE (a,b)> (SELECT 2 IN (SELECT 2,2), 2);",
-          "expect": "1 {sub-select returns 2 columns - expected 1}"
-        }
-      ]
-    },
-    {
-      "name": "9.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4);"
-        }
-      ]
-    },
-    {
-      "name": "9.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );",
-          "expect": "2 2 3 3"
-        }
-      ]
-    },
-    {
-      "name": "9.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX i1 ON t1(a);"
-        }
-      ]
-    },
-    {
-      "name": "9.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );",
-          "expect": "2 2 3 3"
-        }
-      ]
-    },
-    {
-      "name": "9.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE INDEX i2 ON t1(b, a);\n  SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );",
-          "expect": "2 2 3 3"
-        },
         {
           "type": "exec",
           "sql": "DROP INDEX IF EXISTS idx"
@@ -444,10 +278,823 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "rowvalue9-4.1.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (a, c) IN (SELECT x, y FROM d2);",
+          "expect": "3 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (c, a) IN (SELECT x, y FROM d2);",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (+c, a) IN (SELECT x, y FROM d2);",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (c, a) = (\n      SELECT x, y FROM d2 WHERE d2.rowid=d1.rowid\n    );",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT d1.rowid FROM d1, d2 WHERE a = y;",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT d1.rowid FROM d1 WHERE a = (\n      SELECT y FROM d2 where d2.rowid=d1.rowid\n    );",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS idx"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS idx2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS idx3"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX idx ON d1(a)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (a, c) IN (SELECT x, y FROM d2);",
+          "expect": "3 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (c, a) IN (SELECT x, y FROM d2);",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (+c, a) IN (SELECT x, y FROM d2);",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (c, a) = (\n      SELECT x, y FROM d2 WHERE d2.rowid=d1.rowid\n    );",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT d1.rowid FROM d1, d2 WHERE a = y;",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT d1.rowid FROM d1 WHERE a = (\n      SELECT y FROM d2 where d2.rowid=d1.rowid\n    );",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS idx"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS idx2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS idx3"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX idx ON d1(a, c)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (a, c) IN (SELECT x, y FROM d2);",
+          "expect": "3 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (c, a) IN (SELECT x, y FROM d2);",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (+c, a) IN (SELECT x, y FROM d2);",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (c, a) = (\n      SELECT x, y FROM d2 WHERE d2.rowid=d1.rowid\n    );",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT d1.rowid FROM d1, d2 WHERE a = y;",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT d1.rowid FROM d1 WHERE a = (\n      SELECT y FROM d2 where d2.rowid=d1.rowid\n    );",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS idx"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS idx2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS idx3"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX idx ON d1(c)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (a, c) IN (SELECT x, y FROM d2);",
+          "expect": "3 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (c, a) IN (SELECT x, y FROM d2);",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (+c, a) IN (SELECT x, y FROM d2);",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (c, a) = (\n      SELECT x, y FROM d2 WHERE d2.rowid=d1.rowid\n    );",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT d1.rowid FROM d1, d2 WHERE a = y;",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT d1.rowid FROM d1 WHERE a = (\n      SELECT y FROM d2 where d2.rowid=d1.rowid\n    );",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS idx"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS idx2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS idx3"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX idx ON d1(c, a)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (a, c) IN (SELECT x, y FROM d2);",
+          "expect": "3 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (c, a) IN (SELECT x, y FROM d2);",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (+c, a) IN (SELECT x, y FROM d2);",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (c, a) = (\n      SELECT x, y FROM d2 WHERE d2.rowid=d1.rowid\n    );",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT d1.rowid FROM d1, d2 WHERE a = y;",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.5.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT d1.rowid FROM d1 WHERE a = (\n      SELECT y FROM d2 where d2.rowid=d1.rowid\n    );",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS idx"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS idx2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS idx3"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX idx ON d1(c, a) ;\n    CREATE INDEX idx1 ON d2(x, y);"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (a, c) IN (SELECT x, y FROM d2);",
+          "expect": "3 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (c, a) IN (SELECT x, y FROM d2);",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (+c, a) IN (SELECT x, y FROM d2);",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (c, a) = (\n      SELECT x, y FROM d2 WHERE d2.rowid=d1.rowid\n    );",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.6.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT d1.rowid FROM d1, d2 WHERE a = y;",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.6.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT d1.rowid FROM d1 WHERE a = (\n      SELECT y FROM d2 where d2.rowid=d1.rowid\n    );",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS idx"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS idx2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS idx3"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX idx ON d1(c, a) ;\n    CREATE UNIQUE INDEX idx2 ON d2(x, y) ;"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (a, c) IN (SELECT x, y FROM d2);",
+          "expect": "3 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (c, a) IN (SELECT x, y FROM d2);",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (+c, a) IN (SELECT x, y FROM d2);",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.7.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (c, a) = (\n      SELECT x, y FROM d2 WHERE d2.rowid=d1.rowid\n    );",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.7.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT d1.rowid FROM d1, d2 WHERE a = y;",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.7.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT d1.rowid FROM d1 WHERE a = (\n      SELECT y FROM d2 where d2.rowid=d1.rowid\n    );",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS idx"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS idx2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS idx3"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX idx ON d1(c) ;\n    CREATE UNIQUE INDEX idx2 ON d2(x);"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (a, c) IN (SELECT x, y FROM d2);",
+          "expect": "3 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (c, a) IN (SELECT x, y FROM d2);",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (+c, a) IN (SELECT x, y FROM d2);",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.8.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM d1 WHERE (c, a) = (\n      SELECT x, y FROM d2 WHERE d2.rowid=d1.rowid\n    );",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.8.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT d1.rowid FROM d1, d2 WHERE a = y;",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-4.8.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT d1.rowid FROM d1 WHERE a = (\n      SELECT y FROM d2 where d2.rowid=d1.rowid\n    );",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE e1(a TEXT, c NUMERIC);\n  CREATE TABLE e2(x BLOB, y BLOB);\n\n  INSERT INTO e1 VALUES(2, 2);\n\n  INSERT INTO e2 VALUES ('2', 2);\n  INSERT INTO e2 VALUES ('2', '2');\n  INSERT INTO e2 VALUES ('2', '2.0');\n\n  CREATE INDEX e1c ON e1(c);"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM e1 WHERE (a, c) IN (SELECT x, y FROM e2);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM e2 WHERE rowid IN (SELECT +c FROM e1);",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM e2 WHERE rowid IN (SELECT 0+c FROM e1);",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE f1(a, b);\n  CREATE TABLE f2(c, d);\n  CREATE TABLE f3(e, f);"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM f3 WHERE (e, f) IN (\n    SELECT a, b FROM f1 UNION ALL SELECT c, d FROM f2\n  );"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX f3e ON f3(e);\n  SELECT * FROM f3 WHERE (e, f) IN (\n    SELECT a, b FROM f1 UNION ALL SELECT c, d FROM f2\n  );"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE g1(a, b); \n  INSERT INTO g1 VALUES\n      (1, 1), (1, 2), (1, 3), (1, 'i'), (1, 'j'),\n      (1, 6), (1, 7), (1, 8), (1, 9), (1, 10),\n      (1, 4), (1, 5);\n\n  CREATE TABLE g2(x, y);\n  CREATE INDEX g2x ON g2(x);\n\n  INSERT INTO g2 VALUES(1, 4);\n  INSERT INTO g2 VALUES(1, 5);"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM g2 WHERE (x, y) IN (\n    SELECT a, b FROM g1 ORDER BY +a, +b LIMIT 10\n  );",
+          "expect": " 1 4 1 5 "
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM g2 WHERE (x, y) IN (\n    SELECT a, b FROM g1 ORDER BY a, b LIMIT 10\n  );",
+          "expect": " 1 4 1 5 "
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM g2 WHERE (x, y) IN (\n    SELECT a, b FROM g1 ORDER BY 1, 2 LIMIT 10\n  );",
+          "expect": " 1 4 1 5 "
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a ,b FLOAT);\n  CREATE INDEX t1x1 ON t1(a,b,a,a,a,a,a,a,a,a,a,b);"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-8.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT a FROM t1 NATURAL JOIN t1 WHERE (a,b)\u003e (SELECT 2 IN (SELECT 2,2), 2);",
+          "expect": "1 {sub-select returns 2 columns - expected 1}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rowvalue9-9.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4);"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );",
+          "expect": "\n  2 2 3 3\n"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-9.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(a);"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-9.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );",
+          "expect": "\n  2 2 3 3\n"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-9.4e",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-9.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX i2 ON t1(b, a);\n  SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );",
+          "expect": "\n  2 2 3 3\n"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue9-9.5e",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );"
         }
       ]
     }

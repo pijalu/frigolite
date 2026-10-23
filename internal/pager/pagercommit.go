@@ -245,6 +245,71 @@ func (p *Pager) flushTruncateHeaderLocked(n uint32) error {
 	return nil
 }
 
+// CacheFlush writes dirty cached pages without ending the write transaction or clearing dirty accounting.
+// Call only at a synchronous Engine/API statement boundary: Engine.Exec releases statement-owned B-tree
+// cursors before returning, and cursor traversal retains page numbers rather than pinned Page pointers.
+// Rollback-journal before-images were captured by WritePage, so rollback remains possible after writes.
+// In WAL mode it appends non-commit frames without publishing the shared header.
+func (p *Pager) CacheFlush() error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if len(p.dirty) == 0 || p.file == nil {
+		return nil
+	}
+	if p.wal != nil {
+		if !p.wal.writeLock {
+			if _, err := p.walBeginWriteLocked(false); err != nil {
+				return err
+			}
+		}
+		order := p.flushOrderLocked()
+		pages := make([]*Page, 0, len(order))
+		for _, pageNum := range order {
+			if pg := p.pages[pageNum]; pg != nil {
+				pages = append(pages, pg)
+			}
+		}
+		return p.wal.spill(pages)
+	}
+	if err := p.openRollbackJournalLocked(); err != nil {
+		return err
+	}
+	order := p.flushOrderLocked()
+	var maxEnd int64
+	for _, pageNum := range order {
+		if end := int64(pageNum) * int64(p.pageSize); end > maxEnd {
+			maxEnd = end
+		}
+	}
+	if maxEnd > p.fileSize {
+		if err := quota.CheckDBFileGrowth(p.path, maxEnd); err != nil {
+			return err
+		}
+	}
+	flushedPage1 := false
+	for _, pageNum := range order {
+		pg := p.pages[pageNum]
+		if pg == nil {
+			continue
+		}
+		if pageNum == 1 && len(pg.Data) >= HeaderSize && len(p.header) >= HeaderSize {
+			copy(pg.Data[:HeaderSize], p.header)
+		}
+		off := int64(pageNum-1) * int64(p.pageSize)
+		if _, err := p.file.WriteAt(pg.Data, off); err != nil {
+			return fmt.Errorf("pager: cache flush page %d: %w", pageNum, err)
+		}
+		if pageNum == 1 {
+			flushedPage1 = true
+		}
+	}
+	if maxEnd > p.fileSize {
+		p.fileSize = maxEnd
+	}
+	p.refreshKnownFileStampAfterFlush(flushedPage1)
+	return nil
+}
+
 // Flush is the public flush entry point. See flushAll for the actual work.
 func (p *Pager) Flush() error {
 	return p.FlushWithContext(false)

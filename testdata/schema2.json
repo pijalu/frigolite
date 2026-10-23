@@ -1,13 +1,40 @@
 {
   "file": "schema2.test",
   "name": "schema2",
+  "ordered": true,
   "tests": [
     {
       "name": "schema2-1.1",
       "steps": [
         {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM sqlite_master",
+          "variable": "stmt_1"
+        },
+        {
           "type": "exec",
           "sql": "CREATE TABLE abc(a, b, c);"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM sqlite_master",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_1__",
+          "expect": "SQLITE_ROW"
+        }
+      ]
+    },
+    {
+      "name": "schema2-1.2",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM sqlite_master",
+          "variable": "stmt_1",
+          "expect": "SQLITE_OK"
         }
       ]
     },
@@ -15,8 +42,34 @@
       "name": "schema2-1.3",
       "steps": [
         {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM sqlite_master",
+          "variable": "stmt_2"
+        },
+        {
           "type": "exec",
           "sql": "DROP TABLE abc;"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM sqlite_master",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_2__",
+          "expect": "SQLITE_DONE"
+        }
+      ]
+    },
+    {
+      "name": "schema2-1.4",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM sqlite_master",
+          "variable": "stmt_2",
+          "expect": "SQLITE_OK"
         }
       ]
     },
@@ -24,8 +77,34 @@
       "name": "schema2-2.1",
       "steps": [
         {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM sqlite_master",
+          "variable": "stmt_3"
+        },
+        {
           "type": "exec",
           "sql": "CREATE VIEW v1 AS SELECT * FROM sqlite_master;"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM sqlite_master",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_3__",
+          "expect": "SQLITE_ROW"
+        }
+      ]
+    },
+    {
+      "name": "schema2-2.2",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM sqlite_master",
+          "variable": "stmt_3",
+          "expect": "SQLITE_OK"
         }
       ]
     },
@@ -33,8 +112,34 @@
       "name": "schema2-2.3",
       "steps": [
         {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM sqlite_master",
+          "variable": "stmt_4"
+        },
+        {
           "type": "exec",
           "sql": "DROP VIEW v1;"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM sqlite_master",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_4__",
+          "expect": "SQLITE_DONE"
+        }
+      ]
+    },
+    {
+      "name": "schema2-2.4",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM sqlite_master",
+          "variable": "stmt_4",
+          "expect": "SQLITE_OK"
         }
       ]
     },
@@ -44,6 +149,36 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE abc(a, b, c);"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM sqlite_master",
+          "variable": "stmt_5"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER abc_trig AFTER INSERT ON abc BEGIN\n        SELECT 1, 2, 3;\n      END;"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM sqlite_master",
+          "variable": "stmt_5"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_5__",
+          "expect": "SQLITE_ROW"
+        }
+      ]
+    },
+    {
+      "name": "schema2-3.2",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM sqlite_master",
+          "variable": "stmt_5",
+          "expect": "SQLITE_OK"
         }
       ]
     },
@@ -51,8 +186,34 @@
       "name": "schema2-3.3",
       "steps": [
         {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM sqlite_master",
+          "variable": "stmt_6"
+        },
+        {
           "type": "exec",
           "sql": "DROP TRIGGER abc_trig;"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM sqlite_master",
+          "variable": "stmt_6"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_6__",
+          "expect": "SQLITE_ROW"
+        }
+      ]
+    },
+    {
+      "name": "schema2-3.4",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM sqlite_master",
+          "variable": "stmt_6",
+          "expect": "SQLITE_OK"
         }
       ]
     },
@@ -60,8 +221,38 @@
       "name": "schema2-4.1",
       "steps": [
         {
+          "type": "catch",
+          "sql": "CREATE TABLE abc(a, b, c);"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM sqlite_master",
+          "variable": "stmt_7"
+        },
+        {
           "type": "exec",
           "sql": "CREATE INDEX abc_index ON abc(a);"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM sqlite_master",
+          "variable": "stmt_7"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_7__",
+          "expect": "SQLITE_ROW"
+        }
+      ]
+    },
+    {
+      "name": "schema2-4.2",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM sqlite_master",
+          "variable": "stmt_7",
+          "expect": "SQLITE_OK"
         }
       ]
     },
@@ -69,8 +260,34 @@
       "name": "schema2-4.3",
       "steps": [
         {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM sqlite_master",
+          "variable": "stmt_8"
+        },
+        {
           "type": "exec",
           "sql": "DROP INDEX abc_index;"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM sqlite_master",
+          "variable": "stmt_8"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_8__",
+          "expect": "SQLITE_ROW"
+        }
+      ]
+    },
+    {
+      "name": "schema2-4.4",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM sqlite_master",
+          "variable": "stmt_8",
+          "expect": "SQLITE_OK"
         }
       ]
     },
@@ -78,8 +295,38 @@
       "name": "schema2-5.1",
       "steps": [
         {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM abc;",
+          "variable": "stmt_9"
+        },
+        {
           "type": "exec",
           "sql": "ATTACH 'test2.db' AS aux;"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM abc;",
+          "variable": "stmt_9"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_9__",
+          "expect": "SQLITE_DONE"
+        }
+      ]
+    },
+    {
+      "name": "schema2-5.2",
+      "steps": [
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT * FROM abc;",
+          "variable": "stmt_9"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "SQLITE_OK",
+          "expect": "SQLITE_OK"
         }
       ]
     },
@@ -89,6 +336,148 @@
         {
           "type": "exec",
           "sql": "DETACH aux;"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM abc;",
+          "variable": "stmt_9"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_9__",
+          "expect": "SQLITE_DONE"
+        }
+      ]
+    },
+    {
+      "name": "schema2-5.4",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM abc;",
+          "variable": "stmt_9",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "schema2-6.1",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM abc;",
+          "variable": "stmt_10"
+        },
+        {
+          "type": "register_function",
+          "functionName": "hello_function",
+          "callbackVars": {
+            "": "stmt_10",
+            "::STMT": "stmt_10",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "sql": "SELECT * FROM abc;",
+            "testdir": ""
+          },
+          "minArgs": -1,
+          "maxArgs": -1
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM abc;",
+          "variable": "stmt_10"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_10__",
+          "expect": "SQLITE_DONE"
+        }
+      ]
+    },
+    {
+      "name": "schema2-6.2",
+      "steps": [
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT * FROM abc;",
+          "variable": "stmt_10"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "SQLITE_OK",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "schema2-6.3",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM abc;",
+          "variable": "stmt_10"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_10__",
+          "expect": "SQLITE_DONE"
+        }
+      ]
+    },
+    {
+      "name": "schema2-6.4",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM abc;",
+          "variable": "stmt_10",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "schema2-8.1",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM sqlite_master",
+          "variable": "stmt_11"
+        },
+        {
+          "type": "auth_proc",
+          "callbackVars": {
+            "": "stmt_11",
+            "::STMT": "stmt_11",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "sql": "SELECT * FROM abc;",
+            "testdir": ""
+          }
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM sqlite_master",
+          "variable": "stmt_11"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_11__",
+          "expect": "SQLITE_ROW"
+        }
+      ]
+    },
+    {
+      "name": "schema2-8.3",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM sqlite_master",
+          "variable": "stmt_11",
+          "expect": "SQLITE_OK"
         }
       ]
     },
@@ -96,8 +485,32 @@
       "name": "schema2-9.1",
       "steps": [
         {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
           "type": "exec",
-          "sql": "DROP TABLE abc;"
+          "sql": "DROP TABLE abc;",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM abc;",
+          "expect": "1 {no such table: abc}"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c);"
         }
       ]
     },
@@ -107,6 +520,25 @@
         {
           "type": "exec",
           "sql": "CREATE VIEW abcview AS SELECT * FROM abc;"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP VIEW abcview;",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM abcview;",
+          "expect": "1 {no such table: abcview}"
         }
       ]
     },
@@ -116,6 +548,21 @@
         {
           "type": "exec",
           "sql": "INSERT INTO abc VALUES(1, 2, 3);"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM abc",
+          "variable": "stmt_12"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM abc",
+          "variable": "stmt_12"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_12__",
+          "expect": "SQLITE_ROW"
         }
       ]
     },
@@ -123,9 +570,20 @@
       "name": "schema2-10.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t2(a, b, c);",
           "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "schema2-10.3",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM abc",
+          "variable": "stmt_12",
+          "expect": "SQLITE_OK"
         }
       ]
     },
@@ -133,80 +591,178 @@
       "name": "schema2-10.4",
       "steps": [
         {
-          "type": "query",
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT * FROM abc",
-          "expect": "1 2 3"
+          "expect": "1 2 3",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "schema2-10.5",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "schema2-11.1",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "tstfunc",
+          "callbackVars": {
+            "": "",
+            "::STMT": "stmt_12",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "sql": "SELECT * FROM abc",
+            "testdir": ""
+          },
+          "minArgs": -1,
+          "maxArgs": -1
         },
         {
-          "type": "exec",
-          "sql": "CREATE TABLE abc(a, b, c);"
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM abc",
+          "variable": "stmt_13"
         },
         {
-          "type": "exec",
-          "sql": "DROP TABLE abc;"
+          "type": "stmt_step",
+          "sql": "SELECT * FROM abc",
+          "variable": "stmt_13"
         },
         {
-          "type": "exec",
-          "sql": "CREATE VIEW v1 AS SELECT * FROM sqlite_master;"
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_13__",
+          "expect": "SQLITE_ROW"
+        }
+      ]
+    },
+    {
+      "name": "schema2-11.3",
+      "steps": [
+        {
+          "type": "register_function",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "functionName": "tstfunc",
+          "callbackVars": {
+            "": "",
+            "::STMT": "stmt_13",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "sql": "SELECT * FROM abc",
+            "testdir": ""
+          },
+          "minArgs": -1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "schema2-11.4",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM abc",
+          "variable": "stmt_13",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "schema2-11.5",
+      "steps": [
+        {
+          "type": "register_collation",
+          "collationName": "tstcollate",
+          "callbackVars": {
+            "": "SQLITE_OK",
+            "::STMT": "stmt_13",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "msg": "$msg",
+            "rc": "$rc",
+            "sql": "SELECT * FROM abc",
+            "testdir": ""
+          }
         },
         {
-          "type": "exec",
-          "sql": "DROP VIEW v1;"
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM abc",
+          "variable": "stmt_14"
         },
         {
-          "type": "exec",
-          "sql": "CREATE TABLE abc(a, b, c);"
+          "type": "stmt_step",
+          "sql": "SELECT * FROM abc",
+          "variable": "stmt_14"
         },
         {
-          "type": "exec",
-          "sql": "CREATE TRIGGER abc_trig AFTER INSERT ON abc BEGIN\n        SELECT 1, 2, 3;\n      END;"
-        },
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_14__",
+          "expect": "SQLITE_ROW"
+        }
+      ]
+    },
+    {
+      "name": "schema2-11.6",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "DROP TRIGGER abc_trig;"
-        },
+          "type": "delete_collation",
+          "expect": "SQLITE_BUSY",
+          "collationName": "tstcollate"
+        }
+      ]
+    },
+    {
+      "name": "schema2-11.7",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE INDEX abc_index ON abc(a);"
-        },
+          "type": "register_collation",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "collationName": "tstcollate",
+          "callbackVars": {
+            "": "",
+            "::STMT": "stmt_14",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "msg": "$msg",
+            "rc": "$rc",
+            "sql": "SELECT * FROM abc",
+            "testdir": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "schema2-11.8",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "DROP INDEX abc_index;"
-        },
-        {
-          "type": "exec",
-          "sql": "ATTACH 'test2.db' AS aux;"
-        },
-        {
-          "type": "exec",
-          "sql": "DETACH aux;"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE abc;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE abc(a, b, c);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE VIEW abcview AS SELECT * FROM abc;"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP VIEW abcview;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO abc VALUES(1, 2, 3);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM abc"
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM abc",
+          "variable": "stmt_14",
+          "expect": "SQLITE_OK"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

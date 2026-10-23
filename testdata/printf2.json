@@ -1,6 +1,7 @@
 {
   "file": "printf2.test",
   "name": "printf2",
+  "ordered": true,
   "tests": [
     {
       "name": "printf2-1.1",
@@ -116,15 +117,10 @@
       "name": "printf2-1.12",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT printf('%n',0);",
           "expect": "{}"
-        }
-      ]
-    },
-    {
-      "name": "printf2-1.12",
-      "steps": [
+        },
         {
           "type": "query",
           "sql": "SELECT format('%.*z',5,'abcdefghijklmnop');",
@@ -328,7 +324,7 @@
         {
           "type": "query",
           "sql": "SELECT printf('(%8c)',char(11106));",
-          "expect": "{(       \u2b62)}"
+          "expect": "{(       ⭢)}"
         }
       ]
     },
@@ -338,7 +334,7 @@
         {
           "type": "query",
           "sql": "SELECT printf('(%-8c)',char(11106));",
-          "expect": "{(\u2b62       )}"
+          "expect": "{(⭢       )}"
         }
       ]
     },
@@ -348,7 +344,7 @@
         {
           "type": "query",
           "sql": "SELECT printf('(%5.3c)',char(1492));",
-          "expect": "{(  \u05d4\u05d4\u05d4)}"
+          "expect": "{(  ההה)}"
         }
       ]
     },
@@ -358,7 +354,7 @@
         {
           "type": "query",
           "sql": "SELECT printf('(%-5.3c)',char(1492));",
-          "expect": "{(\u05d4\u05d4\u05d4  )}"
+          "expect": "{(ההה  )}"
         }
       ]
     },
@@ -368,7 +364,7 @@
         {
           "type": "query",
           "sql": "SELECT printf('(%3.3c)',char(1492));",
-          "expect": "{(\u05d4\u05d4\u05d4)}"
+          "expect": "{(ההה)}"
         }
       ]
     },
@@ -378,7 +374,7 @@
         {
           "type": "query",
           "sql": "SELECT printf('(%-3.3c)',char(1492));",
-          "expect": "{(\u05d4\u05d4\u05d4)}"
+          "expect": "{(ההה)}"
         }
       ]
     },
@@ -388,7 +384,7 @@
         {
           "type": "query",
           "sql": "SELECT printf('(%2c)',char(1513));",
-          "expect": "{( \u05e9)}"
+          "expect": "{( ש)}"
         }
       ]
     },
@@ -398,7 +394,7 @@
         {
           "type": "query",
           "sql": "SELECT printf('(%-2c)',char(1513));",
-          "expect": "{(\u05e9 )}"
+          "expect": "{(ש )}"
         }
       ]
     },
@@ -407,8 +403,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT printf('(%!.3s)','\u05d4\u05e0\u05d4 \u05de\u05d4\u05be\u05d8\u05d5\u05d1 \u05d5\u05de\u05d4\u05be\u05e0\u05e2\u05d9\u05dd \u05e9\u05d1\u05ea \u05d0\u05d7\u05d9\u05dd \u05d2\u05dd\u05be\u05d9\u05d7\u05d3');",
-          "expect": "(\u05d4\u05e0\u05d4)"
+          "sql": "SELECT printf('(%!.3s)','הנה מה־טוב ומה־נעים שבת אחים גם־יחד');",
+          "expect": "(הנה)"
         }
       ]
     },
@@ -417,8 +413,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT printf('(%.6s)','\u05d4\u05e0\u05d4 \u05de\u05d4\u05be\u05d8\u05d5\u05d1 \u05d5\u05de\u05d4\u05be\u05e0\u05e2\u05d9\u05dd \u05e9\u05d1\u05ea \u05d0\u05d7\u05d9\u05dd \u05d2\u05dd\u05be\u05d9\u05d7\u05d3');",
-          "expect": "(\u05d4\u05e0\u05d4)"
+          "sql": "SELECT printf('(%.6s)','הנה מה־טוב ומה־נעים שבת אחים גם־יחד');",
+          "expect": "(הנה)"
         }
       ]
     },
@@ -427,8 +423,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT printf('(%!5.3s)','\u05d4\u05e0\u05d4 \u05de\u05d4\u05be\u05d8\u05d5\u05d1 \u05d5\u05de\u05d4\u05be\u05e0\u05e2\u05d9\u05dd \u05e9\u05d1\u05ea \u05d0\u05d7\u05d9\u05dd \u05d2\u05dd\u05be\u05d9\u05d7\u05d3');",
-          "expect": "{(  \u05d4\u05e0\u05d4)}"
+          "sql": "SELECT printf('(%!5.3s)','הנה מה־טוב ומה־נעים שבת אחים גם־יחד');",
+          "expect": "{(  הנה)}"
         }
       ]
     },
@@ -437,8 +433,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT printf('(%8.6s)','\u05d4\u05e0\u05d4 \u05de\u05d4\u05be\u05d8\u05d5\u05d1 \u05d5\u05de\u05d4\u05be\u05e0\u05e2\u05d9\u05dd \u05e9\u05d1\u05ea \u05d0\u05d7\u05d9\u05dd \u05d2\u05dd\u05be\u05d9\u05d7\u05d3');",
-          "expect": "{(  \u05d4\u05e0\u05d4)}"
+          "sql": "SELECT printf('(%8.6s)','הנה מה־טוב ומה־נעים שבת אחים גם־יחד');",
+          "expect": "{(  הנה)}"
         }
       ]
     },
@@ -447,8 +443,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT printf('(%!-5.3s)','\u05d4\u05e0\u05d4 \u05de\u05d4\u05be\u05d8\u05d5\u05d1 \u05d5\u05de\u05d4\u05be\u05e0\u05e2\u05d9\u05dd \u05e9\u05d1\u05ea \u05d0\u05d7\u05d9\u05dd \u05d2\u05dd\u05be\u05d9\u05d7\u05d3');",
-          "expect": "{(\u05d4\u05e0\u05d4  )}"
+          "sql": "SELECT printf('(%!-5.3s)','הנה מה־טוב ומה־נעים שבת אחים גם־יחד');",
+          "expect": "{(הנה  )}"
         }
       ]
     },
@@ -457,8 +453,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT printf('(%-8.6s)','\u05d4\u05e0\u05d4 \u05de\u05d4\u05be\u05d8\u05d5\u05d1 \u05d5\u05de\u05d4\u05be\u05e0\u05e2\u05d9\u05dd \u05e9\u05d1\u05ea \u05d0\u05d7\u05d9\u05dd \u05d2\u05dd\u05be\u05d9\u05d7\u05d3');",
-          "expect": "{(\u05d4\u05e0\u05d4  )}"
+          "sql": "SELECT printf('(%-8.6s)','הנה מה־טוב ומה־נעים שבת אחים גם־יחד');",
+          "expect": "{(הנה  )}"
         }
       ]
     },
@@ -467,8 +463,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT printf('(%!.3Q)','\u05d4\u05e0\u05d4 \u05de\u05d4\u05be\u05d8\u05d5\u05d1 \u05d5\u05de\u05d4\u05be\u05e0\u05e2\u05d9\u05dd \u05e9\u05d1\u05ea \u05d0\u05d7\u05d9\u05dd \u05d2\u05dd\u05be\u05d9\u05d7\u05d3');",
-          "expect": "('\u05d4\u05e0\u05d4')"
+          "sql": "SELECT printf('(%!.3Q)','הנה מה־טוב ומה־נעים שבת אחים גם־יחד');",
+          "expect": "('הנה')"
         }
       ]
     },
@@ -477,8 +473,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT printf('(%.6Q)','\u05d4\u05e0\u05d4 \u05de\u05d4\u05be\u05d8\u05d5\u05d1 \u05d5\u05de\u05d4\u05be\u05e0\u05e2\u05d9\u05dd \u05e9\u05d1\u05ea \u05d0\u05d7\u05d9\u05dd \u05d2\u05dd\u05be\u05d9\u05d7\u05d3');",
-          "expect": "('\u05d4\u05e0\u05d4')"
+          "sql": "SELECT printf('(%.6Q)','הנה מה־טוב ומה־נעים שבת אחים גם־יחד');",
+          "expect": "('הנה')"
         }
       ]
     },
@@ -487,8 +483,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT printf('(%!7.3Q)','\u05d4\u05e0\u05d4 \u05de\u05d4\u05be\u05d8\u05d5\u05d1 \u05d5\u05de\u05d4\u05be\u05e0\u05e2\u05d9\u05dd \u05e9\u05d1\u05ea \u05d0\u05d7\u05d9\u05dd \u05d2\u05dd\u05be\u05d9\u05d7\u05d3');",
-          "expect": "{(  '\u05d4\u05e0\u05d4')}"
+          "sql": "SELECT printf('(%!7.3Q)','הנה מה־טוב ומה־נעים שבת אחים גם־יחד');",
+          "expect": "{(  'הנה')}"
         }
       ]
     },
@@ -497,8 +493,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT printf('(%10.6Q)','\u05d4\u05e0\u05d4 \u05de\u05d4\u05be\u05d8\u05d5\u05d1 \u05d5\u05de\u05d4\u05be\u05e0\u05e2\u05d9\u05dd \u05e9\u05d1\u05ea \u05d0\u05d7\u05d9\u05dd \u05d2\u05dd\u05be\u05d9\u05d7\u05d3');",
-          "expect": "{(  '\u05d4\u05e0\u05d4')}"
+          "sql": "SELECT printf('(%10.6Q)','הנה מה־טוב ומה־נעים שבת אחים גם־יחד');",
+          "expect": "{(  'הנה')}"
         }
       ]
     }

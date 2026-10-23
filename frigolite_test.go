@@ -2,6 +2,7 @@ package frigolite
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"regexp"
 	"strings"
@@ -47,12 +48,20 @@ func isKnownUnsupported(sql string) bool {
 // in standard test runs to avoid timing out the full suite.
 // Set FRIGOLITE_RUN_SLOW=1 to include them.
 var slowCompatTests = map[string]string{
-	"TestSQLite_emptytable":  "6-table cross join of 100-row tables (engine O(N×M) limitation)",
-	"TestSQLite_exprfault2":  "parser hang on deeply nested window function SQL fuzz test",
+	"TestSQLite_emptytable": "6-table cross join of 100-row tables (engine O(N×M) limitation)",
+	"TestSQLite_exprfault2": "parser hang on deeply nested window function SQL fuzz test",
 	"TestSQLite_indexexpr1": "many EXPLAIN QUERY PLAN + CREATE INDEX queries (slow)",
 }
 
 func setupDB(t *testing.T) *DB {
+	return setupDBWithEcho(t, true)
+}
+
+func setupDBWithoutEcho(t *testing.T) *DB {
+	return setupDBWithEcho(t, false)
+}
+
+func setupDBWithEcho(t *testing.T, registerEcho bool) *DB {
 	t.Helper()
 	if reason, ok := slowCompatTests[t.Name()]; ok && os.Getenv("FRIGOLITE_RUN_SLOW") == "" {
 		t.Skipf("Skipping slow compat test: %s", reason)
@@ -61,11 +70,11 @@ func setupDB(t *testing.T) *DB {
 	if err != nil {
 		t.Fatalf("Open: %v", err)
 	}
-	// The JSON corpus files converted from TCL tests that use the echo
-	// module ran under testfixture with register_echo_module invoked;
-	// register it here (the module stays unregistered per connection, so
-	// testgen lifecycle tests can exercise the "no such module" state).
-	db.RegisterEchoModule()
+	// Legacy JSON fixtures omit register_echo_module TCL setup; default to
+	// available there. Lifecycle fixtures can opt out and register in order.
+	if registerEcho {
+		db.RegisterEchoModule()
+	}
 	return db
 }
 
@@ -269,13 +278,22 @@ func TestDumpAll(t *testing.T) {
 
 // formatSQLiteValue formats a value the way SQLite does.
 // For float64, integer-valued floats get ".0" suffix (1.0 not 1).
+func TestFormatSQLiteValueInfinity(t *testing.T) {
+	for _, tc := range []struct {
+		value float64
+		want  string
+	}{{math.Inf(1), "Inf"}, {math.Inf(-1), "-Inf"}} {
+		if got := formatSQLiteValue(tc.value); got != tc.want {
+			t.Errorf("formatSQLiteValue(%v) = %q, want %q", tc.value, got, tc.want)
+		}
+	}
+}
+
 func formatSQLiteValue(val interface{}) string {
 	// Unwrap column affinity wrapper for correct formatting.
 	val = util.UnwrapColumnValue(val)
 	switch v := val.(type) {
 	case float64:
-		// Render like SQLite's real-to-text conversion (shortest decimal
-		// that round-trips, fixed-point for typical magnitudes).
 		return util.FormatSQLiteReal(v)
 	case []byte:
 		// The sqlite3 CLI renders blob values as their raw bytes, not as

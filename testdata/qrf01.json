@@ -1,18 +1,19 @@
 {
   "file": "qrf01.test",
   "name": "qrf01",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "qrf01-1.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1,2.5,'three'),(x'424c4f42',NULL,'\u1f08\u03bc\u03ae\u03bd');"
+          "sql": "CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1,2.5,'three'),(x'424c4f42',NULL,'Ἀμήν');"
         }
       ]
     },
     {
-      "name": "2.0",
+      "name": "qrf01-2.0",
       "steps": [
         {
           "type": "exec",
@@ -21,17 +22,17 @@
       ]
     },
     {
-      "name": "2.30",
+      "name": "qrf01-2.30",
       "steps": [
         {
           "type": "query",
-          "sql": "UPDATE t1 SET c='\u0397 \u03b3\u03c1\u03ae\u03b3\u03bf\u03c1\u03b7 \u03b1\u03bb\u03b5\u03c0\u03bf\u03cd \u03c0\u03b7\u03b4\u03ac\u03b5\u03b9 \u03c0\u03ac\u03bd\u03c9 \u03b1\u03c0\u03cc \u03c4\u03bf \u03c4\u03b5\u03bc\u03c0\u03ad\u03bb\u03b9\u03ba\u03bf \u03ba\u03b1\u03c6\u03ad \u03c3\u03ba\u03c5\u03bb\u03af';\n  SELECT hex(c) FROM t1;",
+          "sql": "UPDATE t1 SET c='Η γρήγορη αλεπού πηδάει πάνω από το τεμπέλικο καφέ σκυλί';\n  SELECT hex(c) FROM t1;",
           "expect": "CE9720CEB3CF81CEAECEB3CEBFCF81CEB720CEB1CEBBCEB5CF80CEBFCF8D20CF80CEB7CEB4CEACCEB5CEB920CF80CEACCEBDCF8920CEB1CF80CF8C20CF84CEBF20CF84CEB5CEBCCF80CEADCEBBCEB9CEBACEBF20CEBACEB1CF86CEAD20CF83CEBACF85CEBBCEAF"
         }
       ]
     },
     {
-      "name": "3.0",
+      "name": "qrf01-3.0",
       "steps": [
         {
           "type": "exec",
@@ -40,7 +41,35 @@
       ]
     },
     {
-      "name": "6.0",
+      "name": "qrf01-4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1 VALUES(json('{a:5,b:6}'), jsonb('{c:1,d:2}'), 99);"
+        }
+      ]
+    },
+    {
+      "name": "qrf01-5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(name, mtime, value);\n  INSERT INTO t1 VALUES\n    ('entry-one',1708791504,zeroblob(300)),\n    (unistr('one\\u000atwo\\u000athree'),1333206973,NULL),\n    ('sample-jsonb',1333101221,jsonb('{\n       \"alpha\":53.11688723,\n       \"beta\":\"qrfWidthPrint(p, p-\u003epOut, -p-\u003eu.sLine.mxColWth);\",\n       \"zeta\":[15,null,1333206973,\"fd8ffe000104a46494600010101\"]}'));"
+        }
+      ]
+    },
+    {
+      "name": "qrf01-5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a,b,c,d,e);\n    WITH v(x) AS (SELECT 'abcdefghijklmnopqrstuvwxyz')\n    INSERT INTO t2 SELECT x,x,x,x,x FROM v;",
+          "expect": "\n╭────┬────┬─────┬──────┬───────┬───╮\n│ a  │ b  │  c  │  d   │   e   │ x │\n╞════╪════╪═════╪══════╪═══════╪═══╡\n│ ab │ ab │ abc │ abcd │ abcde │ x │\n│ cd │ cd │ def │ efgh │ fghij │   │\n│ ef │ ef │ ghi │ ijkl │ klmno │   │\n│ .. │ .. │ ... │ ...  │ ...   │   │\n╰────┴────┴─────┴──────┴───────┴───╯\n"
+        }
+      ]
+    },
+    {
+      "name": "qrf01-6.0",
       "steps": [
         {
           "type": "exec",
@@ -49,27 +78,49 @@
       ]
     },
     {
-      "name": "7.0",
+      "name": "qrf01-7.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t7(a,b);\n  INSERT INTO t7 VALUES('abcdefghijklmnop',\n    'abc\u3041def\u304bghi\u306ejkl\u306fmnop');"
-        },
+          "sql": "CREATE TABLE t7(a,b);\n  INSERT INTO t7 VALUES('abcdefghijklmnop',\n    'abcぁdefかghiのjklはmnop');"
+        }
+      ]
+    },
+    {
+      "name": "qrf01-9.1",
+      "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t2(a,b,c,d,e);\n    WITH v(x) AS (SELECT 'abcdefghijklmnopqrstuvwxyz')\n    INSERT INTO t2 SELECT x,x,x,x,x FROM v;"
-        },
+          "sql": "CREATE TABLE t9(x);\n    INSERT INTO t9 VALUES\n      (x'4331323334'),\n      (x'c30431323334'),\n      (x'd3000431323334'),\n      (x'e30000000431323334'),\n      (x'f3000000000000000431323334');",
+          "expect": "1234,1234,1234,1234,1234,"
+        }
+      ]
+    },
+    {
+      "name": "qrf01-10.1",
+      "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t9(x);\n    INSERT INTO t9 VALUES\n      (x'4331323334'),\n      (x'c30431323334'),\n      (x'd3000431323334'),\n      (x'e30000000431323334'),\n      (x'f3000000000000000431323334');"
-        },
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES\n      ('alice'),\n      ('bob'),\n      ('cinderella-cinderella'),\n      ('daniel'),\n      ('emma'),\n      ('fred'),\n      ('gertrude'),\n      ('harold'),\n      ('ingrid'),\n      ('jake'),\n      ('lisa'),\n      ('mike'),\n      ('nina'),\n      ('octavian'),\n      ('paula'),\n      ('quintus'),\n      ('rita'),\n      ('sam'),\n      ('tammy'),\n      ('ulysses'),\n      ('violet'),\n      ('william'),\n      ('xanthippe'),\n      ('yates'),\n      ('zoe');",
+          "expect": "\nalice                  octavian\nbob                    paula\ncinderella-cinderella  quintus\ndaniel                 rita\nemma                   sam\nfred                   tammy\ngertrude               ulysses\nharold                 violet\ningrid                 william\njake                   xanthippe\nlisa                   yates\nmike                   zoe\nnina\n"
+        }
+      ]
+    },
+    {
+      "name": "qrf01-13.2",
+      "steps": [
         {
           "type": "exec",
-          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES\n      ('alice'),\n      ('bob'),\n      ('cinderella-cinderella'),\n      ('daniel'),\n      ('emma'),\n      ('fred'),\n      ('gertrude'),\n      ('harold'),\n      ('ingrid'),\n      ('jake'),\n      ('lisa'),\n      ('mike'),\n      ('nina'),\n      ('octavian'),\n      ('paula'),\n      ('quintus'),\n      ('rita'),\n      ('sam'),\n      ('tammy'),\n      ('ulysses'),\n      ('violet'),\n      ('william'),\n      ('xanthippe'),\n      ('yates'),\n      ('zoe');"
-        },
+          "sql": "CREATE TABLE t13(a,b);\n    INSERT INTO t13(a,b) VALUES\n      (1,'NULL'),\n      (0,'-NULL-'),\n      (0,''),\n      (1,'''abcde'),\n      (1,'abcde'''),\n      (0,'abcde'),\n      (1,' abcde'),\n      (1,'abcde '),\n      (1,'+0'),\n      (1,'-0'),\n      (1,'012345'),\n      (0,'012xyz345'),\n      (1,'0123.45'),\n      (0,'12.34.56'),\n      (0,'12.3e'),\n      (1,'12.3e+123'),\n      (1,'12.3e-34'),\n      (1,'12.3E56'),\n      (1,'12E56'),\n      (0,'12.5E5.6'),\n      (0,'12.5e+'),\n      (0,'12.5e-'),\n      (1,'+Inf'),(1,'-Inf'),(1,'Inf');",
+          "expect": "\n╭─────────┬─────────────╮\n│ quoted? │   string    │\n╞═════════╪═════════════╡\n│   yes   │ 'NULL'      │\n│         │ -NULL-      │\n│         │             │\n│   yes   │ '''abcde'   │\n│   yes   │ 'abcde'''   │\n│         │ abcde       │\n│   yes   │ ' abcde'    │\n│   yes   │ 'abcde '    │\n│   yes   │ '+0'        │\n│   yes   │ '-0'        │\n│   yes   │ '012345'    │\n│         │ 012xyz345   │\n│   yes   │ '0123.45'   │\n│         │ 12.34.56    │\n│         │ 12.3e       │\n│   yes   │ '12.3e+123' │\n│   yes   │ '12.3e-34'  │\n│   yes   │ '12.3E56'   │\n│   yes   │ '12E56'     │\n│         │ 12.5E5.6    │\n│         │ 12.5e+      │\n│         │ 12.5e-      │\n│   yes   │ '+Inf'      │\n│   yes   │ '-Inf'      │\n│   yes   │ 'Inf'       │\n╰─────────┴─────────────╯\n"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t13(a,b);\n    INSERT INTO t13(a,b) VALUES\n      (1,'NULL'),\n      (0,'-NULL-'),\n      (0,''),\n      (1,'''abcde'),\n      (1,'abcde'''),\n      (0,'abcde'),\n      (1,' abcde'),\n      (1,'abcde '),\n      (1,'+0'),\n      (1,'-0'),\n      (1,'012345'),\n      (0,'012xyz345'),\n      (1,'0123.45'),\n      (0,'12.34.56'),\n      (0,'12.3e'),\n      (1,'12.3e+123'),\n      (1,'12.3e-34'),\n      (1,'12.3E56'),\n      (1,'12E56'),\n      (0,'12.5E5.6'),\n      (0,'12.5e+'),\n      (0,'12.5e-'),\n      (1,'+Inf'),(1,'-Inf'),(1,'Inf');"
+          "type": "close_db"
         }
       ]
     }

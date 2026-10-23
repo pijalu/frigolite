@@ -207,6 +207,9 @@ func (e *SelectEngine) sortRowsByOrderBy(orderBy []sql.OrderByTerm, rows []Row) 
 	if len(orderBy) == 0 || len(rows) <= 1 {
 		return rows
 	}
+	// SQLITE_STMTSTATUS_SORT: one sorter invocation (SQLite emits OP_Sort
+	// for the GROUP BY / DISTINCT ordering).
+	e.ctx.RecordSortOp()
 	sorted := make([]Row, len(rows))
 	copy(sorted, rows)
 	sort.SliceStable(sorted, func(i, j int) bool {
@@ -520,7 +523,22 @@ func (e *SelectEngine) evalAggOverOuterRowsWithInner(s *sql.SelectStmt, outerRow
 			continue
 		}
 		e.setAggRowMaps(e.chooseAggRowMaps(col.Expr, innerColNames, stepping, outerRows, haveFrom))
+		var aggregateCalls []*sql.FuncCall
+		WalkExprFull(col.Expr, func(node sql.Expr) {
+			fn, ok := node.(*sql.FuncCall)
+			if ok && e.isAggregateFuncCallName(fn.Name) {
+				aggregateCalls = append(aggregateCalls, fn)
+			}
+		})
+		if len(aggregateCalls) > 1 {
+			callRows := make(map[*sql.FuncCall][]RowMap, len(aggregateCalls))
+			for _, fn := range aggregateCalls {
+				callRows[fn] = e.chooseAggRowMaps(fn, innerColNames, stepping, outerRows, haveFrom)
+			}
+			e.setAggCallRows(callRows)
+		}
 		v, err := e.ctx.EvalExpr(col.Expr, innerRow)
+		e.setAggCallRows(nil)
 		if err != nil {
 			outRow = append(outRow, nil)
 		} else {

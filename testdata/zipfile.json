@@ -1,59 +1,69 @@
 {
   "file": "zipfile.test",
   "name": "zipfile",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "delete_file",
       "steps": [
         {
-          "type": "query",
-          "sql": "CREATE VIRTUAL TABLE temp.zz USING zipfile('test.zip');\n  PRAGMA table_info(zz);",
-          "expect": "0 name {} 1 {} 1 \n  1 mode {} 0 {} 0 \n  2 mtime {} 0 {} 0 \n  3 sz {} 0 {} 0 \n  4 rawdata {} 0 {} 0\n  5 data {} 0 {} 0\n  6 method {} 0 {} 0"
+          "type": "delete_file",
+          "sql": "test.zip"
         }
       ]
     },
     {
-      "name": "1.1.0.1",
+      "name": "zipfile-1.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE temp.zz USING zipfile('test.zip');\n  PRAGMA table_info(zz);",
+          "expect": "\n  0 name {} 1 {} 1 \n  1 mode {} 0 {} 0 \n  2 mtime {} 0 {} 0 \n  3 sz {} 0 {} 0 \n  4 rawdata {} 0 {} 0\n  5 data {} 0 {} 0\n  6 method {} 0 {} 0\n"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-1.1.0.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "INSERT INTO zz(name, mode, mtime, sz, rawdata, method) \n  VALUES('f.txt', '-rw-r--r--', 1000000000, 5, 'abcde', 0);",
           "expect": "1 {rawdata must be NULL}"
         }
       ]
     },
     {
-      "name": "1.1.0.2",
+      "name": "zipfile-1.1.0.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO zz(name, mtime, sz, data, method) \n  VALUES('g.txt', 1000000002, 5, '12345', 0);",
           "expect": "1 {sz must be NULL}"
         }
       ]
     },
     {
-      "name": "1.1.0.3",
+      "name": "zipfile-1.1.0.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO zz(name, mtime, rawdata, method) \n  VALUES('g.txt', 1000000002, '12345', 0);",
           "expect": "1 {rawdata must be NULL}"
         }
       ]
     },
     {
-      "name": "1.1.0.4",
+      "name": "zipfile-1.1.0.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO zz(name, data, method) \n  VALUES('g.txt', '12345', 7);",
           "expect": "1 {unknown compression method: 7}"
         }
       ]
     },
     {
-      "name": "1.1.1",
+      "name": "zipfile-1.1.1",
       "steps": [
         {
           "type": "exec",
@@ -62,7 +72,7 @@
       ]
     },
     {
-      "name": "1.1.2",
+      "name": "zipfile-1.1.2",
       "steps": [
         {
           "type": "exec",
@@ -71,17 +81,80 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "zipfile-1.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT name, mtime, data FROM zipfile('test.zip')",
-          "expect": "f.txt 1000000000 abcde \n  g.txt 1000000002 12345"
+          "expect": "\n  f.txt 1000000000 abcde \n  g.txt 1000000002 12345\n"
         }
       ]
     },
     {
-      "name": "1.3",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "0",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "zipfile"
+          },
+          "functionProc": "readfile",
+          "functionArgs": [
+            "f"
+          ],
+          "functionBody": "\n  set fd [open $f]\n  fconfigure $fd -translation binary\n  set data [read $fd]\n  close $fd\n  set data\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT name,mode,mtime,method,quote(data) FROM zipfile('test.zip')",
+          "variable": "r1",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT name,mode,mtime,method,quote(data) FROM zipfile( r('test.zip') )",
+          "variable": "r2",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT name,mode,mtime,method,quote(data) FROM zipfile(\n    ( SELECT zipfile(name,mode,mtime,data,method) FROM zipfile('test.zip') )\n  )",
+          "variable": "r3",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "zipfile-1.2a.1.1",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "$r2",
+          "expectedExpr": "$r1"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-1.2a.1.2",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "$r3",
+          "expectedExpr": "$r1"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-1.3",
       "steps": [
         {
           "type": "exec",
@@ -90,36 +163,110 @@
       ]
     },
     {
-      "name": "1.4",
+      "name": "setup_1",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT name, mtime, data, method FROM zipfile('test.zip');",
-          "expect": "f.txt 1000000000 abcde 0\n  g.txt 1000000002 12345 0\n  h.txt 1000000004 aaaaaaaaaabbbbbbbbbb 8"
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "0",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "zipfile"
+          },
+          "functionProc": "readfile",
+          "functionArgs": [
+            "f"
+          ],
+          "functionBody": "\n  set fd [open $f]\n  fconfigure $fd -translation binary\n  set data [read $fd]\n  close $fd\n  set data\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT name,mode,mtime,method,quote(data) FROM zipfile('test.zip')",
+          "variable": "r1",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT name,mode,mtime,method,quote(data) FROM zipfile( r('test.zip') )",
+          "variable": "r2",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT name,mode,mtime,method,quote(data) FROM zipfile(\n    ( SELECT zipfile(name,mode,mtime,data,method) FROM zipfile('test.zip') )\n  )",
+          "variable": "r3",
+          "resultAll": true
         }
       ]
     },
     {
-      "name": "1.4.2",
+      "name": "zipfile-1.3a.1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "runtime_expr",
+          "sql": "$r2",
+          "expectedExpr": "$r1"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-1.3a.1.2",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "$r3",
+          "expectedExpr": "$r1"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name, mtime, data, method FROM zipfile('test.zip');",
+          "expect": "\n  f.txt 1000000000 abcde 0\n  g.txt 1000000002 12345 0\n  h.txt 1000000004 aaaaaaaaaabbbbbbbbbb 8\n"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-1.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name, json_extract( zipfile_cds(z) , '$.crc32')!=0\n    FROM zipfile('test.zip');",
+          "expect": "\n    f.txt 1\n    g.txt 1\n    h.txt 1\n  "
+        }
+      ]
+    },
+    {
+      "name": "zipfile-1.4.2",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "SELECT zipfile_cds(mode) FROM zipfile('test.zip');",
           "expect": "0 {{} {} {}}"
         }
       ]
     },
     {
-      "name": "1.5.1",
+      "name": "zipfile-1.5.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    INSERT INTO zz(name, mode, mtime, data, method)\n    VALUES('i.txt', '-rw-r--r--', 1000000006, 'zxcvb', 0);\n    SELECT name FROM zz;\n  COMMIT;"
+          "sql": "BEGIN;\n    INSERT INTO zz(name, mode, mtime, data, method)\n    VALUES('i.txt', '-rw-r--r--', 1000000006, 'zxcvb', 0);\n    SELECT name FROM zz;\n  COMMIT;",
+          "expect": "f.txt g.txt h.txt i.txt"
         }
       ]
     },
     {
-      "name": "1.5.2",
+      "name": "zipfile-1.5.2",
       "steps": [
         {
           "type": "query",
@@ -129,7 +276,7 @@
       ]
     },
     {
-      "name": "1.5.3",
+      "name": "zipfile-1.5.3",
       "steps": [
         {
           "type": "query",
@@ -139,7 +286,7 @@
       ]
     },
     {
-      "name": "1.6.0",
+      "name": "zipfile-1.6.0",
       "steps": [
         {
           "type": "query",
@@ -149,102 +296,310 @@
       ]
     },
     {
-      "name": "1.6.1",
+      "name": "zipfile-1.6.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT name, mode, mtime, data, method FROM zipfile('test.zip');",
-          "expect": "f.txt 33188 1000000000 abcde 0\n  h.txt 33188 1000000004 aaaaaaaaaabbbbbbbbbb 8\n  i.txt 33188 1000000006 zxcvb 0"
+          "expect": "\n  f.txt 33188 1000000000 abcde 0\n  h.txt 33188 1000000004 aaaaaaaaaabbbbbbbbbb 8\n  i.txt 33188 1000000006 zxcvb 0\n"
         }
       ]
     },
     {
-      "name": "1.6.2",
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "0",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "zipfile"
+          },
+          "functionProc": "readfile",
+          "functionArgs": [
+            "f"
+          ],
+          "functionBody": "\n  set fd [open $f]\n  fconfigure $fd -translation binary\n  set data [read $fd]\n  close $fd\n  set data\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT name,mode,mtime,method,quote(data) FROM zipfile('test.zip')",
+          "variable": "r1",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT name,mode,mtime,method,quote(data) FROM zipfile( r('test.zip') )",
+          "variable": "r2",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT name,mode,mtime,method,quote(data) FROM zipfile(\n    ( SELECT zipfile(name,mode,mtime,data,method) FROM zipfile('test.zip') )\n  )",
+          "variable": "r3",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "zipfile-1.6.1a.1.1",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "$r2",
+          "expectedExpr": "$r1"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-1.6.1a.1.2",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "$r3",
+          "expectedExpr": "$r1"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-1.6.2",
       "steps": [
         {
           "type": "query",
           "sql": "UPDATE zz SET mtime=4 WHERE name='i.txt';\n  SELECT name, mode, mtime, data, method FROM zipfile('test.zip');",
-          "expect": "f.txt 33188 1000000000 abcde 0\n  h.txt 33188 1000000004 aaaaaaaaaabbbbbbbbbb 8\n  i.txt 33188 4 zxcvb 0"
+          "expect": "\n  f.txt 33188 1000000000 abcde 0\n  h.txt 33188 1000000004 aaaaaaaaaabbbbbbbbbb 8\n  i.txt 33188 4 zxcvb 0\n"
         }
       ]
     },
     {
-      "name": "1.6.4",
+      "name": "zipfile-1.6.3",
       "steps": [
         {
           "type": "query",
-          "sql": "UPDATE zz SET name = 'blue.txt' WHERE name='f.txt';\n  SELECT name, mode, mtime, data, method FROM zipfile('test.zip');"
+          "sql": "UPDATE zz SET mode='-rw-r--r--' WHERE name='h.txt';\n  SELECT name, mode, mtime, data, method FROM zipfile('test.zip');",
+          "expect": "\n  f.txt 33188 1000000000 abcde 0\n  h.txt 33188 1000000004 aaaaaaaaaabbbbbbbbbb 8\n  i.txt 33188 4 zxcvb 0\n"
         }
       ]
     },
     {
-      "name": "1.6.5",
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "\n  f.txt 33188 1000000000 abcde 0\n  h.txt 33188 1000000004 aaaaaaaaaabbbbbbbbbb 8\n  i.txt 33188 4 zxcvb 0\n",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "modes": "-rw-r--r--",
+            "perms": "33188",
+            "testdir": "",
+            "testprefix": "zipfile"
+          },
+          "functionProc": "readfile",
+          "functionArgs": [
+            "f"
+          ],
+          "functionBody": "\n  set fd [open $f]\n  fconfigure $fd -translation binary\n  set data [read $fd]\n  close $fd\n  set data\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT name,mode,mtime,method,quote(data) FROM zipfile('test.zip')",
+          "variable": "r1",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT name,mode,mtime,method,quote(data) FROM zipfile( r('test.zip') )",
+          "variable": "r2",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT name,mode,mtime,method,quote(data) FROM zipfile(\n    ( SELECT zipfile(name,mode,mtime,data,method) FROM zipfile('test.zip') )\n  )",
+          "variable": "r3",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "zipfile-1.6.3a.1.1",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "$r2",
+          "expectedExpr": "$r1"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-1.6.3a.1.2",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "$r3",
+          "expectedExpr": "$r1"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-1.6.4",
       "steps": [
         {
           "type": "query",
-          "sql": "UPDATE zz SET data = 'edcba' WHERE name='blue.txt';\n  SELECT name, mode, mtime, data, method FROM zipfile('test.zip');"
+          "sql": "UPDATE zz SET name = 'blue.txt' WHERE name='f.txt';\n  SELECT name, mode, mtime, data, method FROM zipfile('test.zip');",
+          "expect": "\n  blue.txt 33188 1000000000 abcde 0\n  h.txt 33188 1000000004 aaaaaaaaaabbbbbbbbbb 8\n  i.txt 33188 4 zxcvb 0\n"
         }
       ]
     },
     {
-      "name": "1.6.6",
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "\n  blue.txt 33188 1000000000 abcde 0\n  h.txt 33188 1000000004 aaaaaaaaaabbbbbbbbbb 8\n  i.txt 33188 4 zxcvb 0\n",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "modes": "-rw-r--r--",
+            "perms": "33188",
+            "testdir": "",
+            "testprefix": "zipfile"
+          },
+          "functionProc": "readfile",
+          "functionArgs": [
+            "f"
+          ],
+          "functionBody": "\n  set fd [open $f]\n  fconfigure $fd -translation binary\n  set data [read $fd]\n  close $fd\n  set data\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT name,mode,mtime,method,quote(data) FROM zipfile('test.zip')",
+          "variable": "r1",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT name,mode,mtime,method,quote(data) FROM zipfile( r('test.zip') )",
+          "variable": "r2",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT name,mode,mtime,method,quote(data) FROM zipfile(\n    ( SELECT zipfile(name,mode,mtime,data,method) FROM zipfile('test.zip') )\n  )",
+          "variable": "r3",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "zipfile-1.6.4a.1.1",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "$r2",
+          "expectedExpr": "$r1"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-1.6.4a.1.2",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "$r3",
+          "expectedExpr": "$r1"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-1.6.5",
       "steps": [
         {
           "type": "query",
-          "sql": "UPDATE zz SET mode=NULL, data = NULL WHERE name='blue.txt';\n  SELECT name, mode, mtime, data, method FROM zipfile('test.zip');"
+          "sql": "UPDATE zz SET data = 'edcba' WHERE name='blue.txt';\n  SELECT name, mode, mtime, data, method FROM zipfile('test.zip');",
+          "expect": "\n  blue.txt 33188 1000000000 edcba 0\n  h.txt 33188 1000000004 aaaaaaaaaabbbbbbbbbb 8\n  i.txt 33188 4 zxcvb 0\n"
         }
       ]
     },
     {
-      "name": "1.6.7",
+      "name": "zipfile-1.6.6",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
+          "sql": "UPDATE zz SET mode=NULL, data = NULL WHERE name='blue.txt';\n  SELECT name, mode, mtime, data, method FROM zipfile('test.zip');",
+          "expect": "\n  blue.txt/ 16877 1000000000 {} 0\n  h.txt 33188 1000000004 aaaaaaaaaabbbbbbbbbb 8\n  i.txt 33188 4 zxcvb 0\n"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-1.6.7",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "UPDATE zz SET data=NULL WHERE name='i.txt'",
           "expect": "1 {zipfile: mode does not match data}"
         }
       ]
     },
     {
-      "name": "1.6.8",
+      "name": "zipfile-1.6.8",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT name, mode, mtime, data, method FROM zipfile('test.zip');"
+          "sql": "SELECT name, mode, mtime, data, method FROM zipfile('test.zip');",
+          "expect": "\n  blue.txt/ 16877 1000000000 {} 0\n  h.txt 33188 1000000004 aaaaaaaaaabbbbbbbbbb 8\n  i.txt 33188 4 zxcvb 0\n"
         }
       ]
     },
     {
-      "name": "1.6.9",
+      "name": "zipfile-1.6.9",
       "steps": [
         {
           "type": "query",
-          "sql": "UPDATE zz SET data = '' WHERE name='i.txt';\n  SELECT name,mode,mtime,data,method from zipfile('test.zip');"
+          "sql": "UPDATE zz SET data = '' WHERE name='i.txt';\n  SELECT name,mode,mtime,data,method from zipfile('test.zip');",
+          "expect": "\n  blue.txt/ 16877 1000000000 {} 0\n  h.txt 33188 1000000004 aaaaaaaaaabbbbbbbbbb 8\n  i.txt 33188 4 {} 0\n"
         }
       ]
     },
     {
-      "name": "1.6.10",
+      "name": "zipfile-1.6.10",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a.name, a.data \n  FROM zz AS a, zz AS b \n  WHERE a.name=+b.name AND +a.mode=b.mode",
-          "expect": "blue.txt/ {}\n  h.txt aaaaaaaaaabbbbbbbbbb\n  i.txt {}"
+          "expect": "\n  blue.txt/ {}\n  h.txt aaaaaaaaaabbbbbbbbbb\n  i.txt {}\n"
         }
       ]
     },
     {
-      "name": "1.6.11",
+      "name": "zipfile-1.6.11",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT name, data FROM zz WHERE name LIKE '%txt'",
-          "expect": "h.txt aaaaaaaaaabbbbbbbbbb\n  i.txt {}"
+          "expect": "\n  h.txt aaaaaaaaaabbbbbbbbbb\n  i.txt {}\n"
         }
       ]
     },
     {
-      "name": "1.7",
+      "name": "zipfile-1.7",
       "steps": [
         {
           "type": "query",
@@ -253,7 +608,28 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.zip"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "zipfile-2.1",
       "steps": [
         {
           "type": "query",
@@ -263,37 +639,115 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "zipfile-2.2",
       "steps": [
         {
           "type": "query",
           "sql": "INSERT INTO zzz(name, data) VALUES('dirname2', NULL);\n  INSERT INTO zzz(name, data) VALUES('dirname2/file1.txt', 'abcdefghijklmnop');\n  SELECT name, mode, data FROM zzz;",
-          "expect": "dirname/ 16877 {}\n  dirname2/ 16877 {}\n  dirname2/file1.txt 33188 abcdefghijklmnop"
+          "expect": "\n  dirname/ 16877 {}\n  dirname2/ 16877 {}\n  dirname2/file1.txt 33188 abcdefghijklmnop\n"
         }
       ]
     },
     {
-      "name": "2.3",
+      "name": "zipfile-2.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "UPDATE zzz SET name = 'dirname3' WHERE name = 'dirname/';",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "2.4",
+      "name": "zipfile-2.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT name, mode, data FROM zzz;",
-          "expect": "dirname3/ 16877 {}\n  dirname2/ 16877 {}\n  dirname2/file1.txt 33188 abcdefghijklmnop"
+          "expect": "\n  dirname3/ 16877 {}\n  dirname2/ 16877 {}\n  dirname2/file1.txt 33188 abcdefghijklmnop\n"
         }
       ]
     },
     {
-      "name": "3.0",
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "r",
+          "callbackVars": {
+            "": "\n  blue.txt/ 16877 1000000000 {} 0\n  h.txt 33188 1000000004 aaaaaaaaaabbbbbbbbbb 8\n  i.txt 33188 4 {} 0\n",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "modes": "-rw-r--r--",
+            "perms": "33188",
+            "testdir": "",
+            "testprefix": "zipfile"
+          },
+          "functionProc": "readfile",
+          "functionArgs": [
+            "f"
+          ],
+          "functionBody": "\n  set fd [open $f]\n  fconfigure $fd -translation binary\n  set data [read $fd]\n  close $fd\n  set data\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT name,mode,mtime,method,quote(data) FROM zipfile('test.zip')",
+          "variable": "r1",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT name,mode,mtime,method,quote(data) FROM zipfile( r('test.zip') )",
+          "variable": "r2",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT name,mode,mtime,method,quote(data) FROM zipfile(\n    ( SELECT zipfile(name,mode,mtime,data,method) FROM zipfile('test.zip') )\n  )",
+          "variable": "r3",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "zipfile-2.4a.1.1",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "$r2",
+          "expectedExpr": "$r1"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-2.4a.1.2",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "$r3",
+          "expectedExpr": "$r1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.zip"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-3.0",
       "steps": [
         {
           "type": "exec",
@@ -302,136 +756,344 @@
       ]
     },
     {
-      "name": "3.2",
+      "name": "zipfile-3.1.1.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
+          "sql": "INSERT INTO x1(name, data) VALUES('dir1', NULL);",
+          "expect": "1 {duplicate name: \"dir1/\"}"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-3.1.1.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO x1(name, data) VALUES('dir1' || '/', NULL);",
+          "expect": "1 {duplicate name: \"dir1/\"}"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-3.1.1.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO x1(name, data) VALUES('dir1', 'abcd');",
+          "expect": "1 {duplicate name: \"dir1\"}"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-3.1.2.0",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO x1(name, data) VALUES('file1', NULL);",
+          "expect": "1 {duplicate name: \"file1/\"}"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-3.1.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO x1(name, data) VALUES('file1' || '/', NULL);",
+          "expect": "1 {duplicate name: \"file1/\"}"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-3.1.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO x1(name, data) VALUES('file1', 'abcd');",
+          "expect": "1 {duplicate name: \"file1\"}"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-3.1.3.0",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO x1(name, data) VALUES('dir1/file2', NULL);",
+          "expect": "1 {duplicate name: \"dir1/file2/\"}"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-3.1.3.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO x1(name, data) VALUES('dir1/file2' || '/', NULL);",
+          "expect": "1 {duplicate name: \"dir1/file2/\"}"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-3.1.3.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO x1(name, data) VALUES('dir1/file2', 'abcd');",
+          "expect": "1 {duplicate name: \"dir1/file2\"}"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-3.2",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "SELECT rowid FROM x1",
           "expect": "1 {no such column: rowid}"
         }
       ]
     },
     {
-      "name": "4.1",
+      "name": "zipfile-4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE yyy USING zipfile();",
           "expect": "1 {zipfile constructor requires one argument}"
         }
       ]
     },
     {
-      "name": "4.2",
+      "name": "zipfile-4.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE yyy USING zipfile('test.zip', 'test.zip');",
           "expect": "1 {zipfile constructor requires one argument}"
         }
       ]
     },
     {
-      "name": "4.3",
+      "name": "zipfile-4.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM zipfile()",
           "expect": "1 {zipfile() function requires an argument}"
         }
       ]
     },
     {
-      "name": "4.4",
+      "name": "zipfile-4.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM zipfile('/path/that/does/not/exist')",
           "expect": "1 {cannot open file: /path/that/does/not/exist}"
         }
       ]
     },
     {
-      "name": "4.6",
+      "name": "zipfile-4.5.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
+          "sql": "WITH m(m) AS ( SELECT 'abcd')\n    SELECT zipfile('a.txt', m, 1000, 'xyz') FROM m",
+          "expect": "1 {zipfile: parse error in mode: abcd}"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-4.5.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH m(m) AS ( SELECT 'brwxrwxrwx')\n    SELECT zipfile('a.txt', m, 1000, 'xyz') FROM m",
+          "expect": "1 {zipfile: parse error in mode: brwxrwxrwx}"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-4.5.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH m(m) AS ( SELECT 'lrwxrrxrwx')\n    SELECT zipfile('a.txt', m, 1000, 'xyz') FROM m",
+          "expect": "1 {zipfile: parse error in mode: lrwxrrxrwx}"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-4.6",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "WITH c(name,data) AS ( SELECT 'a.txt', 'abc')\n  SELECT zipfile(name) FROM c",
           "expect": "1 {wrong number of arguments to function zipfile()}"
         }
       ]
     },
     {
-      "name": "4.7",
+      "name": "zipfile-4.7",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "WITH c(name,data) AS ( \n    SELECT 'a.txt', 'abc' UNION ALL\n    SELECT NULL, 'def'\n  )\n  SELECT zipfile(name,data) FROM c",
           "expect": "1 {first argument to zipfile() must be non-NULL}"
         }
       ]
     },
     {
-      "name": "4.8",
+      "name": "zipfile-4.8",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "WITH c(name,data,method) AS ( \n    SELECT 'a.txt', 'abc', 0\n    UNION SELECT 'b.txt', 'def', 8\n    UNION SELECT 'c.txt', 'ghi', 16\n  )\n  SELECT zipfile(name,NULL,NULL,data,method) FROM c",
           "expect": "1 {illegal method value: 16}"
         }
       ]
     },
     {
-      "name": "4.9",
+      "name": "zipfile-4.9",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "WITH c(name,data) AS ( \n    SELECT 'a.txt', 'abc'\n    UNION SELECT 'b.txt', 'def'\n    UNION SELECT 'c.txt/', 'ghi'\n  )\n  SELECT zipfile(name,NULL,NULL,data) FROM c",
           "expect": "1 {non-directory name must not end with /}"
         }
       ]
     },
     {
-      "name": "5.0",
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "rt",
+          "callbackVars": {
+            "": "1 {zipfile: parse error in mode: lrwxrrxrwx}",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "fname": "dir1/file2",
+            "mode": "lrwxrrxrwx",
+            "modes": "-rw-r--r--",
+            "perms": "33188",
+            "testdir": "",
+            "testprefix": "zipfile",
+            "tn": "3"
+          },
+          "functionProc": "remove_timestamps",
+          "functionArgs": [
+            "blob"
+          ],
+          "functionBody": "\n  set hex [binary encode hex $blob]\n  set hex [string map {55540500 00000500} $hex]\n  binary decode hex $hex\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "zipfile-5.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c(name,mtime,data) AS (\n    SELECT 'a.txt', 946684800, 'abc'\n  )\n  SELECT name,mtime,data FROM zipfile(\n    ( SELECT rt( zipfile(name,NULL,mtime,data,NULL) ) FROM c )\n  )",
+          "expect": "\n  a.txt 946684800 abc\n"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.zip"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-7.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH c(name,mtime,data) AS (\n    SELECT 'a.txt', 946684800, 'abc'\n  )\n  SELECT name,mtime,data FROM zipfile(\n    ( SELECT rt( zipfile(name,NULL,mtime,data,NULL) ) FROM c )\n  )"
-        }
-      ]
-    },
-    {
-      "name": "6.1",
-      "steps": [
+          "sql": "WITH c(name,data) AS (\n        SELECT '1', randomblob(1000000) UNION ALL\n        SELECT '2', randomblob(1000000) UNION ALL\n        SELECT '3', randomblob(1000000) \n    )\n    SELECT writefile('test.zip', zipfile(name, data) ) FROM c;"
+        },
         {
           "type": "query",
-          "sql": "SELECT name, mtime, data FROM zipfile('test1.zip')",
-          "expect": "a.txt 946684800   abc\n    b.txt 1000000000  abc\n    c.txt 1111111000  abc"
+          "sql": "SELECT name, data FROM zipfile('test.zip')",
+          "catchMessage": "msg"
         }
       ]
     },
     {
-      "name": "6.3",
+      "name": "delete_file",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT name, mtime, sz, rawdata, data FROM zipfile('test2.zip')",
-          "expect": "a.txt 946684800   3 abc abc\n    b.txt 1000000000  3 abc abc\n    c.txt 1111111000  3 abc abc"
+          "type": "delete_file",
+          "sql": "test.zip"
         }
       ]
     },
     {
-      "name": "8.0.1",
+      "name": "zipfile-8.0.1",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE VIRTUAL TABLE zz USING zipfile('test.zip');\n  BEGIN;\n    INSERT INTO zz(name, data) VALUES('a.txt', '1');\n    INSERT INTO zz(name, data) VALUES('b.txt', '2');\n    INSERT INTO zz(name, data) VALUES('c.txt', '1');\n    INSERT INTO zz(name, data) VALUES('d.txt', '2');\n    SELECT name, data FROM zz;",
-          "expect": "a.txt 1 b.txt 2 c.txt 1 d.txt 2"
+          "expect": "\n  a.txt 1 b.txt 2 c.txt 1 d.txt 2\n"
         }
       ]
     },
     {
-      "name": "8.1.1",
+      "name": "zipfile-8.0.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name, data FROM zz"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name, data FROM zz",
+          "expect": "a.txt 1 c.txt 1"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-8.0.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name, data FROM zz"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name, data FROM zz"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test_unzip"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-8.1.1",
       "steps": [
         {
           "type": "exec",
@@ -440,17 +1102,17 @@
       ]
     },
     {
-      "name": "8.1.2",
+      "name": "zipfile-8.1.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO nogood(name, data) VALUES('abc', 'def');",
           "expect": "1 {zipfile: failed to open file test_unzip for writing}"
         }
       ]
     },
     {
-      "name": "8.2.1",
+      "name": "zipfile-8.2.1",
       "steps": [
         {
           "type": "exec",
@@ -459,17 +1121,17 @@
       ]
     },
     {
-      "name": "8.2.2",
+      "name": "zipfile-8.2.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO nogood(name, data) VALUES('abc', 'def');",
           "expect": "1 {zipfile: failed to open file test_unzip for writing}"
         }
       ]
     },
     {
-      "name": "8.2.3",
+      "name": "zipfile-8.2.3",
       "steps": [
         {
           "type": "exec",
@@ -478,7 +1140,16 @@
       ]
     },
     {
-      "name": "8.3.1",
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.zip"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-8.3.1",
       "steps": [
         {
           "type": "exec",
@@ -487,16 +1158,51 @@
       ]
     },
     {
-      "name": "9.0",
+      "name": "zipfile-9.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH src(nm) AS (\n    VALUES('dir1') UNION ALL\n    VALUES('dir2/') UNION ALL\n    VALUES('dir3//') UNION ALL\n    VALUES('dir4///') UNION ALL\n    VALUES('/') \n  )\n  SELECT name FROM zipfile((SELECT zipfile(nm, NULL) FROM src))"
+          "type": "query",
+          "sql": "WITH src(nm) AS (\n    VALUES('dir1') UNION ALL\n    VALUES('dir2/') UNION ALL\n    VALUES('dir3//') UNION ALL\n    VALUES('dir4///') UNION ALL\n    VALUES('/') \n  )\n  SELECT name FROM zipfile((SELECT zipfile(nm, NULL) FROM src))",
+          "expect": "dir1/ dir2/ dir3/ dir4/ /"
         }
       ]
     },
     {
-      "name": "10.0",
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.zip"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-10.0",
       "steps": [
         {
           "type": "exec",
@@ -505,17 +1211,17 @@
       ]
     },
     {
-      "name": "10.1",
+      "name": "zipfile-10.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO z(name,data) VALUES('a0','one'),('a0','two');",
           "expect": "1 {duplicate name: \"a0\"}"
         }
       ]
     },
     {
-      "name": "10.2",
+      "name": "zipfile-10.2",
       "steps": [
         {
           "type": "query",
@@ -525,7 +1231,7 @@
       ]
     },
     {
-      "name": "10.3",
+      "name": "zipfile-10.3",
       "steps": [
         {
           "type": "exec",
@@ -534,7 +1240,7 @@
       ]
     },
     {
-      "name": "10.4",
+      "name": "zipfile-10.4",
       "steps": [
         {
           "type": "query",
@@ -544,7 +1250,7 @@
       ]
     },
     {
-      "name": "10.5",
+      "name": "zipfile-10.5",
       "steps": [
         {
           "type": "exec",
@@ -553,7 +1259,7 @@
       ]
     },
     {
-      "name": "10.6",
+      "name": "zipfile-10.6",
       "steps": [
         {
           "type": "query",
@@ -563,7 +1269,7 @@
       ]
     },
     {
-      "name": "11.1",
+      "name": "zipfile-11.1",
       "steps": [
         {
           "type": "exec",
@@ -572,7 +1278,7 @@
       ]
     },
     {
-      "name": "11.2",
+      "name": "zipfile-11.2",
       "steps": [
         {
           "type": "query",
@@ -581,7 +1287,7 @@
       ]
     },
     {
-      "name": "11.3",
+      "name": "zipfile-11.3",
       "steps": [
         {
           "type": "query",
@@ -591,7 +1297,7 @@
       ]
     },
     {
-      "name": "11.4",
+      "name": "zipfile-11.4",
       "steps": [
         {
           "type": "query",
@@ -601,7 +1307,7 @@
       ]
     },
     {
-      "name": "11.5",
+      "name": "zipfile-11.5",
       "steps": [
         {
           "type": "query",
@@ -611,17 +1317,17 @@
       ]
     },
     {
-      "name": "11.6",
+      "name": "zipfile-11.6",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "UPDATE z SET name = 'b1' WHERE name = 'b0';",
           "expect": "1 {duplicate name: \"b1\"}"
         }
       ]
     },
     {
-      "name": "11.7",
+      "name": "zipfile-11.7",
       "steps": [
         {
           "type": "query",
@@ -631,27 +1337,27 @@
       ]
     },
     {
-      "name": "11.8",
+      "name": "zipfile-11.8",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "UPDATE z SET name = 'b1';",
           "expect": "1 {duplicate name: \"b1\"}"
         }
       ]
     },
     {
-      "name": "11.9",
+      "name": "zipfile-11.9",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "UPDATE z SET name = 'b2';",
           "expect": "1 {duplicate name: \"b2\"}"
         }
       ]
     },
     {
-      "name": "11.10",
+      "name": "zipfile-11.10",
       "steps": [
         {
           "type": "query",
@@ -661,7 +1367,7 @@
       ]
     },
     {
-      "name": "11.11",
+      "name": "zipfile-11.11",
       "steps": [
         {
           "type": "query",
@@ -671,46 +1377,7 @@
       ]
     },
     {
-      "name": "12.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT name FROM fsdir('subdir') ORDER BY 1;",
-          "expect": "subdir subdir/x1.txt subdir/x2.txt"
-        }
-      ]
-    },
-    {
-      "name": "12.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE d AS SELECT 'subdir' d;\n    CREATE TABLE x AS SELECT 1 x;"
-        }
-      ]
-    },
-    {
-      "name": "12.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT name FROM d JOIN x JOIN fsdir(d) ORDER BY 1;",
-          "expect": "subdir subdir/x1.txt subdir/x2.txt"
-        }
-      ]
-    },
-    {
-      "name": "12.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT name FROM d JOIN x JOIN fsdir('.', d) ORDER BY 1;",
-          "expect": ". ./x1.txt ./x2.txt"
-        }
-      ]
-    },
-    {
-      "name": "13.10",
+      "name": "zipfile-13.10",
       "steps": [
         {
           "type": "query",
@@ -720,7 +1387,7 @@
       ]
     },
     {
-      "name": "14.10",
+      "name": "zipfile-14.10",
       "steps": [
         {
           "type": "query",
@@ -730,7 +1397,7 @@
       ]
     },
     {
-      "name": "15.10",
+      "name": "zipfile-15.10",
       "steps": [
         {
           "type": "exec",
@@ -739,7 +1406,7 @@
       ]
     },
     {
-      "name": "15.20",
+      "name": "zipfile-15.20",
       "steps": [
         {
           "type": "exec",
@@ -748,86 +1415,148 @@
       ]
     },
     {
-      "name": "16.10",
+      "name": "zipfile-16.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM zipfile;",
           "expect": "1 {zipfile: missing filename}"
         }
       ]
     },
     {
-      "name": "16.20",
+      "name": "zipfile-16.20",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "REPLACE INTO zipfile VALUES(null,null,null,null,null,123,null);",
           "expect": "1 {zipfile: missing filename}"
         }
       ]
     },
     {
-      "name": "17.1",
+      "name": "zipfile-17.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH vlist(x) AS (\n     VALUES(9223372036854775807),\n           (-9223372036854775808),\n           (9223372036854775806),\n           (-9223372036854775807)\n  )\n  SELECT DISTINCT typeof(zipfile(0,0,x,0)) FROM vlist;"
+          "type": "query",
+          "sql": "WITH vlist(x) AS (\n     VALUES(9223372036854775807),\n           (-9223372036854775808),\n           (9223372036854775806),\n           (-9223372036854775807)\n  )\n  SELECT DISTINCT typeof(zipfile(0,0,x,0)) FROM vlist;",
+          "expect": "blob"
         }
       ]
     },
     {
-      "name": "18.1",
+      "name": "zipfile-18.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM zipfile(NULL);",
           "expect": "1 {cannot open file: }"
         }
       ]
     },
     {
-      "name": "20.0",
+      "name": "zipfile-19.1",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "zipfile19.zip"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-19.1",
       "steps": [
         {
           "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING zipfile('zipfile19.zip');\n    INSERT INTO t1 DEFAULT VALUES;"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE v0 USING zipfile('zipfile19.zip');\n    SAVEPOINT y;\n    DELETE FROM v0 WHERE 9;\n    INSERT INTO v0 DEFAULT VALUES;"
+        }
+      ]
+    },
+    {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "zipfile19.zip"
+        }
+      ]
+    },
+    {
+      "name": "setup_12",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-20.0",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "SELECT * FROM zipfile(X'504b050600000000010001004000000000a3e1110000');",
           "expect": "1 {zip archive is corrupt}"
         }
       ]
     },
     {
-      "name": "20.1",
+      "name": "zipfile-20.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM zipfile(unhex('\n504b0304140000080000a60d3e5bd42728f602000000020000000500090068\n2e74787455540500012836db682120504b01021e03140000080000a60d3e5b\nd42728f602000000020000000500ffff0000000000000000a4810000000068\n2e74787455540500012836db68504b050600000000010001003c0000002e00\n00000000',char(0x0a,0x0d)));",
           "expect": "1 {zip archive is corrupt}"
         }
       ]
     },
     {
-      "name": "20.2",
+      "name": "zipfile-20.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM zipfile(unhex('504b0304140000000000000000008b9ed9d30100000001000000010000007841504b01021e03140000000000000000008b9ed9d3010000000100000001001e000000000000000000a4810000000078504b050600000000010001002f000000200000000000'));",
           "expect": "1 {zip archive is corrupt}"
         }
       ]
     },
     {
-      "name": "21.0",
+      "name": "zipfile-21.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM zipfile(X'504B03040A0000000000000000000000000000000000000000000100000078504B010200000A0000000000000000000000000000000000000000000100000000000000000000000000E2FFFFFF78504B050600000000010001002F0000001F0000000000');",
           "expect": "1 {failed to read LFH at offset -30}"
         }
       ]
     },
     {
-      "name": "22.0",
+      "name": "zipfile-22.0",
       "steps": [
         {
           "type": "query",
@@ -837,17 +1566,33 @@
       ]
     },
     {
-      "name": "23.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_13",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT length(zipfile(name,0,0,data,0)) FROM (\n        SELECT 'a' AS name, zeroblob(1000000000) AS data\n        UNION ALL SELECT 'b', zeroblob(1200000000)\n    );",
-          "expect": "1 {out of memory}"
+          "type": "query",
+          "sql": "SELECT length( zeroblob(1200000000) )"
         }
       ]
     },
     {
-      "name": "24.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.zip"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-24.0",
       "steps": [
         {
           "type": "exec",
@@ -856,141 +1601,33 @@
       ]
     },
     {
-      "name": "25.0",
+      "name": "zipfile-24.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query_assign",
+          "sql": "SELECT hex( readfile('test.zip') )",
+          "variable": "zip",
+          "expect": "272"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-24.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM zipfile(unhex('$zip'))",
+          "expect": "1 {zip archive is corrupt}"
+        }
+      ]
+    },
+    {
+      "name": "zipfile-25.0",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "WITH t(v) AS (\n    SELECT unhex(\n     '504B03041400000000000000000000000000000000000000000001000000\n      61504B01021E031400000000000000000000000000000000000000000001\n      000000000000000000000000000000000061504B05060000000001000100\n      2F0000001F0000000000',char(10,13,32))\n    UNION ALL SELECT 'x'\n  ) SELECT z.name FROM t, zipfile(t.v) AS z;",
           "expect": "1 {cannot open file: x}"
-        }
-      ]
-    },
-    {
-      "name": "6.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "WITH c(name,mtime,data) AS (\n        SELECT 'a.txt', 946684800, 'abc' UNION ALL\n        SELECT 'b.txt', 1000000000, 'abc' UNION ALL\n        SELECT 'c.txt', 1111111000, 'abc'\n      )\n      SELECT writefile('test1.zip', rt( zipfile(name, NULL, mtime, data) ) ),\n             writefile('test2.zip',   ( zipfile(name, NULL, mtime, data) ) ) \n      FROM c;"
-        }
-      ]
-    },
-    {
-      "name": "7.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "WITH c(name,data) AS (\n        SELECT '1', randomblob(1000000) UNION ALL\n        SELECT '2', randomblob(1000000) UNION ALL\n        SELECT '3', randomblob(1000000) \n    )\n    SELECT writefile('test.zip', zipfile(name, data) ) FROM c;"
-        }
-      ]
-    },
-    {
-      "name": "8.0.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT name, data FROM zz",
-          "expect": "a.txt 1 c.txt 1"
-        }
-      ]
-    },
-    {
-      "name": "8.0.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT name, data FROM zz"
-        },
-        {
-          "type": "exec",
-          "sql": "WITH c(name,mtime,data) AS (\n        SELECT 'a.txt', 946684800, 'abc' UNION ALL\n        SELECT 'b.txt', 1000000000, 'abc' UNION ALL\n        SELECT 'c.txt', 1111111000, 'abc'\n      )\n      SELECT writefile('test1.zip', rt( zipfile(name, NULL, mtime, data) ) ),\n             writefile('test2.zip',   ( zipfile(name, NULL, mtime, data) ) ) \n      FROM c;"
-        },
-        {
-          "type": "exec",
-          "sql": "WITH c(name,data) AS (\n        SELECT '1', randomblob(1000000) UNION ALL\n        SELECT '2', randomblob(1000000) UNION ALL\n        SELECT '3', randomblob(1000000) \n    )\n    SELECT writefile('test.zip', zipfile(name, data) ) FROM c;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name, data FROM zz"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name, data FROM zz"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT replace(name,'test_unzip/',''),modefix(name,mode),mtime,data\n      FROM fsdir('test_unzip') \n      WHERE name!='test_unzip'\n      ORDER BY name"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name, strftime('%s', mtime, 'unixepoch', 'localtime') \n      FROM fsdir('test_unzip') WHERE name!='test_unzip'\n      ORDER BY name"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT sum(name LIKE '%/a.txt')\n      FROM (VALUES(1),(2),(3)) CROSS JOIN fsdir('test_unzip')"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name, mtime \n      FROM fsdir('test_unzip') WHERE name!='test_unzip'\n      ORDER BY name"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name, data FROM zipfile('test.zip')"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name, data FROM zz"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name, data FROM zz"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE t1 USING zipfile('zipfile19.zip');\n    INSERT INTO t1 DEFAULT VALUES;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE v0 USING zipfile('zipfile19.zip');\n    SAVEPOINT y;\n    DELETE FROM v0 WHERE 9;\n    INSERT INTO v0 DEFAULT VALUES;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

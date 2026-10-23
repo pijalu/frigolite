@@ -338,91 +338,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n      CREATE TABLE t3(x);\n      INSERT INTO t3 SELECT x FROM t1 ORDER BY x LIMIT 10 OFFSET 1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT max(x) FROM t3"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t3 SELECT x+0 FROM t3;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT max(x) FROM t3"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t3 SELECT x+1 FROM t3;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT max(x) FROM t3"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t3 SELECT x+2 FROM t3;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT max(x) FROM t3"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t3 SELECT x+3 FROM t3;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT max(x) FROM t3"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t3 SELECT x+4 FROM t3;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT max(x) FROM t3"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t3 SELECT x+5 FROM t3;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT max(x) FROM t3"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t3 SELECT x+6 FROM t3;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT max(x) FROM t3"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t3 SELECT x+7 FROM t3;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT max(x) FROM t3"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t3 SELECT x+8 FROM t3;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT max(x) FROM t3"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t3 SELECT x+9 FROM t3;"
-        },
-        {
-          "type": "exec",
-          "sql": "END;\n      SELECT count(*) FROM t3;",
+          "sql": "BEGIN;\n      CREATE TABLE t3(x);\n      INSERT INTO t3 SELECT x FROM t1 ORDER BY x LIMIT 10 OFFSET 1;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      END;\n      SELECT count(*) FROM t3;",
           "expect": "10240"
         }
       ]
@@ -850,7 +766,9 @@
         {
           "type": "query",
           "sql": "SELECT x FROM t1 WHERE x\u003c10 LIMIT :limit;",
-          "expect": "1 {datatype mismatch}"
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
         }
       ]
     },
@@ -860,7 +778,9 @@
         {
           "type": "query",
           "sql": "SELECT x FROM t1 WHERE x\u003c10 LIMIT :limit;",
-          "expect": "1 {datatype mismatch}"
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
         }
       ]
     },

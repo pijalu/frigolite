@@ -1,14 +1,48 @@
 {
   "file": "tkt3080.test",
   "name": "tkt3080",
+  "ordered": true,
   "tests": [
     {
       "name": "tkt3080.1",
       "steps": [
         {
+          "type": "register_function",
+          "functionName": "execsql",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "execsql",
+          "minArgs": -1,
+          "maxArgs": -1
+        },
+        {
           "type": "query",
+          "sql": "SELECT execsql('CREATE TABLE t1(x)');"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT name FROM sqlite_master",
           "expect": "t1"
+        }
+      ]
+    },
+    {
+      "name": "tkt3080.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('CREATE TABLE t2(y);');\n    SELECT execsql(x) FROM t1;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master;",
+          "expect": "t1 t2"
         }
       ]
     },
@@ -18,6 +52,47 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES('CREATE TABLE t3(z); DROP TABLE t3;');"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT execsql(x) FROM t1 WHERE rowid=2;",
+          "expect": "1 {database table is locked}"
+        }
+      ]
+    },
+    {
+      "name": "tkt3080.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master;",
+          "expect": "t1 t2 t3"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_echo_module"
+        }
+      ]
+    },
+    {
+      "name": "tkt3080.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n       INSERT INTO t1 VALUES('\n       CREATE VIRTUAL TABLE t4 USING echo(t2);\n       INSERT INTO t4 VALUES(123);\n       DROP TABLE t4;\n     ');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT execsql(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master",
+          "expect": "t1 t2 t3"
         }
       ]
     },
@@ -25,48 +100,11 @@
       "name": "tkt3080.11",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM t2",
           "expect": "123"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name FROM sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES('CREATE TABLE t3(z); DROP TABLE t3;');"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name FROM sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT execsql('CREATE TABLE t1(x)');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES('CREATE TABLE t2(y);');\n    SELECT execsql(x) FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name FROM sqlite_master;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name FROM sqlite_master;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT execsql(x) FROM t1"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

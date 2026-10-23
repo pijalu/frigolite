@@ -1,18 +1,27 @@
 {
   "file": "rowvaluevtab.test",
   "name": "rowvaluevtab",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "setup_0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c);\n  CREATE INDEX t1b ON t1(b);\n  INSERT INTO t1 VALUES('one', 1, 1);\n  INSERT INTO t1 VALUES('two', 1, 2);\n  INSERT INTO t1 VALUES('three', 1, 3);\n  INSERT INTO t1 VALUES('four', 2, 1);\n  INSERT INTO t1 VALUES('five', 2, 2);\n  INSERT INTO t1 VALUES('six', 2, 3);\n  INSERT INTO t1 VALUES('seven', 3, 1);\n  INSERT INTO t1 VALUES('eight', 3, 2);\n  INSERT INTO t1 VALUES('nine', 3, 3);\n\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<10000\n  ) INSERT INTO t1 SELECT NULL, NULL, NULL FROM s;\n  CREATE VIRTUAL TABLE e1 USING echo(t1);"
+          "type": "register_echo_module"
         }
       ]
     },
     {
-      "name": "1.1",
+      "name": "rowvaluevtab-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n  CREATE INDEX t1b ON t1(b);\n  INSERT INTO t1 VALUES('one', 1, 1);\n  INSERT INTO t1 VALUES('two', 1, 2);\n  INSERT INTO t1 VALUES('three', 1, 3);\n  INSERT INTO t1 VALUES('four', 2, 1);\n  INSERT INTO t1 VALUES('five', 2, 2);\n  INSERT INTO t1 VALUES('six', 2, 3);\n  INSERT INTO t1 VALUES('seven', 3, 1);\n  INSERT INTO t1 VALUES('eight', 3, 2);\n  INSERT INTO t1 VALUES('nine', 3, 3);\n\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i\u003c10000\n  ) INSERT INTO t1 SELECT NULL, NULL, NULL FROM s;\n  CREATE VIRTUAL TABLE e1 USING echo(t1);"
+        }
+      ]
+    },
+    {
+      "name": "rowvaluevtab-1.1",
       "steps": [
         {
           "type": "query",
@@ -22,27 +31,54 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "explain \n  SELECT a FROM e1 WHERE (b, c) = (?, ?)"
+        }
+      ]
+    },
+    {
+      "name": "rowvaluevtab-1.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a FROM e1 WHERE (b, c) > (2, 2)",
+          "sql": "SELECT a FROM e1 WHERE (b, c) \u003e (2, 2)",
           "expect": "six seven eight nine"
         }
       ]
     },
     {
-      "name": "1.3",
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "explain \n  SELECT a FROM e1 WHERE (b, c) \u003e (2, 2)"
+        }
+      ]
+    },
+    {
+      "name": "rowvaluevtab-1.3",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a FROM e1 WHERE (b, c) >= (2, 2)",
+          "sql": "SELECT a FROM e1 WHERE (b, c) \u003e= (2, 2)",
           "expect": "five six seven eight nine"
         }
       ]
     },
     {
-      "name": "1.3",
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "explain \n  SELECT a FROM e1 WHERE (b, c) \u003e= (2, 2)"
+        }
+      ]
+    },
+    {
+      "name": "rowvaluevtab-1.3",
       "steps": [
         {
           "type": "query",
@@ -52,12 +88,30 @@
       ]
     },
     {
-      "name": "1.4",
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "explain \n  SELECT a FROM e1 WHERE (b, c) BETWEEN (1, 2) AND (2, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvaluevtab-1.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a FROM e1 WHERE (b, c) IN ( VALUES(2, 2) )",
           "expect": "five"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "explain \n  SELECT a FROM e1 WHERE (b, c) IN ( VALUES(2, 2) )"
         }
       ]
     }

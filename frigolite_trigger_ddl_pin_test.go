@@ -1,6 +1,8 @@
 package frigolite_test
 
 import (
+	"fmt"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -96,6 +98,53 @@ func TestSQLiteTriggerDDLPin(t *testing.T) {
 	}
 }
 
+// TestSQLiteTempTriggerQualifiedNamePin pins trigger.c sqlite3BeginTrigger's
+// TEMP-name rule (trigger7-1.1, oracle-verified against sqlite3 3.54):
+//
+//   - CREATE TEMP/TEMPORARY TRIGGER schema.name is rejected before the
+//     schema is resolved, even when the schema is temp or does not exist.
+//   - a quoted or bracketed dotted token is one name, not a qualification.
+//   - a non-TEMP CREATE TRIGGER temp.name keeps storing the trigger in the
+//     TEMP schema (the isTemp keyword is what triggers this rule).
+func TestSQLiteTempTriggerQualifiedNamePin(t *testing.T) {
+	db, err := frigolite.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if r := db.Exec("CREATE TABLE t1(x, y)"); r.Error != nil {
+		t.Fatal(r.Error)
+	}
+	for _, sql := range []string{
+		"CREATE TEMP TRIGGER main.r1 AFTER INSERT ON t1 BEGIN SELECT 1; END",
+		"CREATE TEMPORARY TRIGGER temp.r1 AFTER INSERT ON t1 BEGIN SELECT 1; END",
+		"CREATE TEMP TRIGGER aux.r1 AFTER INSERT ON t1 BEGIN SELECT 1; END",
+	} {
+		r := db.Exec(sql)
+		if r.Error == nil || !strings.Contains(r.Error.Error(), "temporary trigger may not have qualified name") {
+			t.Fatalf("exec %s: got %v, want temporary trigger may not have qualified name", sql, r.Error)
+		}
+	}
+	for _, sql := range []string{
+		`CREATE TEMP TRIGGER "r1.x" AFTER INSERT ON t1 BEGIN SELECT 1; END`,
+		`CREATE TEMP TRIGGER [r2.x] AFTER INSERT ON t1 BEGIN SELECT 1; END`,
+		"CREATE TRIGGER temp.r3 AFTER INSERT ON t1 BEGIN SELECT 1; END",
+	} {
+		if r := db.Exec(sql); r.Error != nil {
+			t.Fatalf("exec %s: got %v, want success", sql, r.Error)
+		}
+	}
+	var n int
+	if r := db.Exec("SELECT count(*) FROM sqlite_temp_master WHERE type='trigger'"); r.Error != nil {
+		t.Fatal(r.Error)
+	} else {
+		n = int(r.Rows[0][0].(int64))
+	}
+	if n != 3 {
+		t.Fatalf("temp triggers = %d, want 3", n)
+	}
+}
+
 // TestSQLiteTriggerBodyErrorPin pins fire-time trigger body error contracts
 // from trigger4/triggerB (SQLite compiles trigger subprograms with the firing
 // statement, so body errors surface before the statement takes effect).
@@ -177,5 +226,131 @@ func TestSQLiteTriggerBodyErrorPin(t *testing.T) {
 	}
 	if r := db3.Exec("CREATE TRIGGER tn AFTER INSERT ON e BEGIN SELECT new.a; END; INSERT INTO e VALUES(7)"); r.Error != nil {
 		t.Fatalf("NEW.col body ref: %v", r.Error)
+	}
+}
+
+// TestSQLiteMalformedTriggerOnAttachPin pins the schema-load revalidation of
+// stored triggers (triggerupfrom-2.4, oracle-verified against sqlite3 3.54):
+//
+//   - A trigger stored while its explicit database name matched the trigger's
+//     own schema (`FROM main.link` in a database that was main at creation
+//     time) becomes malformed when that database is opened under another name:
+//     attach.c's fixSelectCb compares the named database with the trigger's
+//     own schema index, and a mismatch is
+//     "malformed database schema (tr3) - trigger tr3 cannot reference objects
+//     in database main".
+//   - attachFunc runs sqlite3Init synchronously, so the ATTACH itself fails
+//     and the database is NOT left attached (PRAGMA database_list shows only
+//     main; the stored table is not reachable).
+func TestSQLiteMalformedTriggerOnAttachPin(t *testing.T) {
+	badPath := filepath.Join(t.TempDir(), "test.db")
+	mk, err := frigolite.Open(badPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, sql := range []string{
+		"CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c)",
+		"CREATE TABLE link(f, t)",
+		"INSERT INTO link VALUES(5, 2), (20, 10), (2, 1)",
+		"CREATE TRIGGER tr3 BEFORE DELETE ON t1 BEGIN " +
+			"UPDATE t1 SET b=coalesce(old.b,old.c) FROM main.link WHERE a=t AND old.a=f; END",
+	} {
+		if r := mk.Exec(sql); r.Error != nil {
+			t.Fatalf("setup %s: %v", sql, r.Error)
+		}
+	}
+	if err := mk.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	db, err := frigolite.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	r := db.Exec("ATTACH '" + badPath + "' AS yyy")
+	want := "malformed database schema (tr3) - trigger tr3 cannot reference objects in database main"
+	if r.Error == nil || r.Error.Error() != want {
+		t.Fatalf("ATTACH: got %v, want %q", r.Error, want)
+	}
+	// The failed attach rolls back: yyy is not in database_list and its t1 is
+	// not reachable.
+	r = db.Query("PRAGMA database_list")
+	if r.Error != nil {
+		t.Fatalf("database_list after failed attach: %v", r.Error)
+	}
+	for _, row := range r.Rows {
+		if len(row) > 1 && strings.EqualFold(fmt.Sprint(row[1]), "yyy") {
+			t.Fatalf("database yyy still attached after failed ATTACH: %v", r.Rows)
+		}
+	}
+	r = db.Query("SELECT * FROM t1")
+	if r.Error == nil || !strings.Contains(r.Error.Error(), "no such table: t1") {
+		t.Fatalf("SELECT after failed attach: got %v, want no such table: t1", r.Error)
+	}
+}
+
+// TestSQLiteTriggerGrammarRestrictionsPin pins the parse-time restrictions
+// SQLite's grammar applies to trigger bodies (parse.y trnm/tridxby), oracle-
+// verified against sqlite3 3.54:
+//
+//   - A qualified INSERT/UPDATE/DELETE target inside a trigger body is a
+//     parse error for non-temp triggers ("qualified table names are not
+//     allowed on INSERT, UPDATE, and DELETE statements within triggers"),
+//     while a TEMP trigger may write to a fully qualified target — and firing
+//     it performs the cross-database write.
+//   - INDEXED BY / NOT INDEXED on UPDATE/DELETE is rejected for every trigger,
+//     including TEMP, and the grammar error precedes index resolution (a
+//     non-existent index name still reports the clause restriction).
+func TestSQLiteTriggerGrammarRestrictionsPin(t *testing.T) {
+	newDB := func(t *testing.T) *frigolite.DB {
+		t.Helper()
+		db, err := frigolite.Open(":memory:")
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { db.Close() })
+		if r := db.Exec("ATTACH ':memory:' AS aux; CREATE TABLE aux.t2(x); CREATE TABLE t1(a)"); r.Error != nil {
+			t.Fatal(r.Error)
+		}
+		return db
+	}
+	qualified := "qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers"
+	for _, body := range []string{
+		"INSERT INTO aux.t2 VALUES(new.a)",
+		"UPDATE aux.t2 SET x=1",
+		"DELETE FROM aux.t2",
+	} {
+		db := newDB(t)
+		r := db.Exec("CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN " + body + "; END")
+		if r.Error == nil || !strings.Contains(r.Error.Error(), qualified) {
+			t.Fatalf("non-temp %s: got %v, want %q", body, r.Error, qualified)
+		}
+	}
+
+	// TEMP trigger: qualified target allowed, and the cross-database write
+	// actually happens when the trigger fires.
+	db := newDB(t)
+	if r := db.Exec("CREATE TEMP TRIGGER tr AFTER INSERT ON t1 BEGIN INSERT INTO aux.t2 VALUES(new.a); END; INSERT INTO t1 VALUES(7)"); r.Error != nil {
+		t.Fatalf("temp qualified insert: %v", r.Error)
+	}
+	r := db.Query("SELECT x FROM aux.t2")
+	if r.Error != nil || len(r.Rows) != 1 || fmt.Sprint(r.Rows[0][0]) != "7" {
+		t.Fatalf("temp trigger write: rows=%v err=%v, want one row 7", r.Rows, r.Error)
+	}
+
+	indexErr := "the INDEXED BY clause is not allowed on UPDATE or DELETE statements within triggers"
+	notIndexedErr := "the NOT INDEXED clause is not allowed on UPDATE or DELETE statements within triggers"
+	for _, tc := range []struct{ sql, want string }{
+		{"CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN UPDATE t1 INDEXED BY nosuch SET a=1; END", indexErr},
+		{"CREATE TEMP TRIGGER r3 AFTER INSERT ON t1 BEGIN UPDATE t1 INDEXED BY nosuch SET a=1; END", indexErr},
+		{"CREATE TRIGGER r4 AFTER INSERT ON t1 BEGIN DELETE FROM t1 NOT INDEXED; END", notIndexedErr},
+		{"CREATE TEMP TRIGGER r5 AFTER INSERT ON t1 BEGIN UPDATE t1 NOT INDEXED SET a=1; END", notIndexedErr},
+	} {
+		db := newDB(t)
+		res := db.Exec(tc.sql)
+		if res.Error == nil || !strings.Contains(res.Error.Error(), tc.want) {
+			t.Fatalf("grammar %q: got %v, want %q", tc.sql, res.Error, tc.want)
+		}
 	}
 }

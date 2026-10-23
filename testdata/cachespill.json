@@ -1,9 +1,10 @@
 {
   "file": "cachespill.test",
   "name": "cachespill",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.1",
+      "name": "cachespill-1.1",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,7 @@
       ]
     },
     {
-      "name": "1.3",
+      "name": "cachespill-1.3",
       "steps": [
         {
           "type": "exec",
@@ -22,7 +23,7 @@
       ]
     },
     {
-      "name": "1.4",
+      "name": "cachespill-1.4",
       "steps": [
         {
           "type": "exec",
@@ -32,7 +33,7 @@
       ]
     },
     {
-      "name": "1.5",
+      "name": "cachespill-1.5",
       "steps": [
         {
           "type": "exec",
@@ -47,7 +48,7 @@
       ]
     },
     {
-      "name": "1.6",
+      "name": "cachespill-1.6",
       "steps": [
         {
           "type": "exec",

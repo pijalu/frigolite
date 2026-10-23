@@ -1,6 +1,7 @@
 {
   "file": "fkey4.test",
   "name": "fkey4",
+  "ordered": true,
   "tests": [
     {
       "name": "fkey4-1.1",
@@ -8,17 +9,73 @@
         {
           "type": "exec",
           "sql": "PRAGMA foreign_keys = ON;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE t2(c REFERENCES t1 DEFERRABLE INITIALLY DEFERRED, d);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(1,3);"
+        }
+      ]
+    },
+    {
+      "name": "fkey4-1.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t2 VALUES(2,4)",
+          "variable": "stmt_1"
         },
         {
-          "type": "exec",
-          "sql": "PRAGMA foreign_keys = ON;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE t2(c REFERENCES t1 DEFERRABLE INITIALLY DEFERRED, d);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(1,3);"
+          "type": "stmt_step",
+          "sql": "INSERT INTO t2 VALUES(2,4)",
+          "variable": "stmt_1"
         },
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t2"
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_1__",
+          "expect": "SQLITE_CONSTRAINT"
+        }
+      ]
+    },
+    {
+      "name": "fkey4-1.3",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t2 VALUES(2,4)",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t2 VALUES(2,4)",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_2__",
+          "expect": "SQLITE_CONSTRAINT"
+        }
+      ]
+    },
+    {
+      "name": "fkey4-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2",
+          "expect": "1 3"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t2 VALUES(2,4)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t2 VALUES(2,4)",
+          "variable": "stmt_2"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

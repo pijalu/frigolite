@@ -58,6 +58,16 @@ func (e *DDLExecutor) execCreateVirtualTable(s *sql.CreateVirtualTableStmt) *Res
 	if res != nil {
 		return res
 	}
+	if logTable, ok := vt.(vtab.EchoLogTable); ok && logTable.EchoLogTableName() != "" {
+		name := logTable.EchoLogTableName()
+		if created := e.ctx.Exec(&sql.CreateTableStmt{Name: name, Columns: []sql.ColumnDef{{Name: "logmsg"}}}); created.Error != nil {
+			e.disconnectVtabOnCreateFailure(vt)
+			if existing, _, findErr := e.ctx.FindTable(name); findErr == nil && existing != nil {
+				return &Result{Error: fmt.Errorf("table '%s' already exists", name)}
+			}
+			return created
+		}
+	}
 	if !vtabSchemaDeclared(vt) {
 		e.disconnectVtabOnCreateFailure(vt)
 		return &Result{Error: fmt.Errorf("vtable constructor did not declare schema: %s", tableName0)}

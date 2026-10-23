@@ -2,8 +2,8 @@ package execquery
 
 import (
 	"github.com/pijalu/frigolite/internal/function"
-	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/sql"
+	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/util"
 )
 

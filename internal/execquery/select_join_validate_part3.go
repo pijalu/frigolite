@@ -20,28 +20,141 @@ type fromOperand struct {
 	table string
 }
 
-// collectFromOperands lists the visible operand instances of a SELECT
-// (outermost level only, no derived-table descent).
+// collectFromOperands lists leaf operands so qualified lookup and rowid alias
+// shadow checks retain access to each underlying table.
 func collectFromOperands(s *sql.SelectStmt) []fromOperand {
 	if s == nil {
 		return nil
 	}
 	var out []fromOperand
-	add := func(name, as string) {
-		if name == "" && as == "" {
+	var collect func(*sql.SelectStmt)
+	collect = func(sel *sql.SelectStmt) {
+		if sel == nil {
 			return
 		}
-		ref := as
-		if ref == "" {
-			ref = name
+		add := func(ref sql.TableRef) {
+			if ref.JoinGroup && ref.Subquery != nil {
+				collect(ref.Subquery)
+				return
+			}
+			if ref.Name == "" && ref.Subquery != nil || ref.Name == "" && ref.As == "" {
+				return
+			}
+			visible := ref.As
+			if visible == "" {
+				visible = ref.Name
+			}
+			out = append(out, fromOperand{ref: visible, table: ref.Name})
 		}
-		out = append(out, fromOperand{ref: ref, table: name})
+		add(sel.From)
+		for _, join := range sel.Joins {
+			add(join.Table)
+		}
 	}
-	add(s.From.Name, s.From.As)
-	for _, j := range s.Joins {
-		add(j.Table.Name, j.Table.As)
-	}
+	collect(s)
 	return out
+}
+
+// buildVisibleAmbiguousColMap counts columns by SQL-visible FROM operand,
+// applying the merge at each JOIN boundary.
+func (e *SelectEngine) buildVisibleAmbiguousColMap(s *sql.SelectStmt) map[string][]string {
+	columns := make(map[string][]string)
+	operandColumns := func(ref sql.TableRef) ([]string, string) {
+		var names []string
+		if ref.JoinGroup && ref.Subquery != nil {
+			names = e.joinGroupColumnNames(ref.Subquery)
+		} else if ref.Subquery != nil {
+			names = e.subqueryJoinColNames(ref.Subquery)
+		} else if ref.Name != "" {
+			names, _ = e.tableColumnNames(ref.Name)
+		}
+		name := ref.As
+		if name == "" {
+			name = ref.Name
+		}
+		return names, name
+	}
+	if s == nil {
+		return columns
+	}
+	left, leftRef := operandColumns(s.From)
+	for _, name := range left {
+		key := strings.ToLower(name)
+		columns[key] = append(columns[key], leftRef)
+	}
+	for _, join := range s.Joins {
+		right, rightRef := operandColumns(join.Table)
+		merged := make(map[string]bool)
+		if isNaturalJoinType(join.JoinType) {
+			for _, name := range right {
+				key := strings.ToLower(name)
+				if len(columns[key]) > 0 {
+					merged[key] = true
+				}
+			}
+		} else {
+			for _, name := range join.Using {
+				merged[strings.ToLower(name)] = true
+			}
+		}
+		for _, name := range right {
+			key := strings.ToLower(name)
+			if !merged[key] {
+				columns[key] = append(columns[key], rightRef)
+			}
+		}
+	}
+	return columns
+}
+
+// joinGroupColumnNames returns columns visible from a parenthesized JOIN group,
+// applying each group's USING/NATURAL merge before exposing its result.
+func (e *SelectEngine) joinGroupColumnNames(s *sql.SelectStmt) []string {
+	if s == nil {
+		return nil
+	}
+	var left []string
+	if s.From.Name != "" {
+		left, _ = e.tableColumnNames(s.From.Name)
+	} else if s.From.Subquery != nil {
+		left = e.subqueryJoinColNames(s.From.Subquery)
+	}
+	for _, join := range s.Joins {
+		var right []string
+		if join.Table.JoinGroup && join.Table.Subquery != nil {
+			right = e.joinGroupColumnNames(join.Table.Subquery)
+		} else if join.Table.Subquery != nil {
+			right = e.subqueryJoinColNames(join.Table.Subquery)
+		} else if join.Table.Name != "" {
+			right, _ = e.tableColumnNames(join.Table.Name)
+		}
+		merged := make(map[string]bool)
+		if isNaturalJoinType(join.JoinType) {
+			leftSet := make(map[string]bool, len(left))
+			for _, name := range left {
+				leftSet[strings.ToLower(name)] = true
+			}
+			for _, name := range right {
+				if leftSet[strings.ToLower(name)] {
+					merged[strings.ToLower(name)] = true
+				}
+			}
+		} else {
+			for _, name := range join.Using {
+				merged[strings.ToLower(name)] = true
+			}
+		}
+		if len(merged) > 0 {
+			for _, name := range right {
+				if !merged[strings.ToLower(name)] {
+					left = append(left, name)
+				}
+			}
+		} else {
+			left = append(left, right...)
+		}
+	}
+	return left
 }
 
 // validateAmbiguousColumnRefs rejects unqualified column references that are
@@ -61,7 +174,9 @@ func (e *SelectEngine) validateAmbiguousColumnRefs(s *sql.SelectStmt) error {
 	}
 	mergedCols := map[string]bool{}
 	e.collectJoinMergedColumns(s, names, mergedCols)
-	colInTables := e.buildAmbiguousColMap(collectFromOperands(s))
+	operands := collectFromOperands(s)
+	colInTables := e.buildAmbiguousColMap(operands)
+	visibleCols := e.buildVisibleAmbiguousColMap(s)
 	// Derived-table operands (subquery FROM/JOIN) contribute an implicit
 	// rowid/_rowid_/oid to the ambiguity map even though they have no real
 	// table to resolve — a bare rowid over two derived tables is ambiguous
@@ -71,8 +186,28 @@ func (e *SelectEngine) validateAmbiguousColumnRefs(s *sql.SelectStmt) error {
 			colInTables[r] = append(colInTables[r], ref)
 		}
 	}
+	groupHasRowidAlias := false
+	checkGroupRowid := func(ref sql.TableRef) {
+		if ref.JoinGroup && ref.Subquery != nil {
+			for _, name := range e.joinGroupColumnNames(ref.Subquery) {
+				if rowIDAliasName(name) {
+					groupHasRowidAlias = true
+				}
+			}
+		}
+	}
+	checkGroupRowid(s.From)
+	for _, join := range s.Joins {
+		checkGroupRowid(join.Table)
+	}
+	for _, name := range []string{"rowid", "_rowid_", "oid"} {
+		if !groupHasRowidAlias {
+			visibleCols[name] = append(visibleCols[name], colInTables[name]...)
+		}
+	}
 	checker := ambiguousRefChecker{
 		colInTables: colInTables,
+		visibleCols: visibleCols,
 		mergedCols:  mergedCols,
 		names:       names,
 		hasDerived:  selectHasSubqueryOperand(s),
@@ -85,6 +220,7 @@ func (e *SelectEngine) validateAmbiguousColumnRefs(s *sql.SelectStmt) error {
 // individual column references for ambiguity.
 type ambiguousRefChecker struct {
 	colInTables map[string][]string
+	visibleCols map[string][]string
 	mergedCols  map[string]bool
 	names       map[string]bool
 	hasDerived  bool
@@ -254,10 +390,7 @@ func (c ambiguousRefChecker) checkColumnRef(ref *sql.ColumnRef) error {
 		return nil
 	}
 	l := strings.ToLower(ref.Name)
-	if c.mergedCols[l] {
-		return nil
-	}
-	if len(c.colInTables[l]) > 1 {
+	if len(c.visibleCols[l]) > 1 {
 		return fmt.Errorf("ambiguous column name: %s", ref.Name)
 	}
 	return nil

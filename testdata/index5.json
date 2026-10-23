@@ -4,7 +4,7 @@
   "ordered": true,
   "tests": [
     {
-      "name": "1.1",
+      "name": "index5-1.1",
       "steps": [
         {
           "type": "exec",
@@ -200022,11 +200022,31 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "setup_0",
       "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "index5-1.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
         {
           "type": "exec",
           "sql": "CREATE INDEX i1 ON t1(x)"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
         }
       ]
     }

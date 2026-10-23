@@ -1,9 +1,10 @@
 {
   "file": "fkey7.test",
   "name": "fkey7",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.1",
+      "name": "fkey7-1.1",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,55 @@
       ]
     },
     {
-      "name": "2.0",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "auth_proc",
+          "authProc": "auth",
+          "callbackVars": {
+            "": "fkey7",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "fkey7"
+          },
+          "callbackProcs": [
+            {
+              "Name": "auth",
+              "Args": [
+                "op",
+                "tbl",
+                "args"
+              ],
+              "Body": "\n  if {$op == \"SQLITE_READ\"} { set ::tbls($tbl) 1 }\n  return \"SQLITE_OK\"\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "auth",
+          "functionBody": "\n  if {$op == \"SQLITE_READ\"} { set ::tbls($tbl) 1 }\n  return \"SQLITE_OK\"\n"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE par SET b=? WHERE a=?"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE par SET a=? WHERE b=?"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE par SET c=? WHERE b=?"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE par SET a=?,b=?,c=? WHERE b=?"
+        }
+      ]
+    },
+    {
+      "name": "fkey7-2.0",
       "steps": [
         {
           "type": "exec",
@@ -21,17 +70,42 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "fkey7-2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO cX VALUES(11, zeroblob(40));",
           "expect": "1 {FOREIGN KEY constraint failed}"
         }
       ]
     },
     {
-      "name": "3.0",
+      "name": "fkey7-2.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO cX VALUES(11, ?)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO cX VALUES(11, ?)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO cX VALUES(11, ?)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "SQLITE_OK",
+          "expect": "SQLITE_CONSTRAINT"
+        }
+      ]
+    },
+    {
+      "name": "fkey7-3.0",
       "steps": [
         {
           "type": "exec",
@@ -40,7 +114,7 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "fkey7-4.0",
       "steps": [
         {
           "type": "exec",
@@ -49,17 +123,17 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "fkey7-4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT OR FAIL INTO child VALUES(123), (123);",
           "expect": "1 {FOREIGN KEY constraint failed}"
         }
       ]
     },
     {
-      "name": "4.2",
+      "name": "fkey7-4.2",
       "steps": [
         {
           "type": "query",
@@ -68,7 +142,7 @@
       ]
     },
     {
-      "name": "4.3",
+      "name": "fkey7-4.3",
       "steps": [
         {
           "type": "query",
@@ -77,17 +151,17 @@
       ]
     },
     {
-      "name": "4.4",
+      "name": "fkey7-4.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO parent VALUES(123);\n  INSERT OR FAIL INTO child VALUES(123), (123);",
           "expect": "1 {UNIQUE constraint failed: child.c}"
         }
       ]
     },
     {
-      "name": "4.5",
+      "name": "fkey7-4.5",
       "steps": [
         {
           "type": "query",
@@ -97,7 +171,7 @@
       ]
     },
     {
-      "name": "4.6",
+      "name": "fkey7-4.6",
       "steps": [
         {
           "type": "query",
@@ -105,6 +179,5 @@
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

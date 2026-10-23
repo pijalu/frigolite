@@ -1,0 +1,2936 @@
+{
+  "file": "tkt-38cb5df375.test",
+  "name": "tkt-38cb5df375",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "tkt-38cb5df375.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 SELECT a+2 FROM t1;\n    INSERT INTO t1 SELECT a+4 FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 1;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 2;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 3;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 4;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 5;",
+          "expect": "1 2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 6;",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 7;",
+          "expect": "1 2 3 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 8;",
+          "expect": "1 2 3 4 5 6 7 8"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.1.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 9;",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.1.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 10;",
+          "expect": "1 2 3 4 5 6 7 8 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.1.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 11;",
+          "expect": "1 2 3 4 5 6 7 8 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.1.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 12;",
+          "expect": "1 2 3 4 5 6 7 8 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.1.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 13;",
+          "expect": "1 2 3 4 5 6 7 8 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.1.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 14;",
+          "expect": "1 2 3 4 5 6 7 8 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.1.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 15;",
+          "expect": "1 2 3 4 5 6 7 8 9 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.1.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 16;",
+          "expect": "1 2 3 4 5 6 7 8 9 9 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 1;",
+          "expect": "9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 2;",
+          "expect": "9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 3;",
+          "expect": "9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 4;",
+          "expect": "9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 5;",
+          "expect": "9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 6;",
+          "expect": "9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 7;",
+          "expect": "9 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.2.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 8;",
+          "expect": "9 9 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.2.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 9;",
+          "expect": "9 9 9 9 9 9 9 9 1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.2.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 10;",
+          "expect": "9 9 9 9 9 9 9 9 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.2.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 11;",
+          "expect": "9 9 9 9 9 9 9 9 1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.2.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 12;",
+          "expect": "9 9 9 9 9 9 9 9 1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.2.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 13;",
+          "expect": "9 9 9 9 9 9 9 9 1 2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.2.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 14;",
+          "expect": "9 9 9 9 9 9 9 9 1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.2.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 15;",
+          "expect": "9 9 9 9 9 9 9 9 1 2 3 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.2.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 16;",
+          "expect": "9 9 9 9 9 9 9 9 1 2 3 4 5 6 7 8"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 1;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 2;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 3;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 4;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 5;",
+          "expect": "1 2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.3.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 6;",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.3.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 7;",
+          "expect": "1 2 3 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.3.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 8;",
+          "expect": "1 2 3 4 5 6 7 8"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.3.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 9;",
+          "expect": "1 2 3 4 5 6 7 8 1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.3.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 10;",
+          "expect": "1 2 3 4 5 6 7 8 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.3.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 11;",
+          "expect": "1 2 3 4 5 6 7 8 1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.3.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 12;",
+          "expect": "1 2 3 4 5 6 7 8 1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.3.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 13;",
+          "expect": "1 2 3 4 5 6 7 8 1 2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.3.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 14;",
+          "expect": "1 2 3 4 5 6 7 8 1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.3.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 15;",
+          "expect": "1 2 3 4 5 6 7 8 1 2 3 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.3.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT 16;",
+          "expect": "1 2 3 4 5 6 7 8 1 2 3 4 5 6 7 8"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 1;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 2;",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 3;",
+          "expect": "0 0 0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 4;",
+          "expect": "0 0 0 0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 5;",
+          "expect": "0 0 0 0 0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.4.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 6;",
+          "expect": "0 0 0 0 0 0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.4.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 7;",
+          "expect": "0 0 0 0 0 0 0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.4.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 8;",
+          "expect": "0 0 0 0 0 0 0 0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.4.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 9;",
+          "expect": "0 0 0 0 0 0 0 0 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.4.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 10;",
+          "expect": "0 0 0 0 0 0 0 0 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.4.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 11;",
+          "expect": "0 0 0 0 0 0 0 0 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.4.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 12;",
+          "expect": "0 0 0 0 0 0 0 0 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.4.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 13;",
+          "expect": "0 0 0 0 0 0 0 0 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.4.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 14;",
+          "expect": "0 0 0 0 0 0 0 0 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.4.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 15;",
+          "expect": "0 0 0 0 0 0 0 0 9 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.4.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 16;",
+          "expect": "0 0 0 0 0 0 0 0 9 9 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 1;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 2;",
+          "expect": "0 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 3;",
+          "expect": "0 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 4;",
+          "expect": "0 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 1;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.11.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 2;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.11.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 3;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.11.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 4;",
+          "expect": "1 2 3 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.11.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 5;",
+          "expect": "1 2 3 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.11.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 6;",
+          "expect": "1 2 3 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.11.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 7;",
+          "expect": "1 2 3 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.11.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 8;",
+          "expect": "1 2 3 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.11.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 9;",
+          "expect": "1 2 3 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.11.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 10;",
+          "expect": "1 2 3 9 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.11.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT 11;",
+          "expect": "1 2 3 9 9 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT 1;",
+          "expect": "9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.12.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT 2;",
+          "expect": "9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.12.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT 3;",
+          "expect": "9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.12.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT 4;",
+          "expect": "9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.12.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT 5;",
+          "expect": "9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.12.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT 6;",
+          "expect": "9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.12.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT 7;",
+          "expect": "9 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.12.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT 8;",
+          "expect": "9 9 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.12.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT 9;",
+          "expect": "9 9 9 9 9 9 9 9 1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.12.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT 10;",
+          "expect": "9 9 9 9 9 9 9 9 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.12.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT 11;",
+          "expect": "9 9 9 9 9 9 9 9 1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.13.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT 1;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.13.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT 2;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.13.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT 3;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.13.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT 4;",
+          "expect": "1 2 3 1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.13.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT 5;",
+          "expect": "1 2 3 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.13.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT 6;",
+          "expect": "1 2 3 1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.14.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 3)\n      LIMIT 1;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.14.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 3)\n      LIMIT 2;",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.14.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 3)\n      LIMIT 3;",
+          "expect": "0 0 0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.14.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 3)\n      LIMIT 4;",
+          "expect": "0 0 0 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.14.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 3)\n      LIMIT 5;",
+          "expect": "0 0 0 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.14.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 3)\n      LIMIT 6;",
+          "expect": "0 0 0 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.21.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 1;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.21.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 2;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.21.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 3;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.21.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 4;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.21.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 5;",
+          "expect": "1 2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.21.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 6;",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.21.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 7;",
+          "expect": "1 2 3 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.21.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 8;",
+          "expect": "1 2 3 4 5 6 7 8"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.21.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 9;",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.21.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 10;",
+          "expect": "1 2 3 4 5 6 7 8 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.21.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 11;",
+          "expect": "1 2 3 4 5 6 7 8 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.21.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 12;",
+          "expect": "1 2 3 4 5 6 7 8 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.21.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 13;",
+          "expect": "1 2 3 4 5 6 7 8 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.21.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 14;",
+          "expect": "1 2 3 4 5 6 7 8 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.21.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 15;",
+          "expect": "1 2 3 4 5 6 7 8 9 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.21.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 16;",
+          "expect": "1 2 3 4 5 6 7 8 9 9 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.22.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1\n      LIMIT 1;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.22.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1\n      LIMIT 2;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.22.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1\n      LIMIT 3;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.22.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1\n      LIMIT 4;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.22.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1\n      LIMIT 5;",
+          "expect": "1 2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.22.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1\n      LIMIT 6;",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.22.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1\n      LIMIT 7;",
+          "expect": "1 2 3 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.22.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1\n      LIMIT 8;",
+          "expect": "1 2 3 4 5 6 7 8"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.22.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1\n      LIMIT 9;",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.22.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1\n      LIMIT 10;",
+          "expect": "1 2 3 4 5 6 7 8 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.22.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1\n      LIMIT 11;",
+          "expect": "1 2 3 4 5 6 7 8 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.22.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1\n      LIMIT 12;",
+          "expect": "1 2 3 4 5 6 7 8 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.22.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1\n      LIMIT 13;",
+          "expect": "1 2 3 4 5 6 7 8 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.22.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1\n      LIMIT 14;",
+          "expect": "1 2 3 4 5 6 7 8 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.22.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1\n      LIMIT 15;",
+          "expect": "1 2 3 4 5 6 7 8 9 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.22.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1\n      LIMIT 16;",
+          "expect": "1 2 3 4 5 6 7 8 9 9 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.23.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1 DESC\n      LIMIT 1;",
+          "expect": "8"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.23.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1 DESC\n      LIMIT 2;",
+          "expect": "8 8"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.23.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1 DESC\n      LIMIT 3;",
+          "expect": "8 8 7"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.23.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1 DESC\n      LIMIT 4;",
+          "expect": "8 8 7 7"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.23.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1 DESC\n      LIMIT 5;",
+          "expect": "8 8 7 7 6"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.23.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1 DESC\n      LIMIT 6;",
+          "expect": "8 8 7 7 6 6"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.23.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1 DESC\n      LIMIT 7;",
+          "expect": "8 8 7 7 6 6 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.23.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1 DESC\n      LIMIT 8;",
+          "expect": "8 8 7 7 6 6 5 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.23.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1 DESC\n      LIMIT 9;",
+          "expect": "8 8 7 7 6 6 5 5 4"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.23.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1 DESC\n      LIMIT 10;",
+          "expect": "8 8 7 7 6 6 5 5 4 4"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.23.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1 DESC\n      LIMIT 11;",
+          "expect": "8 8 7 7 6 6 5 5 4 4 3"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.23.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1 DESC\n      LIMIT 12;",
+          "expect": "8 8 7 7 6 6 5 5 4 4 3 3"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.23.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1 DESC\n      LIMIT 13;",
+          "expect": "8 8 7 7 6 6 5 5 4 4 3 3 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.23.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1 DESC\n      LIMIT 14;",
+          "expect": "8 8 7 7 6 6 5 5 4 4 3 3 2 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.23.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1 DESC\n      LIMIT 15;",
+          "expect": "8 8 7 7 6 6 5 5 4 4 3 3 2 2 1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.23.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1 DESC\n      LIMIT 16;",
+          "expect": "8 8 7 7 6 6 5 5 4 4 3 3 2 2 1 1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.24.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 1;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.24.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 2;",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.24.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 3;",
+          "expect": "0 0 0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.24.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 4;",
+          "expect": "0 0 0 0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.24.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 5;",
+          "expect": "0 0 0 0 0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.24.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 6;",
+          "expect": "0 0 0 0 0 0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.24.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 7;",
+          "expect": "0 0 0 0 0 0 0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.24.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 8;",
+          "expect": "0 0 0 0 0 0 0 0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.24.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 9;",
+          "expect": "0 0 0 0 0 0 0 0 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.24.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 10;",
+          "expect": "0 0 0 0 0 0 0 0 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.24.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 11;",
+          "expect": "0 0 0 0 0 0 0 0 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.24.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 12;",
+          "expect": "0 0 0 0 0 0 0 0 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.24.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 13;",
+          "expect": "0 0 0 0 0 0 0 0 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.24.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 14;",
+          "expect": "0 0 0 0 0 0 0 0 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.24.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 15;",
+          "expect": "0 0 0 0 0 0 0 0 9 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.24.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 16;",
+          "expect": "0 0 0 0 0 0 0 0 9 9 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.31.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 1;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.31.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 2;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.31.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 3;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.31.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 4;",
+          "expect": "1 2 3 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.31.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 5;",
+          "expect": "1 2 3 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.31.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 6;",
+          "expect": "1 2 3 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.31.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 7;",
+          "expect": "1 2 3 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.31.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 8;",
+          "expect": "1 2 3 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.31.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 9;",
+          "expect": "1 2 3 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.31.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 10;",
+          "expect": "1 2 3 9 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.31.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT 11;",
+          "expect": "1 2 3 9 9 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.32.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT 1;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.32.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT 2;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.32.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT 3;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.32.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT 4;",
+          "expect": "1 2 3 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.32.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT 5;",
+          "expect": "1 2 3 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.32.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT 6;",
+          "expect": "1 2 3 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.32.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT 7;",
+          "expect": "1 2 3 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.32.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT 8;",
+          "expect": "1 2 3 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.32.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT 9;",
+          "expect": "1 2 3 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.32.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT 10;",
+          "expect": "1 2 3 9 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.32.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT 11;",
+          "expect": "1 2 3 9 9 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.33.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT 90+a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT 1;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.33.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT 90+a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT 2;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.33.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT 90+a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT 3;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.33.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT 90+a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT 4;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.33.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT 90+a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT 5;",
+          "expect": "1 2 3 4 91"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.33.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT 90+a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT 6;",
+          "expect": "1 2 3 4 91 92"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.33.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT 90+a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT 7;",
+          "expect": "1 2 3 4 91 92 93"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.34.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 2)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 5)\n      ORDER BY 1\n      LIMIT 1;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.34.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 2)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 5)\n      ORDER BY 1\n      LIMIT 2;",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.34.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 2)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 5)\n      ORDER BY 1\n      LIMIT 3;",
+          "expect": "1 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.34.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 2)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 5)\n      ORDER BY 1\n      LIMIT 4;",
+          "expect": "1 1 2 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.34.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 2)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 5)\n      ORDER BY 1\n      LIMIT 5;",
+          "expect": "1 1 2 2 3"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.34.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 2)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 5)\n      ORDER BY 1\n      LIMIT 6;",
+          "expect": "1 1 2 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.34.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 2)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 5)\n      ORDER BY 1\n      LIMIT 7;",
+          "expect": "1 1 2 2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 1;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 2;",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 3;",
+          "expect": "1 1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 4;",
+          "expect": "1 1 2 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 5;",
+          "expect": "1 1 2 2 3"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 6;",
+          "expect": "1 1 2 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 7;",
+          "expect": "1 1 2 2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35b.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 1;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35b.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 2;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35b.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 3;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35b.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 4;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35b.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 5;",
+          "expect": "1 2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35b.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 6;",
+          "expect": "1 2 3 4 5 11"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35b.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 7;",
+          "expect": "1 2 3 4 5 11 12"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35c.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 1;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35c.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 2;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35c.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 3;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35c.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 4;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35c.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 5;",
+          "expect": "1 2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35c.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 6;",
+          "expect": "1 2 3 4 5 11"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35c.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 7;",
+          "expect": "1 2 3 4 5 11 12"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35d.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      INTERSECT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 1;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35d.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      INTERSECT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 2;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35d.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      INTERSECT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 3;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35d.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      INTERSECT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 4;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35d.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      INTERSECT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 5;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35d.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      INTERSECT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 6;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35d.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      INTERSECT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 7;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35e.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 1;",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35e.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 2;",
+          "expect": "3 4"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35e.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 3;",
+          "expect": "3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35e.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 4;",
+          "expect": "3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35e.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 5;",
+          "expect": "3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35e.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 6;",
+          "expect": "3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.35e.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 7;",
+          "expect": "3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.36.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT 1;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.36.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT 2;",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.36.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT 3;",
+          "expect": "0 0 0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.36.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT 4;",
+          "expect": "0 0 0 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.36.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT 5;",
+          "expect": "0 0 0 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.36.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT 6;",
+          "expect": "0 0 0 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.36.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT 7;",
+          "expect": "0 0 0 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.37.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT 1;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.37.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT 2;",
+          "expect": "0 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.37.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT 3;",
+          "expect": "0 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.37.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT 4;",
+          "expect": "0 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.37.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT 5;",
+          "expect": "0 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.37.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT 6;",
+          "expect": "0 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.37.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT 7;",
+          "expect": "0 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.38.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      EXCEPT SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT 1;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.38.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      EXCEPT SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT 2;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.38.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      EXCEPT SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT 3;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.38.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      EXCEPT SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT 4;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.38.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      EXCEPT SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT 5;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.38.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      EXCEPT SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT 6;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.38.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      EXCEPT SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT 7;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.41.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      UNION ALL SELECT 88 FROM (SELECT a FROM t1 LIMIT 2)\n      ORDER BY 1\n      LIMIT 1;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.41.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      UNION ALL SELECT 88 FROM (SELECT a FROM t1 LIMIT 2)\n      ORDER BY 1\n      LIMIT 2;",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.41.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      UNION ALL SELECT 88 FROM (SELECT a FROM t1 LIMIT 2)\n      ORDER BY 1\n      LIMIT 3;",
+          "expect": "0 0 0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.41.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      UNION ALL SELECT 88 FROM (SELECT a FROM t1 LIMIT 2)\n      ORDER BY 1\n      LIMIT 4;",
+          "expect": "0 0 0 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.41.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      UNION ALL SELECT 88 FROM (SELECT a FROM t1 LIMIT 2)\n      ORDER BY 1\n      LIMIT 5;",
+          "expect": "0 0 0 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.41.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      UNION ALL SELECT 88 FROM (SELECT a FROM t1 LIMIT 2)\n      ORDER BY 1\n      LIMIT 6;",
+          "expect": "0 0 0 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.41.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      UNION ALL SELECT 88 FROM (SELECT a FROM t1 LIMIT 2)\n      ORDER BY 1\n      LIMIT 7;",
+          "expect": "0 0 0 9 9 9 9"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.41.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      UNION ALL SELECT 88 FROM (SELECT a FROM t1 LIMIT 2)\n      ORDER BY 1\n      LIMIT 8;",
+          "expect": "0 0 0 9 9 9 9 88"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.41.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      UNION ALL SELECT 88 FROM (SELECT a FROM t1 LIMIT 2)\n      ORDER BY 1\n      LIMIT 9;",
+          "expect": "0 0 0 9 9 9 9 88 88"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.42.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 1;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.42.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 2;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.42.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 3;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.42.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 4;",
+          "expect": "1 2 3 11"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.42.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 5;",
+          "expect": "1 2 3 11 12"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.42.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 6;",
+          "expect": "1 2 3 11 12 13"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.42.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 7;",
+          "expect": "1 2 3 11 12 13 14"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.42.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 8;",
+          "expect": "1 2 3 11 12 13 14 21"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.42.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 9;",
+          "expect": "1 2 3 11 12 13 14 21 22"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.43.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 1;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.43.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 2;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.43.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 3;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.43.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 4;",
+          "expect": "1 2 3 11"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.43.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 5;",
+          "expect": "1 2 3 11 12"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.43.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 6;",
+          "expect": "1 2 3 11 12 13"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.43.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 7;",
+          "expect": "1 2 3 11 12 13 14"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.43.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 8;",
+          "expect": "1 2 3 11 12 13 14 21"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.43.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT 9;",
+          "expect": "1 2 3 11 12 13 14 21 22"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.51.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 1)\n      ORDER BY a DESC\n      LIMIT 6;",
+          "expect": "8 7 6 5 4 3"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.51.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY a DESC\n      LIMIT 5;",
+          "expect": "8 7 6 5 4"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.51.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY a DESC\n      LIMIT 4;",
+          "expect": "8 7 6 5"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.51.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      ORDER BY a DESC\n      LIMIT 3;",
+          "expect": "8 7 6"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.51.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 5)\n      ORDER BY a DESC\n      LIMIT 2;",
+          "expect": "8 7"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.51.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 6)\n      ORDER BY a DESC\n      LIMIT 1;",
+          "expect": "8"
+        }
+      ]
+    },
+    {
+      "name": "tkt-38cb5df375.51.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 7)\n      ORDER BY a DESC\n      LIMIT 0;",
+          "expect": "8 7 6 5 4 3 2 1"
+        }
+      ]
+    }
+  ]
+}

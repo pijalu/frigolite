@@ -40,6 +40,11 @@ func (m *GeopolyModule) Connect(args []string) (VirtualTable, error) {
 	return m.connect(args, false)
 }
 
+// ShadowName uses the RTree shadow-table family shared by geopoly.
+func (m *GeopolyModule) ShadowName(tableName, name string) bool {
+	return m.rtree.ShadowName(tableName, name)
+}
+
 // connect builds one geopoly instance (geopolyInit): the declared schema is
 // "CREATE TABLE x(_shape<,user column>...)" — _shape first, then every module
 // argument verbatim — and internally nAux counts _shape itself plus the user

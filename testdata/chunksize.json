@@ -1,9 +1,65 @@
 {
   "file": "chunksize.test",
   "name": "chunksize",
+  "ordered": true,
   "tests": [
     {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "chunksize-1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = delete",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "chunksize-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);"
+        }
+      ]
+    },
+    {
       "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "chunksize-2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = wal",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "chunksize-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
       "steps": [
         {
           "type": "exec",

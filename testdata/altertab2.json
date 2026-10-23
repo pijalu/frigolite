@@ -1,9 +1,39 @@
 {
   "file": "altertab2.test",
   "name": "altertab2",
+  "ordered": true,
   "tests": [
     {
-      "name": "2.0",
+      "name": "altertab2-1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE rr(a, b);\n    CREATE VIRTUAL TABLE ff USING fts5(a, b);\n    CREATE TRIGGER tr1 AFTER INSERT ON rr BEGIN\n      INSERT INTO ff VALUES(new.a, new.b);\n    END;\n    INSERT INTO rr VALUES('hello', 'world');\n    SELECT * FROM ff;",
+          "expect": "hello world"
+        }
+      ]
+    },
+    {
+      "name": "altertab2-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE ff RENAME TO ffff;"
+        }
+      ]
+    },
+    {
+      "name": "altertab2-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO rr VALUES('in', 'tcl');\n    SELECT * FROM ffff;",
+          "expect": "hello world in tcl"
+        }
+      ]
+    },
+    {
+      "name": "altertab2-2.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +42,7 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "altertab2-2.1",
       "steps": [
         {
           "type": "query",
@@ -22,7 +52,7 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "altertab2-2.2",
       "steps": [
         {
           "type": "query",
@@ -32,7 +62,7 @@
       ]
     },
     {
-      "name": "2.3",
+      "name": "altertab2-2.3",
       "steps": [
         {
           "type": "query",
@@ -42,191 +72,283 @@
       ]
     },
     {
-      "name": "3.1.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altertab2-3.1.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE log_entry(col1, y);\n    CREATE INDEX i1 ON log_entry(col1);\n  }"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT sql FROM sqlite_master"
+          "sql": "CREATE TABLE log_entry(col1, y);\n    CREATE INDEX i1 ON log_entry(col1);"
         }
       ]
     },
     {
-      "name": "3.1.2",
+      "name": "setup_0",
       "steps": [
         {
-          "type": "query",
-          "sql": "ALTER TABLE log_entry RENAME TO newname;\n    SELECT sql FROM sqlite_master;",
-          "expect": "log_entry {\"newname\"}"
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master",
+          "variable": "expect",
+          "resultAll": true
         }
       ]
     },
     {
-      "name": "3.1.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE log_entry(col1, y);\n    CREATE INDEX i1 ON log_entry(col1);\n  }"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT sql FROM sqlite_master"
-        }
-      ]
-    },
-    {
-      "name": "3.1.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "ALTER TABLE log_entry RENAME col1 TO newname;\n    SELECT sql FROM sqlite_master;",
-          "expect": "col1 newname"
-        }
-      ]
-    },
-    {
-      "name": "3.2.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(x);\n    CREATE TABLE log_entry(col1);\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO t2 SELECT col1 FROM log_entry;\n    END;\n  }"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT sql FROM sqlite_master"
-        }
-      ]
-    },
-    {
-      "name": "3.2.2",
+      "name": "altertab2-3.1.2",
       "steps": [
         {
           "type": "query",
           "sql": "ALTER TABLE log_entry RENAME TO newname;\n    SELECT sql FROM sqlite_master;",
-          "expect": "log_entry {\"newname\"}"
+          "expect": "$expect"
         }
       ]
     },
     {
-      "name": "3.2.3",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altertab2-3.1.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(x);\n    CREATE TABLE log_entry(col1);\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO t2 SELECT col1 FROM log_entry;\n    END;\n  }"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT sql FROM sqlite_master"
+          "sql": "CREATE TABLE log_entry(col1, y);\n    CREATE INDEX i1 ON log_entry(col1);"
         }
       ]
     },
     {
-      "name": "3.2.4",
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master",
+          "variable": "expect",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "altertab2-3.1.4",
       "steps": [
         {
           "type": "query",
           "sql": "ALTER TABLE log_entry RENAME col1 TO newname;\n    SELECT sql FROM sqlite_master;",
-          "expect": "col1 newname"
+          "expect": "$expect"
         }
       ]
     },
     {
-      "name": "3.3.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altertab2-3.2.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(x);\n    CREATE TABLE log_entry(col1);\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO t2\n        WITH xyz(x) AS (SELECT col1 FROM log_entry)\n        SELECT x FROM xyz;\n    END;\n  }"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT sql FROM sqlite_master"
+          "sql": "CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(x);\n    CREATE TABLE log_entry(col1);\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO t2 SELECT col1 FROM log_entry;\n    END;"
         }
       ]
     },
     {
-      "name": "3.3.2",
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master",
+          "variable": "expect",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "altertab2-3.2.2",
       "steps": [
         {
           "type": "query",
           "sql": "ALTER TABLE log_entry RENAME TO newname;\n    SELECT sql FROM sqlite_master;",
-          "expect": "log_entry {\"newname\"}"
+          "expect": "$expect"
         }
       ]
     },
     {
-      "name": "3.3.3",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altertab2-3.2.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(x);\n    CREATE TABLE log_entry(col1);\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO t2\n        WITH xyz(x) AS (SELECT col1 FROM log_entry)\n        SELECT x FROM xyz;\n    END;\n  }"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT sql FROM sqlite_master"
+          "sql": "CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(x);\n    CREATE TABLE log_entry(col1);\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO t2 SELECT col1 FROM log_entry;\n    END;"
         }
       ]
     },
     {
-      "name": "3.3.4",
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master",
+          "variable": "expect",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "altertab2-3.2.4",
       "steps": [
         {
           "type": "query",
           "sql": "ALTER TABLE log_entry RENAME col1 TO newname;\n    SELECT sql FROM sqlite_master;",
-          "expect": "col1 newname"
+          "expect": "$expect"
         }
       ]
     },
     {
-      "name": "3.4.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altertab2-3.3.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE log_entry(col1);\n    CREATE VIEW ttt AS\n        WITH xyz(x) AS (SELECT col1 FROM log_entry)\n        SELECT x FROM xyz;\n  }"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT sql FROM sqlite_master"
+          "sql": "CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(x);\n    CREATE TABLE log_entry(col1);\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO t2\n        WITH xyz(x) AS (SELECT col1 FROM log_entry)\n        SELECT x FROM xyz;\n    END;"
         }
       ]
     },
     {
-      "name": "3.4.2",
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master",
+          "variable": "expect",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "altertab2-3.3.2",
       "steps": [
         {
           "type": "query",
           "sql": "ALTER TABLE log_entry RENAME TO newname;\n    SELECT sql FROM sqlite_master;",
-          "expect": "log_entry {\"newname\"}"
+          "expect": "$expect"
         }
       ]
     },
     {
-      "name": "3.4.3",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altertab2-3.3.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE log_entry(col1);\n    CREATE VIEW ttt AS\n        WITH xyz(x) AS (SELECT col1 FROM log_entry)\n        SELECT x FROM xyz;\n  }"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT sql FROM sqlite_master"
+          "sql": "CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(x);\n    CREATE TABLE log_entry(col1);\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO t2\n        WITH xyz(x) AS (SELECT col1 FROM log_entry)\n        SELECT x FROM xyz;\n    END;"
         }
       ]
     },
     {
-      "name": "3.4.4",
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master",
+          "variable": "expect",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "altertab2-3.3.4",
       "steps": [
         {
           "type": "query",
           "sql": "ALTER TABLE log_entry RENAME col1 TO newname;\n    SELECT sql FROM sqlite_master;",
-          "expect": "col1 newname"
+          "expect": "$expect"
         }
       ]
     },
     {
-      "name": "4.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altertab2-3.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE log_entry(col1);\n    CREATE VIEW ttt AS\n        WITH xyz(x) AS (SELECT col1 FROM log_entry)\n        SELECT x FROM xyz;"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master",
+          "variable": "expect",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "altertab2-3.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE log_entry RENAME TO newname;\n    SELECT sql FROM sqlite_master;",
+          "expect": "$expect"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altertab2-3.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE log_entry(col1);\n    CREATE VIEW ttt AS\n        WITH xyz(x) AS (SELECT col1 FROM log_entry)\n        SELECT x FROM xyz;"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master",
+          "variable": "expect",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "altertab2-3.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE log_entry RENAME col1 TO newname;\n    SELECT sql FROM sqlite_master;",
+          "expect": "$expect"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altertab2-4.0",
       "steps": [
         {
           "type": "exec",
@@ -235,7 +357,7 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "altertab2-4.1",
       "steps": [
         {
           "type": "query",
@@ -245,7 +367,7 @@
       ]
     },
     {
-      "name": "4.2",
+      "name": "altertab2-4.2",
       "steps": [
         {
           "type": "query",
@@ -255,7 +377,7 @@
       ]
     },
     {
-      "name": "4.3",
+      "name": "altertab2-4.3",
       "steps": [
         {
           "type": "query",
@@ -265,7 +387,54 @@
       ]
     },
     {
-      "name": "6.0",
+      "name": "altertab2-5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a);\n  CREATE TRIGGER r2 AFTER INSERT ON t2 WHEN new.a NOT NULL BEGIN\n    SELECT a, sum(a) OVER w1 FROM t2\n      WINDOW w1 AS (\n        PARTITION BY a ORDER BY a \n        ROWS BETWEEN 2 PRECEDING AND 3 FOLLOWING\n      ),\n      w2 AS (\n        PARTITION BY a\n        ORDER BY rowid ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\n      );\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "altertab2-5.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(1);"
+        }
+      ]
+    },
+    {
+      "name": "altertab2-5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE t2 RENAME TO t2x;\n  SELECT sql FROM sqlite_master WHERE name = 'r2';",
+          "expect": "\n  {CREATE TRIGGER r2 AFTER INSERT ON \"t2x\" WHEN new.a NOT NULL BEGIN\n    SELECT a, sum(a) OVER w1 FROM \"t2x\"\n      WINDOW w1 AS (\n        PARTITION BY a ORDER BY a \n        ROWS BETWEEN 2 PRECEDING AND 3 FOLLOWING\n      ),\n      w2 AS (\n        PARTITION BY a\n        ORDER BY rowid ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\n      );\n  END}\n"
+        }
+      ]
+    },
+    {
+      "name": "altertab2-5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE t2x RENAME a TO aaaa;\n  SELECT sql FROM sqlite_master WHERE name = 'r2';",
+          "expect": "\n  {CREATE TRIGGER r2 AFTER INSERT ON \"t2x\" WHEN new.aaaa NOT NULL BEGIN\n    SELECT aaaa, sum(aaaa) OVER w1 FROM \"t2x\"\n      WINDOW w1 AS (\n        PARTITION BY aaaa ORDER BY aaaa \n        ROWS BETWEEN 2 PRECEDING AND 3 FOLLOWING\n      ),\n      w2 AS (\n        PARTITION BY aaaa\n        ORDER BY rowid ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\n      );\n  END}\n"
+        }
+      ]
+    },
+    {
+      "name": "altertab2-5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2x VALUES(1);"
+        }
+      ]
+    },
+    {
+      "name": "altertab2-6.0",
       "steps": [
         {
           "type": "exec",
@@ -274,7 +443,7 @@
       ]
     },
     {
-      "name": "6.1",
+      "name": "altertab2-6.1",
       "steps": [
         {
           "type": "query",
@@ -284,7 +453,7 @@
       ]
     },
     {
-      "name": "6.2",
+      "name": "altertab2-6.2",
       "steps": [
         {
           "type": "query",
@@ -294,7 +463,11 @@
       ]
     },
     {
-      "name": "7.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altertab2-7.0",
       "steps": [
         {
           "type": "exec",
@@ -303,7 +476,7 @@
       ]
     },
     {
-      "name": "7.1",
+      "name": "altertab2-7.1",
       "steps": [
         {
           "type": "query",
@@ -313,7 +486,7 @@
       ]
     },
     {
-      "name": "7.2",
+      "name": "altertab2-7.2",
       "steps": [
         {
           "type": "query",
@@ -323,7 +496,7 @@
       ]
     },
     {
-      "name": "7.3",
+      "name": "altertab2-7.3",
       "steps": [
         {
           "type": "query",
@@ -338,7 +511,11 @@
       ]
     },
     {
-      "name": "8.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altertab2-8.0",
       "steps": [
         {
           "type": "exec",
@@ -347,7 +524,7 @@
       ]
     },
     {
-      "name": "8.1",
+      "name": "altertab2-8.1",
       "steps": [
         {
           "type": "exec",
@@ -356,7 +533,7 @@
       ]
     },
     {
-      "name": "8.2",
+      "name": "altertab2-8.2",
       "steps": [
         {
           "type": "catch",
@@ -366,7 +543,7 @@
       ]
     },
     {
-      "name": "8.3",
+      "name": "altertab2-8.3",
       "steps": [
         {
           "type": "exec",
@@ -375,7 +552,7 @@
       ]
     },
     {
-      "name": "8.4",
+      "name": "altertab2-8.4",
       "steps": [
         {
           "type": "exec",
@@ -384,7 +561,7 @@
       ]
     },
     {
-      "name": "8.5",
+      "name": "altertab2-8.5",
       "steps": [
         {
           "type": "query",
@@ -394,7 +571,11 @@
       ]
     },
     {
-      "name": "8.6",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altertab2-8.6",
       "steps": [
         {
           "type": "catch",
@@ -404,7 +585,11 @@
       ]
     },
     {
-      "name": "9.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altertab2-9.0",
       "steps": [
         {
           "type": "exec",
@@ -413,7 +598,7 @@
       ]
     },
     {
-      "name": "9.1",
+      "name": "altertab2-9.1",
       "steps": [
         {
           "type": "catch",

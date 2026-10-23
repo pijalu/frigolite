@@ -13,21 +13,22 @@ import (
 )
 
 func (t *BTree) DeleteCellsWhere(fn func(cell *storage.Cell) bool) (int64, error) {
-	t.saveAllCursors() // btree.c saveAllCursors on the delete path
-	t.invalidateAppendCursor() // a delete may remove the maximum key
+	return t.deleteCellsWhere(fn, false)
+}
+
+// DeleteCellsWhereFullPayload matches cells using their complete payload,
+// including overflow pages. Use when predicate fields may occur beyond the
+// local payload prefix, as in sqlite_schema SQL text.
+func (t *BTree) DeleteCellsWhereFullPayload(fn func(cell *storage.Cell) bool) (int64, error) {
+	return t.deleteCellsWhere(fn, true)
+}
+
+func (t *BTree) deleteCellsWhere(fn func(cell *storage.Cell) bool, fullPayload bool) (int64, error) {
+	t.saveAllCursors()
+	t.invalidateAppendCursor()
 	var deleted int64
-	// The sweep runs in passes: balanceNonroot (invoked when a leaf
-	// empties) can redistribute surviving cells into a leaf that was
-	// already swept earlier in this pass — and its root-absorption path
-	// can demote the interior root INTO a leaf holding surviving rows —
-	// so the leaf set is RE-COLLECTED at the start of every pass. The
-	// previous single collection never visited rows that moved onto the
-	// root page mid-sweep (DELETE FROM leaving 8 of 500 rows behind).
-	// SQLite's row-by-row OP_Delete keeps its cursor position across
-	// balances; this bulk sweep instead re-runs the leaf list until a
-	// full pass deletes nothing, so no migrated cell is stranded.
 	for {
-		passDeleted, err := t.deletePass(fn)
+		passDeleted, err := t.deletePass(fn, fullPayload)
 		deleted += passDeleted
 		if err != nil {
 			return deleted, err
@@ -36,19 +37,6 @@ func (t *BTree) DeleteCellsWhere(fn func(cell *storage.Cell) bool) (int64, error
 			break
 		}
 	}
-	// P8.INCRVACUUM phase 5.5 fix: after deleting all rows, the root
-	// (if interior) may have 0 cells but still carry a stale
-	// rightmost-child pointer to a freed leaf. balanceNonroot's
-	// "all cells vanished" branch frees the empty leaves but does NOT
-	// clear the root's rightmost-child (the root collapse /
-	// balance_shallower path is not implemented in this port). Without
-	// this fix, a subsequent SELECT walks the stale rightmost-child,
-	// hits a freed page whose first 4 bytes are a freelist chain
-	// pointer (interpreted as a cell pointer), and fails with
-	// "database disk image is malformed". Clear the rightmost-child
-	// when the root has 0 cells; the btree is then an empty subtree
-	// the cursor handles correctly (collectLeafPages returns []uint32
-	// for a 0-cell interior root with rmp=0).
 	if err := t.clearEmptyRootRightmost(); err != nil {
 		return deleted, err
 	}
@@ -57,7 +45,7 @@ func (t *BTree) DeleteCellsWhere(fn func(cell *storage.Cell) bool) (int64, error
 
 // deletePass sweeps every live leaf of the btree once, rebalancing emptied
 // leaves as it goes, and returns the number of cells deleted during the pass.
-func (t *BTree) deletePass(fn func(cell *storage.Cell) bool) (int64, error) {
+func (t *BTree) deletePass(fn func(cell *storage.Cell) bool, fullPayload bool) (int64, error) {
 	var passDeleted int64
 	var leaves []uint32
 	if err := t.collectLeafPages(t.rootPage, &leaves, nil); err != nil {
@@ -71,7 +59,7 @@ func (t *BTree) deletePass(fn func(cell *storage.Cell) bool) (int64, error) {
 		if pager.IsPageOnFreelist(t.pager, leafNum) {
 			continue
 		}
-		n, err := t.sweepLeafCells(leafNum, fn)
+		n, err := t.sweepLeafCells(leafNum, fn, fullPayload)
 		passDeleted += n
 		if err != nil {
 			return passDeleted, err
@@ -96,7 +84,7 @@ func (t *BTree) deletePass(fn func(cell *storage.Cell) bool) (int64, error) {
 // single-compaction passes until nothing matches. The caller has already
 // skipped leaves freed as surplus empty siblings (a freed page's first bytes
 // are its freelist chain pointer, not a page type).
-func (t *BTree) sweepLeafCells(leafNum uint32, fn func(cell *storage.Cell) bool) (int64, error) {
+func (t *BTree) sweepLeafCells(leafNum uint32, fn func(cell *storage.Cell) bool, fullPayload bool) (int64, error) {
 	// Delete every matching cell in ONE pass (SQLite's single-sweep
 	// delete). The previous per-cell loop re-parsed the page and
 	// scanned from index 0 after each deletion — O(k^2) per leaf,
@@ -104,7 +92,7 @@ func (t *BTree) sweepLeafCells(leafNum uint32, fn func(cell *storage.Cell) bool)
 	// rows) take ~40s (fts4merge4's between-scenario DELETE).
 	var passDeleted int64
 	for {
-		n, err := t.deleteAllMatchingFromLeaf(leafNum, fn)
+		n, err := t.deleteAllMatchingFromLeaf(leafNum, fn, fullPayload)
 		if err != nil {
 			return passDeleted, err
 		}
@@ -261,7 +249,7 @@ func (c *Cursor) PathParent() uint32 {
 // a seek on THIS tree (the target cell is re-validated against rowID; a
 // stale position falls back to the full DeleteCellByRowID seek).
 func (t *BTree) DeleteCellByRowIDAt(rowID int64, leaf uint32, idx int, hintParent uint32) (int64, error) {
-	t.saveAllCursors() // btree.c saveAllCursors on the delete path
+	t.saveAllCursors()         // btree.c saveAllCursors on the delete path
 	t.invalidateAppendCursor() // a delete may remove the maximum key
 	handled, n, ferr := t.deleteSingleTableRowID(leaf, idx, rowID)
 	if ferr != nil {
@@ -280,7 +268,7 @@ func (t *BTree) DeleteCellByRowIDAt(rowID int64, leaf uint32, idx int, hintParen
 	// delete DeleteCellByRowID would run, on the same leaf.
 	n, err := t.deleteAllMatchingFromLeaf(leaf, func(cell *storage.Cell) bool {
 		return cell.RowID == rowID
-	})
+	}, false)
 	if err != nil || n == 0 {
 		return n, err
 	}
@@ -296,7 +284,7 @@ func (t *BTree) DeleteCellByRowIDAt(rowID int64, leaf uint32, idx int, hintParen
 // trigger cascade under rollback protection). Returns the number of cells
 // deleted (0 when the rowid is absent).
 func (t *BTree) DeleteCellByRowID(rowID int64) (int64, error) {
-	t.saveAllCursors() // btree.c saveAllCursors on the delete path
+	t.saveAllCursors()         // btree.c saveAllCursors on the delete path
 	t.invalidateAppendCursor() // a delete may remove the maximum key
 	c, err := t.OpenCursor()
 	if err != nil {
@@ -338,7 +326,7 @@ func (t *BTree) DeleteCellByRowID(rowID int64) (int64, error) {
 	}
 	n, err = t.deleteAllMatchingFromLeaf(leaf, func(cell *storage.Cell) bool {
 		return cell.RowID == rowID
-	})
+	}, false)
 	if err != nil || n == 0 {
 		return n, err
 	}

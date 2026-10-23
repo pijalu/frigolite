@@ -194,7 +194,7 @@ func updateChangeValueSlots(rec *storage.Record, colIndex map[string]int) ([]int
 	values := make([]interface{}, maxIdx)
 	copy(values, rec.Values)
 
-	oldValues := make([]interface{}, len(rec.Values))
+	oldValues := make([]interface{}, maxIdx)
 	copy(oldValues, rec.Values)
 	return values, oldValues
 }

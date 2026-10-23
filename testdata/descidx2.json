@@ -1,13 +1,15 @@
 {
   "file": "descidx2.test",
   "name": "descidx2",
+  "ordered": true,
   "tests": [
     {
       "name": "descidx2-1.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a,b);\n    CREATE INDEX i1 ON t1(b ASC);"
+          "sql": "CREATE TABLE t1(a,b);\n    CREATE INDEX i1 ON t1(b ASC);",
+          "expect": "4"
         }
       ]
     },
@@ -16,7 +18,25 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX i2 ON t1(a DESC);"
+          "sql": "CREATE INDEX i2 ON t1(a DESC);",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "descidx2-2.0",
+      "steps": [
+        {
+          "type": "header_format",
+          "fileFormat": 3
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "expect": "3"
         }
       ]
     },
@@ -24,8 +44,8 @@
       "name": "descidx2-2.1",
       "steps": [
         {
-          "type": "query",
-          "sql": "INSERT INTO t1 VALUES(1,1);\n    INSERT INTO t1 VALUES(2,2);\n    INSERT INTO t1 SELECT a+2, a+2 FROM t1;\n    INSERT INTO t1 SELECT a+4, a+4 FROM t1;\n    SELECT b FROM t1 WHERE a>3 AND a<7;",
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,1);\n    INSERT INTO t1 VALUES(2,2);\n    INSERT INTO t1 SELECT a+2, a+2 FROM t1;\n    INSERT INTO t1 SELECT a+4, a+4 FROM t1;\n    SELECT b FROM t1 WHERE a\u003e3 AND a\u003c7;",
           "expect": "4 5 6"
         }
       ]
@@ -34,8 +54,8 @@
       "name": "descidx2-2.2",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a FROM t1 WHERE b>3 AND b<7;",
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b\u003e3 AND b\u003c7;",
           "expect": "4 5 6"
         }
       ]
@@ -44,8 +64,8 @@
       "name": "descidx2-2.3",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT b FROM t1 WHERE a>=3 AND a<7;",
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a\u003e=3 AND a\u003c7;",
           "expect": "3 4 5 6"
         }
       ]
@@ -54,8 +74,8 @@
       "name": "descidx2-2.4",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT b FROM t1 WHERE a>3 AND a<=7;",
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a\u003e3 AND a\u003c=7;",
           "expect": "4 5 6 7"
         }
       ]
@@ -64,8 +84,8 @@
       "name": "descidx2-2.5",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT b FROM t1 WHERE a>=3 AND a<=7;",
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a\u003e=3 AND a\u003c=7;",
           "expect": "3 4 5 6 7"
         }
       ]
@@ -74,56 +94,245 @@
       "name": "descidx2-2.6",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a FROM t1 WHERE b>=3 AND b<=7;",
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b\u003e=3 AND b\u003c=7;",
           "expect": "3 4 5 6 7"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a,b);\n    CREATE INDEX i1 ON t1(b ASC);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX i2 ON t1(a DESC);"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(1,1);\n    INSERT INTO t1 VALUES(2,2);\n    INSERT INTO t1 SELECT a+2, a+2 FROM t1;\n    INSERT INTO t1 SELECT a+4, a+4 FROM t1;\n    SELECT b FROM t1 WHERE a>3 AND a<7;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE b>3 AND b<7;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT b FROM t1 WHERE a>=3 AND a<7;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT b FROM t1 WHERE a>3 AND a<=7;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT b FROM t1 WHERE a>=3 AND a<=7;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE b>=3 AND b<=7;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA legacy_file_format=OFF"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "descidx2-3.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "query_assign",
+          "sql": "SELECT a FROM t1 ORDER BY a",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true,
+          "expect": "1 2 3 4 5 6 7 8 nosort"
+        }
+      ]
+    },
+    {
+      "name": "descidx2-3.2",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM t1 ORDER BY a ASC",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true,
+          "expect": "1 2 3 4 5 6 7 8 nosort"
+        }
+      ]
+    },
+    {
+      "name": "descidx2-3.3",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM t1 ORDER BY a DESC",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true,
+          "expect": "8 7 6 5 4 3 2 1 nosort"
+        }
+      ]
+    },
+    {
+      "name": "descidx2-3.4",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT b FROM t1 ORDER BY a",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true,
+          "expect": "1 2 3 4 5 6 7 8 nosort"
+        }
+      ]
+    },
+    {
+      "name": "descidx2-3.5",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT b FROM t1 ORDER BY a ASC",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true,
+          "expect": "1 2 3 4 5 6 7 8 nosort"
+        }
+      ]
+    },
+    {
+      "name": "descidx2-3.6",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT b FROM t1 ORDER BY a DESC",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true,
+          "expect": "8 7 6 5 4 3 2 1 nosort"
+        }
+      ]
+    },
+    {
+      "name": "descidx2-3.7",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM t1 ORDER BY b",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true,
+          "expect": "1 2 3 4 5 6 7 8 nosort"
+        }
+      ]
+    },
+    {
+      "name": "descidx2-3.8",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM t1 ORDER BY b ASC",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true,
+          "expect": "1 2 3 4 5 6 7 8 nosort"
+        }
+      ]
+    },
+    {
+      "name": "descidx2-3.9",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM t1 ORDER BY b DESC",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true,
+          "expect": "8 7 6 5 4 3 2 1 nosort"
+        }
+      ]
+    },
+    {
+      "name": "descidx2-3.10",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT b FROM t1 ORDER BY b",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true,
+          "expect": "1 2 3 4 5 6 7 8 nosort"
+        }
+      ]
+    },
+    {
+      "name": "descidx2-3.11",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT b FROM t1 ORDER BY b ASC",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true,
+          "expect": "1 2 3 4 5 6 7 8 nosort"
+        }
+      ]
+    },
+    {
+      "name": "descidx2-3.12",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT b FROM t1 ORDER BY b DESC",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true,
+          "expect": "8 7 6 5 4 3 2 1 nosort"
+        }
+      ]
+    },
+    {
+      "name": "descidx2-3.21",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM t1 WHERE a\u003e3 AND a\u003c8 ORDER BY a",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true,
+          "expect": "4 5 6 7 nosort"
+        }
+      ]
+    },
+    {
+      "name": "descidx2-3.22",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM t1 WHERE a\u003e3 AND a\u003c8 ORDER BY a ASC",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true,
+          "expect": "4 5 6 7 nosort"
+        }
+      ]
+    },
+    {
+      "name": "descidx2-3.23",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM t1 WHERE a\u003e3 AND a\u003c8 ORDER BY a DESC",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true,
+          "expect": "7 6 5 4 nosort"
+        }
+      ]
+    },
+    {
+      "name": "descidx2-3.24",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT b FROM t1 WHERE a\u003e3 AND a\u003c8 ORDER BY a",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true,
+          "expect": "4 5 6 7 nosort"
+        }
+      ]
+    },
+    {
+      "name": "descidx2-3.25",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT b FROM t1 WHERE a\u003e3 AND a\u003c8 ORDER BY a ASC",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true,
+          "expect": "4 5 6 7 nosort"
+        }
+      ]
+    },
+    {
+      "name": "descidx2-3.26",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT b FROM t1 WHERE a\u003e3 AND a\u003c8 ORDER BY a DESC",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true,
+          "expect": "7 6 5 4 nosort"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

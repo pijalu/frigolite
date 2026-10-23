@@ -41,6 +41,8 @@ func TestCompoundOrderPin(t *testing.T) {
 		"INSERT INTO s1 VALUES(2,4,6),(8,10,12),(14,16,18)",
 		"CREATE TABLE s2(d,e,f)",
 		"INSERT INTO s2 VALUES(3,6,9),(12,15,18),(21,24,27)",
+		"CREATE TABLE t14(a,b,c)",
+		"INSERT INTO t14 VALUES(1,2,3),(4,5,6)",
 	} {
 		if r := db.Exec(s); r.Error != nil {
 			t.Fatalf("%s: %v", s, r.Error)
@@ -93,6 +95,9 @@ func TestCompoundOrderPin(t *testing.T) {
 		// outer trailing LIMIT 2 must still cut the merged rows.
 		{"SELECT * FROM (SELECT * FROM t6 LIMIT 3) UNION SELECT * FROM (SELECT * FROM t7 LIMIT 3) ORDER BY 1 LIMIT 2",
 			"1|2"},
+		// select4-14.3/14.4: integer ORDER BY terms over compounds with a VALUES arm are ordinals, never expression matches against VALUES literals.
+		{"SELECT * FROM t14 UNION VALUES(3,2,1),(2,3,1),(1,2,3),(7,8,9),(4,5,6) UNION SELECT * FROM t14 ORDER BY 1,2,3",
+			"1 2 3|2 3 1|3 2 1|4 5 6|7 8 9"},
 	} {
 		r := db.Query(tc.q)
 		if r.Error != nil {

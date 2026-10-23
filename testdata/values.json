@@ -52,6 +52,15 @@
       ]
     },
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "set_limit",
+          "sql": "SQLITE_LIMIT_COMPOUND_SELECT:4"
+        }
+      ]
+    },
+    {
       "name": "values-1.2.2",
       "steps": [
         {
@@ -86,7 +95,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM x1;\n  INSERT INTO x1 \n  VALUES(1, 1, 1), (2, 2, 2), (3, 3, 3), \n        (4, 4, '4'), (5, 5, '5'), (6, 6, '6')"
+          "sql": "DELETE FROM x1;\n  INSERT INTO x1 \n  VALUES(1, 1, 1), (2, 2, 2), (3, 3, 3), \n        (4, 4, 4), (5, 5, 5), (6, 6, 6)"
         }
       ]
     },
@@ -114,6 +123,15 @@
       ]
     },
     {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "set_limit",
+          "sql": "SQLITE_LIMIT_COMPOUND_SELECT:3"
+        }
+      ]
+    },
+    {
       "name": "values-2.1.1",
       "steps": [
         {
@@ -130,6 +148,15 @@
           "type": "catch",
           "sql": "INSERT INTO x1 VALUES\n      (1, 1, 1), \n      (2, 2, 2, 2), \n      (3, 3, 3), \n      (4, 4, 4), \n      (5, 5, 5), \n      (6, 6, 6), \n      (7, 7, 7), \n      (8, 8, 8), \n      (9, 9, 9), \n      (10, 10, 10)",
           "expect": "1 {all VALUES must have the same number of terms}"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "set_limit",
+          "sql": "SQLITE_LIMIT_COMPOUND_SELECT:0"
         }
       ]
     },
@@ -216,6 +243,15 @@
       ]
     },
     {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "set_limit",
+          "sql": "SQLITE_LIMIT_COMPOUND_SELECT:0"
+        }
+      ]
+    },
+    {
       "name": "values-4.1.1",
       "steps": [
         {
@@ -269,6 +305,15 @@
           "type": "query",
           "sql": "SELECT * FROM x1",
           "expect": "1 a"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "set_limit",
+          "sql": "SQLITE_LIMIT_COMPOUND_SELECT:3"
         }
       ]
     },
@@ -895,6 +940,18 @@
       ]
     },
     {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
       "name": "values-14.2",
       "steps": [
         {
@@ -1152,6 +1209,15 @@
       "steps": null
     },
     {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
       "name": "values-19.1",
       "steps": [
         {
@@ -1188,6 +1254,15 @@
           "type": "query",
           "sql": "SELECT *, '|' FROM (VALUES(33,44),(55,66)) AS t2 FULL JOIN t1 ON a=b\n  ORDER BY +column1",
           "expect": "NULL NULL 11 22 | 33 44 NULL NULL | 55 66 NULL NULL |"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "N"
         }
       ]
     },

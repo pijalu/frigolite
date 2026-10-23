@@ -44,8 +44,29 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "aggnested-2.0",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": ":memory:",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1 (A1 INTEGER NOT NULL,A2 INTEGER NOT NULL,A3 INTEGER NOT \n    NULL,A4 INTEGER NOT NULL,PRIMARY KEY(A1));\n    REPLACE INTO t1 VALUES(1,11,111,1111);\n    REPLACE INTO t1 VALUES(2,22,222,2222);\n    REPLACE INTO t1 VALUES(3,33,333,3333);\n    CREATE TABLE t2 (B1 INTEGER NOT NULL,B2 INTEGER NOT NULL,B3 INTEGER NOT \n    NULL,B4 INTEGER NOT NULL,PRIMARY KEY(B1));\n    REPLACE INTO t2 VALUES(1,88,888,8888);\n    REPLACE INTO t2 VALUES(2,99,999,9999);\n    SELECT (SELECT GROUP_CONCAT(CASE WHEN a1=1 THEN'A' ELSE 'B' END) FROM t2),\n            t1.* \n    FROM t1;",
+          "expect": "A,B,B 1 11 111 1111",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
     },
     {
       "name": "aggnested-3.0",
@@ -243,7 +264,7 @@
       "name": "aggnested-5.4",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT(\n    SELECT max(b) LIMIT (\n      SELECT total( (SELECT a FROM t1) )\n    )\n  )\n  FROM t2;",
           "expect": "{}"
         }
@@ -304,7 +325,7 @@
       "name": "aggnested-6.2.1",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT ( \n    SELECT t2.b FROM (SELECT t2.b AS c FROM t1) GROUP BY 1 HAVING t2.b\n  )\n  FROM t2 GROUP BY 'constant_string';",
           "expect": "{}"
         }
@@ -314,7 +335,7 @@
       "name": "aggnested-6.2.2",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT ( \n    SELECT c FROM (SELECT t2.b AS c FROM t1) GROUP BY c HAVING t2.b\n  )\n  FROM t2 GROUP BY 'constant_string';",
           "expect": "{}"
         }

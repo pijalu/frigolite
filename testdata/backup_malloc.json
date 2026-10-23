@@ -1,7 +1,12 @@
 {
   "file": "backup_malloc.test",
   "name": "backup_malloc",
+  "ordered": true,
   "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
     {
       "name": "3.0",
       "steps": [

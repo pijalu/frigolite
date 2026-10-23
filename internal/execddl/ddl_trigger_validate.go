@@ -122,6 +122,20 @@ func triggerNameToken(rawSQL string) (token string, quoted bool, ok bool) {
 	return tok, false, true
 }
 
+// triggerNameQualified reports whether the CREATE TRIGGER name is
+// schema-qualified (token.name) rather than a single quoted token. Quoted
+// tokens keep a dot as part of the name (sqlite3TwoPartName), so they are not
+// qualified. Without the original statement text the AST cannot distinguish a
+// quoted dotted token from a qualified name; the dot-presence fallback then
+// assumes qualification.
+func triggerNameQualified(s *sql.CreateTriggerStmt) bool {
+	tok, quoted, ok := triggerNameToken(s.RawSQL)
+	if !ok {
+		return strings.Contains(s.Name, ".")
+	}
+	return !quoted && strings.Contains(tok, ".")
+}
+
 // verbatimTriggerName returns the trigger name as written in the CREATE
 // TRIGGER text for the "trigger %T already exists" error (trigger.c): the
 // token verbatim with its original quoting, and for a schema.name input only

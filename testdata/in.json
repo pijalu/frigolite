@@ -1,7 +1,945 @@
 {
   "file": "in.test",
   "name": "in",
+  "ordered": true,
   "tests": [
+    {
+      "name": "in-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(a int, b int);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,8)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,16)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,32)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,64)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(7,128)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(8,256)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(9,512)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(10,1024)"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    SELECT count(*) FROM t1;",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "in-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b BETWEEN 10 AND 50 ORDER BY a",
+          "expect": "4 5"
+        }
+      ]
+    },
+    {
+      "name": "in-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b NOT BETWEEN 10 AND 50 ORDER BY a",
+          "expect": "1 2 3 6 7 8 9 10"
+        }
+      ]
+    },
+    {
+      "name": "in-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b BETWEEN a AND a*5 ORDER BY a",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "in-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b NOT BETWEEN a AND a*5 ORDER BY a",
+          "expect": "5 6 7 8 9 10"
+        }
+      ]
+    },
+    {
+      "name": "in-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b BETWEEN a AND a*5 OR b=512 ORDER BY a",
+          "expect": "1 2 3 4 9"
+        }
+      ]
+    },
+    {
+      "name": "in-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a+ 100*(a BETWEEN 1 and 3) FROM t1 ORDER BY b",
+          "expect": "101 102 103 4 5 6 7 8 9 10"
+        }
+      ]
+    },
+    {
+      "name": "in-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b IN (8,12,16,24,32) ORDER BY a",
+          "expect": "3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "in-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b NOT IN (8,12,16,24,32) ORDER BY a",
+          "expect": "1 2 6 7 8 9 10"
+        }
+      ]
+    },
+    {
+      "name": "in-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b IN (8,12,16,24,32) OR b=512 ORDER BY a",
+          "expect": "3 4 5 9"
+        }
+      ]
+    },
+    {
+      "name": "in-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b NOT IN (8,12,16,24,32) OR b=512 ORDER BY a",
+          "expect": "1 2 6 7 8 9 10"
+        }
+      ]
+    },
+    {
+      "name": "in-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a+100*(b IN (8,16,24)) FROM t1 ORDER BY b",
+          "expect": "1 2 103 104 5 6 7 8 9 10"
+        }
+      ]
+    },
+    {
+      "name": "in-2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b IN (b+8,64)",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "in-2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b IN (max(5,10,b),20)",
+          "expect": "4 5 6 7 8 9 10"
+        }
+      ]
+    },
+    {
+      "name": "in-2.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b IN (8*2,64/2) ORDER BY b",
+          "expect": "4 5"
+        }
+      ]
+    },
+    {
+      "name": "in-2.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b IN (max(5,10),20)"
+        }
+      ]
+    },
+    {
+      "name": "in-2.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE min(0,b IN (a,30))"
+        }
+      ]
+    },
+    {
+      "name": "in-2.11",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT a FROM t1 WHERE c IN (10,20)",
+          "variable": "v",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "expect": "1 {no such column: c}"
+        }
+      ]
+    },
+    {
+      "name": "in-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1\n    WHERE b IN (SELECT b FROM t1 WHERE a\u003c5)\n    ORDER BY a",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "in-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1\n    WHERE b IN (SELECT b FROM t1 WHERE a\u003c5) OR b==512\n    ORDER BY a",
+          "expect": "1 2 3 4 9"
+        }
+      ]
+    },
+    {
+      "name": "in-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a + 100*(b IN (SELECT b FROM t1 WHERE a\u003c5)) FROM t1 ORDER BY b",
+          "expect": "101 102 103 104 5 6 7 8 9 10"
+        }
+      ]
+    },
+    {
+      "name": "in-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b*2 \n    WHERE b IN (SELECT b FROM t1 WHERE a\u003e8)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 ORDER BY b",
+          "expect": "2 4 8 16 32 64 128 256 1024 2048"
+        }
+      ]
+    },
+    {
+      "name": "in-4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE b IN (SELECT b FROM t1 WHERE a\u003e8)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 ORDER BY a",
+          "expect": "1 2 3 4 5 6 7 8"
+        }
+      ]
+    },
+    {
+      "name": "in-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE b NOT IN (SELECT b FROM t1 WHERE a\u003e4)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 ORDER BY a",
+          "expect": "5 6 7 8"
+        }
+      ]
+    },
+    {
+      "name": "in-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('hello', 'world');\n    SELECT * FROM t1\n    WHERE a IN (\n       'Do','an','IN','with','a','constant','RHS','but','where','the',\n       'has','many','elements','We','need','to','test','that',\n       'collisions','hash','table','are','resolved','properly',\n       'This','in-set','contains','thirty','one','entries','hello');",
+          "expect": "hello world"
+        }
+      ]
+    },
+    {
+      "name": "in-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE ta(a INTEGER PRIMARY KEY, b);\n    INSERT INTO ta VALUES(1,1);\n    INSERT INTO ta VALUES(2,2);\n    INSERT INTO ta VALUES(3,3);\n    INSERT INTO ta VALUES(4,4);\n    INSERT INTO ta VALUES(6,6);\n    INSERT INTO ta VALUES(8,8);\n    INSERT INTO ta VALUES(10,\n       'This is a key that is long enough to require a malloc in the VDBE');\n    SELECT * FROM ta WHERE a\u003c10;",
+          "expect": "1 1 2 2 3 3 4 4 6 6 8 8"
+        }
+      ]
+    },
+    {
+      "name": "in-6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tb(a INTEGER PRIMARY KEY, b);\n    INSERT INTO tb VALUES(1,1);\n    INSERT INTO tb VALUES(2,2);\n    INSERT INTO tb VALUES(3,3);\n    INSERT INTO tb VALUES(5,5);\n    INSERT INTO tb VALUES(7,7);\n    INSERT INTO tb VALUES(9,9);\n    INSERT INTO tb VALUES(11,\n       'This is a key that is long enough to require a malloc in the VDBE');\n    SELECT * FROM tb WHERE a\u003c10;",
+          "expect": "1 1 2 2 3 3 5 5 7 7 9 9"
+        }
+      ]
+    },
+    {
+      "name": "in-6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM ta WHERE b IN (SELECT a FROM tb);",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "in-6.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM ta WHERE b NOT IN (SELECT a FROM tb);",
+          "expect": "4 6 8 10"
+        }
+      ]
+    },
+    {
+      "name": "in-6.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM ta WHERE b IN (SELECT b FROM tb);",
+          "expect": "1 2 3 10"
+        }
+      ]
+    },
+    {
+      "name": "in-6.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM ta WHERE b NOT IN (SELECT b FROM tb);",
+          "expect": "4 6 8"
+        }
+      ]
+    },
+    {
+      "name": "in-6.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM ta WHERE a IN (SELECT a FROM tb);",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "in-6.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM ta WHERE a NOT IN (SELECT a FROM tb);",
+          "expect": "4 6 8 10"
+        }
+      ]
+    },
+    {
+      "name": "in-6.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM ta WHERE a IN (SELECT b FROM tb);",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "in-6.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM ta WHERE a NOT IN (SELECT b FROM tb);",
+          "expect": "4 6 8 10"
+        }
+      ]
+    },
+    {
+      "name": "in-7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE a IN ();"
+        }
+      ]
+    },
+    {
+      "name": "in-7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE a IN (5);",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "in-7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE a NOT IN () ORDER BY a;",
+          "expect": "5 6 7 8 hello"
+        }
+      ]
+    },
+    {
+      "name": "in-7.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE a IN (5) AND b IN ();"
+        }
+      ]
+    },
+    {
+      "name": "in-7.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE a IN (5) AND b NOT IN ();",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "in-7.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM ta WHERE a IN ();"
+        }
+      ]
+    },
+    {
+      "name": "in-7.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM ta WHERE a NOT IN ();",
+          "expect": "1 2 3 4 6 8 10"
+        }
+      ]
+    },
+    {
+      "name": "in-7.8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM ta LEFT JOIN tb ON (ta.b=tb.b) WHERE ta.a IN ();"
+        }
+      ]
+    },
+    {
+      "name": "in-8.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a IN ('hello','there')",
+          "expect": "world"
+        }
+      ]
+    },
+    {
+      "name": "in-8.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a IN (\"hello\",'there')",
+          "expect": "world"
+        }
+      ]
+    },
+    {
+      "name": "in-9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4 AS SELECT a FROM tb;\n    SELECT * FROM t4;",
+          "expect": "1 2 3 5 7 9 11"
+        }
+      ]
+    },
+    {
+      "name": "in-9.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a IN t4;",
+          "expect": "32 128"
+        }
+      ]
+    },
+    {
+      "name": "in-9.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a NOT IN t4;",
+          "expect": "64 256 world"
+        }
+      ]
+    },
+    {
+      "name": "in-9.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT b FROM t1 WHERE a NOT IN tb;",
+          "expect": "1 {sub-select returns 2 columns - expected 1}"
+        }
+      ]
+    },
+    {
+      "name": "in-10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(\n      a INTEGER,\n      CHECK( a IN (111,222,333) )\n    );\n    INSERT INTO t5 VALUES(111);\n    SELECT * FROM t5;",
+          "expect": "111"
+        }
+      ]
+    },
+    {
+      "name": "in-10.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t5 VALUES(4);",
+          "expect": "1 {CHECK constraint failed: a IN (111,222,333)}"
+        }
+      ]
+    },
+    {
+      "name": "in-11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(a,b NUMERIC);\n    INSERT INTO t6 VALUES(1,2);\n    INSERT INTO t6 VALUES(2,3);\n    SELECT * FROM t6 WHERE b IN (2);",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "in-11.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t6 WHERE b IN ('2');",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "in-11.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t6 WHERE +b IN ('2');"
+        }
+      ]
+    },
+    {
+      "name": "in-11.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t6 WHERE a IN ('2');"
+        }
+      ]
+    },
+    {
+      "name": "in-11.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t6 WHERE a IN (2);",
+          "expect": "2 3"
+        }
+      ]
+    },
+    {
+      "name": "in-11.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t6 WHERE +a IN ('2');"
+        }
+      ]
+    },
+    {
+      "name": "in-12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b, c);\n    CREATE TABLE t3(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "in-12.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION ALL SELECT a, b FROM t2\n    );",
+          "expect": "1 {sub-select returns 2 columns - expected 1}"
+        }
+      ]
+    },
+    {
+      "name": "in-12.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION SELECT a, b FROM t2\n    );",
+          "expect": "1 {sub-select returns 2 columns - expected 1}"
+        }
+      ]
+    },
+    {
+      "name": "in-12.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 EXCEPT SELECT a, b FROM t2\n    );",
+          "expect": "1 {sub-select returns 2 columns - expected 1}"
+        }
+      ]
+    },
+    {
+      "name": "in-12.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 INTERSECT SELECT a, b FROM t2\n    );",
+          "expect": "1 {sub-select returns 2 columns - expected 1}"
+        }
+      ]
+    },
+    {
+      "name": "in-12.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION ALL SELECT a FROM t2\n    );",
+          "expect": "1 {SELECTs to the left and right of UNION ALL do not have the same number of result columns}"
+        }
+      ]
+    },
+    {
+      "name": "in-12.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION SELECT a FROM t2\n    );",
+          "expect": "1 {SELECTs to the left and right of UNION do not have the same number of result columns}"
+        }
+      ]
+    },
+    {
+      "name": "in-12.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 EXCEPT SELECT a FROM t2\n    );",
+          "expect": "1 {SELECTs to the left and right of EXCEPT do not have the same number of result columns}"
+        }
+      ]
+    },
+    {
+      "name": "in-12.9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 INTERSECT SELECT a FROM t2\n    );",
+          "expect": "1 {SELECTs to the left and right of INTERSECT do not have the same number of result columns}"
+        }
+      ]
+    },
+    {
+      "name": "in-12.10",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a FROM t3 UNION ALL SELECT a, b FROM t2\n    );",
+          "expect": "1 {SELECTs to the left and right of UNION ALL do not have the same number of result columns}"
+        }
+      ]
+    },
+    {
+      "name": "in-12.11",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a FROM t3 UNION SELECT a, b FROM t2\n    );",
+          "expect": "1 {SELECTs to the left and right of UNION do not have the same number of result columns}"
+        }
+      ]
+    },
+    {
+      "name": "in-12.12",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a FROM t3 EXCEPT SELECT a, b FROM t2\n    );",
+          "expect": "1 {SELECTs to the left and right of EXCEPT do not have the same number of result columns}"
+        }
+      ]
+    },
+    {
+      "name": "in-12.13",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a FROM t3 INTERSECT SELECT a, b FROM t2\n    );",
+          "expect": "1 {SELECTs to the left and right of INTERSECT do not have the same number of result columns}"
+        }
+      ]
+    },
+    {
+      "name": "in-12.14",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION ALL SELECT a, b FROM t2\n    );",
+          "expect": "1 {sub-select returns 2 columns - expected 1}"
+        }
+      ]
+    },
+    {
+      "name": "in-12.15",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION ALL SELECT a FROM t2\n    );",
+          "expect": "1 {SELECTs to the left and right of UNION ALL do not have the same number of result columns}"
+        }
+      ]
+    },
+    {
+      "name": "in-13.1",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "null"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT \n    1 IN (NULL, 1, 2),     -- The value 1 is a member of the set, return true.\n    3 IN (NULL, 1, 2),     -- Ambiguous, return NULL.\n    1 NOT IN (NULL, 1, 2), -- The value 1 is a member of the set, return false.\n    3 NOT IN (NULL, 1, 2)  -- Ambiguous, return NULL.",
+          "expect": "1 null 0 null"
+        }
+      ]
+    },
+    {
+      "name": "in-13.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t7(a, b, c NOT NULL);\n    INSERT INTO t7 VALUES(1,    1, 1);\n    INSERT INTO t7 VALUES(2,    2, 2);\n    INSERT INTO t7 VALUES(3,    3, 3);\n    INSERT INTO t7 VALUES(NULL, 4, 4);\n    INSERT INTO t7 VALUES(NULL, 5, 5);"
+        }
+      ]
+    },
+    {
+      "name": "in-13.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 2 IN (SELECT a FROM t7)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "in-13.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 6 IN (SELECT a FROM t7)",
+          "expect": "null"
+        }
+      ]
+    },
+    {
+      "name": "in-13.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 2 IN (SELECT b FROM t7)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "in-13.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 6 IN (SELECT b FROM t7)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "in-13.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 2 IN (SELECT c FROM t7)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "in-13.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 6 IN (SELECT c FROM t7)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "in-13.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT\n      2 NOT IN (SELECT a FROM t7),\n      6 NOT IN (SELECT a FROM t7),\n      2 NOT IN (SELECT b FROM t7),\n      6 NOT IN (SELECT b FROM t7),\n      2 NOT IN (SELECT c FROM t7),\n      6 NOT IN (SELECT c FROM t7)",
+          "expect": "0 null 0 1 0 1"
+        }
+      ]
+    },
+    {
+      "name": "in-13.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b IN (\n      SELECT inside.a \n      FROM t7 AS inside \n      WHERE inside.b BETWEEN outside.b+1 AND outside.b+2\n    )\n    FROM t7 AS outside ORDER BY b;",
+          "expect": "0 null null null 0"
+        }
+      ]
+    },
+    {
+      "name": "in-13.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b NOT IN (\n      SELECT inside.a \n      FROM t7 AS inside \n      WHERE inside.b BETWEEN outside.b+1 AND outside.b+2\n    )\n    FROM t7 AS outside ORDER BY b;",
+          "expect": "1 null null null 1"
+        }
+      ]
+    },
+    {
+      "name": "in-13.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t7(a);\n    CREATE INDEX i2 ON t7(b);\n    CREATE INDEX i3 ON t7(c);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT\n      2 IN (SELECT a FROM t7),\n      6 IN (SELECT a FROM t7),\n      2 IN (SELECT b FROM t7),\n      6 IN (SELECT b FROM t7),\n      2 IN (SELECT c FROM t7),\n      6 IN (SELECT c FROM t7)",
+          "expect": "1 null 1 0 1 0"
+        }
+      ]
+    },
+    {
+      "name": "in-13.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT\n      2 NOT IN (SELECT a FROM t7),\n      6 NOT IN (SELECT a FROM t7),\n      2 NOT IN (SELECT b FROM t7),\n      6 NOT IN (SELECT b FROM t7),\n      2 NOT IN (SELECT c FROM t7),\n      6 NOT IN (SELECT c FROM t7)",
+          "expect": "0 null 0 1 0 1"
+        }
+      ]
+    },
+    {
+      "name": "in-13.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    CREATE TABLE a(id INTEGER);\n    INSERT INTO a VALUES(1);\n    INSERT INTO a VALUES(2);\n    INSERT INTO a VALUES(3);\n    CREATE TABLE b(id INTEGER);\n    INSERT INTO b VALUES(NULL);\n    INSERT INTO b VALUES(3);\n    INSERT INTO b VALUES(4);\n    INSERT INTO b VALUES(5);\n    COMMIT;\n    SELECT * FROM a WHERE id NOT IN (SELECT id FROM b);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i5 ON b(id);\n    SELECT * FROM a WHERE id NOT IN (SELECT id FROM b);"
+        }
+      ]
+    },
+    {
+      "name": "in-13.15",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 0 WHERE (SELECT 0,0) OR (0 IN (1,2));",
+          "expect": "1 {sub-select returns 2 columns - expected 1}"
+        }
+      ]
+    },
+    {
+      "name": "in-13.X",
+      "steps": [
+        {
+          "type": "nullvalue"
+        }
+      ]
+    },
     {
       "name": "in-14.0",
       "steps": [
@@ -66,7 +1004,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DROP TABLE IF EXISTS t4;\n  CREATE TABLE t4(a INTEGER PRIMARY KEY, b INT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<20)\n    INSERT INTO t4(a,b) SELECT x, x+100 FROM c;\n  SELECT b FROM t4 WHERE a IN (3,null,8) ORDER BY +b;",
+          "sql": "DROP TABLE IF EXISTS t4;\n  CREATE TABLE t4(a INTEGER PRIMARY KEY, b INT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c20)\n    INSERT INTO t4(a,b) SELECT x, x+100 FROM c;\n  SELECT b FROM t4 WHERE a IN (3,null,8) ORDER BY +b;",
           "expect": "103 108"
         }
       ]
@@ -89,6 +1027,10 @@
           "expect": "1 Alice"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "in-16.0",
@@ -123,7 +1065,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT 1 IN ('1');"
+          "sql": "SELECT 1 IN ('1');",
+          "expect": "0"
         }
       ]
     },
@@ -132,7 +1075,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT 1 IN ('1' COLLATE nocase);"
+          "sql": "SELECT 1 IN ('1' COLLATE nocase);",
+          "expect": "0"
         }
       ]
     },
@@ -141,7 +1085,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT 1 IN (CAST('1' AS text));"
+          "sql": "SELECT 1 IN (CAST('1' AS text));",
+          "expect": "0"
         }
       ]
     },
@@ -150,7 +1095,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT 1 IN (CAST('1' AS text) COLLATE nocase);"
+          "sql": "SELECT 1 IN (CAST('1' AS text) COLLATE nocase);",
+          "expect": "0"
         }
       ]
     },
@@ -234,6 +1180,10 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
       "name": "in-21.1",
       "steps": [
         {
@@ -248,7 +1198,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x INT PRIMARY KEY, y INT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<8)\n    INSERT INTO t1(x,y) SELECT x, x*100 FROM c;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(a INT);\n  INSERT INTO t2 VALUES(2),(4),(6);\n  SELECT * FROM t1 WHERE x IN (SELECT a FROM t2);",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x INT PRIMARY KEY, y INT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c8)\n    INSERT INTO t1(x,y) SELECT x, x*100 FROM c;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(a INT);\n  INSERT INTO t2 VALUES(2),(4),(6);\n  SELECT * FROM t1 WHERE x IN (SELECT a FROM t2);",
           "expect": "2 200 4 400 6 600"
         }
       ]
@@ -308,1192 +1258,10 @@
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE VIEW t5 AS\n    SELECT 1 AS b\n     WHERE (SELECT count(0=NOT+a COLLATE NOCASE IN (SELECT 0))\n              FROM t4\n             GROUP BY a);\n  SELECT * FROM t5;"
-        }
-      ]
-    },
-    {
-      "name": "in-1.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    CREATE TABLE t1(a int, b int);"
-        }
-      ]
-    },
-    {
-      "name": "in-1.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM t1 WHERE b BETWEEN 10 AND 50 ORDER BY a",
-          "expect": "4 5"
-        }
-      ]
-    },
-    {
-      "name": "in-1.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM t1 WHERE b NOT BETWEEN 10 AND 50 ORDER BY a",
-          "expect": "1 2 3 6 7 8 9 10"
-        }
-      ]
-    },
-    {
-      "name": "in-1.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM t1 WHERE b BETWEEN a AND a*5 ORDER BY a",
-          "expect": "1 2 3 4"
-        }
-      ]
-    },
-    {
-      "name": "in-1.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM t1 WHERE b NOT BETWEEN a AND a*5 ORDER BY a",
-          "expect": "5 6 7 8 9 10"
-        }
-      ]
-    },
-    {
-      "name": "in-1.6",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM t1 WHERE b BETWEEN a AND a*5 OR b=512 ORDER BY a",
-          "expect": "1 2 3 4 9"
-        }
-      ]
-    },
-    {
-      "name": "in-1.7",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a+ 100*(a BETWEEN 1 and 3) FROM t1 ORDER BY b",
-          "expect": "101 102 103 4 5 6 7 8 9 10"
-        }
-      ]
-    },
-    {
-      "name": "in-2.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM t1 WHERE b IN (8,12,16,24,32) ORDER BY a",
-          "expect": "3 4 5"
-        }
-      ]
-    },
-    {
-      "name": "in-2.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM t1 WHERE b NOT IN (8,12,16,24,32) ORDER BY a",
-          "expect": "1 2 6 7 8 9 10"
-        }
-      ]
-    },
-    {
-      "name": "in-2.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM t1 WHERE b IN (8,12,16,24,32) OR b=512 ORDER BY a",
-          "expect": "3 4 5 9"
-        }
-      ]
-    },
-    {
-      "name": "in-2.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM t1 WHERE b NOT IN (8,12,16,24,32) OR b=512 ORDER BY a",
-          "expect": "1 2 6 7 8 9 10"
-        }
-      ]
-    },
-    {
-      "name": "in-2.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a+100*(b IN (8,16,24)) FROM t1 ORDER BY b",
-          "expect": "1 2 103 104 5 6 7 8 9 10"
-        }
-      ]
-    },
-    {
-      "name": "in-2.6",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM t1 WHERE b IN (b+8,64)",
-          "expect": "6"
-        }
-      ]
-    },
-    {
-      "name": "in-2.7",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM t1 WHERE b IN (max(5,10,b),20)",
-          "expect": "4 5 6 7 8 9 10"
-        }
-      ]
-    },
-    {
-      "name": "in-2.8",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM t1 WHERE b IN (8*2,64/2) ORDER BY b",
-          "expect": "4 5"
-        }
-      ]
-    },
-    {
-      "name": "in-2.9",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM t1 WHERE b IN (max(5,10),20)"
-        }
-      ]
-    },
-    {
-      "name": "in-2.10",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM t1 WHERE min(0,b IN (a,30))"
-        }
-      ]
-    },
-    {
-      "name": "in-2.11",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM t1 WHERE c IN (10,20)",
-          "expect": "1 {no such column: c}"
-        }
-      ]
-    },
-    {
-      "name": "in-3.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM t1\n    WHERE b IN (SELECT b FROM t1 WHERE a<5)\n    ORDER BY a",
-          "expect": "1 2 3 4"
-        }
-      ]
-    },
-    {
-      "name": "in-3.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM t1\n    WHERE b IN (SELECT b FROM t1 WHERE a<5) OR b==512\n    ORDER BY a",
-          "expect": "1 2 3 4 9"
-        }
-      ]
-    },
-    {
-      "name": "in-3.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a + 100*(b IN (SELECT b FROM t1 WHERE a<5)) FROM t1 ORDER BY b",
-          "expect": "101 102 103 104 5 6 7 8 9 10"
-        }
-      ]
-    },
-    {
-      "name": "in-4.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET b=b*2 \n    WHERE b IN (SELECT b FROM t1 WHERE a>8)"
-        }
-      ]
-    },
-    {
-      "name": "in-4.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE b IN (SELECT b FROM t1 WHERE a>8)"
-        }
-      ]
-    },
-    {
-      "name": "in-4.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE b NOT IN (SELECT b FROM t1 WHERE a>4)"
-        }
-      ]
-    },
-    {
-      "name": "in-5.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "INSERT INTO t1 VALUES('hello', 'world');\n    SELECT * FROM t1\n    WHERE a IN (\n       'Do','an','IN','with','a','constant','RHS','but','where','the',\n       'has','many','elements','We','need','to','test','that',\n       'collisions','hash','table','are','resolved','properly',\n       'This','in-set','contains','thirty','one','entries','hello');",
-          "expect": "hello world"
-        }
-      ]
-    },
-    {
-      "name": "in-6.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE ta(a INTEGER PRIMARY KEY, b);\n    INSERT INTO ta VALUES(1,1);\n    INSERT INTO ta VALUES(2,2);\n    INSERT INTO ta VALUES(3,3);\n    INSERT INTO ta VALUES(4,4);\n    INSERT INTO ta VALUES(6,6);\n    INSERT INTO ta VALUES(8,8);\n    INSERT INTO ta VALUES(10,\n       'This is a key that is long enough to require a malloc in the VDBE');\n    SELECT * FROM ta WHERE a<10;",
-          "expect": "1 1 2 2 3 3 4 4 6 6 8 8"
-        }
-      ]
-    },
-    {
-      "name": "in-6.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE tb(a INTEGER PRIMARY KEY, b);\n    INSERT INTO tb VALUES(1,1);\n    INSERT INTO tb VALUES(2,2);\n    INSERT INTO tb VALUES(3,3);\n    INSERT INTO tb VALUES(5,5);\n    INSERT INTO tb VALUES(7,7);\n    INSERT INTO tb VALUES(9,9);\n    INSERT INTO tb VALUES(11,\n       'This is a key that is long enough to require a malloc in the VDBE');\n    SELECT * FROM tb WHERE a<10;",
-          "expect": "1 1 2 2 3 3 5 5 7 7 9 9"
-        }
-      ]
-    },
-    {
-      "name": "in-6.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM ta WHERE b IN (SELECT a FROM tb);",
-          "expect": "1 2 3"
-        }
-      ]
-    },
-    {
-      "name": "in-6.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM ta WHERE b NOT IN (SELECT a FROM tb);",
-          "expect": "4 6 8 10"
-        }
-      ]
-    },
-    {
-      "name": "in-6.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM ta WHERE b IN (SELECT b FROM tb);",
-          "expect": "1 2 3 10"
-        }
-      ]
-    },
-    {
-      "name": "in-6.6",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM ta WHERE b NOT IN (SELECT b FROM tb);",
-          "expect": "4 6 8"
-        }
-      ]
-    },
-    {
-      "name": "in-6.7",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM ta WHERE a IN (SELECT a FROM tb);",
-          "expect": "1 2 3"
-        }
-      ]
-    },
-    {
-      "name": "in-6.8",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM ta WHERE a NOT IN (SELECT a FROM tb);",
-          "expect": "4 6 8 10"
-        }
-      ]
-    },
-    {
-      "name": "in-6.9",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM ta WHERE a IN (SELECT b FROM tb);",
-          "expect": "1 2 3"
-        }
-      ]
-    },
-    {
-      "name": "in-6.10",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM ta WHERE a NOT IN (SELECT b FROM tb);",
-          "expect": "4 6 8 10"
-        }
-      ]
-    },
-    {
-      "name": "in-7.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM t1 WHERE a IN ();"
-        }
-      ]
-    },
-    {
-      "name": "in-7.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM t1 WHERE a IN (5);",
-          "expect": "5"
-        }
-      ]
-    },
-    {
-      "name": "in-7.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM t1 WHERE a NOT IN () ORDER BY a;",
-          "expect": "5 6 7 8 hello"
-        }
-      ]
-    },
-    {
-      "name": "in-7.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM t1 WHERE a IN (5) AND b IN ();"
-        }
-      ]
-    },
-    {
-      "name": "in-7.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM t1 WHERE a IN (5) AND b NOT IN ();",
-          "expect": "5"
-        }
-      ]
-    },
-    {
-      "name": "in-7.6.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM ta WHERE a IN ();"
-        }
-      ]
-    },
-    {
-      "name": "in-7.7",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM ta WHERE a NOT IN ();",
-          "expect": "1 2 3 4 6 8 10"
-        }
-      ]
-    },
-    {
-      "name": "in-7.8.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM ta LEFT JOIN tb ON (ta.b=tb.b) WHERE ta.a IN ();"
-        }
-      ]
-    },
-    {
-      "name": "in-8.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT b FROM t1 WHERE a IN ('hello','there')",
-          "expect": "world"
-        }
-      ]
-    },
-    {
-      "name": "in-8.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT b FROM t1 WHERE a IN (\"hello\",'there')",
-          "expect": "world"
-        }
-      ]
-    },
-    {
-      "name": "in-9.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t4 AS SELECT a FROM tb;\n    SELECT * FROM t4;",
-          "expect": "1 2 3 5 7 9 11"
-        }
-      ]
-    },
-    {
-      "name": "in-9.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT b FROM t1 WHERE a IN t4;",
-          "expect": "32 128"
-        }
-      ]
-    },
-    {
-      "name": "in-9.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT b FROM t1 WHERE a NOT IN t4;",
-          "expect": "64 256 world"
-        }
-      ]
-    },
-    {
-      "name": "in-9.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT b FROM t1 WHERE a NOT IN tb;",
-          "expect": "1 {sub-select returns 2 columns - expected 1}"
-        }
-      ]
-    },
-    {
-      "name": "in-10.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t5(\n      a INTEGER,\n      CHECK( a IN (111,222,333) )\n    );\n    INSERT INTO t5 VALUES(111);\n    SELECT * FROM t5;",
-          "expect": "111"
-        }
-      ]
-    },
-    {
-      "name": "in-10.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t5 VALUES(4);",
-          "expect": "1 {CHECK constraint failed: a IN (111,222,333)}"
-        }
-      ]
-    },
-    {
-      "name": "in-11.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t6(a,b NUMERIC);\n    INSERT INTO t6 VALUES(1,2);\n    INSERT INTO t6 VALUES(2,3);\n    SELECT * FROM t6 WHERE b IN (2);",
-          "expect": "1 2"
-        }
-      ]
-    },
-    {
-      "name": "in-11.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t6 WHERE b IN ('2');",
-          "expect": "1 2"
-        }
-      ]
-    },
-    {
-      "name": "in-11.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t6 WHERE +b IN ('2');"
-        }
-      ]
-    },
-    {
-      "name": "in-11.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t6 WHERE a IN ('2');"
-        }
-      ]
-    },
-    {
-      "name": "in-11.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t6 WHERE a IN (2);",
-          "expect": "2 3"
-        }
-      ]
-    },
-    {
-      "name": "in-11.6",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t6 WHERE +a IN ('2');"
-        }
-      ]
-    },
-    {
-      "name": "in-12.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(a, b, c);\n    CREATE TABLE t3(a, b, c);"
-        }
-      ]
-    },
-    {
-      "name": "in-12.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION ALL SELECT a, b FROM t2\n    );",
-          "expect": "1 {sub-select returns 2 columns - expected 1}"
-        }
-      ]
-    },
-    {
-      "name": "in-12.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION SELECT a, b FROM t2\n    );",
-          "expect": "1 {sub-select returns 2 columns - expected 1}"
-        }
-      ]
-    },
-    {
-      "name": "in-12.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 EXCEPT SELECT a, b FROM t2\n    );",
-          "expect": "1 {sub-select returns 2 columns - expected 1}"
-        }
-      ]
-    },
-    {
-      "name": "in-12.5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 INTERSECT SELECT a, b FROM t2\n    );",
-          "expect": "1 {sub-select returns 2 columns - expected 1}"
-        }
-      ]
-    },
-    {
-      "name": "in-12.6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION ALL SELECT a FROM t2\n    );",
-          "expect": "1 {SELECTs to the left and right of UNION ALL do not have the same number of result columns}"
-        }
-      ]
-    },
-    {
-      "name": "in-12.7",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION SELECT a FROM t2\n    );",
-          "expect": "1 {SELECTs to the left and right of UNION do not have the same number of result columns}"
-        }
-      ]
-    },
-    {
-      "name": "in-12.8",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 EXCEPT SELECT a FROM t2\n    );",
-          "expect": "1 {SELECTs to the left and right of EXCEPT do not have the same number of result columns}"
-        }
-      ]
-    },
-    {
-      "name": "in-12.9",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 INTERSECT SELECT a FROM t2\n    );",
-          "expect": "1 {SELECTs to the left and right of INTERSECT do not have the same number of result columns}"
-        }
-      ]
-    },
-    {
-      "name": "in-12.10",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a FROM t3 UNION ALL SELECT a, b FROM t2\n    );",
-          "expect": "1 {SELECTs to the left and right of UNION ALL do not have the same number of result columns}"
-        }
-      ]
-    },
-    {
-      "name": "in-12.11",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a FROM t3 UNION SELECT a, b FROM t2\n    );",
-          "expect": "1 {SELECTs to the left and right of UNION do not have the same number of result columns}"
-        }
-      ]
-    },
-    {
-      "name": "in-12.12",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a FROM t3 EXCEPT SELECT a, b FROM t2\n    );",
-          "expect": "1 {SELECTs to the left and right of EXCEPT do not have the same number of result columns}"
-        }
-      ]
-    },
-    {
-      "name": "in-12.13",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a FROM t3 INTERSECT SELECT a, b FROM t2\n    );",
-          "expect": "1 {SELECTs to the left and right of INTERSECT do not have the same number of result columns}"
-        }
-      ]
-    },
-    {
-      "name": "in-12.14",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION ALL SELECT a, b FROM t2\n    );",
-          "expect": "1 {sub-select returns 2 columns - expected 1}"
-        }
-      ]
-    },
-    {
-      "name": "in-12.15",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2 WHERE a IN (\n      SELECT a, b FROM t3 UNION ALL SELECT a FROM t2\n    );",
-          "expect": "1 {SELECTs to the left and right of UNION ALL do not have the same number of result columns}"
-        }
-      ]
-    },
-    {
-      "name": "in-13.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT \n    1 IN (NULL, 1, 2),     -- The value 1 is a member of the set, return true.\n    3 IN (NULL, 1, 2),     -- Ambiguous, return NULL.\n    1 NOT IN (NULL, 1, 2), -- The value 1 is a member of the set, return false.\n    3 NOT IN (NULL, 1, 2)  -- Ambiguous, return NULL.",
-          "expect": "1 null 0 null"
-        }
-      ]
-    },
-    {
-      "name": "in-13.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t7(a, b, c NOT NULL);\n    INSERT INTO t7 VALUES(1,    1, 1);\n    INSERT INTO t7 VALUES(2,    2, 2);\n    INSERT INTO t7 VALUES(3,    3, 3);\n    INSERT INTO t7 VALUES(NULL, 4, 4);\n    INSERT INTO t7 VALUES(NULL, 5, 5);"
-        }
-      ]
-    },
-    {
-      "name": "in-13.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT 2 IN (SELECT a FROM t7)",
+          "sql": "CREATE VIEW t5 AS\n    SELECT 1 AS b\n     WHERE (SELECT count(0=NOT+a COLLATE NOCASE IN (SELECT 0))\n              FROM t4\n             GROUP BY a);\n  SELECT * FROM t5;",
           "expect": "1"
-        }
-      ]
-    },
-    {
-      "name": "in-13.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT 6 IN (SELECT a FROM t7)",
-          "expect": "null"
-        }
-      ]
-    },
-    {
-      "name": "in-13.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT 2 IN (SELECT b FROM t7)",
-          "expect": "1"
-        }
-      ]
-    },
-    {
-      "name": "in-13.6",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT 6 IN (SELECT b FROM t7)",
-          "expect": "0"
-        }
-      ]
-    },
-    {
-      "name": "in-13.7",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT 2 IN (SELECT c FROM t7)",
-          "expect": "1"
-        }
-      ]
-    },
-    {
-      "name": "in-13.8",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT 6 IN (SELECT c FROM t7)",
-          "expect": "0"
-        }
-      ]
-    },
-    {
-      "name": "in-13.9",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT\n      2 NOT IN (SELECT a FROM t7),\n      6 NOT IN (SELECT a FROM t7),\n      2 NOT IN (SELECT b FROM t7),\n      6 NOT IN (SELECT b FROM t7),\n      2 NOT IN (SELECT c FROM t7),\n      6 NOT IN (SELECT c FROM t7)",
-          "expect": "0 null 0 1 0 1"
-        }
-      ]
-    },
-    {
-      "name": "in-13.10",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT b IN (\n      SELECT inside.a \n      FROM t7 AS inside \n      WHERE inside.b BETWEEN outside.b+1 AND outside.b+2\n    )\n    FROM t7 AS outside ORDER BY b;",
-          "expect": "0 null null null 0"
-        }
-      ]
-    },
-    {
-      "name": "in-13.11",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT b NOT IN (\n      SELECT inside.a \n      FROM t7 AS inside \n      WHERE inside.b BETWEEN outside.b+1 AND outside.b+2\n    )\n    FROM t7 AS outside ORDER BY b;",
-          "expect": "1 null null null 1"
-        }
-      ]
-    },
-    {
-      "name": "in-13.12",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX i1 ON t7(a);\n    CREATE INDEX i2 ON t7(b);\n    CREATE INDEX i3 ON t7(c);"
-        }
-      ]
-    },
-    {
-      "name": "in-13.13",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT\n      2 NOT IN (SELECT a FROM t7),\n      6 NOT IN (SELECT a FROM t7),\n      2 NOT IN (SELECT b FROM t7),\n      6 NOT IN (SELECT b FROM t7),\n      2 NOT IN (SELECT c FROM t7),\n      6 NOT IN (SELECT c FROM t7)",
-          "expect": "0 null 0 1 0 1"
-        }
-      ]
-    },
-    {
-      "name": "in-13.14",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "BEGIN TRANSACTION;\n    CREATE TABLE a(id INTEGER);\n    INSERT INTO a VALUES(1);\n    INSERT INTO a VALUES(2);\n    INSERT INTO a VALUES(3);\n    CREATE TABLE b(id INTEGER);\n    INSERT INTO b VALUES(NULL);\n    INSERT INTO b VALUES(3);\n    INSERT INTO b VALUES(4);\n    INSERT INTO b VALUES(5);\n    COMMIT;\n    SELECT * FROM a WHERE id NOT IN (SELECT id FROM b);"
-        }
-      ]
-    },
-    {
-      "name": "in-13.14",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE INDEX i5 ON b(id);\n    SELECT * FROM a WHERE id NOT IN (SELECT id FROM b);"
-        }
-      ]
-    },
-    {
-      "name": "in-13.15",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT 0 WHERE (SELECT 0,0) OR (0 IN (1,2));",
-          "expect": "1 {sub-select returns 2 columns - expected 1}"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    CREATE TABLE t1(a int, b int);"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT;\n    SELECT count(*) FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE b BETWEEN 10 AND 50 ORDER BY a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE b NOT BETWEEN 10 AND 50 ORDER BY a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE b BETWEEN a AND a*5 ORDER BY a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE b NOT BETWEEN a AND a*5 ORDER BY a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE b BETWEEN a AND a*5 OR b=512 ORDER BY a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a+ 100*(a BETWEEN 1 and 3) FROM t1 ORDER BY b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE b IN (8,12,16,24,32) ORDER BY a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE b NOT IN (8,12,16,24,32) ORDER BY a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE b IN (8,12,16,24,32) OR b=512 ORDER BY a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE b NOT IN (8,12,16,24,32) OR b=512 ORDER BY a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a+100*(b IN (8,16,24)) FROM t1 ORDER BY b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE b IN (b+8,64)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE b IN (max(5,10,b),20)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE b IN (8*2,64/2) ORDER BY b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE b IN (max(5,10),20)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE min(0,b IN (a,30))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c IN (10,20)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1\n    WHERE b IN (SELECT b FROM t1 WHERE a<5)\n    ORDER BY a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1\n    WHERE b IN (SELECT b FROM t1 WHERE a<5) OR b==512\n    ORDER BY a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a + 100*(b IN (SELECT b FROM t1 WHERE a<5)) FROM t1 ORDER BY b"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET b=b*2 \n    WHERE b IN (SELECT b FROM t1 WHERE a>8)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT b FROM t1 ORDER BY b"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE b IN (SELECT b FROM t1 WHERE a>8)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 ORDER BY a"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE b NOT IN (SELECT b FROM t1 WHERE a>4)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 ORDER BY a"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES('hello', 'world');\n    SELECT * FROM t1\n    WHERE a IN (\n       'Do','an','IN','with','a','constant','RHS','but','where','the',\n       'has','many','elements','We','need','to','test','that',\n       'collisions','hash','table','are','resolved','properly',\n       'This','in-set','contains','thirty','one','entries','hello');"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE ta(a INTEGER PRIMARY KEY, b);\n    INSERT INTO ta VALUES(1,1);\n    INSERT INTO ta VALUES(2,2);\n    INSERT INTO ta VALUES(3,3);\n    INSERT INTO ta VALUES(4,4);\n    INSERT INTO ta VALUES(6,6);\n    INSERT INTO ta VALUES(8,8);\n    INSERT INTO ta VALUES(10,\n       'This is a key that is long enough to require a malloc in the VDBE');\n    SELECT * FROM ta WHERE a<10;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE tb(a INTEGER PRIMARY KEY, b);\n    INSERT INTO tb VALUES(1,1);\n    INSERT INTO tb VALUES(2,2);\n    INSERT INTO tb VALUES(3,3);\n    INSERT INTO tb VALUES(5,5);\n    INSERT INTO tb VALUES(7,7);\n    INSERT INTO tb VALUES(9,9);\n    INSERT INTO tb VALUES(11,\n       'This is a key that is long enough to require a malloc in the VDBE');\n    SELECT * FROM tb WHERE a<10;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM ta WHERE b IN (SELECT a FROM tb);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM ta WHERE b NOT IN (SELECT a FROM tb);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM ta WHERE b IN (SELECT b FROM tb);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM ta WHERE b NOT IN (SELECT b FROM tb);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM ta WHERE a IN (SELECT a FROM tb);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM ta WHERE a NOT IN (SELECT a FROM tb);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM ta WHERE a IN (SELECT b FROM tb);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM ta WHERE a NOT IN (SELECT b FROM tb);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE a IN ();"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE a IN (5);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE a NOT IN () ORDER BY a;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE a IN (5) AND b IN ();"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE a IN (5) AND b NOT IN ();"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM ta WHERE a IN ();"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM ta WHERE a NOT IN ();"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM ta LEFT JOIN tb ON (ta.b=tb.b) WHERE ta.a IN ();"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT b FROM t1 WHERE a IN ('hello','there')"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT b FROM t1 WHERE a IN (\"hello\",'there')"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t4 AS SELECT a FROM tb;\n    SELECT * FROM t4;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT b FROM t1 WHERE a IN t4;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT b FROM t1 WHERE a NOT IN t4;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t5(\n      a INTEGER,\n      CHECK( a IN (111,222,333) )\n    );\n    INSERT INTO t5 VALUES(111);\n    SELECT * FROM t5;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t6(a,b NUMERIC);\n    INSERT INTO t6 VALUES(1,2);\n    INSERT INTO t6 VALUES(2,3);\n    SELECT * FROM t6 WHERE b IN (2);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t6 WHERE b IN ('2');"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t6 WHERE +b IN ('2');"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t6 WHERE a IN ('2');"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t6 WHERE a IN (2);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t6 WHERE +a IN ('2');"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(a, b, c);\n    CREATE TABLE t3(a, b, c);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT \n    1 IN (NULL, 1, 2),     -- The value 1 is a member of the set, return true.\n    3 IN (NULL, 1, 2),     -- Ambiguous, return NULL.\n    1 NOT IN (NULL, 1, 2), -- The value 1 is a member of the set, return false.\n    3 NOT IN (NULL, 1, 2)  -- Ambiguous, return NULL."
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t7(a, b, c NOT NULL);\n    INSERT INTO t7 VALUES(1,    1, 1);\n    INSERT INTO t7 VALUES(2,    2, 2);\n    INSERT INTO t7 VALUES(3,    3, 3);\n    INSERT INTO t7 VALUES(NULL, 4, 4);\n    INSERT INTO t7 VALUES(NULL, 5, 5);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 2 IN (SELECT a FROM t7)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 6 IN (SELECT a FROM t7)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 2 IN (SELECT b FROM t7)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 6 IN (SELECT b FROM t7)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 2 IN (SELECT c FROM t7)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 6 IN (SELECT c FROM t7)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT\n      2 NOT IN (SELECT a FROM t7),\n      6 NOT IN (SELECT a FROM t7),\n      2 NOT IN (SELECT b FROM t7),\n      6 NOT IN (SELECT b FROM t7),\n      2 NOT IN (SELECT c FROM t7),\n      6 NOT IN (SELECT c FROM t7)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT b IN (\n      SELECT inside.a \n      FROM t7 AS inside \n      WHERE inside.b BETWEEN outside.b+1 AND outside.b+2\n    )\n    FROM t7 AS outside ORDER BY b;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT b NOT IN (\n      SELECT inside.a \n      FROM t7 AS inside \n      WHERE inside.b BETWEEN outside.b+1 AND outside.b+2\n    )\n    FROM t7 AS outside ORDER BY b;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX i1 ON t7(a);\n    CREATE INDEX i2 ON t7(b);\n    CREATE INDEX i3 ON t7(c);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT\n      2 IN (SELECT a FROM t7),\n      6 IN (SELECT a FROM t7),\n      2 IN (SELECT b FROM t7),\n      6 IN (SELECT b FROM t7),\n      2 IN (SELECT c FROM t7),\n      6 IN (SELECT c FROM t7)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT\n      2 NOT IN (SELECT a FROM t7),\n      6 NOT IN (SELECT a FROM t7),\n      2 NOT IN (SELECT b FROM t7),\n      6 NOT IN (SELECT b FROM t7),\n      2 NOT IN (SELECT c FROM t7),\n      6 NOT IN (SELECT c FROM t7)"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN TRANSACTION;\n    CREATE TABLE a(id INTEGER);\n    INSERT INTO a VALUES(1);\n    INSERT INTO a VALUES(2);\n    INSERT INTO a VALUES(3);\n    CREATE TABLE b(id INTEGER);\n    INSERT INTO b VALUES(NULL);\n    INSERT INTO b VALUES(3);\n    INSERT INTO b VALUES(4);\n    INSERT INTO b VALUES(5);\n    COMMIT;\n    SELECT * FROM a WHERE id NOT IN (SELECT id FROM b);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX i5 ON b(id);\n    SELECT * FROM a WHERE id NOT IN (SELECT id FROM b);"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

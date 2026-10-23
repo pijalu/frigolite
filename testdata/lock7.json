@@ -1,6 +1,7 @@
 {
   "file": "lock7.test",
   "name": "lock7",
+  "ordered": true,
   "tests": [
     {
       "name": "lock7-1.1",
@@ -8,6 +9,29 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b)"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db1"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN",
+          "database": "db1"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN",
+          "database": "db2"
         }
       ]
     },
@@ -15,9 +39,10 @@
       "name": "lock7-1.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA lock_status",
-          "expect": "main unlocked temp closed"
+          "expect": "main unlocked temp closed",
+          "database": "db1"
         }
       ]
     },
@@ -25,9 +50,10 @@
       "name": "lock7-1.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA lock_status",
-          "expect": "main unlocked temp closed"
+          "expect": "main unlocked temp closed",
+          "database": "db2"
         }
       ]
     },
@@ -35,9 +61,10 @@
       "name": "lock7-1.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1 VALUES(1, 1)",
-          "expect": "0 {}"
+          "expect": "0 {}",
+          "database": "db1"
         }
       ]
     },
@@ -45,9 +72,10 @@
       "name": "lock7-1.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1 VALUES(2, 2)",
-          "expect": "1 {database is locked}"
+          "expect": "1 {database is locked}",
+          "database": "db2"
         }
       ]
     },
@@ -55,9 +83,10 @@
       "name": "lock7-1.6",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA lock_status",
-          "expect": "main reserved temp closed"
+          "expect": "main reserved temp closed",
+          "database": "db1"
         }
       ]
     },
@@ -65,9 +94,10 @@
       "name": "lock7-1.7",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA lock_status",
-          "expect": "main unlocked temp closed"
+          "expect": "main unlocked temp closed",
+          "database": "db2"
         }
       ]
     },
@@ -76,31 +106,21 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT"
+          "sql": "COMMIT",
+          "database": "db1"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db1"
         },
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a, b)"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA lock_status"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA lock_status"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA lock_status"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA lock_status"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT"
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     }

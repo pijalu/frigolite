@@ -1,0 +1,107 @@
+{
+  "file": "mallocK.test",
+  "name": "mallocK",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "mallocK-6.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t3(a TEXT, b TEXT COLLATE utf16_aligned, c);\n  INSERT INTO t3 VALUES('one', '.....', 0);\n  INSERT INTO t3 VALUES('one', '....x', 1);\n  INSERT INTO t3 VALUES('one', '...x.', 2);\n  INSERT INTO t3 VALUES('one', '...xx', 3);\n  INSERT INTO t3 VALUES('one', '..x..', 4);\n  INSERT INTO t3 VALUES('one', '..x.x', 5);\n  INSERT INTO t3 VALUES('one', '..xx.', 6);\n  INSERT INTO t3 VALUES('one', '..xxx', 7);\n  INSERT INTO t3 VALUES('one', '.x...', 8);\n  INSERT INTO t3 VALUES('one', '.x..x', 9);\n  INSERT INTO t3 VALUES('one', '.x.x.', 10);\n  INSERT INTO t3 VALUES('one', '.x.xx', 11);\n  INSERT INTO t3 VALUES('one', '.xx..', 12);\n  INSERT INTO t3 VALUES('one', '.xx.x', 13);\n  INSERT INTO t3 VALUES('one', '.xxx.', 14);\n  INSERT INTO t3 VALUES('one', '.xxxx', 15);\n\n  INSERT INTO t3 VALUES('two', 'x....', 16);\n  INSERT INTO t3 VALUES('two', 'x...x', 17);\n  INSERT INTO t3 VALUES('two', 'x..x.', 18);\n  INSERT INTO t3 VALUES('two', 'x..xx', 19);\n  INSERT INTO t3 VALUES('two', 'x.x..', 20);\n  INSERT INTO t3 VALUES('two', 'x.x.x', 21);\n  INSERT INTO t3 VALUES('two', 'x.xx.', 22);\n  INSERT INTO t3 VALUES('two', 'x.xxx', 23);\n  INSERT INTO t3 VALUES('two', 'xx...', 24);\n  INSERT INTO t3 VALUES('two', 'xx..x', 25);\n  INSERT INTO t3 VALUES('two', 'xx.x.', 26);\n  INSERT INTO t3 VALUES('two', 'xx.xx', 27);\n  INSERT INTO t3 VALUES('two', 'xxx..', 28);\n  INSERT INTO t3 VALUES('two', 'xxx.x', 29);\n  INSERT INTO t3 VALUES('two', 'xxxx.', 30);\n  INSERT INTO t3 VALUES('two', 'xxxxx', 31);\n\n  INSERT INTO t3 SELECT * FROM t3;\n\n  CREATE INDEX i3 ON t3(a, b);\n  ANALYZE;\n\n  SELECT 'x' \u003e '.';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "mallocK-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT DISTINCT c FROM t3 WHERE b BETWEEN '.xx..' AND '.xxxx';"
+        }
+      ]
+    },
+    {
+      "name": "mallocK-7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a INTEGER PRIMARY KEY, b);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "isqrt",
+          "callbackVars": {
+            "": "\\n  QUERY PLAN\\n  |--SEARCH t3 USING INDEX i3 (ANY(a) AND b\u003e? AND b\u003c?)\\n  `--USE TEMP B-TREE FOR DISTINCT\\n",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "sql": "SELECT * FROM t2 WHERE a MATCH 'xyz' AND b!=1 AND b!=2 AND b!=3 AND b!=4",
+            "term": "(b=4 AND a!=0 AND a!=1 AND a!=2 AND a!=3",
+            "testdir": "",
+            "testprefix": "mallocK",
+            "x": "5",
+            "y": "4"
+          },
+          "functionProc": "isqrt",
+          "functionArgs": [
+            "i"
+          ],
+          "functionBody": " expr { int(sqrt($i)) } ",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "mallocK-8.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'utf-16';\n  CREATE TABLE x2(x TEXT, y TEXT);\n  WITH data(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM data\n  )\n  INSERT INTO x2 SELECT isqrt(i), isqrt(i) FROM data LIMIT 400;\n  CREATE INDEX x2x ON x2(x);\n  CREATE INDEX x2y ON x2(y);\n  ANALYZE;\n  DELETE FROM x2;"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "str",
+          "callbackVars": {
+            "": "\\n  QUERY PLAN\\n  |--SEARCH t3 USING INDEX i3 (ANY(a) AND b\u003e? AND b\u003c?)\\n  `--USE TEMP B-TREE FOR DISTINCT\\n",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "sql": "SELECT * FROM t2 WHERE a MATCH 'xyz' AND b!=1 AND b!=2 AND b!=3 AND b!=4",
+            "term": "(b=4 AND a!=0 AND a!=1 AND a!=2 AND a!=3",
+            "testdir": "",
+            "testprefix": "mallocK",
+            "x": "5",
+            "y": "4"
+          },
+          "functionProc": "str",
+          "functionArgs": [
+            "a"
+          ],
+          "functionBody": " return $a ",
+          "minArgs": 1,
+          "maxArgs": -1,
+          "deterministic": true
+        }
+      ]
+    }
+  ]
+}

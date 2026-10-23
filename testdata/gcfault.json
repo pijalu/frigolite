@@ -1,20 +1,51 @@
 {
   "file": "gcfault.test",
   "name": "gcfault",
+  "ordered": true,
   "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
     {
       "name": "setup_0",
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT group_concat(e, (SELECT s FROM s WHERE i=1)) FROM e"
-        },
+          "sql": "PRAGMA encoding = utf16"
+        }
+      ]
+    },
+    {
+      "name": "gcfault-1.utf16.1",
+      "steps": [
         {
           "type": "exec",
-          "sql": "SELECT string_agg(e, (SELECT s FROM s WHERE i=2)) FROM e"
+          "sql": "CREATE TABLE s(i, s);\n    INSERT INTO s VALUES(1, ',0123456789,');\n    INSERT INTO s VALUES(2, X'2c303132333435363738392c');\n\n    CREATE TABLE e(e);\n    INSERT INTO e VALUES('v1'), ('v2');"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = utf8"
+        }
+      ]
+    },
+    {
+      "name": "gcfault-1.utf8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE s(i, s);\n    INSERT INTO s VALUES(1, ',0123456789,');\n    INSERT INTO s VALUES(2, X'2c303132333435363738392c');\n\n    CREATE TABLE e(e);\n    INSERT INTO e VALUES('v1'), ('v2');"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

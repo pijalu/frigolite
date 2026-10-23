@@ -1,19 +1,1484 @@
 {
   "file": "upsert4.test",
   "name": "upsert4",
+  "ordered": true,
   "tests": [
     {
-      "name": "5.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_0",
       "steps": [
         {
           "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c UNIQUE)"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-1.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, NULL, 'one');\n    INSERT INTO t1 VALUES(2, NULL, 'two');\n    INSERT INTO t1 VALUES(3, NULL, 'three');"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(1, NULL, 'xyz') ON CONFLICT DO NOTHING;\n    SELECT * FROM t1;",
+          "expect": "\n    1 {} one 2 {} two 3 {} three\n  "
+        }
+      ]
+    },
+    {
+      "name": "upsert4-1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(4, NULL, 'two') ON CONFLICT DO NOTHING;\n    SELECT * FROM t1;",
+          "expect": "\n    1 {} one 2 {} two 3 {} three\n  "
+        }
+      ]
+    },
+    {
+      "name": "upsert4-1.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(4, NULL, 'two') ON CONFLICT (c) DO UPDATE SET b = 1;\n    SELECT * FROM t1;",
+          "expect": "\n    1 {} one 2 1 two 3 {} three\n  "
+        }
+      ]
+    },
+    {
+      "name": "upsert4-1.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(2, NULL, 'zero') ON CONFLICT (a) DO UPDATE SET b=2;\n    SELECT * FROM t1;",
+          "expect": "1 {} one 2 2 two 3 {} three"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-1.1.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES(2, NULL, 'zero') ON CONFLICT (a) \n      DO UPDATE SET c = 'one';",
+          "expect": "1 {UNIQUE constraint failed: t1.c}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-1.1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "1 {} one 2 2 two 3 {} three"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-1.1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(2, NULL, 'zero') ON CONFLICT (a) \n      DO UPDATE SET (b, c) = (SELECT 'x', 'y');\n    SELECT * FROM t1;",
+          "expect": "1 {} one 2 x y 3 {} three"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-1.1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(1, NULL, NULL) ON CONFLICT (a) \n      DO UPDATE SET (c, a) = ('four', 4);\n    SELECT * FROM t1 ORDER BY 1;",
+          "expect": "2 x y 3 {} three 4 {} four"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT PRIMARY KEY, b, c UNIQUE)"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-1.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, NULL, 'one');\n    INSERT INTO t1 VALUES(2, NULL, 'two');\n    INSERT INTO t1 VALUES(3, NULL, 'three');"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(1, NULL, 'xyz') ON CONFLICT DO NOTHING;\n    SELECT * FROM t1;",
+          "expect": "\n    1 {} one 2 {} two 3 {} three\n  "
+        }
+      ]
+    },
+    {
+      "name": "upsert4-1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(4, NULL, 'two') ON CONFLICT DO NOTHING;\n    SELECT * FROM t1;",
+          "expect": "\n    1 {} one 2 {} two 3 {} three\n  "
+        }
+      ]
+    },
+    {
+      "name": "upsert4-1.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(4, NULL, 'two') ON CONFLICT (c) DO UPDATE SET b = 1;\n    SELECT * FROM t1;",
+          "expect": "\n    1 {} one 2 1 two 3 {} three\n  "
+        }
+      ]
+    },
+    {
+      "name": "upsert4-1.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(2, NULL, 'zero') ON CONFLICT (a) DO UPDATE SET b=2;\n    SELECT * FROM t1;",
+          "expect": "1 {} one 2 2 two 3 {} three"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-1.2.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES(2, NULL, 'zero') ON CONFLICT (a) \n      DO UPDATE SET c = 'one';",
+          "expect": "1 {UNIQUE constraint failed: t1.c}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-1.2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "1 {} one 2 2 two 3 {} three"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-1.2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(2, NULL, 'zero') ON CONFLICT (a) \n      DO UPDATE SET (b, c) = (SELECT 'x', 'y');\n    SELECT * FROM t1;",
+          "expect": "1 {} one 2 x y 3 {} three"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-1.2.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(1, NULL, NULL) ON CONFLICT (a) \n      DO UPDATE SET (c, a) = ('four', 4);\n    SELECT * FROM t1 ORDER BY 1;",
+          "expect": "2 x y 3 {} three 4 {} four"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT PRIMARY KEY, b, c UNIQUE) WITHOUT ROWID"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-1.3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, NULL, 'one');\n    INSERT INTO t1 VALUES(2, NULL, 'two');\n    INSERT INTO t1 VALUES(3, NULL, 'three');"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(1, NULL, 'xyz') ON CONFLICT DO NOTHING;\n    SELECT * FROM t1;",
+          "expect": "\n    1 {} one 2 {} two 3 {} three\n  "
+        }
+      ]
+    },
+    {
+      "name": "upsert4-1.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(4, NULL, 'two') ON CONFLICT DO NOTHING;\n    SELECT * FROM t1;",
+          "expect": "\n    1 {} one 2 {} two 3 {} three\n  "
+        }
+      ]
+    },
+    {
+      "name": "upsert4-1.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(4, NULL, 'two') ON CONFLICT (c) DO UPDATE SET b = 1;\n    SELECT * FROM t1;",
+          "expect": "\n    1 {} one 2 1 two 3 {} three\n  "
+        }
+      ]
+    },
+    {
+      "name": "upsert4-1.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(2, NULL, 'zero') ON CONFLICT (a) DO UPDATE SET b=2;\n    SELECT * FROM t1;",
+          "expect": "1 {} one 2 2 two 3 {} three"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-1.3.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES(2, NULL, 'zero') ON CONFLICT (a) \n      DO UPDATE SET c = 'one';",
+          "expect": "1 {UNIQUE constraint failed: t1.c}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-1.3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "1 {} one 2 2 two 3 {} three"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-1.3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(2, NULL, 'zero') ON CONFLICT (a) \n      DO UPDATE SET (b, c) = (SELECT 'x', 'y');\n    SELECT * FROM t1;",
+          "expect": "1 {} one 2 x y 3 {} three"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-1.3.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(1, NULL, NULL) ON CONFLICT (a) \n      DO UPDATE SET (c, a) = ('four', 4);\n    SELECT * FROM t1 ORDER BY 1;",
+          "expect": "2 x y 3 {} three 4 {} four"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE xyz(a INTEGER PRIMARY KEY, b, c, d);\n      CREATE UNIQUE INDEX xyz1 ON xyz(d, c, b COLLATE nocase);"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO xyz VALUES(10, 1, 1, 'one');"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.1.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xyz VALUES(11, 1, 1, 'one') ON CONFLICT (b COLLATE nocase, c, d) DO NOTHING",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.1.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xyz VALUES(11, 1, 1, 'one') ON CONFLICT (b, c, d) DO NOTHING",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.1.2.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xyz VALUES(11, 1, 1, 'one') ON CONFLICT (b, c COLLATE nocase, d) DO NOTHING",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.1.2.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xyz VALUES(11, 1, 1, 'one') ON CONFLICT (a) DO NOTHING",
+          "expect": "/1 .*failed.*/"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.1.2.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xyz VALUES(11, 1, 1, 'one') ON CONFLICT DO NOTHING",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.1.2.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xyz VALUES(11, 1, 1, 'one') ON CONFLICT (b, c, d) WHERE a!=0 DO NOTHING",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.1.2.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xyz VALUES(11, 1, 1, 'one') ON CONFLICT (d, c, c) WHERE a!=0 DO NOTHING",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.1.2.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xyz VALUES(11, 1, 1, 'one') ON CONFLICT (b COLLATE nocase, c COLLATE nocase, d) DO NOTHING",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.1.2.9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xyz VALUES(11, 1, 1, 'one') ON CONFLICT (b, c, d) WHERE b==45 DO NOTHING",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM xyz;",
+          "expect": "10 1 1 one"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE xyz(a INT PRIMARY KEY, b, c, d);\n      CREATE UNIQUE INDEX xyz1 ON xyz(d, c, b COLLATE nocase);"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO xyz VALUES(10, 1, 1, 'one');"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.2.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xyz VALUES(11, 1, 1, 'one') ON CONFLICT (b COLLATE nocase, c, d) DO NOTHING",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.2.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xyz VALUES(11, 1, 1, 'one') ON CONFLICT (b, c, d) DO NOTHING",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.2.2.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xyz VALUES(11, 1, 1, 'one') ON CONFLICT (b, c COLLATE nocase, d) DO NOTHING",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.2.2.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xyz VALUES(11, 1, 1, 'one') ON CONFLICT (a) DO NOTHING",
+          "expect": "/1 .*failed.*/"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.2.2.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xyz VALUES(11, 1, 1, 'one') ON CONFLICT DO NOTHING",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.2.2.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xyz VALUES(11, 1, 1, 'one') ON CONFLICT (b, c, d) WHERE a!=0 DO NOTHING",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.2.2.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xyz VALUES(11, 1, 1, 'one') ON CONFLICT (d, c, c) WHERE a!=0 DO NOTHING",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.2.2.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xyz VALUES(11, 1, 1, 'one') ON CONFLICT (b COLLATE nocase, c COLLATE nocase, d) DO NOTHING",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.2.2.9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xyz VALUES(11, 1, 1, 'one') ON CONFLICT (b, c, d) WHERE b==45 DO NOTHING",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM xyz;",
+          "expect": "10 1 1 one"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE xyz(a INT PRIMARY KEY, b, c, d) WITHOUT ROWID;\n      CREATE UNIQUE INDEX xyz1 ON xyz(d, c, b COLLATE nocase);"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO xyz VALUES(10, 1, 1, 'one');"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.3.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xyz VALUES(11, 1, 1, 'one') ON CONFLICT (b COLLATE nocase, c, d) DO NOTHING",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.3.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xyz VALUES(11, 1, 1, 'one') ON CONFLICT (b, c, d) DO NOTHING",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.3.2.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xyz VALUES(11, 1, 1, 'one') ON CONFLICT (b, c COLLATE nocase, d) DO NOTHING",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.3.2.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xyz VALUES(11, 1, 1, 'one') ON CONFLICT (a) DO NOTHING",
+          "expect": "/1 .*failed.*/"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.3.2.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xyz VALUES(11, 1, 1, 'one') ON CONFLICT DO NOTHING",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.3.2.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xyz VALUES(11, 1, 1, 'one') ON CONFLICT (b, c, d) WHERE a!=0 DO NOTHING",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.3.2.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xyz VALUES(11, 1, 1, 'one') ON CONFLICT (d, c, c) WHERE a!=0 DO NOTHING",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.3.2.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xyz VALUES(11, 1, 1, 'one') ON CONFLICT (b COLLATE nocase, c COLLATE nocase, d) DO NOTHING",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.3.2.9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO xyz VALUES(11, 1, 1, 'one') ON CONFLICT (b, c, d) WHERE b==45 DO NOTHING",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-2.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM xyz;",
+          "expect": "10 1 1 one"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a INTEGER PRIMARY KEY, x, y);\n    CREATE UNIQUE INDEX abc1 ON abc(('x' || x) COLLATE nocase);"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-3.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(1, 'one', 'two');"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-3.1.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO abc VALUES(2, 'one', NULL) ON CONFLICT DO NOTHING;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-3.1.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO abc VALUES(2, 'one', NULL) ON CONFLICT ('x' || x) DO NOTHING;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-3.1.2.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO abc VALUES(2, 'one', NULL) ON CONFLICT (('x' || x) COLLATE nocase) DO NOTHING;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-3.1.2.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO abc VALUES(2, 'one', NULL) ON CONFLICT (('x' || x) COLLATE binary) DO NOTHING;",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-3.1.2.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO abc VALUES(2, 'one', NULL) ON CONFLICT (x || 'x') DO NOTHING;",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-3.1.2.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO abc VALUES(2, 'one', NULL) ON CONFLICT ((('x' || x))) DO NOTHING;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-3.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM abc",
+          "expect": "1 one two"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a INT PRIMARY KEY, x, y);\n    CREATE UNIQUE INDEX abc1 ON abc(('x' || x) COLLATE nocase);"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-3.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(1, 'one', 'two');"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-3.2.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO abc VALUES(2, 'one', NULL) ON CONFLICT DO NOTHING;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-3.2.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO abc VALUES(2, 'one', NULL) ON CONFLICT ('x' || x) DO NOTHING;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-3.2.2.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO abc VALUES(2, 'one', NULL) ON CONFLICT (('x' || x) COLLATE nocase) DO NOTHING;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-3.2.2.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO abc VALUES(2, 'one', NULL) ON CONFLICT (('x' || x) COLLATE binary) DO NOTHING;",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-3.2.2.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO abc VALUES(2, 'one', NULL) ON CONFLICT (x || 'x') DO NOTHING;",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-3.2.2.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO abc VALUES(2, 'one', NULL) ON CONFLICT ((('x' || x))) DO NOTHING;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-3.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM abc",
+          "expect": "1 one two"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a INT PRIMARY KEY, x, y) WITHOUT ROWID;\n    CREATE UNIQUE INDEX abc1 ON abc(('x' || x) COLLATE nocase);"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-3.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(1, 'one', 'two');"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-3.3.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO abc VALUES(2, 'one', NULL) ON CONFLICT DO NOTHING;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-3.3.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO abc VALUES(2, 'one', NULL) ON CONFLICT ('x' || x) DO NOTHING;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-3.3.2.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO abc VALUES(2, 'one', NULL) ON CONFLICT (('x' || x) COLLATE nocase) DO NOTHING;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-3.3.2.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO abc VALUES(2, 'one', NULL) ON CONFLICT (('x' || x) COLLATE binary) DO NOTHING;",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-3.3.2.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO abc VALUES(2, 'one', NULL) ON CONFLICT (x || 'x') DO NOTHING;",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-3.3.2.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO abc VALUES(2, 'one', NULL) ON CONFLICT ((('x' || x))) DO NOTHING;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-3.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM abc",
+          "expect": "1 one two"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a INTEGER PRIMARY KEY, x, y);\n    CREATE UNIQUE INDEX abc1 ON abc(x) WHERE y\u003e0;\n    CREATE UNIQUE INDEX abc2 ON abc(y) WHERE x='xyz' COLLATE nocase;"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-4.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(1, 'one', 1);\n    INSERT INTO abc VALUES(2, 'two', 2);\n    INSERT INTO abc VALUES(3, 'xyz', 3);\n    INSERT INTO abc VALUES(4, 'XYZ', 4);"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-4.1.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO abc VALUES(5, 'one', 10) ON CONFLICT DO NOTHING",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-4.1.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO abc VALUES(5, 'one', 10) ON CONFLICT(x) WHERE y\u003e0 DO NOTHING",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-4.1.2.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO abc VALUES(5, 'one', 10) ON CONFLICT(x) DO NOTHING",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-4.1.2.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO abc VALUES(5, 'one', 10) ON CONFLICT(x) WHERE y\u003e=0 DO NOTHING",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-4.1.2.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO abc VALUES(5, 'one', 10) ON CONFLICT(y) WHERE x='xyz' COLLATE nocase DO NOTHING",
+          "expect": "/1 .*failed.*/"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-4.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM abc",
+          "expect": "1 one 1 2 two 2 3 xyz 3 4 XYZ 4"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-4.1.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO abc VALUES(5, 'xYz', 3) ON CONFLICT DO NOTHING",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-4.1.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO abc VALUES(5, 'xYz', 3) ON CONFLICT(y) WHERE x='xyz' COLLATE nocase DO NOTHING",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-4.1.2.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO abc VALUES(5, 'xYz', 3) ON CONFLICT(y) WHERE x='xyz' COLLATE binary DO NOTHING",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-4.1.2.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO abc VALUES(5, 'xYz', 3) ON CONFLICT(x) WHERE y\u003e0 DO NOTHING",
+          "expect": "/1 .*failed.*/"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-5.0",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "CREATE TABLE w1(a INT PRIMARY KEY, x, y);\n  CREATE UNIQUE INDEX w1expr ON w1(('x' || x));\n  INSERT INTO w1 VALUES(2, 'one', NULL)\n    ON CONFLICT (('x' || x) COLLATE nocase) DO NOTHING;",
           "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
         }
       ]
     },
     {
-      "name": "9.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c);"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-6.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(1, 1, 'one');\n    INSERT INTO t1 VALUES(2, 2, 'two');\n    INSERT OR REPLACE INTO t1 VALUES(1, 2, 'two') ON CONFLICT(b) DO NOTHING;\n    PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT PRIMARY KEY, b UNIQUE, c);"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-6.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(1, 1, 'one');\n    INSERT INTO t1 VALUES(2, 2, 'two');\n    INSERT OR REPLACE INTO t1 VALUES(1, 2, 'two') ON CONFLICT(b) DO NOTHING;\n    PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT PRIMARY KEY, b UNIQUE, c) WITHOUT ROWID;"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-6.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(1, 1, 'one');\n    INSERT INTO t1 VALUES(2, 2, 'two');\n    INSERT OR REPLACE INTO t1 VALUES(1, 2, 'two') ON CONFLICT(b) DO NOTHING;\n    PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c UNIQUE);"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-6.2.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 1, 1);\n    INSERT INTO t1 VALUES(2, 2, 2);"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-6.2.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT OR REPLACE INTO t1 VALUES(3, 1, 1) ON CONFLICT(b) DO NOTHING;\n    SELECT * FROM t1;\n    PRAGMA integrity_check;",
+          "expect": "1 1 1 2 2 2 ok"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-6.2.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT OR REPLACE INTO t1 VALUES(3, 2, 2) ON CONFLICT(c) DO NOTHING;\n    SELECT * FROM t1;\n    PRAGMA integrity_check;",
+          "expect": "1 1 1 2 2 2 ok"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-6.2.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT OR REPLACE INTO t1 VALUES(3, 1, 1) ON CONFLICT(b) \n      DO UPDATE SET b=b||'x';\n    SELECT * FROM t1;\n    PRAGMA integrity_check;",
+          "expect": "1 1x 1 2 2 2 ok"
+        },
+        {
+          "type": "query",
+          "sql": "INSERT OR REPLACE INTO t1 VALUES(3, 2, 2) ON CONFLICT(c) \n      DO UPDATE SET c=c||'x';\n    SELECT * FROM t1;\n    PRAGMA integrity_check;",
+          "expect": "1 1x 1 2 2 2x ok"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(w, x, y, z, PRIMARY KEY(x, y));\n    CREATE UNIQUE INDEX zz ON t1(z);"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-7.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('a', 1, 1, 1);\n    INSERT INTO t1 VALUES('b', 2, 2, 2);"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-7.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES('c', 3, 3, 1) ON CONFLICT(z) \n      DO UPDATE SET w = excluded.w;\n    SELECT * FROM t1;",
+          "expect": "c 1 1 1 b 2 2 2"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-7.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES('c', 2, 2, 3) ON CONFLICT(y, x) \n      DO UPDATE SET w = w||w;\n    SELECT * FROM t1;",
+          "expect": "c 1 1 1 bb 2 2 2"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-7.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES('c', 2, 2, 3) ON CONFLICT(y, x) \n      DO UPDATE SET w = w||t1.w;\n    SELECT * FROM t1;",
+          "expect": "c 1 1 1 bbbb 2 2 2"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-7.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 AS tbl VALUES('c', 2, 2, 3) ON CONFLICT(y, x) \n      DO UPDATE SET w = w||tbl.w;\n    SELECT * FROM t1;",
+          "expect": "c 1 1 1 bbbbbbbb 2 2 2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(w, x, y, z, PRIMARY KEY(x, y)) WITHOUT ROWID;\n    CREATE UNIQUE INDEX zz ON t1(z);"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-7.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('a', 1, 1, 1);\n    INSERT INTO t1 VALUES('b', 2, 2, 2);"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-7.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES('c', 3, 3, 1) ON CONFLICT(z) \n      DO UPDATE SET w = excluded.w;\n    SELECT * FROM t1;",
+          "expect": "c 1 1 1 b 2 2 2"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-7.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES('c', 2, 2, 3) ON CONFLICT(y, x) \n      DO UPDATE SET w = w||w;\n    SELECT * FROM t1;",
+          "expect": "c 1 1 1 bb 2 2 2"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-7.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES('c', 2, 2, 3) ON CONFLICT(y, x) \n      DO UPDATE SET w = w||t1.w;\n    SELECT * FROM t1;",
+          "expect": "c 1 1 1 bbbb 2 2 2"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-7.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 AS tbl VALUES('c', 2, 2, 3) ON CONFLICT(y, x) \n      DO UPDATE SET w = w||tbl.w;\n    SELECT * FROM t1;",
+          "expect": "c 1 1 1 bbbbbbbb 2 2 2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE excluded(w, x INTEGER, 'a b', z, PRIMARY KEY(x, 'a b'));\n    CREATE UNIQUE INDEX zz ON excluded(z);\n    CREATE INDEX zz2 ON excluded(z);"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-8.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO excluded VALUES('a', 1, 1, 1);\n    INSERT INTO excluded VALUES('b', 2, 2, 2);"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-8.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO excluded VALUES('hello', 1, 1, NULL) ON CONFLICT(x, \"a b\")\n      DO UPDATE SET w=excluded.w;\n    SELECT * FROM excluded;",
+          "expect": "a 1 1 1 b 2 2 2"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-8.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) ON CONFLICT(x, [a b])\n      DO UPDATE SET w=excluded.w;\n    SELECT * FROM excluded;",
+          "expect": "hello 1 1 1 b 2 2 2"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-8.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) ON CONFLICT(x, [a b])\n      DO UPDATE SET w=w||w WHERE excluded.w!='hello';\n    SELECT * FROM excluded;",
+          "expect": "hello 1 1 1 b 2 2 2"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-8.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) ON CONFLICT(x, [a b])\n      DO UPDATE SET w=w||w WHERE excluded.x=1;\n    SELECT * FROM excluded;",
+          "expect": "hellohello 1 1 1 b 2 2 2"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-8.1.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) \n      ON CONFLICT(x, [a b]) WHERE y=1\n      DO UPDATE SET w=w||w WHERE excluded.x=1;",
+          "expect": "1 {no such column: y}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_17",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE excluded(w, x, 'a b', z, PRIMARY KEY(x, 'a b')) WITHOUT ROWID;\n    CREATE UNIQUE INDEX zz ON excluded(z);\n    CREATE INDEX zz2 ON excluded(z);"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-8.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO excluded VALUES('a', 1, 1, 1);\n    INSERT INTO excluded VALUES('b', 2, 2, 2);"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-8.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO excluded VALUES('hello', 1, 1, NULL) ON CONFLICT(x, \"a b\")\n      DO UPDATE SET w=excluded.w;\n    SELECT * FROM excluded;",
+          "expect": "a 1 1 1 b 2 2 2"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-8.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) ON CONFLICT(x, [a b])\n      DO UPDATE SET w=excluded.w;\n    SELECT * FROM excluded;",
+          "expect": "hello 1 1 1 b 2 2 2"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-8.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) ON CONFLICT(x, [a b])\n      DO UPDATE SET w=w||w WHERE excluded.w!='hello';\n    SELECT * FROM excluded;",
+          "expect": "hello 1 1 1 b 2 2 2"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-8.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) ON CONFLICT(x, [a b])\n      DO UPDATE SET w=w||w WHERE excluded.x=1;\n    SELECT * FROM excluded;",
+          "expect": "hellohello 1 1 1 b 2 2 2"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-8.2.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) \n      ON CONFLICT(x, [a b]) WHERE y=1\n      DO UPDATE SET w=w||w WHERE excluded.x=1;",
+          "expect": "1 {no such column: y}"
+        }
+      ]
+    },
+    {
+      "name": "upsert4-9.0",
       "steps": [
         {
           "type": "exec",
@@ -22,12 +1487,12 @@
       ]
     },
     {
-      "name": "9.1",
+      "name": "upsert4-9.1",
       "steps": [
         {
           "type": "query",
           "sql": "INSERT INTO v VALUES(1), (4), (1), (5), (5), (8), (9), (1);\n  SELECT * FROM hist;",
-          "expect": "1 3\n  4 1\n  5 2\n  8 1\n  9 1"
+          "expect": "\n  1 3\n  4 1\n  5 2\n  8 1\n  9 1\n"
         }
       ]
     }

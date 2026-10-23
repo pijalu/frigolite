@@ -1,9 +1,41 @@
 {
   "file": "bestindexB.test",
   "name": "bestindexB",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "bestindexB",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "bestindexB"
+          },
+          "callbackProcs": [
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE t1(a, b, c)\"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set clist [$hdl constraints]\n      set orderby [$hdl orderby]\n\n      if {[info exists ::xbestindex_sql]} { \n        # explain_i $::xbestindex_sql \n        set ::xbestindex_res [ execsql $::xbestindex_sql ]\n      }\n\n      return \"cost 1000000 rows 1000000 idxnum 0 idxstr hello\"\n    }\n\n    xFilter {\n      return \"sql {SELECT 0, 1, 2, 3}\"\n    }\n  }\n\n  return {}\n",
+              "Defaults": null
+            }
+          ],
+          "moduleArgs": [
+            "db"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bestindexB-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +44,7 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "bestindexB-1.1",
       "steps": [
         {
           "type": "query",
@@ -22,7 +54,7 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "bestindexB-1.2",
       "steps": [
         {
           "type": "exec",
@@ -32,7 +64,7 @@
       ]
     },
     {
-      "name": "1.3",
+      "name": "bestindexB-1.3",
       "steps": [
         {
           "type": "exec",
@@ -42,12 +74,22 @@
       ]
     },
     {
-      "name": "1.4",
+      "name": "bestindexB-1.4",
       "steps": [
         {
           "type": "exec",
           "sql": "INSERT INTO y1 VALUES(5, 6) RETURNING rowid;",
           "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "bestindexB-1.5",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "xbestindex_res",
+          "expect": "1"
         }
       ]
     }

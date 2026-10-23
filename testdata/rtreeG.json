@@ -1,0 +1,117 @@
+{
+  "file": "rtreeG.test",
+  "name": "rtreeG",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "rtreeG-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(id,x0,x1,y0,y1);"
+        }
+      ]
+    },
+    {
+      "name": "rtreeG-1.1log",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "log"
+        }
+      ]
+    },
+    {
+      "name": "rtreeG-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(1,10,15,5,23),(2,20,21,5,23),(3,10,15,20,30);\n  SELECT id from t1 WHERE x0\u003e8 AND x1\u003c16 AND y0\u003e2 AND y1\u003c25;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rtreeG-1.2log",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "log"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "rtreeG-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id from t1 WHERE x0\u003e8 AND x1\u003c16 AND y0\u003e2 AND y1\u003c25;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rtreeG-1.3log",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "log"
+        }
+      ]
+    },
+    {
+      "name": "rtreeG-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;"
+        }
+      ]
+    },
+    {
+      "name": "rtreeG-1.4log",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "log"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    }
+  ]
+}

@@ -4,6 +4,38 @@
   "ordered": true,
   "tests": [
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "auth_proc",
+          "authProc": "xAuth",
+          "callbackVars": {
+            "": "",
+            "::auth": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "alterauth"
+          },
+          "callbackProcs": [
+            {
+              "Name": "xAuth",
+              "Args": [
+                "type",
+                "args"
+              ],
+              "Body": "\n  if {$type == \"SQLITE_ALTER_TABLE\"} {\n    lappend ::auth [concat $type [lrange $args 0 3]]\n  }\n  return SQLITE_OK\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "xAuth",
+          "functionBody": "\n  if {$type == \"SQLITE_ALTER_TABLE\"} {\n    lappend ::auth [concat $type [lrange $args 0 3]]\n  }\n  return SQLITE_OK\n"
+        }
+      ]
+    },
+    {
       "name": "alterauth-1.0",
       "steps": [
         {
@@ -17,7 +49,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ALTER TABLE t1 RENAME TO t2",
+          "sql": "ALTER TABLE t1 RENAME TO t2"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "auth",
           "expect": "{SQLITE_ALTER_TABLE main t1 {} {}}"
         }
       ]
@@ -27,7 +63,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ALTER TABLE t2 RENAME c TO ccc",
+          "sql": "ALTER TABLE t2 RENAME c TO ccc"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "auth",
           "expect": "{SQLITE_ALTER_TABLE main t2 {} {}}"
         }
       ]
@@ -37,7 +77,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ALTER TABLE t2 ADD COLUMN d",
+          "sql": "ALTER TABLE t2 ADD COLUMN d"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "auth",
           "expect": "{SQLITE_ALTER_TABLE main t2 {} {}}"
         }
       ]

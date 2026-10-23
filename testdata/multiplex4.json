@@ -1,68 +1,176 @@
 {
   "file": "multiplex4.test",
   "name": "multiplex4",
+  "ordered": true,
   "tests": [
     {
       "name": "setup_0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(randomblob(250000));"
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "multiplex4-1.0",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "mx4test.db"
         },
         {
           "type": "exec",
-          "sql": "DELETE FROM t1;\n    VACUUM;"
-        },
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(randomblob(250000));",
+          "expect": "mx4test.001 mx4test.db"
+        }
+      ]
+    },
+    {
+      "name": "multiplex4-1.1",
+      "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA multiplex_truncate"
-        },
+          "sql": "DELETE FROM t1;\n    VACUUM;",
+          "expect": "mx4test.db"
+        }
+      ]
+    },
+    {
+      "name": "multiplex4-1.2",
+      "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA multiplex_truncate=off"
-        },
+          "sql": "PRAGMA multiplex_truncate",
+          "expect": "on"
+        }
+      ]
+    },
+    {
+      "name": "multiplex4-1.3",
+      "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA multiplex_truncate"
-        },
+          "sql": "PRAGMA multiplex_truncate=off",
+          "expect": "off"
+        }
+      ]
+    },
+    {
+      "name": "multiplex4-1.4",
+      "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA multiplex_truncate=on"
-        },
+          "sql": "PRAGMA multiplex_truncate",
+          "expect": "off"
+        }
+      ]
+    },
+    {
+      "name": "multiplex4-1.5",
+      "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA multiplex_truncate"
-        },
+          "sql": "PRAGMA multiplex_truncate=on",
+          "expect": "on"
+        }
+      ]
+    },
+    {
+      "name": "multiplex4-1.6",
+      "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA multiplex_truncate=0"
-        },
+          "sql": "PRAGMA multiplex_truncate",
+          "expect": "on"
+        }
+      ]
+    },
+    {
+      "name": "multiplex4-1.7",
+      "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA multiplex_truncate=1"
-        },
+          "sql": "PRAGMA multiplex_truncate=0",
+          "expect": "off"
+        }
+      ]
+    },
+    {
+      "name": "multiplex4-1.8",
+      "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA multiplex_truncate=0"
-        },
+          "sql": "PRAGMA multiplex_truncate=1",
+          "expect": "on"
+        }
+      ]
+    },
+    {
+      "name": "multiplex4-1.9",
+      "steps": [
         {
           "type": "exec",
-          "sql": "EXPLAIN PRAGMA multiplex_truncate=0;"
-        },
+          "sql": "PRAGMA multiplex_truncate=0",
+          "expect": "off"
+        }
+      ]
+    },
+    {
+      "name": "multiplex4-1.9-explain",
+      "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1(x) VALUES(randomblob(250000));"
-        },
+          "sql": "EXPLAIN PRAGMA multiplex_truncate=0;",
+          "expect": "/String8 \\d \\d \\d off/"
+        }
+      ]
+    },
+    {
+      "name": "multiplex4-1.10",
+      "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM t1;\n    VACUUM;"
-        },
+          "sql": "INSERT INTO t1(x) VALUES(randomblob(250000));",
+          "expect": "mx4test.001 mx4test.db"
+        }
+      ]
+    },
+    {
+      "name": "multiplex4-1.11",
+      "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA multiplex_truncate=ON;\n    DROP TABLE t1;\n    VACUUM;"
+          "sql": "DELETE FROM t1;\n    VACUUM;",
+          "expect": "mx4test.001 mx4test.db"
+        }
+      ]
+    },
+    {
+      "name": "multiplex4-1.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA multiplex_truncate=ON;\n    DROP TABLE t1;\n    VACUUM;",
+          "expect": "mx4test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "mx4test.db"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

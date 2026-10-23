@@ -336,6 +336,10 @@ func formatSkipScanConditions(cols []string, nSkip int, colOps map[string]string
 			parts = append(parts, fmt.Sprintf("%s=?", col))
 		case "=":
 			parts = append(parts, fmt.Sprintf("%s=?", col))
+		case ">", ">=":
+			parts = append(parts, fmt.Sprintf("%s>?", col))
+		case "<", "<=":
+			parts = append(parts, fmt.Sprintf("%s<?", col))
 		}
 	}
 	return "(" + strings.Join(parts, " AND ") + ")"
@@ -356,8 +360,34 @@ func constrainedColumnNames(where sql.Expr, tableName string) map[string]bool {
 // with the correct shape (e.g. `c>? AND c<?` for BETWEEN c 6 AND 7).
 func constrainedColOps(where sql.Expr, tableName string) map[string]string {
 	out := map[string]string{}
-	walkConstrainedCols(where, tableName, true, func(col, op string) { out[col] = op })
+	walkConstrainedCols(where, tableName, true, func(col, op string) {
+		switch op {
+		case ">", ">=", "<", "<=":
+			// A column constrained from both sides is a range: SQLite
+			// renders it as "c>? AND c<?".
+			if prev, ok := out[col]; ok && prev != op && isRangeBound(prev) && isRangeBound(op) {
+				out[col] = "BETWEEN"
+				return
+			}
+			if _, ok := out[col]; !ok {
+				out[col] = op
+			}
+		default:
+			if _, ok := out[col]; !ok {
+				out[col] = op
+			}
+		}
+	})
 	return out
+}
+
+// isRangeBound reports whether op is one of the range comparison operators.
+func isRangeBound(op string) bool {
+	switch op {
+	case ">", ">=", "<", "<=":
+		return true
+	}
+	return false
 }
 
 // walkConstrainedCols visits every column-to-constant constraint in where,
@@ -379,8 +409,22 @@ func walkConstrainedCols(where sql.Expr, tableName string, recurseUnary bool, ma
 			walkConstrainedCols(e.Right, tableName, recurseUnary, mark)
 			return
 		}
-		if constraintOperandCol(e, tableName, "=", mark) {
-			return
+		// Mark the comparison with its real operator: a range bound
+		// (">", "<") renders differently from an equality, and two bounds
+		// on the same column render as "c>? AND c<?".
+		switch e.Operator {
+		case "=", "==":
+			if constraintOperandCol(e, tableName, "=", mark) {
+				return
+			}
+		case ">", ">=", "<", "<=":
+			if constraintOperandCol(e, tableName, e.Operator, mark) {
+				return
+			}
+		default:
+			if constraintOperandCol(e, tableName, "=", mark) {
+				return
+			}
 		}
 		walkConstrainedCols(e.Left, tableName, recurseUnary, mark)
 		walkConstrainedCols(e.Right, tableName, recurseUnary, mark)
@@ -447,14 +491,11 @@ func (e *SelectEngine) stat1Tokens(idxName string) []int64 {
 		if len(rec.Values) < 3 {
 			return true
 		}
-		idxStr, ok := rec.Values[1].(string)
-		if !ok || !strings.EqualFold(idxStr, idxName) {
+		idxStr := stat4Text(rec.Values[1])
+		if !strings.EqualFold(idxStr, idxName) {
 			return true
 		}
-		statStr, ok := rec.Values[2].(string)
-		if !ok {
-			return true
-		}
+		statStr := stat4Text(rec.Values[2])
 		for _, f := range strings.Fields(statStr) {
 			// Skip tokens containing '=' (e.g. "sz=20", "noskipscan").
 			if strings.Contains(f, "=") {

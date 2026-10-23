@@ -28,6 +28,7 @@ func (e *DDLExecutor) runCreateTableValidations(ctx *DatabaseContext, s *sql.Cre
 		func() *Result { return e.validateStrictTable(s, tableName) },
 		func() *Result { return e.validateGeneratedColumns(s) },
 		func() *Result { return e.validateColumnCount(s, tableName) },
+		func() *Result { return e.validateIndexColumnCount(s) },
 		func() *Result { return e.validateWithoutRowid(s, tableName) },
 		func() *Result { return e.validateTableKeyConstraints(s) },
 		func() *Result { return e.validateAutoIncrement(s) },
@@ -231,6 +232,28 @@ func (e *DDLExecutor) validateColumnCount(s *sql.CreateTableStmt, tableName stri
 	return nil
 }
 
+// validateIndexColumnCount enforces SQLITE_LIMIT_COLUMN for PRIMARY KEY and
+// UNIQUE index definitions declared in a table.
+func (e *DDLExecutor) validateIndexColumnCount(s *sql.CreateTableStmt) *Result {
+	limit := e.ctx.ColumnLimit()
+	for _, constraint := range s.Constraints {
+		if constraint.Type != sql.ConstraintUnique && constraint.Type != sql.ConstraintPrimaryKey {
+			continue
+		}
+		if len(constraint.Columns) > limit {
+			return &Result{Error: fmt.Errorf("too many columns in index")}
+		}
+	}
+	for _, column := range s.Columns {
+		if column.PrimaryKey || column.Unique {
+			if limit < 1 {
+				return &Result{Error: fmt.Errorf("too many columns in index")}
+			}
+		}
+	}
+	return nil
+}
+
 // resolveCreateTableSchema resolves the schema prefix ("TEMP"/"temp.db") and
 // the database context for a CREATE TABLE statement. It returns the database
 // context, the unqualified table name, and (on unknown database) the result.
@@ -336,11 +359,11 @@ func (e *DDLExecutor) checkCreateTableExisting(ctx *DatabaseContext, s *sql.Crea
 	// A CREATE TABLE whose name collides with an existing index or view is
 	// an error in SQLite: "there is already an index named i1" when an
 	// index has the name, "view v1 already exists" when a view does.
-	if s.IfNotExists {
-		return nil
-	}
 	if idx, _ := ctx.Schema.FindIndex(tableName); idx != nil {
 		return &Result{Error: fmt.Errorf("there is already an index named %s", tableName)}
+	}
+	if s.IfNotExists {
+		return nil
 	}
 	if vw, _ := ctx.Schema.FindView(tableName); vw != nil {
 		return &Result{Error: fmt.Errorf("view %s already exists", tableName)}

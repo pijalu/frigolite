@@ -1,9 +1,11 @@
 {
   "file": "nulls1.test",
   "name": "nulls1",
+  "nullToken": "NULL",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "nulls1-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +14,269 @@
       ]
     },
     {
-      "name": "2.0",
+      "name": "nulls1-1.0.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t3 ORDER BY a nULLS FIRST",
+          "expect": "{}   {}   10   20   30"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-1.0.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t3 ORDER BY a nULLS LAST",
+          "expect": "10   20   30   {}   {}"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-1.0.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t3 ORDER BY a DESC nULLS FIRST",
+          "expect": "{}   {}   30   20   10"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-1.0.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t3 ORDER BY a DESC nULLS LAST",
+          "expect": "30   20   10   {}   {}"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-1.0.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t3 ORDER BY a nULLS FIRST LIMIT 10",
+          "expect": "{}   {}   10   20   30"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-1.0.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t3 ORDER BY a nULLS LAST LIMIT 10",
+          "expect": "10   20   30   {}   {}"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-1.0.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t3 ORDER BY a DESC nULLS FIRST LIMIT 10",
+          "expect": "{}   {}   30   20   10"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-1.0.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t3 ORDER BY a DESC nULLS LAST LIMIT 10",
+          "expect": "30   20   10   {}   {}"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t3(a)"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-1.1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t3 ORDER BY a nULLS FIRST",
+          "expect": "{}   {}   10   20   30"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-1.1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t3 ORDER BY a nULLS LAST",
+          "expect": "10   20   30   {}   {}"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-1.1.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t3 ORDER BY a DESC nULLS FIRST",
+          "expect": "{}   {}   30   20   10"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-1.1.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t3 ORDER BY a DESC nULLS LAST",
+          "expect": "30   20   10   {}   {}"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-1.1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t3 ORDER BY a nULLS FIRST LIMIT 10",
+          "expect": "{}   {}   10   20   30"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-1.1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t3 ORDER BY a nULLS LAST LIMIT 10",
+          "expect": "10   20   30   {}   {}"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-1.1.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t3 ORDER BY a DESC nULLS FIRST LIMIT 10",
+          "expect": "{}   {}   30   20   10"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-1.1.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t3 ORDER BY a DESC nULLS LAST LIMIT 10",
+          "expect": "30   20   10   {}   {}"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i1 ; CREATE INDEX i1 ON t3(a DESC)"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-1.2.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t3 ORDER BY a nULLS FIRST",
+          "expect": "{}   {}   10   20   30"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-1.2.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t3 ORDER BY a nULLS LAST",
+          "expect": "10   20   30   {}   {}"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-1.2.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t3 ORDER BY a DESC nULLS FIRST",
+          "expect": "{}   {}   30   20   10"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-1.2.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t3 ORDER BY a DESC nULLS LAST",
+          "expect": "30   20   10   {}   {}"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-1.2.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t3 ORDER BY a nULLS FIRST LIMIT 10",
+          "expect": "{}   {}   10   20   30"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-1.2.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t3 ORDER BY a nULLS LAST LIMIT 10",
+          "expect": "10   20   30   {}   {}"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-1.2.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t3 ORDER BY a DESC nULLS FIRST LIMIT 10",
+          "expect": "{}   {}   30   20   10"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-1.2.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t3 ORDER BY a DESC nULLS LAST LIMIT 10",
+          "expect": "30   20   10   {}   {}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "nulls1-2.0",
       "steps": [
         {
           "type": "exec",
@@ -21,27 +285,31 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "nulls1-2.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t2 WHERE a=1 ORDER BY b NULLS LAST",
-          "expect": "1 1 1    1 4 4   1 {} 2   1 {} 3"
+          "expect": "\n  1 1 1    1 4 4   1 {} 2   1 {} 3\n"
         }
       ]
     },
     {
-      "name": "2.2",
+      "name": "nulls1-2.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t2 WHERE a=1 ORDER BY b DESC NULLS FIRST",
-          "expect": "1 {} 3\n  1 {} 2     \n  1 4 4     \n  1 1 1"
+          "expect": "\n  1 {} 3\n  1 {} 2     \n  1 4 4     \n  1 1 1\n"
         }
       ]
     },
     {
-      "name": "3.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "nulls1-3.0",
       "steps": [
         {
           "type": "exec",
@@ -50,17 +318,145 @@
       ]
     },
     {
-      "name": "3.2",
+      "name": "nulls1-3.1.1",
       "steps": [
         {
-          "type": "query",
-          "sql": "CREATE TABLE first(nulls, last);\n  INSERT INTO first(last, nulls) VALUES(100,200), (300,400), (200,300);\n  SELECT * FROM first ORDER BY nulls;",
-          "expect": "200 100\n  300 200\n  400 300"
+          "type": "catch",
+          "sql": "CREATE INDEX i1 ON t1(a ASC NULLS LAST)",
+          "expect": "1 {unsupported use of NULLS LAST}"
         }
       ]
     },
     {
-      "name": "4.0",
+      "name": "nulls1-3.1.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE INDEX i1 ON t1(a ASC NULLS FIRST)",
+          "expect": "1 {unsupported use of NULLS FIRST}"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-3.1.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE INDEX i1 ON t1(a, b ASC NULLS LAST)",
+          "expect": "1 {unsupported use of NULLS LAST}"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-3.1.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE INDEX i1 ON t1(a, b ASC NULLS FIRST)",
+          "expect": "1 {unsupported use of NULLS FIRST}"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-3.1.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE INDEX i1 ON t1(a DESC NULLS LAST)",
+          "expect": "1 {unsupported use of NULLS LAST}"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-3.1.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE INDEX i1 ON t1(a DESC NULLS FIRST)",
+          "expect": "1 {unsupported use of NULLS FIRST}"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-3.1.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE INDEX i1 ON t1(a, b DESC NULLS LAST)",
+          "expect": "1 {unsupported use of NULLS LAST}"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-3.1.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE INDEX i1 ON t1(a, b DESC NULLS FIRST)",
+          "expect": "1 {unsupported use of NULLS FIRST}"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-3.1.9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TABLE t2(a, b, PRIMARY KEY(a DESC, b NULLS FIRST))",
+          "expect": "1 {unsupported use of NULLS FIRST}"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-3.1.10",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TABLE t2(a, b, UNIQUE(a DESC NULLS FIRST, b))",
+          "expect": "1 {unsupported use of NULLS FIRST}"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-3.1.11",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES(1, 2, 3, 4)\n          ON CONFLICT (b DESC NULLS LAST) DO UPDATE SET a = a+1",
+          "expect": "1 {unsupported use of NULLS LAST}"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-3.1.12",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO t1 VALUES(1, 2, 3, 4)\n      ON CONFLICT (b DESC NULLS FIRST) DO UPDATE SET a = a+1;\n    END",
+          "expect": "1 {unsupported use of NULLS FIRST}"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE first(nulls, last);\n  INSERT INTO first(last, nulls) VALUES(100,200), (300,400), (200,300);\n  SELECT * FROM first ORDER BY nulls;",
+          "expect": "\n  200 100\n  300 200\n  400 300\n"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "register_echo_module"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-4.0",
       "steps": [
         {
           "type": "exec",
@@ -69,7 +465,7 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "nulls1-4.1",
       "steps": [
         {
           "type": "query",
@@ -79,7 +475,7 @@
       ]
     },
     {
-      "name": "4.2",
+      "name": "nulls1-4.2",
       "steps": [
         {
           "type": "query",
@@ -89,7 +485,7 @@
       ]
     },
     {
-      "name": "4.3",
+      "name": "nulls1-4.3",
       "steps": [
         {
           "type": "query",
@@ -99,7 +495,7 @@
       ]
     },
     {
-      "name": "4.4",
+      "name": "nulls1-4.4",
       "steps": [
         {
           "type": "query",
@@ -109,7 +505,7 @@
       ]
     },
     {
-      "name": "5.0",
+      "name": "nulls1-5.0",
       "steps": [
         {
           "type": "exec",
@@ -118,64 +514,119 @@
       ]
     },
     {
-      "name": "5.1",
+      "name": "nulls1-5.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t4 WHERE a IN (1, 2, 3) ORDER BY a, b NULLS LAST",
-          "expect": "1 1 11   1 2 12   1 {} 1   \n  2 1 11   2 2 12   2 {} 1 \n  3 2 12   3 {} 1   3 {} 3"
+          "expect": "\n  1 1 11   1 2 12   1 {} 1   \n  2 1 11   2 2 12   2 {} 1 \n  3 2 12   3 {} 1   3 {} 3\n"
         }
       ]
     },
     {
-      "name": "5.2",
+      "name": "nulls1-5.2",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE INDEX t4ab ON t4(a, b);\n  SELECT * FROM t4 WHERE a IN (1, 2, 3) ORDER BY a, b NULLS LAST",
-          "expect": "1 1 11   1 2 12   1 {} 1   \n  2 1 11   2 2 12   2 {} 1 \n  3 2 12   3 {} 1   3 {} 3"
+          "expect": "\n  1 1 11   1 2 12   1 {} 1   \n  2 1 11   2 2 12   2 {} 1 \n  3 2 12   3 {} 1   3 {} 3\n"
         }
       ]
     },
     {
-      "name": "5.4",
+      "name": "nulls1-5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t4 WHERE a IN (1, 2, 3) ORDER BY a, b NULLS LAST"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-5.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t4 WHERE a IN (1, 2, 3) ORDER BY a DESC, b DESC NULLS FIRST",
-          "expect": "3 {} 3   3 {} 1   3 2 12   \n  2 {} 1   2 2 12   2 1 11   \n  1 {} 1   1 2 12   1 1 11"
+          "expect": "\n  3 {} 3   3 {} 1   3 2 12   \n  2 {} 1   2 2 12   2 1 11   \n  1 {} 1   1 2 12   1 1 11   \n"
         }
       ]
     },
     {
-      "name": "6.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t5(a, b, c);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<200\n  ) \n  INSERT INTO t5 SELECT i%2, CASE WHEN (i%10)==0 THEN NULL ELSE i END, i FROM s;"
-        }
-      ]
-    },
-    {
-      "name": "6.1.1",
+      "name": "nulls1-5.5",
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE INDEX t5ab ON t5(a, b, c);\n  SELECT a,b FROM t5 WHERE a=1 ORDER BY b NULLS LAST, c;"
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t4 WHERE a IN (1, 2, 3) ORDER BY a DESC, b DESC NULLS FIRST"
         }
       ]
     },
     {
-      "name": "6.2.1",
+      "name": "nulls1-6.0",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a,b FROM t5 WHERE a=1 ORDER BY b DESC NULLS FIRST, c DESC"
+          "sql": "CREATE TABLE t5(a, b, c);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i\u003c200\n  ) \n  INSERT INTO t5 SELECT i%2, CASE WHEN (i%10)==0 THEN NULL ELSE i END, i FROM s;"
         }
       ]
     },
     {
-      "name": "7.0",
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT a,b FROM t5 WHERE a=1 ORDER BY b NULLS LAST, c",
+          "variable": "res1",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT a,b FROM t5 WHERE a=1 ORDER BY b DESC NULLS FIRST, c DESC",
+          "variable": "res2",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "nulls1-6.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t5ab ON t5(a, b, c);\n  SELECT a,b FROM t5 WHERE a=1 ORDER BY b NULLS LAST, c;",
+          "expectedExpr": "$res1"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-6.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT a,b FROM t5 WHERE a=1 ORDER BY b NULLS LAST, c;"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-6.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a,b FROM t5 WHERE a=1 ORDER BY b DESC NULLS FIRST, c DESC",
+          "expectedExpr": "$res2"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-6.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT a,b FROM t5 WHERE a=1 ORDER BY b DESC NULLS FIRST, c DESC"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-7.0",
       "steps": [
         {
           "type": "query",
@@ -184,17 +635,21 @@
       ]
     },
     {
-      "name": "8.0",
+      "name": "nulls1-8.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t80(a, b INTEGER, PRIMARY KEY(b NULLS LAST)) WITHOUT ROWID;",
           "expect": "1 {unsupported use of NULLS LAST}"
         }
       ]
     },
     {
-      "name": "9.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "nulls1-9.0",
       "steps": [
         {
           "type": "exec",
@@ -203,7 +658,7 @@
       ]
     },
     {
-      "name": "9.1",
+      "name": "nulls1-9.1",
       "steps": [
         {
           "type": "exec",
@@ -212,7 +667,7 @@
       ]
     },
     {
-      "name": "9.2",
+      "name": "nulls1-9.2",
       "steps": [
         {
           "type": "exec",
@@ -221,27 +676,40 @@
       ]
     },
     {
-      "name": "9.3",
+      "name": "nulls1-9.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT c1, c2, ifnull(c3, 'NULL') FROM v0 \n  WHERE c2=10 ORDER BY c1, c3 NULLS LAST",
-          "expect": "1 10 a 1 10 b 1 10 c 1 10 d 1 10 NULL 1 10 NULL\n  2 10 a 2 10 b 2 10 c 2 10 d 2 10 NULL 2 10 NULL"
+          "expect": "\n  1 10 a 1 10 b 1 10 c 1 10 d 1 10 NULL 1 10 NULL\n  2 10 a 2 10 b 2 10 c 2 10 d 2 10 NULL 2 10 NULL\n"
         }
       ]
     },
     {
-      "name": "10.10",
+      "name": "nulls1-9.4",
       "steps": [
         {
           "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT c1, c2, ifnull(c3, 'NULL') FROM v0 \n  WHERE c2=10 ORDER BY c1, c3 NULLS LAST"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "nulls1-10.10",
+      "steps": [
+        {
+          "type": "emptytext",
           "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1(x) VALUES('X');\n  CREATE TABLE t2(c, d);\n  CREATE INDEX t2dc ON t2(d, c);\n  SELECT c FROM t1 LEFT JOIN t2 ON d=NULL ORDER BY d, c NULLS LAST;",
           "expect": "{}"
         }
       ]
     },
     {
-      "name": "10.20",
+      "name": "nulls1-10.20",
       "steps": [
         {
           "type": "query",
@@ -251,7 +719,7 @@
       ]
     },
     {
-      "name": "10.30",
+      "name": "nulls1-10.30",
       "steps": [
         {
           "type": "query",
@@ -261,7 +729,7 @@
       ]
     },
     {
-      "name": "10.40",
+      "name": "nulls1-10.40",
       "steps": [
         {
           "type": "query",
@@ -271,7 +739,7 @@
       ]
     },
     {
-      "name": "10.41",
+      "name": "nulls1-10.41",
       "steps": [
         {
           "type": "query",
@@ -281,7 +749,7 @@
       ]
     },
     {
-      "name": "10.42",
+      "name": "nulls1-10.42",
       "steps": [
         {
           "type": "query",
@@ -291,7 +759,7 @@
       ]
     },
     {
-      "name": "10.50",
+      "name": "nulls1-10.50",
       "steps": [
         {
           "type": "query",
@@ -301,60 +769,639 @@
       ]
     },
     {
-      "name": "10.51",
+      "name": "nulls1-10.51",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT x, c, d, '|' FROM t1 LEFT JOIN t2 ON d=x\n   ORDER BY +d NULLS LAST, +c NULLS LAST;",
           "expect": "X 3 X | X 4 X | X 5 X | X 7 X | X {} X | {} {} {} | Y {} {} |"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX i1 ON t3(a)"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX i1 ; CREATE INDEX i1 ON t3(a DESC)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b FROM t5 WHERE a=1 ORDER BY b NULLS LAST, c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b FROM t5 WHERE a=1 ORDER BY b DESC NULLS FIRST, c DESC"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "nulls1-11.1.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a TEXT COLLATE NOCASE, b TEXT);\n    INSERT INTO t1 VALUES('Hello', 'world');"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.0.3.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT     ('hello', NULL) IN (SELECT a, b FROM t1)",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.2.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT NOT ('hello', NULL) IN (SELECT a, b FROM t1)",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.3.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('Hello', NULL) IN (SELECT a, b FROM t1)",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.4.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('Hello' COLLATE NOCASE, NULL) IN (SELECT a, b FROM t1)",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.5.3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('hello', 'world') IN (SELECT a, b FROM t1)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.6.3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('hi', NULL) IN (SELECT a, b FROM t1)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.7.3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('hello', NULL) IN ((a, b), (3, 4), (5, 6)) FROM t1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "setup_12",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.8.3.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (a, b) IN (('hello', NULL), (3, 4), (5, 6)) FROM t1",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "setup_13",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.9.3.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('Hello', NULL) IN ((a, b), (3, 4), (5, 6)) FROM t1",
+          "expect": "NULL"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "nulls1-11.2.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a TEXT COLLATE NOCASE, b TEXT);\n    INSERT INTO t1 VALUES('Hello', 'world');"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(a, b)"
+        }
+      ]
+    },
+    {
+      "name": "setup_14",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.0.3.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "setup_15",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT     ('hello', NULL) IN (SELECT a, b FROM t1)",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "setup_16",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.2.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT NOT ('hello', NULL) IN (SELECT a, b FROM t1)",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "setup_17",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.3.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('Hello', NULL) IN (SELECT a, b FROM t1)",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "setup_18",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.4.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('Hello' COLLATE NOCASE, NULL) IN (SELECT a, b FROM t1)",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "setup_19",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.5.3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('hello', 'world') IN (SELECT a, b FROM t1)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "setup_20",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.6.3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('hi', NULL) IN (SELECT a, b FROM t1)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "setup_21",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.7.3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('hello', NULL) IN ((a, b), (3, 4), (5, 6)) FROM t1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "setup_22",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.8.3.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (a, b) IN (('hello', NULL), (3, 4), (5, 6)) FROM t1",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "setup_23",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.9.3.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('Hello', NULL) IN ((a, b), (3, 4), (5, 6)) FROM t1",
+          "expect": "NULL"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "nulls1-11.3.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a TEXT COLLATE NOCASE, b TEXT);\n    INSERT INTO t1 VALUES('Hello', 'world');"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "nulls1-11.3.2",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(b, a)"
+        }
+      ]
+    },
+    {
+      "name": "setup_24",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.0.3.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "setup_25",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT     ('hello', NULL) IN (SELECT a, b FROM t1)",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "setup_26",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.2.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT NOT ('hello', NULL) IN (SELECT a, b FROM t1)",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "setup_27",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.3.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('Hello', NULL) IN (SELECT a, b FROM t1)",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "setup_28",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.4.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('Hello' COLLATE NOCASE, NULL) IN (SELECT a, b FROM t1)",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "setup_29",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.5.3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('hello', 'world') IN (SELECT a, b FROM t1)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "setup_30",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.6.3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('hi', NULL) IN (SELECT a, b FROM t1)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "setup_31",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.7.3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('hello', NULL) IN ((a, b), (3, 4), (5, 6)) FROM t1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "setup_32",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.8.3.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (a, b) IN (('hello', NULL), (3, 4), (5, 6)) FROM t1",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "setup_33",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "nulls1-11.9.3.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('Hello', NULL) IN ((a, b), (3, 4), (5, 6)) FROM t1",
+          "expect": "NULL"
         }
       ]
     }

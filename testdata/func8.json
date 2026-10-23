@@ -1,7 +1,118 @@
 {
   "file": "func8.test",
   "name": "func8",
+  "ordered": true,
   "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "cross",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "joinx cross",
+          "minArgs": -1,
+          "maxArgs": -1
+        },
+        {
+          "type": "register_function",
+          "functionName": "full",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "joinx full",
+          "minArgs": -1,
+          "maxArgs": -1
+        },
+        {
+          "type": "register_function",
+          "functionName": "inner",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "joinx inner",
+          "minArgs": -1,
+          "maxArgs": -1
+        },
+        {
+          "type": "register_function",
+          "functionName": "left",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "joinx left",
+          "minArgs": -1,
+          "maxArgs": -1
+        },
+        {
+          "type": "register_function",
+          "functionName": "natural",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "joinx natural",
+          "minArgs": -1,
+          "maxArgs": -1
+        },
+        {
+          "type": "register_function",
+          "functionName": "outer",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "joinx outer",
+          "minArgs": -1,
+          "maxArgs": -1
+        },
+        {
+          "type": "register_function",
+          "functionName": "right",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "joinx right",
+          "minArgs": -1,
+          "maxArgs": -1
+        }
+      ]
+    },
     {
       "name": "func8-100",
       "steps": [
@@ -16,7 +127,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT cross(cross,full,inner,left,natural,outer,right) FROM cross;"
+          "sql": "SELECT cross(cross,full,inner,left,natural,outer,right) FROM cross;",
+          "expect": "cross-1-2-3-4-5-6-7"
         }
       ]
     },
@@ -25,7 +137,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT full(cross,full,inner,left,natural,outer,right) FROM full;"
+          "sql": "SELECT full(cross,full,inner,left,natural,outer,right) FROM full;",
+          "expect": "full-1-2-3-4-5-6-7"
         }
       ]
     },
@@ -34,7 +147,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT inner(cross,full,inner,left,natural,outer,right) FROM inner;"
+          "sql": "SELECT inner(cross,full,inner,left,natural,outer,right) FROM inner;",
+          "expect": "inner-1-2-3-4-5-6-7"
         }
       ]
     },
@@ -43,7 +157,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT left(cross,full,inner,left,natural,outer,right) FROM left;"
+          "sql": "SELECT left(cross,full,inner,left,natural,outer,right) FROM left;",
+          "expect": "left-1-2-3-4-5-6-7"
         }
       ]
     },
@@ -52,7 +167,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT natural(cross,full,inner,left,natural,outer,right) FROM natural;"
+          "sql": "SELECT natural(cross,full,inner,left,natural,outer,right) FROM natural;",
+          "expect": "natural-1-2-3-4-5-6-7"
         }
       ]
     },
@@ -61,7 +177,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT outer(cross,full,inner,left,natural,outer,right) FROM outer;"
+          "sql": "SELECT outer(cross,full,inner,left,natural,outer,right) FROM outer;",
+          "expect": "outer-1-2-3-4-5-6-7"
         }
       ]
     },
@@ -70,7 +187,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT right(cross,full,inner,left,natural,outer,right) FROM right;"
+          "sql": "SELECT right(cross,full,inner,left,natural,outer,right) FROM right;",
+          "expect": "right-1-2-3-4-5-6-7"
         }
       ]
     }

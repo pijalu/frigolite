@@ -1,33 +1,88 @@
 {
   "file": "extension01.test",
   "name": "extension01",
+  "nullToken": "nil",
+  "ordered": true,
   "tests": [
     {
-      "name": "setup_0",
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "file1.txt"
+        }
+      ]
+    },
+    {
+      "name": "extension01-1.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t1 VALUES(1, readfile('./file1.txt'));\n    SELECT * FROM t1;"
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t1 VALUES(1, readfile('./file1.txt'));\n    SELECT * FROM t1;",
+          "expect": "1 {This is a text file without a line ending}"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "file2.txt"
+        }
+      ]
+    },
+    {
+      "name": "extension01-1.1",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "nil"
         },
         {
           "type": "exec",
-          "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(2, readfile(NULL)),(3, readfile('file2.txt'));\n    SELECT a, b, typeof(b) FROM t1;"
-        },
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(2, readfile(NULL)),(3, readfile('file2.txt'));\n    SELECT a, b, typeof(b) FROM t1;",
+          "expect": "2 nil null 3 nil null"
+        }
+      ]
+    },
+    {
+      "name": "extension01-1.2",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT writefile('./file2.txt', 'A second test line');"
-        },
+          "type": "query",
+          "sql": "SELECT writefile('./file2.txt', 'A second test line');",
+          "expect": "18"
+        }
+      ]
+    },
+    {
+      "name": "extension01-1.4",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT writefile('./file2.txt', NULL);"
-        },
+          "type": "query",
+          "sql": "SELECT writefile('./file2.txt', NULL);",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "extension01-1.6",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT writefile('./file2.txt', 'Another test');"
-        },
+          "type": "query",
+          "sql": "SELECT writefile('./file2.txt', 'Another test');",
+          "expect": "nil"
+        }
+      ]
+    },
+    {
+      "name": "extension01-1.7",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT writefile(NULL, 'Another test');"
+          "type": "query",
+          "sql": "SELECT writefile(NULL, 'Another test');",
+          "expect": "nil"
         }
       ]
     }

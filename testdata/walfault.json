@@ -1,0 +1,215 @@
+{
+  "file": "walfault.test",
+  "name": "walfault",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "walfault-2-pre-1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE x(y, z, UNIQUE(y, z));\n      INSERT INTO x VALUES(randomblob(100), randomblob(100));\n    COMMIT;\n    PRAGMA wal_checkpoint;\n\n    INSERT INTO x SELECT randomblob(100), randomblob(100) FROM x;\n    INSERT INTO x SELECT randomblob(100), randomblob(100) FROM x;\n    INSERT INTO x SELECT randomblob(100), randomblob(100) FROM x;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM x",
+          "expect": "8"
+        }
+      ]
+    },
+    {
+      "name": "walfault-2-pre-2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM x",
+          "expect": "8"
+        }
+      ]
+    },
+    {
+      "name": "walfault-3-pre-1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 1;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE abc(a PRIMARY KEY);\n    INSERT INTO abc VALUES(randomblob(1500));"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "walfault-5-pre-1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "walfault-6-pre-1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    CREATE TABLE t1(x);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(400));           /* 1 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 4 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 8 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 16 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 32 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 64 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 128 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 256 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 512 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 1024 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2048 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 4096 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 8192 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 16384 */\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "walfault-7-pre-1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    CREATE TABLE t1(x);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(400));           /* 1 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 4 */\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "walfault-8-pre-1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE abc(a PRIMARY KEY);\n    INSERT INTO abc VALUES(randomblob(900));"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "walfault-9-pre-1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE abc(a PRIMARY KEY);\n    INSERT INTO abc VALUES(randomblob(900));"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "walfault-10-pre1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    CREATE TABLE z(zz INTEGER PRIMARY KEY, zzz BLOB);\n    CREATE INDEX zzzz ON z(zzz);\n    INSERT INTO z VALUES(NULL, randomblob(800));\n    INSERT INTO z VALUES(NULL, randomblob(800));\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;"
+        }
+      ]
+    },
+    {
+      "name": "walfault-11-pre-1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --    4\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --    8\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --   16\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --   32\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --   64\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --  128\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --  256\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --  512\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   -- 1024\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   -- 2048\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   -- 4096\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "walfault-12-pre-1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "walfault-13-pre-1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "walfault-13-pre-2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "walfault-14-pre",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "walfault-15-pre",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1543 @@
+{
+  "file": "join9.test",
+  "name": "join9",
+  "nullToken": "-",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "-"
+        }
+      ]
+    },
+    {
+      "name": "join9-1.setup",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(id INTEGER PRIMARY KEY, w TEXT);\n    CREATE TABLE t4(id INTEGER PRIMARY KEY, x TEXT);\n    CREATE TABLE t5(id INTEGER PRIMARY KEY, y TEXT);\n    CREATE TABLE t6(id INTEGER PRIMARY KEY, z INT);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n    INSERT INTO t3(id,w) VALUES(2,'two'),(3,'three'),(6,'six'),(7,'seven');\n    INSERT INTO t4(id,x) VALUES(2,'alice'),(4,'bob'),(6,'cindy'),(8,'dave');\n    INSERT INTO t5(id,y) VALUES(1,'red'),(2,'orange'),(3,'yellow'),(4,'green'),\n                               (5,'blue');\n    INSERT INTO t6(id,z) VALUES(3,333),(4,444),(5,555),(0,1000),(9,999);"
+        }
+      ]
+    },
+    {
+      "name": "join9-1.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL LEFT JOIN t5 NATURAL LEFT JOIN t6\n     ORDER BY 1;",
+          "expect": "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-1.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL LEFT JOIN t5 NATURAL LEFT JOIN t6\n     ORDER BY id;",
+          "expect": "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-1.102",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 LEFT JOIN t5 USING(id) LEFT JOIN t6 USING(id)\n     ORDER BY id;",
+          "expect": "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-1.200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL RIGHT JOIN t4 NATURAL LEFT JOIN t6\n     ORDER BY 1;",
+          "expect": "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-1.201",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL RIGHT JOIN t4 NATURAL LEFT JOIN t6\n     ORDER BY id;",
+          "expect": "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-1.300",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL RIGHT JOIN t5 NATURAL RIGHT JOIN t6\n     ORDER BY 1;",
+          "expect": "\n    0   -    -       1000  -   -   0 \n    3   -    yellow  333   -   3   3 \n    4   bob  green   444   4   4   4 \n    5   -    blue    555   -   5   5 \n    9   -    -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-1.301",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL RIGHT JOIN t5 NATURAL RIGHT JOIN t6\n     ORDER BY id;",
+          "expect": "\n    0   -    -       1000  -   -   0 \n    3   -    yellow  333   -   3   3 \n    4   bob  green   444   4   4   4 \n    5   -    blue    555   -   5   5 \n    9   -    -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-1.400",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6\n     ORDER BY 1;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-1.401",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-1.402",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t6 NATURAL FULL JOIN t5\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-1.403",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL FULL JOIN t4 NATURAL FULL JOIN t6\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-1.404",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL FULL JOIN t6 NATURAL FULL JOIN t4\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-1.405",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t6 NATURAL FULL JOIN t4 NATURAL FULL JOIN t5\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-1.406",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t6 NATURAL FULL JOIN t5 NATURAL FULL JOIN t4\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-1.500",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, w, x, y, z\n      FROM t3 FULL JOIN t4 USING(id)\n              NATURAL FULL JOIN t5\n              FULL JOIN t6 USING(id)\n      ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-1.600",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, w, x, y, z\n       FROM t3 JOIN dual AS d1 ON true\n               FULL JOIN t4 USING(id)\n               JOIN dual AS d2 ON true\n               NATURAL FULL JOIN t5\n               JOIN dual AS d3 ON true\n               FULL JOIN t6 USING(id)\n               CROSS JOIN dual AS d4\n      ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-1.700",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, w, x, y, z\n       FROM t3 JOIN dual AS d1 ON true\n               FULL JOIN t4 USING(id)\n               JOIN dual AS d2 ON true\n               NATURAL FULL JOIN t5\n               JOIN dual AS d3 ON true\n               FULL JOIN t6 USING(id)\n               CROSS JOIN dual AS d4\n      WHERE x\u003c\u003e'bob' OR x IS NULL\n      ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-1.800",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH t7(id,a) AS MATERIALIZED (SELECT * FROM t4 WHERE false)\n    SELECT *\n      FROM t7 \n           JOIN t7 AS t7b USING(id)\n           FULL JOIN t3 USING(id);",
+          "expect": "\n    2   -  -  two  \n    3   -  -  three\n    6   -  -  six  \n    7   -  -  seven\n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-1.900",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM (t3 NATURAL FULL JOIN t4)\n           NATURAL FULL JOIN\n           (t5 NATURAL FULL JOIN t6)\n    ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-1.910",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 NATURAL FULL JOIN \n           (t4 NATURAL FULL JOIN\n            (t5 NATURAL FULL JOIN t6))\n    ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-1.920",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 FULL JOIN (\n                t4 FULL JOIN (\n                    t5 FULL JOIN t6 USING (id)\n                ) USING(id)\n           ) USING(id)\n    ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        },
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 FULL JOIN (\n                t4 FULL JOIN (\n                    t5 FULL JOIN t6 USING (id)\n                ) USING(id)\n           ) USING(id)\n    ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-1.930",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 FULL JOIN (\n               t4 FULL JOIN (\n                   t5 FULL JOIN t6 USING(id)\n               ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);",
+          "expect": "\n    -   -      0   -      -       1000\n    -   -      1   -      red     -   \n    2   two    2   alice  orange  -   \n    3   three  3   -      yellow  333 \n    -   -      4   bob    green   444 \n    -   -      5   -      blue    555 \n    6   six    6   cindy  -       -   \n    7   seven  -   -      -       -   \n    -   -      8   dave   -       -   \n    -   -      9   -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-1.940",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 FULL JOIN (\n                t4 RIGHT JOIN (\n                    t5 FULL JOIN t6 USING(id)\n                ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);",
+          "expect": "\n    -   -      0   -      -       1000\n    -   -      1   -      red     -   \n    2   two    2   alice  orange  -   \n    3   three  3   -      yellow  333 \n    -   -      4   bob    green   444 \n    -   -      5   -      blue    555 \n    6   six    -   -      -       -   \n    7   seven  -   -      -       -   \n    -   -      9   -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-1.950",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 FULL JOIN (\n                t4 LEFT JOIN (\n                    t5 FULL JOIN t6 USING(id)\n                ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);",
+          "expect": "\n    2   two    2   alice  orange  -  \n    3   three  -   -      -       -  \n    -   -      4   bob    green   444\n    6   six    6   cindy  -       -  \n    7   seven  -   -      -       -  \n    -   -      8   dave   -       -  \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-1.1000",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH t56(id,y,z) AS (SELECT * FROM t5 FULL JOIN t6 USING(id) LIMIT 50)\n    SELECT id,x,y,z FROM t4 JOIN t56 USING(id)\n    ORDER BY 1;",
+          "expect": "\n    2   alice  orange  -  \n    4   bob    green   444\n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-1.1010",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id,x,y,z\n      FROM t4 INNER JOIN (t5 FULL JOIN t6 USING(id)) USING(id)\n     ORDER BY 1;",
+          "expect": "\n    2   alice  orange  -  \n    4   bob    green   444\n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-1.1020",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id,x,y,z\n      FROM t4 FULL JOIN t5 USING(id) INNER JOIN t6 USING(id)\n     ORDER BY 1;",
+          "expect": "\n    3   -    yellow  333\n    4   bob  green   444\n    5   -    blue    555\n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-1.1030",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH t45(id,x,y) AS (SELECT * FROM t4 FULL JOIN t5 USING(id) LIMIT 50)\n    SELECT id,x,y,z FROM t45 JOIN t6 USING(id)\n    ORDER BY 1;",
+          "expect": "\n    3   -    yellow  333\n    4   bob  green   444\n    5   -    blue    555\n  "
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "-"
+        }
+      ]
+    },
+    {
+      "name": "join9-2.setup",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(id INT PRIMARY KEY, w TEXT) WITHOUT ROWID;\n    CREATE TABLE t4(id INT PRIMARY KEY, x TEXT) WITHOUT ROWID;\n    CREATE TABLE t5(id INT PRIMARY KEY, y TEXT) WITHOUT ROWID;\n    CREATE TABLE t6(id INT PRIMARY KEY, z INT) WITHOUT ROWID;\n    CREATE TABLE dual(dummy TEXT);\n    INSERT INTO dual(dummy) VALUES('x');\n    INSERT INTO t3(id,w) VALUES(2,'two'),(3,'three'),(6,'six'),(7,'seven');\n    INSERT INTO t4(id,x) VALUES(2,'alice'),(4,'bob'),(6,'cindy'),(8,'dave');\n    INSERT INTO t5(id,y) VALUES(1,'red'),(2,'orange'),(3,'yellow'),(4,'green'),\n                               (5,'blue');\n    INSERT INTO t6(id,z) VALUES(3,333),(4,444),(5,555),(0,1000),(9,999);"
+        }
+      ]
+    },
+    {
+      "name": "join9-2.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL LEFT JOIN t5 NATURAL LEFT JOIN t6\n     ORDER BY 1;",
+          "expect": "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-2.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL LEFT JOIN t5 NATURAL LEFT JOIN t6\n     ORDER BY id;",
+          "expect": "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-2.102",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 LEFT JOIN t5 USING(id) LEFT JOIN t6 USING(id)\n     ORDER BY id;",
+          "expect": "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-2.200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL RIGHT JOIN t4 NATURAL LEFT JOIN t6\n     ORDER BY 1;",
+          "expect": "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-2.201",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL RIGHT JOIN t4 NATURAL LEFT JOIN t6\n     ORDER BY id;",
+          "expect": "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-2.300",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL RIGHT JOIN t5 NATURAL RIGHT JOIN t6\n     ORDER BY 1;",
+          "expect": "\n    0   -    -       1000  -   -   0 \n    3   -    yellow  333   -   3   3 \n    4   bob  green   444   4   4   4 \n    5   -    blue    555   -   5   5 \n    9   -    -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-2.301",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL RIGHT JOIN t5 NATURAL RIGHT JOIN t6\n     ORDER BY id;",
+          "expect": "\n    0   -    -       1000  -   -   0 \n    3   -    yellow  333   -   3   3 \n    4   bob  green   444   4   4   4 \n    5   -    blue    555   -   5   5 \n    9   -    -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-2.400",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6\n     ORDER BY 1;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-2.401",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-2.402",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t6 NATURAL FULL JOIN t5\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-2.403",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL FULL JOIN t4 NATURAL FULL JOIN t6\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-2.404",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL FULL JOIN t6 NATURAL FULL JOIN t4\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-2.405",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t6 NATURAL FULL JOIN t4 NATURAL FULL JOIN t5\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-2.406",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t6 NATURAL FULL JOIN t5 NATURAL FULL JOIN t4\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-2.500",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, w, x, y, z\n      FROM t3 FULL JOIN t4 USING(id)\n              NATURAL FULL JOIN t5\n              FULL JOIN t6 USING(id)\n      ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-2.600",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, w, x, y, z\n       FROM t3 JOIN dual AS d1 ON true\n               FULL JOIN t4 USING(id)\n               JOIN dual AS d2 ON true\n               NATURAL FULL JOIN t5\n               JOIN dual AS d3 ON true\n               FULL JOIN t6 USING(id)\n               CROSS JOIN dual AS d4\n      ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-2.700",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, w, x, y, z\n       FROM t3 JOIN dual AS d1 ON true\n               FULL JOIN t4 USING(id)\n               JOIN dual AS d2 ON true\n               NATURAL FULL JOIN t5\n               JOIN dual AS d3 ON true\n               FULL JOIN t6 USING(id)\n               CROSS JOIN dual AS d4\n      WHERE x\u003c\u003e'bob' OR x IS NULL\n      ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-2.800",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH t7(id,a) AS MATERIALIZED (SELECT * FROM t4 WHERE false)\n    SELECT *\n      FROM t7 \n           JOIN t7 AS t7b USING(id)\n           FULL JOIN t3 USING(id);",
+          "expect": "\n    2   -  -  two  \n    3   -  -  three\n    6   -  -  six  \n    7   -  -  seven\n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-2.900",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM (t3 NATURAL FULL JOIN t4)\n           NATURAL FULL JOIN\n           (t5 NATURAL FULL JOIN t6)\n    ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-2.910",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 NATURAL FULL JOIN \n           (t4 NATURAL FULL JOIN\n            (t5 NATURAL FULL JOIN t6))\n    ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-2.920",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 FULL JOIN (\n                t4 FULL JOIN (\n                    t5 FULL JOIN t6 USING (id)\n                ) USING(id)\n           ) USING(id)\n    ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        },
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 FULL JOIN (\n                t4 FULL JOIN (\n                    t5 FULL JOIN t6 USING (id)\n                ) USING(id)\n           ) USING(id)\n    ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-2.930",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 FULL JOIN (\n               t4 FULL JOIN (\n                   t5 FULL JOIN t6 USING(id)\n               ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);",
+          "expect": "\n    -   -      0   -      -       1000\n    -   -      1   -      red     -   \n    2   two    2   alice  orange  -   \n    3   three  3   -      yellow  333 \n    -   -      4   bob    green   444 \n    -   -      5   -      blue    555 \n    6   six    6   cindy  -       -   \n    7   seven  -   -      -       -   \n    -   -      8   dave   -       -   \n    -   -      9   -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-2.940",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 FULL JOIN (\n                t4 RIGHT JOIN (\n                    t5 FULL JOIN t6 USING(id)\n                ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);",
+          "expect": "\n    -   -      0   -      -       1000\n    -   -      1   -      red     -   \n    2   two    2   alice  orange  -   \n    3   three  3   -      yellow  333 \n    -   -      4   bob    green   444 \n    -   -      5   -      blue    555 \n    6   six    -   -      -       -   \n    7   seven  -   -      -       -   \n    -   -      9   -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-2.950",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 FULL JOIN (\n                t4 LEFT JOIN (\n                    t5 FULL JOIN t6 USING(id)\n                ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);",
+          "expect": "\n    2   two    2   alice  orange  -  \n    3   three  -   -      -       -  \n    -   -      4   bob    green   444\n    6   six    6   cindy  -       -  \n    7   seven  -   -      -       -  \n    -   -      8   dave   -       -  \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-2.1000",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH t56(id,y,z) AS (SELECT * FROM t5 FULL JOIN t6 USING(id) LIMIT 50)\n    SELECT id,x,y,z FROM t4 JOIN t56 USING(id)\n    ORDER BY 1;",
+          "expect": "\n    2   alice  orange  -  \n    4   bob    green   444\n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-2.1010",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id,x,y,z\n      FROM t4 INNER JOIN (t5 FULL JOIN t6 USING(id)) USING(id)\n     ORDER BY 1;",
+          "expect": "\n    2   alice  orange  -  \n    4   bob    green   444\n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-2.1020",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id,x,y,z\n      FROM t4 FULL JOIN t5 USING(id) INNER JOIN t6 USING(id)\n     ORDER BY 1;",
+          "expect": "\n    3   -    yellow  333\n    4   bob  green   444\n    5   -    blue    555\n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-2.1030",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH t45(id,x,y) AS (SELECT * FROM t4 FULL JOIN t5 USING(id) LIMIT 50)\n    SELECT id,x,y,z FROM t45 JOIN t6 USING(id)\n    ORDER BY 1;",
+          "expect": "\n    3   -    yellow  333\n    4   bob  green   444\n    5   -    blue    555\n  "
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "-"
+        }
+      ]
+    },
+    {
+      "name": "join9-3.setup",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3x(id INTEGER PRIMARY KEY, w TEXT);\n    CREATE TABLE t4x(id INTEGER PRIMARY KEY, x TEXT);\n    CREATE TABLE t5x(id INTEGER PRIMARY KEY, y TEXT);\n    CREATE TABLE t6x(id INTEGER PRIMARY KEY, z INT);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n    INSERT INTO t3x(id,w) VALUES(2,'two'),(3,'three'),(6,'six'),(7,'seven');\n    INSERT INTO t4x(id,x) VALUES(2,'alice'),(4,'bob'),(6,'cindy'),(8,'dave');\n    INSERT INTO t5x(id,y) VALUES(1,'red'),(2,'orange'),(3,'yellow'),(4,'green'),\n                               (5,'blue');\n    INSERT INTO t6x(id,z) VALUES(3,333),(4,444),(5,555),(0,1000),(9,999);\n    CREATE VIEW t3 AS SELECT * FROM t3x LIMIT 1000;\n    CREATE VIEW t4 AS SELECT * FROM t4x LIMIT 1000;\n    CREATE VIEW t5 AS SELECT * FROM t5x LIMIT 1000;\n    CREATE VIEW t6 AS SELECT * FROM t6x LIMIT 1000;"
+        }
+      ]
+    },
+    {
+      "name": "join9-3.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL LEFT JOIN t5 NATURAL LEFT JOIN t6\n     ORDER BY 1;",
+          "expect": "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-3.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL LEFT JOIN t5 NATURAL LEFT JOIN t6\n     ORDER BY id;",
+          "expect": "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-3.102",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 LEFT JOIN t5 USING(id) LEFT JOIN t6 USING(id)\n     ORDER BY id;",
+          "expect": "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-3.200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL RIGHT JOIN t4 NATURAL LEFT JOIN t6\n     ORDER BY 1;",
+          "expect": "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-3.201",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL RIGHT JOIN t4 NATURAL LEFT JOIN t6\n     ORDER BY id;",
+          "expect": "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-3.300",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL RIGHT JOIN t5 NATURAL RIGHT JOIN t6\n     ORDER BY 1;",
+          "expect": "\n    0   -    -       1000  -   -   0 \n    3   -    yellow  333   -   3   3 \n    4   bob  green   444   4   4   4 \n    5   -    blue    555   -   5   5 \n    9   -    -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-3.301",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL RIGHT JOIN t5 NATURAL RIGHT JOIN t6\n     ORDER BY id;",
+          "expect": "\n    0   -    -       1000  -   -   0 \n    3   -    yellow  333   -   3   3 \n    4   bob  green   444   4   4   4 \n    5   -    blue    555   -   5   5 \n    9   -    -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-3.400",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6\n     ORDER BY 1;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-3.401",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-3.402",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t6 NATURAL FULL JOIN t5\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-3.403",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL FULL JOIN t4 NATURAL FULL JOIN t6\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-3.404",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL FULL JOIN t6 NATURAL FULL JOIN t4\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-3.405",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t6 NATURAL FULL JOIN t4 NATURAL FULL JOIN t5\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-3.406",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t6 NATURAL FULL JOIN t5 NATURAL FULL JOIN t4\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-3.500",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, w, x, y, z\n      FROM t3 FULL JOIN t4 USING(id)\n              NATURAL FULL JOIN t5\n              FULL JOIN t6 USING(id)\n      ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-3.600",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, w, x, y, z\n       FROM t3 JOIN dual AS d1 ON true\n               FULL JOIN t4 USING(id)\n               JOIN dual AS d2 ON true\n               NATURAL FULL JOIN t5\n               JOIN dual AS d3 ON true\n               FULL JOIN t6 USING(id)\n               CROSS JOIN dual AS d4\n      ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-3.700",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, w, x, y, z\n       FROM t3 JOIN dual AS d1 ON true\n               FULL JOIN t4 USING(id)\n               JOIN dual AS d2 ON true\n               NATURAL FULL JOIN t5\n               JOIN dual AS d3 ON true\n               FULL JOIN t6 USING(id)\n               CROSS JOIN dual AS d4\n      WHERE x\u003c\u003e'bob' OR x IS NULL\n      ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-3.800",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH t7(id,a) AS MATERIALIZED (SELECT * FROM t4 WHERE false)\n    SELECT *\n      FROM t7 \n           JOIN t7 AS t7b USING(id)\n           FULL JOIN t3 USING(id);",
+          "expect": "\n    2   -  -  two  \n    3   -  -  three\n    6   -  -  six  \n    7   -  -  seven\n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-3.900",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM (t3 NATURAL FULL JOIN t4)\n           NATURAL FULL JOIN\n           (t5 NATURAL FULL JOIN t6)\n    ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-3.910",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 NATURAL FULL JOIN \n           (t4 NATURAL FULL JOIN\n            (t5 NATURAL FULL JOIN t6))\n    ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-3.920",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 FULL JOIN (\n                t4 FULL JOIN (\n                    t5 FULL JOIN t6 USING (id)\n                ) USING(id)\n           ) USING(id)\n    ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        },
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 FULL JOIN (\n                t4 FULL JOIN (\n                    t5 FULL JOIN t6 USING (id)\n                ) USING(id)\n           ) USING(id)\n    ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-3.930",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 FULL JOIN (\n               t4 FULL JOIN (\n                   t5 FULL JOIN t6 USING(id)\n               ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);",
+          "expect": "\n    -   -      0   -      -       1000\n    -   -      1   -      red     -   \n    2   two    2   alice  orange  -   \n    3   three  3   -      yellow  333 \n    -   -      4   bob    green   444 \n    -   -      5   -      blue    555 \n    6   six    6   cindy  -       -   \n    7   seven  -   -      -       -   \n    -   -      8   dave   -       -   \n    -   -      9   -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-3.940",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 FULL JOIN (\n                t4 RIGHT JOIN (\n                    t5 FULL JOIN t6 USING(id)\n                ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);",
+          "expect": "\n    -   -      0   -      -       1000\n    -   -      1   -      red     -   \n    2   two    2   alice  orange  -   \n    3   three  3   -      yellow  333 \n    -   -      4   bob    green   444 \n    -   -      5   -      blue    555 \n    6   six    -   -      -       -   \n    7   seven  -   -      -       -   \n    -   -      9   -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-3.950",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 FULL JOIN (\n                t4 LEFT JOIN (\n                    t5 FULL JOIN t6 USING(id)\n                ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);",
+          "expect": "\n    2   two    2   alice  orange  -  \n    3   three  -   -      -       -  \n    -   -      4   bob    green   444\n    6   six    6   cindy  -       -  \n    7   seven  -   -      -       -  \n    -   -      8   dave   -       -  \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-3.1000",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH t56(id,y,z) AS (SELECT * FROM t5 FULL JOIN t6 USING(id) LIMIT 50)\n    SELECT id,x,y,z FROM t4 JOIN t56 USING(id)\n    ORDER BY 1;",
+          "expect": "\n    2   alice  orange  -  \n    4   bob    green   444\n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-3.1010",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id,x,y,z\n      FROM t4 INNER JOIN (t5 FULL JOIN t6 USING(id)) USING(id)\n     ORDER BY 1;",
+          "expect": "\n    2   alice  orange  -  \n    4   bob    green   444\n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-3.1020",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id,x,y,z\n      FROM t4 FULL JOIN t5 USING(id) INNER JOIN t6 USING(id)\n     ORDER BY 1;",
+          "expect": "\n    3   -    yellow  333\n    4   bob  green   444\n    5   -    blue    555\n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-3.1030",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH t45(id,x,y) AS (SELECT * FROM t4 FULL JOIN t5 USING(id) LIMIT 50)\n    SELECT id,x,y,z FROM t45 JOIN t6 USING(id)\n    ORDER BY 1;",
+          "expect": "\n    3   -    yellow  333\n    4   bob  green   444\n    5   -    blue    555\n  "
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "-"
+        }
+      ]
+    },
+    {
+      "name": "join9-4.setup",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3a(id INTEGER PRIMARY KEY, w TEXT);\n    CREATE TABLE t3b(id INTEGER PRIMARY KEY, w TEXT);\n    CREATE TABLE t4a(id INTEGER PRIMARY KEY, x TEXT);\n    CREATE TABLE t4b(id INTEGER PRIMARY KEY, x TEXT);\n    CREATE TABLE t5a(id INTEGER PRIMARY KEY, y TEXT);\n    CREATE TABLE t5b(id INTEGER PRIMARY KEY, y TEXT);\n    CREATE TABLE t6a(id INTEGER PRIMARY KEY, z INT);\n    CREATE TABLE t6b(id INTEGER PRIMARY KEY, z INT);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n    INSERT INTO t3a(id,w) VALUES(2,'two'),(3,'three');\n    INSERT INTO t3b(id,w) VALUES(6,'six'),(7,'seven');\n    INSERT INTO t4a(id,x) VALUES(2,'alice'),(4,'bob');\n    INSERT INTO t4b(id,x) VALUES(6,'cindy'),(8,'dave');\n    INSERT INTO t5a(id,y) VALUES(1,'red'),(2,'orange'),(3,'yellow');\n    INSERT INTO t5b(id,y) VALUES(4,'green'),(5,'blue');\n    INSERT INTO t6a(id,z) VALUES(3,333),(4,444);\n    INSERT INTO t6b(id,z) VALUES(5,555),(0,1000),(9,999);\n    CREATE VIEW t3 AS SELECT * FROM t3a UNION ALL SELECT * FROM t3b;\n    CREATE VIEW t4 AS SELECT * FROM t4a UNION ALL SELECT * FROM t4b;\n    CREATE VIEW t5 AS SELECT * FROM t5a UNION ALL SELECT * FROM t5b;\n    CREATE VIEW t6 AS SELECT * FROM t6a UNION ALL SELECT * FROM t6b;"
+        }
+      ]
+    },
+    {
+      "name": "join9-4.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL LEFT JOIN t5 NATURAL LEFT JOIN t6\n     ORDER BY 1;",
+          "expect": "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-4.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL LEFT JOIN t5 NATURAL LEFT JOIN t6\n     ORDER BY id;",
+          "expect": "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-4.102",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 LEFT JOIN t5 USING(id) LEFT JOIN t6 USING(id)\n     ORDER BY id;",
+          "expect": "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-4.200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL RIGHT JOIN t4 NATURAL LEFT JOIN t6\n     ORDER BY 1;",
+          "expect": "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-4.201",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL RIGHT JOIN t4 NATURAL LEFT JOIN t6\n     ORDER BY id;",
+          "expect": "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-4.300",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL RIGHT JOIN t5 NATURAL RIGHT JOIN t6\n     ORDER BY 1;",
+          "expect": "\n    0   -    -       1000  -   -   0 \n    3   -    yellow  333   -   3   3 \n    4   bob  green   444   4   4   4 \n    5   -    blue    555   -   5   5 \n    9   -    -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-4.301",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL RIGHT JOIN t5 NATURAL RIGHT JOIN t6\n     ORDER BY id;",
+          "expect": "\n    0   -    -       1000  -   -   0 \n    3   -    yellow  333   -   3   3 \n    4   bob  green   444   4   4   4 \n    5   -    blue    555   -   5   5 \n    9   -    -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-4.400",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6\n     ORDER BY 1;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-4.401",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-4.402",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t6 NATURAL FULL JOIN t5\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-4.403",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL FULL JOIN t4 NATURAL FULL JOIN t6\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-4.404",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL FULL JOIN t6 NATURAL FULL JOIN t4\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-4.405",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t6 NATURAL FULL JOIN t4 NATURAL FULL JOIN t5\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-4.406",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t6 NATURAL FULL JOIN t5 NATURAL FULL JOIN t4\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-4.500",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, w, x, y, z\n      FROM t3 FULL JOIN t4 USING(id)\n              NATURAL FULL JOIN t5\n              FULL JOIN t6 USING(id)\n      ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-4.600",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, w, x, y, z\n       FROM t3 JOIN dual AS d1 ON true\n               FULL JOIN t4 USING(id)\n               JOIN dual AS d2 ON true\n               NATURAL FULL JOIN t5\n               JOIN dual AS d3 ON true\n               FULL JOIN t6 USING(id)\n               CROSS JOIN dual AS d4\n      ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-4.700",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, w, x, y, z\n       FROM t3 JOIN dual AS d1 ON true\n               FULL JOIN t4 USING(id)\n               JOIN dual AS d2 ON true\n               NATURAL FULL JOIN t5\n               JOIN dual AS d3 ON true\n               FULL JOIN t6 USING(id)\n               CROSS JOIN dual AS d4\n      WHERE x\u003c\u003e'bob' OR x IS NULL\n      ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-4.800",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH t7(id,a) AS MATERIALIZED (SELECT * FROM t4 WHERE false)\n    SELECT *\n      FROM t7 \n           JOIN t7 AS t7b USING(id)\n           FULL JOIN t3 USING(id);",
+          "expect": "\n    2   -  -  two  \n    3   -  -  three\n    6   -  -  six  \n    7   -  -  seven\n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-4.900",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM (t3 NATURAL FULL JOIN t4)\n           NATURAL FULL JOIN\n           (t5 NATURAL FULL JOIN t6)\n    ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-4.910",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 NATURAL FULL JOIN \n           (t4 NATURAL FULL JOIN\n            (t5 NATURAL FULL JOIN t6))\n    ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-4.920",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 FULL JOIN (\n                t4 FULL JOIN (\n                    t5 FULL JOIN t6 USING (id)\n                ) USING(id)\n           ) USING(id)\n    ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        },
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 FULL JOIN (\n                t4 FULL JOIN (\n                    t5 FULL JOIN t6 USING (id)\n                ) USING(id)\n           ) USING(id)\n    ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-4.930",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 FULL JOIN (\n               t4 FULL JOIN (\n                   t5 FULL JOIN t6 USING(id)\n               ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);",
+          "expect": "\n    -   -      0   -      -       1000\n    -   -      1   -      red     -   \n    2   two    2   alice  orange  -   \n    3   three  3   -      yellow  333 \n    -   -      4   bob    green   444 \n    -   -      5   -      blue    555 \n    6   six    6   cindy  -       -   \n    7   seven  -   -      -       -   \n    -   -      8   dave   -       -   \n    -   -      9   -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-4.940",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 FULL JOIN (\n                t4 RIGHT JOIN (\n                    t5 FULL JOIN t6 USING(id)\n                ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);",
+          "expect": "\n    -   -      0   -      -       1000\n    -   -      1   -      red     -   \n    2   two    2   alice  orange  -   \n    3   three  3   -      yellow  333 \n    -   -      4   bob    green   444 \n    -   -      5   -      blue    555 \n    6   six    -   -      -       -   \n    7   seven  -   -      -       -   \n    -   -      9   -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-4.950",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 FULL JOIN (\n                t4 LEFT JOIN (\n                    t5 FULL JOIN t6 USING(id)\n                ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);",
+          "expect": "\n    2   two    2   alice  orange  -  \n    3   three  -   -      -       -  \n    -   -      4   bob    green   444\n    6   six    6   cindy  -       -  \n    7   seven  -   -      -       -  \n    -   -      8   dave   -       -  \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-4.1000",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH t56(id,y,z) AS (SELECT * FROM t5 FULL JOIN t6 USING(id) LIMIT 50)\n    SELECT id,x,y,z FROM t4 JOIN t56 USING(id)\n    ORDER BY 1;",
+          "expect": "\n    2   alice  orange  -  \n    4   bob    green   444\n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-4.1010",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id,x,y,z\n      FROM t4 INNER JOIN (t5 FULL JOIN t6 USING(id)) USING(id)\n     ORDER BY 1;",
+          "expect": "\n    2   alice  orange  -  \n    4   bob    green   444\n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-4.1020",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id,x,y,z\n      FROM t4 FULL JOIN t5 USING(id) INNER JOIN t6 USING(id)\n     ORDER BY 1;",
+          "expect": "\n    3   -    yellow  333\n    4   bob  green   444\n    5   -    blue    555\n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-4.1030",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH t45(id,x,y) AS (SELECT * FROM t4 FULL JOIN t5 USING(id) LIMIT 50)\n    SELECT id,x,y,z FROM t45 JOIN t6 USING(id)\n    ORDER BY 1;",
+          "expect": "\n    3   -    yellow  333\n    4   bob  green   444\n    5   -    blue    555\n  "
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "-"
+        }
+      ]
+    },
+    {
+      "name": "join9-5.setup",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3a(id INTEGER PRIMARY KEY, w TEXT) WITHOUT ROWID;\n    CREATE TABLE t3b(id INTEGER PRIMARY KEY, w TEXT);\n    CREATE TABLE t4a(id INTEGER PRIMARY KEY, x TEXT) WITHOUT ROWID;\n    CREATE TABLE t4b(id INTEGER PRIMARY KEY, x TEXT) WITHOUT ROWID;\n    CREATE TABLE t5a(id INTEGER PRIMARY KEY, y TEXT);\n    CREATE TABLE t5b(id INTEGER PRIMARY KEY, y TEXT) WITHOUT ROWID;\n    CREATE TABLE t6a(id INTEGER PRIMARY KEY, z INT);\n    CREATE TABLE t6b(id INTEGER PRIMARY KEY, z INT);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n    INSERT INTO t3a(id,w) VALUES(2,'two'),(3,'three');\n    INSERT INTO t3b(id,w) VALUES(6,'six'),(7,'seven');\n    INSERT INTO t4a(id,x) VALUES(2,'alice'),(4,'bob');\n    INSERT INTO t4b(id,x) VALUES(6,'cindy'),(8,'dave');\n    INSERT INTO t5a(id,y) VALUES(1,'red'),(2,'orange'),(3,'yellow');\n    INSERT INTO t5b(id,y) VALUES(4,'green'),(5,'blue');\n    INSERT INTO t6a(id,z) VALUES(3,333),(4,444);\n    INSERT INTO t6b(id,z) VALUES(5,555),(0,1000),(9,999);\n    CREATE VIEW t3 AS SELECT * FROM t3a UNION ALL SELECT * FROM t3b;\n    CREATE VIEW t4 AS SELECT * FROM t4a UNION ALL SELECT * FROM t4b LIMIT 50;\n    CREATE VIEW t5 AS SELECT * FROM t5a UNION ALL SELECT * FROM t5b LIMIT 100;\n    CREATE VIEW t6 AS SELECT * FROM t6a UNION ALL SELECT * FROM t6b;"
+        }
+      ]
+    },
+    {
+      "name": "join9-5.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL LEFT JOIN t5 NATURAL LEFT JOIN t6\n     ORDER BY 1;",
+          "expect": "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-5.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL LEFT JOIN t5 NATURAL LEFT JOIN t6\n     ORDER BY id;",
+          "expect": "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-5.102",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 LEFT JOIN t5 USING(id) LEFT JOIN t6 USING(id)\n     ORDER BY id;",
+          "expect": "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-5.200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL RIGHT JOIN t4 NATURAL LEFT JOIN t6\n     ORDER BY 1;",
+          "expect": "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-5.201",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL RIGHT JOIN t4 NATURAL LEFT JOIN t6\n     ORDER BY id;",
+          "expect": "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-5.300",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL RIGHT JOIN t5 NATURAL RIGHT JOIN t6\n     ORDER BY 1;",
+          "expect": "\n    0   -    -       1000  -   -   0 \n    3   -    yellow  333   -   3   3 \n    4   bob  green   444   4   4   4 \n    5   -    blue    555   -   5   5 \n    9   -    -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-5.301",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL RIGHT JOIN t5 NATURAL RIGHT JOIN t6\n     ORDER BY id;",
+          "expect": "\n    0   -    -       1000  -   -   0 \n    3   -    yellow  333   -   3   3 \n    4   bob  green   444   4   4   4 \n    5   -    blue    555   -   5   5 \n    9   -    -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-5.400",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6\n     ORDER BY 1;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-5.401",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-5.402",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t6 NATURAL FULL JOIN t5\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-5.403",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL FULL JOIN t4 NATURAL FULL JOIN t6\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-5.404",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL FULL JOIN t6 NATURAL FULL JOIN t4\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-5.405",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t6 NATURAL FULL JOIN t4 NATURAL FULL JOIN t5\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-5.406",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t6 NATURAL FULL JOIN t5 NATURAL FULL JOIN t4\n     ORDER BY id;",
+          "expect": "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-5.500",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, w, x, y, z\n      FROM t3 FULL JOIN t4 USING(id)\n              NATURAL FULL JOIN t5\n              FULL JOIN t6 USING(id)\n      ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-5.600",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, w, x, y, z\n       FROM t3 JOIN dual AS d1 ON true\n               FULL JOIN t4 USING(id)\n               JOIN dual AS d2 ON true\n               NATURAL FULL JOIN t5\n               JOIN dual AS d3 ON true\n               FULL JOIN t6 USING(id)\n               CROSS JOIN dual AS d4\n      ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-5.700",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, w, x, y, z\n       FROM t3 JOIN dual AS d1 ON true\n               FULL JOIN t4 USING(id)\n               JOIN dual AS d2 ON true\n               NATURAL FULL JOIN t5\n               JOIN dual AS d3 ON true\n               FULL JOIN t6 USING(id)\n               CROSS JOIN dual AS d4\n      WHERE x\u003c\u003e'bob' OR x IS NULL\n      ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-5.800",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH t7(id,a) AS MATERIALIZED (SELECT * FROM t4 WHERE false)\n    SELECT *\n      FROM t7 \n           JOIN t7 AS t7b USING(id)\n           FULL JOIN t3 USING(id);",
+          "expect": "\n    2   -  -  two  \n    3   -  -  three\n    6   -  -  six  \n    7   -  -  seven\n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-5.900",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM (t3 NATURAL FULL JOIN t4)\n           NATURAL FULL JOIN\n           (t5 NATURAL FULL JOIN t6)\n    ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-5.910",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 NATURAL FULL JOIN \n           (t4 NATURAL FULL JOIN\n            (t5 NATURAL FULL JOIN t6))\n    ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-5.920",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 FULL JOIN (\n                t4 FULL JOIN (\n                    t5 FULL JOIN t6 USING (id)\n                ) USING(id)\n           ) USING(id)\n    ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        },
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 FULL JOIN (\n                t4 FULL JOIN (\n                    t5 FULL JOIN t6 USING (id)\n                ) USING(id)\n           ) USING(id)\n    ORDER BY 1;",
+          "expect": "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-5.930",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 FULL JOIN (\n               t4 FULL JOIN (\n                   t5 FULL JOIN t6 USING(id)\n               ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);",
+          "expect": "\n    -   -      0   -      -       1000\n    -   -      1   -      red     -   \n    2   two    2   alice  orange  -   \n    3   three  3   -      yellow  333 \n    -   -      4   bob    green   444 \n    -   -      5   -      blue    555 \n    6   six    6   cindy  -       -   \n    7   seven  -   -      -       -   \n    -   -      8   dave   -       -   \n    -   -      9   -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-5.940",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 FULL JOIN (\n                t4 RIGHT JOIN (\n                    t5 FULL JOIN t6 USING(id)\n                ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);",
+          "expect": "\n    -   -      0   -      -       1000\n    -   -      1   -      red     -   \n    2   two    2   alice  orange  -   \n    3   three  3   -      yellow  333 \n    -   -      4   bob    green   444 \n    -   -      5   -      blue    555 \n    6   six    -   -      -       -   \n    7   seven  -   -      -       -   \n    -   -      9   -      -       999 \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-5.950",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n      FROM t3 FULL JOIN (\n                t4 LEFT JOIN (\n                    t5 FULL JOIN t6 USING(id)\n                ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);",
+          "expect": "\n    2   two    2   alice  orange  -  \n    3   three  -   -      -       -  \n    -   -      4   bob    green   444\n    6   six    6   cindy  -       -  \n    7   seven  -   -      -       -  \n    -   -      8   dave   -       -  \n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-5.1000",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH t56(id,y,z) AS (SELECT * FROM t5 FULL JOIN t6 USING(id) LIMIT 50)\n    SELECT id,x,y,z FROM t4 JOIN t56 USING(id)\n    ORDER BY 1;",
+          "expect": "\n    2   alice  orange  -  \n    4   bob    green   444\n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-5.1010",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id,x,y,z\n      FROM t4 INNER JOIN (t5 FULL JOIN t6 USING(id)) USING(id)\n     ORDER BY 1;",
+          "expect": "\n    2   alice  orange  -  \n    4   bob    green   444\n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-5.1020",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id,x,y,z\n      FROM t4 FULL JOIN t5 USING(id) INNER JOIN t6 USING(id)\n     ORDER BY 1;",
+          "expect": "\n    3   -    yellow  333\n    4   bob  green   444\n    5   -    blue    555\n  "
+        }
+      ]
+    },
+    {
+      "name": "join9-5.1030",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH t45(id,x,y) AS (SELECT * FROM t4 FULL JOIN t5 USING(id) LIMIT 50)\n    SELECT id,x,y,z FROM t45 JOIN t6 USING(id)\n    ORDER BY 1;",
+          "expect": "\n    3   -    yellow  333\n    4   bob  green   444\n    5   -    blue    555\n  "
+        }
+      ]
+    }
+  ]
+}

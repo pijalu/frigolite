@@ -1,0 +1,194 @@
+{
+  "file": "rtreeH.test",
+  "name": "rtreeH",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "rtreeH-100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(id,x0,x1,y0,y1,+label,+other);\n  INSERT INTO t1(x0,x1,y0,y1,label) VALUES\n    (0,10,0,10,'lower-left corner'),\n    (0,10,90,100,'upper-left corner'),\n    (90,100,0,10,'lower-right corner'),\n    (90,100,90,100,'upper-right corner'),\n    (40,60,40,60,'center'),\n    (0,5,0,100,'left edge'),\n    (95,100,0,100,'right edge'),\n    (0,100,0,5,'bottom edge'),\n    (0,100,95,100,'top edge'),\n    (0,100,0,100,'the whole thing'),\n    (0,50,0,100,'left half'),\n    (51,100,0,100,'right half'),\n    (0,100,0,50,'bottom half'),\n    (0,100,51,100,'top half');"
+        }
+      ]
+    },
+    {
+      "name": "rtreeH-101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1_rowid ORDER BY rowid",
+          "expect": "1 1 {lower-left corner} {} 2 1 {upper-left corner} {} 3 1 {lower-right corner} {} 4 1 {upper-right corner} {} 5 1 center {} 6 1 {left edge} {} 7 1 {right edge} {} 8 1 {bottom edge} {} 9 1 {top edge} {} 10 1 {the whole thing} {} 11 1 {left half} {} 12 1 {right half} {} 13 1 {bottom half} {} 14 1 {top half} {}"
+        }
+      ]
+    },
+    {
+      "name": "rtreeH-102",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid=5;",
+          "expect": "5 40.0 60.0 40.0 60.0 center {}"
+        }
+      ]
+    },
+    {
+      "name": "rtreeH-102b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid=5.0;",
+          "expect": "5 40.0 60.0 40.0 60.0 center {}"
+        }
+      ]
+    },
+    {
+      "name": "rtreeH-102c",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid='5';",
+          "expect": "5 40.0 60.0 40.0 60.0 center {}"
+        }
+      ]
+    },
+    {
+      "name": "rtreeH-102d",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid='0005';",
+          "expect": "5 40.0 60.0 40.0 60.0 center {}"
+        }
+      ]
+    },
+    {
+      "name": "rtreeH-102e",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid='+5.0e+0';",
+          "expect": "5 40.0 60.0 40.0 60.0 center {}"
+        }
+      ]
+    },
+    {
+      "name": "rtreeH-103",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE label='center';",
+          "expect": "5 40.0 60.0 40.0 60.0 center {}"
+        }
+      ]
+    },
+    {
+      "name": "rtreeH-104",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid='+5.0e+0x';"
+        }
+      ]
+    },
+    {
+      "name": "rtreeH-105",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid=x'35';"
+        }
+      ]
+    },
+    {
+      "name": "rtreeH-106",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE rowid=null;"
+        }
+      ]
+    },
+    {
+      "name": "rtreeH-120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT label FROM t1 WHERE x1\u003c=50 ORDER BY id",
+          "expect": "{lower-left corner} {upper-left corner} {left edge} {left half}"
+        }
+      ]
+    },
+    {
+      "name": "rtreeH-121",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT label FROM t1 WHERE x1\u003c=50 AND label NOT LIKE '%corner%' ORDER BY id",
+          "expect": "{left edge} {left half}"
+        }
+      ]
+    },
+    {
+      "name": "rtreeH-200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH RECURSIVE\n    c1(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c1 WHERE x\u003c99),\n    c2(y) AS (VALUES(0) UNION ALL SELECT y+1 FROM c2 WHERE y\u003c99)\n  INSERT INTO t1(id, x0,x1,y0,y1,label)\n    SELECT 1000+x+y*100, x, x+1, y, y+1, printf('box-%d,%d',x,y) FROM c1, c2;"
+        }
+      ]
+    },
+    {
+      "name": "rtreeH-210",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT label FROM t1 WHERE x0\u003e=48 AND x1\u003c=50 AND y0\u003e=48 AND y1\u003c=50\n     ORDER BY id;",
+          "expect": "box-48,48 box-49,48 box-48,49 box-49,49"
+        }
+      ]
+    },
+    {
+      "name": "rtreeH-300",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t1 SET label='x'||label\n    WHERE x0\u003e=49 AND x1\u003c=50 AND y0\u003e=49 AND y1\u003c=50;\n  SELECT label FROM t1 WHERE x0\u003e=48 AND x1\u003c=50 AND y0\u003e=48 AND y1\u003c=50\n     ORDER BY id;",
+          "expect": "box-48,48 box-49,48 box-48,49 xbox-49,49"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rtreeH-300",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES (NULL);\n  INSERT INTO t0(c0) VALUES (1);\n  CREATE VIRTUAL TABLE t1 USING rtree(c0, c1, c2, +c3 BLOB );\n  INSERT INTO t1(c2, c3, c0) VALUES (1, 2, 1);"
+        }
+      ]
+    },
+    {
+      "name": "rtreeH-310",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 FROM t1 WHERE t1.c3;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rtreeH-320",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 WHERE NOT EXISTS (\n      SELECT 1 FROM t1 WHERE t1.c3 OR t0.c0 ISNULL\n  );"
+        }
+      ]
+    }
+  ]
+}

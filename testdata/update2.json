@@ -4,6 +4,27 @@
   "ordered": true,
   "tests": [
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "repeat",
+          "callbackVars": {
+            "": "string repeat",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "update2"
+          },
+          "functionProc": "string repeat",
+          "minArgs": -1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
       "name": "update2-1.1.0",
       "steps": [
         {
@@ -18,14 +39,6 @@
         {
           "type": "exec",
           "sql": "UPDATE t1 SET b = repeat(b, 100)"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT a, repeat(b, 100) FROM t2"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT a, repeat(b, 100) FROM t2"
         }
       ]
     },
@@ -33,9 +46,10 @@
       "name": "update2-1.1.2",
       "steps": [
         {
-          "type": "query",
+          "type": "compare_query",
           "sql": "SELECT * FROM t1;",
-          "expect": "10"
+          "expect": "ok",
+          "sql2": " SELECT a, repeat(b, 100) FROM t2 "
         }
       ]
     },
@@ -54,14 +68,6 @@
         {
           "type": "exec",
           "sql": "UPDATE t1 SET b = repeat(b, 100)"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT a, repeat(b, 100) FROM t2"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT a, repeat(b, 100) FROM t2"
         }
       ]
     },
@@ -69,9 +75,10 @@
       "name": "update2-1.2.2",
       "steps": [
         {
-          "type": "query",
+          "type": "compare_query",
           "sql": "SELECT * FROM t1;",
-          "expect": "10"
+          "expect": "ok",
+          "sql2": " SELECT a, repeat(b, 100) FROM t2 "
         }
       ]
     },
@@ -118,7 +125,12 @@
           "type": "query",
           "sql": "UPDATE t4 SET c=c+2 WHERE c\u003e2;\n  SELECT a, c FROM t4 ORDER BY a;",
           "expect": "1 5 2 6"
-        },
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
         {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS b1; DROP TABLE IF EXISTS c1;"
@@ -193,7 +205,12 @@
           "type": "query",
           "sql": "UPDATE OR REPLACE c1 SET c=c+10 WHERE d BETWEEN 4 AND 7;\n    SELECT * FROM c1 ORDER BY a;",
           "expect": "\n    1 a 1 1\n    3 a 3 3\n    4 a 14 4\n    5 a 15 5\n    6 a 16 6\n    7 a 17 7\n  "
-        },
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
         {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS b1; DROP TABLE IF EXISTS c1;"

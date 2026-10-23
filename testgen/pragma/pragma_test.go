@@ -1558,7 +1558,9 @@ func Test_pragma(t *testing.T) {
 		}
 	}
 	{ // "pragma-8.1.14" — skipped: second-connection ATTACH not representable with db2 aliasing (SQL + file side effects only)
-		_res = db2.Exec("\n      ATTACH 'test2.db' AS aux;\n      SELECT * FROM aux.t1;\n    ")
+		_res = db2.Exec("ATTACH 'test2.db' AS aux")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db2.Exec("SELECT * FROM aux.t1")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // do_test "pragma-8.1.15"
@@ -2487,7 +2489,9 @@ func Test_pragma(t *testing.T) {
 					db, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					tclConnRegister("db", db)
-					_res = db.Exec(" \n      ATTACH 'testerr.db' AS 'aux';\n      PRAGMA integrity_check;\n    ")
+					_res = db.Exec("ATTACH 'testerr.db' AS 'aux'")
+					_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+					_res = db.Exec("PRAGMA integrity_check")
 					_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 				}
 				{ // "pragma-22.3.2" — skipped: hexio page-corruption integrity check not supported (SQL + file side effects only)
@@ -2503,7 +2507,9 @@ func Test_pragma(t *testing.T) {
 					db, err = frigolite.Open("testerr.db")
 					if err != nil { t.Fatal(err) }
 					tclConnRegister("db", db)
-					_res = db.Exec(" \n      ATTACH 'test.db' AS 'aux';\n      PRAGMA integrity_check;\n    ")
+					_res = db.Exec("ATTACH 'test.db' AS 'aux'")
+					_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+					_res = db.Exec("PRAGMA integrity_check")
 					_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 				}
 				{ // "pragma-22.4.2" — skipped: hexio page-corruption integrity check not supported (SQL + file side effects only)

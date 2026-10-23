@@ -1,0 +1,51 @@
+{
+  "file": "tkt-b72787b1.test",
+  "name": "tkt-b72787b1",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "tkt-b72787b1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    CREATE TABLE t2(y);\n    INSERT INTO t2 SELECT x+2 FROM t1;\n    INSERT INTO t2 SELECT x+4 FROM t1;"
+        },
+        {
+          "type": "register_function",
+          "functionName": "runsql",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "::runsql",
+          "minArgs": -1,
+          "maxArgs": -1
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT max(x) FROM t1",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT CASE WHEN y=3 THEN y+100 WHEN y==4 THEN runsql()+200\n                ELSE 300+y END FROM t2\n    UNION ALL\n    SELECT * FROM t1;",
+          "expect": "103 202 305 306 1 2"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT max(x) FROM t1",
+          "variable": "stmt_1"
+        }
+      ]
+    }
+  ]
+}

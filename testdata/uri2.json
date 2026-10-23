@@ -1,28 +1,194 @@
 {
   "file": "uri2.test",
   "name": "uri2",
+  "ordered": true,
   "tests": [
     {
-      "name": "2.0",
+      "name": "setup_0",
       "steps": [
         {
-          "type": "query",
-          "sql": "PRAGMA compile_options"
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "uri2-1.1.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db%00trailing",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "uri2-1.1.2",
+      "steps": [
+        {
+          "type": "open_empty_db"
         },
         {
-          "type": "exec",
-          "sql": "PRAGMA compile_options"
+          "type": "catch",
+          "sql": "ATTACH 'file:test.db%00trailing' AS aux",
+          "expect": "1 {unexpected %00 in uri}"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "uri2-1.2.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "uri2-1.2.2",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'file:test.db?%00trailing=1' AS aux",
+          "expect": "1 {unexpected %00 in uri}"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "uri2-1.3.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "uri2-1.3.2",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'file:test.db?trailing=1%00' AS aux",
+          "expect": "1 {unexpected %00 in uri}"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "uri2-1.4.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "uri2-1.4.2",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'file:test.db?trailing=1\u0026abc%00def' AS aux",
+          "expect": "1 {unexpected %00 in uri}"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "uri2-1.5.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "uri2-1.5.2",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'file:test.db?trailing=1\u0026abc%00def' AS aux",
+          "expect": "1 {unexpected %00 in uri}"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "close_db"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "uri2-2.0",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "PRAGMA compile_options",
+          "expect": "1"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

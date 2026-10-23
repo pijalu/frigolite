@@ -1,18 +1,52 @@
 {
   "file": "tempdb2.test",
   "name": "tempdb2",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.1",
+      "name": "setup_0",
       "steps": [
         {
-          "type": "query",
-          "sql": "PRAGMA page_size=1024;\n  PRAGMA cache_size=50;\n\n  BEGIN;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1, int2str(1));\n    INSERT INTO t1 VALUES(2, int2str(1));\n    INSERT INTO t1 VALUES(3, int2str(1));\n\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n    WITH c(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100 ) \n    INSERT INTO t2 SELECT x, int2str(x) FROM c;\n  COMMIT;\n\n  PRAGMA lock_status;"
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "int2str",
+          "callbackVars": {
+            "": "unlocked",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "tempdb2",
+            "unlocked": "unlocked"
+          },
+          "functionProc": "int2str",
+          "functionArgs": [
+            "i"
+          ],
+          "functionBody": " string range [string repeat \"$i.\" 450] 0 899 ",
+          "minArgs": 1,
+          "maxArgs": -1
         }
       ]
     },
     {
-      "name": "1.2",
+      "name": "tempdb2-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size=1024;\n  PRAGMA cache_size=50;\n\n  BEGIN;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1, int2str(1));\n    INSERT INTO t1 VALUES(2, int2str(1));\n    INSERT INTO t1 VALUES(3, int2str(1));\n\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n    WITH c(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c100 ) \n    INSERT INTO t2 SELECT x, int2str(x) FROM c;\n  COMMIT;\n\n  PRAGMA lock_status;",
+          "expect": "main unlocked temp closed"
+        }
+      ]
+    },
+    {
+      "name": "tempdb2-1.2",
       "steps": [
         {
           "type": "query",
@@ -22,7 +56,7 @@
       ]
     },
     {
-      "name": "1.3",
+      "name": "tempdb2-1.3",
       "steps": [
         {
           "type": "exec",
@@ -31,7 +65,7 @@
       ]
     },
     {
-      "name": "1.4",
+      "name": "tempdb2-1.4",
       "steps": [
         {
           "type": "query",
@@ -41,16 +75,48 @@
       ]
     },
     {
-      "name": "2.0",
+      "name": "setup_1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA cache_size = -100;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  WITH c(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100 ) \n    INSERT INTO t1 SELECT x, int2str(x) FROM c;"
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "int2str",
+          "callbackVars": {
+            "": "main unlocked temp closed",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "tempdb2",
+            "unlocked": "unlocked"
+          },
+          "functionProc": "int2str",
+          "functionArgs": [
+            "i"
+          ],
+          "functionBody": " string range [string repeat \"$i.\" 450] 0 899 ",
+          "minArgs": 1,
+          "maxArgs": -1
         }
       ]
     },
     {
-      "name": "2.1",
+      "name": "tempdb2-2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = -100;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  WITH c(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c100 ) \n    INSERT INTO t1 SELECT x, int2str(x) FROM c;"
+        }
+      ]
+    },
+    {
+      "name": "tempdb2-2.1",
       "steps": [
         {
           "type": "exec",
@@ -59,27 +125,12 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "tempdb2-2.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT b FROM t1 WHERE a = 10001;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
+          "sql": "SELECT b FROM t1 WHERE a = 10001;",
+          "expect": "1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001.1001."
         }
       ]
     }

@@ -1,9 +1,10 @@
 {
   "file": "window1.test",
   "name": "window1",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "window1-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,7 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "window1-1.1",
       "steps": [
         {
           "type": "query",
@@ -22,7 +23,7 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "window1-1.2",
       "steps": [
         {
           "type": "query",
@@ -32,7 +33,7 @@
       ]
     },
     {
-      "name": "1.3",
+      "name": "window1-1.3",
       "steps": [
         {
           "type": "query",
@@ -42,7 +43,7 @@
       ]
     },
     {
-      "name": "1.4",
+      "name": "window1-1.4",
       "steps": [
         {
           "type": "query",
@@ -52,7 +53,7 @@
       ]
     },
     {
-      "name": "1.5",
+      "name": "window1-1.5",
       "steps": [
         {
           "type": "query",
@@ -62,7 +63,137 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "window1-2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT sum(b) OVER () FROM t1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "window1-2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT sum(b) OVER (PARTITION BY c) FROM t1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "window1-2.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT sum(b) OVER (ORDER BY c) FROM t1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "window1-2.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT sum(b) OVER (PARTITION BY d ORDER BY c) FROM t1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "window1-2.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT sum(b) FILTER (WHERE a\u003e0) OVER (PARTITION BY d ORDER BY c) FROM t1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "window1-2.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT sum(b) OVER (ORDER BY c RANGE UNBOUNDED PRECEDING) FROM t1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "window1-2.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT sum(b) OVER (ORDER BY c ROWS 45 PRECEDING) FROM t1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "window1-2.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT sum(b) OVER (ORDER BY c RANGE CURRENT ROW) FROM t1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "window1-2.9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT sum(b) OVER (ORDER BY c RANGE BETWEEN UNBOUNDED PRECEDING \n     AND CURRENT ROW) FROM t1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "window1-2.10",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT sum(b) OVER (ORDER BY c ROWS BETWEEN UNBOUNDED PRECEDING \n     AND UNBOUNDED FOLLOWING) FROM t1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "window1-3.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1 WHERE sum(b) OVER ()",
+          "expect": "1 {misuse of window function sum()}"
+        }
+      ]
+    },
+    {
+      "name": "window1-3.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1 GROUP BY sum(b) OVER ()",
+          "expect": "1 {misuse of window function sum()}"
+        }
+      ]
+    },
+    {
+      "name": "window1-3.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1 GROUP BY a HAVING sum(b) OVER ()",
+          "expect": "1 {misuse of window function sum()}"
+        }
+      ]
+    },
+    {
+      "name": "window1-4.0",
       "steps": [
         {
           "type": "exec",
@@ -71,147 +202,147 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "window1-4.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, sum(a) OVER (PARTITION BY b) FROM t2;",
-          "expect": "0 12  2 12  4 12  6 12   1  9  3  9  5  9"
+          "expect": "\n  0 12  2 12  4 12  6 12   1  9  3  9  5  9 \n"
         }
       ]
     },
     {
-      "name": "4.2",
+      "name": "window1-4.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, sum(a) OVER (PARTITION BY b) FROM t2 ORDER BY a;",
-          "expect": "0 12  1  9  2 12  3  9  4 12  5  9 6 12"
+          "expect": "\n  0 12  1  9  2 12  3  9  4 12  5  9 6 12   \n"
         }
       ]
     },
     {
-      "name": "4.3",
+      "name": "window1-4.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, sum(a) OVER () FROM t2 ORDER BY a;",
-          "expect": "0 21  1  21  2 21  3  21  4 21  5  21 6 21"
+          "expect": "\n  0 21  1  21  2 21  3  21  4 21  5  21 6 21   \n"
         }
       ]
     },
     {
-      "name": "4.4",
+      "name": "window1-4.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, sum(a) OVER (ORDER BY a) FROM t2;",
-          "expect": "0 0  1 1  2 3  3 6  4 10  5 15  6 21"
+          "expect": "\n  0 0  1 1  2 3  3 6  4 10  5 15  6 21\n"
         }
       ]
     },
     {
-      "name": "4.5",
+      "name": "window1-4.5",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, sum(a) OVER (PARTITION BY b ORDER BY a) FROM t2 ORDER BY a",
-          "expect": "0 0  1 1  2 2  3 4  4 6  5 9  6 12"
+          "expect": "\n  0 0  1 1  2 2  3 4  4 6  5 9  6 12\n"
         }
       ]
     },
     {
-      "name": "4.6",
+      "name": "window1-4.6",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, sum(a) OVER (PARTITION BY c ORDER BY a) FROM t2 ORDER BY a",
-          "expect": "0 0  1 1  2 2  3 3  4 5  5 7  6 9"
+          "expect": "\n  0 0  1 1  2 2  3 3  4 5  5 7  6 9\n"
         }
       ]
     },
     {
-      "name": "4.7",
+      "name": "window1-4.7",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, sum(a) OVER (PARTITION BY b ORDER BY a DESC) FROM t2 ORDER BY a",
-          "expect": "0 12  1 9  2 12  3 8  4 10  5 5  6 6"
+          "expect": "\n  0 12  1 9  2 12  3 8  4 10  5 5  6 6\n"
         }
       ]
     },
     {
-      "name": "4.8",
+      "name": "window1-4.8",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, \n    sum(a) OVER (PARTITION BY b ORDER BY a DESC),\n    sum(a) OVER (PARTITION BY c ORDER BY a) \n  FROM t2 ORDER BY a",
-          "expect": "0  12  0\n  1   9  1 \n  2  12  2 \n  3   8  3 \n  4  10  5 \n  5   5  7 \n  6   6  9"
+          "expect": "\n  0  12  0\n  1   9  1 \n  2  12  2 \n  3   8  3 \n  4  10  5 \n  5   5  7 \n  6   6  9\n"
         }
       ]
     },
     {
-      "name": "4.9",
+      "name": "window1-4.9",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, \n    sum(a) OVER (ORDER BY a), \n    avg(a) OVER (ORDER BY a) \n  FROM t2 ORDER BY a",
-          "expect": "0  0       0.0\n  1  1       0.5\n  2  3       1.0\n  3  6       1.5\n  4  10      2.0\n  5  15      2.5\n  6  21      3.0"
+          "expect": "\n  0  0       0.0\n  1  1       0.5\n  2  3       1.0\n  3  6       1.5\n  4  10      2.0\n  5  15      2.5\n  6  21      3.0\n"
         }
       ]
     },
     {
-      "name": "4.10.1",
+      "name": "window1-4.10.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, \n    count() OVER (ORDER BY a DESC),\n    string_agg(a, '.') OVER (ORDER BY a DESC) \n  FROM t2 ORDER BY a DESC",
-          "expect": "6 1 6\n  5 2 6.5\n  4 3 6.5.4\n  3 4 6.5.4.3\n  2 5 6.5.4.3.2\n  1 6 6.5.4.3.2.1\n  0 7 6.5.4.3.2.1.0"
+          "expect": "\n  6 1 6\n  5 2 6.5\n  4 3 6.5.4\n  3 4 6.5.4.3\n  2 5 6.5.4.3.2\n  1 6 6.5.4.3.2.1\n  0 7 6.5.4.3.2.1.0\n"
         }
       ]
     },
     {
-      "name": "4.10.2",
+      "name": "window1-4.10.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, \n    count(*) OVER (ORDER BY a DESC),\n    group_concat(a, '.') OVER (ORDER BY a DESC) \n  FROM t2 ORDER BY a DESC",
-          "expect": "6 1 6\n  5 2 6.5\n  4 3 6.5.4\n  3 4 6.5.4.3\n  2 5 6.5.4.3.2\n  1 6 6.5.4.3.2.1\n  0 7 6.5.4.3.2.1.0"
+          "expect": "\n  6 1 6\n  5 2 6.5\n  4 3 6.5.4\n  3 4 6.5.4.3\n  2 5 6.5.4.3.2\n  1 6 6.5.4.3.2.1\n  0 7 6.5.4.3.2.1.0\n"
         }
       ]
     },
     {
-      "name": "5.1",
+      "name": "window1-5.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT ntile(0) OVER (ORDER BY a) FROM t2;",
           "expect": "1 {argument of ntile must be a positive integer}"
         }
       ]
     },
     {
-      "name": "5.2",
+      "name": "window1-5.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT ntile(-1) OVER (ORDER BY a) FROM t2;",
           "expect": "1 {argument of ntile must be a positive integer}"
         }
       ]
     },
     {
-      "name": "5.3",
+      "name": "window1-5.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT ntile('zbc') OVER (ORDER BY a) FROM t2;",
           "expect": "1 {argument of ntile must be a positive integer}"
         }
       ]
     },
     {
-      "name": "5.4",
+      "name": "window1-5.4",
       "steps": [
         {
           "type": "query",
@@ -220,7 +351,11 @@
       ]
     },
     {
-      "name": "6.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-6.1",
       "steps": [
         {
           "type": "query",
@@ -230,27 +365,31 @@
       ]
     },
     {
-      "name": "6.2",
+      "name": "window1-6.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t2, (SELECT x, count(*) OVER (ORDER BY x) FROM t1)\n  ORDER BY 1, 2;",
-          "expect": "a 1 1 a 2 2 a 3 3 a 4 4 a 5 5 a 6 6 a 7 7\n  b 1 1 b 2 2 b 3 3 b 4 4 b 5 5 b 6 6 b 7 7"
+          "expect": "\n  a 1 1 a 2 2 a 3 3 a 4 4 a 5 5 a 6 6 a 7 7\n  b 1 1 b 2 2 b 3 3 b 4 4 b 5 5 b 6 6 b 7 7\n"
         }
       ]
     },
     {
-      "name": "6.3",
+      "name": "window1-6.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT x, lag(x) FILTER (WHERE (x%2)=0) OVER w FROM t1 \n  WINDOW w AS (ORDER BY x)",
           "expect": "1 {FILTER clause may only be used with aggregate window functions}"
         }
       ]
     },
     {
-      "name": "7.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-7.0",
       "steps": [
         {
           "type": "exec",
@@ -259,97 +398,97 @@
       ]
     },
     {
-      "name": "7.1.1",
+      "name": "window1-7.1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT nth_value(x, 1) FROM t1;",
           "expect": "1 {misuse of window function nth_value()}"
         }
       ]
     },
     {
-      "name": "7.1.2",
+      "name": "window1-7.1.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM t1 WHERE nth_value(x, 1) OVER (ORDER BY y);",
           "expect": "1 {misuse of window function nth_value()}"
         }
       ]
     },
     {
-      "name": "7.1.3",
+      "name": "window1-7.1.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT count(*) FROM t1 GROUP BY y HAVING nth_value(x, 1) OVER (ORDER BY y);",
           "expect": "1 {misuse of window function nth_value()}"
         }
       ]
     },
     {
-      "name": "7.1.4",
+      "name": "window1-7.1.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT count(*) FROM t1 GROUP BY nth_value(x, 1) OVER (ORDER BY y);",
           "expect": "1 {misuse of window function nth_value()}"
         }
       ]
     },
     {
-      "name": "7.1.5",
+      "name": "window1-7.1.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT count(*) FROM t1 LIMIT nth_value(x, 1) OVER ();",
           "expect": "1 {no such column: x}"
         }
       ]
     },
     {
-      "name": "7.1.6",
+      "name": "window1-7.1.6",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT trim(x) OVER (ORDER BY y) FROM t1;",
           "expect": "1 {trim() may not be used as a window function}"
         }
       ]
     },
     {
-      "name": "7.1.7",
+      "name": "window1-7.1.7",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT max(x) OVER abc FROM t1 WINDOW def AS (ORDER BY y);",
           "expect": "1 {no such window: abc}"
         }
       ]
     },
     {
-      "name": "7.1.8",
+      "name": "window1-7.1.8",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT row_number(x) OVER () FROM t1",
           "expect": "1 {wrong number of arguments to function row_number()}"
         }
       ]
     },
     {
-      "name": "7.2",
+      "name": "window1-7.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT \n    lead(y) OVER win, \n    lead(y, 2) OVER win, \n    lead(y, 3, 'default') OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY x)",
-          "expect": "4 6 8   6 8 10   8 10 default   10 {} default   {} {} default"
+          "expect": "\n  4 6 8   6 8 10   8 10 default   10 {} default   {} {} default\n"
         }
       ]
     },
     {
-      "name": "7.3",
+      "name": "window1-7.3",
       "steps": [
         {
           "type": "query",
@@ -359,7 +498,7 @@
       ]
     },
     {
-      "name": "7.4",
+      "name": "window1-7.4",
       "steps": [
         {
           "type": "query",
@@ -369,16 +508,16 @@
       ]
     },
     {
-      "name": "8.0",
+      "name": "window1-8.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t3(a, b, c);\n\n  WITH s(i) AS ( VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<6 )\n  INSERT INTO t3 SELECT i, i, i FROM s;\n\n  CREATE VIEW v1 AS SELECT\n    sum(b) OVER (ORDER BY c),\n    min(b) OVER (ORDER BY c),\n    max(b) OVER (ORDER BY c)\n  FROM t3;\n\n  CREATE VIEW v2 AS SELECT\n    sum(b) OVER win,\n    min(b) OVER win,\n    max(b) OVER win\n  FROM t3\n  WINDOW win AS (ORDER BY c);"
+          "sql": "CREATE TABLE t3(a, b, c);\n\n  WITH s(i) AS ( VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i\u003c6 )\n  INSERT INTO t3 SELECT i, i, i FROM s;\n\n  CREATE VIEW v1 AS SELECT\n    sum(b) OVER (ORDER BY c),\n    min(b) OVER (ORDER BY c),\n    max(b) OVER (ORDER BY c)\n  FROM t3;\n\n  CREATE VIEW v2 AS SELECT\n    sum(b) OVER win,\n    min(b) OVER win,\n    max(b) OVER win\n  FROM t3\n  WINDOW win AS (ORDER BY c);"
         }
       ]
     },
     {
-      "name": "8.1.1",
+      "name": "window1-8.1.1",
       "steps": [
         {
           "type": "query",
@@ -388,7 +527,7 @@
       ]
     },
     {
-      "name": "8.1.2",
+      "name": "window1-8.1.2",
       "steps": [
         {
           "type": "query",
@@ -398,7 +537,19 @@
       ]
     },
     {
-      "name": "8.2.1",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "window1-8.2.1",
       "steps": [
         {
           "type": "query",
@@ -408,7 +559,7 @@
       ]
     },
     {
-      "name": "8.2.2",
+      "name": "window1-8.2.2",
       "steps": [
         {
           "type": "query",
@@ -418,7 +569,7 @@
       ]
     },
     {
-      "name": "9.0",
+      "name": "window1-9.0",
       "steps": [
         {
           "type": "exec",
@@ -427,7 +578,7 @@
       ]
     },
     {
-      "name": "9.1.1",
+      "name": "window1-9.1.1",
       "steps": [
         {
           "type": "query",
@@ -437,7 +588,7 @@
       ]
     },
     {
-      "name": "9.1.2",
+      "name": "window1-9.1.2",
       "steps": [
         {
           "type": "query",
@@ -447,7 +598,7 @@
       ]
     },
     {
-      "name": "9.1.3",
+      "name": "window1-9.1.3",
       "steps": [
         {
           "type": "query",
@@ -457,55 +608,57 @@
       ]
     },
     {
-      "name": "9.2",
+      "name": "window1-9.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH aaa(x, y, z) AS (\n    SELECT x, y, max(y) OVER xyz FROM t4\n    WINDOW xyz AS (PARTITION BY (x%2) ORDER BY x)\n  )\n  SELECT * FROM aaa ORDER BY 1;"
+          "type": "query",
+          "sql": "WITH aaa(x, y, z) AS (\n    SELECT x, y, max(y) OVER xyz FROM t4\n    WINDOW xyz AS (PARTITION BY (x%2) ORDER BY x)\n  )\n  SELECT * FROM aaa ORDER BY 1;",
+          "expect": "1 g g   2 i i   3 l l   4 g i   5 a l   6 m m"
         }
       ]
     },
     {
-      "name": "9.3",
+      "name": "window1-9.3",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH aaa(x, y, z) AS (\n    SELECT x, y, max(y) OVER xyz FROM t4\n    WINDOW xyz AS (ORDER BY x)\n  )\n  SELECT *, min(z) OVER (ORDER BY x) FROM aaa ORDER BY 1;"
+          "type": "query",
+          "sql": "WITH aaa(x, y, z) AS (\n    SELECT x, y, max(y) OVER xyz FROM t4\n    WINDOW xyz AS (ORDER BY x)\n  )\n  SELECT *, min(z) OVER (ORDER BY x) FROM aaa ORDER BY 1;",
+          "expect": "1 g g g   2 i i g   3 l l g   4 g l g   5 a l g   6 m m g"
         }
       ]
     },
     {
-      "name": "9.4",
+      "name": "window1-9.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "-- 2021-04-17 dbsqlfuzz d9cf66100064952b66951845dfab41de1c124611\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,c,d);\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(x,y);\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2(x,y)\n      SELECT a, max(d) OVER w1 FROM t1\n        WINDOW w1 AS (PARTITION BY EXISTS(SELECT 1 FROM t1 WHERE c=?1) );\n  END;",
           "expect": "1 {trigger cannot use variables}"
         }
       ]
     },
     {
-      "name": "9.4.2",
+      "name": "window1-9.4.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(a,b) \n        SELECT a, max(d) OVER w1 FROM t1\n        WINDOW w1 AS (\n          ORDER BY a ROWS BETWEEN ? PRECEDING AND UNBOUNDED FOLLOWING\n        );\n  END;",
           "expect": "1 {trigger cannot use variables}"
         }
       ]
     },
     {
-      "name": "9.4.3",
+      "name": "window1-9.4.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(a,b) \n        SELECT a, max(d) OVER w1 FROM t1\n        WINDOW w1 AS (\n          ORDER BY a ROWS BETWEEN UNBOUNDED PRECEDING AND ? FOLLOWING\n        );\n  END;",
           "expect": "1 {trigger cannot use variables}"
         }
       ]
     },
     {
-      "name": "10.0",
+      "name": "window1-10.0",
       "steps": [
         {
           "type": "exec",
@@ -514,87 +667,87 @@
       ]
     },
     {
-      "name": "10.1",
+      "name": "window1-10.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT emp, region, total FROM (\n    SELECT \n      emp, region, total,\n      row_number() OVER (PARTITION BY region ORDER BY total DESC) AS rank\n    FROM sales\n  ) WHERE rank<=2 ORDER BY region, total DESC",
-          "expect": "Horace      East     1\n  Charles     North   45\n  Alice       North   34\n  Elizabeth   South   99\n  Grant       South   23"
+          "sql": "SELECT emp, region, total FROM (\n    SELECT \n      emp, region, total,\n      row_number() OVER (PARTITION BY region ORDER BY total DESC) AS rank\n    FROM sales\n  ) WHERE rank\u003c=2 ORDER BY region, total DESC",
+          "expect": "\n  Horace      East     1\n  Charles     North   45\n  Alice       North   34\n  Elizabeth   South   99\n  Grant       South   23\n"
         }
       ]
     },
     {
-      "name": "10.2",
+      "name": "window1-10.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT emp, region, sum(total) OVER win FROM sales\n  WINDOW win AS (PARTITION BY region ORDER BY total)",
-          "expect": "Horace East       1  \n  Brad North       22 \n  Alice North      56 \n  Charles North   101 \n  Darrell South     8 \n  Frank South      30 \n  Grant South      53 \n  Elizabeth South 152"
+          "expect": "\n  Horace East       1  \n  Brad North       22 \n  Alice North      56 \n  Charles North   101 \n  Darrell South     8 \n  Frank South      30 \n  Grant South      53 \n  Elizabeth South 152\n"
         }
       ]
     },
     {
-      "name": "10.3",
+      "name": "window1-10.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT emp, region, sum(total) OVER win FROM sales\n  WINDOW win AS (PARTITION BY region ORDER BY total)\n  LIMIT 5",
-          "expect": "Horace East       1  \n  Brad North       22 \n  Alice North      56 \n  Charles North   101 \n  Darrell South     8"
+          "expect": "\n  Horace East       1  \n  Brad North       22 \n  Alice North      56 \n  Charles North   101 \n  Darrell South     8 \n"
         }
       ]
     },
     {
-      "name": "10.4",
+      "name": "window1-10.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT emp, region, sum(total) OVER win FROM sales\n  WINDOW win AS (PARTITION BY region ORDER BY total)\n  LIMIT 5 OFFSET 2",
-          "expect": "Alice North      56 \n  Charles North   101 \n  Darrell South     8 \n  Frank South      30 \n  Grant South      53"
+          "expect": "\n  Alice North      56 \n  Charles North   101 \n  Darrell South     8 \n  Frank South      30 \n  Grant South      53 \n"
         }
       ]
     },
     {
-      "name": "10.5",
+      "name": "window1-10.5",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT emp, region, sum(total) OVER win FROM sales\n  WINDOW win AS (\n    PARTITION BY region ORDER BY total \n    ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\n  )",
-          "expect": "Horace East       1  \n  Brad North      101\n  Alice North      79 \n  Charles North    45 \n  Darrell South   152\n  Frank South     144 \n  Grant South     122 \n  Elizabeth South  99"
+          "expect": "\n  Horace East       1  \n  Brad North      101\n  Alice North      79 \n  Charles North    45 \n  Darrell South   152\n  Frank South     144 \n  Grant South     122 \n  Elizabeth South  99\n"
         }
       ]
     },
     {
-      "name": "10.6",
+      "name": "window1-10.6",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT emp, region, sum(total) OVER win FROM sales\n  WINDOW win AS (\n    PARTITION BY region ORDER BY total \n    ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\n  ) LIMIT 5 OFFSET 2",
-          "expect": "Alice North      79 \n  Charles North    45 \n  Darrell South   152\n  Frank South     144 \n  Grant South     122"
+          "expect": "\n  Alice North      79 \n  Charles North    45 \n  Darrell South   152\n  Frank South     144 \n  Grant South     122 \n"
         }
       ]
     },
     {
-      "name": "10.7",
+      "name": "window1-10.7",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT emp, region, (\n    SELECT sum(total) OVER (\n      ORDER BY total RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING\n    ) || outer.emp FROM sales\n  ) FROM sales AS outer;",
-          "expect": "Alice North 254Alice \n  Frank South 254Frank \n  Charles North 254Charles \n  Darrell South 254Darrell \n  Grant South 254Grant \n  Brad North 254Brad \n  Elizabeth South 254Elizabeth \n  Horace East 254Horace"
+          "expect": "\n  Alice North 254Alice \n  Frank South 254Frank \n  Charles North 254Charles \n  Darrell South 254Darrell \n  Grant South 254Grant \n  Brad North 254Brad \n  Elizabeth South 254Elizabeth \n  Horace East 254Horace\n"
         }
       ]
     },
     {
-      "name": "10.8",
+      "name": "window1-10.8",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT emp, region, (\n    SELECT sum(total) FILTER (WHERE sales.emp!=outer.emp) OVER (\n      ORDER BY total RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING\n    ) FROM sales\n  ) FROM sales AS outer;",
-          "expect": "Alice North 220 \n  Frank South 232 \n  Charles North 209 \n  Darrell South 246\n  Grant South 231 \n  Brad North 232 \n  Elizabeth South 155 \n  Horace East 253"
+          "expect": "\n  Alice North 220 \n  Frank South 232 \n  Charles North 209 \n  Darrell South 246\n  Grant South 231 \n  Brad North 232 \n  Elizabeth South 155 \n  Horace East 253\n"
         }
       ]
     },
     {
-      "name": "11.0",
+      "name": "window1-11.0",
       "steps": [
         {
           "type": "exec",
@@ -603,67 +756,67 @@
       ]
     },
     {
-      "name": "11.1",
+      "name": "window1-11.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE INDEX t6i ON t6(a) WHERE sum(b) OVER ();",
           "expect": "1 {misuse of window function sum()}"
         }
       ]
     },
     {
-      "name": "11.2",
+      "name": "window1-11.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE INDEX t6i ON t6(a) WHERE lead(b) OVER ();",
           "expect": "1 {misuse of window function lead()}"
         }
       ]
     },
     {
-      "name": "11.3",
+      "name": "window1-11.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE INDEX t6i ON t6(sum(b) OVER ());",
           "expect": "1 {misuse of window function sum()}"
         }
       ]
     },
     {
-      "name": "11.4",
+      "name": "window1-11.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE INDEX t6i ON t6(lead(b) OVER ());",
           "expect": "1 {misuse of window function lead()}"
         }
       ]
     },
     {
-      "name": "12.100",
+      "name": "window1-12.100",
       "steps": [
         {
           "type": "query",
-          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(id INT, b VARCHAR, c VARCHAR);\n  INSERT INTO t1 VALUES(1, 'A', 'one');\n  INSERT INTO t1 VALUES(2, 'B', 'two');\n  INSERT INTO t1 VALUES(3, 'C', 'three');\n  INSERT INTO t1 VALUES(4, 'D', 'one');\n  INSERT INTO t1 VALUES(5, 'E', 'two');\n  SELECT id, b, lead(c,1) OVER(ORDER BY c) AS x \n    FROM t1 WHERE id>1\n   ORDER BY b LIMIT 1;",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(id INT, b VARCHAR, c VARCHAR);\n  INSERT INTO t1 VALUES(1, 'A', 'one');\n  INSERT INTO t1 VALUES(2, 'B', 'two');\n  INSERT INTO t1 VALUES(3, 'C', 'three');\n  INSERT INTO t1 VALUES(4, 'D', 'one');\n  INSERT INTO t1 VALUES(5, 'E', 'two');\n  SELECT id, b, lead(c,1) OVER(ORDER BY c) AS x \n    FROM t1 WHERE id\u003e1\n   ORDER BY b LIMIT 1;",
           "expect": "2 B two"
         }
       ]
     },
     {
-      "name": "12.110",
+      "name": "window1-12.110",
       "steps": [
         {
           "type": "query",
-          "sql": "INSERT INTO t1 VALUES(6, 'F', 'three');\n  INSERT INTO t1 VALUES(7, 'G', 'one');\n  SELECT id, b, lead(c,1) OVER(ORDER BY c) AS x\n    FROM t1 WHERE id>1\n   ORDER BY b LIMIT 2;",
+          "sql": "INSERT INTO t1 VALUES(6, 'F', 'three');\n  INSERT INTO t1 VALUES(7, 'G', 'one');\n  SELECT id, b, lead(c,1) OVER(ORDER BY c) AS x\n    FROM t1 WHERE id\u003e1\n   ORDER BY b LIMIT 2;",
           "expect": "2 B two 3 C three"
         }
       ]
     },
     {
-      "name": "13.1",
+      "name": "window1-13.1",
       "steps": [
         {
           "type": "exec",
@@ -672,47 +825,47 @@
       ]
     },
     {
-      "name": "13.2.1",
+      "name": "window1-13.2.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, rank() OVER(ORDER BY b) FROM t1;\n  SELECT a, rank() OVER(ORDER BY b DESC) FROM t1;",
-          "expect": "1 1   2 2   2 1   1 2"
+          "expect": "\n  1 1   2 2   2 1   1 2\n"
         }
       ]
     },
     {
-      "name": "13.2.2",
+      "name": "window1-13.2.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, rank() OVER(ORDER BY b) FROM t1\n    UNION ALL\n  SELECT a, rank() OVER(ORDER BY b DESC) FROM t1;",
-          "expect": "1 1   2 2   2 1   1 2"
+          "expect": "\n  1 1   2 2   2 1   1 2\n"
         }
       ]
     },
     {
-      "name": "13.3",
+      "name": "window1-13.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, rank() OVER(ORDER BY b) FROM t1\n    UNION \n  SELECT a, rank() OVER(ORDER BY b DESC) FROM t1;",
-          "expect": "1 1   1 2   2 1   2 2"
+          "expect": "\n  1 1   1 2   2 1   2 2  \n"
         }
       ]
     },
     {
-      "name": "13.4",
+      "name": "window1-13.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, rank() OVER(ORDER BY b) FROM t1\n    EXCEPT \n  SELECT a, rank() OVER(ORDER BY b DESC) FROM t1;",
-          "expect": "1 1   2 2"
+          "expect": "\n  1 1   2 2 \n"
         }
       ]
     },
     {
-      "name": "13.5",
+      "name": "window1-13.5",
       "steps": [
         {
           "type": "query",
@@ -721,7 +874,15 @@
       ]
     },
     {
-      "name": "14.0",
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "window1-14.0",
       "steps": [
         {
           "type": "query",
@@ -731,7 +892,7 @@
       ]
     },
     {
-      "name": "14.1",
+      "name": "window1-14.1",
       "steps": [
         {
           "type": "query",
@@ -741,27 +902,27 @@
       ]
     },
     {
-      "name": "15.0",
+      "name": "window1-15.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "WITH t(id, parent) AS (\n  SELECT CAST(1 AS INT), CAST(NULL AS INT)\n  UNION ALL\n  SELECT 2, NULL\n  UNION ALL\n  SELECT 3, 1\n  UNION ALL\n  SELECT 4, 1\n  UNION ALL\n  SELECT 5, 2\n  UNION ALL\n  SELECT 6, 2\n  ), q AS (\n  SELECT t.*, ROW_NUMBER() OVER (ORDER BY t.id) AS rn\n    FROM t\n   WHERE parent IS NULL\n   UNION ALL\n  SELECT t.*, ROW_NUMBER() OVER (ORDER BY t.id) AS rn\n    FROM q\n    JOIN t\n      ON t.parent = q.id\n  )\n  SELECT *\n    FROM q;",
           "expect": "1 {cannot use window functions in recursive queries}"
         }
       ]
     },
     {
-      "name": "15.1",
+      "name": "window1-15.1",
       "steps": [
         {
           "type": "query",
-          "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('a'), ('b'), ('c');\n  CREATE TABLE t2(a, b);\n  INSERT INTO t2 VALUES('X', 1), ('X', 2), ('Y', 2), ('Y', 3);\n  SELECT x, (\n    SELECT sum(b)\n      OVER (PARTITION BY a ROWS BETWEEN UNBOUNDED PRECEDING\n                                    AND UNBOUNDED FOLLOWING)\n    FROM t2 WHERE b<x\n  ) FROM t1;",
+          "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('a'), ('b'), ('c');\n  CREATE TABLE t2(a, b);\n  INSERT INTO t2 VALUES('X', 1), ('X', 2), ('Y', 2), ('Y', 3);\n  SELECT x, (\n    SELECT sum(b)\n      OVER (PARTITION BY a ROWS BETWEEN UNBOUNDED PRECEDING\n                                    AND UNBOUNDED FOLLOWING)\n    FROM t2 WHERE b\u003cx\n  ) FROM t1;",
           "expect": "a 3 b 3 c 3"
         }
       ]
     },
     {
-      "name": "15.2",
+      "name": "window1-15.2",
       "steps": [
         {
           "type": "query",
@@ -770,7 +931,7 @@
       ]
     },
     {
-      "name": "16.0",
+      "name": "window1-16.0",
       "steps": [
         {
           "type": "exec",
@@ -779,27 +940,27 @@
       ]
     },
     {
-      "name": "16.1",
+      "name": "window1-16.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT rowid, sum(a) OVER (PARTITION BY b IN (SELECT rowid FROM t7)) FROM t7;",
-          "expect": "2 10\n  1 101\n  3 101"
+          "expect": "\n  2 10\n  1 101\n  3 101\n"
         }
       ]
     },
     {
-      "name": "16.2",
+      "name": "window1-16.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT rowid, sum(a) OVER w1 FROM t7 \n  WINDOW w1 AS (PARTITION BY b IN (SELECT rowid FROM t7));",
-          "expect": "2 10\n  1 101\n  3 101"
+          "expect": "\n  2 10\n  1 101\n  3 101\n"
         }
       ]
     },
     {
-      "name": "17.0",
+      "name": "window1-17.0",
       "steps": [
         {
           "type": "exec",
@@ -808,7 +969,7 @@
       ]
     },
     {
-      "name": "17.1",
+      "name": "window1-17.1",
       "steps": [
         {
           "type": "query",
@@ -818,7 +979,7 @@
       ]
     },
     {
-      "name": "17.2",
+      "name": "window1-17.2",
       "steps": [
         {
           "type": "query",
@@ -828,7 +989,7 @@
       ]
     },
     {
-      "name": "17.3",
+      "name": "window1-17.3",
       "steps": [
         {
           "type": "query",
@@ -838,7 +999,11 @@
       ]
     },
     {
-      "name": "18.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-18.0",
       "steps": [
         {
           "type": "exec",
@@ -847,7 +1012,87 @@
       ]
     },
     {
-      "name": "18.3.1",
+      "name": "window1-18.1.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING), \n             win2 AS (win1 ORDER BY b)",
+          "expect": "1 {cannot override frame specification of window: win1}"
+        }
+      ]
+    },
+    {
+      "name": "window1-18.1.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (),\n             win2 AS (win4 ORDER BY b)",
+          "expect": "1 {no such window: win4}"
+        }
+      ]
+    },
+    {
+      "name": "window1-18.1.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (),\n             win2 AS (win1 PARTITION BY d)",
+          "expect": "1 {cannot override PARTITION clause of window: win1}"
+        }
+      ]
+    },
+    {
+      "name": "window1-18.1.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (ORDER BY b),\n             win2 AS (win1 ORDER BY d)",
+          "expect": "1 {cannot override ORDER BY clause of window: win1}"
+        }
+      ]
+    },
+    {
+      "name": "window1-18.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT c, sum(d) OVER (win1 ORDER BY b) FROM t1\n      WINDOW win1 AS (ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)",
+          "expect": "1 {cannot override frame specification of window: win1}"
+        }
+      ]
+    },
+    {
+      "name": "window1-18.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT c, sum(d) OVER (win4 ORDER BY b) FROM t1\n      WINDOW win1 AS ()",
+          "expect": "1 {no such window: win4}"
+        }
+      ]
+    },
+    {
+      "name": "window1-18.2.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT c, sum(d) OVER (win1 PARTITION BY d) FROM t1\n      WINDOW win1 AS ()",
+          "expect": "1 {cannot override PARTITION clause of window: win1}"
+        }
+      ]
+    },
+    {
+      "name": "window1-18.2.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT c, sum(d) OVER (win1 ORDER BY d) FROM t1\n      WINDOW win1 AS (ORDER BY b)",
+          "expect": "1 {cannot override ORDER BY clause of window: win1}"
+        }
+      ]
+    },
+    {
+      "name": "window1-18.3.1",
       "steps": [
         {
           "type": "query",
@@ -857,7 +1102,7 @@
       ]
     },
     {
-      "name": "18.3.2",
+      "name": "window1-18.3.2",
       "steps": [
         {
           "type": "query",
@@ -867,7 +1112,7 @@
       ]
     },
     {
-      "name": "18.3.3",
+      "name": "window1-18.3.3",
       "steps": [
         {
           "type": "query",
@@ -877,7 +1122,7 @@
       ]
     },
     {
-      "name": "18.3.4",
+      "name": "window1-18.3.4",
       "steps": [
         {
           "type": "query",
@@ -887,7 +1132,7 @@
       ]
     },
     {
-      "name": "18.3.5",
+      "name": "window1-18.3.5",
       "steps": [
         {
           "type": "query",
@@ -897,7 +1142,11 @@
       ]
     },
     {
-      "name": "19.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-19.0",
       "steps": [
         {
           "type": "exec",
@@ -906,7 +1155,7 @@
       ]
     },
     {
-      "name": "19.1",
+      "name": "window1-19.1",
       "steps": [
         {
           "type": "query",
@@ -916,7 +1165,7 @@
       ]
     },
     {
-      "name": "19.2.1",
+      "name": "window1-19.2.1",
       "steps": [
         {
           "type": "query",
@@ -926,7 +1175,7 @@
       ]
     },
     {
-      "name": "19.2.2",
+      "name": "window1-19.2.2",
       "steps": [
         {
           "type": "query",
@@ -936,7 +1185,7 @@
       ]
     },
     {
-      "name": "19.3.1",
+      "name": "window1-19.3.1",
       "steps": [
         {
           "type": "query",
@@ -946,7 +1195,7 @@
       ]
     },
     {
-      "name": "19.3.2",
+      "name": "window1-19.3.2",
       "steps": [
         {
           "type": "query",
@@ -956,7 +1205,11 @@
       ]
     },
     {
-      "name": "20.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-20.0",
       "steps": [
         {
           "type": "exec",
@@ -965,17 +1218,17 @@
       ]
     },
     {
-      "name": "20.1",
+      "name": "window1-20.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, sum(b) OVER (ORDER BY a) FROM t1;",
-          "expect": "{} 200 {} 200 1 201  2 203  3 206  4 210  5 215  \n  a 221 b 228 c 236 d 245 e 255"
+          "expect": "\n  {} 200 {} 200 1 201  2 203  3 206  4 210  5 215  \n  a 221 b 228 c 236 d 245 e 255\n"
         }
       ]
     },
     {
-      "name": "20.2.1",
+      "name": "window1-20.2.1",
       "steps": [
         {
           "type": "query",
@@ -985,7 +1238,7 @@
       ]
     },
     {
-      "name": "20.2.2",
+      "name": "window1-20.2.2",
       "steps": [
         {
           "type": "query",
@@ -995,7 +1248,7 @@
       ]
     },
     {
-      "name": "20.3.1",
+      "name": "window1-20.3.1",
       "steps": [
         {
           "type": "query",
@@ -1005,7 +1258,7 @@
       ]
     },
     {
-      "name": "20.3.2",
+      "name": "window1-20.3.2",
       "steps": [
         {
           "type": "query",
@@ -1015,7 +1268,7 @@
       ]
     },
     {
-      "name": "21.0",
+      "name": "window1-21.0",
       "steps": [
         {
           "type": "exec",
@@ -1024,7 +1277,7 @@
       ]
     },
     {
-      "name": "21.1",
+      "name": "window1-21.1",
       "steps": [
         {
           "type": "query",
@@ -1033,7 +1286,211 @@
       ]
     },
     {
-      "name": "23.0",
+      "name": "window1-22.1.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH a(x, y) AS ( VALUES(1, 2) )\n    SELECT sum(x) OVER (\n      ORDER BY y RANGE BETWEEN 4.5 PRECEDING AND UNBOUNDED FOLLOWING\n    ) FROM a",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "window1-22.1.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH a(x, y) AS ( VALUES(1, 2) )\n    SELECT sum(x) OVER (\n      ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND 4.5 FOLLOWING\n    ) FROM a",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "window1-22.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH a(x, y) AS ( VALUES(1, 2) )\n    SELECT sum(x) OVER (\n      ORDER BY y RANGE BETWEEN NULL PRECEDING AND UNBOUNDED FOLLOWING\n    ) FROM a",
+          "expect": "1 {frame starting offset must be a non-negative number}"
+        }
+      ]
+    },
+    {
+      "name": "window1-22.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH a(x, y) AS ( VALUES(1, 2) )\n    SELECT sum(x) OVER (\n      ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND NULL FOLLOWING\n    ) FROM a",
+          "expect": "1 {frame ending offset must be a non-negative number}"
+        }
+      ]
+    },
+    {
+      "name": "window1-22.3.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH a(x, y) AS ( VALUES(1, 2) )\n    SELECT sum(x) OVER (\n      ORDER BY y RANGE BETWEEN 0.0 PRECEDING AND UNBOUNDED FOLLOWING\n    ) FROM a",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "window1-22.3.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH a(x, y) AS ( VALUES(1, 2) )\n    SELECT sum(x) OVER (\n      ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND 0.0 FOLLOWING\n    ) FROM a",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "window1-22.4.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH a(x, y) AS ( VALUES(1, 2) )\n    SELECT sum(x) OVER (\n      ORDER BY y RANGE BETWEEN 0.1 PRECEDING AND UNBOUNDED FOLLOWING\n    ) FROM a",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "window1-22.4.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH a(x, y) AS ( VALUES(1, 2) )\n    SELECT sum(x) OVER (\n      ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND 0.1 FOLLOWING\n    ) FROM a",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "window1-22.5.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH a(x, y) AS ( VALUES(1, 2) )\n    SELECT sum(x) OVER (\n      ORDER BY y RANGE BETWEEN -0.1 PRECEDING AND UNBOUNDED FOLLOWING\n    ) FROM a",
+          "expect": "1 {frame starting offset must be a non-negative number}"
+        }
+      ]
+    },
+    {
+      "name": "window1-22.5.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH a(x, y) AS ( VALUES(1, 2) )\n    SELECT sum(x) OVER (\n      ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND -0.1 FOLLOWING\n    ) FROM a",
+          "expect": "1 {frame ending offset must be a non-negative number}"
+        }
+      ]
+    },
+    {
+      "name": "window1-22.6.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH a(x, y) AS ( VALUES(1, 2) )\n    SELECT sum(x) OVER (\n      ORDER BY y RANGE BETWEEN '' PRECEDING AND UNBOUNDED FOLLOWING\n    ) FROM a",
+          "expect": "1 {frame starting offset must be a non-negative number}"
+        }
+      ]
+    },
+    {
+      "name": "window1-22.6.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH a(x, y) AS ( VALUES(1, 2) )\n    SELECT sum(x) OVER (\n      ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND '' FOLLOWING\n    ) FROM a",
+          "expect": "1 {frame ending offset must be a non-negative number}"
+        }
+      ]
+    },
+    {
+      "name": "window1-22.7.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH a(x, y) AS ( VALUES(1, 2) )\n    SELECT sum(x) OVER (\n      ORDER BY y RANGE BETWEEN '2.0' PRECEDING AND UNBOUNDED FOLLOWING\n    ) FROM a",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "window1-22.7.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH a(x, y) AS ( VALUES(1, 2) )\n    SELECT sum(x) OVER (\n      ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND '2.0' FOLLOWING\n    ) FROM a",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "window1-22.8.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH a(x, y) AS ( VALUES(1, 2) )\n    SELECT sum(x) OVER (\n      ORDER BY y RANGE BETWEEN '2.0x' PRECEDING AND UNBOUNDED FOLLOWING\n    ) FROM a",
+          "expect": "1 {frame starting offset must be a non-negative number}"
+        }
+      ]
+    },
+    {
+      "name": "window1-22.8.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH a(x, y) AS ( VALUES(1, 2) )\n    SELECT sum(x) OVER (\n      ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND '2.0x' FOLLOWING\n    ) FROM a",
+          "expect": "1 {frame ending offset must be a non-negative number}"
+        }
+      ]
+    },
+    {
+      "name": "window1-22.9.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH a(x, y) AS ( VALUES(1, 2) )\n    SELECT sum(x) OVER (\n      ORDER BY y RANGE BETWEEN x'1234' PRECEDING AND UNBOUNDED FOLLOWING\n    ) FROM a",
+          "expect": "1 {frame starting offset must be a non-negative number}"
+        }
+      ]
+    },
+    {
+      "name": "window1-22.9.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH a(x, y) AS ( VALUES(1, 2) )\n    SELECT sum(x) OVER (\n      ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND x'1234' FOLLOWING\n    ) FROM a",
+          "expect": "1 {frame ending offset must be a non-negative number}"
+        }
+      ]
+    },
+    {
+      "name": "window1-22.10.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH a(x, y) AS ( VALUES(1, 2) )\n    SELECT sum(x) OVER (\n      ORDER BY y RANGE BETWEEN '1.2' PRECEDING AND UNBOUNDED FOLLOWING\n    ) FROM a",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "window1-22.10.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH a(x, y) AS ( VALUES(1, 2) )\n    SELECT sum(x) OVER (\n      ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND '1.2' FOLLOWING\n    ) FROM a",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-23.0",
       "steps": [
         {
           "type": "exec",
@@ -1042,7 +1499,48 @@
       ]
     },
     {
-      "name": "24.1",
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT \n    sum(c) OVER (ORDER BY a, b),\n    sum(c) OVER (PARTITION BY a ORDER BY b)\n  FROM t5",
+          "variable": "plan",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT \n    sum(c) OVER (ORDER BY b, a),\n    sum(c) OVER (PARTITION BY b ORDER BY a)\n  FROM t5",
+          "variable": "plan",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT \n    sum(c) OVER (ORDER BY b, a),\n    sum(c) OVER (ORDER BY c, b)\n  FROM t5",
+          "variable": "plan",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT \n    sum(c) OVER (ORDER BY b ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW),\n    sum(c) OVER (ORDER BY b RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW),\n    sum(c) OVER (ORDER BY b GROUPS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)\n  FROM t5",
+          "variable": "plan",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT \n    sum(c) OVER (ORDER BY b+1 ROWS UNBOUNDED PRECEDING),\n    sum(c) OVER (ORDER BY b+1 RANGE UNBOUNDED PRECEDING),\n    sum(c) OVER (ORDER BY b+1 GROUPS UNBOUNDED PRECEDING)\n  FROM t5",
+          "variable": "plan",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT \n    sum(c) OVER (ORDER BY b+1 ROWS UNBOUNDED PRECEDING),\n    sum(c) OVER (ORDER BY b+2 RANGE UNBOUNDED PRECEDING),\n    sum(c) OVER (ORDER BY b+3 GROUPS UNBOUNDED PRECEDING)\n  FROM t5",
+          "variable": "plan",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "window1-24.1",
       "steps": [
         {
           "type": "query",
@@ -1052,17 +1550,21 @@
       ]
     },
     {
-      "name": "24.2",
+      "name": "window1-24.2",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT lead(44) OVER ()",
           "expect": "{}"
         }
       ]
     },
     {
-      "name": "25.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-25.0",
       "steps": [
         {
           "type": "exec",
@@ -1071,7 +1573,7 @@
       ]
     },
     {
-      "name": "25.1",
+      "name": "window1-25.1",
       "steps": [
         {
           "type": "query",
@@ -1080,7 +1582,7 @@
       ]
     },
     {
-      "name": "25.2",
+      "name": "window1-25.2",
       "steps": [
         {
           "type": "query",
@@ -1090,7 +1592,11 @@
       ]
     },
     {
-      "name": "26.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-26.0",
       "steps": [
         {
           "type": "exec",
@@ -1099,7 +1605,7 @@
       ]
     },
     {
-      "name": "26.1",
+      "name": "window1-26.1",
       "steps": [
         {
           "type": "query",
@@ -1108,7 +1614,7 @@
       ]
     },
     {
-      "name": "26.2",
+      "name": "window1-26.2",
       "steps": [
         {
           "type": "query",
@@ -1118,7 +1624,7 @@
       ]
     },
     {
-      "name": "26.3",
+      "name": "window1-26.3",
       "steps": [
         {
           "type": "query",
@@ -1128,7 +1634,11 @@
       ]
     },
     {
-      "name": "27.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-27.0",
       "steps": [
         {
           "type": "exec",
@@ -1137,7 +1647,7 @@
       ]
     },
     {
-      "name": "27.1",
+      "name": "window1-27.1",
       "steps": [
         {
           "type": "query",
@@ -1147,7 +1657,7 @@
       ]
     },
     {
-      "name": "27.2",
+      "name": "window1-27.2",
       "steps": [
         {
           "type": "query",
@@ -1157,7 +1667,11 @@
       ]
     },
     {
-      "name": "28.1.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-28.1.1",
       "steps": [
         {
           "type": "exec",
@@ -1166,27 +1680,22 @@
       ]
     },
     {
-      "name": "28.1.2",
+      "name": "window1-28.1.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT string_agg(b,'') OVER w1 FROM t1\n    WINDOW w1 AS (ORDER BY a RANGE BETWEEN 3 PRECEDING AND 1 PRECEDING)",
-          "expect": "{} {}"
+          "expect": "\n  {} {}\n"
         }
       ]
     },
     {
-      "name": "28.2.1",
+      "name": "window1-28.2.1",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t2(a TEXT, b INTEGER);\n  INSERT INTO t2 VALUES('A', NULL);\n  INSERT INTO t2 VALUES('B', NULL);"
-        }
-      ]
-    },
-    {
-      "name": "28.2.1",
-      "steps": [
+        },
         {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b CHAR(1), c CHAR(2), d ANY);\n  INSERT INTO t1 VALUES\n    (10,'J', 'cc', NULL),\n    (11,'K', 'cc', 'xyz'),\n    (13,'M', 'cc', NULL);"
@@ -1194,17 +1703,21 @@
       ]
     },
     {
-      "name": "28.2.2",
+      "name": "window1-28.2.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, b, c, quote(d), group_concat(b,'') OVER w1, '|' FROM t1\n    WINDOW w1 AS\n    (ORDER BY d DESC RANGE BETWEEN 7.0 PRECEDING AND 2.5 PRECEDING)\n    ORDER BY c, d, a;",
-          "expect": "10 J cc NULL JM |\n  13 M cc NULL JM | \n  11 K cc 'xyz' K |"
+          "expect": "\n  10 J cc NULL JM |\n  13 M cc NULL JM | \n  11 K cc 'xyz' K |\n"
         }
       ]
     },
     {
-      "name": "29.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-29.1",
       "steps": [
         {
           "type": "exec",
@@ -1213,17 +1726,17 @@
       ]
     },
     {
-      "name": "29.2",
+      "name": "window1-29.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, b, c, quote(d), group_concat(b,'') OVER w1, '|' FROM t1\n    WINDOW w1 AS\n    (PARTITION BY c ORDER BY d DESC\n     RANGE BETWEEN 7.0 PRECEDING AND 2.5 PRECEDING)\n    ORDER BY c, d, a;",
-          "expect": "1 A aa 2.5 FG | \n  9 I aa 3.75 F | \n  7 G aa 6 {} | \n  6 F aa 6.5 {} | \n  2 B bb 3.75 HE |\n  5 E bb 6.5 H | \n  8 H bb 9 {} | \n  10 J cc NULL JM | \n  13 M cc NULL JM | \n  3 C cc 1 {} | \n  4 D cc 8.25 {} | \n  12 L cc 'xyZ' L | \n  11 K cc 'xyz' K |"
+          "expect": "\n  1 A aa 2.5 FG | \n  9 I aa 3.75 F | \n  7 G aa 6 {} | \n  6 F aa 6.5 {} | \n  2 B bb 3.75 HE |\n  5 E bb 6.5 H | \n  8 H bb 9 {} | \n  10 J cc NULL JM | \n  13 M cc NULL JM | \n  3 C cc 1 {} | \n  4 D cc 8.25 {} | \n  12 L cc 'xyZ' L | \n  11 K cc 'xyz' K |\n"
         }
       ]
     },
     {
-      "name": "30.0",
+      "name": "window1-30.0",
       "steps": [
         {
           "type": "query",
@@ -1233,7 +1746,11 @@
       ]
     },
     {
-      "name": "31.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-31.1",
       "steps": [
         {
           "type": "exec",
@@ -1242,7 +1759,7 @@
       ]
     },
     {
-      "name": "31.2",
+      "name": "window1-31.2",
       "steps": [
         {
           "type": "query",
@@ -1252,47 +1769,52 @@
       ]
     },
     {
-      "name": "31.3",
+      "name": "window1-31.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT d IN (SELECT sum(c) OVER (PARTITION BY d ORDER BY e+c) FROM t3) FROM (\n    SELECT * FROM t2\n  );",
           "expect": "1"
-        }
-      ]
-    },
-    {
-      "name": "31.3",
-      "steps": [
+        },
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT d IN (\n    SELECT sum(c) OVER ( ROWS BETWEEN d FOLLOWING AND UNBOUNDED FOLLOWING) \n    FROM t3\n  )\n  FROM (\n    SELECT * FROM t2\n  );",
           "expect": "1 {frame starting offset must be a non-negative integer}"
-        }
-      ]
-    },
-    {
-      "name": "31.3",
-      "steps": [
+        },
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT d IN (\n    SELECT sum(c) OVER ( ROWS BETWEEN CURRENT ROW AND c FOLLOWING) \n    FROM t3\n  )\n  FROM (\n    SELECT * FROM t2\n  );",
           "expect": "1 {frame ending offset must be a non-negative integer}"
         }
       ]
     },
     {
-      "name": "32.10",
+      "name": "setup_3",
       "steps": [
         {
-          "type": "exec",
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "window1-32.10",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "CREATE VIEW a AS SELECT NULL INTERSECT SELECT NULL ORDER BY s() OVER R;\n    CREATE TABLE a0 AS SELECT 0;\n    ALTER TABLE a0 RENAME TO S;",
           "expect": "1 {error in view a: 1st ORDER BY term does not match any column in the result set}"
         }
       ]
     },
     {
-      "name": "33.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-33.1",
       "steps": [
         {
           "type": "exec",
@@ -1301,7 +1823,7 @@
       ]
     },
     {
-      "name": "33.2",
+      "name": "window1-33.2",
       "steps": [
         {
           "type": "query",
@@ -1311,7 +1833,11 @@
       ]
     },
     {
-      "name": "34.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-34.1",
       "steps": [
         {
           "type": "exec",
@@ -1320,7 +1846,7 @@
       ]
     },
     {
-      "name": "34.2",
+      "name": "window1-34.2",
       "steps": [
         {
           "type": "query",
@@ -1329,90 +1855,105 @@
       ]
     },
     {
-      "name": "35.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-35.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * WINDOW f AS () ORDER BY name COLLATE nocase;",
           "expect": "1 {no tables specified}"
         }
       ]
     },
     {
-      "name": "35.1",
+      "name": "window1-35.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "VALUES(1) INTERSECT SELECT * WINDOW f AS () ORDER BY x COLLATE nocase;",
           "expect": "1 {no tables specified}"
         }
       ]
     },
     {
-      "name": "35.2",
+      "name": "window1-35.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1), (2), (3);\n  VALUES(1) INTERSECT \n  SELECT sum(x) OVER f FROM t1 WINDOW f AS (ORDER BY x) ORDER BY 1;"
+          "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1), (2), (3);\n  VALUES(1) INTERSECT \n  SELECT sum(x) OVER f FROM t1 WINDOW f AS (ORDER BY x) ORDER BY 1;",
+          "expect": "1"
         }
       ]
     },
     {
-      "name": "35.3",
+      "name": "window1-35.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "VALUES(8) EXCEPT \n  SELECT sum(x) OVER f FROM t1 WINDOW f AS (ORDER BY x) ORDER BY 1;"
+          "sql": "VALUES(8) EXCEPT \n  SELECT sum(x) OVER f FROM t1 WINDOW f AS (ORDER BY x) ORDER BY 1;",
+          "expect": "8"
         }
       ]
     },
     {
-      "name": "35.4",
+      "name": "window1-35.4",
       "steps": [
         {
           "type": "exec",
-          "sql": "VALUES(1) UNION \n  SELECT sum(x) OVER f FROM t1 WINDOW f AS (ORDER BY x) ORDER BY 1;"
+          "sql": "VALUES(1) UNION \n  SELECT sum(x) OVER f FROM t1 WINDOW f AS (ORDER BY x) ORDER BY 1;",
+          "expect": "1 3 6"
         }
       ]
     },
     {
-      "name": "36.10",
+      "name": "window1-36.10",
       "steps": [
         {
           "type": "exec",
-          "sql": "VALUES(count(*)OVER());"
+          "sql": "VALUES(count(*)OVER());",
+          "expect": "1"
         }
       ]
     },
     {
-      "name": "36.20",
+      "name": "window1-36.20",
       "steps": [
         {
           "type": "exec",
-          "sql": "VALUES(count(*)OVER()),(2);"
+          "sql": "VALUES(count(*)OVER()),(2);",
+          "expect": "1 2"
         }
       ]
     },
     {
-      "name": "36.30",
+      "name": "window1-36.30",
       "steps": [
         {
           "type": "exec",
-          "sql": "VALUES(2),(count(*)OVER());"
+          "sql": "VALUES(2),(count(*)OVER());",
+          "expect": "2 1"
         }
       ]
     },
     {
-      "name": "36.40",
+      "name": "window1-36.40",
       "steps": [
         {
           "type": "exec",
-          "sql": "VALUES(2),(3),(count(*)OVER()),(4),(5);"
+          "sql": "VALUES(2),(3),(count(*)OVER()),(4),(5);",
+          "expect": "2 3 1 4 5"
         }
       ]
     },
     {
-      "name": "37.10",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-37.10",
       "steps": [
         {
           "type": "query",
@@ -1421,7 +1962,7 @@
       ]
     },
     {
-      "name": "37.20",
+      "name": "window1-37.20",
       "steps": [
         {
           "type": "query",
@@ -1430,17 +1971,21 @@
       ]
     },
     {
-      "name": "38.10",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-38.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t0(c0);\n  CREATE TABLE t1(c0, c1 UNIQUE);\n  INSERT INTO t0(c0) VALUES(1);\n  INSERT INTO t1(c0,c1) VALUES(2,3);\n  SELECT COUNT(*) FROM t0, t1 WHERE (SELECT AVG(0) FILTER(WHERE t1.c1));",
           "expect": "1 {misuse of aggregate: AVG()}"
         }
       ]
     },
     {
-      "name": "38.20",
+      "name": "window1-38.20",
       "steps": [
         {
           "type": "query",
@@ -1450,17 +1995,21 @@
       ]
     },
     {
-      "name": "38.30",
+      "name": "window1-38.30",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT COUNT(*) FROM t0, t1 WHERE (SELECT AVG(1) FILTER(WHERE t1.c1));",
           "expect": "1 {misuse of aggregate: AVG()}"
         }
       ]
     },
     {
-      "name": "39.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-39.1",
       "steps": [
         {
           "type": "exec",
@@ -1469,7 +2018,7 @@
       ]
     },
     {
-      "name": "39.2",
+      "name": "window1-39.2",
       "steps": [
         {
           "type": "query",
@@ -1479,7 +2028,7 @@
       ]
     },
     {
-      "name": "39.3",
+      "name": "window1-39.3",
       "steps": [
         {
           "type": "query",
@@ -1488,7 +2037,7 @@
       ]
     },
     {
-      "name": "39.4",
+      "name": "window1-39.4",
       "steps": [
         {
           "type": "query",
@@ -1497,7 +2046,25 @@
       ]
     },
     {
-      "name": "41.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-40.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE t0 USING rtree(c0, c1, c2);\n    SELECT * FROM t0\n     WHERE ((0,0) IN (SELECT COUNT(*),LAG(5)OVER(PARTITION BY 0) FROM t0),0)\u003c=(c1,0);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-41.1",
       "steps": [
         {
           "type": "exec",
@@ -1506,37 +2073,36 @@
       ]
     },
     {
-      "name": "41.2",
+      "name": "window1-41.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT min(c) OVER (\n    ORDER BY a RANGE BETWEEN 5.2 PRECEDING AND 0.1 PRECEDING\n  ) FROM t1",
           "expect": "355 158 574 929"
-        }
-      ]
-    },
-    {
-      "name": "41.2",
-      "steps": [
+        },
         {
           "type": "query",
-          "sql": "SELECT min(c) OVER (\n    ORDER BY a RANGE BETWEEN 5.2 PRECEDING AND 0.1 PRECEDING\n  ) << 100 FROM t1",
+          "sql": "SELECT min(c) OVER (\n    ORDER BY a RANGE BETWEEN 5.2 PRECEDING AND 0.1 PRECEDING\n  ) \u003c\u003c 100 FROM t1",
           "expect": "0 0 0 0"
         }
       ]
     },
     {
-      "name": "41.3",
+      "name": "window1-41.3",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT\n    min(c) OVER win3 << first_value(c) OVER win3,\n    min(c) OVER win3 << first_value(c) OVER win3\n  FROM t1\n  WINDOW win3 AS (\n    PARTITION BY 6 ORDER BY a RANGE BETWEEN 5.2 PRECEDING AND 0.1 PRECEDING\n  );",
+          "sql": "SELECT\n    min(c) OVER win3 \u003c\u003c first_value(c) OVER win3,\n    min(c) OVER win3 \u003c\u003c first_value(c) OVER win3\n  FROM t1\n  WINDOW win3 AS (\n    PARTITION BY 6 ORDER BY a RANGE BETWEEN 5.2 PRECEDING AND 0.1 PRECEDING\n  );",
           "expect": "0 0  0 0  0 0  0 0"
         }
       ]
     },
     {
-      "name": "42.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-42.1",
       "steps": [
         {
           "type": "exec",
@@ -1545,7 +2111,7 @@
       ]
     },
     {
-      "name": "42.2",
+      "name": "window1-42.2",
       "steps": [
         {
           "type": "query",
@@ -1554,18 +2120,13 @@
       ]
     },
     {
-      "name": "42.3",
+      "name": "window1-42.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (2, 0) IN ( SELECT count(*), 0 FROM t1 )",
           "expect": "1 1 1 2 2 2"
-        }
-      ]
-    },
-    {
-      "name": "42.3",
-      "steps": [
+        },
         {
           "type": "query",
           "sql": "SELECT count(*), max(a) OVER () FROM t1 GROUP BY c;",
@@ -1574,7 +2135,7 @@
       ]
     },
     {
-      "name": "42.4",
+      "name": "window1-42.4",
       "steps": [
         {
           "type": "query",
@@ -1584,7 +2145,7 @@
       ]
     },
     {
-      "name": "42.5",
+      "name": "window1-42.5",
       "steps": [
         {
           "type": "exec",
@@ -1593,7 +2154,7 @@
       ]
     },
     {
-      "name": "42.6",
+      "name": "window1-42.6",
       "steps": [
         {
           "type": "query",
@@ -1603,7 +2164,7 @@
       ]
     },
     {
-      "name": "42.7",
+      "name": "window1-42.7",
       "steps": [
         {
           "type": "query",
@@ -1613,7 +2174,11 @@
       ]
     },
     {
-      "name": "43.1.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-43.1.1",
       "steps": [
         {
           "type": "exec",
@@ -1622,17 +2187,21 @@
       ]
     },
     {
-      "name": "43.1.2",
+      "name": "window1-43.1.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT count() OVER() AS m FROM t1 ORDER BY (SELECT m);",
           "expect": "1 {misuse of aliased window function m}"
         }
       ]
     },
     {
-      "name": "43.2.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-43.2.1",
       "steps": [
         {
           "type": "exec",
@@ -1641,57 +2210,61 @@
       ]
     },
     {
-      "name": "43.2.2",
+      "name": "window1-43.2.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, sum(b) OVER (ORDER BY a) AS abc FROM t1 ORDER BY 2",
-          "expect": "1 10   4 15   3 20   6 24   2 25   5 35"
+          "expect": "\n  1 10   4 15   3 20   6 24   2 25   5 35\n"
         }
       ]
     },
     {
-      "name": "43.2.3",
+      "name": "window1-43.2.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, sum(b) OVER (ORDER BY a) AS abc FROM t1 ORDER BY abc",
-          "expect": "1 10   4 15   3 20   6 24   2 25   5 35"
+          "expect": "\n  1 10   4 15   3 20   6 24   2 25   5 35\n"
         }
       ]
     },
     {
-      "name": "43.2.4",
+      "name": "window1-43.2.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, sum(b) OVER (ORDER BY a) AS abc FROM t1 ORDER BY abc+5",
-          "expect": "1 10   4 15   3 20   6 24   2 25   5 35"
+          "expect": "\n  1 10   4 15   3 20   6 24   2 25   5 35\n"
         }
       ]
     },
     {
-      "name": "43.2.5",
+      "name": "window1-43.2.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT a, sum(b) OVER (ORDER BY a) AS abc FROM t1 ORDER BY (SELECT abc)",
           "expect": "1 {misuse of aliased window function abc}"
         }
       ]
     },
     {
-      "name": "43.2.6",
+      "name": "window1-43.2.6",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT a, 1+sum(b) OVER (ORDER BY a) AS abc FROM t1 ORDER BY (SELECT abc)",
           "expect": "1 {misuse of aliased window function abc}"
         }
       ]
     },
     {
-      "name": "44.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-44.1",
       "steps": [
         {
           "type": "exec",
@@ -1700,27 +2273,27 @@
       ]
     },
     {
-      "name": "44.2.1",
+      "name": "window1-44.2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT ntile(0) OVER ();",
           "expect": "1 {argument of ntile must be a positive integer}"
         }
       ]
     },
     {
-      "name": "44.2.2",
+      "name": "window1-44.2.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT (0, 0) IN(SELECT MIN(c0), NTILE(0) OVER()) FROM t0;",
           "expect": "1 {argument of ntile must be a positive integer}"
         }
       ]
     },
     {
-      "name": "44.3.1",
+      "name": "window1-44.3.1",
       "steps": [
         {
           "type": "query",
@@ -1730,7 +2303,7 @@
       ]
     },
     {
-      "name": "44.3.2",
+      "name": "window1-44.3.2",
       "steps": [
         {
           "type": "query",
@@ -1740,7 +2313,7 @@
       ]
     },
     {
-      "name": "44.4.2",
+      "name": "window1-44.4.2",
       "steps": [
         {
           "type": "query",
@@ -1750,7 +2323,11 @@
       ]
     },
     {
-      "name": "45.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-45.1",
       "steps": [
         {
           "type": "exec",
@@ -1759,7 +2336,7 @@
       ]
     },
     {
-      "name": "45.2",
+      "name": "window1-45.2",
       "steps": [
         {
           "type": "query",
@@ -1769,7 +2346,11 @@
       ]
     },
     {
-      "name": "46.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-46.1",
       "steps": [
         {
           "type": "exec",
@@ -1778,34 +2359,41 @@
       ]
     },
     {
-      "name": "46.2",
+      "name": "window1-46.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT (SELECT sum(a) OVER(ORDER BY a)) FROM t1"
+          "sql": "SELECT (SELECT sum(a) OVER(ORDER BY a)) FROM t1",
+          "expect": "10"
         }
       ]
     },
     {
-      "name": "46.3",
+      "name": "window1-46.3",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (SELECT sum(a) OVER(ORDER BY a));"
+          "sql": "SELECT * FROM t1 WHERE (SELECT sum(a) OVER(ORDER BY a));",
+          "expect": "10"
         }
       ]
     },
     {
-      "name": "46.4",
+      "name": "window1-46.4",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 NATURAL JOIN t1\n    WHERE a=1\n    OR ((SELECT sum(a)OVER(ORDER BY a)) AND a<=10)"
+          "sql": "SELECT * FROM t1 NATURAL JOIN t1\n    WHERE a=1\n    OR ((SELECT sum(a)OVER(ORDER BY a)) AND a\u003c=10)",
+          "expect": "10"
         }
       ]
     },
     {
-      "name": "47.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-47.0",
       "steps": [
         {
           "type": "exec",
@@ -1814,7 +2402,7 @@
       ]
     },
     {
-      "name": "47.1",
+      "name": "window1-47.1",
       "steps": [
         {
           "type": "exec",
@@ -1823,17 +2411,21 @@
       ]
     },
     {
-      "name": "47.2",
+      "name": "window1-47.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT 234 FROM t2\n    WHERE k=1\n    OR (SELECT k FROM t2 WHERE (SELECT sum(a) OVER() FROM t1 GROUP BY 1));",
           "expect": "1 {misuse of window function sum()}"
         }
       ]
     },
     {
-      "name": "48.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-48.0",
       "steps": [
         {
           "type": "query",
@@ -1843,7 +2435,7 @@
       ]
     },
     {
-      "name": "48.1",
+      "name": "window1-48.1",
       "steps": [
         {
           "type": "query",
@@ -1853,7 +2445,11 @@
       ]
     },
     {
-      "name": "49.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-49.1",
       "steps": [
         {
           "type": "exec",
@@ -1862,17 +2458,21 @@
       ]
     },
     {
-      "name": "49.2",
+      "name": "window1-49.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT b AS c FROM (\n    SELECT a AS b FROM (\n      SELECT a FROM t1 WHERE a=1 OR (SELECT sum(a) OVER ())\n    ) \n    WHERE b=1 OR b<10\n  ) \n  WHERE c=1 OR c>=10;",
+          "sql": "SELECT b AS c FROM (\n    SELECT a AS b FROM (\n      SELECT a FROM t1 WHERE a=1 OR (SELECT sum(a) OVER ())\n    ) \n    WHERE b=1 OR b\u003c10\n  ) \n  WHERE c=1 OR c\u003e=10;",
           "expect": "1"
         }
       ]
     },
     {
-      "name": "50.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-50.0",
       "steps": [
         {
           "type": "exec",
@@ -1881,7 +2481,7 @@
       ]
     },
     {
-      "name": "50.1",
+      "name": "window1-50.1",
       "steps": [
         {
           "type": "query",
@@ -1891,57 +2491,65 @@
       ]
     },
     {
-      "name": "50.2",
+      "name": "window1-50.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (\n    SELECT * FROM t1 WHERE a%1 OR (SELECT sum(a) OVER (ORDER BY a%2))\n  ) \n  WHERE a=1 OR ( (SELECT sum(a) OVER (ORDER BY a%4)) AND a<=10 )",
+          "sql": "SELECT * FROM (\n    SELECT * FROM t1 WHERE a%1 OR (SELECT sum(a) OVER (ORDER BY a%2))\n  ) \n  WHERE a=1 OR ( (SELECT sum(a) OVER (ORDER BY a%4)) AND a\u003c=10 )",
           "expect": "10.0"
         }
       ]
     },
     {
-      "name": "50.3",
+      "name": "window1-50.3",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a FROM (\n    SELECT * FROM (\n      SELECT * FROM t1 WHERE a%1 OR (SELECT sum(a) OVER (ORDER BY a%2))\n    ) \n    WHERE a=1 OR ( (SELECT sum(a) OVER (ORDER BY a%4)) AND a<=10 )\n  ) \n  WHERE a=1 OR a=10.0",
+          "sql": "SELECT a FROM (\n    SELECT * FROM (\n      SELECT * FROM t1 WHERE a%1 OR (SELECT sum(a) OVER (ORDER BY a%2))\n    ) \n    WHERE a=1 OR ( (SELECT sum(a) OVER (ORDER BY a%4)) AND a\u003c=10 )\n  ) \n  WHERE a=1 OR a=10.0",
           "expect": "10.0"
         }
       ]
     },
     {
-      "name": "50.4",
+      "name": "window1-50.4",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a FROM (\n    SELECT * FROM (\n      SELECT * FROM t1 WHERE a%1 OR (SELECT sum(a) OVER (ORDER BY a%2))\n    ) \n    WHERE a=1 OR ( (SELECT sum(a) OVER (ORDER BY a%4)) AND a<=10 )\n  ) \n  WHERE a=1 OR ((SELECT sum(a) OVER(ORDER BY a%8)) AND 10<=a)",
+          "sql": "SELECT a FROM (\n    SELECT * FROM (\n      SELECT * FROM t1 WHERE a%1 OR (SELECT sum(a) OVER (ORDER BY a%2))\n    ) \n    WHERE a=1 OR ( (SELECT sum(a) OVER (ORDER BY a%4)) AND a\u003c=10 )\n  ) \n  WHERE a=1 OR ((SELECT sum(a) OVER(ORDER BY a%8)) AND 10\u003c=a)",
           "expect": "10.0"
         }
       ]
     },
     {
-      "name": "50.5",
+      "name": "window1-50.5",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (SELECT * FROM t1 NATURAL JOIN t1 WHERE a%1 OR ((SELECT sum(a)OVER(ORDER BY a)) AND a<=10)) NATURAL JOIN t1 WHERE a=1 OR ((SELECT sum((SELECT * FROM (SELECT * FROM (SELECT * FROM t1 NATURAL JOIN t1 WHERE a%1 OR ((SELECT sum(a)OVER(ORDER BY a)) AND a<=10)) NATURAL JOIN t1 WHERE a=1 OR ((SELECT sum((SELECT * FROM t1 NATURAL JOIN t1 WHERE a=1 OR ((SELECT sum(a)OVER(ORDER BY a)) AND a<=10)))OVER(ORDER BY a% 1 )) AND a<=10)) NATURAL JOIN t1 WHERE a=1 OR ((SELECT sum(a)OVER(ORDER BY a)) AND 10<=a)))OVER(ORDER BY a%5)) AND a<=10);",
+          "sql": "SELECT * FROM (SELECT * FROM t1 NATURAL JOIN t1 WHERE a%1 OR ((SELECT sum(a)OVER(ORDER BY a)) AND a\u003c=10)) NATURAL JOIN t1 WHERE a=1 OR ((SELECT sum((SELECT * FROM (SELECT * FROM (SELECT * FROM t1 NATURAL JOIN t1 WHERE a%1 OR ((SELECT sum(a)OVER(ORDER BY a)) AND a\u003c=10)) NATURAL JOIN t1 WHERE a=1 OR ((SELECT sum((SELECT * FROM t1 NATURAL JOIN t1 WHERE a=1 OR ((SELECT sum(a)OVER(ORDER BY a)) AND a\u003c=10)))OVER(ORDER BY a% 1 )) AND a\u003c=10)) NATURAL JOIN t1 WHERE a=1 OR ((SELECT sum(a)OVER(ORDER BY a)) AND 10\u003c=a)))OVER(ORDER BY a%5)) AND a\u003c=10);",
           "expect": "10.0"
         }
       ]
     },
     {
-      "name": "51.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-51.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE a(b, c);\n  SELECT c FROM a GROUP BY c\n    HAVING(SELECT(sum(b) OVER(ORDER BY b),\n                  sum(b) OVER(PARTITION BY min(DISTINCT c), c ORDER BY b)));",
           "expect": "1 {row value misused}"
         }
       ]
     },
     {
-      "name": "52.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-52.1",
       "steps": [
         {
           "type": "exec",
@@ -1950,37 +2558,41 @@
       ]
     },
     {
-      "name": "52.2",
+      "name": "window1-52.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT\n    count() OVER win1,\n    sum(c) OVER win2, \n    first_value(c) OVER win2,\n    count(a) OVER (ORDER BY b)\n      FROM t1\n      WINDOW\n      win1 AS (ORDER BY a),\n    win2 AS (PARTITION BY 6 ORDER BY a\n        RANGE BETWEEN 5 PRECEDING AND 0 PRECEDING );",
-          "expect": "1 356 356 4 \n  2 399 399 2 \n  3 158 158 2 \n  4 938 938 4"
+          "expect": "\n  1 356 356 4 \n  2 399 399 2 \n  3 158 158 2 \n  4 938 938 4\n"
         }
       ]
     },
     {
-      "name": "52.3",
+      "name": "window1-52.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT\n  count() OVER (),\n  sum(c) OVER win2, \n  first_value(c) OVER win2,\n  count(a) OVER (ORDER BY b)\nFROM t1\nWINDOW\n  win1 AS (ORDER BY a),\n  win2 AS (PARTITION BY 6 COLLATE binary ORDER BY a\n           RANGE BETWEEN 5 PRECEDING AND 0 PRECEDING );",
-          "expect": "4 356 356 4 \n  4 399 399 2 \n  4 158 158 2 \n  4 938 938 4"
+          "expect": "\n  4 356 356 4 \n  4 399 399 2 \n  4 158 158 2 \n  4 938 938 4\n"
         }
       ]
     },
     {
-      "name": "52.4",
+      "name": "window1-52.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT\n    count() OVER win1,\n    sum(c) OVER win2, \n    first_value(c) OVER win2,\n    count(a) OVER (ORDER BY b)\n  FROM t1\n  WINDOW\n    win1 AS (ORDER BY a),\n    win2 AS (PARTITION BY 6 COLLATE binary ORDER BY a\n             RANGE BETWEEN 5 PRECEDING AND 0 PRECEDING );",
-          "expect": "1 356 356 4 \n  2 399 399 2 \n  3 158 158 2 \n  4 938 938 4"
+          "expect": "\n  1 356 356 4 \n  2 399 399 2 \n  3 158 158 2 \n  4 938 938 4\n"
         }
       ]
     },
     {
-      "name": "53.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-53.0",
       "steps": [
         {
           "type": "query",
@@ -1990,7 +2602,11 @@
       ]
     },
     {
-      "name": "54.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-54.1",
       "steps": [
         {
           "type": "exec",
@@ -1999,17 +2615,17 @@
       ]
     },
     {
-      "name": "54.2",
+      "name": "window1-54.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM ( \n    SELECT sum(b) OVER() AS c FROM t1 \n      UNION\n    SELECT b AS c FROM t1\n  ) WHERE c>10;",
+          "type": "catch",
+          "sql": "SELECT * FROM ( \n    SELECT sum(b) OVER() AS c FROM t1 \n      UNION\n    SELECT b AS c FROM t1\n  ) WHERE c\u003e10;",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "54.3",
+      "name": "window1-54.3",
       "steps": [
         {
           "type": "exec",
@@ -2018,17 +2634,21 @@
       ]
     },
     {
-      "name": "54.4",
+      "name": "window1-54.4",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM ( \n    SELECT sum(b) OVER() AS c FROM t1 \n      UNION\n    SELECT b AS c FROM t1\n  ) WHERE c>10;",
+          "type": "catch",
+          "sql": "SELECT * FROM ( \n    SELECT sum(b) OVER() AS c FROM t1 \n      UNION\n    SELECT b AS c FROM t1\n  ) WHERE c\u003e10;",
           "expect": "0 {15.0 30.0}"
         }
       ]
     },
     {
-      "name": "55.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-55.1",
       "steps": [
         {
           "type": "query",
@@ -2038,7 +2658,11 @@
       ]
     },
     {
-      "name": "56.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-56.1",
       "steps": [
         {
           "type": "exec",
@@ -2047,17 +2671,21 @@
       ]
     },
     {
-      "name": "56.2",
+      "name": "window1-56.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT avg(b) FROM t1 \n    UNION ALL \n  SELECT min(c) OVER () FROM t2 \n  ORDER BY nosuchcolumn;",
           "expect": "1 {1st ORDER BY term does not match any column in the result set}"
         }
       ]
     },
     {
-      "name": "57.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-57.1",
       "steps": [
         {
           "type": "exec",
@@ -2066,17 +2694,21 @@
       ]
     },
     {
-      "name": "57.2",
+      "name": "window1-57.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT b FROM t4\n  UNION\n  SELECT a FROM t4\n  ORDER BY (\n    SELECT sum(x) OVER() FROM (\n      SELECT c AS x FROM t4\n      UNION\n      SELECT d FROM t4\n      ORDER BY (SELECT e FROM t4)\n    )\n  );",
           "expect": "1 {1st ORDER BY term does not match any column in the result set}"
         }
       ]
     },
     {
-      "name": "57.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-57.1",
       "steps": [
         {
           "type": "query",
@@ -2086,7 +2718,7 @@
       ]
     },
     {
-      "name": "57.2",
+      "name": "window1-57.2",
       "steps": [
         {
           "type": "query",
@@ -2096,17 +2728,21 @@
       ]
     },
     {
-      "name": "57.3",
+      "name": "window1-57.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a);\n  INSERT INTO t1(a) VALUES(22);\n  CREATE TABLE t3(y);\n  INSERT INTO t3(y) VALUES(5),(11),(-9);\n  SELECT (\n    SELECT max(y) OVER( ORDER BY (SELECT x FROM (SELECT sum(y) AS x FROM t1)))\n  )\n  FROM t3;",
           "expect": "0 5"
         }
       ]
     },
     {
-      "name": "58.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-58.1",
       "steps": [
         {
           "type": "query",
@@ -2116,17 +2752,17 @@
       ]
     },
     {
-      "name": "59.1",
+      "name": "window1-59.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES (123);\n  SELECT\n     ntile( (SELECT sum(x)) ) OVER(ORDER BY x),\n     min(x) OVER(ORDER BY x)\n    FROM t1;",
           "expect": "1 {misuse of aggregate: sum()}"
         }
       ]
     },
     {
-      "name": "60.1",
+      "name": "window1-60.1",
       "steps": [
         {
           "type": "query",
@@ -2136,17 +2772,45 @@
       ]
     },
     {
-      "name": "61.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-61.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a);\nINSERT INTO t1 VALUES(5),(NULL),('seventeen');\nSELECT (SELECT max(x)OVER(ORDER BY x) % min(x)OVER(ORDER BY CASE x WHEN 889 THEN x WHEN x THEN x END)) FROM (SELECT (SELECT sum(CAST(a IN(SELECT (SELECT max(x)OVER(ORDER BY CASE x WHEN 889 THEN 299 WHEN 863 THEN 863 END)) FROM (SELECT (SELECT sum(CAST((SELECT (SELECT max(x)OVER(ORDER BY x) / min(x)OVER(ORDER BY CASE x WHEN 889 THEN 299 WHEN -true THEN 863 END)) FROM (SELECT (SELECT sum(CAST(a IN(SELECT (SELECT max(x) & sum ( a )OVER(ORDER BY CASE x WHEN -8 THEN 299 WHEN 863 THEN 863 END)) FROM (SELECT (SELECT sum(CAST(a AS )) FROM t1) AS x FROM t1)) AS t1 )) FROM t1) AS x FROM t1)) AS x )) FROM t1) AS x FROM t1)) AS real)) FROM t1) AS x FROM t1);",
+          "type": "catch",
+          "sql": "CREATE TABLE t1(a);\nINSERT INTO t1 VALUES(5),(NULL),('seventeen');\nSELECT (SELECT max(x)OVER(ORDER BY x) % min(x)OVER(ORDER BY CASE x WHEN 889 THEN x WHEN x THEN x END)) FROM (SELECT (SELECT sum(CAST(a IN(SELECT (SELECT max(x)OVER(ORDER BY CASE x WHEN 889 THEN 299 WHEN 863 THEN 863 END)) FROM (SELECT (SELECT sum(CAST((SELECT (SELECT max(x)OVER(ORDER BY x) / min(x)OVER(ORDER BY CASE x WHEN 889 THEN 299 WHEN -true THEN 863 END)) FROM (SELECT (SELECT sum(CAST(a IN(SELECT (SELECT max(x) \u0026 sum ( a )OVER(ORDER BY CASE x WHEN -8 THEN 299 WHEN 863 THEN 863 END)) FROM (SELECT (SELECT sum(CAST(a AS )) FROM t1) AS x FROM t1)) AS t1 )) FROM t1) AS x FROM t1)) AS x )) FROM t1) AS x FROM t1)) AS real)) FROM t1) AS x FROM t1);",
           "expect": "0 {{} {} {}}"
         }
       ]
     },
     {
-      "name": "61.3.0",
+      "name": "window1-61.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT \n      (SELECT max(x)OVER(ORDER BY x) / min(x) OVER() ) \n    FROM (\n      SELECT (SELECT sum(a) FROM t1 ) AS x FROM t1\n    )",
+          "expect": "0 {1.0 1.0 1.0}"
+        }
+      ]
+    },
+    {
+      "name": "window1-61.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT \n      (SELECT max(x)OVER(ORDER BY x) / min(x) OVER() ) \n    FROM (\n      SELECT (SELECT sum(a) FROM t1 ) AS x FROM t1\n    )",
+          "expect": "0 {1.0 1.0 1.0}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-61.3.0",
       "steps": [
         {
           "type": "exec",
@@ -2155,7 +2819,7 @@
       ]
     },
     {
-      "name": "61.3.1",
+      "name": "window1-61.3.1",
       "steps": [
         {
           "type": "query",
@@ -2164,7 +2828,7 @@
       ]
     },
     {
-      "name": "61.4.2",
+      "name": "window1-61.4.2",
       "steps": [
         {
           "type": "query",
@@ -2174,17 +2838,17 @@
       ]
     },
     {
-      "name": "61.4.3",
+      "name": "window1-61.4.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT \n    sum(a) OVER ( ORDER BY a ) \n  FROM t1 \n  ORDER BY (SELECT sum(a) FROM t2)",
           "expect": "1 {misuse of aggregate: sum()}"
         }
       ]
     },
     {
-      "name": "61.4.4",
+      "name": "window1-61.4.4",
       "steps": [
         {
           "type": "query",
@@ -2193,7 +2857,11 @@
       ]
     },
     {
-      "name": "62.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-62.1",
       "steps": [
         {
           "type": "exec",
@@ -2202,16 +2870,16 @@
       ]
     },
     {
-      "name": "62.2",
+      "name": "window1-62.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM ( \n      SELECT sum(b) OVER() AS c FROM t1 \n      UNION\n      SELECT b AS c FROM t1\n      ) WHERE c>10;"
+          "sql": "SELECT * FROM ( \n      SELECT sum(b) OVER() AS c FROM t1 \n      UNION\n      SELECT b AS c FROM t1\n      ) WHERE c\u003e10;"
         }
       ]
     },
     {
-      "name": "62.3",
+      "name": "window1-62.3",
       "steps": [
         {
           "type": "exec",
@@ -2220,17 +2888,21 @@
       ]
     },
     {
-      "name": "62.4",
+      "name": "window1-62.4",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM ( \n      SELECT sum(b) OVER() AS c FROM t1 \n      UNION\n      SELECT b AS c FROM t1\n      ) WHERE c>10;",
+          "sql": "SELECT * FROM ( \n      SELECT sum(b) OVER() AS c FROM t1 \n      UNION\n      SELECT b AS c FROM t1\n      ) WHERE c\u003e10;",
           "expect": "15.0 30.0"
         }
       ]
     },
     {
-      "name": "63.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-63.1",
       "steps": [
         {
           "type": "exec",
@@ -2239,27 +2911,31 @@
       ]
     },
     {
-      "name": "63.2",
+      "name": "window1-63.2",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT max(b) OVER(\n      ORDER BY SUM(\n        (SELECT c FROM t2 UNION SELECT x ORDER BY c)\n      )\n  ) FROM t1;",
           "expect": "{}"
         }
       ]
     },
     {
-      "name": "63.3",
+      "name": "window1-63.3",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT sum(b) over(\n      ORDER BY (\n        SELECT max(b) OVER(\n          ORDER BY sum(\n            (SELECT x AS c UNION SELECT 1234 ORDER BY c)\n          )\n        ) AS e\n        ORDER BY e\n      )\n    )\n  FROM t1;",
           "expect": "{}"
         }
       ]
     },
     {
-      "name": "64.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-64.1",
       "steps": [
         {
           "type": "exec",
@@ -2268,7 +2944,7 @@
       ]
     },
     {
-      "name": "64.2",
+      "name": "window1-64.2",
       "steps": [
         {
           "type": "query",
@@ -2278,7 +2954,7 @@
       ]
     },
     {
-      "name": "64.3",
+      "name": "window1-64.3",
       "steps": [
         {
           "type": "query",
@@ -2288,7 +2964,7 @@
       ]
     },
     {
-      "name": "64.4",
+      "name": "window1-64.4",
       "steps": [
         {
           "type": "query",
@@ -2298,7 +2974,11 @@
       ]
     },
     {
-      "name": "65.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-65.1",
       "steps": [
         {
           "type": "exec",
@@ -2307,7 +2987,7 @@
       ]
     },
     {
-      "name": "65.2",
+      "name": "window1-65.2",
       "steps": [
         {
           "type": "query",
@@ -2317,7 +2997,7 @@
       ]
     },
     {
-      "name": "65.3",
+      "name": "window1-65.3",
       "steps": [
         {
           "type": "query",
@@ -2327,17 +3007,21 @@
       ]
     },
     {
-      "name": "65.4",
+      "name": "window1-65.4",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT COUNT() OVER () LIKE lead(102030) OVER(\n      ORDER BY sum('abcdef' COLLATE nocase) IN (SELECT 54321) \n  )\n  FROM t1;",
           "expect": "{}"
         }
       ]
     },
     {
-      "name": "66.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-66.1",
       "steps": [
         {
           "type": "exec",
@@ -2346,7 +3030,67 @@
       ]
     },
     {
-      "name": "66.3",
+      "name": "window1-66.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT total(a) OVER ( ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING ) FROM t1 ORDER BY a",
+          "expect": "\n    3.02901292038235e+18 3.5788240420332e+18\n  "
+        }
+      ]
+    },
+    {
+      "name": "window1-66.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT total(a) OVER ( ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 0.1 PRECEDING ) FROM t1 ORDER BY a",
+          "expect": "\n    3.02901292038235e+18 3.5788240420332e+18\n  "
+        }
+      ]
+    },
+    {
+      "name": "window1-66.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT total(a) OVER ( ORDER BY a RANGE BETWEEN 0.3 FOLLOWING AND 10 FOLLOWING ) FROM t1 ORDER BY a",
+          "expect": "\n    3.02901292038235e+18 3.5788240420332e+18\n  "
+        }
+      ]
+    },
+    {
+      "name": "window1-66.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT total(a) OVER ( ORDER BY a DESC RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING ) FROM t1 ORDER BY a",
+          "expect": "\n    3.02901292038235e+18 3.5788240420332e+18\n  "
+        }
+      ]
+    },
+    {
+      "name": "window1-66.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT total(a) OVER ( ORDER BY a NULLS LAST RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING ) FROM t1 ORDER BY a",
+          "expect": "\n    3.02901292038235e+18 3.5788240420332e+18\n  "
+        }
+      ]
+    },
+    {
+      "name": "window1-66.2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT total(a) OVER ( ORDER BY a RANGE BETWEEN 1.0 PRECEDING AND 2.0 PRECEDING ) FROM t1 ORDER BY a",
+          "expect": "\n    3.02901292038235e+18 3.5788240420332e+18\n  "
+        }
+      ]
+    },
+    {
+      "name": "window1-66.3",
       "steps": [
         {
           "type": "exec",
@@ -2355,7 +3099,71 @@
       ]
     },
     {
-      "name": "67.0",
+      "name": "window1-66.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT total(a) OVER ( ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING ) FROM t2 ORDER BY a",
+          "expect": "30.0 45.0"
+        }
+      ]
+    },
+    {
+      "name": "window1-66.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT total(a) OVER ( ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 0.1 PRECEDING ) FROM t2 ORDER BY a",
+          "expect": "0.0 0.0"
+        }
+      ]
+    },
+    {
+      "name": "window1-66.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT total(a) OVER ( ORDER BY a RANGE BETWEEN 0.3 FOLLOWING AND 10 FOLLOWING ) FROM t2 ORDER BY a",
+          "expect": "0.0 0.0"
+        }
+      ]
+    },
+    {
+      "name": "window1-66.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT total(a) OVER ( ORDER BY a DESC RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING ) FROM t2 ORDER BY a",
+          "expect": "30.0 45.0"
+        }
+      ]
+    },
+    {
+      "name": "window1-66.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT total(a) OVER ( ORDER BY a NULLS LAST RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING ) FROM t2 ORDER BY a",
+          "expect": "30.0 45.0"
+        }
+      ]
+    },
+    {
+      "name": "window1-66.2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT total(a) OVER ( ORDER BY a RANGE BETWEEN 1.0 PRECEDING AND 2.0 PRECEDING ) FROM t2 ORDER BY a",
+          "expect": "0.0 0.0"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-67.0",
       "steps": [
         {
           "type": "exec",
@@ -2364,67 +3172,79 @@
       ]
     },
     {
-      "name": "67.1",
+      "name": "window1-67.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT a,c,b FROM t1 INTERSECT SELECT a,b,c FROM t1 ORDER BY (             \n      SELECT nth_value(a,2) OVER w1 \n      WINDOW w1 AS ( ORDER BY ((SELECT 1 FROM v1)) )\n  )",
           "expect": "1 {no such table: v1}"
         }
       ]
     },
     {
-      "name": "67.2",
+      "name": "window1-67.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT a,c,b FROM t1 INTERSECT SELECT a,b,c FROM t1 ORDER BY (             \n      SELECT nth_value(a,2) OVER w1 \n      WINDOW w1 AS ( ORDER BY ((SELECT 1 FROM t2)) )\n  )",
           "expect": "1 {1st ORDER BY term does not match any column in the result set}"
         }
       ]
     },
     {
-      "name": "68.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-68.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t1(a,b);\n  INSERT INTO t1(a,b) VALUES(0,0),(1,1),(2,4),(3,9),(4,99);\n  SELECT rowid, a, b, sum(a)OVER() FROM t1 ORDER BY count(b);",
           "expect": "1 {misuse of aggregate: count()}"
         }
       ]
     },
     {
-      "name": "69.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-69.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t1(a,b);\n  CREATE INDEX t1ba ON t1(b,a);\n  SELECT * FROM t1 WHERE b = (SELECT b FROM t1 ORDER BY lead(b) OVER () AND sum(a));",
           "expect": "1 {misuse of aggregate: sum()}"
         }
       ]
     },
     {
-      "name": "69.1",
+      "name": "window1-69.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE b >= (SELECT b FROM t1 ORDER BY lead(b) OVER () AND sum(a));",
+          "type": "catch",
+          "sql": "SELECT * FROM t1 WHERE b \u003e= (SELECT b FROM t1 ORDER BY lead(b) OVER () AND sum(a));",
           "expect": "1 {misuse of aggregate: sum()}"
         }
       ]
     },
     {
-      "name": "69.2",
+      "name": "window1-69.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE b <= (SELECT b FROM t1 ORDER BY lead(b) OVER () AND sum(a));",
+          "type": "catch",
+          "sql": "SELECT * FROM t1 WHERE b \u003c= (SELECT b FROM t1 ORDER BY lead(b) OVER () AND sum(a));",
           "expect": "1 {misuse of aggregate: sum()}"
         }
       ]
     },
     {
-      "name": "70.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-70.0",
       "steps": [
         {
           "type": "exec",
@@ -2433,7 +3253,7 @@
       ]
     },
     {
-      "name": "70.1",
+      "name": "window1-70.1",
       "steps": [
         {
           "type": "query",
@@ -2442,7 +3262,7 @@
       ]
     },
     {
-      "name": "70.2",
+      "name": "window1-70.2",
       "steps": [
         {
           "type": "query",
@@ -2451,17 +3271,21 @@
       ]
     },
     {
-      "name": "71.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-71.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t0(a);\n  SELECT a FROM t0, (SELECT a AS b FROM t0)\n   WHERE (a,1)=(SELECT 2,2 UNION SELECT sum(b),max(b) OVER(ORDER BY b) ORDER BY 2)\n     AND b=4\n   ORDER BY b;",
           "expect": "/1 {.*}/"
         }
       ]
     },
     {
-      "name": "72.1",
+      "name": "window1-72.1",
       "steps": [
         {
           "type": "query",
@@ -2471,7 +3295,11 @@
       ]
     },
     {
-      "name": "72.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-72.0",
       "steps": [
         {
           "type": "exec",
@@ -2480,7 +3308,7 @@
       ]
     },
     {
-      "name": "72.1",
+      "name": "window1-72.1",
       "steps": [
         {
           "type": "query",
@@ -2490,7 +3318,11 @@
       ]
     },
     {
-      "name": "73.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-73.0",
       "steps": [
         {
           "type": "exec",
@@ -2499,7 +3331,7 @@
       ]
     },
     {
-      "name": "73.1",
+      "name": "window1-73.1",
       "steps": [
         {
           "type": "query",
@@ -2509,35 +3341,37 @@
       ]
     },
     {
-      "name": "73.2",
+      "name": "window1-73.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE t2 SET c=99 WHERE b=4 RETURNING *;"
+          "sql": "UPDATE t2 SET c=99 WHERE b=4 RETURNING *;",
+          "expect": "4 99 4 99 4 99"
         }
       ]
     },
     {
-      "name": "73.3",
+      "name": "window1-73.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT *, nth_value(15,2) OVER() FROM t2, t1 WHERE b=4;",
-          "expect": "4 1 1 15\n  4 2 1 15\n  4 4 1 15\n  4 1 2 15\n  4 2 2 15\n  4 4 2 15\n  4 1 4 15\n  4 2 4 15\n  4 4 4 15"
+          "expect": "\n  4 1 1 15\n  4 2 1 15\n  4 4 1 15\n  4 1 2 15\n  4 2 2 15\n  4 4 2 15\n  4 1 4 15\n  4 2 4 15\n  4 4 4 15\n"
         }
       ]
     },
     {
-      "name": "73.4",
+      "name": "window1-73.4",
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE t2 SET c=nth_value(15,2) OVER() FROM (SELECT * FROM t1) WHERE b=4 RETURNING *;"
+          "sql": "UPDATE t2 SET c=nth_value(15,2) OVER() FROM (SELECT * FROM t1) WHERE b=4 RETURNING *;",
+          "expect": "\n  4 15\n  4 15\n  4 15\n  4 15\n  4 15\n  4 15\n  4 15\n  4 15\n  4 15\n"
         }
       ]
     },
     {
-      "name": "73.5",
+      "name": "window1-73.5",
       "steps": [
         {
           "type": "exec",
@@ -2546,27 +3380,31 @@
       ]
     },
     {
-      "name": "73.6",
+      "name": "window1-73.6",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "UPDATE t2 SET c=99 WHERE b=4 RETURNING *;",
           "expect": "1 {cannot modify t2 because it is a view}"
         }
       ]
     },
     {
-      "name": "73.7",
+      "name": "window1-73.7",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "UPDATE t2 SET c=nth_value(15,2) OVER() FROM (SELECT * FROM t1) WHERE b=4 RETURNING *;",
           "expect": "1 {cannot modify t2 because it is a view}"
         }
       ]
     },
     {
-      "name": "74.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-74.0",
       "steps": [
         {
           "type": "exec",
@@ -2575,7 +3413,7 @@
       ]
     },
     {
-      "name": "74.1",
+      "name": "window1-74.1",
       "steps": [
         {
           "type": "query",
@@ -2585,7 +3423,7 @@
       ]
     },
     {
-      "name": "74.2",
+      "name": "window1-74.2",
       "steps": [
         {
           "type": "query",
@@ -2595,7 +3433,7 @@
       ]
     },
     {
-      "name": "74.3",
+      "name": "window1-74.3",
       "steps": [
         {
           "type": "query",
@@ -2605,7 +3443,7 @@
       ]
     },
     {
-      "name": "74.4",
+      "name": "window1-74.4",
       "steps": [
         {
           "type": "query",
@@ -2614,7 +3452,7 @@
       ]
     },
     {
-      "name": "75.0",
+      "name": "window1-75.0",
       "steps": [
         {
           "type": "exec",
@@ -2623,17 +3461,21 @@
       ]
     },
     {
-      "name": "75.1",
+      "name": "window1-75.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT count((SELECT count(a0.a+a0.b) ORDER BY sum(0) OVER (PARTITION BY 0)))\n    FROM t1 AS a0 JOIN t1 AS a1\n   GROUP BY a1.a;",
           "expect": "1 {misuse of aggregate: count()}"
         }
       ]
     },
     {
-      "name": "76.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-76.0",
       "steps": [
         {
           "type": "exec",
@@ -2642,7 +3484,7 @@
       ]
     },
     {
-      "name": "76.1",
+      "name": "window1-76.1",
       "steps": [
         {
           "type": "query",
@@ -2652,7 +3494,7 @@
       ]
     },
     {
-      "name": "76.2",
+      "name": "window1-76.2",
       "steps": [
         {
           "type": "exec",
@@ -2661,7 +3503,7 @@
       ]
     },
     {
-      "name": "76.3",
+      "name": "window1-76.3",
       "steps": [
         {
           "type": "query",
@@ -2671,7 +3513,7 @@
       ]
     },
     {
-      "name": "76.4",
+      "name": "window1-76.4",
       "steps": [
         {
           "type": "query",
@@ -2681,7 +3523,7 @@
       ]
     },
     {
-      "name": "76.5",
+      "name": "window1-76.5",
       "steps": [
         {
           "type": "query",
@@ -2691,7 +3533,11 @@
       ]
     },
     {
-      "name": "77.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window1-77.1",
       "steps": [
         {
           "type": "exec",
@@ -2700,7 +3546,7 @@
       ]
     },
     {
-      "name": "77.2",
+      "name": "window1-77.2",
       "steps": [
         {
           "type": "query",
@@ -2710,25 +3556,27 @@
       ]
     },
     {
-      "name": "78.1",
+      "name": "window1-78.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT quote(group_concat(x) OVER ()) FROM (SELECT '' AS x);"
+          "sql": "SELECT quote(group_concat(x) OVER ()) FROM (SELECT '' AS x);",
+          "expect": "''"
         }
       ]
     },
     {
-      "name": "78.2",
+      "name": "window1-78.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT quote(group_concat(x) OVER (\n      ORDER BY y RANGE BETWEEN 1 FOLLOWING AND 2 FOLLOWING\n    )) FROM (SELECT 'abc' AS x, 1 AS y);"
+          "sql": "SELECT quote(group_concat(x) OVER (\n      ORDER BY y RANGE BETWEEN 1 FOLLOWING AND 2 FOLLOWING\n    )) FROM (SELECT 'abc' AS x, 1 AS y);",
+          "expect": "NULL"
         }
       ]
     },
     {
-      "name": "79.0",
+      "name": "window1-79.0",
       "steps": [
         {
           "type": "exec",
@@ -2737,7 +3585,7 @@
       ]
     },
     {
-      "name": "79.1",
+      "name": "window1-79.1",
       "steps": [
         {
           "type": "query",
@@ -2747,7 +3595,7 @@
       ]
     },
     {
-      "name": "79.2",
+      "name": "window1-79.2",
       "steps": [
         {
           "type": "query",
@@ -2757,468 +3605,12 @@
       ]
     },
     {
-      "name": "79.3",
+      "name": "window1-79.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT sum(c0), COUNT(*) \n  OVER ( ORDER BY c0 RANGE BETWEEN 0 FOLLOWING AND 10_000_000_000 FOLLOWING ) \n  FROM t0;",
           "expect": "6 1"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

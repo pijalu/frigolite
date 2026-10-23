@@ -1,0 +1,16 @@
+{
+  "file": "valuesfault.test",
+  "name": "valuesfault",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "valuesfault-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a, b, c);"
+        }
+      ]
+    }
+  ]
+}

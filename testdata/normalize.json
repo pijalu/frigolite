@@ -1,9 +1,10 @@
 {
   "file": "normalize.test",
   "name": "normalize",
+  "ordered": true,
   "tests": [
     {
-      "name": "200",
+      "name": "normalize-200",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,71 @@
       ]
     },
     {
-      "name": "297",
+      "name": "normalize-201",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT a, b FROM t1 WHERE b = ? ORDER BY a;",
+          "variable": "stmt_1"
+        }
+      ]
+    },
+    {
+      "name": "normalize-203",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT a, b FROM t1 WHERE b = ? ORDER BY a;",
+          "variable": "stmt_1",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "normalize-210",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT a, b FROM t1 WHERE b = ? ORDER BY a;",
+          "variable": "stmt_2"
+        }
+      ]
+    },
+    {
+      "name": "normalize-212",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT a, b FROM t1 WHERE b = ? ORDER BY a;",
+          "variable": "stmt_2",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "normalize-220",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT a, b FROM t1 WHERE b = 'a' ORDER BY a;",
+          "variable": "stmt_3",
+          "expect": "/^[0-9A-Fa-f]+$/"
+        }
+      ]
+    },
+    {
+      "name": "normalize-222",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT a, b FROM t1 WHERE b = 'a' ORDER BY a;",
+          "variable": "stmt_3",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "normalize-297",
       "steps": [
         {
           "type": "exec",
@@ -21,26 +86,804 @@
       ]
     },
     {
-      "name": "298",
+      "name": "normalize-298",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a,b,c,d,e,\"col f\",w,x,y,z);\n    CREATE TABLE t2(x,\"col y\");"
+        }
+      ]
+    },
+    {
+      "name": "normalize-299",
+      "steps": [
+        {
+          "type": "register_test_funcs",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "normalize-300",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1 WHERE a IN (1) AND b=51.42",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
         },
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a,b);"
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1 WHERE a IN (1) AND b=51.42",
+          "variable": "stmt_4"
+        }
+      ]
+    },
+    {
+      "name": "normalize-310",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT a, b+15, c FROM t1 WHERE d NOT IN (SELECT x FROM t2);",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
         },
         {
-          "type": "exec",
-          "sql": "DROP TABLE t1;"
+          "type": "stmt_finalize",
+          "sql": "SELECT a, b+15, c FROM t1 WHERE d NOT IN (SELECT x FROM t2);",
+          "variable": "stmt_5"
+        }
+      ]
+    },
+    {
+      "name": "normalize-320",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT NULL, b FROM t1 -- comment text\n     WHERE d IN (WITH t(a) AS (VALUES(5)) /* CTE */\n                 SELECT a FROM t)\n        OR e='hello';",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
         },
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a,b,c,d,e,\"col f\",w,x,y,z);\n    CREATE TABLE t2(x,\"col y\");"
+          "type": "stmt_finalize",
+          "sql": "SELECT NULL, b FROM t1 -- comment text\n     WHERE d IN (WITH t(a) AS (VALUES(5)) /* CTE */\n                 SELECT a FROM t)\n        OR e='hello';",
+          "variable": "stmt_6"
+        }
+      ]
+    },
+    {
+      "name": "normalize-321",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "/*Initial comment*/\n   -- another comment line\n   SELECT NULL  /* comment */ , b FROM t1 -- comment text\n     WHERE d IN (WITH t(a) AS (VALUES(5)) /* CTE */\n                 SELECT a FROM t)\n        OR e='hello';",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "/*Initial comment*/\n   -- another comment line\n   SELECT NULL  /* comment */ , b FROM t1 -- comment text\n     WHERE d IN (WITH t(a) AS (VALUES(5)) /* CTE */\n                 SELECT a FROM t)\n        OR e='hello';",
+          "variable": "stmt_7"
+        }
+      ]
+    },
+    {
+      "name": "normalize-330",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "/* Query containing parameters */\n   SELECT x,$::abc(15),y,@abc,z,?99,w FROM t1 /* Trailing comment */",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "/* Query containing parameters */\n   SELECT x,$::abc(15),y,@abc,z,?99,w FROM t1 /* Trailing comment */",
+          "variable": "stmt_8"
+        }
+      ]
+    },
+    {
+      "name": "normalize-340",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "/* Long list on the RHS of IN */\n   SELECT 15 IN (1,2,3,(SELECT * FROM t1),'xyz',x'abcd',22*(x+5),null);",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "/* Long list on the RHS of IN */\n   SELECT 15 IN (1,2,3,(SELECT * FROM t1),'xyz',x'abcd',22*(x+5),null);",
+          "variable": "stmt_9"
+        }
+      ]
+    },
+    {
+      "name": "normalize-350",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT x'abc'; -- illegal token",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT x'abc'; -- illegal token",
+          "variable": "stmt_10"
+        }
+      ]
+    },
+    {
+      "name": "normalize-360",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT a,NULL,b FROM t1 WHERE c IS NOT NULL or D is null or e=5",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT a,NULL,b FROM t1 WHERE c IS NOT NULL or D is null or e=5",
+          "variable": "stmt_11"
+        }
+      ]
+    },
+    {
+      "name": "normalize-370",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "/* IN list exactly 5 bytes long */\n   SELECT * FROM t1 WHERE x IN (1,2,3);",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "/* IN list exactly 5 bytes long */\n   SELECT * FROM t1 WHERE x IN (1,2,3);",
+          "variable": "stmt_12"
+        }
+      ]
+    },
+    {
+      "name": "normalize-400",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT a FROM t1 WHERE x IN (1,2,3) AND sqlite_version();",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT a FROM t1 WHERE x IN (1,2,3) AND sqlite_version();",
+          "variable": "stmt_13"
+        }
+      ]
+    },
+    {
+      "name": "normalize-410",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT a FROM t1 WHERE x IN (1,2,3) AND hex8();",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT a FROM t1 WHERE x IN (1,2,3) AND hex8();",
+          "variable": "stmt_14"
+        }
+      ]
+    },
+    {
+      "name": "normalize-420",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT a FROM t1 WHERE x IN (1,2,3) AND hex8('abc');",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT a FROM t1 WHERE x IN (1,2,3) AND hex8('abc');",
+          "variable": "stmt_15"
+        }
+      ]
+    },
+    {
+      "name": "normalize-430",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT \"a\" FROM t1 WHERE \"x\" IN (\"1\",\"2\",'3');",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT \"a\" FROM t1 WHERE \"x\" IN (\"1\",\"2\",'3');",
+          "variable": "stmt_16"
+        }
+      ]
+    },
+    {
+      "name": "normalize-440",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT 'a' FROM t1 WHERE 'x';",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT 'a' FROM t1 WHERE 'x';",
+          "variable": "stmt_17"
+        }
+      ]
+    },
+    {
+      "name": "normalize-450",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT [a] FROM t1 WHERE [x];",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT [a] FROM t1 WHERE [x];",
+          "variable": "stmt_18"
+        }
+      ]
+    },
+    {
+      "name": "normalize-460",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1 WHERE x IN (x);",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1 WHERE x IN (x);",
+          "variable": "stmt_19"
+        }
+      ]
+    },
+    {
+      "name": "normalize-470",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1 WHERE x IN (x,a);",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1 WHERE x IN (x,a);",
+          "variable": "stmt_20"
+        }
+      ]
+    },
+    {
+      "name": "normalize-480",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1 WHERE x IN ([x],\"a\");",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1 WHERE x IN ([x],\"a\");",
+          "variable": "stmt_21"
+        }
+      ]
+    },
+    {
+      "name": "normalize-500",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1 WHERE x IN ([x],\"a\",'b',sqlite_version());",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1 WHERE x IN ([x],\"a\",'b',sqlite_version());",
+          "variable": "stmt_22"
+        }
+      ]
+    },
+    {
+      "name": "normalize-520",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1 WHERE x IN (SELECT x FROM t1);",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1 WHERE x IN (SELECT x FROM t1);",
+          "variable": "stmt_23"
+        }
+      ]
+    },
+    {
+      "name": "normalize-540",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1 WHERE x IN ((SELECT x FROM t1));",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1 WHERE x IN ((SELECT x FROM t1));",
+          "variable": "stmt_24"
+        }
+      ]
+    },
+    {
+      "name": "normalize-550",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT a, a+1, a||'b', a+\"b\" FROM t1;",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT a, a+1, a||'b', a+\"b\" FROM t1;",
+          "variable": "stmt_25"
+        }
+      ]
+    },
+    {
+      "name": "normalize-570",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1 WHERE x IN (1);",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1 WHERE x IN (1);",
+          "variable": "stmt_26"
+        }
+      ]
+    },
+    {
+      "name": "normalize-580",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1 WHERE x IN (1,2);",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1 WHERE x IN (1,2);",
+          "variable": "stmt_27"
+        }
+      ]
+    },
+    {
+      "name": "normalize-590",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1 WHERE x IN (1,2,3);",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1 WHERE x IN (1,2,3);",
+          "variable": "stmt_28"
+        }
+      ]
+    },
+    {
+      "name": "normalize-600",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1 WHERE x IN (1,2,3,4);",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1 WHERE x IN (1,2,3,4);",
+          "variable": "stmt_29"
+        }
+      ]
+    },
+    {
+      "name": "normalize-610",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1 WHERE x IN (SELECT x FROM t1);",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1 WHERE x IN (SELECT x FROM t1);",
+          "variable": "stmt_30"
+        }
+      ]
+    },
+    {
+      "name": "normalize-620",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1 WHERE x IN (SELECT x FROM t1 WHERE x IN (1,2,3));",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1 WHERE x IN (SELECT x FROM t1 WHERE x IN (1,2,3));",
+          "variable": "stmt_31"
+        }
+      ]
+    },
+    {
+      "name": "normalize-630",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1 WHERE x IN (SELECT x FROM t1 WHERE x IN (x));",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1 WHERE x IN (SELECT x FROM t1 WHERE x IN (x));",
+          "variable": "stmt_32"
+        }
+      ]
+    },
+    {
+      "name": "normalize-640",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT x FROM t1 WHERE x IN (SELECT x FROM t1 WHERE x IN (\n   SELECT x FROM t1 WHERE x IN (SELECT x FROM t1 WHERE x IN (\n   SELECT x FROM t1 WHERE x IN (x)))));",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT x FROM t1 WHERE x IN (SELECT x FROM t1 WHERE x IN (\n   SELECT x FROM t1 WHERE x IN (SELECT x FROM t1 WHERE x IN (\n   SELECT x FROM t1 WHERE x IN (x)))));",
+          "variable": "stmt_33"
+        }
+      ]
+    },
+    {
+      "name": "normalize-650",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT x FROM t1 WHERE x IN (SELECT x FROM t1 WHERE x IN (\n   SELECT x FROM t1 WHERE x IN (SELECT x FROM t1 WHERE x IN (\n   SELECT x FROM t1 WHERE x IN (1)))));",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT x FROM t1 WHERE x IN (SELECT x FROM t1 WHERE x IN (\n   SELECT x FROM t1 WHERE x IN (SELECT x FROM t1 WHERE x IN (\n   SELECT x FROM t1 WHERE x IN (1)))));",
+          "variable": "stmt_34"
+        }
+      ]
+    },
+    {
+      "name": "normalize-660",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT x FROM t1 WHERE x IN (1) UNION ALL SELECT x FROM t1 WHERE x IN (1);",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT x FROM t1 WHERE x IN (1) UNION ALL SELECT x FROM t1 WHERE x IN (1);",
+          "variable": "stmt_35"
+        }
+      ]
+    },
+    {
+      "name": "normalize-670",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT \"col f\", [col f] FROM t1;",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT \"col f\", [col f] FROM t1;",
+          "variable": "stmt_36"
+        }
+      ]
+    },
+    {
+      "name": "normalize-680",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT a, \"col f\" FROM t1 LEFT OUTER JOIN t2 ON [t1].[col f] == [t2].[col y];",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT a, \"col f\" FROM t1 LEFT OUTER JOIN t2 ON [t1].[col f] == [t2].[col y];",
+          "variable": "stmt_37"
+        }
+      ]
+    },
+    {
+      "name": "normalize-690",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM ( WITH x AS ( SELECT * FROM t1 WHERE x IN ( 1)) SELECT 10);",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM ( WITH x AS ( SELECT * FROM t1 WHERE x IN ( 1)) SELECT 10);",
+          "variable": "stmt_38"
+        }
+      ]
+    },
+    {
+      "name": "normalize-700",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT rowid, oid, _rowid_ FROM t1;",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT rowid, oid, _rowid_ FROM t1;",
+          "variable": "stmt_39"
+        }
+      ]
+    },
+    {
+      "name": "normalize-710",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT x FROM t1 WHERE x IS NULL;",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT x FROM t1 WHERE x IS NULL;",
+          "variable": "stmt_40"
+        }
+      ]
+    },
+    {
+      "name": "normalize-740",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT x FROM t1 WHERE x IS NOT NULL;",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT x FROM t1 WHERE x IS NOT NULL;",
+          "variable": "stmt_41"
+        }
+      ]
+    },
+    {
+      "name": "normalize-750",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT x FROM t1 WHERE x = NULL;",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT x FROM t1 WHERE x = NULL;",
+          "variable": "stmt_42"
+        }
+      ]
+    },
+    {
+      "name": "normalize-760",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT x FROM t1 WHERE x IN ([x] IS NOT NULL, NULL, 1, 'a', \"b\", x'00');",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT x FROM t1 WHERE x IN ([x] IS NOT NULL, NULL, 1, 'a', \"b\", x'00');",
+          "variable": "stmt_43"
+        }
+      ]
+    },
+    {
+      "name": "normalize-800",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "ATTACH \"normalize800.db\" AS somefile;",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "ATTACH \"normalize800.db\" AS somefile;",
+          "variable": "stmt_44"
+        }
+      ]
+    },
+    {
+      "name": "normalize-810",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "ATTACH DATABASE \"normalize810.db\" AS somefile;",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "ATTACH DATABASE \"normalize810.db\" AS somefile;",
+          "variable": "stmt_45"
+        }
+      ]
+    },
+    {
+      "name": "normalize-900",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t1 (x) VALUES(\"sl1\"), (1), (\"sl2\"), ('i');",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t1 (x) VALUES(\"sl1\"), (1), (\"sl2\"), ('i');",
+          "variable": "stmt_46"
+        }
+      ]
+    },
+    {
+      "name": "normalize-910",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "UPDATE t1 SET x = \"sl1\" WHERE x IN (1, \"sl2\", 'i');",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "UPDATE t1 SET x = \"sl1\" WHERE x IN (1, \"sl2\", 'i');",
+          "variable": "stmt_47"
+        }
+      ]
+    },
+    {
+      "name": "normalize-920",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "UPDATE t1 SET x = \"y\" WHERE x IN (1, \"sl1\", 'i');",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "UPDATE t1 SET x = \"y\" WHERE x IN (1, \"sl1\", 'i');",
+          "variable": "stmt_48"
+        }
+      ]
+    },
+    {
+      "name": "normalize-930",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "DELETE FROM t1 WHERE x IN (1, \"sl1\", 'i');",
+          "variable": "code",
+          "catchResult": true,
+          "catchMessage": "res"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "DELETE FROM t1 WHERE x IN (1, \"sl1\", 'i');",
+          "variable": "stmt_49"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

@@ -1,29 +1,94 @@
 {
   "file": "dataversion1.test",
   "name": "dataversion1",
+  "ordered": true,
   "tests": [
     {
       "name": "setup_0",
       "steps": [
         {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "dataversion1-100",
+      "steps": [
+        {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(99);\n    SELECT * FROM t1;"
-        },
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(99);\n    SELECT * FROM t1;",
+          "expect": "99"
+        }
+      ]
+    },
+    {
+      "name": "dataversion1-101",
+      "steps": [
         {
           "type": "exec",
           "sql": "ATTACH ':memory:' AS aux1;\n    CREATE TABLE aux1.t2(y);\n    CREATE TEMP TABLE t3(z);"
-        },
+        }
+      ]
+    },
+    {
+      "name": "dataversion1-110",
+      "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE t1 SET x=x+1;"
-        },
+          "sql": "UPDATE t1 SET x=x+1;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "dataversion1-120",
+      "steps": [
         {
           "type": "exec",
           "sql": "UPDATE t2 SET y=y+1;"
-        },
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "dataversion1-130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "100",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "dataversion1-132",
+      "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM t1"
+          "sql": "UPDATE t1 SET x=x+1;",
+          "expect": "1",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "dataversion1-133",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "0"
         }
       ]
     }

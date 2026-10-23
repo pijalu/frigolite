@@ -1,6 +1,8 @@
 {
   "file": "json101.test",
   "name": "json101",
+  "nullToken": "NULL",
+  "ordered": true,
   "tests": [
     {
       "name": "json101-1.1.00",
@@ -279,6 +281,26 @@
           "type": "query",
           "sql": "SELECT json_type(jsonb_set('{\"a\":1,\"b\":2}','$.b',jsonb('{\"x\":3,\"y\":4}')),'$.b');",
           "expect": "object"
+        }
+      ]
+    },
+    {
+      "name": "json101-3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fullkey, atom, '|' FROM json_tree(json_set('{}','$.x',123,'$.x',456));",
+          "expect": "{$} {} | {$.x} 456 |"
+        }
+      ]
+    },
+    {
+      "name": "json101-3.5b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fullkey, atom, '|' FROM json_tree(jsonb_set('{}','$.x',123,'$.x',456));",
+          "expect": "{$} {} | {$.x} 456 |"
         }
       ]
     },
@@ -2181,6 +2203,605 @@
           "type": "query",
           "sql": "SELECT json_object('a',2e370,'b',-3e380)-\u003e\u003e'b';",
           "expect": "-Inf"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.1-correct",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid(NULL);",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_error_position(NULL);",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(NULL);",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array(NULL);",
+          "expect": "[null]"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(NULL);",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_insert(NULL,'$',123);",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT NULL-\u003e0;",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT NULL-\u003e\u003e0;",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '{a:5}'-\u003eNULL;",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '{a:5}'-\u003e\u003eNULL;",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.11",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT json_object(NULL,5);",
+          "expect": "1 {json_object() labels must be TEXT}"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch(NULL,'{a:5}');",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('{a:5}',NULL);",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch(NULL,NULL);",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove(NULL,'$');",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove('{a:5,b:7}',NULL);",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.17",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_replace(NULL,'$.a',123);",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.18",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_replace('{a:5,b:7}',NULL,NULL);",
+          "expect": "{{\"a\":5,\"b\":7}}"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.19",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_set(NULL,'$.a',123);",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_set('{a:5,b:7}',NULL,NULL);",
+          "expect": "{{\"a\":5,\"b\":7}}"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type(NULL);",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type('{a:5,b:7}',NULL);",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.23",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_quote(NULL);",
+          "expect": "null"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.24",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM json_each(NULL);",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.25",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM json_tree(NULL);",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c(x) AS (VALUES(1),(2.0),(NULL),('three'))\n  SELECT json_group_array(x) FROM c;",
+          "expect": "[1,2.0,null,\"three\"]"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.27",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c(x,y) AS (VALUES('a',1),('b',2.0),('c',NULL),(NULL,'three'),('e','four'))\n  SELECT json_group_object(x,y) FROM c;",
+          "expect": "{{\"a\":1,\"b\":2.0,\"c\":null,\"e\":\"four\"}}"
+        }
+      ]
+    },
+    {
+      "name": "json101-22.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_set(\n    '{}',\n    '$.a', json('1'),\n    '$.a', json('2'),\n    '$.b', json('3'),\n    '$.b', json('4'),\n    '$.c', json('5'),\n    '$.c', json('6')\n  );",
+          "expect": "{{\"a\":2,\"b\":4,\"c\":6}}"
+        }
+      ]
+    },
+    {
+      "name": "json101-22.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_replace(\n    '{\"a\":7,\"b\":8,\"c\":9}',\n    '$.a', json('1'),\n    '$.a', json('2'),\n    '$.b', json('3'),\n    '$.b', json('4'),\n    '$.c', json('5'),\n    '$.c', json('6')\n  );",
+          "expect": "{{\"a\":2,\"b\":4,\"c\":6}}"
+        }
+      ]
+    },
+    {
+      "name": "json101-23.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT j, j-\u003e\u003e0, j-\u003e\u003e1\n    FROM (SELECT json_set(json_set('[]','$[#]',0), '$[#]',1) AS j);",
+          "expect": "{[0,1]} 0 1"
+        }
+      ]
+    },
+    {
+      "name": "json101-23.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT j, j-\u003e\u003e0, j-\u003e\u003e1\n    FROM (SELECT json_set('[]','$[#]',0,'$[#]',1) AS j);",
+          "expect": "{[0,1]} 0 1"
+        }
+      ]
+    },
+    {
+      "name": "json101-24.1.insert",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_insert('{}','$.a.b.c',9);",
+          "expect": "173042a042:173042b042:173042c042:9175175175"
+        }
+      ]
+    },
+    {
+      "name": "json101-24.1.set",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_set('{}','$.a.b.c',9);",
+          "expect": "173042a042:173042b042:173042c042:9175175175"
+        }
+      ]
+    },
+    {
+      "name": "json101-24.1.replace",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_replace('{}','$.a.b.c',9);",
+          "expect": "173175"
+        }
+      ]
+    },
+    {
+      "name": "json101-24.2.insert",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_insert('{a:4}','$.a.b.c',9);",
+          "expect": "173042a042:4175"
+        }
+      ]
+    },
+    {
+      "name": "json101-24.2.set",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_set('{a:4}','$.a.b.c',9);",
+          "expect": "173042a042:4175"
+        }
+      ]
+    },
+    {
+      "name": "json101-24.2.replace",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_replace('{a:4}','$.a.b.c',9);",
+          "expect": "173042a042:4175"
+        }
+      ]
+    },
+    {
+      "name": "json101-24.3.insert",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_insert('{a:{}}','$.a.b.c',9);",
+          "expect": "173042a042:173042b042:173042c042:9175175175"
+        }
+      ]
+    },
+    {
+      "name": "json101-24.3.set",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_set('{a:{}}','$.a.b.c',9);",
+          "expect": "173042a042:173042b042:173042c042:9175175175"
+        }
+      ]
+    },
+    {
+      "name": "json101-24.3.replace",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_replace('{a:{}}','$.a.b.c',9);",
+          "expect": "173042a042:173175175"
+        }
+      ]
+    },
+    {
+      "name": "json101-24.4.insert",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_insert('[0,1,2]','$[3].a[0].b',9);",
+          "expect": "1330,1,2,173042a042:133173042b042:9175135175135"
+        }
+      ]
+    },
+    {
+      "name": "json101-24.4.set",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_set('[0,1,2]','$[3].a[0].b',9);",
+          "expect": "1330,1,2,173042a042:133173042b042:9175135175135"
+        }
+      ]
+    },
+    {
+      "name": "json101-24.4.replace",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_replace('[0,1,2]','$[3].a[0].b',9);",
+          "expect": "1330,1,2135"
+        }
+      ]
+    },
+    {
+      "name": "json101-24.5.insert",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_insert('[0,1,2]','$[1].a[0].b',9);",
+          "expect": "1330,1,2135"
+        }
+      ]
+    },
+    {
+      "name": "json101-24.5.set",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_set('[0,1,2]','$[1].a[0].b',9);",
+          "expect": "1330,1,2135"
+        }
+      ]
+    },
+    {
+      "name": "json101-24.5.replace",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_replace('[0,1,2]','$[1].a[0].b',9);",
+          "expect": "1330,1,2135"
+        }
+      ]
+    },
+    {
+      "name": "json101-24.6.insert",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_insert('[0,{},2]','$[1].a[0].b',9);",
+          "expect": "1330,173042a042:133173042b042:9175135175,2135"
+        }
+      ]
+    },
+    {
+      "name": "json101-24.6.set",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_set('[0,{},2]','$[1].a[0].b',9);",
+          "expect": "1330,173042a042:133173042b042:9175135175,2135"
+        }
+      ]
+    },
+    {
+      "name": "json101-24.6.replace",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_replace('[0,{},2]','$[1].a[0].b',9);",
+          "expect": "1330,173175,2135"
+        }
+      ]
+    },
+    {
+      "name": "json101-24.7.insert",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_insert('[0,1,2]','$[3][0].b',9);",
+          "expect": "1330,1,2,133173042b042:9175135135"
+        }
+      ]
+    },
+    {
+      "name": "json101-24.7.set",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_set('[0,1,2]','$[3][0].b',9);",
+          "expect": "1330,1,2,133173042b042:9175135135"
+        }
+      ]
+    },
+    {
+      "name": "json101-24.7.replace",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_replace('[0,1,2]','$[3][0].b',9);",
+          "expect": "1330,1,2135"
+        }
+      ]
+    },
+    {
+      "name": "json101-24.8.insert",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_insert('[0,1,2]','$[1][0].b',9);",
+          "expect": "1330,1,2135"
+        }
+      ]
+    },
+    {
+      "name": "json101-24.8.set",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_set('[0,1,2]','$[1][0].b',9);",
+          "expect": "1330,1,2135"
+        }
+      ]
+    },
+    {
+      "name": "json101-24.8.replace",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_replace('[0,1,2]','$[1][0].b',9);",
+          "expect": "1330,1,2135"
+        }
+      ]
+    },
+    {
+      "name": "json101-25.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array(0.1234567890123456789)-\u003e\u003e0 = 0.1234567890123456789;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "json101-26.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM json_each(x'CC141761133117621332176313331764133437656565') WHERE key='eee';",
+          "expect": "eee"
+        }
+      ]
+    },
+    {
+      "name": "json101-26.1b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM json_each(strdup(x'CC141761133117621332176313331764133437656565')) WHERE key='eee';",
+          "expect": "eee"
+        }
+      ]
+    },
+    {
+      "name": "json101-26.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid(x'CC141761133117621332176313331764133437656565',8);",
+          "expect": "0"
         }
       ]
     }

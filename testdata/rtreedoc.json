@@ -1,0 +1,3401 @@
+{
+  "file": "rtreedoc.test",
+  "name": "rtreedoc",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "rtreedoc-1-1.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE rt1 USING rtree(id, x1,x2)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-1.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info = rt1",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-1.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE rt2 USING rtree(id,x1,x2, y1,y2)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-1.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info = rt2",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-1.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE rt3 USING rtree(id, x1,x2, y1,y2, z1,z2)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-1.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info = rt3",
+          "expect": "7"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-1.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE rt4 USING rtree(id, x1,x2, y1,y2, z1,z2, v1,v2)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-1.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info = rt4",
+          "expect": "9"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-1.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE rt5 USING rtree(id, x1,x2, y1,y2, z1,z2, v1,v2, w1,w2)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-1.5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info = rt5",
+          "expect": "11"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-2.1.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE rt6 USING rtree(\n    id, x1,x2, y1,y2, z1,z2, v1,v2, w1,w2, a1,a2\n  )",
+          "expect": "1 {Too many columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-2.1.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE rt6 USING rtree(\n    id, x1,x2, y1,y2, z1,z2, v1,v2, w1,w2, a1,a2, b1, b2\n  )",
+          "expect": "1 {Too many columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-3.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE xyz USING rtree()",
+          "expect": "1 {Too few columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-3.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE xyz USING rtree(x)",
+          "expect": "1 {Too few columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-3.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE xyz USING rtree(x,y)",
+          "expect": "1 {Too few columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-3.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE xyz USING rtree(a,b,c,d)",
+          "expect": "1 {Wrong number of columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-3.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE xyz USING rtree(a,b,c,d,e,f)",
+          "expect": "1 {Wrong number of columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-3.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE xyz USING rtree(a,b,c,d,e,f,g,h)",
+          "expect": "1 {Wrong number of columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-3.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE xyz USING rtree(a,b,c,d,e,f,g,h,i,j)",
+          "expect": "1 {Wrong number of columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-3.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE xyz USING rtree(a,b,c,d,e,f,g,h,i,j,k,l)",
+          "expect": "1 {Too many columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-4.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM rt;\n    INSERT INTO rt VALUES(10, 10, 20);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-4.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(id), id FROM rt",
+          "expect": "integer 10"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-4.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM rt;\n    INSERT INTO rt VALUES(10.6, 10, 20);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-4.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(id), id FROM rt",
+          "expect": "integer 10"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-4.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM rt;\n    INSERT INTO rt VALUES(10.99, 10, 20);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-4.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(id), id FROM rt",
+          "expect": "integer 10"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-4.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM rt;\n    INSERT INTO rt VALUES('123', 10, 20);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-4.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(id), id FROM rt",
+          "expect": "integer 123"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-4.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM rt;\n    INSERT INTO rt VALUES(X'313233', 10, 20);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-4.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(id), id FROM rt",
+          "expect": "integer 123"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-4.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM rt;\n    INSERT INTO rt VALUES(-10, 10, 20);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-4.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(id), id FROM rt",
+          "expect": "integer -10"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-4.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM rt;\n    INSERT INTO rt VALUES(9223372036854775807, 10, 20);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-4.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(id), id FROM rt",
+          "expect": "integer 9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-4.8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM rt;\n    INSERT INTO rt VALUES(-9223372036854775808, 10, 20);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-4.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(id), id FROM rt",
+          "expect": "integer -9223372036854775808"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-4.9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM rt;\n    INSERT INTO rt VALUES('9223372036854775807', 10, 20);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-4.9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(id), id FROM rt",
+          "expect": "integer 9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-4.10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM rt;\n    INSERT INTO rt VALUES('-9223372036854775808', 10, 20);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-4.10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(id), id FROM rt",
+          "expect": "integer -9223372036854775808"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-4.11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM rt;\n    INSERT INTO rt VALUES('hello+world', 10, 20);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-4.11.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(id), id FROM rt",
+          "expect": "integer 0"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM rt;\n  INSERT INTO rt VALUES(100, 1, 2);\n  INSERT INTO rt VALUES(NULL, 1, 2);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id FROM rt",
+          "expect": "100 101"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(9223372036854775807, 1, 2);\n  INSERT INTO rt VALUES(NULL, 1, 2);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM rt;",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id IN(100, 101, 9223372036854775807) FROM rt ORDER BY 1;",
+          "expect": "0 1 1 1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE rtF USING rtree(id, x1,x2, y1,y2);\n  CREATE VIRTUAL TABLE rtI USING rtree_i32(id, x1,x2, y1,y2, z1,z2);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-6.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO rtF VALUES(NULL, 10.3, 20.1, 30.9, 40.2)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-6.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO rtF VALUES(NULL, 10.3, 20.1, 40.2, 30.9)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-6.2.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO rtF VALUES(NULL, 10.3, 30.9, 20.1, 40.2)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-6.2.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO rtF VALUES(NULL, 20.1, 10.3, 30.9, 40.2)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-6.3.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO rtI VALUES(NULL,10,20,30,40,50,60)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-6.3.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO rtI VALUES(NULL,10,20,30,40,60,50)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-6.3.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO rtI VALUES(NULL,10,20,30,50,40,60)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-6.3.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO rtI VALUES(NULL,10,20,40,30,50,60)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-6.3.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO rtI VALUES(NULL,10,30,20,40,50,60)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-6.3.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO rtI VALUES(NULL,20,10,30,40,50,60)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM rtI;\n  INSERT INTO rtI VALUES(\n    0, -2000000000, 2000000000, -5000000000, 5000000000,\n    -1000000000000, 10000000000000\n  );\n  SELECT * FROM rtI;",
+          "expect": "\n  0 -2000000000 2000000000 -705032704 705032704 727379968 1316134912\n"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM rtF;\n  INSERT INTO rtF VALUES(\n    0, -2000000000, 2000000000, \n    -1000000000000, 10000000000000\n  );\n  SELECT * FROM rtF;",
+          "expect": "\n  0 -2000000000.0 2000000000.0 -1000000126976.0 10000000876544.0\n"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM rtI;\n  INSERT INTO rtI VALUES(\n    1, 'hello world', X'616263', NULL, 44.5, 1000, 9999.9999\n  );\n  SELECT * FROM rtI;",
+          "expect": "\n  1   0 0    0 44    1000 9999\n"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT \n    typeof(x1), typeof(x2), typeof(y1), typeof(y2), typeof(z1), typeof(z2)\n  FROM rtI",
+          "expect": "integer integer integer integer integer integer"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM rtF;\n  INSERT INTO rtF VALUES(\n    1, 'hello world', X'616263', NULL, 44\n  );\n  SELECT * FROM rtF;",
+          "expect": "\n  1   0.0 0.0    0.0 44.0\n"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-1-8.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT \n    typeof(x1), typeof(x2), typeof(y1), typeof(y2)\n  FROM rtF",
+          "expect": "real real real real"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rtreedoc-2-1.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(id,x1,x2)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-2-1.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info = t1",
+          "expect": "id x1 x2"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-2-1.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM sqlite_schema",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-2-1.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_schema WHERE rootpage\u003e0 ORDER BY 1",
+          "expect": "t1_node t1_parent t1_rowid"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-2-1.1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-2-1.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t2 USING rtree(id,x1,x2,y1,y2,z1,z2)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-2-1.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info = t2",
+          "expect": "id x1 x2 y1 y2 z1 z2"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-2-1.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM sqlite_schema",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-2-1.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_schema WHERE rootpage\u003e0 ORDER BY 1",
+          "expect": "t2_node t2_parent t2_rowid"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-2-1.2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-2-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE demo_index USING rtree(\n      id,              -- Integer primary key\n      minX, maxX,      -- Minimum and maximum X coordinate\n      minY, maxY       -- Minimum and maximum Y coordinate\n  );\n  INSERT INTO demo_index VALUES(1,2,3,4,5);\n  INSERT INTO demo_index VALUES(6,7,8,9,10);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-2-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT type, name, sql FROM sqlite_schema WHERE sql NOT LIKE '%virtual%'",
+          "expect": "\n  table demo_index_rowid \n    {CREATE TABLE \"demo_index_rowid\"(rowid INTEGER PRIMARY KEY,nodeno)} \n  table demo_index_node\n    {CREATE TABLE \"demo_index_node\"(nodeno INTEGER PRIMARY KEY,data)} \n  table demo_index_parent\n    {CREATE TABLE \"demo_index_parent\"(nodeno INTEGER PRIMARY KEY,parentnode)}\n"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-2-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM demo_index_node;\n  SELECT count(*) FROM demo_index_rowid;\n  SELECT count(*) FROM demo_index_parent;",
+          "expect": "1 2 0"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-2-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM demo_index_rowid;\n  INSERT INTO demo_index_parent VALUES(2, 3);\n  UPDATE demo_index_node SET data = 'hello world'"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-2-2.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM demo_index WHERE minX\u003e10 AND maxX\u003c30",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-2-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE demo_index_rowid"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rtreedoc-3-1.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE abc USING rtree (id TEXT, x1 TEXT, x2 TEXT, y1 TEXT, y2 TEXT)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info = abc",
+          "expect": "id x1 x2 y1 y2"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(1, 10.0, 20.0, 10.0, 20.0);\n    INSERT INTO abc VALUES(2, 10.0, 20.0, 10.0, 20.0);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO abc DEFAULT VALUES;\n    SELECT * FROM abc WHERE rowid NOT IN (1,2)",
+          "expect": "3 0.0 0.0 0.0 0.0"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO abc VALUES(NULL, NULL, NULL, NULL, NULL);\n    SELECT * FROM abc WHERE rowid NOT IN (1,2,3)",
+          "expect": "4 0.0 0.0 0.0 0.0"
+        },
+        {
+          "type": "query",
+          "sql": "INSERT INTO abc VALUES('5', '5', '5', '5', '5');\n    SELECT * FROM abc WHERE rowid NOT IN (1,2,3,4)",
+          "expect": "5 5.0 5.0 5.0 5.0"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT type FROM pragma_table_info('abc') ORDER BY cid",
+          "expect": "INT REAL REAL REAL REAL"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE abc2 USING rtree_i32 (id TEXT, x1 TEXT, x2 TEXT, y1 TEXT, y2 TEXT)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO abc2 VALUES('6.0', '6.0', '6.0', '6.0', '6.0');\n    SELECT * FROM abc2",
+          "expect": "6 6 6 6 6"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT type FROM pragma_table_info('abc2') ORDER BY cid",
+          "expect": "INT INT INT INT INT"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.1.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE abc;\n    DROP TABLE abc2;"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE abc USING rtree (id TEXT, x1 UNIQUE, x2 TEXT, y1 NOT NULL, y2 TEXT)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info = abc",
+          "expect": "id x1 x2 y1 y2"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(1, 10.0, 20.0, 10.0, 20.0);\n    INSERT INTO abc VALUES(2, 10.0, 20.0, 10.0, 20.0);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO abc DEFAULT VALUES;\n    SELECT * FROM abc WHERE rowid NOT IN (1,2)",
+          "expect": "3 0.0 0.0 0.0 0.0"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO abc VALUES(NULL, NULL, NULL, NULL, NULL);\n    SELECT * FROM abc WHERE rowid NOT IN (1,2,3)",
+          "expect": "4 0.0 0.0 0.0 0.0"
+        },
+        {
+          "type": "query",
+          "sql": "INSERT INTO abc VALUES('5', '5', '5', '5', '5');\n    SELECT * FROM abc WHERE rowid NOT IN (1,2,3,4)",
+          "expect": "5 5.0 5.0 5.0 5.0"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT type FROM pragma_table_info('abc') ORDER BY cid",
+          "expect": "INT REAL REAL REAL REAL"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE abc2 USING rtree_i32 (id TEXT, x1 UNIQUE, x2 TEXT, y1 NOT NULL, y2 TEXT)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.2.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO abc2 VALUES('6.0', '6.0', '6.0', '6.0', '6.0');\n    SELECT * FROM abc2",
+          "expect": "6 6 6 6 6"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.2.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT type FROM pragma_table_info('abc2') ORDER BY cid",
+          "expect": "INT INT INT INT INT"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.2.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE abc;\n    DROP TABLE abc2;"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE abc USING rtree (id, x1 DEFAULT 4, x2 TEXT, y1 NOT NULL, y2 TEXT)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info = abc",
+          "expect": "id x1 x2 y1 y2"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(1, 10.0, 20.0, 10.0, 20.0);\n    INSERT INTO abc VALUES(2, 10.0, 20.0, 10.0, 20.0);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO abc DEFAULT VALUES;\n    SELECT * FROM abc WHERE rowid NOT IN (1,2)",
+          "expect": "3 0.0 0.0 0.0 0.0"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO abc VALUES(NULL, NULL, NULL, NULL, NULL);\n    SELECT * FROM abc WHERE rowid NOT IN (1,2,3)",
+          "expect": "4 0.0 0.0 0.0 0.0"
+        },
+        {
+          "type": "query",
+          "sql": "INSERT INTO abc VALUES('5', '5', '5', '5', '5');\n    SELECT * FROM abc WHERE rowid NOT IN (1,2,3,4)",
+          "expect": "5 5.0 5.0 5.0 5.0"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT type FROM pragma_table_info('abc') ORDER BY cid",
+          "expect": "INT REAL REAL REAL REAL"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.3.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE abc2 USING rtree_i32 (id, x1 DEFAULT 4, x2 TEXT, y1 NOT NULL, y2 TEXT)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.3.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO abc2 VALUES('6.0', '6.0', '6.0', '6.0', '6.0');\n    SELECT * FROM abc2",
+          "expect": "6 6 6 6 6"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.3.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT type FROM pragma_table_info('abc2') ORDER BY cid",
+          "expect": "INT INT INT INT INT"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-3-1.3.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE abc;\n    DROP TABLE abc2;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rtreedoc-4-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2);\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, x1 REAL, x2 REAL);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-4-1.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(5, 11,12)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-4-1.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5, 11,12)"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM rt ORDER BY 1",
+          "variable": "data1",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 ORDER BY 1",
+          "variable": "data2",
+          "resultAll": true
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "$data1==$data2",
+          "variable": "res"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-4-1.1.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-4-1.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(11, -11,14.5)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-4-1.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(11, -11,14.5)"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM rt ORDER BY 1",
+          "variable": "data1",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 ORDER BY 1",
+          "variable": "data2",
+          "resultAll": true
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "$data1==$data2",
+          "variable": "res"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-4-1.2.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-4-1.3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE rt SET x1=-99 WHERE id=11"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-4-1.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET x1=-99 WHERE id=11"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM rt ORDER BY 1",
+          "variable": "data1",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 ORDER BY 1",
+          "variable": "data2",
+          "resultAll": true
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "$data1==$data2",
+          "variable": "res"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-4-1.3.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-4-1.4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM rt WHERE x2=14.5"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-4-1.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x2=14.5"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM rt ORDER BY 1",
+          "variable": "data1",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 ORDER BY 1",
+          "variable": "data2",
+          "resultAll": true
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "$data1==$data2",
+          "variable": "res"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-4-1.4.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-4-1.5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM rt"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-4-1.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM rt ORDER BY 1",
+          "variable": "data1",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 ORDER BY 1",
+          "variable": "data2",
+          "resultAll": true
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "$data1==$data2",
+          "variable": "res"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-4-1.5.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-4-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE demo_index USING rtree(\n      id,              -- Integer primary key\n      minX, maxX,      -- Minimum and maximum X coordinate\n      minY, maxY       -- Minimum and maximum Y coordinate\n  );\n\n  INSERT INTO demo_index VALUES\n    (28215, -80.781227, -80.604706, 35.208813, 35.297367),\n    (28216, -80.957283, -80.840599, 35.235920, 35.367825),\n    (28217, -80.960869, -80.869431, 35.133682, 35.208233),\n    (28226, -80.878983, -80.778275, 35.060287, 35.154446),\n    (28227, -80.745544, -80.555382, 35.130215, 35.236916),\n    (28244, -80.844208, -80.841988, 35.223728, 35.225471),\n    (28262, -80.809074, -80.682938, 35.276207, 35.377747),\n    (28269, -80.851471, -80.735718, 35.272560, 35.407925),\n    (28270, -80.794983, -80.728966, 35.059872, 35.161823),\n    (28273, -80.994766, -80.875259, 35.074734, 35.172836),\n    (28277, -80.876793, -80.767586, 35.001709, 35.101063),\n    (28278, -81.058029, -80.956375, 35.044701, 35.223812),\n    (28280, -80.844208, -80.841972, 35.225468, 35.227203),\n    (28282, -80.846382, -80.844193, 35.223972, 35.225655);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-5-1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO demo_index \n    SELECT NULL, minX, maxX, minY+0.2, maxY+0.2 FROM demo_index;\n  INSERT INTO demo_index \n    SELECT NULL, minX+0.2, maxX+0.2, minY, maxY FROM demo_index;\n  INSERT INTO demo_index \n    SELECT NULL, minX, maxX, minY+0.4, maxY+0.4 FROM demo_index;\n  INSERT INTO demo_index \n    SELECT NULL, minX+0.4, maxX+0.4, minY, maxY FROM demo_index;\n  INSERT INTO demo_index \n    SELECT NULL, minX, maxX, minY+0.8, maxY+0.8 FROM demo_index;\n  INSERT INTO demo_index \n    SELECT NULL, minX+0.8, maxX+0.8, minY, maxY FROM demo_index;\n\n  SELECT count(*) FROM demo_index;",
+          "expect": "896"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-5-1.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE demo_tbl AS SELECT * FROM demo_index;"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-5-1.1.1",
+      "steps": [
+        {
+          "type": "compare_query",
+          "sql": "SELECT * FROM demo_index ORDER BY 1",
+          "expect": "ok",
+          "sql2": "SELECT * FROM demo_tbl ORDER BY 1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-5-1.1.2",
+      "steps": [
+        {
+          "type": "compare_query",
+          "sql": "SELECT max(minX) FROM demo_index ORDER BY 1",
+          "expect": "ok",
+          "sql2": "SELECT max(minX) FROM demo_tbl ORDER BY 1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-5-1.1.3",
+      "steps": [
+        {
+          "type": "compare_query",
+          "sql": "SELECT max(minX) FROM demo_index GROUP BY round(minY) ORDER BY 1",
+          "expect": "ok",
+          "sql2": "SELECT max(minX) FROM demo_tbl GROUP BY round(minY) ORDER BY 1"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM demo_index WHERE +rowid=28269"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM demo_index WHERE rowid=28269"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM demo_index WHERE id=28269"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT id FROM demo_index\n    WHERE minX\u003c=-80.77470 AND maxX\u003e=-80.77470\n    AND minY\u003c=35.37785  AND maxY\u003e=35.37785;"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-5-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id FROM demo_index\n    WHERE minX\u003c=-80.77470 AND maxX\u003e=-80.77470\n    AND minY\u003c=35.37785  AND maxY\u003e=35.37785;",
+          "expect": "\n  28322 28269 \n"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT A.id FROM demo_index AS A, demo_index AS B\n    WHERE A.maxX\u003e=B.minX AND A.minX\u003c=B.maxX\n    AND A.maxY\u003e=B.minY AND A.minY\u003c=B.maxY\n    AND B.id=28269"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-5-2.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT A.id FROM demo_index AS A, demo_index AS B\n    WHERE A.maxX\u003e=B.minX AND A.minX\u003c=B.maxX\n    AND A.maxY\u003e=B.minY AND A.minY\u003c=B.maxY\n    AND B.id=28269 ORDER BY +A.id;",
+          "expect": "\n  28215\n  28216\n  28262\n  28269\n  28286\n  28287\n  28291\n  28293\n  28298\n  28313\n  28320\n  28322\n  28336\n"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT id FROM demo_index\n   WHERE maxY\u003e=35.0  AND minY\u003c=35.0;"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-5-2.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id FROM demo_index\n   WHERE maxY\u003e=35.0  AND minY\u003c=35.0;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rtreedoc-6-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE rt USING rtree(id, a,b);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO rt VALUES(14, -1000000000000, 1000000000000);\n  SELECT * FROM rt;",
+          "expect": "14 -1000000126976.0 1000000126976.0"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-2.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM rt"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-2.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(23, 100000000000, 100000000000)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-2.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 100000000000\u003e=a, 100000000000\u003c=b, a!=b FROM rt",
+          "expect": "1 1 1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-2.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM rt"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-2.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(23, 200000000000, 200000000000)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-2.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 200000000000\u003e=a, 200000000000\u003c=b, a!=b FROM rt",
+          "expect": "1 1 1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-2.3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM rt"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-2.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(23, 300000000000, 300000000000)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-2.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 300000000000\u003e=a, 300000000000\u003c=b, a!=b FROM rt",
+          "expect": "1 1 1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-2.4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM rt"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-2.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(23, 400000000000, 400000000000)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-2.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 400000000000\u003e=a, 400000000000\u003c=b, a!=b FROM rt",
+          "expect": "1 1 1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-2.5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM rt"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-2.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(23, -100000000000, -100000000000)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-2.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT -100000000000\u003e=a, -100000000000\u003c=b, a!=b FROM rt",
+          "expect": "1 1 1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-2.6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM rt"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-2.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(23, -200000000000, -200000000000)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-2.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT -200000000000\u003e=a, -200000000000\u003c=b, a!=b FROM rt",
+          "expect": "1 1 1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-2.7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM rt"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-2.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(23, -300000000000, -300000000000)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-2.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT -300000000000\u003e=a, -300000000000\u003c=b, a!=b FROM rt",
+          "expect": "1 1 1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-2.8.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM rt"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-2.8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(23, -400000000000, -400000000000)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-2.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT -400000000000\u003e=a, -400000000000\u003c=b, a!=b FROM rt",
+          "expect": "1 1 1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE rt;\n  CREATE VIRTUAL TABLE rt USING rtree(id, x1,x2, y1,y2);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-3.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM rt"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-3.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(23, 100000000000, 200000000000, 300000000000, 400000000000)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-6-3.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (x2-x1)*(y2-y1) \u003e= (200000000000-100000000000)*(400000000000-300000000000) FROM rt",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rtreedoc-7-1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE rt USING rtree(id, minX, maxX);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i\u003c51\n  )\n  INSERT INTO rt SELECT NULL, i%10, (i%10)+5 FROM s"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-7-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM rt_node",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-7-1.2",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM rt WHERE maxX \u003c 30",
+          "variable": "res1",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM rt WHERE maxX \u003c 30 ORDER BY +id",
+          "variable": "res1o",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(NULL, 50, 50)"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM rt WHERE maxX \u003c 30",
+          "variable": "res2",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM rt WHERE maxX \u003c 30 ORDER BY +id",
+          "variable": "res2o",
+          "resultAll": true,
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-7-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM rt_node",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-7-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM rt WHERE minX\u003e0 AND maxX\u003c12",
+          "expect": "6 1 {database table is locked}"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-7-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE demo_index USING rtree(\n      id,              -- Integer primary key\n      minX, maxX,      -- Minimum and maximum X coordinate\n      minY, maxY       -- Minimum and maximum Y coordinate\n  );\n  INSERT INTO demo_index VALUES\n    (28215, -80.781227, -80.604706, 35.208813, 35.297367),\n    (28216, -80.957283, -80.840599, 35.235920, 35.367825),\n    (28217, -80.960869, -80.869431, 35.133682, 35.208233),\n    (28226, -80.878983, -80.778275, 35.060287, 35.154446);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-7-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id FROM demo_index WHERE maxY\u003e=35.0  AND minY\u003c=35.0",
+          "expect": "6 1 {database table is locked}"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-7-3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO x1 VALUES(1, 1, 1);\n  INSERT INTO x1 VALUES(2, 2, 2);\n  INSERT INTO x1 VALUES(3, 3, 3);\n  INSERT INTO x1 VALUES(4, 4, 4);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-7-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1",
+          "expect": "1 1 1 2 2 2 3 3 3 5 5 5"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-7-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1",
+          "expect": "1 1 1  2 2 20  5 5 5"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-7-8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM rt",
+          "expect": "1 {database table is locked}"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-7-8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM rt ORDER BY +id",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rtreedoc-8-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE demo_data(\n      id INTEGER PRIMARY KEY,  -- primary key\n      objname TEXT,            -- name of the object\n      objtype TEXT,            -- object type\n      boundary BLOB            -- detailed boundary of object\n  );"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-8-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE demo_index USING rtree(\n      id,              -- Integer primary key\n      minX, maxX,      -- Minimum and maximum X coordinate\n      minY, maxY       -- Minimum and maximum Y coordinate\n  );\n\n  INSERT INTO demo_index VALUES\n    (28215, -80.781227, -80.604706, 35.208813, 35.297367),\n    (28216, -80.957283, -80.840599, 35.235920, 35.367825),\n    (28217, -80.960869, -80.869431, 35.133682, 35.208233),\n    (28226, -80.878983, -80.778275, 35.060287, 35.154446),\n    (28227, -80.745544, -80.555382, 35.130215, 35.236916),\n    (28244, -80.844208, -80.841988, 35.223728, 35.225471),\n    (28262, -80.809074, -80.682938, 35.276207, 35.377747),\n    (28269, -80.851471, -80.735718, 35.272560, 35.407925),\n    (28270, -80.794983, -80.728966, 35.059872, 35.161823),\n    (28273, -80.994766, -80.875259, 35.074734, 35.172836),\n    (28277, -80.876793, -80.767586, 35.001709, 35.101063),\n    (28278, -81.058029, -80.956375, 35.044701, 35.223812),\n    (28280, -80.844208, -80.841972, 35.225468, 35.227203),\n    (28282, -80.846382, -80.844193, 35.223972, 35.225655);\n\n  INSERT INTO demo_index \n    SELECT NULL, minX, maxX, minY+0.2, maxY+0.2 FROM demo_index;\n  INSERT INTO demo_index \n    SELECT NULL, minX+0.2, maxX+0.2, minY, maxY FROM demo_index;\n  INSERT INTO demo_index \n    SELECT NULL, minX, maxX, minY+0.4, maxY+0.4 FROM demo_index;\n  INSERT INTO demo_index \n    SELECT NULL, minX+0.4, maxX+0.4, minY, maxY FROM demo_index;\n  INSERT INTO demo_index \n    SELECT NULL, minX, maxX, minY+0.8, maxY+0.8 FROM demo_index;\n  INSERT INTO demo_index \n    SELECT NULL, minX+0.8, maxX+0.8, minY, maxY FROM demo_index;\n\n  INSERT INTO demo_data(id) SELECT id FROM demo_index;\n\n  SELECT count(*) FROM demo_index;",
+          "expect": "896"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "contained_in",
+          "callbackVars": {
+            "": "0",
+            "::contained_in": "0",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "clist": "id x1 x2   y1 y2   z1 z2",
+            "cols": "(id, x1 DEFAULT 4, x2 TEXT, y1 NOT NULL, y2 TEXT)",
+            "data1": "$data1",
+            "data2": "$data2",
+            "err": "Too many columns for an rtree table",
+            "lCol": "id x1 x2 y1 y2",
+            "nCnt": "3",
+            "name": "t2",
+            "ok": "0",
+            "res": "",
+            "res1": "$res1",
+            "res1o": "$res1o",
+            "res2": "$res2",
+            "res2o": "$res2o",
+            "sql": "SELECT max(minX) FROM %TBL% GROUP BY round(minY) ORDER BY 1",
+            "sql1": "SELECT max(minX) FROM demo_index GROUP BY round(minY) ORDER BY 1",
+            "sql2": "SELECT max(minX) FROM demo_tbl GROUP BY round(minY) ORDER BY 1",
+            "testdir": "",
+            "testprefix": "rtreedoc-8",
+            "tn": "1",
+            "val": "-400000000000",
+            "x1": "100000000000",
+            "x2": "200000000000",
+            "y1": "300000000000",
+            "y2": "400000000000",
+            "z1": "50",
+            "z2": "60"
+          },
+          "functionProc": "contained_in",
+          "functionArgs": [
+            "args"
+          ],
+          "functionBody": "incr ::contained_in ; return 0",
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT objname FROM demo_data, demo_index\n    WHERE demo_data.id=demo_index.id\n    AND contained_in(demo_data.boundary, 35.37785, -80.77470)\n    AND minX\u003c=-80.77470 AND maxX\u003e=-80.77470\n    AND minY\u003c=35.37785  AND maxY\u003e=35.37785;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT objname FROM demo_data\n    WHERE contained_in(demo_data.boundary, 35.37785, -80.77470);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-8-1.4",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "contained_in",
+          "expect": "896"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-8-1.5",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "contained_in1",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rtreedoc-9-1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE rta USING rtree(\n    id, u1,u2,  v1,v2,   +aux\n  );\n\n  INSERT INTO rta(aux) VALUES(NULL);\n  INSERT INTO rta(aux) VALUES(45);\n  INSERT INTO rta(aux) VALUES(22.3);\n  INSERT INTO rta(aux) VALUES('hello');\n  INSERT INTO rta(aux) VALUES(X'ABCD');\n\n  SELECT typeof(aux), quote(aux) FROM rta;",
+          "expect": "\n  null NULL\n  integer 45\n  real 22.3\n  text 'hello'\n  blob X'ABCD'\n"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE rrr USING rtree(id x1,x2, +extra,  y1,y2)",
+          "expect": "1 {Auxiliary rtree columns must be last}"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE rrr USING rtree(extra, +id x1,x2, y1,y2)",
+          "expect": "1 {Auxiliary rtree columns must be last}"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-2.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE rrr USING rtree(id, x1,+x2, extra, y1,y2)",
+          "expect": "1 {Auxiliary rtree columns must be last}"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-3.0",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE rrr USING rtree(+id, extra, x1, x2);",
+          "expect": "1 {near \"+\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-3.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE r1 USING rtree(intid, u1,u2,\n    +c00, +c01, +c02, +c03, +c04, +c05, +c06, +c07, +c08, +c09,\n    +c10, +c11, +c12, +c13, +c14, +c15, +c16, +c17, +c18, +c19,\n    +c20, +c21, +c22, +c23, +c24, +c25, +c26, +c27, +c28, +c29,\n    +c30, +c31, +c32, +c33, +c34, +c35, +c36, +c37, +c38, +c39,\n    +c40, +c41, +c42, +c43, +c44, +c45, +c46, +c47, +c48, +c49,\n    +c50, +c51, +c52, +c53, +c54, +c55, +c56, +c57, +c58, +c59,\n    +c60, +c61, +c62, +c63, +c64, +c65, +c66, +c67, +c68, +c69,\n    +c70, +c71, +c72, +c73, +c74, +c75, +c76, +c77, +c78, +c79,\n    +c80, +c81, +c82, +c83, +c84, +c85, +c86, +c87, +c88, +c89,\n    +c90, +c91, +c92, +c93, +c94, +c95, +c96\n  );",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-3.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE r1;\n  CREATE VIRTUAL TABLE r1 USING rtree(intid, u1,u2,\n    +c00, +c01, +c02, +c03, +c04, +c05, +c06, +c07, +c08, +c09,\n    +c10, +c11, +c12, +c13, +c14, +c15, +c16, +c17, +c18, +c19,\n    +c20, +c21, +c22, +c23, +c24, +c25, +c26, +c27, +c28, +c29,\n    +c30, +c31, +c32, +c33, +c34, +c35, +c36, +c37, +c38, +c39,\n    +c40, +c41, +c42, +c43, +c44, +c45, +c46, +c47, +c48, +c49,\n    +c50, +c51, +c52, +c53, +c54, +c55, +c56, +c57, +c58, +c59,\n    +c60, +c61, +c62, +c63, +c64, +c65, +c66, +c67, +c68, +c69,\n    +c70, +c71, +c72, +c73, +c74, +c75, +c76, +c77, +c78, +c79,\n    +c80, +c81, +c82, +c83, +c84, +c85, +c86, +c87, +c88, +c89,\n    +c90, +c91, +c92, +c93, +c94, +c95, +c96, +c97\n  );",
+          "expect": "1 {Too many columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-3.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE r1 USING rtree(intid, u1,u2, v1,v2,\n    +c00, +c01, +c02, +c03, +c04, +c05, +c06, +c07, +c08, +c09,\n    +c10, +c11, +c12, +c13, +c14, +c15, +c16, +c17, +c18, +c19,\n    +c20, +c21, +c22, +c23, +c24, +c25, +c26, +c27, +c28, +c29,\n    +c30, +c31, +c32, +c33, +c34, +c35, +c36, +c37, +c38, +c39,\n    +c40, +c41, +c42, +c43, +c44, +c45, +c46, +c47, +c48, +c49,\n    +c50, +c51, +c52, +c53, +c54, +c55, +c56, +c57, +c58, +c59,\n    +c60, +c61, +c62, +c63, +c64, +c65, +c66, +c67, +c68, +c69,\n    +c70, +c71, +c72, +c73, +c74, +c75, +c76, +c77, +c78, +c79,\n    +c80, +c81, +c82, +c83, +c84, +c85, +c86, +c87, +c88, +c89,\n    +c90, +c91, +c92, +c93, +c94,\n  );",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-3.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE r1;\n  CREATE VIRTUAL TABLE r1 USING rtree(intid, u1,u2, v1,v2,\n    +c00, +c01, +c02, +c03, +c04, +c05, +c06, +c07, +c08, +c09,\n    +c10, +c11, +c12, +c13, +c14, +c15, +c16, +c17, +c18, +c19,\n    +c20, +c21, +c22, +c23, +c24, +c25, +c26, +c27, +c28, +c29,\n    +c30, +c31, +c32, +c33, +c34, +c35, +c36, +c37, +c38, +c39,\n    +c40, +c41, +c42, +c43, +c44, +c45, +c46, +c47, +c48, +c49,\n    +c50, +c51, +c52, +c53, +c54, +c55, +c56, +c57, +c58, +c59,\n    +c60, +c61, +c62, +c63, +c64, +c65, +c66, +c67, +c68, +c69,\n    +c70, +c71, +c72, +c73, +c74, +c75, +c76, +c77, +c78, +c79,\n    +c80, +c81, +c82, +c83, +c84, +c85, +c86, +c87, +c88, +c89,\n    +c90, +c91, +c92, +c93, +c94, +c95,\n  );",
+          "expect": "1 {Too many columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE demo_index2 USING rtree(\n      id,              -- Integer primary key\n      minX, maxX,      -- Minimum and maximum X coordinate\n      minY, maxY,      -- Minimum and maximum Y coordinate\n      +objname TEXT,   -- name of the object\n      +objtype TEXT,   -- object type\n      +boundary BLOB   -- detailed boundary of object\n  );"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE demo_index USING rtree(\n      id,              -- Integer primary key\n      minX, maxX,      -- Minimum and maximum X coordinate\n      minY, maxY       -- Minimum and maximum Y coordinate\n  );\n  CREATE TABLE demo_data(\n      id INTEGER PRIMARY KEY,  -- primary key\n      objname TEXT,            -- name of the object\n      objtype TEXT,            -- object type\n      boundary BLOB            -- detailed boundary of object\n  );\n\n  INSERT INTO demo_index2(id) VALUES(1);\n  INSERT INTO demo_index(id) VALUES(1);\n  INSERT INTO demo_data(id) VALUES(1);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM demo_index2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM demo_index NATURAL JOIN demo_data",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-4.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM demo_index2;\n  INSERT INTO demo_index2(id,minX,maxX,minY,maxY) VALUES\n    (28215, -80.781227, -80.604706, 35.208813, 35.297367),\n    (28216, -80.957283, -80.840599, 35.235920, 35.367825),\n    (28217, -80.960869, -80.869431, 35.133682, 35.208233),\n    (28226, -80.878983, -80.778275, 35.060287, 35.154446),\n    (28227, -80.745544, -80.555382, 35.130215, 35.236916),\n    (28244, -80.844208, -80.841988, 35.223728, 35.225471),\n    (28262, -80.809074, -80.682938, 35.276207, 35.377747),\n    (28269, -80.851471, -80.735718, 35.272560, 35.407925),\n    (28270, -80.794983, -80.728966, 35.059872, 35.161823),\n    (28273, -80.994766, -80.875259, 35.074734, 35.172836),\n    (28277, -80.876793, -80.767586, 35.001709, 35.101063),\n    (28278, -81.058029, -80.956375, 35.044701, 35.223812),\n    (28280, -80.844208, -80.841972, 35.225468, 35.227203),\n    (28282, -80.846382, -80.844193, 35.223972, 35.225655);"
+        }
+      ]
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "contained_in",
+          "callbackVars": {
+            "": "0",
+            "::contained_in": "0",
+            "::contained_in1": "0",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "clist": "id x1 x2   y1 y2   z1 z2",
+            "cols": "id, x1,+x2, extra, y1,y2",
+            "data1": "$data1",
+            "data2": "$data2",
+            "err": "Too many columns for an rtree table",
+            "lCol": "id x1 x2 y1 y2",
+            "nCnt": "3",
+            "name": "t2",
+            "ok": "0",
+            "res": "",
+            "res1": "$res1",
+            "res1o": "$res1o",
+            "res2": "$res2",
+            "res2o": "$res2o",
+            "sql": "SELECT max(minX) FROM %TBL% GROUP BY round(minY) ORDER BY 1",
+            "sql1": "SELECT max(minX) FROM demo_index GROUP BY round(minY) ORDER BY 1",
+            "sql2": "SELECT max(minX) FROM demo_tbl GROUP BY round(minY) ORDER BY 1",
+            "testdir": "",
+            "testprefix": "rtreedoc-9",
+            "tn": "3",
+            "val": "-400000000000",
+            "x1": "100000000000",
+            "x2": "200000000000",
+            "y1": "300000000000",
+            "y2": "400000000000",
+            "z1": "50",
+            "z2": "60"
+          },
+          "functionProc": "contained_in",
+          "functionArgs": [
+            "args"
+          ],
+          "functionBody": "\n  incr ::contained_in\n  return 0\n",
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-4.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT objname FROM demo_index2\n    WHERE contained_in(boundary, 35.37785, -80.77470)\n    AND minX\u003c=-80.77470 AND maxX\u003e=-80.77470\n    AND minY\u003c=35.37785  AND maxY\u003e=35.37785;"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-4.3.3",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "contained_in",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-4.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT objname FROM demo_index2\n    WHERE contained_in(boundary, 35.37785, -80.77470)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-4.3.3",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "contained_in",
+          "expect": "14"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rtreedoc-9-1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys = on"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE rt USING rtree_i32(k, a,b, +extra INTEGER)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO rt(extra) VALUES(NULL), (45), (-123.2), ('456'), (X'ABCD');\n    SELECT typeof(extra), quote(extra) FROM rt;",
+          "expect": "\n    null NULL\n    integer 45\n    real -123.2\n    text '456'\n    blob X'ABCD'\n  "
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt(extra) VALUES('xyz'), ('xyz'), ('xyz');"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE rt"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE rt USING rtree_i32(k, a,b, +extra TEXT)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO rt(extra) VALUES(NULL), (45), (-123.2), ('456'), (X'ABCD');\n    SELECT typeof(extra), quote(extra) FROM rt;",
+          "expect": "\n    null NULL\n    integer 45\n    real -123.2\n    text '456'\n    blob X'ABCD'\n  "
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt(extra) VALUES('xyz'), ('xyz'), ('xyz');"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE rt"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE rt USING rtree_i32(k, a,b, +extra BLOB)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO rt(extra) VALUES(NULL), (45), (-123.2), ('456'), (X'ABCD');\n    SELECT typeof(extra), quote(extra) FROM rt;",
+          "expect": "\n    null NULL\n    integer 45\n    real -123.2\n    text '456'\n    blob X'ABCD'\n  "
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt(extra) VALUES('xyz'), ('xyz'), ('xyz');"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE rt"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE rt USING rtree_i32(k, a,b, +extra REAL)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO rt(extra) VALUES(NULL), (45), (-123.2), ('456'), (X'ABCD');\n    SELECT typeof(extra), quote(extra) FROM rt;",
+          "expect": "\n    null NULL\n    integer 45\n    real -123.2\n    text '456'\n    blob X'ABCD'\n  "
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt(extra) VALUES('xyz'), ('xyz'), ('xyz');"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE rt"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE rt USING rtree_i32(k, a,b, +col NOT NULL)"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO rt(col) VALUES(NULL), (45), (-123.2), ('456'), (X'ABCD');\n    SELECT typeof(col), quote(col) FROM rt;",
+          "expect": "\n    null NULL\n    integer 45\n    real -123.2\n    text '456'\n    blob X'ABCD'\n  "
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt(col) VALUES('xyz'), ('xyz'), ('xyz');"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE rt"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE rt USING rtree_i32(k, a,b, +col CHECK (col IS NOT NULL))"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO rt(col) VALUES(NULL), (45), (-123.2), ('456'), (X'ABCD');\n    SELECT typeof(col), quote(col) FROM rt;",
+          "expect": "\n    null NULL\n    integer 45\n    real -123.2\n    text '456'\n    blob X'ABCD'\n  "
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt(col) VALUES('xyz'), ('xyz'), ('xyz');"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE rt"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE rt USING rtree_i32(k, a,b, +col REFERENCES tbl(x))"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO rt(col) VALUES(NULL), (45), (-123.2), ('456'), (X'ABCD');\n    SELECT typeof(col), quote(col) FROM rt;",
+          "expect": "\n    null NULL\n    integer 45\n    real -123.2\n    text '456'\n    blob X'ABCD'\n  "
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt(col) VALUES('xyz'), ('xyz'), ('xyz');"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-9-1.7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE rt"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-10-1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE intrtree USING rtree_i32(id,x0,x1,y0,y1,z0,z1);\n  INSERT INTO intrtree DEFAULT VALUES;\n  SELECT typeof(x0) FROM intrtree;",
+          "expect": "integer"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-10-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM intrtree;\n  INSERT INTO intrtree VALUES(333,\n      1\u003c\u003c44, (1\u003c\u003c44)+1,\n      10000000000, 10000000001,\n      -10000000001, -10000000000\n  );\n  SELECT * FROM intrtree;",
+          "expect": "\n  333 0 1 1410065408 1410065409 -1410065409 -1410065408\n"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "rnode",
+          "callbackVars": {
+            "": "rtreedoc-11",
+            "::contained_in": "0",
+            "::contained_in1": "0",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "auxcol": "+col REFERENCES tbl(x)",
+            "clist": "id x1 x2   y1 y2   z1 z2",
+            "cols": "id, x1,+x2, extra, y1,y2",
+            "data1": "$data1",
+            "data2": "$data2",
+            "err": "Too many columns for an rtree table",
+            "lCol": "id x1 x2 y1 y2",
+            "nCnt": "3",
+            "name": "t2",
+            "nm": "col",
+            "ok": "0",
+            "res": "",
+            "res1": "$res1",
+            "res1o": "$res1o",
+            "res2": "$res2",
+            "res2o": "$res2o",
+            "sql": "SELECT max(minX) FROM %TBL% GROUP BY round(minY) ORDER BY 1",
+            "sql1": "SELECT max(minX) FROM demo_index GROUP BY round(minY) ORDER BY 1",
+            "sql2": "SELECT max(minX) FROM demo_tbl GROUP BY round(minY) ORDER BY 1",
+            "testdir": "",
+            "testprefix": "rtreedoc-11",
+            "tn": "7",
+            "val": "-400000000000",
+            "x1": "100000000000",
+            "x2": "200000000000",
+            "y1": "300000000000",
+            "y2": "400000000000",
+            "z1": "50",
+            "z2": "60"
+          },
+          "functionProc": "rnode",
+          "functionArgs": [
+            "aData"
+          ],
+          "functionBody": "\n  set nDim 2\n\n  set nData [string length $aData]\n  set nBytePerCell [expr (8 + 2*$nDim*4)]\n  binary scan [string range $aData 2 3] S nCell\n\n  set res [list]\n  for {set i 0} {$i \u003c $nCell} {incr i} {\n    set iOff [expr $i*$nBytePerCell+4]\n    set cell [string range $aData $iOff [expr $iOff+$nBytePerCell-1]]\n    binary scan $cell WIIII rowid x1 x2 y1 y2\n    lappend res [list $rowid $x1 $x2 $y1 $y2]\n  }\n\n  return $res\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "register_function",
+          "functionName": "rnode_contains",
+          "callbackVars": {
+            "": "rtreedoc-11",
+            "::contained_in": "0",
+            "::contained_in1": "0",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "auxcol": "+col REFERENCES tbl(x)",
+            "clist": "id x1 x2   y1 y2   z1 z2",
+            "cols": "id, x1,+x2, extra, y1,y2",
+            "data1": "$data1",
+            "data2": "$data2",
+            "err": "Too many columns for an rtree table",
+            "lCol": "id x1 x2 y1 y2",
+            "nCnt": "3",
+            "name": "t2",
+            "nm": "col",
+            "ok": "0",
+            "res": "",
+            "res1": "$res1",
+            "res1o": "$res1o",
+            "res2": "$res2",
+            "res2o": "$res2o",
+            "sql": "SELECT max(minX) FROM %TBL% GROUP BY round(minY) ORDER BY 1",
+            "sql1": "SELECT max(minX) FROM demo_index GROUP BY round(minY) ORDER BY 1",
+            "sql2": "SELECT max(minX) FROM demo_tbl GROUP BY round(minY) ORDER BY 1",
+            "testdir": "",
+            "testprefix": "rtreedoc-11",
+            "tn": "7",
+            "val": "-400000000000",
+            "x1": "100000000000",
+            "x2": "200000000000",
+            "y1": "300000000000",
+            "y2": "400000000000",
+            "z1": "50",
+            "z2": "60"
+          },
+          "functionProc": "rnode_contains",
+          "functionArgs": [
+            "aData",
+            "rowid"
+          ],
+          "functionBody": "\n  set L [rnode $aData]\n  foreach cell $L {\n    set r [lindex $cell 0]\n    if {$r==$rowid} { return 1 }\n  }\n  return 0\n",
+          "minArgs": 2,
+          "maxArgs": -1
+        },
+        {
+          "type": "register_function",
+          "functionName": "rnode_replace_cell",
+          "callbackVars": {
+            "": "rtreedoc-11",
+            "::contained_in": "0",
+            "::contained_in1": "0",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "auxcol": "+col REFERENCES tbl(x)",
+            "clist": "id x1 x2   y1 y2   z1 z2",
+            "cols": "id, x1,+x2, extra, y1,y2",
+            "data1": "$data1",
+            "data2": "$data2",
+            "err": "Too many columns for an rtree table",
+            "lCol": "id x1 x2 y1 y2",
+            "nCnt": "3",
+            "name": "t2",
+            "nm": "col",
+            "ok": "0",
+            "res": "",
+            "res1": "$res1",
+            "res1o": "$res1o",
+            "res2": "$res2",
+            "res2o": "$res2o",
+            "sql": "SELECT max(minX) FROM %TBL% GROUP BY round(minY) ORDER BY 1",
+            "sql1": "SELECT max(minX) FROM demo_index GROUP BY round(minY) ORDER BY 1",
+            "sql2": "SELECT max(minX) FROM demo_tbl GROUP BY round(minY) ORDER BY 1",
+            "testdir": "",
+            "testprefix": "rtreedoc-11",
+            "tn": "7",
+            "val": "-400000000000",
+            "x1": "100000000000",
+            "x2": "200000000000",
+            "y1": "300000000000",
+            "y2": "400000000000",
+            "z1": "50",
+            "z2": "60"
+          },
+          "functionProc": "rnode_replace_cell",
+          "functionArgs": [
+            "aData",
+            "iCell",
+            "cell"
+          ],
+          "functionBody": "\n  set aCell [binary format WIIII {*}$cell]\n  set nDim 2\n  set nBytePerCell [expr (8 + 2*$nDim*4)]\n  set iOff [expr $iCell*$nBytePerCell+4]\n\n  set aNew [binary format a*a*a* \\\n      [string range $aData 0 $iOff-1]     \\\n      $aCell     \\\n      [string range $aData $iOff+$nBytePerCell end] \\\n  ]\n  return $aNew\n",
+          "minArgs": 3,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-11-1.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE x1 USING rtree(a,b,c,d,e);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-11-1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema WHERE name!='x1' ORDER BY 1",
+          "expect": "\n    {CREATE TABLE \"x1_node\"(nodeno INTEGER PRIMARY KEY,data)}\n    {CREATE TABLE \"x1_parent\"(nodeno INTEGER PRIMARY KEY,parentnode)}\n    {CREATE TABLE \"x1_rowid\"(rowid INTEGER PRIMARY KEY,nodeno)}\n  "
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-11-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE x1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-11-1.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE asdfghjkl USING rtree(a,b,c,d,e);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-11-1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema WHERE name!='asdfghjkl' ORDER BY 1",
+          "expect": "\n    {CREATE TABLE \"asdfghjkl_node\"(nodeno INTEGER PRIMARY KEY,data)}\n    {CREATE TABLE \"asdfghjkl_parent\"(nodeno INTEGER PRIMARY KEY,parentnode)}\n    {CREATE TABLE \"asdfghjkl_rowid\"(rowid INTEGER PRIMARY KEY,nodeno)}\n  "
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-11-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE asdfghjkl"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-11-1.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE hello_world USING rtree(a,b,c,d,e);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-11-1.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema WHERE name!='hello_world' ORDER BY 1",
+          "expect": "\n    {CREATE TABLE \"hello_world_node\"(nodeno INTEGER PRIMARY KEY,data)}\n    {CREATE TABLE \"hello_world_parent\"(nodeno INTEGER PRIMARY KEY,parentnode)}\n    {CREATE TABLE \"hello_world_rowid\"(rowid INTEGER PRIMARY KEY,nodeno)}\n  "
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-11-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE hello_world"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-11-2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE r1 USING rtree_i32(i, x1,x2, y1,y2);\n  WITH t(i) AS (\n    VALUES(1) UNION SELECT i+1 FROM t WHERE i\u003c110\n  )\n  INSERT INTO r1 SELECT i, (i%10), (i%10)+2, (i%6), (i%7)+6 FROM t;"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-11-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM r1_node;",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-11-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT nodeno, parentnode FROM r1_parent",
+          "expect": "2 1  3 1  4 1  5 1  6 1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-11-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'failed' FROM r1_rowid WHERE 0==rnode_contains(\n    (SELECT data FROM r1_node WHERE nodeno=r1_rowid.nodeno), rowid\n  )"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-11-2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT nodeno, data FROM r1_node WHERE nodeno!=1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-11-3.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE rtaux USING rtree(id, x1,x2, y1,y2, +e1, +e2);\n  SELECT sql FROM sqlite_schema WHERE name='rtaux_rowid';",
+          "expect": "\n  {CREATE TABLE \"rtaux_rowid\"(rowid INTEGER PRIMARY KEY,nodeno,a0,a1)}\n"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-11-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rtaux(e1, e2) VALUES('hello', 'world'), (123, 456);"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-11-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a0, a1 FROM rtaux_rowid;",
+          "expect": "\n  hello world  123 456\n"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "rnode",
+          "callbackVars": {
+            "": "rtreedoc-12",
+            "::contained_in": "0",
+            "::contained_in1": "0",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "auxcol": "+col REFERENCES tbl(x)",
+            "clist": "id x1 x2   y1 y2   z1 z2",
+            "cols": "id, x1,+x2, extra, y1,y2",
+            "data1": "$data1",
+            "data2": "$data2",
+            "err": "Too many columns for an rtree table",
+            "lCol": "id x1 x2 y1 y2",
+            "nCnt": "3",
+            "name": "t2",
+            "nm": "hello_world",
+            "ok": "0",
+            "res": "",
+            "res1": "$res1",
+            "res1o": "$res1o",
+            "res2": "$res2",
+            "res2o": "$res2o",
+            "sql": "SELECT max(minX) FROM %TBL% GROUP BY round(minY) ORDER BY 1",
+            "sql1": "SELECT max(minX) FROM demo_index GROUP BY round(minY) ORDER BY 1",
+            "sql2": "SELECT max(minX) FROM demo_tbl GROUP BY round(minY) ORDER BY 1",
+            "testdir": "",
+            "testprefix": "rtreedoc-12",
+            "tn": "3",
+            "val": "-400000000000",
+            "x1": "100000000000",
+            "x2": "200000000000",
+            "y1": "300000000000",
+            "y2": "400000000000",
+            "z1": "50",
+            "z2": "60"
+          },
+          "functionProc": "rnode",
+          "functionArgs": [
+            "aData"
+          ],
+          "functionBody": "\n  set nDim 2\n\n  set nData [string length $aData]\n  set nBytePerCell [expr (8 + 2*$nDim*4)]\n  binary scan [string range $aData 2 3] S nCell\n\n  set res [list]\n  for {set i 0} {$i \u003c $nCell} {incr i} {\n    set iOff [expr $i*$nBytePerCell+4]\n    set cell [string range $aData $iOff [expr $iOff+$nBytePerCell-1]]\n    binary scan $cell WIIII rowid x1 x2 y1 y2\n    lappend res [list $rowid $x1 $x2 $y1 $y2]\n  }\n\n  return $res\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "register_function",
+          "functionName": "rnode_contains",
+          "callbackVars": {
+            "": "rtreedoc-12",
+            "::contained_in": "0",
+            "::contained_in1": "0",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "auxcol": "+col REFERENCES tbl(x)",
+            "clist": "id x1 x2   y1 y2   z1 z2",
+            "cols": "id, x1,+x2, extra, y1,y2",
+            "data1": "$data1",
+            "data2": "$data2",
+            "err": "Too many columns for an rtree table",
+            "lCol": "id x1 x2 y1 y2",
+            "nCnt": "3",
+            "name": "t2",
+            "nm": "hello_world",
+            "ok": "0",
+            "res": "",
+            "res1": "$res1",
+            "res1o": "$res1o",
+            "res2": "$res2",
+            "res2o": "$res2o",
+            "sql": "SELECT max(minX) FROM %TBL% GROUP BY round(minY) ORDER BY 1",
+            "sql1": "SELECT max(minX) FROM demo_index GROUP BY round(minY) ORDER BY 1",
+            "sql2": "SELECT max(minX) FROM demo_tbl GROUP BY round(minY) ORDER BY 1",
+            "testdir": "",
+            "testprefix": "rtreedoc-12",
+            "tn": "3",
+            "val": "-400000000000",
+            "x1": "100000000000",
+            "x2": "200000000000",
+            "y1": "300000000000",
+            "y2": "400000000000",
+            "z1": "50",
+            "z2": "60"
+          },
+          "functionProc": "rnode_contains",
+          "functionArgs": [
+            "aData",
+            "rowid"
+          ],
+          "functionBody": "\n  set L [rnode $aData]\n  foreach cell $L {\n    set r [lindex $cell 0]\n    if {$r==$rowid} { return 1 }\n  }\n  return 0\n",
+          "minArgs": 2,
+          "maxArgs": -1
+        },
+        {
+          "type": "register_function",
+          "functionName": "rnode_replace_cell",
+          "callbackVars": {
+            "": "rtreedoc-12",
+            "::contained_in": "0",
+            "::contained_in1": "0",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "auxcol": "+col REFERENCES tbl(x)",
+            "clist": "id x1 x2   y1 y2   z1 z2",
+            "cols": "id, x1,+x2, extra, y1,y2",
+            "data1": "$data1",
+            "data2": "$data2",
+            "err": "Too many columns for an rtree table",
+            "lCol": "id x1 x2 y1 y2",
+            "nCnt": "3",
+            "name": "t2",
+            "nm": "hello_world",
+            "ok": "0",
+            "res": "",
+            "res1": "$res1",
+            "res1o": "$res1o",
+            "res2": "$res2",
+            "res2o": "$res2o",
+            "sql": "SELECT max(minX) FROM %TBL% GROUP BY round(minY) ORDER BY 1",
+            "sql1": "SELECT max(minX) FROM demo_index GROUP BY round(minY) ORDER BY 1",
+            "sql2": "SELECT max(minX) FROM demo_tbl GROUP BY round(minY) ORDER BY 1",
+            "testdir": "",
+            "testprefix": "rtreedoc-12",
+            "tn": "3",
+            "val": "-400000000000",
+            "x1": "100000000000",
+            "x2": "200000000000",
+            "y1": "300000000000",
+            "y2": "400000000000",
+            "z1": "50",
+            "z2": "60"
+          },
+          "functionProc": "rnode_replace_cell",
+          "functionArgs": [
+            "aData",
+            "iCell",
+            "cell"
+          ],
+          "functionBody": "\n  set aCell [binary format WIIII {*}$cell]\n  set nDim 2\n  set nBytePerCell [expr (8 + 2*$nDim*4)]\n  set iOff [expr $iCell*$nBytePerCell+4]\n\n  set aNew [binary format a*a*a* \\\n      [string range $aData 0 $iOff-1]     \\\n      $aCell     \\\n      [string range $aData $iOff+$nBytePerCell end] \\\n  ]\n  return $aNew\n",
+          "minArgs": 3,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-12-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE rt1 USING rtree(id, a, b);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i\u003c200\n  )\n  INSERT INTO rt1 SELECT i, i, i FROM s;\n\n  ATTACH 'test.db2' AS 'aux';\n  CREATE VIRTUAL TABLE aux.rt1 USING rtree(id, a, b);\n  INSERT INTO aux.rt1 SELECT * FROM rt1;"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-12-1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rtreecheck('rt1');",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-12-1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rtreecheck('main', 'rt1');",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-12-1.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rtreecheck('aux', 'rt1');",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-12-1.1.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT rtreecheck('nosuchdb', 'rt1');",
+          "expect": "1 {SQL logic error}"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-12-1.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE rt1_node SET nodeno=21 WHERE nodeno=3;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT rtreecheck('rt1')=='ok';",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-12-1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rtreecheck('main', 'rt1')=='ok';",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-12-1.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rtreecheck('aux', 'rt1')=='ok';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-12-1.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE rt1_node SET nodeno=3 WHERE nodeno=21;"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-12-1.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE aux.rt1_node SET nodeno=21 WHERE nodeno=3;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT rtreecheck('rt1')=='ok';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-12-1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rtreecheck('main', 'rt1')=='ok';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-12-1.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rtreecheck('aux', 'rt1')=='ok';",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-12-1.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE rt1_node SET nodeno=3 WHERE nodeno=21;"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-12-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE demo_index USING rtree(id, x1,x2, y1,y2);\n  INSERT INTO demo_index SELECT id, a, b, a, b FROM rt1;"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-12-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rtreecheck('demo_index')",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-12-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE demo_index_rowid SET nodeno=44 WHERE rowid=44;\n  SELECT rtreecheck('demo_index');",
+          "expect": "{Found (44 -\u003e 44) in %_rowid table, expected (44 -\u003e 4)}"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-12-3.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE rt2 USING rtree_i32(id, a, b, c, d);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i\u003c200\n  )\n  INSERT INTO rt2 SELECT i, i, i+2, i, i+2 FROM s;"
+        }
+      ]
+    },
+    {
+      "name": "setup_12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-12-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rnode(data) FROM rt2_node WHERE nodeno=3"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE rt2_node SET data=rnode_replace_cell(data, 3, ' {} {} {} {}') WHERE nodeno=3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rtreecheck('rt2')",
+          "expect": "{Dimension 0 of cell 3 on node 3 is corrupt}"
+        }
+      ]
+    },
+    {
+      "name": "setup_13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-12-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rnode(data) FROM rt2_node WHERE nodeno=3"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE rt2_node SET data=rnode_replace_cell(data, 3, '') WHERE nodeno=3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rtreecheck('rt2')",
+          "expect": "{Dimension 1 of cell 3 on node 3 is corrupt relative to parent}"
+        }
+      ]
+    },
+    {
+      "name": "setup_14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-12-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE rt2_rowid SET rowid=452 WHERE rowid=100"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rtreecheck('rt2')",
+          "expect": "{Mapping (100 -\u003e 6) missing from %_rowid table}"
+        }
+      ]
+    },
+    {
+      "name": "setup_15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-12-3.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE rt2_parent SET parentnode=123 WHERE nodeno=3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rtreecheck('rt2')",
+          "expect": "{Found (3 -\u003e 123) in %_parent table, expected (3 -\u003e 1)}"
+        }
+      ]
+    },
+    {
+      "name": "setup_16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-12-3.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE rt2_parent SET nodeno=123 WHERE nodeno=3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rtreecheck('rt2')",
+          "expect": "{Mapping (3 -\u003e 1) missing from %_parent table}"
+        }
+      ]
+    },
+    {
+      "name": "setup_17",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-12-3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt2_rowid VALUES(1000, 1000)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rtreecheck('rt2')",
+          "expect": "{Wrong number of entries in %_rowid table - expected 200, actual 201}"
+        }
+      ]
+    },
+    {
+      "name": "setup_18",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc-12-3.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt2_parent VALUES(1000, 1000)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rtreecheck('rt2')",
+          "expect": "{Wrong number of entries in %_parent table - expected 10, actual 11}"
+        }
+      ]
+    },
+    {
+      "name": "setup_19",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        }
+      ]
+    }
+  ]
+}

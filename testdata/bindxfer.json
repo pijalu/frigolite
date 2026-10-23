@@ -1,6 +1,7 @@
 {
   "file": "bindxfer.test",
   "name": "bindxfer",
+  "ordered": true,
   "tests": [
     {
       "name": "bindxfer-1.1",
@@ -8,6 +9,58 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a,b,c);"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT ?, ?, ?",
+          "variable": "stmt_1"
+        }
+      ]
+    },
+    {
+      "name": "bindxfer-1.3",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT ?, ?, ?",
+          "variable": "stmt_2"
+        }
+      ]
+    },
+    {
+      "name": "bindxfer-1.5",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT ?, ?, ?",
+          "variable": "stmt_1",
+          "expect": "SQLITE_ROW"
+        }
+      ]
+    },
+    {
+      "name": "bindxfer-1.7",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT ?, ?, ?",
+          "variable": "stmt_2",
+          "expect": "SQLITE_ROW"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT ?, ?, ?",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT ?, ?, ?",
+          "variable": "stmt_2"
         }
       ]
     }

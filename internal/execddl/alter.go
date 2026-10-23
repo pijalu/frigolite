@@ -114,19 +114,16 @@ func (e *DDLExecutor) readCellByRowID(tree *btree.BTree, rowID int64) (*storage.
 	if err != nil {
 		return nil, err
 	}
-	for {
-		cell, err := cursor.ReadCell()
-		if err != nil || cell == nil {
-			return nil, nil
-		}
-		if cell.RowID == rowID {
-			return cell, nil
-		}
-		ok, err := cursor.Next()
-		if err != nil || !ok {
-			return nil, nil
-		}
+	defer cursor.Close()
+	found, err := cursor.SeekToRowID(rowID)
+	if err != nil || !found {
+		return nil, err
 	}
+	cell, err := cursor.ReadCell()
+	if err != nil || cell == nil || cell.RowID != rowID {
+		return nil, err
+	}
+	return cell, nil
 }
 
 // isProtectedSystemTable reports whether a table name is an internal SQLite
@@ -135,7 +132,7 @@ func isProtectedSystemTable(name string) bool {
 	upper := strings.ToUpper(strings.TrimSpace(name))
 	switch upper {
 	case "SQLITE_MASTER", "SQLITE_SCHEMA", "SQLITE_TEMP_MASTER", "SQLITE_TEMP_SCHEMA",
-		"SQLITE_STAT1", "SQLITE_STAT4", "SQLITE_SEQUENCE":
+		"SQLITE_STAT1", "SQLITE_STAT4", "SQLITE_SEQUENCE", "JSON_EACH", "JSON_TREE":
 		return true
 	}
 	return false
@@ -190,66 +187,32 @@ func isSQLKeyword(name string) bool {
 	return false
 }
 
-// extractColumnName extracts the column name from the start of a column definition.
-func extractColumnName(def string) string {
-	def = strings.TrimSpace(def)
-	if def == "" {
-		return ""
-	}
-	// Handle quoted identifiers "name"
-	if def[0] == '"' {
-		end := strings.Index(def[1:], "\"")
-		if end >= 0 {
-			return def[1 : 1+end]
-		}
-	}
-	// Handle backtick-quoted identifiers `name`
-	if def[0] == '`' {
-		end := strings.Index(def[1:], "`")
-		if end >= 0 {
-			return def[1 : 1+end]
-		}
-	}
-	// Handle single-quoted identifiers 'name' (DQS: SQLite accepts a string
-	// literal as an identifier in column definitions, e.g. 'a'"b").
-	if def[0] == '\'' {
-		end := strings.Index(def[1:], "'")
-		if end >= 0 {
-			return def[1 : 1+end]
-		}
-	}
-	// Regular unquoted name: take first word
-	spaceIdx := strings.IndexAny(def, " (\"")
-	if spaceIdx > 0 {
-		return def[:spaceIdx]
-	}
-	return def
-}
-
 // renameColumnInTriggers updates trigger SQL for triggers that reference the
 // given table — either triggers ON the table (TblName matches) or triggers on
 // other tables whose bodies directly reference the renamed table's column.
 // Uses token-level rename with string-regex complement.
-func (e *DDLExecutor) renameColumnInTriggers(tableName, oldColName, newColName string) {
+func (e *DDLExecutor) renameColumnInTriggers(tableName, oldColName, newColName, quotedNew string, forceQuote bool) {
 	ctx := &RenameContext{
-		OldName:   oldColName,
-		NewName:   newColName,
-		QuotedNew: newColName,
-		IsTable:   false,
-		TableName: tableName,
+		OldName:    oldColName,
+		NewName:    newColName,
+		QuotedNew:  quotedNew,
+		ForceQuote: forceQuote,
+		IsTable:    false,
+		TableName:  tableName,
 	}
 	e.renameColumnInEntries(schema.TypeTrigger, tableName, oldColName, newColName, ctx)
 }
 
 // renameColumnInIndexes updates index SQL for indexes on the given table,
 // replacing old column name references with the new column name.
-func (e *DDLExecutor) renameColumnInIndexes(tableName, oldColName, newColName string) {
+func (e *DDLExecutor) renameColumnInIndexes(tableName, oldColName, newColName, quotedNew string, forceQuote bool) {
 	ctx := &RenameContext{
-		OldName:   oldColName,
-		NewName:   newColName,
-		QuotedNew: newColName,
-		IsTable:   false,
-		TableName: tableName,
+		OldName:    oldColName,
+		NewName:    newColName,
+		QuotedNew:  quotedNew,
+		ForceQuote: forceQuote,
+		IsTable:    false,
+		TableName:  tableName,
 	}
 	e.renameColumnInEntries(schema.TypeIndex, tableName, oldColName, newColName, ctx)
 }
@@ -377,7 +340,31 @@ func (e *DDLExecutor) validateRenameTriggerTables(entries []*schema.Entry, oldNa
 			if err := e.checkTriggerTableRefs(entry, oldName); err != nil {
 				return err
 			}
+			if err := e.validateTriggerFromSubqueries(entry); err != nil {
+				return err
+			}
 		}
+	}
+	return nil
+}
+
+func renameViewCompoundOrderError(e *DDLExecutor, entry *schema.Entry) error {
+	if !strings.Contains(strings.ToUpper(entry.SQL), " INTERSECT ") &&
+		!strings.Contains(strings.ToUpper(entry.SQL), " UNION ") &&
+		!strings.Contains(strings.ToUpper(entry.SQL), " EXCEPT ") {
+		return nil
+	}
+	statements, err := parse.ParseSQL(entry.SQL)
+	if err != nil || len(statements) == 0 {
+		return nil
+	}
+	view, ok := statements[0].(*sql.CreateViewStmt)
+	if !ok || view.Select == nil {
+		return nil
+	}
+	result := e.ctx.ExecSelect(view.Select)
+	if result != nil {
+		return result.Error
 	}
 	return nil
 }
@@ -387,6 +374,9 @@ func (e *DDLExecutor) validateRenameTriggerTables(entries []*schema.Entry, oldNa
 func (e *DDLExecutor) validateRenameViews(entries []*schema.Entry) error {
 	for _, entry := range entries {
 		if entry.Type == schema.TypeView {
+			if err := renameViewCompoundOrderError(e, entry); err != nil {
+				return fmt.Errorf("error in view %s: %w", entry.Name, err)
+			}
 			if hasViewCircularRef(entry.SQL, entry.Name) {
 				return fmt.Errorf("error in view %s: view %s is circularly defined", entry.Name, entry.Name)
 			}

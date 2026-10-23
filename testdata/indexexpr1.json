@@ -1,6 +1,8 @@
 {
   "file": "indexexpr1.test",
   "name": "indexexpr1",
+  "nullToken": "NULL",
+  "ordered": true,
   "tests": [
     {
       "name": "indexexpr1-100",
@@ -86,7 +88,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE INDEX t1abx ON t1(substr(a,b,3));\n  SELECT rowid FROM t1 WHERE substr(a,b,3)<='and' ORDER BY +rowid;",
+          "sql": "CREATE INDEX t1abx ON t1(substr(a,b,3));\n  SELECT rowid FROM t1 WHERE substr(a,b,3)\u003c='and' ORDER BY +rowid;",
           "expect": "1 2 3"
         }
       ]
@@ -96,7 +98,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "EXPLAIN QUERY PLAN\n  SELECT rowid FROM t1 WHERE substr(a,b,3)<='and' ORDER BY +rowid;",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT rowid FROM t1 WHERE substr(a,b,3)\u003c='and' ORDER BY +rowid;",
           "expect": "/USING COVERING INDEX t1abx/"
         }
       ]
@@ -106,7 +108,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT rowid FROM t1 WHERE +substr(a,b,3)<='and' ORDER BY +rowid;",
+          "sql": "SELECT rowid FROM t1 WHERE +substr(a,b,3)\u003c='and' ORDER BY +rowid;",
           "expect": "1 2 3"
         }
       ]
@@ -136,7 +138,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "ALTER TABLE t1 ADD COLUMN d;\n    UPDATE t1 SET d=length(a);\n    CREATE INDEX t1a2 ON t1(SUBSTR(a, 27, 3)) WHERE d>=29;\n    SELECT rowid, b, c FROM t1\n      WHERE substr(a,27,3)=='ord' AND d>=29;",
+          "sql": "ALTER TABLE t1 ADD COLUMN d;\n    UPDATE t1 SET d=length(a);\n    CREATE INDEX t1a2 ON t1(SUBSTR(a, 27, 3)) WHERE d\u003e=29;\n    SELECT rowid, b, c FROM t1\n      WHERE substr(a,27,3)=='ord' AND d\u003e=29;",
           "expect": "1 1 1"
         }
       ]
@@ -146,7 +148,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "EXPLAIN QUERY PLAN\n      SELECT rowid, b, c FROM t1\n      WHERE substr(a,27,3)=='ord' AND d>=29;",
+          "sql": "EXPLAIN QUERY PLAN\n      SELECT rowid, b, c FROM t1\n      WHERE substr(a,27,3)=='ord' AND d\u003e=29;",
           "expect": "/USING INDEX t1a2/"
         }
       ]
@@ -275,7 +277,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE INDEX t1abx ON t1(substr(a,b,3));\n  SELECT id FROM t1 WHERE substr(a,b,3)<='and' ORDER BY +id;",
+          "sql": "CREATE INDEX t1abx ON t1(substr(a,b,3));\n  SELECT id FROM t1 WHERE substr(a,b,3)\u003c='and' ORDER BY +id;",
           "expect": "1 2 3"
         }
       ]
@@ -285,7 +287,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "EXPLAIN QUERY PLAN\n  SELECT id FROM t1 WHERE substr(a,b,3)<='and' ORDER BY +id;",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT id FROM t1 WHERE substr(a,b,3)\u003c='and' ORDER BY +id;",
           "expect": "/USING COVERING INDEX t1abx/"
         }
       ]
@@ -295,7 +297,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT id FROM t1 WHERE +substr(a,b,3)<='and' ORDER BY +id;",
+          "sql": "SELECT id FROM t1 WHERE +substr(a,b,3)\u003c='and' ORDER BY +id;",
           "expect": "1 2 3"
         }
       ]
@@ -325,7 +327,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "ALTER TABLE t1 ADD COLUMN d;\n    UPDATE t1 SET d=length(a);\n    CREATE INDEX t1a2 ON t1(SUBSTR(a, 27, 3)) WHERE d>=29;\n    SELECT id, b, c FROM t1\n      WHERE substr(a,27,3)=='ord' AND d>=29;",
+          "sql": "ALTER TABLE t1 ADD COLUMN d;\n    UPDATE t1 SET d=length(a);\n    CREATE INDEX t1a2 ON t1(SUBSTR(a, 27, 3)) WHERE d\u003e=29;\n    SELECT id, b, c FROM t1\n      WHERE substr(a,27,3)=='ord' AND d\u003e=29;",
           "expect": "1 1 1"
         }
       ]
@@ -335,7 +337,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "EXPLAIN QUERY PLAN\n      SELECT id, b, c FROM t1\n      WHERE substr(a,27,3)=='ord' AND d>=29;",
+          "sql": "EXPLAIN QUERY PLAN\n      SELECT id, b, c FROM t1\n      WHERE substr(a,27,3)=='ord' AND d\u003e=29;",
           "expect": "/USING INDEX t1a2/"
         }
       ]
@@ -344,7 +346,7 @@
       "name": "indexexpr1-300",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t2(a,b,c); INSERT INTO t2 VALUES(1,2,3);\n  CREATE INDEX t2x1 ON t2(a,b+random());",
           "expect": "1 {non-deterministic functions prohibited in index expressions}"
         }
@@ -354,7 +356,7 @@
       "name": "indexexpr1-301",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE INDEX t2x1 ON t2(julianday('now',a));",
           "expect": "1 {non-deterministic use of julianday() in an index}"
         }
@@ -364,7 +366,7 @@
       "name": "indexexpr1-310",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE INDEX t2x2 ON t2(a,b+(SELECT 15));",
           "expect": "1 {subqueries prohibited in index expressions}"
         }
@@ -374,7 +376,7 @@
       "name": "indexexpr1-320",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE e1(x,y,UNIQUE(y,substr(x,1,5)));",
           "expect": "1 {expressions prohibited in PRIMARY KEY and UNIQUE constraints}"
         }
@@ -384,7 +386,7 @@
       "name": "indexexpr1-330",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE e1(x,y,PRIMARY KEY(y,substr(x,1,5)));",
           "expect": "1 {expressions prohibited in PRIMARY KEY and UNIQUE constraints}"
         }
@@ -394,7 +396,7 @@
       "name": "indexexpr1-331",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE e1(x,y,PRIMARY KEY(y,substr(x,1,5))) WITHOUT ROWID;",
           "expect": "1 {expressions prohibited in PRIMARY KEY and UNIQUE constraints}"
         }
@@ -404,7 +406,7 @@
       "name": "indexexpr1-340",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE e1(x,y,FOREIGN KEY(substr(y,1,5)) REFERENCES t1);",
           "expect": "1 {near \"(\": syntax error}"
         }
@@ -415,7 +417,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE TABLE t3(a,b,c);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<30)\n  INSERT INTO t3(a,b,c)\n    SELECT x, printf('ab%04xyz',x), random() FROM c;\n  CREATE UNIQUE INDEX t3abc ON t3(CAST(a AS text), b, substr(c,1,3));\n  SELECT a FROM t3 WHERE CAST(a AS text)<='10' ORDER BY +a;\n  PRAGMA integrity_check;",
+          "sql": "CREATE TABLE t3(a,b,c);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x\u003c30)\n  INSERT INTO t3(a,b,c)\n    SELECT x, printf('ab%04xyz',x), random() FROM c;\n  CREATE UNIQUE INDEX t3abc ON t3(CAST(a AS text), b, substr(c,1,3));\n  SELECT a FROM t3 WHERE CAST(a AS text)\u003c='10' ORDER BY +a;\n  PRAGMA integrity_check;",
           "expect": "1 10 ok"
         }
       ]
@@ -424,7 +426,7 @@
       "name": "indexexpr1-410",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t3 SELECT * FROM t3 WHERE rowid=10;",
           "expect": "1 {UNIQUE constraint failed: index 't3abc'}"
         }
@@ -435,7 +437,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t5(a);\n  CREATE TABLE cnt(x);\n  WITH RECURSIVE\n    c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  INSERT INTO cnt(x) SELECT x FROM c;\n  INSERT INTO t5(a) SELECT printf('abc%03dxyz',x) FROM cnt;\n  CREATE INDEX t5ax ON t5( substr(a,4,3) );"
+          "sql": "CREATE TABLE t5(a);\n  CREATE TABLE cnt(x);\n  WITH RECURSIVE\n    c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c5)\n  INSERT INTO cnt(x) SELECT x FROM c;\n  INSERT INTO t5(a) SELECT printf('abc%03dxyz',x) FROM cnt;\n  CREATE INDEX t5ax ON t5( substr(a,4,3) );"
         }
       ]
     },
@@ -443,8 +445,9 @@
       "name": "indexexpr1-510",
       "steps": [
         {
-          "type": "exec",
-          "sql": "-- The use of the \"k\" alias in the WHERE clause is technically\n  -- illegal, but SQLite allows it for historical reasons.  In this\n  -- test and the next, verify that \"k\" can be used by the t5ax index\n  SELECT substr(a,4,3) AS k FROM cnt, t5 WHERE k=printf('%03d',x);"
+          "type": "query",
+          "sql": "-- The use of the \"k\" alias in the WHERE clause is technically\n  -- illegal, but SQLite allows it for historical reasons.  In this\n  -- test and the next, verify that \"k\" can be used by the t5ax index\n  SELECT substr(a,4,3) AS k FROM cnt, t5 WHERE k=printf('%03d',x);",
+          "expect": "001 002 003 004 005"
         }
       ]
     },
@@ -463,7 +466,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DROP TABLE IF EXISTS t4;\n  CREATE TABLE t4(a,b,c,d,e,f,g,h,i);\n  CREATE INDEX t4all ON t4(a,b,c<d,e,f,i,h);\n  INSERT INTO t4 VALUES(1,2,3,4,5,6,7,8,9);\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1\n    VALUES('t4','t4all','600000 160000 40000 10000 2000 600 100 40 10');\n  ANALYZE sqlite_master;\n  SELECT i FROM t4 WHERE e=5;",
+          "sql": "DROP TABLE IF EXISTS t4;\n  CREATE TABLE t4(a,b,c,d,e,f,g,h,i);\n  CREATE INDEX t4all ON t4(a,b,c\u003cd,e,f,i,h);\n  INSERT INTO t4 VALUES(1,2,3,4,5,6,7,8,9);\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1\n    VALUES('t4','t4all','600000 160000 40000 10000 2000 600 100 40 10');\n  ANALYZE sqlite_master;\n  SELECT i FROM t4 WHERE e=5;",
           "expect": "9"
         }
       ]
@@ -502,7 +505,7 @@
       "name": "indexexpr1-810",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t8(a,b) VALUES(4,'BARTHMERE');",
           "expect": "1 {UNIQUE constraint failed: index 't8bx'}"
         }
@@ -512,7 +515,7 @@
       "name": "indexexpr1-820",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DROP INDEX t8bx;\n  CREATE UNIQUE INDEX t8bx ON t8(substr(b,2,4) COLLATE rtrim);\n  INSERT INTO t8(a,b) VALUES(4,'BARTHMERE');",
           "expect": "0 {}"
         }
@@ -532,7 +535,7 @@
       "name": "indexexpr1-910",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t9(a,b,c,d) VALUES(5,6,7,-8);",
           "expect": "1 {UNIQUE constraint failed: index 't9x1'}"
         }
@@ -563,7 +566,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(NULL),(1);\n  SELECT '1:', typeof(a), a FROM t1 WHERE a<10;\n  SELECT '2:', typeof(a), a FROM t1 WHERE a+0<10;\n  CREATE INDEX t1x1 ON t1(a);\n  CREATE INDEX t1x2 ON t1(a+0);\n  SELECT '3:', typeof(a), a FROM t1 WHERE a<10;\n  SELECT '4:', typeof(a), a FROM t1 WHERE a+0<10;",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(NULL),(1);\n  SELECT '1:', typeof(a), a FROM t1 WHERE a\u003c10;\n  SELECT '2:', typeof(a), a FROM t1 WHERE a+0\u003c10;\n  CREATE INDEX t1x1 ON t1(a);\n  CREATE INDEX t1x2 ON t1(a+0);\n  SELECT '3:', typeof(a), a FROM t1 WHERE a\u003c10;\n  SELECT '4:', typeof(a), a FROM t1 WHERE a+0\u003c10;",
           "expect": "1: integer 1 2: integer 1 3: integer 1 4: integer 1"
         }
       ]
@@ -574,7 +577,7 @@
         {
           "type": "query",
           "sql": "CREATE TABLE t10(a int, b int, c int, d int);\n  INSERT INTO t10(a, b, c, d) VALUES(0, 0, 2, 2);\n  INSERT INTO t10(a, b, c, d) VALUES(0, 0, 0, 0);\n  INSERT INTO t10(a, b, c, d) VALUES(0, 0, 1, 1);\n  INSERT INTO t10(a, b, c, d) VALUES(1, 1, 1, 1);\n  INSERT INTO t10(a, b, c, d) VALUES(1, 1, 0, 0);\n  INSERT INTO t10(a, b, c, d) VALUES(2, 2, 0, 0);\n\n  SELECT a+b, c+d FROM t10 ORDER BY a+b, c+d;",
-          "expect": "0 0 0 2 0 4 2 0 2 2 4 0"
+          "expect": "\n  0 0 0 2 0 4 2 0 2 2 4 0\n"
         }
       ]
     },
@@ -593,7 +596,7 @@
         {
           "type": "query",
           "sql": "SELECT a+b, c+d FROM t10 ORDER BY a+b, c+d;",
-          "expect": "0 0 0 2 0 4 2 0 2 2 4 0"
+          "expect": "\n  0 0 0 2 0 4 2 0 2 2 4 0\n"
         }
       ]
     },
@@ -612,7 +615,7 @@
         {
           "type": "query",
           "sql": "SELECT a+b, c+d FROM t10 ORDER BY a+b, c+d;",
-          "expect": "0 0 0 2 0 4 2 0 2 2 4 0"
+          "expect": "\n  0 0 0 2 0 4 2 0 2 2 4 0\n"
         }
       ]
     },
@@ -630,7 +633,7 @@
       "name": "indexexpr1-1400",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1400(x TEXT);\n  CREATE INDEX t1400x ON t1400(1);  -- Index on a constant\n  SELECT 1 IN (SELECT 2) FROM t1400;"
         }
       ]
@@ -669,8 +672,9 @@
       "name": "indexexpr1-1500",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1500(a INT PRIMARY KEY, b INT UNIQUE);\n  CREATE INDEX t1500ab ON t1500(a*b);\n  INSERT INTO t1500(a,b) VALUES(1,2);\n  REPLACE INTO t1500(a,b) VALUES(1,3);  -- formerly caused assertion fault\n  SELECT * FROM t1500;"
+          "type": "query",
+          "sql": "CREATE TABLE t1500(a INT PRIMARY KEY, b INT UNIQUE);\n  CREATE INDEX t1500ab ON t1500(a*b);\n  INSERT INTO t1500(a,b) VALUES(1,2);\n  REPLACE INTO t1500(a,b) VALUES(1,3);  -- formerly caused assertion fault\n  SELECT * FROM t1500;",
+          "expect": "1 3"
         }
       ]
     },
@@ -717,7 +721,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES (0);\n  CREATE INDEX i0 ON t0(NULL > c0) WHERE (NULL NOT NULL);\n  SELECT * FROM t0 WHERE ((NULL IS FALSE) IS FALSE);",
+          "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES (0);\n  CREATE INDEX i0 ON t0(NULL \u003e c0) WHERE (NULL NOT NULL);\n  SELECT * FROM t0 WHERE ((NULL IS FALSE) IS FALSE);",
           "expect": "0"
         }
       ]
@@ -753,6 +757,10 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
       "name": "indexexpr1-1900",
       "steps": [
         {
@@ -767,7 +775,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM t1 INDEXED BY i1 \n   WHERE x IS +y COLLATE NOCASE IN (SELECT z FROM t1)\n  RETURNING *;"
+          "sql": "DELETE FROM t1 INDEXED BY i1 \n   WHERE x IS +y COLLATE NOCASE IN (SELECT z FROM t1)\n  RETURNING *;",
+          "expect": "alpha ALPHA 1"
         }
       ]
     },
@@ -782,11 +791,25 @@
       ]
     },
     {
-      "name": "indexexpr1-2010",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "indexexpr1-2000",
       "steps": [
         {
           "type": "exec",
-          "sql": "EXPLAIN QUERY PLAN\n  SELECT sum(b->>'one') FROM t1 WHERE a=10; /* Query AA */"
+          "sql": "CREATE TABLE t1(a INT, b TEXT);\n  INSERT INTO t1(a,b) VALUES\n    (10, '{\"one\":5,\"two\":6}'),\n    (10, '{\"one\":50,\"two\":60}'),\n    (10, '{\"three\":99}'),\n    (11, '{\"one\":100,\"two\":200}');\n  CREATE INDEX t1_one ON t1(a, b-\u003e\u003e'one');\n  CREATE INDEX t1_two ON t1(a, b-\u003e\u003e'two');"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr1-2010",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT sum(b-\u003e\u003e'one') FROM t1 WHERE a=10; /* Query AA */",
+          "expect": "/.* t1_one .*/"
         }
       ]
     },
@@ -794,8 +817,9 @@
       "name": "indexexpr1-2011",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT sum(b->>'one') FROM t1 WHERE a=10; /* Query AA */"
+          "type": "query",
+          "sql": "SELECT sum(b-\u003e\u003e'one') FROM t1 WHERE a=10; /* Query AA */",
+          "expect": "55"
         }
       ]
     },
@@ -803,8 +827,9 @@
       "name": "indexexpr1-2020",
       "steps": [
         {
-          "type": "exec",
-          "sql": "EXPLAIN QUERY PLAN\n  SELECT sum(b->>'two') FROM t1 WHERE a=10; /* Query BB */"
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT sum(b-\u003e\u003e'two') FROM t1 WHERE a=10; /* Query BB */",
+          "expect": "/.* t1_two .*/"
         }
       ]
     },
@@ -812,8 +837,18 @@
       "name": "indexexpr1-2021",
       "steps": [
         {
+          "type": "query",
+          "sql": "SELECT sum(b-\u003e\u003e'two') FROM t1 WHERE a=10; /* Query BB */",
+          "expect": "66"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr1-2030",
+      "steps": [
+        {
           "type": "exec",
-          "sql": "SELECT sum(b->>'two') FROM t1 WHERE a=10; /* Query BB */"
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a INT, b TEXT, c INT, d INT);\n  INSERT INTO t1(a,b,c,d) VALUES\n    (1, '{\"x\":1}', 12,  3),\n    (1, '{\"x\":2}',  4,  5),\n    (1, '{\"x\":1}',  6, 11),\n    (2, '{\"x\":1}', 22,  3),\n    (2, '{\"x\":2}',  4,  5),\n    (3, '{\"x\":1}',  6,  7);\n  CREATE INDEX t1x ON t1(d, a, b-\u003e\u003e'x', c);"
         }
       ]
     },
@@ -822,7 +857,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a,\n       SUM(1)                              AS t1,\n       SUM(CASE WHEN b->>'x'=1 THEN 1 END) AS t2,\n       SUM(c)                              AS t3,\n       SUM(CASE WHEN b->>'x'=1 THEN c END) AS t4\n    FROM t1;",
+          "sql": "SELECT a,\n       SUM(1)                              AS t1,\n       SUM(CASE WHEN b-\u003e\u003e'x'=1 THEN 1 END) AS t2,\n       SUM(c)                              AS t3,\n       SUM(CASE WHEN b-\u003e\u003e'x'=1 THEN c END) AS t4\n    FROM t1;",
           "expect": "1 6 4 54 46"
         }
       ]
@@ -832,10 +867,14 @@
       "steps": [
         {
           "type": "query",
-          "sql": "explain query plan\n  SELECT a,\n       SUM(1)                              AS t1,\n       SUM(CASE WHEN b->>'x'=1 THEN 1 END) AS t2,\n       SUM(c)                              AS t3,\n       SUM(CASE WHEN b->>'x'=1 THEN c END) AS t4\n    FROM t1;",
+          "sql": "explain query plan\n  SELECT a,\n       SUM(1)                              AS t1,\n       SUM(CASE WHEN b-\u003e\u003e'x'=1 THEN 1 END) AS t2,\n       SUM(c)                              AS t3,\n       SUM(CASE WHEN b-\u003e\u003e'x'=1 THEN c END) AS t4\n    FROM t1;",
           "expect": "/.*SCAN t1 USING COVERING INDEX t1x.*/"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "indexexpr1-2100",
@@ -851,7 +890,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "UPDATE t1 SET b=100 WHERE (SELECT 'y') GLOB \"y\";\n  SELECT b FROM t1;"
+          "sql": "UPDATE t1 SET b=100 WHERE (SELECT 'y') GLOB \"y\";\n  SELECT b FROM t1;",
+          "expect": "100"
         }
       ]
     },
@@ -860,7 +900,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "UPDATE t1 SET b=200 WHERE (SELECT 'y') GLOB +\"y\";\n  SELECT b FROM t1;"
+          "sql": "UPDATE t1 SET b=200 WHERE (SELECT 'y') GLOB +\"y\";\n  SELECT b FROM t1;",
+          "expect": "200"
         }
       ]
     },
@@ -869,7 +910,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "UPDATE t1 SET b=300 WHERE (SELECT 'y') GLOB +'y';\n  SELECT b FROM t1;"
+          "sql": "UPDATE t1 SET b=300 WHERE (SELECT 'y') GLOB +'y';\n  SELECT b FROM t1;",
+          "expect": "300"
         }
       ]
     },
@@ -878,9 +920,14 @@
       "steps": [
         {
           "type": "query",
-          "sql": "UPDATE t1 SET b=400 WHERE (SELECT 'y') GLOB \"y*\";\n  SELECT b FROM t1;"
+          "sql": "UPDATE t1 SET b=400 WHERE (SELECT 'y') GLOB \"y*\";\n  SELECT b FROM t1;",
+          "expect": "400"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "indexexpr1-2200",
@@ -889,6 +936,177 @@
           "type": "query",
           "sql": "CREATE TABLE t1(id INTEGER PRIMARY KEY, tag INT);\n  INSERT INTO t1 VALUES (0, 7), (1, 8);\n  CREATE TABLE t2(type INT, t1_id  INT, value  INT);\n  INSERT INTO t2 VALUES (0, 0, 100), (0, 1, 101);\n  CREATE INDEX t1x ON t1(-tag);\n  SELECT u.tag, v.max_value\n    FROM (SELECT tag FROM t1 GROUP BY -tag) u\n    JOIN (SELECT t1.tag AS \"tag\", t2.type AS \"type\",\n                 MAX(t2.value) AS \"max_value\"\n            FROM t1\n                 JOIN t2 ON t2.t1_id = t1.id\n           GROUP BY t2.type, t1.tag\n         ) v ON v.type = 0 AND v.tag = u.tag;",
           "expect": "7 100 8 101"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr1-2210",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(x INT, y TEXT);\n  INSERT INTO t1(x,y) VALUES(1,'{b:5}');\n  SELECT json_insert('{}', '$.a', coalesce(null,json(y)))-\u003e\u003e'$.a.b' FROM t1;",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr1-2211",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t1j ON t1(coalesce(null,json(y)));\n  SELECT json_insert('{}', '$.a', coalesce(null,json(y)))-\u003e\u003e'$.a.b' FROM t1;",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr1-2220",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP INDEX t1j;\n  SELECT json_insert('{}', '$.a', iif(1,json(y),123))-\u003e\u003e'$.a.b' FROM t1;",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr1-2221",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t1j ON t1(iif(1,json(y),123));\n  SELECT json_insert('{}', '$.a', iif(1,json(y),123))-\u003e\u003e'$.a.b' FROM t1;",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr1-2230",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP INDEX t1j;\n  SELECT json_insert('{}', '$.a', ifnull(NULL,json(y)))-\u003e\u003e'$.a.b' FROM t1;",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr1-2231",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t1j ON t1(ifnull(NULL,json(y)));\n  SELECT json_insert('{}', '$.a', ifnull(NULL,json(y)))-\u003e\u003e'$.a.b' FROM t1;",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr1-2240",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP INDEX t1j;\n  SELECT json_insert('{}', '$.a', nullif(json(y),8))-\u003e\u003e'$.a.b' FROM t1;",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr1-2241",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t1j ON t1(nullif(json(y),8));\n  SELECT json_insert('{}', '$.a', nullif(json(y),8))-\u003e\u003e'$.a.b' FROM t1;",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr1-2250",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP INDEX t1j;\n  SELECT json_insert('{}', '$.a', min('~',json(y)))-\u003e\u003e'$.a.b' FROM t1;",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr1-2251",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t1j ON t1(min('~',json(y)));\n  SELECT json_insert('{}', '$.a', min('~',json(y)))-\u003e\u003e'$.a.b' FROM t1;",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr1-2260",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP INDEX t1j;\n  SELECT json_insert('{}', '$.a', max('...',json(y)))-\u003e\u003e'$.a.b' FROM t1;",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr1-2261",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t1j ON t1(max('...',json(y)));\n  SELECT json_insert('{}', '$.a', max('...',json(y)))-\u003e\u003e'$.a.b' FROM t1;",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "indexexpr1-2300",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(x INT, y TEXT);\n  INSERT INTO t1(x,y) VALUES(1,'{b:5}');\n  CREATE INDEX t1j ON t1(json(y));\n  SELECT json_insert('{}', '$.a', json(y)) FROM t1;",
+          "expect": "{{\"a\":{\"b\":5}}}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "addone",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "addone",
+          "functionArgs": [
+            "n"
+          ],
+          "functionBody": "\n  return $n+1\n",
+          "minArgs": 1,
+          "maxArgs": -1
         }
       ]
     },
@@ -905,77 +1123,19 @@
       "name": "indexexpr1-2310",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE INDEX i1 ON t1( (addone(x)) );",
           "expect": "1 {non-deterministic functions prohibited in index expressions}"
-        }
-      ]
-    },
-    {
-      "name": "indexexpr1-2310",
-      "steps": [
+        },
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE INDEX i2 ON t1( ~(addone(x)) );",
           "expect": "1 {non-deterministic functions prohibited in index expressions}"
-        }
-      ]
-    },
-    {
-      "name": "indexexpr1-2310",
-      "steps": [
+        },
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE INDEX i2 ON t1( ~(addone(DISTINCT x)) );",
           "expect": "1 {non-deterministic functions prohibited in index expressions}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

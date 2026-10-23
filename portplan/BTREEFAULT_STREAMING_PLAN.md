@@ -1,0 +1,34 @@
+# btreefault-2.2 streaming SELECT callback plan
+
+## Evidence and source contract
+- Fixture currently says query-only expected rows `25 a 25 b`, while SQLite `/Users/muaddib/dev/sqlite/test/btreefault.test` 2.2 uses `db eval` callback: append each row, then `DELETE FROM t1 WHERE i=25` after row `b`; callback receives `a`, `b`, and scan stops before `c`.
+- Baseline `FRIGOLITE_TEST=btreefault go test . -run '^TestSQLiteSuite$' -count=1` fails: got `[25 a 25 b 25 c]`, wanted `[25 a 25 b]`.
+- `DB.Query` currently returns fully materialized rows. `execSelectScanPhase` materializes base scans and `execSelectPostScan` then materializes joins. Callback must receive complete SELECT rows during execution for mutation to affect later joined output.
+- SQLite `src/vdbe.c` `OP_ResultRow` yields one row per `sqlite3_step`. `internal/btree/btree_cursor_save.go` mirrors `saveAllCursors`/`saveCursorPosition` by key, restore/reseek, and `skipNext` behavior for nested writes.
+- Reproduced build failure: `go test . -run '^TestBtreefaultSelectCallbackMutation$' -count=1` fails at `frigolite_btreefault_stream_test.go:26:15: db.QueryEach undefined`.
+- Public execution path is `DB.Query` → `runSQLText` → `execPrepared`; public DB currently has no operation mutex. Any streaming callback must permit nested `DB.Exec` re-entry.
+- SQLite source checked: `src/btree.c:756-843` saveCursorPosition/saveAllCursors save other live cursor positions by key before writes and release pages; `src/btree.c:891-918` restore re-seeks and sets skip-next when deleted key resolves to next-larger entry. `src/vdbe.c:1744` OP_ResultRow is execution yield boundary. Frigolite `internal/btree/btree_cursor_save.go` mirrors this cursor state. This supports nested writes only when the outer scan cursor is live; current joined right-side snapshots cannot reflect outer deletion by themselves.
+- SQLite oracle `/usr/bin/sqlite3` reproduced unmutated SELECT rows `25|a`, `25|b`, `25|c`; source callback in `../sqlite/test/btreefault.test:74-85` deletes outer row on `b` and expects only `25 a 25 b`. Mutation timing is part of observable callback contract, not simple query row output.
+- `execJoins` / `applyJoin` materialize right-side rows before `runJoinNestedLoop`; callbacking after this function is insufficient because all combinations are formed before the callback. Must emit at each complete qualifying pair before advancing loops, and retain cursor-driven semantics for mutations.
+- Current executor cannot be fixed by adding callbacks after `DB.Query`: `execRealTableSelect` (`select_exec.go`) completes `scan.ScanTable` before `execSelectPostScan`; `execSelectJoins` builds all combined maps and only then applies WHERE/builds output (`select.go`). Therefore callback must be threaded into the live scan and the joined nested-loop executor; callbacking finalized rows would still emit `c` after deleting t1.
+
+## Current implementation status (2026-06)
+- Public `DB.QueryEach` is implemented in `frigolite_exec.go`, routed through `Engine.ExecEach`, with ordinary materialized result fallback for unsupported shapes. A narrow eligible one-real-table JOIN path streams each outer cursor row through JOIN/WHERE/projection synchronously. Nested DELETE restoration is checked by re-reading the live cursor before advancing inner output.
+- Follow-up implementation added `DB.QueryEach` → `Engine.ExecEach` callback plumbing and a narrow live-cursor path for one real-table JOIN with only fallback shapes materialized. For each outer row it runs JOIN/projection and invokes callback before cursor advancement; rereading after callback forces cursor restore/reseek, detects deletion and cuts off remaining inner combinations. Callback-time mutation regression and early-stop/error regression pass.
+- Harness now represents `btreefault-2.2` as `query_each` with DELETE on output column 2 equal to `b`; `FRIGOLITE_TEST=btreefault go test . -run '^TestSQLiteSuite$' -count=1` passes, as does attach2. Full `go test ./...` exceeded 300s; a subsequent `go test . -run '^TestSQLiteSuite$' -count=1` completed with numerous suite failures across unrelated families. Preserve exact output artifact `/var/folders/gw/p4cdspjx49x5113yh4hy322m0000gn/T/goa-output-696185877.txt`; resolve harness cross-contamination/workspace-baseline separately, starting with `FRIGOLITE_TEST=where go test . -run '^TestSQLiteSuite$' -count=1` and package-by-package `go test ./...`.
+- Keep eligibility intentionally narrow: unsupported shapes use materialized fallback. ORDER BY is streamed only for outer-only bare-column terms where outer table has at most one row; right-side ORDER BY, grouped/aggregate/distinct/limited/compound queries are not eligible. Callback executes without DB-wide lock so nested `DB.Exec` can re-enter.
+
+- Legacy `DB.Query` remains unchanged and uses the scan/materialize/join pipeline. `DB.QueryEach` takes a separate cursor-driven path only for eligible real-table joins; its right-hand join maps are computed per outer row, then complete joined WHERE/projection rows are callbacked while cursor stays registered/live. Ineligible shapes retain normal SELECT semantics through materialized execution.
+1. Done — traced callback re-entry, SELECT/JOIN pipeline, SQLite OP_ResultRow, and cursor save/restore.
+2. Done — implemented callback/early-stop/error flow plus narrow live outer-cursor JOIN yield and nested-write restore detection.
+3. Done — native tests cover mutation yielding a,b, deletion before successor outer key, early stop, callback errors, and materialized fallback. Harness models btreefault-2.2 callback-time DELETE.
+4. Done focused checks: native regressions, btreefault, attach2, internal/tools tests, compile-all packages, and diff check pass. Full `go test ./...` times out at 300s; full root harness suite reproduces broad existing dirty-workspace/harness failures in log `/var/folders/gw/p4cdspjx49x5113yh4hy322m0000gn/T/goa-output-696185877.txt`; isolated `FRIGOLITE_TEST=where` also fails (`where-4.7` got 0 vs 100 and `where-17.5` table already exists). Targeted follow-up: isolate fixture reset/seed issues beginning `where-17.5`, then independently repair arithmetic truth/count mismatch `where-4.7`; rerun `go test ./...` with package grouping.
+5. Done — durable cursor yield and skipNext findings recorded in `.agents/lessons_learned.md`.
+
+## Files under consideration (inspect diffs before each edit)
+- `frigolite_exec.go` / `frigolite.go`: public callback API and execution entry.
+- `internal/execquery/select_exec.go`, `select_join.go`, `select_scan.go`: row emission boundary.
+- `internal/btree/btree_cursor_save.go` and cursor callers: nested writes.
+- New native test; `testdata/btreefault.json` only if conversion is faithful; `.agents/lessons_learned.md`.
+
+Never revert, overwrite, or commit unrelated workspace edits.

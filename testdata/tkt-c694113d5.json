@@ -1,0 +1,24 @@
+{
+  "file": "tkt-c694113d5.test",
+  "name": "tkt-c694113d5",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "tkt-c694113d5.100",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY);\n    CREATE TABLE t2(d INTEGER PRIMARY KEY,e,f);\n    INSERT INTO t1(a) VALUES(1),(2),(3),(4);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE NOT EXISTS(SELECT 1 FROM t2 WHERE d=a)",
+          "expect": "a=1 a=2 {CREATE INDEX} a=3 a=4"
+        }
+      ]
+    }
+  ]
+}

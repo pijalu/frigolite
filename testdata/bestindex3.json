@@ -1,9 +1,60 @@
 {
   "file": "bestindex3.test",
   "name": "bestindex3",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "bestindex3",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "bestindex3"
+          },
+          "callbackProcs": [
+            {
+              "Name": "vtab_cmd",
+              "Args": [
+                "bOmit",
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE t1(a, b, c)\"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set clist [$hdl constraints]\n      set orderby [$hdl orderby]\n      set mask [$hdl mask]\n\n      set ret [list]\n      set use use\n      if {$bOmit} {set use omit}\n\n      for {set i 0} {$i \u003c [llength $clist]} {incr i} {\n        array unset C\n        array set C [lindex $clist $i]\n        if {$C(usable) \u0026\u0026 ($C(op)==\"like\" || $C(op)==\"eq\")} {\n          lappend ret $use $i\n          lappend ret idxstr \n          lappend ret \"[lindex {a b c} $C(column)] [string toupper $C(op)] ?\"\n          break\n        }\n      }\n\n      if {$ret==\"\"} {\n        lappend ret cost 1000000 rows 1000000\n      } else {\n        lappend ret cost 100 rows 10\n      }\n      return $ret\n    }\n\n    xFilter {\n      foreach {idxnum idxstr param} $args {}\n      set where \"\"\n      if {$bOmit \u0026\u0026 $idxstr != \"\"} {\n        set where \" WHERE [string map [list ? '$param' EQ =] $idxstr]\"\n      }\n      return [list sql \"SELECT rowid, * FROM ttt$where\"]\n    }\n  }\n  return \"\"\n",
+              "Defaults": null
+            },
+            {
+              "Name": "vvv_command",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect { return \"CREATE TABLE t1(a PRIMARY KEY, b, c)\" }\n  }\n",
+              "Defaults": null
+            },
+            {
+              "Name": "yyy_command",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect { return \"CREATE TABLE t1(a, b, c, PRIMARY KEY(a, b))\" }\n  }\n",
+              "Defaults": null
+            }
+          ],
+          "moduleArgs": [
+            "db"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bestindex3-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +63,7 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "bestindex3-1.1",
       "steps": [
         {
           "type": "query",
@@ -21,7 +72,7 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "bestindex3-1.2",
       "steps": [
         {
           "type": "query",
@@ -30,7 +81,7 @@
       ]
     },
     {
-      "name": "1.3",
+      "name": "bestindex3-1.3",
       "steps": [
         {
           "type": "query",
@@ -39,7 +90,7 @@
       ]
     },
     {
-      "name": "1.4",
+      "name": "bestindex3-1.4",
       "steps": [
         {
           "type": "query",
@@ -48,7 +99,7 @@
       ]
     },
     {
-      "name": "1.5",
+      "name": "bestindex3-1.5",
       "steps": [
         {
           "type": "exec",
@@ -57,7 +108,7 @@
       ]
     },
     {
-      "name": "1.6.0.0",
+      "name": "bestindex3-1.6.0.0",
       "steps": [
         {
           "type": "exec",
@@ -66,7 +117,7 @@
       ]
     },
     {
-      "name": "1.6.0.1",
+      "name": "bestindex3-1.6.0.1",
       "steps": [
         {
           "type": "query",
@@ -76,7 +127,7 @@
       ]
     },
     {
-      "name": "1.6.0.2",
+      "name": "bestindex3-1.6.0.2",
       "steps": [
         {
           "type": "query",
@@ -86,7 +137,7 @@
       ]
     },
     {
-      "name": "1.6.0.3",
+      "name": "bestindex3-1.6.0.3",
       "steps": [
         {
           "type": "query",
@@ -96,7 +147,7 @@
       ]
     },
     {
-      "name": "1.6.1.0",
+      "name": "bestindex3-1.6.1.0",
       "steps": [
         {
           "type": "exec",
@@ -105,7 +156,7 @@
       ]
     },
     {
-      "name": "1.6.1.1",
+      "name": "bestindex3-1.6.1.1",
       "steps": [
         {
           "type": "query",
@@ -115,7 +166,7 @@
       ]
     },
     {
-      "name": "1.6.1.2",
+      "name": "bestindex3-1.6.1.2",
       "steps": [
         {
           "type": "query",
@@ -125,7 +176,7 @@
       ]
     },
     {
-      "name": "1.6.1.3",
+      "name": "bestindex3-1.6.1.3",
       "steps": [
         {
           "type": "query",
@@ -135,7 +186,7 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "bestindex3-3.1",
       "steps": [
         {
           "type": "exec",
@@ -144,7 +195,7 @@
       ]
     },
     {
-      "name": "3.2",
+      "name": "bestindex3-3.2",
       "steps": [
         {
           "type": "exec",

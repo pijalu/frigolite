@@ -1,9 +1,10 @@
 {
   "file": "windowerr.test",
   "name": "windowerr",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "windowerr-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,171 +13,132 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "windowerr-1.1",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a ROWS BETWEEN -1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
+          "type": "catch",
+          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a ROWS BETWEEN -1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1",
+          "expect": "1"
         }
       ]
     },
     {
-      "name": "1.2",
+      "name": "windowerr-1.2",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a ROWS BETWEEN  1 PRECEDING AND -1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
+          "type": "catch",
+          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a ROWS BETWEEN  1 PRECEDING AND -1 FOLLOWING\n  ) FROM t1 ORDER BY 1",
+          "expect": "1"
         }
       ]
     },
     {
-      "name": "1.3",
+      "name": "windowerr-1.3",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a RANGE BETWEEN -1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
+          "type": "catch",
+          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a RANGE BETWEEN -1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1",
+          "expect": "1"
         }
       ]
     },
     {
-      "name": "1.4",
+      "name": "windowerr-1.4",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a RANGE BETWEEN  1 PRECEDING AND -1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
+          "type": "catch",
+          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a RANGE BETWEEN  1 PRECEDING AND -1 FOLLOWING\n  ) FROM t1 ORDER BY 1",
+          "expect": "1"
         }
       ]
     },
     {
-      "name": "1.5",
+      "name": "windowerr-1.5",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a GROUPS BETWEEN -1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
+          "type": "catch",
+          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a GROUPS BETWEEN -1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1",
+          "expect": "1"
         }
       ]
     },
     {
-      "name": "1.6",
+      "name": "windowerr-1.6",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a GROUPS BETWEEN  1 PRECEDING AND -1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
+          "type": "catch",
+          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a GROUPS BETWEEN  1 PRECEDING AND -1 FOLLOWING\n  ) FROM t1 ORDER BY 1",
+          "expect": "1"
         }
       ]
     },
     {
-      "name": "1.7",
+      "name": "windowerr-1.7",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a,b RANGE BETWEEN  1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
+          "type": "catch",
+          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a,b RANGE BETWEEN  1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1",
+          "expect": "1"
         }
       ]
     },
     {
-      "name": "1.8",
+      "name": "windowerr-1.8",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a, sum(b) OVER (\n    PARTITION BY a RANGE BETWEEN  1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
+          "type": "catch",
+          "sql": "SELECT a, sum(b) OVER (\n    PARTITION BY a RANGE BETWEEN  1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1",
+          "expect": "1"
         }
       ]
     },
     {
-      "name": "2.1",
+      "name": "windowerr-2.1",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT sum( sum(a) OVER () ) FROM t1;"
+          "type": "catch",
+          "sql": "SELECT sum( sum(a) OVER () ) FROM t1;",
+          "expect": "1"
         }
       ]
     },
     {
-      "name": "2.2",
+      "name": "windowerr-2.2",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT sum(a) OVER () AS xyz FROM t1 ORDER BY sum(xyz);"
+          "type": "catch",
+          "sql": "SELECT sum(a) OVER () AS xyz FROM t1 ORDER BY sum(xyz);",
+          "expect": "1"
         }
       ]
     },
     {
-      "name": "3.0",
+      "name": "windowerr-3.0",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT sum(a) OVER win FROM t1\n  WINDOW win AS (ROWS BETWEEN 'hello' PRECEDING AND 10 FOLLOWING)"
+          "type": "catch",
+          "sql": "SELECT sum(a) OVER win FROM t1\n  WINDOW win AS (ROWS BETWEEN 'hello' PRECEDING AND 10 FOLLOWING)",
+          "expect": "1"
         }
       ]
     },
     {
-      "name": "3.2",
+      "name": "windowerr-3.2",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT sum(a) OVER win FROM t1\n  WINDOW win AS (ROWS BETWEEN 10 PRECEDING AND x'ABCD' FOLLOWING)"
+          "type": "catch",
+          "sql": "SELECT sum(a) OVER win FROM t1\n  WINDOW win AS (ROWS BETWEEN 10 PRECEDING AND x'ABCD' FOLLOWING)",
+          "expect": "1"
         }
       ]
     },
     {
-      "name": "3.3",
+      "name": "windowerr-3.3",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT row_number(a) OVER () FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a ROWS BETWEEN -1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a ROWS BETWEEN  1 PRECEDING AND -1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a RANGE BETWEEN -1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a RANGE BETWEEN  1 PRECEDING AND -1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a GROUPS BETWEEN -1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a GROUPS BETWEEN  1 PRECEDING AND -1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a,b RANGE BETWEEN  1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, sum(b) OVER (\n    PARTITION BY a RANGE BETWEEN  1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT sum( sum(a) OVER () ) FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT sum(a) OVER () AS xyz FROM t1 ORDER BY sum(xyz);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT sum(a) OVER win FROM t1\n  WINDOW win AS (ROWS BETWEEN 'hello' PRECEDING AND 10 FOLLOWING)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT sum(a) OVER win FROM t1\n  WINDOW win AS (ROWS BETWEEN 10 PRECEDING AND x'ABCD' FOLLOWING)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT row_number(a) OVER () FROM t1;"
+          "type": "catch",
+          "sql": "SELECT row_number(a) OVER () FROM t1;",
+          "expect": "1"
         }
       ]
     }

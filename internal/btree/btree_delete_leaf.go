@@ -214,7 +214,7 @@ func (t *BTree) classifyIndexMatches(encoded [][]byte, decoded []storage.Cell, t
 // remaining cells each time — O(k^2) per leaf, which made DELETE FROM
 // %_segments (thousands of 4KB blob rows) take ~30-40s (fts4merge4's
 // between-scenario DELETE).
-func (t *BTree) deleteAllMatchingFromLeaf(leafNum uint32, fn func(cell *storage.Cell) bool) (int64, error) {
+func (t *BTree) deleteAllMatchingFromLeaf(leafNum uint32, fn func(cell *storage.Cell) bool, fullPayload bool) (int64, error) {
 	pg, err := t.pager.ReadPage(leafNum)
 	if err != nil {
 		return 0, err
@@ -237,17 +237,25 @@ func (t *BTree) deleteAllMatchingFromLeaf(leafNum uint32, fn func(cell *storage.
 	// indices so their overflow-page chains can be freed. The predicate runs
 	// on the cells decoded above (a cell that failed to decode never
 	// matches — the same rule the per-cell re-decode applied), and sees the
-	// LOCAL payload only: every DeleteCellsWhere caller (DELETE/UPDATE/FK
-	// rowid matching) predicates on cell.RowID, which lives in the cell
-	// header. Reading the full overflow chain here made a bulk delete of
-	// large-blob rows (e.g. DELETE FROM %_segments with 4KB blocks) read
-	// every blob once per candidate cell, O(n × blob) — the
-	// between-scenario DELETE in fts4merge4 took ~40s.
+	// Local-only payload keeps bulk deletes efficient for rowid predicates;
+	// callers needing payload fields can opt into overflow reconstruction.
 	var keep []int
 	deleted := int64(0)
 	var deletedIdx []int
 	for i := 0; i < len(encoded); i++ {
-		if !failed[i] && fn(&decoded[i]) {
+		if failed[i] {
+			keep = append(keep, i)
+			continue
+		}
+		candidate := &decoded[i]
+		if fullPayload && candidate.Overflow != 0 {
+			full, err := t.readOverflow(candidate)
+			if err != nil {
+				return deleted, err
+			}
+			candidate = full
+		}
+		if fn(candidate) {
 			deleted++
 			deletedIdx = append(deletedIdx, i)
 			continue

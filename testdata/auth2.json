@@ -1,7 +1,26 @@
 {
   "file": "auth2.test",
   "name": "auth2",
+  "nullToken": "NULL",
+  "ordered": true,
   "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "auth_proc",
+          "catchMessage": "msg",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          }
+        }
+      ]
+    },
     {
       "name": "auth2-1.1",
       "steps": [
@@ -17,12 +36,32 @@
       ]
     },
     {
+      "name": "auth2-1.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "flist",
+          "expect": "max"
+        }
+      ]
+    },
+    {
       "name": "auth2-1.3",
       "steps": [
         {
           "type": "catch",
           "sql": "SELECT min(a,b,c) FROM t1",
           "expect": "0 {{}}"
+        }
+      ]
+    },
+    {
+      "name": "auth2-1.4",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "flist",
+          "expect": "min"
         }
       ]
     },
@@ -37,6 +76,16 @@
       ]
     },
     {
+      "name": "auth2-1.6",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "flist",
+          "expect": "coalesce min"
+        }
+      ]
+    },
+    {
       "name": "auth2-1.7",
       "steps": [
         {
@@ -47,11 +96,68 @@
       ]
     },
     {
+      "name": "auth2-1.8",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "flist",
+          "expect": "coalesce"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "auth_proc",
+          "authProc": "auth",
+          "callbackVars": {
+            "": "",
+            "::flist": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "msg": "$msg",
+            "testdir": ""
+          },
+          "callbackProcs": [
+            {
+              "Name": "auth",
+              "Args": [
+                "args"
+              ],
+              "Body": "\n  global authargs\n  append authargs [lrange $args 0 4]\\n\n  return SQLITE_OK\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "auth",
+          "functionBody": "\n  global authargs\n  append authargs [lrange $args 0 4]\\n\n  return SQLITE_OK\n"
+        }
+      ]
+    },
+    {
       "name": "auth2-2.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t2(x,y,z);",
+          "sql": "CREATE TABLE t2(x,y,z);"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "authargs",
           "expect": "SQLITE_INSERT sqlite_master {} main {}\nSQLITE_CREATE_TABLE t2 {} main {}\nSQLITE_UPDATE sqlite_master type main {}\nSQLITE_UPDATE sqlite_master name main {}\nSQLITE_UPDATE sqlite_master tbl_name main {}\nSQLITE_UPDATE sqlite_master rootpage main {}\nSQLITE_UPDATE sqlite_master sql main {}\nSQLITE_READ sqlite_master ROWID main {}\n"
         }
       ]
@@ -61,7 +167,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE VIEW v2 AS SELECT x+y AS a, y+z AS b from t2;",
+          "sql": "CREATE VIEW v2 AS SELECT x+y AS a, y+z AS b from t2;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "authargs",
           "expect": "SQLITE_INSERT sqlite_master {} main {}\nSQLITE_CREATE_VIEW v2 {} main {}\nSQLITE_UPDATE sqlite_master type main {}\nSQLITE_UPDATE sqlite_master name main {}\nSQLITE_UPDATE sqlite_master tbl_name main {}\nSQLITE_UPDATE sqlite_master rootpage main {}\nSQLITE_UPDATE sqlite_master sql main {}\nSQLITE_READ sqlite_master ROWID main {}\n"
         }
       ]
@@ -70,8 +180,12 @@
       "name": "auth2-2.3",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT a, b FROM v2;",
+          "type": "query",
+          "sql": "SELECT a, b FROM v2;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "authargs",
           "expect": "SQLITE_SELECT {} {} {} {}\nSQLITE_READ t2 x main v2\nSQLITE_READ t2 y main v2\nSQLITE_READ t2 y main v2\nSQLITE_READ t2 z main v2\nSQLITE_READ v2 a main {}\nSQLITE_READ v2 b main {}\nSQLITE_SELECT {} {} {} v2\n"
         }
       ]
@@ -81,8 +195,26 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT b, a FROM v2;",
+          "sql": "CREATE TABLE t3(p,q,r);",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b, a FROM v2;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "authargs",
           "expect": "SQLITE_SELECT {} {} {} {}\nSQLITE_READ t2 x main v2\nSQLITE_READ t2 y main v2\nSQLITE_READ t2 y main v2\nSQLITE_READ t2 z main v2\nSQLITE_READ v2 b main {}\nSQLITE_READ v2 a main {}\nSQLITE_SELECT {} {} {} v2\nSQLITE_SELECT {} {} {} {}\nSQLITE_READ t2 x main v2\nSQLITE_READ t2 y main v2\nSQLITE_READ t2 y main v2\nSQLITE_READ t2 z main v2\nSQLITE_READ v2 b main {}\nSQLITE_READ v2 a main {}\nSQLITE_SELECT {} {} {} v2\n"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     },
@@ -91,8 +223,21 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t2 SELECT * FROM t1;",
+          "sql": "INSERT INTO t2 SELECT * FROM t1;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "authargs",
           "expect": "SQLITE_INSERT t2 {} main {}\nSQLITE_SELECT {} {} {} {}\nSQLITE_READ t1 a main {}\nSQLITE_READ t1 b main {}\nSQLITE_READ t1 c main {}\n"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
         }
       ]
     },

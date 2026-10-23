@@ -268,6 +268,20 @@ func (e *SelectEngine) orderBySubqueryOuterAgg(expr sql.Expr) string {
 	return found
 }
 
+// compoundFromSubqueryOuterAgg detects an aggregate in a compound derived table
+// that resolves a column outside its own FROM scope.
+func (e *SelectEngine) compoundFromSubqueryOuterAgg(s *sql.SelectStmt) string {
+	for cur := s; cur != nil; cur = cur.Union {
+		sub := cur.From.Subquery
+		if sub != nil && sub.Union != nil {
+			if name := e.subqueryOuterAggRef(sub); name != "" {
+				return name
+			}
+		}
+	}
+	return ""
+}
+
 // nestedSubqueryPromotedAgg returns the name of an aggregate inside a FROM
 // subquery of the given SELECT that references columns outside that inner
 // level's own FROM (a promoted aggregate), or "".

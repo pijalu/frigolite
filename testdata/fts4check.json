@@ -1,79 +1,280 @@
 {
   "file": "fts4check.test",
   "name": "fts4check",
+  "ordered": true,
   "tests": [
     {
-      "name": "4.0",
+      "name": "fts4check-1.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE t4 USING fts4(a, b, c, notindexed=b);\n  INSERT INTO t4 VALUES('text one', 'text two', 'text three');\n  INSERT INTO t4(t4) VALUES('integrity-check');"
+          "sql": "INSERT INTO t1 (t1) VALUES('integrity-check')",
+          "expect": "ok"
         }
       ]
     },
     {
-      "name": "4.1",
+      "name": "setup_0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA writable_schema = 1;\n  UPDATE sqlite_master \n    SET sql = 'CREATE VIRTUAL TABLE t4 USING fts4(a, b, c)' \n    WHERE name = 't4';"
+          "type": "defensive",
+          "sql": "0"
         }
       ]
     },
     {
-      "name": "5.0",
+      "name": "fts4check-1.2.1.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n  CREATE VIRTUAL TABLE t5 USING fts4(a, prefix=\"1,2,3\");\n  INSERT INTO t5 VALUES('And down by Kosiosko, where the reed-banks sweep');\n  INSERT INTO t5 VALUES('and sway, and the rolling plains are wide, the');\n  INSERT INTO t5 VALUES('man from snowy river is a household name today,');\n  INSERT INTO t5 VALUES('and the stockmen tell the story of his ride');"
+          "sql": "BEGIN; \n    INSERT INTO t1_content(docid, c0x, c1y) VALUES(NULL, 'a', 'b');"
         }
       ]
     },
     {
-      "name": "5.1",
+      "name": "fts4check-1.2.2.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "INSERT INTO t5(t5) VALUES('integrity-check');"
-        }
-      ]
-    },
-    {
-      "name": "5.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t5_content VALUES(5, 'his hardy mountain pony');\n  INSERT INTO t5(t5) VALUES('integrity-check');",
+          "type": "catch",
+          "sql": "INSERT INTO t1 (t1) VALUES('integrity-check')",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "5.4",
+      "name": "fts4check-1.2.3.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE t5 USING fts4(a, prefix=\"1,2,3\");\n  INSERT INTO t5(t5) VALUES('integrity-check');"
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "{malformed inverted index for FTS4 table main.t1}"
         }
       ]
     },
     {
-      "name": "3.0",
+      "name": "fts4check-1.2.4.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE t3 USING fts4(x, y, prefix=\"2,3\", languageid=langid);"
+          "sql": "ROLLBACK"
         }
       ]
     },
     {
-      "name": "4.2",
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-1.2.1.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t4(t4) VALUES('integrity-check');",
+          "sql": "BEGIN; \n    DELETE FROM t1_content WHERE docid = (SELECT max(docid) FROM t1_content);"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-1.2.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 (t1) VALUES('integrity-check')",
           "expect": "1 {database disk image is malformed}"
-        },
+        }
+      ]
+    },
+    {
+      "name": "fts4check-1.2.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "{malformed inverted index for FTS4 table main.t1}"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-1.2.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-1.2.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; \n    DELETE FROM t1_segdir WHERE level=0 AND idx=(\n      SELECT max(idx) FROM t1_segdir WHERE level=0\n    );"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-1.2.2.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 (t1) VALUES('integrity-check')",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-1.2.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "{malformed inverted index for FTS4 table main.t1}"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-1.2.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 (t1) VALUES('integrity-check')",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 (t2) VALUES('integrity-check')",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-2.2.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; \n    INSERT INTO t2_content VALUES(NULL, 'xyz')"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-2.2.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t2 (t2) VALUES('integrity-check')",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-2.2.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check(t2);",
+          "expect": "{malformed inverted index for FTS4 table main.t2}"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-2.2.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-2.2.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; \n    DELETE FROM t2_segdir WHERE level=0 AND idx=(\n      SELECT max(idx) FROM t2_segdir WHERE level=1024\n    );"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-2.2.2.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t2 (t2) VALUES('integrity-check')",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-2.2.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check(t2);",
+          "expect": "{malformed inverted index for FTS4 table main.t2}"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-2.2.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts4check-3.0",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE VIRTUAL TABLE t3 USING fts4(x, y, prefix=\"2,3\", languageid=langid);"
@@ -84,26 +285,200 @@
         },
         {
           "type": "exec",
-          "sql": "PRAGMA integrity_check(t2);"
+          "sql": "SELECT docid FROM t1 ORDER BY 1 ASC"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(x, y, langid) \n      SELECT x, y, (docid%9)*4 FROM t1 WHERE docid='';"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 (t3) VALUES('integrity-check')",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-3.2.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; \n    INSERT INTO t3_content(c0x, c1y, langid) VALUES(NULL, 'a', 0);"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-3.2.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t3 (t3) VALUES('integrity-check')",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-3.2.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-3.2.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; \n    UPDATE t3_content SET langid=langid+1 WHERE rowid = (\n      SELECT max(rowid) FROM t3_content\n    )"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-3.2.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t3 (t3) VALUES('integrity-check')",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-3.2.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t4 USING fts4(a, b, c, notindexed=b);\n  INSERT INTO t4 VALUES('text one', 'text two', 'text three');\n  INSERT INTO t4(t4) VALUES('integrity-check');"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema = 1;\n  UPDATE sqlite_master \n    SET sql = 'CREATE VIRTUAL TABLE t4 USING fts4(a, b, c)' \n    WHERE name = 't4';"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-4.2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4(t4) VALUES('integrity-check');",
+          "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts4check-5.0",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "BEGIN;\n  CREATE VIRTUAL TABLE t5 USING fts4(a, prefix=\"1,2,3\");\n  INSERT INTO t5 VALUES('And down by Kosiosko, where the reed-banks sweep');\n  INSERT INTO t5 VALUES('and sway, and the rolling plains are wide, the');\n  INSERT INTO t5 VALUES('man from snowy river is a household name today,');\n  INSERT INTO t5 VALUES('and the stockmen tell the story of his ride');"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "fts4check-5.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "INSERT INTO t5(t5) VALUES('integrity-check');"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-5.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t5_content VALUES(5, 'his hardy mountain pony');\n  INSERT INTO t5(t5) VALUES('integrity-check');",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        }
+      ]
+    },
+    {
+      "name": "fts4check-5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t5 USING fts4(a, prefix=\"1,2,3\");\n  INSERT INTO t5(t5) VALUES('integrity-check');"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

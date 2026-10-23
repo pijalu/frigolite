@@ -140,7 +140,7 @@ func Test_changes2(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2"
-		_list4 := tclList([]string{tclStepPreparedCode(db, "stmt", "INSERT INTO log VALUES(changes() || ' changes')"), "sqlite3_reset $::stmt"})
+		_list4 := tclList([]string{tclStepPreparedCode(db, "stmt", "INSERT INTO log VALUES(changes() || ' changes')"), tclResetStmtCode("stmt")})
 		_ = _list4
 		_r = _list4
 	}
@@ -157,7 +157,7 @@ func Test_changes2(t *testing.T) {
 		}
 	}
 	{ // do_test "2.3"
-		_list5 := tclList([]string{tclStepPreparedCode(db, "stmt", "INSERT INTO log VALUES(changes() || ' changes')"), "sqlite3_reset $::stmt"})
+		_list5 := tclList([]string{tclStepPreparedCode(db, "stmt", "INSERT INTO log VALUES(changes() || ' changes')"), tclResetStmtCode("stmt")})
 		_ = _list5
 		_r = _list5
 	}

@@ -1,18 +1,89 @@
 {
   "file": "bestindexE.test",
   "name": "bestindexE",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "setup_0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE  USING tcl('')"
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "bestindexE",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "bestindexE"
+          },
+          "callbackProcs": [
+            {
+              "Name": "pretty_constraint",
+              "Args": [
+                "lCol",
+                "cons"
+              ],
+              "Body": "\n  array set C $cons\n\n  set ret \"\"\n  if {$C(usable)} {\n    set OP(eq) =\n    set ret \"[lindex $lCol $C(column)]$OP($C(op))?\"\n  }\n\n  return $ret\n",
+              "Defaults": null
+            },
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "zName",
+                "lCol",
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE $zName ([join $lCol ,]) \"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set conslist [$hdl constraints]\n\n      set ret [list]\n      foreach cons $conslist {\n        set pretty [pretty_constraint $lCol $cons]\n        if {$pretty != \"\"} { lappend ret $pretty }\n      }\n\n      lappend ::xBestIndex \"$zName: [join $ret { AND }]\"\n\n      return \"cost 1000 rows 1000 idxnum 555\"\n    }\n  }\n\n  return {}\n",
+              "Defaults": null
+            },
+            {
+              "Name": "do_bestindex_test",
+              "Args": [
+                "tn",
+                "sql",
+                "lCons"
+              ],
+              "Body": "\n  set ::xBestIndex [list]\n  do_execsql_test $tn.1 $sql\n  uplevel [list do_test $tn.2 [list set ::xBestIndex] [list {*}$lCons]]\n",
+              "Defaults": null
+            },
+            {
+              "Name": "create_vtab",
+              "Args": [
+                "tname",
+                "clist"
+              ],
+              "Body": "\n  set cmd [list vtab_command $tname $clist]\n  execsql \"\n    CREATE VIRTUAL TABLE $tname USING tcl('$cmd')\n  \"\n",
+              "Defaults": null
+            },
+            {
+              "Name": "eponymous_cmd",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      db eval { SELECT * FROM sqlite_schema }\n      return \"CREATE TABLE t1 (a, b)\"\n    }\n\n    xBestIndex {\n      return \"idxnum 555\"\n    }\n\n    xFilter {\n      return [list sql {SELECT 123, 'A', 'B'}]\n    }\n\n    xUpdate {\n      return 123\n    }\n\n  }\n\n  return {}\n",
+              "Defaults": null
+            }
+          ],
+          "moduleArgs": [
+            "db"
+          ]
         }
       ]
     },
     {
-      "name": "1.1.1",
+      "name": "bestindexE-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE x1 USING tcl('vtab_command x1 {a b c}')"
+        }
+      ]
+    },
+    {
+      "name": "bestindexE-1.1.1",
       "steps": [
         {
           "type": "query",
@@ -21,7 +92,17 @@
       ]
     },
     {
-      "name": "1.2.1",
+      "name": "bestindexE-1.1.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "xBestIndex",
+          "expect": "{x1: a=?}"
+        }
+      ]
+    },
+    {
+      "name": "bestindexE-1.2.1",
       "steps": [
         {
           "type": "query",
@@ -30,24 +111,108 @@
       ]
     },
     {
-      "name": "2.0",
+      "name": "bestindexE-1.2.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE  USING tcl('')"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE  USING tcl('')"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE  USING tcl('')"
+          "type": "runtime_var",
+          "variable": "xBestIndex",
+          "expect": "{x1: a=? AND b=?}"
         }
       ]
     },
     {
-      "name": "2.1.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "bestindexE"
+          },
+          "callbackProcs": [
+            {
+              "Name": "pretty_constraint",
+              "Args": [
+                "lCol",
+                "cons"
+              ],
+              "Body": "\n  array set C $cons\n\n  set ret \"\"\n  if {$C(usable)} {\n    set OP(eq) =\n    set ret \"[lindex $lCol $C(column)]$OP($C(op))?\"\n  }\n\n  return $ret\n",
+              "Defaults": null
+            },
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "zName",
+                "lCol",
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE $zName ([join $lCol ,]) \"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set conslist [$hdl constraints]\n\n      set ret [list]\n      foreach cons $conslist {\n        set pretty [pretty_constraint $lCol $cons]\n        if {$pretty != \"\"} { lappend ret $pretty }\n      }\n\n      lappend ::xBestIndex \"$zName: [join $ret { AND }]\"\n\n      return \"cost 1000 rows 1000 idxnum 555\"\n    }\n  }\n\n  return {}\n",
+              "Defaults": null
+            },
+            {
+              "Name": "do_bestindex_test",
+              "Args": [
+                "tn",
+                "sql",
+                "lCons"
+              ],
+              "Body": "\n  set ::xBestIndex [list]\n  do_execsql_test $tn.1 $sql\n  uplevel [list do_test $tn.2 [list set ::xBestIndex] [list {*}$lCons]]\n",
+              "Defaults": null
+            },
+            {
+              "Name": "create_vtab",
+              "Args": [
+                "tname",
+                "clist"
+              ],
+              "Body": "\n  set cmd [list vtab_command $tname $clist]\n  execsql \"\n    CREATE VIRTUAL TABLE $tname USING tcl('$cmd')\n  \"\n",
+              "Defaults": null
+            },
+            {
+              "Name": "eponymous_cmd",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      db eval { SELECT * FROM sqlite_schema }\n      return \"CREATE TABLE t1 (a, b)\"\n    }\n\n    xBestIndex {\n      return \"idxnum 555\"\n    }\n\n    xFilter {\n      return [list sql {SELECT 123, 'A', 'B'}]\n    }\n\n    xUpdate {\n      return 123\n    }\n\n  }\n\n  return {}\n",
+              "Defaults": null
+            }
+          ],
+          "moduleArgs": [
+            "db"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bestindexE-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE Delivery USING tcl('vtab_command Delivery {id customer}')"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE ReturnDelivery USING tcl('vtab_command ReturnDelivery {id customer}')"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE Customer USING tcl('vtab_command Customer {oid name}')"
+        }
+      ]
+    },
+    {
+      "name": "bestindexE-2.1.1",
       "steps": [
         {
           "type": "query",
@@ -56,7 +221,17 @@
       ]
     },
     {
-      "name": "2.2.1",
+      "name": "bestindexE-2.1.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "xBestIndex",
+          "expect": "{Delivery: } {Customer: oid=?}"
+        }
+      ]
+    },
+    {
+      "name": "bestindexE-2.2.1",
       "steps": [
         {
           "type": "query",
@@ -65,7 +240,92 @@
       ]
     },
     {
-      "name": "3.1.0",
+      "name": "bestindexE-2.2.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "xBestIndex",
+          "expect": "{Delivery: id=?} {Customer: oid=?} {ReturnDelivery: id=?} {Customer: oid=?}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "bestindexE"
+          },
+          "callbackProcs": [
+            {
+              "Name": "pretty_constraint",
+              "Args": [
+                "lCol",
+                "cons"
+              ],
+              "Body": "\n  array set C $cons\n\n  set ret \"\"\n  if {$C(usable)} {\n    set OP(eq) =\n    set ret \"[lindex $lCol $C(column)]$OP($C(op))?\"\n  }\n\n  return $ret\n",
+              "Defaults": null
+            },
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "zName",
+                "lCol",
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE $zName ([join $lCol ,]) \"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set conslist [$hdl constraints]\n\n      set ret [list]\n      foreach cons $conslist {\n        set pretty [pretty_constraint $lCol $cons]\n        if {$pretty != \"\"} { lappend ret $pretty }\n      }\n\n      lappend ::xBestIndex \"$zName: [join $ret { AND }]\"\n\n      return \"cost 1000 rows 1000 idxnum 555\"\n    }\n  }\n\n  return {}\n",
+              "Defaults": null
+            },
+            {
+              "Name": "do_bestindex_test",
+              "Args": [
+                "tn",
+                "sql",
+                "lCons"
+              ],
+              "Body": "\n  set ::xBestIndex [list]\n  do_execsql_test $tn.1 $sql\n  uplevel [list do_test $tn.2 [list set ::xBestIndex] [list {*}$lCons]]\n",
+              "Defaults": null
+            },
+            {
+              "Name": "create_vtab",
+              "Args": [
+                "tname",
+                "clist"
+              ],
+              "Body": "\n  set cmd [list vtab_command $tname $clist]\n  execsql \"\n    CREATE VIRTUAL TABLE $tname USING tcl('$cmd')\n  \"\n",
+              "Defaults": null
+            },
+            {
+              "Name": "eponymous_cmd",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      db eval { SELECT * FROM sqlite_schema }\n      return \"CREATE TABLE t1 (a, b)\"\n    }\n\n    xBestIndex {\n      return \"idxnum 555\"\n    }\n\n    xFilter {\n      return [list sql {SELECT 123, 'A', 'B'}]\n    }\n\n    xUpdate {\n      return 123\n    }\n\n  }\n\n  return {}\n",
+              "Defaults": null
+            }
+          ],
+          "moduleArgs": [
+            "db",
+            "eponymous_cmd"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bestindexE-3.1.0",
       "steps": [
         {
           "type": "query",
@@ -75,7 +335,7 @@
       ]
     },
     {
-      "name": "3.1.1",
+      "name": "bestindexE-3.1.1",
       "steps": [
         {
           "type": "query",
@@ -85,7 +345,7 @@
       ]
     },
     {
-      "name": "3.1.2",
+      "name": "bestindexE-3.1.2",
       "steps": [
         {
           "type": "exec",
@@ -95,7 +355,7 @@
       ]
     },
     {
-      "name": "3.1.4",
+      "name": "bestindexE-3.1.4",
       "steps": [
         {
           "type": "exec",
@@ -104,7 +364,90 @@
       ]
     },
     {
-      "name": "3.2.1",
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "bestindexE"
+          },
+          "callbackProcs": [
+            {
+              "Name": "pretty_constraint",
+              "Args": [
+                "lCol",
+                "cons"
+              ],
+              "Body": "\n  array set C $cons\n\n  set ret \"\"\n  if {$C(usable)} {\n    set OP(eq) =\n    set ret \"[lindex $lCol $C(column)]$OP($C(op))?\"\n  }\n\n  return $ret\n",
+              "Defaults": null
+            },
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "zName",
+                "lCol",
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE $zName ([join $lCol ,]) \"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set conslist [$hdl constraints]\n\n      set ret [list]\n      foreach cons $conslist {\n        set pretty [pretty_constraint $lCol $cons]\n        if {$pretty != \"\"} { lappend ret $pretty }\n      }\n\n      lappend ::xBestIndex \"$zName: [join $ret { AND }]\"\n\n      return \"cost 1000 rows 1000 idxnum 555\"\n    }\n  }\n\n  return {}\n",
+              "Defaults": null
+            },
+            {
+              "Name": "do_bestindex_test",
+              "Args": [
+                "tn",
+                "sql",
+                "lCons"
+              ],
+              "Body": "\n  set ::xBestIndex [list]\n  do_execsql_test $tn.1 $sql\n  uplevel [list do_test $tn.2 [list set ::xBestIndex] [list {*}$lCons]]\n",
+              "Defaults": null
+            },
+            {
+              "Name": "create_vtab",
+              "Args": [
+                "tname",
+                "clist"
+              ],
+              "Body": "\n  set cmd [list vtab_command $tname $clist]\n  execsql \"\n    CREATE VIRTUAL TABLE $tname USING tcl('$cmd')\n  \"\n",
+              "Defaults": null
+            },
+            {
+              "Name": "eponymous_cmd",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      db eval { SELECT * FROM sqlite_schema }\n      return \"CREATE TABLE t1 (a, b)\"\n    }\n\n    xBestIndex {\n      return \"idxnum 555\"\n    }\n\n    xFilter {\n      return [list sql {SELECT 123, 'A', 'B'}]\n    }\n\n    xUpdate {\n      return 123\n    }\n\n  }\n\n  return {}\n",
+              "Defaults": null
+            }
+          ],
+          "moduleArgs": [
+            "db",
+            "eponymous_cmd"
+          ]
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "bestindexE-3.2.1",
       "steps": [
         {
           "type": "query",
@@ -113,16 +456,17 @@
       ]
     },
     {
-      "name": "3.2.2",
+      "name": "bestindexE-3.2.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE x2(x)"
+          "sql": "CREATE TABLE x2(x)",
+          "database": "db2"
         }
       ]
     },
     {
-      "name": "3.2.3",
+      "name": "bestindexE-3.2.3",
       "steps": [
         {
           "type": "exec",

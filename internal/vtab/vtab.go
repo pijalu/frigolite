@@ -122,6 +122,23 @@ type Module interface {
 	Connect(args []string) (VirtualTable, error)
 }
 
+// ShadowNamer is the optional xShadowName contract. A true result means name
+// is a module-owned shadow table for virtual-table name tableName.
+type ShadowNamer interface {
+	ShadowName(tableName, name string) bool
+}
+
+// IsShadowName asks registered module definitions whether name is a shadow
+// table of tableName. Module-specific classification avoids prefix lookalikes.
+func (r *Registry) IsShadowName(tableName, name string) bool {
+	for _, m := range r.modules {
+		if sn, ok := m.(ShadowNamer); ok && sn.ShadowName(tableName, name) {
+			return true
+		}
+	}
+	return false
+}
+
 // ValueModule is implemented by table-valued modules whose arguments may be
 // arbitrary SQL values — e.g. BLOB/JSONB input for json_each/json_tree —
 // rather than their fmt.Sprint string renderings. When a module implements

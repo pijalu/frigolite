@@ -1,9 +1,10 @@
 {
   "file": "rowvalue6.test",
   "name": "rowvalue6",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.1",
+      "name": "rowvalue6-1.1",
       "steps": [
         {
           "type": "query",
@@ -12,7 +13,7 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "rowvalue6-1.2",
       "steps": [
         {
           "type": "query",

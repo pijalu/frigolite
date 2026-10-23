@@ -1,18 +1,11 @@
 {
   "file": "filectrl.test",
   "name": "filectrl",
+  "ordered": true,
   "tests": [
     {
-      "name": "filectrl-2.2",
+      "name": "filectrl-1.2",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n      INSERT INTO t1 (x) VALUES(RANDOMBLOB(1048576));"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n      INSERT INTO t1 (x) VALUES(RANDOMBLOB(1048576));"
-        },
         {
           "type": "exec",
           "sql": "CREATE TEMP TABLE x(y);"
@@ -20,18 +13,88 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "filectrl-1.3",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "filectrl-1.4",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "filectrl-1.5",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test_control_lockproxy.db"
+        }
+      ]
+    },
+    {
+      "name": "filectrl-1.6",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "expect": "/etilqs_/"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": ".test_control_lockproxy.db-conch"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.proxy"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db"
         }
       ]
     }

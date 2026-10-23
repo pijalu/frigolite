@@ -1,13 +1,459 @@
 {
   "file": "percentile.test",
   "name": "percentile",
+  "ordered": true,
   "tests": [
     {
-      "name": "percentile-1.1.median",
+      "name": "percentile-1.0",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT median(x) FROM t1;"
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1),(4),(6),(7),(8),(9),(11),(11),(11);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(x,0) FROM t1",
+          "expect": "1.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.100.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(x,100) FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.100.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(x,100*0.01) FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.100.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(x,100*0.01) FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.100.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(100)WITHIN GROUP(ORDER BY x) FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.100.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(100*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.100.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(100*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.50.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(x,50) FROM t1",
+          "expect": "8.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.50.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(x,50*0.01) FROM t1",
+          "expect": "8.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.50.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(x,50*0.01) FROM t1",
+          "expect": "8.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.50.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT median(x) FROM t1",
+          "expect": "8.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.50.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(50)WITHIN GROUP(ORDER BY x) FROM t1",
+          "expect": "8.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.50.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(50*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "8.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.50.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(50*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "8.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.50.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT median() WITHIN GROUP (ORDER BY x) FROM t1",
+          "expect": "8.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.12.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(x,12.5) FROM t1",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.12.5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(x,12.5*0.01) FROM t1",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.12.5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(x,12.5*0.01) FROM t1",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.12.5.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(12.5)WITHIN GROUP(ORDER BY x) FROM t1",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.12.5.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(12.5*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.12.5.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(12.5*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.15.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(x,15) FROM t1",
+          "expect": "4.4"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.15.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(x,15*0.01) FROM t1",
+          "expect": "4.4"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.15.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(x,15*0.01) FROM t1",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.15.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(15)WITHIN GROUP(ORDER BY x) FROM t1",
+          "expect": "4.4"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.15.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(15*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "4.4"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.15.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(15*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.20.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(x,20) FROM t1",
+          "expect": "5.2"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.20.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(x,20*0.01) FROM t1",
+          "expect": "5.2"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.20.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(x,20*0.01) FROM t1",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.20.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(20)WITHIN GROUP(ORDER BY x) FROM t1",
+          "expect": "5.2"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.20.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(20*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "5.2"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.20.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(20*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.80.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(x,80) FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.80.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(x,80*0.01) FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.80.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(x,80*0.01) FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.80.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(80)WITHIN GROUP(ORDER BY x) FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.80.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(80*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.80.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(80*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.89.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(x,89) FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.89.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(x,89*0.01) FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.89.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(x,89*0.01) FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.89.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(89)WITHIN GROUP(ORDER BY x) FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.89.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(89*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.89.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(89*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "11.0"
         }
       ]
     },
@@ -16,7 +462,13 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT median() WITHIN GROUP (ORDER BY x) FROM t1;"
+          "sql": "SELECT median(x) FROM t1;",
+          "expect": "8.0"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT median() WITHIN GROUP (ORDER BY x) FROM t1;",
+          "expect": "8.0"
         }
       ]
     },
@@ -25,7 +477,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT median(DISTINCT x) FROM t1;"
+          "sql": "SELECT median(DISTINCT x) FROM t1;",
+          "expect": "7.0"
         }
       ]
     },
@@ -33,19 +486,1407 @@
       "name": "percentile-1.1.distinct.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT percentile(DISTINCT 50) WITHIN GROUP (ORDER BY x) FROM t1;",
           "expect": "1 {DISTINCT not allowed on ordered-set aggregate percentile()}"
         }
       ]
     },
     {
-      "name": "percentile-1.1.median",
+      "name": "percentile-1.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT median() WITHIN GROUP (ORDER BY x) FROM t1;",
-          "expect": "1 {near \"(\": syntax error}"
+          "sql": "INSERT INTO t1 VALUES(NULL),(NULL);"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.100.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(x,100) FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.100.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(x,100*0.01) FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.100.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(x,100*0.01) FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.100.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(100)WITHIN GROUP(ORDER BY x) FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.100.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(100*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.100.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(100*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.50.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(x,50) FROM t1",
+          "expect": "8.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.50.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(x,50*0.01) FROM t1",
+          "expect": "8.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.50.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(x,50*0.01) FROM t1",
+          "expect": "8.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.50.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT median(x) FROM t1",
+          "expect": "8.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.50.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(50)WITHIN GROUP(ORDER BY x) FROM t1",
+          "expect": "8.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.50.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(50*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "8.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.50.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(50*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "8.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.50.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT median() WITHIN GROUP (ORDER BY x) FROM t1",
+          "expect": "8.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.12.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(x,12.5) FROM t1",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.12.5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(x,12.5*0.01) FROM t1",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.12.5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(x,12.5*0.01) FROM t1",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.12.5.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(12.5)WITHIN GROUP(ORDER BY x) FROM t1",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.12.5.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(12.5*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.12.5.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(12.5*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.15.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(x,15) FROM t1",
+          "expect": "4.4"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.15.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(x,15*0.01) FROM t1",
+          "expect": "4.4"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.15.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(x,15*0.01) FROM t1",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.15.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(15)WITHIN GROUP(ORDER BY x) FROM t1",
+          "expect": "4.4"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.15.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(15*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "4.4"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.15.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(15*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.20.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(x,20) FROM t1",
+          "expect": "5.2"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.20.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(x,20*0.01) FROM t1",
+          "expect": "5.2"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.20.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(x,20*0.01) FROM t1",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.20.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(20)WITHIN GROUP(ORDER BY x) FROM t1",
+          "expect": "5.2"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.20.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(20*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "5.2"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.20.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(20*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.80.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(x,80) FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.80.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(x,80*0.01) FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.80.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(x,80*0.01) FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.80.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(80)WITHIN GROUP(ORDER BY x) FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.80.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(80*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.80.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(80*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.89.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(x,89) FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.89.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(x,89*0.01) FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.89.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(x,89*0.01) FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.89.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(89)WITHIN GROUP(ORDER BY x) FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.89.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(89*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.3.89.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(89*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t1",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.4.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT round(percentile(x, 15+0.000001*rowid),1) FROM t1",
+          "expect": "0 4.4"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.4.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT round(percentile_cont(x,(15+0.000001*rowid)*0.01),1) FROM t1",
+          "expect": "0 4.4"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.4.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile_disc(x, (15+0.000001*rowid)*0.01) FROM t1",
+          "expect": "0 4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.5.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile(x, 15+0.1*rowid) FROM t1",
+          "expect": "1 {the fraction argument to percentile() is not the same for all input rows}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.5.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile_cont(x, (15+0.1*rowid)*0.01) FROM t1",
+          "expect": "1 {the fraction argument to percentile_cont() is not the same for all input rows}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.5.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile_disc(x, (15+0.1*rowid)*0.01) FROM t1",
+          "expect": "1 {the fraction argument to percentile_disc() is not the same for all input rows}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x);\n    INSERT INTO t2 SELECT x+0.0 FROM t1 ORDER BY random();"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.100.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(x,100) FROM t2",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.100.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(x,100*0.01) FROM t2",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.100.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(x,100*0.01) FROM t2",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.100.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(100)WITHIN GROUP(ORDER BY x) FROM t2",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.100.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(100*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.100.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(100*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.50.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(x,50) FROM t2",
+          "expect": "8.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.50.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(x,50*0.01) FROM t2",
+          "expect": "8.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.50.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(x,50*0.01) FROM t2",
+          "expect": "8.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.50.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT median(x) FROM t2",
+          "expect": "8.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.50.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(50)WITHIN GROUP(ORDER BY x) FROM t2",
+          "expect": "8.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.50.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(50*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2",
+          "expect": "8.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.50.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(50*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2",
+          "expect": "8.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.50.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT median() WITHIN GROUP (ORDER BY x) FROM t2",
+          "expect": "8.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.12.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(x,12.5) FROM t2",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.12.5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(x,12.5*0.01) FROM t2",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.12.5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(x,12.5*0.01) FROM t2",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.12.5.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(12.5)WITHIN GROUP(ORDER BY x) FROM t2",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.12.5.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(12.5*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.12.5.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(12.5*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.15.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(x,15) FROM t2",
+          "expect": "4.4"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.15.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(x,15*0.01) FROM t2",
+          "expect": "4.4"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.15.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(x,15*0.01) FROM t2",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.15.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(15)WITHIN GROUP(ORDER BY x) FROM t2",
+          "expect": "4.4"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.15.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(15*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2",
+          "expect": "4.4"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.15.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(15*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.20.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(x,20) FROM t2",
+          "expect": "5.2"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.20.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(x,20*0.01) FROM t2",
+          "expect": "5.2"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.20.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(x,20*0.01) FROM t2",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.20.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(20)WITHIN GROUP(ORDER BY x) FROM t2",
+          "expect": "5.2"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.20.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(20*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2",
+          "expect": "5.2"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.20.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(20*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2",
+          "expect": "4.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.80.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(x,80) FROM t2",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.80.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(x,80*0.01) FROM t2",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.80.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(x,80*0.01) FROM t2",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.80.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(80)WITHIN GROUP(ORDER BY x) FROM t2",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.80.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(80*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.80.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(80*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.89.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(x,89) FROM t2",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.89.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(x,89*0.01) FROM t2",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.89.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(x,89*0.01) FROM t2",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.89.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(89)WITHIN GROUP(ORDER BY x) FROM t2",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.89.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_cont(89*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.7.89.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT percentile_disc(89*0.01) WITHIN GROUP(ORDER BY x)\n                 FROM t2",
+          "expect": "11.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.8.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile(x,0,1) FROM t1",
+          "expect": "1 {wrong number of arguments to function percentile()}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.8.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile_cont(x,0,1) FROM t1",
+          "expect": "1 {wrong number of arguments to function percentile_cont()}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.8.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile_disc(x,0,1) FROM t1",
+          "expect": "1 {wrong number of arguments to function percentile_disc()}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.8.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT median(x,0) FROM t1",
+          "expect": "1 {wrong number of arguments to function median()}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.8.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile(0,1) WITHIN GROUP(ORDER BY x) FROM t1",
+          "expect": "1 {wrong number of arguments to function percentile()}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.8.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile_cont(0,1)WITHIN GROUP (ORDER BY x) FROM t1",
+          "expect": "1 {wrong number of arguments to function percentile_cont()}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.8.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile_disc(0,1)WITHIN GROUP (ORDER BY x) FROM t1",
+          "expect": "1 {wrong number of arguments to function percentile_disc()}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.8.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT median(x) WITHIN GROUP (ORDER BY x) FROM t1",
+          "expect": "1 {wrong number of arguments to function median()}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.9.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile(x) FROM t1",
+          "expect": "1 {wrong number of arguments to function percentile()}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.9.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile_cont(x) FROM t1",
+          "expect": "1 {wrong number of arguments to function percentile_cont()}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.9.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile_disc(x) FROM t1",
+          "expect": "1 {wrong number of arguments to function percentile_disc()}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.9.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT median() FROM t1",
+          "expect": "1 {wrong number of arguments to function median()}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.9.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile() WITHIN GROUP(ORDER BY x) FROM t1",
+          "expect": "1 {wrong number of arguments to function percentile()}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.9.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile_cont()WITHIN GROUP (ORDER BY x) FROM t1",
+          "expect": "1 {wrong number of arguments to function percentile_cont()}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.9.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile_disc()WITHIN GROUP (ORDER BY x) FROM t1",
+          "expect": "1 {wrong number of arguments to function percentile_disc()}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.10",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile(x,null) FROM t1",
+          "expect": "1 {the fraction argument to percentile() is not between 0.0 and 100.0}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.11",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile(x,'fifty') FROM t1",
+          "expect": "1 {the fraction argument to percentile() is not between 0.0 and 100.0}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.12",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile(x,x'3530') FROM t1",
+          "expect": "1 {the fraction argument to percentile() is not between 0.0 and 100.0}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.13",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile(x,-0.0000001) FROM t1",
+          "expect": "1 {the fraction argument to percentile() is not between 0.0 and 100.0}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.14",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile(x,100.0000001) FROM t1",
+          "expect": "1 {the fraction argument to percentile() is not between 0.0 and 100.0}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.14.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile_cont(x,1.0000001) FROM t1",
+          "expect": "1 {the fraction argument to percentile_cont() is not between 0.0 and 1.0}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.14.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile_disc(x,1.0000001) FROM t1",
+          "expect": "1 {the fraction argument to percentile_disc() is not between 0.0 and 1.0}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.15.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "BEGIN;\n    UPDATE t1 SET x='50' WHERE x IS NULL;\n    SELECT percentile(x, 50) FROM t1;",
+          "expect": "1 {input to percentile() is not numeric}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.15.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile_cont(x, 0.50) FROM t1;",
+          "expect": "1 {input to percentile_cont() is not numeric}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.15.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile_disc(x, 0.50) FROM t1;",
+          "expect": "1 {input to percentile_disc() is not numeric}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.15.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT median(x) FROM t1;",
+          "expect": "1 {input to median() is not numeric}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.16",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ROLLBACK;\n    BEGIN;\n    UPDATE t1 SET x=x'3530' WHERE x IS NULL;\n    SELECT percentile(x, 50) FROM t1;",
+          "expect": "1 {input to percentile() is not numeric}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.17",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ROLLBACK;\n    SELECT percentile(x, 50) FROM t1;",
+          "expect": "0 8.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.18",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET x=NULL;\n    SELECT ifnull(percentile(x, 50),'NULL') FROM t1",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.19",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET x=12345 WHERE rowid=5;\n    SELECT percentile(x, 0), percentile(x, 50), percentile(x,100) FROM t1",
+          "expect": "12345.0 12345.0 12345.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.20.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1 SELECT x+0.0 FROM t2;\n    UPDATE t1 SET x=1.0e300*1.0e300 WHERE rowid=5;\n    SELECT percentile(x,50) from t1;",
+          "expect": "1 {Inf input to percentile()}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.20.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile_cont(x,0.50) from t1;",
+          "expect": "1 {Inf input to percentile_cont()}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.20.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile_disc(x,0.50) from t1;",
+          "expect": "1 {Inf input to percentile_disc()}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.20.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT median(x) from t1;",
+          "expect": "1 {Inf input to median()}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.20.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile(50) WITHIN GROUP (ORDER BY x) from t1;",
+          "expect": "1 {Inf input to percentile()}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.20.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile_cont(0.50) WITHIN GROUP (ORDER BY x) from t1;",
+          "expect": "1 {Inf input to percentile_cont()}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.20.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT percentile_disc(0.50) WITHIN GROUP(ORDER BY X) from t1;",
+          "expect": "1 {Inf input to percentile_disc()}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.20.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT median() WITHIN GROUP (ORDER BY x) from t1;",
+          "expect": "1 {Inf input to median()}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.21",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE t1 SET x=-1.0e300*1.0e300 WHERE rowid=5;\n    SELECT percentile(x,50) from t1;",
+          "expect": "1 {Inf input to percentile()}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE nums USING wholenumber;\n      CREATE TABLE t3(x);\n      INSERT INTO t3 SELECT value-1 FROM nums WHERE value BETWEEN 1 AND 500000;\n      INSERT INTO t3 SELECT value*10 FROM nums\n                      WHERE value BETWEEN 500000 AND 999999;\n      SELECT count(*) FROM t3;",
+          "expect": "1000000"
+        }
+      ]
+    },
+    {
+      "name": "percentile-2.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT round(percentile(x, 0),1) from t3;",
+          "expect": "0.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-2.1.100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT round(percentile(x, 100),1) from t3;",
+          "expect": "9999990.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-2.1.50",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT round(percentile(x, 50),1) from t3;",
+          "expect": "2749999.5"
+        }
+      ]
+    },
+    {
+      "name": "percentile-2.1.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT round(percentile(x, 10),1) from t3;",
+          "expect": "99999.9"
         }
       ]
     },
@@ -55,6 +1896,186 @@
         {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  INSERT INTO t1 VALUES (1, 'A', 'one',   8.4),\n                        (2, 'B', 'two',   7.1),\n                        (3, 'C', 'three', 5.9),\n                        (4, 'D', 'one',  11.0),\n                        (5, 'E', 'two',  12.5),\n                        (6, 'F', 'three', 0.0),\n                        (7, 'G', 'one',   2.7);"
+        }
+      ]
+    },
+    {
+      "name": "percentile-3.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d, \n                  group_concat(b,'.') OVER w1 AS 'elements', \n                  median(d) OVER w1 AS 'median' \n            FROM t1 \n          WINDOW w1 AS (ORDER BY c, a ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)",
+          "expect": "\n    1  A  one    8.4   A.D       9.7   \n    4  D  one    11.0  A.D.G     8.4   \n    7  G  one    2.7   D.G.C     5.9   \n    3  C  three  5.9   G.C.F     2.7   \n    6  F  three  0.0   C.F.B     5.9   \n    2  B  two    7.1   F.B.E     7.1   \n    5  E  two    12.5  B.E       9.8   \n  "
+        }
+      ]
+    },
+    {
+      "name": "percentile-3.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d, \n                  group_concat(b,'.') OVER w1 AS 'elements', \n                  median(d) OVER w1 AS 'median' \n            FROM t1 \n           WINDOW w1 AS (ORDER BY c, a \n               ROWS BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING)",
+          "expect": "\n    1  A  one    8.4   A.D            9.7   \n    4  D  one    11.0  A.D.G          8.4   \n    7  G  one    2.7   A.D.G.C        7.15  \n    3  C  three  5.9   A.D.G.C.F      5.9   \n    6  F  three  0.0   A.D.G.C.F.B    6.5   \n    2  B  two    7.1   A.D.G.C.F.B.E  7.1   \n    5  E  two    12.5  A.D.G.C.F.B.E  7.1   \n  "
+        }
+      ]
+    },
+    {
+      "name": "percentile-3.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d, \n                  group_concat(b,'.') OVER w1 AS 'elements', \n                  median(d) OVER w1 AS 'median' \n            FROM t1 \n           WINDOW w1 AS (ORDER BY c, a \n               ROWS BETWEEN 1 PRECEDING AND UNBOUNDED FOLLOWING)",
+          "expect": "\n    1  A  one    8.4   A.D.G.C.F.B.E  7.1   \n    4  D  one    11.0  A.D.G.C.F.B.E  7.1   \n    7  G  one    2.7   D.G.C.F.B.E    6.5   \n    3  C  three  5.9   G.C.F.B.E      5.9   \n    6  F  three  0.0   C.F.B.E        6.5   \n    2  B  two    7.1   F.B.E          7.1   \n    5  E  two    12.5  B.E            9.8   \n  "
+        }
+      ]
+    },
+    {
+      "name": "percentile-3.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d, \n                  group_concat(b,'.') OVER w1 AS 'elements', \n                  percentile(d,50) OVER w1 AS 'median' \n            FROM t1 \n          WINDOW w1 AS (ORDER BY c, a ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)",
+          "expect": "\n    1  A  one    8.4   A.D       9.7   \n    4  D  one    11.0  A.D.G     8.4   \n    7  G  one    2.7   D.G.C     5.9   \n    3  C  three  5.9   G.C.F     2.7   \n    6  F  three  0.0   C.F.B     5.9   \n    2  B  two    7.1   F.B.E     7.1   \n    5  E  two    12.5  B.E       9.8   \n  "
+        }
+      ]
+    },
+    {
+      "name": "percentile-3.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d, \n                  group_concat(b,'.') OVER w1 AS 'elements', \n                  percentile(d,50) OVER w1 AS 'median' \n            FROM t1 \n           WINDOW w1 AS (ORDER BY c, a \n               ROWS BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING)",
+          "expect": "\n    1  A  one    8.4   A.D            9.7   \n    4  D  one    11.0  A.D.G          8.4   \n    7  G  one    2.7   A.D.G.C        7.15  \n    3  C  three  5.9   A.D.G.C.F      5.9   \n    6  F  three  0.0   A.D.G.C.F.B    6.5   \n    2  B  two    7.1   A.D.G.C.F.B.E  7.1   \n    5  E  two    12.5  A.D.G.C.F.B.E  7.1   \n  "
+        }
+      ]
+    },
+    {
+      "name": "percentile-3.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d, \n                  group_concat(b,'.') OVER w1 AS 'elements', \n                  percentile(d,50) OVER w1 AS 'median' \n            FROM t1 \n           WINDOW w1 AS (ORDER BY c, a \n               ROWS BETWEEN 1 PRECEDING AND UNBOUNDED FOLLOWING)",
+          "expect": "\n    1  A  one    8.4   A.D.G.C.F.B.E  7.1   \n    4  D  one    11.0  A.D.G.C.F.B.E  7.1   \n    7  G  one    2.7   D.G.C.F.B.E    6.5   \n    3  C  three  5.9   G.C.F.B.E      5.9   \n    6  F  three  0.0   C.F.B.E        6.5   \n    2  B  two    7.1   F.B.E          7.1   \n    5  E  two    12.5  B.E            9.8   \n  "
+        }
+      ]
+    },
+    {
+      "name": "percentile-3.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d, \n                  group_concat(b,'.') OVER w1 AS 'elements', \n                  percentile_cont(d,0.5) OVER w1 AS 'median' \n            FROM t1 \n          WINDOW w1 AS (ORDER BY c, a ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)",
+          "expect": "\n    1  A  one    8.4   A.D       9.7   \n    4  D  one    11.0  A.D.G     8.4   \n    7  G  one    2.7   D.G.C     5.9   \n    3  C  three  5.9   G.C.F     2.7   \n    6  F  three  0.0   C.F.B     5.9   \n    2  B  two    7.1   F.B.E     7.1   \n    5  E  two    12.5  B.E       9.8   \n  "
+        }
+      ]
+    },
+    {
+      "name": "percentile-3.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d, \n                  group_concat(b,'.') OVER w1 AS 'elements', \n                  percentile_cont(d,0.5) OVER w1 AS 'median' \n            FROM t1 \n           WINDOW w1 AS (ORDER BY c, a \n               ROWS BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING)",
+          "expect": "\n    1  A  one    8.4   A.D            9.7   \n    4  D  one    11.0  A.D.G          8.4   \n    7  G  one    2.7   A.D.G.C        7.15  \n    3  C  three  5.9   A.D.G.C.F      5.9   \n    6  F  three  0.0   A.D.G.C.F.B    6.5   \n    2  B  two    7.1   A.D.G.C.F.B.E  7.1   \n    5  E  two    12.5  A.D.G.C.F.B.E  7.1   \n  "
+        }
+      ]
+    },
+    {
+      "name": "percentile-3.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d, \n                  group_concat(b,'.') OVER w1 AS 'elements', \n                  percentile_cont(d,0.5) OVER w1 AS 'median' \n            FROM t1 \n           WINDOW w1 AS (ORDER BY c, a \n               ROWS BETWEEN 1 PRECEDING AND UNBOUNDED FOLLOWING)",
+          "expect": "\n    1  A  one    8.4   A.D.G.C.F.B.E  7.1   \n    4  D  one    11.0  A.D.G.C.F.B.E  7.1   \n    7  G  one    2.7   D.G.C.F.B.E    6.5   \n    3  C  three  5.9   G.C.F.B.E      5.9   \n    6  F  three  0.0   C.F.B.E        6.5   \n    2  B  two    7.1   F.B.E          7.1   \n    5  E  two    12.5  B.E            9.8   \n  "
+        }
+      ]
+    },
+    {
+      "name": "percentile-3.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d, \n                  group_concat(b,'.') OVER w1 AS 'elements', \n                  median() WITHIN GROUP (ORDER BY d) OVER w1 AS 'median' \n            FROM t1 \n          WINDOW w1 AS (ORDER BY c, a ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)",
+          "expect": "\n    1  A  one    8.4   A.D       9.7   \n    4  D  one    11.0  A.D.G     8.4   \n    7  G  one    2.7   D.G.C     5.9   \n    3  C  three  5.9   G.C.F     2.7   \n    6  F  three  0.0   C.F.B     5.9   \n    2  B  two    7.1   F.B.E     7.1   \n    5  E  two    12.5  B.E       9.8   \n  "
+        }
+      ]
+    },
+    {
+      "name": "percentile-3.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d, \n                  group_concat(b,'.') OVER w1 AS 'elements', \n                  median() WITHIN GROUP (ORDER BY d) OVER w1 AS 'median' \n            FROM t1 \n           WINDOW w1 AS (ORDER BY c, a \n               ROWS BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING)",
+          "expect": "\n    1  A  one    8.4   A.D            9.7   \n    4  D  one    11.0  A.D.G          8.4   \n    7  G  one    2.7   A.D.G.C        7.15  \n    3  C  three  5.9   A.D.G.C.F      5.9   \n    6  F  three  0.0   A.D.G.C.F.B    6.5   \n    2  B  two    7.1   A.D.G.C.F.B.E  7.1   \n    5  E  two    12.5  A.D.G.C.F.B.E  7.1   \n  "
+        }
+      ]
+    },
+    {
+      "name": "percentile-3.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d, \n                  group_concat(b,'.') OVER w1 AS 'elements', \n                  median() WITHIN GROUP (ORDER BY d) OVER w1 AS 'median' \n            FROM t1 \n           WINDOW w1 AS (ORDER BY c, a \n               ROWS BETWEEN 1 PRECEDING AND UNBOUNDED FOLLOWING)",
+          "expect": "\n    1  A  one    8.4   A.D.G.C.F.B.E  7.1   \n    4  D  one    11.0  A.D.G.C.F.B.E  7.1   \n    7  G  one    2.7   D.G.C.F.B.E    6.5   \n    3  C  three  5.9   G.C.F.B.E      5.9   \n    6  F  three  0.0   C.F.B.E        6.5   \n    2  B  two    7.1   F.B.E          7.1   \n    5  E  two    12.5  B.E            9.8   \n  "
+        }
+      ]
+    },
+    {
+      "name": "percentile-3.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d, \n                  group_concat(b,'.') OVER w1 AS 'elements', \n                  percentile(50) WITHIN GROUP (ORDER BY d) OVER w1 AS 'median' \n            FROM t1 \n          WINDOW w1 AS (ORDER BY c, a ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)",
+          "expect": "\n    1  A  one    8.4   A.D       9.7   \n    4  D  one    11.0  A.D.G     8.4   \n    7  G  one    2.7   D.G.C     5.9   \n    3  C  three  5.9   G.C.F     2.7   \n    6  F  three  0.0   C.F.B     5.9   \n    2  B  two    7.1   F.B.E     7.1   \n    5  E  two    12.5  B.E       9.8   \n  "
+        }
+      ]
+    },
+    {
+      "name": "percentile-3.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d, \n                  group_concat(b,'.') OVER w1 AS 'elements', \n                  percentile(50) WITHIN GROUP (ORDER BY d) OVER w1 AS 'median' \n            FROM t1 \n           WINDOW w1 AS (ORDER BY c, a \n               ROWS BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING)",
+          "expect": "\n    1  A  one    8.4   A.D            9.7   \n    4  D  one    11.0  A.D.G          8.4   \n    7  G  one    2.7   A.D.G.C        7.15  \n    3  C  three  5.9   A.D.G.C.F      5.9   \n    6  F  three  0.0   A.D.G.C.F.B    6.5   \n    2  B  two    7.1   A.D.G.C.F.B.E  7.1   \n    5  E  two    12.5  A.D.G.C.F.B.E  7.1   \n  "
+        }
+      ]
+    },
+    {
+      "name": "percentile-3.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d, \n                  group_concat(b,'.') OVER w1 AS 'elements', \n                  percentile(50) WITHIN GROUP (ORDER BY d) OVER w1 AS 'median' \n            FROM t1 \n           WINDOW w1 AS (ORDER BY c, a \n               ROWS BETWEEN 1 PRECEDING AND UNBOUNDED FOLLOWING)",
+          "expect": "\n    1  A  one    8.4   A.D.G.C.F.B.E  7.1   \n    4  D  one    11.0  A.D.G.C.F.B.E  7.1   \n    7  G  one    2.7   D.G.C.F.B.E    6.5   \n    3  C  three  5.9   G.C.F.B.E      5.9   \n    6  F  three  0.0   C.F.B.E        6.5   \n    2  B  two    7.1   F.B.E          7.1   \n    5  E  two    12.5  B.E            9.8   \n  "
+        }
+      ]
+    },
+    {
+      "name": "percentile-3.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d, \n                  group_concat(b,'.') OVER w1 AS 'elements', \n                  percentile_cont(0.5) WITHIN GROUP (ORDER BY d) OVER w1 AS 'median' \n            FROM t1 \n          WINDOW w1 AS (ORDER BY c, a ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)",
+          "expect": "\n    1  A  one    8.4   A.D       9.7   \n    4  D  one    11.0  A.D.G     8.4   \n    7  G  one    2.7   D.G.C     5.9   \n    3  C  three  5.9   G.C.F     2.7   \n    6  F  three  0.0   C.F.B     5.9   \n    2  B  two    7.1   F.B.E     7.1   \n    5  E  two    12.5  B.E       9.8   \n  "
+        }
+      ]
+    },
+    {
+      "name": "percentile-3.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d, \n                  group_concat(b,'.') OVER w1 AS 'elements', \n                  percentile_cont(0.5) WITHIN GROUP (ORDER BY d) OVER w1 AS 'median' \n            FROM t1 \n           WINDOW w1 AS (ORDER BY c, a \n               ROWS BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING)",
+          "expect": "\n    1  A  one    8.4   A.D            9.7   \n    4  D  one    11.0  A.D.G          8.4   \n    7  G  one    2.7   A.D.G.C        7.15  \n    3  C  three  5.9   A.D.G.C.F      5.9   \n    6  F  three  0.0   A.D.G.C.F.B    6.5   \n    2  B  two    7.1   A.D.G.C.F.B.E  7.1   \n    5  E  two    12.5  A.D.G.C.F.B.E  7.1   \n  "
+        }
+      ]
+    },
+    {
+      "name": "percentile-3.6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d, \n                  group_concat(b,'.') OVER w1 AS 'elements', \n                  percentile_cont(0.5) WITHIN GROUP (ORDER BY d) OVER w1 AS 'median' \n            FROM t1 \n           WINDOW w1 AS (ORDER BY c, a \n               ROWS BETWEEN 1 PRECEDING AND UNBOUNDED FOLLOWING)",
+          "expect": "\n    1  A  one    8.4   A.D.G.C.F.B.E  7.1   \n    4  D  one    11.0  A.D.G.C.F.B.E  7.1   \n    7  G  one    2.7   D.G.C.F.B.E    6.5   \n    3  C  three  5.9   G.C.F.B.E      5.9   \n    6  F  three  0.0   C.F.B.E        6.5   \n    2  B  two    7.1   F.B.E          7.1   \n    5  E  two    12.5  B.E            9.8   \n  "
         }
       ]
     },
@@ -73,7 +2094,7 @@
         {
           "type": "query",
           "sql": "SELECT VendorId, ProductId, /* ProductName,*/ Price,\n         avg(price) OVER (PARTITION BY vendorId) AS \"Average\",\n         median(price) OVER (PARTITION BY vendorId) AS \"Median\"\n    FROM products\n   ORDER BY vendorId, productId;",
-          "expect": "1001      17         25.99  19.68    20.37 \n  1001      31         11.99  19.68    20.37 \n  1001      49         25.99  19.68    20.37 \n  1001      216        14.75  19.68    20.37 \n  1002      37         33.49  33.49    33.49 \n  1003      7          245.0  104.0    55.99 \n  1003      8          55.99  104.0    55.99 \n  1003      12         11.01  104.0    55.99 \n  1004      113        12.45  11.22    11.22 \n  1004      117        9.99   11.22    11.22"
+          "expect": "\n  1001      17         25.99  19.68    20.37 \n  1001      31         11.99  19.68    20.37 \n  1001      49         25.99  19.68    20.37 \n  1001      216        14.75  19.68    20.37 \n  1002      37         33.49  33.49    33.49 \n  1003      7          245.0  104.0    55.99 \n  1003      8          55.99  104.0    55.99 \n  1003      12         11.01  104.0    55.99 \n  1004      113        12.45  11.22    11.22 \n  1004      117        9.99   11.22    11.22 \n"
         }
       ]
     },
@@ -102,7 +2123,7 @@
         {
           "type": "query",
           "sql": "SELECT name, class, cost,\n    percentile(cost,   0) OVER w1 AS 'P0',\n    percentile(cost,  25) OVER w1 AS 'P1',\n    percentile(cost,  50) OVER w1 AS 'P2',\n    percentile(cost,  75) OVER w1 AS 'P3',\n    percentile(cost, 100) OVER w1 AS 'P4'\n  FROM user\n  WINDOW w1 AS (PARTITION BY class)\n  ORDER BY class, cost;",
-          "expect": "Nate   W  23.5     23.5     24.6175    24.99     33.625     59.53  \n  Hank   W  24.99    23.5     24.6175    24.99     33.625     59.53  \n  Irma   W  24.99    23.5     24.6175    24.99     33.625     59.53  \n  Mia    W  59.53    23.5     24.6175    24.99     33.625     59.53  \n  Jake   X  2234.99  2234.99  2299.115   2860.24   3792.14    4968.59\n  Gina   X  2320.49  2234.99  2299.115   2860.24   3792.14    4968.59\n  Bob    X  3399.99  2234.99  2299.115   2860.24   3792.14    4968.59\n  Liam   X  4968.59  2234.99  2299.115   2860.24   3792.14    4968.59\n  Fred   Y  539.99   539.99   2443.7     3328.27   3763.7     4319.99\n  Dave   Y  3078.27  539.99   2443.7     3328.27   3763.7     4319.99\n  Alice  Y  3578.27  539.99   2443.7     3328.27   3763.7     4319.99\n  Kim    Y  4319.99  539.99   2443.7     3328.27   3763.7     4319.99\n  Cindy  Z  699.1    699.1    1104.3225  1509.545  1914.7675  2319.99\n  Emma   Z  2319.99  699.1    1104.3225  1509.545  1914.7675  2319.99"
+          "expect": "\n  Nate   W  23.5     23.5     24.6175    24.99     33.625     59.53  \n  Hank   W  24.99    23.5     24.6175    24.99     33.625     59.53  \n  Irma   W  24.99    23.5     24.6175    24.99     33.625     59.53  \n  Mia    W  59.53    23.5     24.6175    24.99     33.625     59.53  \n  Jake   X  2234.99  2234.99  2299.115   2860.24   3792.14    4968.59\n  Gina   X  2320.49  2234.99  2299.115   2860.24   3792.14    4968.59\n  Bob    X  3399.99  2234.99  2299.115   2860.24   3792.14    4968.59\n  Liam   X  4968.59  2234.99  2299.115   2860.24   3792.14    4968.59\n  Fred   Y  539.99   539.99   2443.7     3328.27   3763.7     4319.99\n  Dave   Y  3078.27  539.99   2443.7     3328.27   3763.7     4319.99\n  Alice  Y  3578.27  539.99   2443.7     3328.27   3763.7     4319.99\n  Kim    Y  4319.99  539.99   2443.7     3328.27   3763.7     4319.99\n  Cindy  Z  699.1    699.1    1104.3225  1509.545  1914.7675  2319.99\n  Emma   Z  2319.99  699.1    1104.3225  1509.545  1914.7675  2319.99\n"
         }
       ]
     },
@@ -110,8 +2131,9 @@
       "name": "percentile-6.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<12)\n  SELECT median(iif(n%2,0.1,1.0)) FROM c;"
+          "type": "query",
+          "sql": "WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n\u003c12)\n  SELECT median(iif(n%2,0.1,1.0)) FROM c;",
+          "expect": "0.55"
         }
       ]
     },
@@ -119,547 +2141,9 @@
       "name": "percentile-7.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH RECURSIVE t1(n,x) AS (\n    VALUES(1,1.0)\n    UNION ALL\n    SELECT n+1, if(n%2,n*2.0,999998.0-2.0*n) FROM t1 WHERE n<1000000\n  ) SELECT median(x) FROM t1;"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1),(4),(6),(7),(8),(9),(11),(11),(11);"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(NULL),(NULL);"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.4.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT round(percentile(x, 15+0.000001*rowid),1) FROM t1",
-          "expect": "0 4.4"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.4.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT round(percentile_cont(x,(15+0.000001*rowid)*0.01),1) FROM t1",
-          "expect": "0 4.4"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.4.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile_disc(x, (15+0.000001*rowid)*0.01) FROM t1",
-          "expect": "0 4.0"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.5.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile(x, 15+0.1*rowid) FROM t1",
-          "expect": "1 {the fraction argument to percentile() is not the same for all input rows}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.5.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile_cont(x, (15+0.1*rowid)*0.01) FROM t1",
-          "expect": "1 {the fraction argument to percentile_cont() is not the same for all input rows}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.5.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile_disc(x, (15+0.1*rowid)*0.01) FROM t1",
-          "expect": "1 {the fraction argument to percentile_disc() is not the same for all input rows}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(x);\n    INSERT INTO t2 SELECT x+0.0 FROM t1 ORDER BY random();"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.8.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile(x,0,1) FROM t1",
-          "expect": "1 {wrong number of arguments to function percentile()}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.8.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile_cont(x,0,1) FROM t1",
-          "expect": "1 {wrong number of arguments to function percentile_cont()}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.8.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile_disc(x,0,1) FROM t1",
-          "expect": "1 {wrong number of arguments to function percentile_disc()}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.8.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT median(x,0) FROM t1",
-          "expect": "1 {wrong number of arguments to function median()}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.8.5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile(0,1) WITHIN GROUP(ORDER BY x) FROM t1",
-          "expect": "1 {wrong number of arguments to function percentile()}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.8.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile_cont(0,1)WITHIN GROUP (ORDER BY x) FROM t1",
-          "expect": "1 {wrong number of arguments to function percentile_cont()}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.8.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile_disc(0,1)WITHIN GROUP (ORDER BY x) FROM t1",
-          "expect": "1 {wrong number of arguments to function percentile_disc()}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.8.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT median(x) WITHIN GROUP (ORDER BY x) FROM t1",
-          "expect": "1 {wrong number of arguments to function median()}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.9.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile(x) FROM t1",
-          "expect": "1 {wrong number of arguments to function percentile()}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.9.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile_cont(x) FROM t1",
-          "expect": "1 {wrong number of arguments to function percentile_cont()}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.9.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile_disc(x) FROM t1",
-          "expect": "1 {wrong number of arguments to function percentile_disc()}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.9.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT median() FROM t1",
-          "expect": "1 {wrong number of arguments to function median()}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.9.5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile() WITHIN GROUP(ORDER BY x) FROM t1",
-          "expect": "1 {wrong number of arguments to function percentile()}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.9.6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile_cont()WITHIN GROUP (ORDER BY x) FROM t1",
-          "expect": "1 {wrong number of arguments to function percentile_cont()}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.9.7",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile_disc()WITHIN GROUP (ORDER BY x) FROM t1",
-          "expect": "1 {wrong number of arguments to function percentile_disc()}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.10",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile(x,null) FROM t1",
-          "expect": "1 {the fraction argument to percentile() is not between 0.0 and 100.0}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.11",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile(x,'fifty') FROM t1",
-          "expect": "1 {the fraction argument to percentile() is not between 0.0 and 100.0}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.12",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile(x,x'3530') FROM t1",
-          "expect": "1 {the fraction argument to percentile() is not between 0.0 and 100.0}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.13",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile(x,-0.0000001) FROM t1",
-          "expect": "1 {the fraction argument to percentile() is not between 0.0 and 100.0}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.14",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile(x,100.0000001) FROM t1",
-          "expect": "1 {the fraction argument to percentile() is not between 0.0 and 100.0}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.14.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile_cont(x,1.0000001) FROM t1",
-          "expect": "1 {the fraction argument to percentile_cont() is not between 0.0 and 1.0}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.14.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile_disc(x,1.0000001) FROM t1",
-          "expect": "1 {the fraction argument to percentile_disc() is not between 0.0 and 1.0}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.15.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    UPDATE t1 SET x='50' WHERE x IS NULL;\n    SELECT percentile(x, 50) FROM t1;",
-          "expect": "1 {input to percentile() is not numeric}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.15.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile_cont(x, 0.50) FROM t1;",
-          "expect": "1 {input to percentile_cont() is not numeric}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.15.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile_disc(x, 0.50) FROM t1;",
-          "expect": "1 {input to percentile_disc() is not numeric}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.15.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT median(x) FROM t1;",
-          "expect": "1 {input to median() is not numeric}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.16",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ROLLBACK;\n    BEGIN;\n    UPDATE t1 SET x=x'3530' WHERE x IS NULL;\n    SELECT percentile(x, 50) FROM t1;",
-          "expect": "1 {input to percentile() is not numeric}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.17",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ROLLBACK;\n    SELECT percentile(x, 50) FROM t1;",
-          "expect": "0 8.0"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.18",
-      "steps": [
-        {
           "type": "query",
-          "sql": "UPDATE t1 SET x=NULL;\n    SELECT ifnull(percentile(x, 50),'NULL') FROM t1",
-          "expect": "NULL"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.19",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "UPDATE t1 SET x=12345 WHERE rowid=5;\n    SELECT percentile(x, 0), percentile(x, 50), percentile(x,100) FROM t1",
-          "expect": "12345.0 12345.0 12345.0"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.20.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1;\n    INSERT INTO t1 SELECT x+0.0 FROM t2;\n    UPDATE t1 SET x=1.0e300*1.0e300 WHERE rowid=5;\n    SELECT percentile(x,50) from t1;",
-          "expect": "1 {Inf input to percentile()}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.20.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile_cont(x,0.50) from t1;",
-          "expect": "1 {Inf input to percentile_cont()}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.20.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile_disc(x,0.50) from t1;",
-          "expect": "1 {Inf input to percentile_disc()}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.20.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT median(x) from t1;",
-          "expect": "1 {Inf input to median()}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.20.5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile(50) WITHIN GROUP (ORDER BY x) from t1;",
-          "expect": "1 {Inf input to percentile()}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.20.6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile_cont(0.50) WITHIN GROUP (ORDER BY x) from t1;",
-          "expect": "1 {Inf input to percentile_cont()}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.20.7",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT percentile_disc(0.50) WITHIN GROUP(ORDER BY X) from t1;",
-          "expect": "1 {Inf input to percentile_disc()}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.20.8",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT median() WITHIN GROUP (ORDER BY x) from t1;",
-          "expect": "1 {Inf input to median()}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-1.21",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET x=-1.0e300*1.0e300 WHERE rowid=5;\n    SELECT percentile(x,50) from t1;",
-          "expect": "1 {Inf input to percentile()}"
-        }
-      ]
-    },
-    {
-      "name": "percentile-2.0",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE VIRTUAL TABLE nums USING wholenumber;\n      CREATE TABLE t3(x);\n      INSERT INTO t3 SELECT value-1 FROM nums WHERE value BETWEEN 1 AND 500000;\n      INSERT INTO t3 SELECT value*10 FROM nums\n                      WHERE value BETWEEN 500000 AND 999999;\n      SELECT count(*) FROM t3;",
-          "expect": "1000000"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1),(4),(6),(7),(8),(9),(11),(11),(11);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT percentile(x,0) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT median(x) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT median() WITHIN GROUP (ORDER BY x) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(NULL),(NULL);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT median(x) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT median() WITHIN GROUP (ORDER BY x) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(x);\n    INSERT INTO t2 SELECT x+0.0 FROM t1 ORDER BY random();"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT median(x) FROM t2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT median() WITHIN GROUP (ORDER BY x) FROM t2"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET x=NULL;\n    SELECT ifnull(percentile(x, 50),'NULL') FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET x=12345 WHERE rowid=5;\n    SELECT percentile(x, 0), percentile(x, 50), percentile(x,100) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE nums USING wholenumber;\n      CREATE TABLE t3(x);\n      INSERT INTO t3 SELECT value-1 FROM nums WHERE value BETWEEN 1 AND 500000;\n      INSERT INTO t3 SELECT value*10 FROM nums\n                      WHERE value BETWEEN 500000 AND 999999;\n      SELECT count(*) FROM t3;"
+          "sql": "WITH RECURSIVE t1(n,x) AS (\n    VALUES(1,1.0)\n    UNION ALL\n    SELECT n+1, if(n%2,n*2.0,999998.0-2.0*n) FROM t1 WHERE n\u003c1000000\n  ) SELECT median(x) FROM t1;",
+          "expect": "499998.0"
         }
       ]
     }

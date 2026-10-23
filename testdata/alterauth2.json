@@ -1,13 +1,116 @@
 {
   "file": "alterauth2.test",
   "name": "alterauth2",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "auth_proc",
+          "authProc": "xAuth",
+          "callbackVars": {
+            "": "",
+            "::auth": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "alterauth2"
+          },
+          "callbackProcs": [
+            {
+              "Name": "xAuth",
+              "Args": [
+                "type",
+                "args"
+              ],
+              "Body": "\n  lappend ::auth [concat $type [lrange $args 0 3]]\n  if {$type==\"SQLITE_READ\" \u0026\u0026 [lindex $args 0] == \"t2\"} breakpoint\n  return SQLITE_OK\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "xAuth",
+          "functionBody": "\n  lappend ::auth [concat $type [lrange $args 0 3]]\n  if {$type==\"SQLITE_READ\" \u0026\u0026 [lindex $args 0] == \"t2\"} breakpoint\n  return SQLITE_OK\n"
+        }
+      ]
+    },
+    {
+      "name": "alterauth2-1.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, c); \n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    DELETE FROM t1 WHERE a\u003cnew.a;\n  END;\n\n  CREATE TEMP TRIGGER tr2 AFTER UPDATE OF a, b ON t1 BEGIN\n    UPDATE t1 SET a=a+1 WHERE new.b\u003cb;\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "alterauth2-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME TO t2;",
+          "expect": "{SQLITE_ALTER_TABLE main t1 {} {}} {SQLITE_FUNCTION {} like {} {}} {SQLITE_FUNCTION {} sqlite_rename_table {} {}} {SQLITE_FUNCTION {} sqlite_rename_test {} {}} {SQLITE_FUNCTION {} substr {} {}} {SQLITE_READ sqlite_master name main {}} {SQLITE_READ sqlite_master sql main {}} {SQLITE_READ sqlite_master tbl_name main {}} {SQLITE_READ sqlite_master type main {}} {SQLITE_READ sqlite_temp_master name temp {}} {SQLITE_READ sqlite_temp_master sql temp {}} {SQLITE_READ sqlite_temp_master tbl_name temp {}} {SQLITE_READ sqlite_temp_master type temp {}} {SQLITE_SELECT {} {} {} {}} {SQLITE_UPDATE sqlite_master name main {}} {SQLITE_UPDATE sqlite_master sql main {}} {SQLITE_UPDATE sqlite_master tbl_name main {}} {SQLITE_UPDATE sqlite_temp_master sql temp {}} {SQLITE_UPDATE sqlite_temp_master tbl_name temp {}}"
+        }
+      ]
+    },
+    {
+      "name": "alterauth2-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 RENAME a TO aaa;",
+          "expect": "{SQLITE_ALTER_TABLE main t2 {} {}} {SQLITE_FUNCTION {} like {} {}} {SQLITE_FUNCTION {} sqlite_rename_column {} {}} {SQLITE_FUNCTION {} sqlite_rename_quotefix {} {}} {SQLITE_FUNCTION {} sqlite_rename_test {} {}} {SQLITE_READ sqlite_master name main {}} {SQLITE_READ sqlite_master sql main {}} {SQLITE_READ sqlite_master tbl_name main {}} {SQLITE_READ sqlite_master type main {}} {SQLITE_READ sqlite_temp_master name temp {}} {SQLITE_READ sqlite_temp_master sql temp {}} {SQLITE_READ sqlite_temp_master type temp {}} {SQLITE_SELECT {} {} {} {}} {SQLITE_UPDATE sqlite_master sql main {}} {SQLITE_UPDATE sqlite_temp_master sql temp {}}"
+        }
+      ]
+    },
+    {
+      "name": "alterauth2-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 DROP COLUMN c;",
+          "expect": "{SQLITE_ALTER_TABLE main t2 c {}} {SQLITE_FUNCTION {} like {} {}} {SQLITE_FUNCTION {} sqlite_drop_column {} {}} {SQLITE_FUNCTION {} sqlite_rename_quotefix {} {}} {SQLITE_FUNCTION {} sqlite_rename_test {} {}} {SQLITE_READ sqlite_master name main {}} {SQLITE_READ sqlite_master sql main {}} {SQLITE_READ sqlite_master tbl_name main {}} {SQLITE_READ sqlite_master type main {}} {SQLITE_READ sqlite_temp_master name temp {}} {SQLITE_READ sqlite_temp_master sql temp {}} {SQLITE_READ sqlite_temp_master type temp {}} {SQLITE_SELECT {} {} {} {}} {SQLITE_UPDATE sqlite_master sql main {}} {SQLITE_UPDATE sqlite_temp_master sql temp {}}"
+        }
+      ]
+    },
+    {
+      "name": "alterauth2-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 ALTER COLUMN b SET NOT NULL;",
+          "expect": "{SQLITE_ALTER_TABLE main t2 b {}} {SQLITE_FUNCTION {} sqlite_add_constraint {} {}} {SQLITE_FUNCTION {} sqlite_drop_constraint {} {}} {SQLITE_FUNCTION {} sqlite_fail {} {}} {SQLITE_READ sqlite_master sql main {}} {SQLITE_READ sqlite_master tbl_name main {}} {SQLITE_READ sqlite_master type main {}} {SQLITE_READ t2 b main {}} {SQLITE_SELECT {} {} {} {}} {SQLITE_UPDATE sqlite_master sql main {}}"
+        }
+      ]
+    },
+    {
+      "name": "alterauth2-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 ALTER COLUMN 'b' DROP NOT NULL;",
+          "expect": "{SQLITE_ALTER_TABLE main t2 b {}} {SQLITE_FUNCTION {} sqlite_drop_constraint {} {}} {SQLITE_READ sqlite_master sql main {}} {SQLITE_READ sqlite_master tbl_name main {}} {SQLITE_READ sqlite_master type main {}} {SQLITE_UPDATE sqlite_master sql main {}}"
+        }
+      ]
+    },
+    {
+      "name": "alterauth2-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 ADD CONSTRAINT abc CHECK (aaa\u003eb)",
+          "expect": "{SQLITE_ALTER_TABLE main t2 {} {}} {SQLITE_FUNCTION {} sqlite_add_constraint {} {}} {SQLITE_FUNCTION {} sqlite_fail {} {}} {SQLITE_FUNCTION {} sqlite_find_constraint {} {}} {SQLITE_READ sqlite_master sql main {}} {SQLITE_READ sqlite_master tbl_name main {}} {SQLITE_READ sqlite_master type main {}} {SQLITE_READ t2 aaa main {}} {SQLITE_READ t2 b main {}} {SQLITE_SELECT {} {} {} {}} {SQLITE_UPDATE sqlite_master sql main {}}"
+        }
+      ]
+    },
+    {
+      "name": "alterauth2-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 DROP CONSTRAINT abc;",
+          "expect": "{SQLITE_ALTER_TABLE main t2 {} {}} {SQLITE_FUNCTION {} sqlite_drop_constraint {} {}} {SQLITE_READ sqlite_master sql main {}} {SQLITE_READ sqlite_master tbl_name main {}} {SQLITE_READ sqlite_master type main {}} {SQLITE_UPDATE sqlite_master sql main {}}"
         }
       ]
     }

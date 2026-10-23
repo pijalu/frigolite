@@ -78,10 +78,24 @@ func readListQuoted(s string, pos int) (string, int) {
 		pos++
 	}
 	if pos < len(s) {
-		return s[start:pos], pos + 1
+		return unescapeListElement(s[start:pos]), pos + 1
 	}
 	// Unterminated element: take the rest verbatim.
-	return s[start:pos], pos
+	return unescapeListElement(s[start:pos]), pos
+}
+
+// unescapeListElement processes Tcl backslash escapes in a quoted list element.
+func unescapeListElement(s string) string {
+	var b strings.Builder
+	for i := 0; i < len(s); i++ {
+		if s[i] == '\\' && i+1 < len(s) {
+			i++
+			b.WriteByte(escapeChar(s[i]))
+			continue
+		}
+		b.WriteByte(s[i])
+	}
+	return b.String()
 }
 
 // readListPlain reads a plain list element until whitespace, tracking brace
@@ -153,17 +167,17 @@ func tclLIndex(s string, idx int) string {
 	return items[idx]
 }
 
-// tclLRange returns elements from start to end (inclusive).
-// Negative end means "until the last element".
+// tclLRange returns the elements from start to end (inclusive); indices are
+// already resolved by parseTclIndex, so a negative end means an empty range.
 func tclLRange(s string, start, end int) string {
 	items := splitList(s)
 	if start < 0 {
 		start = 0
 	}
-	if end < 0 || end >= len(items) {
+	if end >= len(items) {
 		end = len(items) - 1
 	}
-	if start > end || start >= len(items) {
+	if start > end || start >= len(items) || end < 0 {
 		return ""
 	}
 	return tclList(items[start : end+1])

@@ -1,0 +1,20 @@
+{
+  "file": "fts3expr2.test",
+  "name": "fts3expr2",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "set_fts3_parens",
+          "sql": "1"
+        },
+        {
+          "type": "set_fts3_parens",
+          "sql": "0"
+        }
+      ]
+    }
+  ]
+}

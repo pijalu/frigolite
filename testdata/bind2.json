@@ -1,9 +1,10 @@
 {
   "file": "bind2.test",
   "name": "bind2",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "bind2-1.0",
       "steps": [
         {
           "type": "query",
@@ -13,11 +14,45 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "bind2-1.1",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT ?",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT ?",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_1__",
+          "expect": "42.0"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT ?",
+          "variable": "stmt_1"
+        }
+      ]
+    },
+    {
+      "name": "bind2-1.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE t1 SET a=43;",
+          "sql": "UPDATE t1 SET a=43;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "reslist",
           "expect": "42.0 43.0"
         }
       ]

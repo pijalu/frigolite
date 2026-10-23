@@ -1,0 +1,24 @@
+{
+  "file": "mutex2.test",
+  "name": "mutex2",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "mutex2-2.6",
+      "steps": [
+        {
+          "type": "runtime_assert",
+          "sql": "0 {}"
+        }
+      ]
+    }
+  ]
+}

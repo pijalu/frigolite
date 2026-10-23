@@ -1,6 +1,7 @@
 {
   "file": "tabfunc01.test",
   "name": "tabfunc01",
+  "ordered": true,
   "tests": [
     {
       "name": "tabfunc01-1.1",
@@ -36,7 +37,7 @@
       "name": "tabfunc01-1.2b",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT *, '|' FROM generate_series LIMIT 5;",
           "expect": "1 {first argument to \"generate_series()\" missing or unusable}"
         }
@@ -46,7 +47,7 @@
       "name": "tabfunc01-1.2c",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT *, '|' FROM generate_series(value) LIMIT 5;",
           "expect": "1 {first argument to \"generate_series()\" missing or unusable}"
         }
@@ -56,7 +57,7 @@
       "name": "tabfunc01-1.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE t1 USING generate_series;",
           "expect": "1 {no such module: generate_series}"
         }
@@ -96,7 +97,7 @@
       "name": "tabfunc01-1.7",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM generate_series(1,9,2,11);",
           "expect": "1 {too many arguments on generate_series() - max 3}"
         }
@@ -146,7 +147,7 @@
       "name": "tabfunc01-1.21.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM v1(55);",
           "expect": "1 {'v1' is not a function}"
         }
@@ -156,7 +157,7 @@
       "name": "tabfunc01-1.21.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM v1();",
           "expect": "1 {'v1' is not a function}"
         }
@@ -176,7 +177,7 @@
       "name": "tabfunc01-1.23.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM v2(55);",
           "expect": "1 {'v2' is not a function}"
         }
@@ -186,7 +187,7 @@
       "name": "tabfunc01-1.23.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM v2();",
           "expect": "1 {'v2' is not a function}"
         }
@@ -206,7 +207,7 @@
       "name": "tabfunc01-1.25",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM t0(55) ORDER BY x;",
           "expect": "1 {'t0' is not a function}"
         }
@@ -216,7 +217,7 @@
       "name": "tabfunc01-1.26",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "WITH w0 AS (SELECT * FROM t0)\n  INSERT INTO t0(x) SELECT * FROM w0()",
           "expect": "1 {'w0' is not a function}"
         }
@@ -259,6 +260,51 @@
           "type": "query",
           "sql": "SELECT DISTINCT value FROM generate_series(1,x), t1 ORDER BY 1;",
           "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-3.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT value FROM generate_series(1,10) ORDER BY value;"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-3.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT value FROM generate_series(1,10) ORDER BY +value;"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-3.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT value FROM generate_series(1,10) ORDER BY value, stop;"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-3.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT value FROM generate_series(1,10) ORDER BY stop, value;"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-3.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  WITH t1(a) AS (\n    SELECT value FROM generate_series(0,10,2)\n    UNION ALL\n    SELECT value FROM generate_series(9,18,3)\n  )\n  SELECT * FROM t1 ORDER BY a;"
         }
       ]
     },
@@ -307,7 +353,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value\n    FROM generate_series(60,73,6)\n   WHERE value=66;"
+          "sql": "SELECT value\n    FROM generate_series(60,73,6)\n   WHERE value=66;",
+          "expect": "66"
         }
       ]
     },
@@ -316,7 +363,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value\n    FROM generate_series(73,60,-6)\n   WHERE value=67;"
+          "sql": "SELECT value\n    FROM generate_series(73,60,-6)\n   WHERE value=67;",
+          "expect": "67"
         }
       ]
     },
@@ -325,7 +373,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(1,10) WHERE value<5.5;",
+          "sql": "SELECT value FROM generate_series(1,10) WHERE value\u003c5.5;",
           "expect": "1 2 3 4 5"
         }
       ]
@@ -335,7 +383,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(1,10) WHERE value<5.0;",
+          "sql": "SELECT value FROM generate_series(1,10) WHERE value\u003c5.0;",
           "expect": "1 2 3 4"
         }
       ]
@@ -345,7 +393,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(1,10) WHERE value<=5.5;",
+          "sql": "SELECT value FROM generate_series(1,10) WHERE value\u003c=5.5;",
           "expect": "1 2 3 4 5"
         }
       ]
@@ -355,7 +403,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(1,10) WHERE value<=5.0;",
+          "sql": "SELECT value FROM generate_series(1,10) WHERE value\u003c=5.0;",
           "expect": "1 2 3 4 5"
         }
       ]
@@ -365,7 +413,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(1,10) WHERE value>5.5;",
+          "sql": "SELECT value FROM generate_series(1,10) WHERE value\u003e5.5;",
           "expect": "6 7 8 9 10"
         }
       ]
@@ -375,7 +423,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(1,10) WHERE value>5.0;",
+          "sql": "SELECT value FROM generate_series(1,10) WHERE value\u003e5.0;",
           "expect": "6 7 8 9 10"
         }
       ]
@@ -385,7 +433,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(1,10) WHERE value>=5.5;",
+          "sql": "SELECT value FROM generate_series(1,10) WHERE value\u003e=5.5;",
           "expect": "6 7 8 9 10"
         }
       ]
@@ -395,7 +443,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(1,10) WHERE value>=5.0;",
+          "sql": "SELECT value FROM generate_series(1,10) WHERE value\u003e=5.0;",
           "expect": "5 6 7 8 9 10"
         }
       ]
@@ -405,7 +453,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(10,1,-1) WHERE value<5.5;",
+          "sql": "SELECT value FROM generate_series(10,1,-1) WHERE value\u003c5.5;",
           "expect": "5 4 3 2 1"
         }
       ]
@@ -415,7 +463,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(10,1,-1) WHERE value<5.0;",
+          "sql": "SELECT value FROM generate_series(10,1,-1) WHERE value\u003c5.0;",
           "expect": "4 3 2 1"
         }
       ]
@@ -425,7 +473,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(10,1,-1) WHERE value<=5.5;",
+          "sql": "SELECT value FROM generate_series(10,1,-1) WHERE value\u003c=5.5;",
           "expect": "5 4 3 2 1"
         }
       ]
@@ -435,7 +483,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(10,1,-1) WHERE value<=5.0;",
+          "sql": "SELECT value FROM generate_series(10,1,-1) WHERE value\u003c=5.0;",
           "expect": "5 4 3 2 1"
         }
       ]
@@ -445,7 +493,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(10,1,-1) WHERE value>5.5;",
+          "sql": "SELECT value FROM generate_series(10,1,-1) WHERE value\u003e5.5;",
           "expect": "10 9 8 7 6"
         }
       ]
@@ -455,7 +503,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(10,1,-1) WHERE value>5.0;",
+          "sql": "SELECT value FROM generate_series(10,1,-1) WHERE value\u003e5.0;",
           "expect": "10 9 8 7 6"
         }
       ]
@@ -465,7 +513,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(10,1,-1) WHERE value>=5.5;",
+          "sql": "SELECT value FROM generate_series(10,1,-1) WHERE value\u003e=5.5;",
           "expect": "10 9 8 7 6"
         }
       ]
@@ -475,7 +523,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(10,1,-1) WHERE value>=5.0;",
+          "sql": "SELECT value FROM generate_series(10,1,-1) WHERE value\u003e=5.0;",
           "expect": "10 9 8 7 6 5"
         }
       ]
@@ -514,8 +562,201 @@
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE TABLE t600(a INTEGER PRIMARY KEY, b TEXT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t600(a,b) SELECT x, printf('(%03d)',x) FROM c;\n  SELECT b FROM t600 WHERE a IN generate_series(2,52,10);",
+          "sql": "CREATE TABLE t600(a INTEGER PRIMARY KEY, b TEXT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c100)\n    INSERT INTO t600(a,b) SELECT x, printf('(%03d)',x) FROM c;\n  SELECT b FROM t600 WHERE a IN generate_series(2,52,10);",
           "expect": "(002) (012) (022) (032) (042) (052)"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-700",
+      "steps": [
+        {
+          "type": "register_test_funcs"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t600, carray(inttoptr(''),5) WHERE a=value;",
+          "expect": "(005) (007) (013) (017) (023)"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-701",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t600 WHERE a IN carray(inttoptr(''),5,'int32');",
+          "expect": "(005) (007) (013) (017) (023)"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-702",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t600 WHERE a IN carray(inttoptr(''),4,'int32');",
+          "expect": "(005) (007) (013) (017)"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-710",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT b FROM t600 WHERE a IN carray(inttoptr(''),5,'int33');",
+          "expect": "1 {unknown datatype: 'int33'}"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-720",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t600, carray(inttoptr(''),5,'int64') WHERE a=value;",
+          "expect": "(005) (007) (013) (017) (023)"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-721",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT remember(123,inttoptr(''));\n    SELECT value FROM carray(inttoptr(''),5,'int64');",
+          "expect": "123 123 7 13 17 23"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-722",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT remember(987,inttoptr(16.0));\n    SELECT value FROM carray(inttoptr(''),5,'int64');",
+          "expect": "987 123 7 987 17 23"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-730",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t600, carray(inttoptr(''),5,'double') WHERE a=value;",
+          "expect": "(005) (007) (013) (017) (023)"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-740",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t600, carray(inttoptr(''),5,'char*')\n     WHERE a=trim(value,'x');",
+          "expect": "(005) (007) (013) (017) (023)"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-750",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT aa.value, bb.value, '|'\n      FROM carray(inttoptr(''),5,'double') AS aa\n      JOIN carray(inttoptr(''),5,'char*') AS bb ON aa.rowid=bb.rowid;",
+          "expect": "5.0 x5 | 7.0 x7 | 13.0 x13 | 17.0 x17 | 23.0 x23 |"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-751",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT aa.value, bb.value, '|'\n      FROM carray(inttoptr(''),5,'double') AS aa\n      LEFT JOIN carray(inttoptr(''),5,'char*') AS bb ON aa.rowid=bb.rowid;",
+          "expect": "5.0 x5 | 7.0 x7 | 13.0 x13 | 17.0 x17 | 23.0 x23 |"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-800",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE generate_series ADD COLUMN col2;",
+          "expect": "1 {virtual tables may not be altered}"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-810",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE generate_series RENAME TO flubber;",
+          "expect": "1 {table generate_series may not be altered}"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-820",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE generate_series RENAME  start TO flubber;",
+          "expect": "1 {table generate_series may not be altered}"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-830",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE generate_series DROP COLUMN start;",
+          "expect": "1 {table generate_series may not be altered}"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-900",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE pragma_compile_options ADD COLUMN col2;",
+          "expect": "1 {virtual tables may not be altered}"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-910",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE pragma_compile_options RENAME TO flubber;",
+          "expect": "1 {table pragma_compile_options may not be altered}"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-920",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE pragma_compile_options RENAME  start TO flubber;",
+          "expect": "1 {table pragma_compile_options may not be altered}"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-930",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE pragma_compile_options DROP COLUMN start;",
+          "expect": "1 {table pragma_compile_options may not be altered}"
         }
       ]
     },
@@ -693,7 +934,57 @@
       ]
     },
     {
-      "name": "1100",
+      "name": "tabfunc01-1000",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(1, 5) where value = 2",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1010",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(1, 5) where value in (2)",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1020",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(1, 5) where value in (select 2)",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1030",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(1, 5) where value = 2 OR value = 4",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1040",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(1, 5) where value in (2, 4)",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1100",
       "steps": [
         {
           "type": "query",
@@ -703,7 +994,7 @@
       ]
     },
     {
-      "name": "1200",
+      "name": "tabfunc01-1200",
       "steps": [
         {
           "type": "query",
@@ -713,7 +1004,7 @@
       ]
     },
     {
-      "name": "1300",
+      "name": "tabfunc01-1300",
       "steps": [
         {
           "type": "query",
@@ -723,7 +1014,7 @@
       ]
     },
     {
-      "name": "1301",
+      "name": "tabfunc01-1301",
       "steps": [
         {
           "type": "query",
@@ -733,7 +1024,7 @@
       ]
     },
     {
-      "name": "1302",
+      "name": "tabfunc01-1302",
       "steps": [
         {
           "type": "query",
@@ -743,7 +1034,7 @@
       ]
     },
     {
-      "name": "1303",
+      "name": "tabfunc01-1303",
       "steps": [
         {
           "type": "query",
@@ -753,7 +1044,7 @@
       ]
     },
     {
-      "name": "1304",
+      "name": "tabfunc01-1304",
       "steps": [
         {
           "type": "query",
@@ -763,7 +1054,7 @@
       ]
     },
     {
-      "name": "1310",
+      "name": "tabfunc01-1310",
       "steps": [
         {
           "type": "query",
@@ -773,7 +1064,7 @@
       ]
     },
     {
-      "name": "1311",
+      "name": "tabfunc01-1311",
       "steps": [
         {
           "type": "query",
@@ -783,7 +1074,7 @@
       ]
     },
     {
-      "name": "1312",
+      "name": "tabfunc01-1312",
       "steps": [
         {
           "type": "query",
@@ -793,7 +1084,7 @@
       ]
     },
     {
-      "name": "1313",
+      "name": "tabfunc01-1313",
       "steps": [
         {
           "type": "query",
@@ -802,7 +1093,7 @@
       ]
     },
     {
-      "name": "1314",
+      "name": "tabfunc01-1314",
       "steps": [
         {
           "type": "query",
@@ -812,7 +1103,7 @@
       ]
     },
     {
-      "name": "1315",
+      "name": "tabfunc01-1315",
       "steps": [
         {
           "type": "query",
@@ -821,7 +1112,7 @@
       ]
     },
     {
-      "name": "1316",
+      "name": "tabfunc01-1316",
       "steps": [
         {
           "type": "query",
@@ -830,7 +1121,7 @@
       ]
     },
     {
-      "name": "1320",
+      "name": "tabfunc01-1320",
       "steps": [
         {
           "type": "query",
@@ -839,7 +1130,7 @@
       ]
     },
     {
-      "name": "1321",
+      "name": "tabfunc01-1321",
       "steps": [
         {
           "type": "query",
@@ -848,65 +1139,65 @@
       ]
     },
     {
-      "name": "1322",
+      "name": "tabfunc01-1322",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value>9223372036854775807;"
+          "sql": "SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value\u003e9223372036854775807;"
         }
       ]
     },
     {
-      "name": "1323",
+      "name": "tabfunc01-1323",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value>9223372036854775806;",
+          "sql": "SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value\u003e9223372036854775806;",
           "expect": "9223372036854775807"
         }
       ]
     },
     {
-      "name": "1324",
+      "name": "tabfunc01-1324",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value>=9223372036854775807;",
+          "sql": "SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value\u003e=9223372036854775807;",
           "expect": "9223372036854775807"
         }
       ]
     },
     {
-      "name": "1330",
+      "name": "tabfunc01-1330",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value<-9223372036854775808;"
+          "sql": "SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value\u003c-9223372036854775808;"
         }
       ]
     },
     {
-      "name": "1331",
+      "name": "tabfunc01-1331",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value<=-9223372036854775808;",
+          "sql": "SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value\u003c=-9223372036854775808;",
           "expect": "-9223372036854775808"
         }
       ]
     },
     {
-      "name": "1332",
+      "name": "tabfunc01-1332",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value<-9223372036854775807;",
+          "sql": "SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value\u003c-9223372036854775807;",
           "expect": "-9223372036854775808"
         }
       ]
     },
     {
-      "name": "1333",
+      "name": "tabfunc01-1333",
       "steps": [
         {
           "type": "query",
@@ -915,7 +1206,7 @@
       ]
     },
     {
-      "name": "1340",
+      "name": "tabfunc01-1340",
       "steps": [
         {
           "type": "query",
@@ -925,7 +1216,7 @@
       ]
     },
     {
-      "name": "1341",
+      "name": "tabfunc01-1341",
       "steps": [
         {
           "type": "query",
@@ -935,7 +1226,7 @@
       ]
     },
     {
-      "name": "1342",
+      "name": "tabfunc01-1342",
       "steps": [
         {
           "type": "query",
@@ -945,7 +1236,7 @@
       ]
     },
     {
-      "name": "1343",
+      "name": "tabfunc01-1343",
       "steps": [
         {
           "type": "query",
@@ -955,16 +1246,16 @@
       ]
     },
     {
-      "name": "1344",
+      "name": "tabfunc01-1344",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value\n    FROM generate_series(-9223372036854760000,-9223372036854775808,-10000)\n   WHERE value < -9223372036854770001;"
+          "sql": "SELECT value\n    FROM generate_series(-9223372036854760000,-9223372036854775808,-10000)\n   WHERE value \u003c -9223372036854770001;"
         }
       ]
     },
     {
-      "name": "1345",
+      "name": "tabfunc01-1345",
       "steps": [
         {
           "type": "query",
@@ -974,16 +1265,16 @@
       ]
     },
     {
-      "name": "1346",
+      "name": "tabfunc01-1346",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value\n    FROM generate_series(9223372036854760000,9223372036854775807,10000)\n   WHERE value > 9223372036854770001;"
+          "sql": "SELECT value\n    FROM generate_series(9223372036854760000,9223372036854775807,10000)\n   WHERE value \u003e 9223372036854770001;"
         }
       ]
     },
     {
-      "name": "1350",
+      "name": "tabfunc01-1350",
       "steps": [
         {
           "type": "query",
@@ -992,7 +1283,7 @@
       ]
     },
     {
-      "name": "1351",
+      "name": "tabfunc01-1351",
       "steps": [
         {
           "type": "query",
@@ -1001,7 +1292,7 @@
       ]
     },
     {
-      "name": "1360",
+      "name": "tabfunc01-1360",
       "steps": [
         {
           "type": "query",
@@ -1011,7 +1302,7 @@
       ]
     },
     {
-      "name": "1361",
+      "name": "tabfunc01-1361",
       "steps": [
         {
           "type": "query",
@@ -1021,7 +1312,7 @@
       ]
     },
     {
-      "name": "1362",
+      "name": "tabfunc01-1362",
       "steps": [
         {
           "type": "query",
@@ -1031,7 +1322,7 @@
       ]
     },
     {
-      "name": "1363",
+      "name": "tabfunc01-1363",
       "steps": [
         {
           "type": "query",
@@ -1041,7 +1332,7 @@
       ]
     },
     {
-      "name": "1364",
+      "name": "tabfunc01-1364",
       "steps": [
         {
           "type": "query",
@@ -1050,7 +1341,7 @@
       ]
     },
     {
-      "name": "1370",
+      "name": "tabfunc01-1370",
       "steps": [
         {
           "type": "query",
@@ -1059,7 +1350,803 @@
       ]
     },
     {
-      "name": "1400",
+      "name": "tabfunc01-1380.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c +9007199254740991.0' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003c +9007199254740991.0)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003c +9007199254740991.0);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e +9007199254740991.0' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003e +9007199254740991.0)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003e +9007199254740991.0);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c= +9007199254740991.0' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003c= +9007199254740991.0)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003c= +9007199254740991.0);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e= +9007199254740991.0' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003e= +9007199254740991.0)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003e= +9007199254740991.0);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c -9007199254740991.0' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003c -9007199254740991.0)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003c -9007199254740991.0);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e -9007199254740991.0' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003e -9007199254740991.0)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003e -9007199254740991.0);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c= -9007199254740991.0' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003c= -9007199254740991.0)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003c= -9007199254740991.0);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e= -9007199254740991.0' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003e= -9007199254740991.0)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003e= -9007199254740991.0);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c +9007199254740991.1' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003c +9007199254740991.1)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003c +9007199254740991.1);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e +9007199254740991.1' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003e +9007199254740991.1)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003e +9007199254740991.1);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c= +9007199254740991.1' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003c= +9007199254740991.1)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003c= +9007199254740991.1);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e= +9007199254740991.1' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003e= +9007199254740991.1)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003e= +9007199254740991.1);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c -9007199254740991.1' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003c -9007199254740991.1)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003c -9007199254740991.1);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e -9007199254740991.1' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003e -9007199254740991.1)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003e -9007199254740991.1);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c= -9007199254740991.1' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003c= -9007199254740991.1)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003c= -9007199254740991.1);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e= -9007199254740991.1' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003e= -9007199254740991.1)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003e= -9007199254740991.1);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.17",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c +9007199254740991.5' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003c +9007199254740991.5)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003c +9007199254740991.5);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.18",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e +9007199254740991.5' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003e +9007199254740991.5)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003e +9007199254740991.5);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.19",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c= +9007199254740991.5' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003c= +9007199254740991.5)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003c= +9007199254740991.5);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e= +9007199254740991.5' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003e= +9007199254740991.5)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003e= +9007199254740991.5);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c -9007199254740991.5' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003c -9007199254740991.5)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003c -9007199254740991.5);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e -9007199254740991.5' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003e -9007199254740991.5)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003e -9007199254740991.5);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.23",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c= -9007199254740991.5' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003c= -9007199254740991.5)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003c= -9007199254740991.5);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.24",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e= -9007199254740991.5' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003e= -9007199254740991.5)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003e= -9007199254740991.5);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.25",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c +9007199254740991.9' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003c +9007199254740991.9)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003c +9007199254740991.9);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e +9007199254740991.9' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003e +9007199254740991.9)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003e +9007199254740991.9);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.27",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c= +9007199254740991.9' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003c= +9007199254740991.9)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003c= +9007199254740991.9);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e= +9007199254740991.9' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003e= +9007199254740991.9)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003e= +9007199254740991.9);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c -9007199254740991.9' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003c -9007199254740991.9)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003c -9007199254740991.9);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e -9007199254740991.9' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003e -9007199254740991.9)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003e -9007199254740991.9);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.31",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c= -9007199254740991.9' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003c= -9007199254740991.9)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003c= -9007199254740991.9);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.32",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e= -9007199254740991.9' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003e= -9007199254740991.9)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003e= -9007199254740991.9);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.33",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c +9007199254740992.0' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003c +9007199254740992.0)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003c +9007199254740992.0);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.34",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e +9007199254740992.0' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003e +9007199254740992.0)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003e +9007199254740992.0);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.35",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c= +9007199254740992.0' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003c= +9007199254740992.0)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003c= +9007199254740992.0);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.36",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e= +9007199254740992.0' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003e= +9007199254740992.0)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003e= +9007199254740992.0);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.37",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c -9007199254740992.0' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003c -9007199254740992.0)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003c -9007199254740992.0);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.38",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e -9007199254740992.0' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003e -9007199254740992.0)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003e -9007199254740992.0);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.39",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c= -9007199254740992.0' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003c= -9007199254740992.0)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003c= -9007199254740992.0);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.40",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e= -9007199254740992.0' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003e= -9007199254740992.0)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003e= -9007199254740992.0);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.41",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c +9007199254740992.1' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003c +9007199254740992.1)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003c +9007199254740992.1);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.42",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e +9007199254740992.1' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003e +9007199254740992.1)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003e +9007199254740992.1);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.43",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c= +9007199254740992.1' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003c= +9007199254740992.1)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003c= +9007199254740992.1);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.44",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e= +9007199254740992.1' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003e= +9007199254740992.1)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003e= +9007199254740992.1);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.45",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c -9007199254740992.1' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003c -9007199254740992.1)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003c -9007199254740992.1);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.46",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e -9007199254740992.1' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003e -9007199254740992.1)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003e -9007199254740992.1);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.47",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c= -9007199254740992.1' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003c= -9007199254740992.1)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003c= -9007199254740992.1);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.48",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e= -9007199254740992.1' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003e= -9007199254740992.1)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003e= -9007199254740992.1);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.49",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c +9007199254740992.5' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003c +9007199254740992.5)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003c +9007199254740992.5);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.50",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e +9007199254740992.5' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003e +9007199254740992.5)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003e +9007199254740992.5);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.51",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c= +9007199254740992.5' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003c= +9007199254740992.5)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003c= +9007199254740992.5);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.52",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e= +9007199254740992.5' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003e= +9007199254740992.5)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003e= +9007199254740992.5);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.53",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c -9007199254740992.5' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003c -9007199254740992.5)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003c -9007199254740992.5);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.54",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e -9007199254740992.5' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003e -9007199254740992.5)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003e -9007199254740992.5);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.55",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c= -9007199254740992.5' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003c= -9007199254740992.5)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003c= -9007199254740992.5);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.56",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e= -9007199254740992.5' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003e= -9007199254740992.5)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003e= -9007199254740992.5);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.57",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c +9007199254740992.9' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003c +9007199254740992.9)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003c +9007199254740992.9);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.58",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e +9007199254740992.9' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003e +9007199254740992.9)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003e +9007199254740992.9);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.59",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c= +9007199254740992.9' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003c= +9007199254740992.9)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003c= +9007199254740992.9);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.60",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e= +9007199254740992.9' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003e= +9007199254740992.9)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003e= +9007199254740992.9);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.61",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c -9007199254740992.9' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003c -9007199254740992.9)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003c -9007199254740992.9);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.62",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e -9007199254740992.9' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003e -9007199254740992.9)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003e -9007199254740992.9);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.63",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c= -9007199254740992.9' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003c= -9007199254740992.9)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003c= -9007199254740992.9);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.64",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e= -9007199254740992.9' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003e= -9007199254740992.9)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003e= -9007199254740992.9);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.65",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c +9007199254740993.0' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003c +9007199254740993.0)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003c +9007199254740993.0);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.66",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e +9007199254740993.0' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003e +9007199254740993.0)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003e +9007199254740993.0);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.67",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c= +9007199254740993.0' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003c= +9007199254740993.0)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003c= +9007199254740993.0);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.68",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e= +9007199254740993.0' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003e= +9007199254740993.0)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003e= +9007199254740993.0);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.69",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c -9007199254740993.0' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003c -9007199254740993.0)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003c -9007199254740993.0);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.70",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e -9007199254740993.0' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003e -9007199254740993.0)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003e -9007199254740993.0);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.71",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c= -9007199254740993.0' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003c= -9007199254740993.0)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003c= -9007199254740993.0);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.72",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e= -9007199254740993.0' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003e= -9007199254740993.0)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003e= -9007199254740993.0);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.73",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c +9007199254740993.1' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003c +9007199254740993.1)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003c +9007199254740993.1);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.74",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e +9007199254740993.1' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003e +9007199254740993.1)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003e +9007199254740993.1);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.75",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c= +9007199254740993.1' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003c= +9007199254740993.1)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003c= +9007199254740993.1);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.76",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e= +9007199254740993.1' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003e= +9007199254740993.1)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003e= +9007199254740993.1);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.77",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c -9007199254740993.1' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003c -9007199254740993.1)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003c -9007199254740993.1);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.78",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e -9007199254740993.1' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003e -9007199254740993.1)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003e -9007199254740993.1);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.79",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c= -9007199254740993.1' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003c= -9007199254740993.1)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003c= -9007199254740993.1);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.80",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e= -9007199254740993.1' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003e= -9007199254740993.1)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003e= -9007199254740993.1);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.81",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c +9007199254740993.5' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003c +9007199254740993.5)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003c +9007199254740993.5);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.82",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e +9007199254740993.5' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003e +9007199254740993.5)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003e +9007199254740993.5);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.83",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c= +9007199254740993.5' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003c= +9007199254740993.5)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003c= +9007199254740993.5);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.84",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e= +9007199254740993.5' WHERE (\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE value \u003e= +9007199254740993.5)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (+9007199254740990,+9007199254740995)\n             WHERE +value \u003e= +9007199254740993.5);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.85",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c -9007199254740993.5' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003c -9007199254740993.5)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003c -9007199254740993.5);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.86",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e -9007199254740993.5' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003e -9007199254740993.5)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003e -9007199254740993.5);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.87",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003c= -9007199254740993.5' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003c= -9007199254740993.5)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003c= -9007199254740993.5);"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1380.88",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value \u003e= -9007199254740993.5' WHERE (\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE value \u003e= -9007199254740993.5)\u003c\u003e(\n            SELECT group_concat(value) FROM generate_series (-9007199254740995,-9007199254740990)\n             WHERE +value \u003e= -9007199254740993.5);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "tabfunc01-1400",
       "steps": [
         {
           "type": "exec",
@@ -1068,82 +2155,82 @@
       ]
     },
     {
-      "name": "1410",
+      "name": "tabfunc01-1410",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT x, y, value\n  FROM (t1 RIGHT JOIN generate_series(t2.y,5) AS value) JOIN t2;",
           "expect": "1 {table-function argument references tables to its right}"
         }
       ]
     },
     {
-      "name": "1420",
+      "name": "tabfunc01-1420",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT x, y, value \n  FROM t2 JOIN (t1 RIGHT JOIN generate_series(t2.y,5) AS value)",
           "expect": "1 {no such column: t2.y}"
         }
       ]
     },
     {
-      "name": "1500",
+      "name": "tabfunc01-1500",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(1) WHERE value>1e19 LIMIT 3;"
+          "sql": "SELECT value FROM generate_series(1) WHERE value\u003e1e19 LIMIT 3;"
         }
       ]
     },
     {
-      "name": "1501",
+      "name": "tabfunc01-1501",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(1) WHERE value>=1e19 LIMIT 3;"
+          "sql": "SELECT value FROM generate_series(1) WHERE value\u003e=1e19 LIMIT 3;"
         }
       ]
     },
     {
-      "name": "1502",
+      "name": "tabfunc01-1502",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(1) WHERE value<-1e19 LIMIT 3;"
+          "sql": "SELECT value FROM generate_series(1) WHERE value\u003c-1e19 LIMIT 3;"
         }
       ]
     },
     {
-      "name": "1503",
+      "name": "tabfunc01-1503",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(1) WHERE value<=-1e19 LIMIT 3;"
+          "sql": "SELECT value FROM generate_series(1) WHERE value\u003c=-1e19 LIMIT 3;"
         }
       ]
     },
     {
-      "name": "1504",
+      "name": "tabfunc01-1504",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value>=9223372036854775807.0\n   LIMIT 3;",
+          "sql": "SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value\u003e=9223372036854775807.0\n   LIMIT 3;",
           "expect": "9223372036854775807"
         }
       ]
     },
     {
-      "name": "1505",
+      "name": "tabfunc01-1505",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value>9223372036854775807.0\n   LIMIT 3;"
+          "sql": "SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value\u003e9223372036854775807.0\n   LIMIT 3;"
         }
       ]
     },
     {
-      "name": "1506",
+      "name": "tabfunc01-1506",
       "steps": [
         {
           "type": "query",
@@ -1153,192 +2240,103 @@
       ]
     },
     {
-      "name": "1507",
+      "name": "tabfunc01-1507",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value>=9223372036854775000.0\n   LIMIT 3;",
+          "sql": "SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value\u003e=9223372036854775000.0\n   LIMIT 3;",
           "expect": "9223372036854774784 9223372036854774785 9223372036854774786"
         }
       ]
     },
     {
-      "name": "1508",
+      "name": "tabfunc01-1508",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value>9223372036854775000.0\n   LIMIT 3;",
+          "sql": "SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value\u003e9223372036854775000.0\n   LIMIT 3;",
           "expect": "9223372036854774785 9223372036854774786 9223372036854774787"
         }
       ]
     },
     {
-      "name": "1510",
+      "name": "tabfunc01-1510",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(-9223372036854775808,1)\n   WHERE value>=-9223372036854775000.0\n   LIMIT 3;",
+          "sql": "SELECT value FROM generate_series(-9223372036854775808,1)\n   WHERE value\u003e=-9223372036854775000.0\n   LIMIT 3;",
           "expect": "-9223372036854774784 -9223372036854774783 -9223372036854774782"
         }
       ]
     },
     {
-      "name": "1511",
+      "name": "tabfunc01-1511",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(-9223372036854775808,1)\n   WHERE value>-9223372036854775000.0\n   LIMIT 3;",
+          "sql": "SELECT value FROM generate_series(-9223372036854775808,1)\n   WHERE value\u003e-9223372036854775000.0\n   LIMIT 3;",
           "expect": "-9223372036854774783 -9223372036854774782 -9223372036854774781"
         }
       ]
     },
     {
-      "name": "1520",
+      "name": "tabfunc01-1520",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(9223372036854774784)\n   WHERE value<=9223372036854775000.0\n   LIMIT 3;",
+          "sql": "SELECT value FROM generate_series(9223372036854774784)\n   WHERE value\u003c=9223372036854775000.0\n   LIMIT 3;",
           "expect": "9223372036854774784"
         }
       ]
     },
     {
-      "name": "1521",
+      "name": "tabfunc01-1521",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(9223372036854774784)\n   WHERE value<9223372036854775000.0\n   LIMIT 3;"
+          "sql": "SELECT value FROM generate_series(9223372036854774784)\n   WHERE value\u003c9223372036854775000.0\n   LIMIT 3;"
         }
       ]
     },
     {
-      "name": "1522",
+      "name": "tabfunc01-1522",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE value<=9223372036854775807.0\n   LIMIT 3;",
+          "sql": "SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE value\u003c=9223372036854775807.0\n   LIMIT 3;",
           "expect": "9223372036854775805 9223372036854775806 9223372036854775807"
         }
       ]
     },
     {
-      "name": "1522ck",
+      "name": "tabfunc01-1522ck",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE +value<=9223372036854775807.0\n   LIMIT 3;",
+          "sql": "SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE +value\u003c=9223372036854775807.0\n   LIMIT 3;",
           "expect": "9223372036854775805 9223372036854775806 9223372036854775807"
         }
       ]
     },
     {
-      "name": "1523",
+      "name": "tabfunc01-1523",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE value<9223372036854775807.0\n   LIMIT 3;",
+          "sql": "SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE value\u003c9223372036854775807.0\n   LIMIT 3;",
           "expect": "9223372036854775805 9223372036854775806 9223372036854775807"
         }
       ]
     },
     {
-      "name": "1523ck",
+      "name": "tabfunc01-1523ck",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE +value<9223372036854775807.0\n   LIMIT 3;",
+          "sql": "SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE +value\u003c9223372036854775807.0\n   LIMIT 3;",
           "expect": "9223372036854775805 9223372036854775806 9223372036854775807"
-        }
-      ]
-    },
-    {
-      "name": "tabfunc01-800",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE generate_series ADD COLUMN col2;",
-          "expect": "1 {virtual tables may not be altered}"
-        }
-      ]
-    },
-    {
-      "name": "tabfunc01-810",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE generate_series RENAME TO flubber;",
-          "expect": "1 {table generate_series may not be altered}"
-        }
-      ]
-    },
-    {
-      "name": "tabfunc01-820",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE generate_series RENAME  start TO flubber;",
-          "expect": "1 {table generate_series may not be altered}"
-        }
-      ]
-    },
-    {
-      "name": "tabfunc01-830",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE generate_series DROP COLUMN start;",
-          "expect": "1 {table generate_series may not be altered}"
-        }
-      ]
-    },
-    {
-      "name": "tabfunc01-900",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE pragma_compile_options ADD COLUMN col2;",
-          "expect": "1 {virtual tables may not be altered}"
-        }
-      ]
-    },
-    {
-      "name": "tabfunc01-910",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE pragma_compile_options RENAME TO flubber;",
-          "expect": "1 {table pragma_compile_options may not be altered}"
-        }
-      ]
-    },
-    {
-      "name": "tabfunc01-920",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE pragma_compile_options RENAME  start TO flubber;",
-          "expect": "1 {table pragma_compile_options may not be altered}"
-        }
-      ]
-    },
-    {
-      "name": "tabfunc01-930",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE pragma_compile_options DROP COLUMN start;",
-          "expect": "1 {table pragma_compile_options may not be altered}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

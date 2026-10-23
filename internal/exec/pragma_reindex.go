@@ -247,31 +247,35 @@ func stat1RowMatchesTbl(row RowMap, tblName string) bool {
 	return ok && s == tblName
 }
 
-// clearStatsForIndex deletes rows from sqlite_stat1 for a specific index.
+// clearStatsForIndex deletes matching statistics rows for a specific index.
 func (e *Engine) clearStatsForIndex(tblName, idxName string) *Result {
 	return e.deleteStatRows(func(row RowMap) bool {
 		return stat1RowMatchesTblIdx(row, tblName, idxName)
 	})
 }
 
-// deleteStatRows deletes rows from sqlite_stat1 matching the predicate and
-// returns the deletion result.
+// deleteStatRows deletes matching rows from sqlite_stat1 and sqlite_stat4.
+// The same predicate applies to both tables' shared tbl/idx columns.
 func (e *Engine) deleteStatRows(matches func(RowMap) bool) *Result {
-	tableEntry, err := e.schema.FindTable("sqlite_stat1")
-	if err != nil {
-		return &Result{} // table doesn't exist, nothing to clear
-	}
-	colDefs := e.parseColumnDefs("sqlite_stat1", tableEntry.SQL)
-	tree := e.tableBTree("sqlite_stat1", tableEntry.RootPage, true)
-	deleted, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
-		rec, err := storage.DecodeRecord(cell.Payload)
+	var deleted int64
+	for _, name := range []string{"sqlite_stat1", "sqlite_stat4"} {
+		tableEntry, err := e.schema.FindTable(name)
 		if err != nil {
-			return false
+			continue
 		}
-		return matches(e.buildRowMap(rec, colDefs, cell.RowID))
-	})
-	if err != nil {
-		return &Result{Error: err}
+		colDefs := e.parseColumnDefs(name, tableEntry.SQL)
+		tree := e.tableBTree(name, tableEntry.RootPage, true)
+		count, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
+			rec, err := storage.DecodeRecord(cell.Payload)
+			if err != nil {
+				return false
+			}
+			return matches(e.buildRowMap(rec, colDefs, cell.RowID))
+		})
+		if err != nil {
+			return &Result{Error: err}
+		}
+		deleted += count
 	}
 	return &Result{Changes: deleted}
 }

@@ -280,7 +280,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE (a, b, c);\n    CREATE INDEX 'foolish '' name' ON (a, b);\n    CREATE INDEX 'another foolish '' name' ON (c);\n    INSERT INTO  VALUES(1, 2, 3);\n    INSERT INTO  VALUES(4, 5, 6);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;",
+          "sql": "CREATE TABLE [silly \" name](a, b, c);\n    CREATE INDEX 'foolish '' name' ON [silly \" name](a, b);\n    CREATE INDEX 'another foolish '' name' ON [silly \" name](c);\n    INSERT INTO [silly \" name] VALUES(1, 2, 3);\n    INSERT INTO [silly \" name] VALUES(4, 5, 6);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;",
           "expect": "{another foolish ' name} {2 1} {foolish ' name} {2 1 1} t3i1 {5 3} t3i2 {5 3 1 1 1} t3i3 {5 5 2 1 1}"
         }
       ]
@@ -304,6 +304,27 @@
       "name": "analyze-4.0",
       "steps": [
         {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(x,y,z);\n    CREATE INDEX t4i1 ON t4(x);\n    CREATE INDEX t4i2 ON t4(y);\n    INSERT INTO t4 SELECT a,b,c FROM t3;",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "exec",
           "sql": "ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;",
           "expect": "t3i1 {5 3} t3i2 {5 3 1 1 1} t3i3 {5 5 2 1 1} t4i1 {5 3} t4i2 {5 2}"
@@ -316,6 +337,13 @@
         {
           "type": "exec",
           "sql": "PRAGMA writable_schema=on;\n    INSERT INTO sqlite_stat1 VALUES(null,null,null);\n    PRAGMA writable_schema=off;"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         },
         {
           "type": "exec",
@@ -331,6 +359,13 @@
           "sql": "PRAGMA writable_schema=on;\n    DELETE FROM sqlite_stat1;\n    INSERT INTO sqlite_stat1 VALUES('t4','t4i1','nonsense');\n    INSERT INTO sqlite_stat1 VALUES('t4','t4i2','120897349817238741092873198273409187234918720394817209384710928374109827172901827349871928741910');\n    PRAGMA writable_schema=off;"
         },
         {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "exec",
           "sql": "SELECT * FROM t4 WHERE x=1234;"
         }
@@ -342,6 +377,13 @@
         {
           "type": "exec",
           "sql": "INSERT INTO sqlite_stat1 VALUES('t4','xyzzy','0 1 2 3');"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         },
         {
           "type": "exec",
@@ -413,8 +455,19 @@
       "name": "analyze-5.99",
       "steps": [
         {
+          "type": "defensive",
+          "sql": "0"
+        },
+        {
           "type": "exec",
           "sql": "PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET sql='nonsense' WHERE name='sqlite_stat1';"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         },
         {
           "type": "catch",
@@ -424,8 +477,15 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        }
+      ]
     },
     {
       "name": "analyze-6.1",

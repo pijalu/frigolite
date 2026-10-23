@@ -24,7 +24,7 @@ func EvalExpr(expr string, interp *Interp, localVars map[string]string) (string,
 	if interp != nil {
 		expr = interp.substituteExprAtoms(expr, localVars)
 	}
-	p := &exprParser{input: expr, pos: 0}
+	p := &exprParser{input: expr, pos: 0, interp: interp}
 	result, err := p.parseExpr()
 	if err != nil {
 		return "", err
@@ -33,8 +33,9 @@ func EvalExpr(expr string, interp *Interp, localVars map[string]string) (string,
 }
 
 type exprParser struct {
-	input string
-	pos   int
+	input  string
+	pos    int
+	interp *Interp // interpreter hosting expr rand()/srand() state
 }
 
 //lint:ignore U1000 reserved TCL expr-parser API
@@ -151,7 +152,7 @@ func (p *exprParser) parseBitOr() (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		left = float64(toInt(left) | toInt(right))
+		left = toInt(left) | toInt(right)
 	}
 	return left, nil
 }
@@ -166,7 +167,7 @@ func (p *exprParser) parseBitXor() (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		left = float64(toInt(left) ^ toInt(right))
+		left = toInt(left) ^ toInt(right)
 	}
 	return left, nil
 }
@@ -181,7 +182,7 @@ func (p *exprParser) parseBitAnd() (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		left = float64(toInt(left) & toInt(right))
+		left = toInt(left) & toInt(right)
 	}
 	return left, nil
 }
@@ -275,13 +276,21 @@ func (p *exprParser) parseShift() (interface{}, error) {
 			if err != nil {
 				return nil, err
 			}
-			left = float64(toInt(left) << toInt(right))
+			rc := toInt(right)
+			if rc < 0 {
+				return nil, fmt.Errorf("negative shift argument")
+			}
+			left = toInt(left) << uint(rc)
 		} else if p.match(">>") {
 			right, err := p.parseAdditive()
 			if err != nil {
 				return nil, err
 			}
-			left = float64(toInt(left) >> toInt(right))
+			rc := toInt(right)
+			if rc < 0 {
+				return nil, fmt.Errorf("negative shift argument")
+			}
+			left = toInt(left) >> uint(rc)
 		} else {
 			break
 		}
@@ -301,13 +310,17 @@ func (p *exprParser) parseAdditive() (interface{}, error) {
 			if err != nil {
 				return nil, err
 			}
-			left = toFloat(left) + toFloat(right)
+			left = intOrFloat(left, right,
+				func(a, b int64) interface{} { return a + b },
+				func(a, b float64) interface{} { return a + b })
 		} else if p.matchOne('-') {
 			right, err := p.parseMultiplicative()
 			if err != nil {
 				return nil, err
 			}
-			left = toFloat(left) - toFloat(right)
+			left = intOrFloat(left, right,
+				func(a, b int64) interface{} { return a - b },
+				func(a, b float64) interface{} { return a - b })
 		} else {
 			break
 		}
@@ -325,10 +338,20 @@ func (p *exprParser) parseMultiplicative() (interface{}, error) {
 		switch {
 		case p.matchOne('*'):
 			left, err = p.binaryOperand(left, p.parseUnary, func(l, r interface{}) interface{} {
-				return toFloat(l) * toFloat(r)
+				return intOrFloat(l, r,
+					func(a, b int64) interface{} { return a * b },
+					func(a, b float64) interface{} { return a * b })
 			})
 		case p.matchOne('/'):
 			left, err = p.binaryOperand(left, p.parseUnary, func(l, r interface{}) interface{} {
+				if li, lok := numOperand(l).(int64); lok {
+					if ri, rok := numOperand(r).(int64); rok {
+						if ri == 0 {
+							return int64(0)
+						}
+						return li / ri
+					}
+				}
 				rv := toFloat(r)
 				if rv == 0 {
 					return float64(0)
@@ -339,9 +362,9 @@ func (p *exprParser) parseMultiplicative() (interface{}, error) {
 			left, err = p.binaryOperand(left, p.parseUnary, func(l, r interface{}) interface{} {
 				rv := toInt(r)
 				if rv == 0 {
-					return float64(0)
+					return int64(0)
 				}
-				return float64(toInt(l) % rv)
+				return toInt(l) % rv
 			})
 		default:
 			return left, nil
@@ -370,6 +393,9 @@ func (p *exprParser) parseUnary() (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
+		if iv, ok := numOperand(val).(int64); ok {
+			return -iv, nil
+		}
 		return -toFloat(val), nil
 	}
 	if p.matchOne('+') {
@@ -387,7 +413,7 @@ func (p *exprParser) parseUnary() (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		return float64(^toInt(val)), nil
+		return ^toInt(val), nil
 	}
 	return p.parsePrimary()
 }
@@ -440,15 +466,25 @@ func (p *exprParser) parseParen() (interface{}, error) {
 // parseStringLit parses a " ... " string literal.
 func (p *exprParser) parseStringLit() (interface{}, error) {
 	p.pos++
-	start := p.pos
-	for p.pos < len(p.input) && p.input[p.pos] != '"' {
+	var b strings.Builder
+	for p.pos < len(p.input) {
+		c := p.input[p.pos]
+		if c == '\\' && p.pos+1 < len(p.input) {
+			p.pos++
+			b.WriteByte(escapeChar(p.input[p.pos]))
+			p.pos++
+			continue
+		}
+		if c == '"' {
+			p.pos++
+			return b.String(), nil
+		}
+		b.WriteByte(c)
 		p.pos++
 	}
-	s := p.input[start:p.pos]
-	if p.pos < len(p.input) {
-		p.pos++ // skip closing "
-	}
-	return s, nil
+	// Unterminated literal: keep the text seen so far (the caller reports the
+	// parse failure).
+	return b.String(), nil
 }
 
 // parseIdent parses an identifier: either a function call or a bare word.
@@ -465,6 +501,21 @@ func (p *exprParser) parseIdent() (interface{}, error) {
 		args, err := p.parseFuncArgs()
 		if err != nil {
 			return nil, err
+		}
+		// rand()/srand() are stateful in TCL (Park-Miller LCG seeded by
+		// srand); evaluate them against the interpreter that owns the
+		// state so repeated calls advance the sequence.
+		if p.interp != nil {
+			switch name {
+			case "rand":
+				if len(args) == 0 {
+					return p.interp.tclRand(), nil
+				}
+			case "srand":
+				if len(args) == 1 {
+					return p.interp.tclSrand(toInt(args[0])), nil
+				}
+			}
 		}
 		return evalFunc(name, args)
 	}
@@ -521,7 +572,7 @@ func (p *exprParser) parseNumber() (interface{}, error) {
 	return parseDecimalNumber(p.input[start:p.pos], isFloat), nil
 }
 
-// parseHexNumber parses a 0x... hexadecimal literal, returning a float value.
+// parseHexNumber parses a 0x... hexadecimal literal, returning a TCL integer.
 func (p *exprParser) parseHexNumber(start int) (interface{}, error) {
 	p.pos++
 	for p.pos < len(p.input) {
@@ -534,9 +585,9 @@ func (p *exprParser) parseHexNumber(start int) (interface{}, error) {
 	}
 	n, err := strconv.ParseInt(p.input[start+2:p.pos], 16, 64)
 	if err == nil {
-		return float64(n), nil
+		return n, nil
 	}
-	return float64(0), nil
+	return int64(0), nil
 }
 
 // parseDecimalNumber parses a decimal number string as float (or int when
@@ -557,7 +608,7 @@ func parseDecimalNumber(numStr string, isFloat bool) interface{} {
 		}
 		return f
 	}
-	return float64(n)
+	return n
 }
 
 // matchWord matches a whole word (followed by whitespace or operator).
@@ -627,10 +678,7 @@ func toString(v interface{}) string {
 	case string:
 		return x
 	case float64:
-		if x == math.Trunc(x) && math.Abs(x) < 1e15 {
-			return strconv.FormatInt(int64(x), 10)
-		}
-		return strconv.FormatFloat(x, 'g', -1, 64)
+		return tclFormatDouble(x)
 	case int64:
 		return strconv.FormatInt(x, 10)
 	case bool:
@@ -642,11 +690,110 @@ func toString(v interface{}) string {
 	return fmt.Sprintf("%v", v)
 }
 
+// tclFormatDouble renders a double exactly like Tcl_PrintDouble (tclUtil.c):
+// shortest round-trip digits; E format when the decimal exponent is < -4 or
+// > 16, otherwise F format. F format always keeps a fractional part, so 2.0
+// prints as "2.0" (unlike Go's 'g' verb) and 1e16 as "10000000000000000.0"
+// (date5.test expects the TCL form for julianday() results).
+func tclFormatDouble(x float64) string {
+	if math.IsNaN(x) {
+		return "NaN"
+	}
+	if math.IsInf(x, 0) {
+		if x < 0 {
+			return "-Inf"
+		}
+		return "Inf"
+	}
+	// Shortest round-trip digits in scientific form: d.dddde±XX.
+	s := strconv.FormatFloat(x, 'e', -1, 64)
+	mantissa, expPart, _ := strings.Cut(s, "e")
+	exp, err := strconv.Atoi(expPart)
+	if err != nil {
+		return s
+	}
+	digits := strings.Replace(mantissa, ".", "", 1)
+	neg := strings.HasPrefix(digits, "-")
+	digits = strings.TrimPrefix(digits, "-")
+	if exp < -4 || exp > 16 {
+		var b strings.Builder
+		if neg {
+			b.WriteByte('-')
+		}
+		b.WriteByte(digits[0])
+		if len(digits) > 1 {
+			b.WriteByte('.')
+			b.WriteString(digits[1:])
+		}
+		fmt.Fprintf(&b, "e%+d", exp)
+		return b.String()
+	}
+	var b strings.Builder
+	if neg {
+		b.WriteByte('-')
+	}
+	if exp < 0 {
+		b.WriteString("0.")
+		for i := exp + 1; i < 0; i++ {
+			b.WriteByte('0')
+		}
+		b.WriteString(digits)
+		return b.String()
+	}
+	if len(digits) > exp+1 {
+		b.WriteString(digits[:exp+1])
+		b.WriteByte('.')
+		b.WriteString(digits[exp+1:])
+		return b.String()
+	}
+	b.WriteString(digits)
+	for i := len(digits); i <= exp; i++ {
+		b.WriteByte('0')
+	}
+	b.WriteString(".0")
+	return b.String()
+}
+
+// boolVal returns a TCL integer 0/1: `expr {1<2}` prints 1, not 1.0.
 func boolVal(b bool) interface{} {
 	if b {
-		return float64(1)
+		return int64(1)
 	}
-	return float64(0)
+	return int64(0)
+}
+
+// intOrFloat applies intFn when both operands are TCL integers (int64) and
+// floatFn otherwise. TCL keeps integer results for integer operands
+// (`expr {2+2}` prints 4) and produces a double when any operand is a double
+// (`expr {2+2.0}` prints 4.0); Go can no longer infer this from the value,
+// because formatExprResult renders integral floats with a trailing ".0".
+// Numeric strings take the type their text implies ("3" is an integer operand,
+// exactly as TCL converts string operands for arithmetic).
+func intOrFloat(l, r interface{}, intFn func(a, b int64) interface{}, floatFn func(a, b float64) interface{}) interface{} {
+	li, lok := numOperand(l).(int64)
+	ri, rok := numOperand(r).(int64)
+	if lok && rok {
+		return intFn(li, ri)
+	}
+	return floatFn(toFloat(l), toFloat(r))
+}
+
+// numOperand normalizes one arithmetic operand: a numeric string becomes the
+// number its text implies (integer text -> int64, otherwise float64). Other
+// values pass through unchanged.
+func numOperand(v interface{}) interface{} {
+	s, ok := v.(string)
+	if !ok {
+		return v
+	}
+	t := strings.TrimSpace(s)
+	if n, err := strconv.ParseInt(t, 0, 64); err == nil {
+		return n
+	}
+	if f, err := strconv.ParseFloat(t, 64); err == nil {
+		return f
+	}
+	return v
 }
 
 func compareValues(a, b interface{}) int {
@@ -671,24 +818,75 @@ func compareValues(a, b interface{}) int {
 type exprFunc func(args []interface{}) (interface{}, error)
 
 // exprFuncs maps TCL expr function names to implementations.
+// Integer-returning functions (int/wide/round) yield int64 so the result
+// formats without a fractional part, exactly like TCL (`expr {int(3.7)}` = 3);
+// floating-point functions keep float64 (`expr {floor(3.7)}` = 3.0).
 var exprFuncs = map[string]exprFunc{
-	"abs":    unaryExprFunc(func(v float64) float64 { return math.Abs(v) }),
+	"abs":    absExprFunc,
 	"double": unaryExprFunc(func(v float64) float64 { return v }),
-	"int":    unaryExprFunc(func(v float64) float64 { return float64(toInt(v)) }),
-	"round":  unaryExprFunc(func(v float64) float64 { return math.Round(v) }),
+	"int":    func(args []interface{}) (interface{}, error) { return toIntArg(args, false) },
+	"round":  func(args []interface{}) (interface{}, error) { return toIntArg(args, true) },
 	"floor":  unaryExprFunc(func(v float64) float64 { return math.Floor(v) }),
 	"ceil":   unaryExprFunc(func(v float64) float64 { return math.Ceil(v) }),
 	"sqrt":   unaryExprFunc(func(v float64) float64 { return math.Sqrt(v) }),
 	"log":    unaryExprFunc(func(v float64) float64 { return math.Log(v) }),
 	"exp":    unaryExprFunc(func(v float64) float64 { return math.Exp(v) }),
-	"wide":   unaryExprFunc(func(v float64) float64 { return float64(toInt(v)) }),
+	"wide":   func(args []interface{}) (interface{}, error) { return toIntArg(args, false) },
 	"pow":    binaryExprFunc(func(a, b float64) float64 { return math.Pow(a, b) }),
-	"min":    binaryExprFunc(func(a, b float64) float64 { return math.Min(a, b) }),
-	"max":    binaryExprFunc(func(a, b float64) float64 { return math.Max(a, b) }),
+	"min":    func(args []interface{}) (interface{}, error) { return minMaxArg(args, false) },
+	"max":    func(args []interface{}) (interface{}, error) { return minMaxArg(args, true) },
 	"hypot":  binaryExprFunc(func(a, b float64) float64 { return math.Hypot(a, b) }),
 	"rand": func(args []interface{}) (interface{}, error) {
 		return math.Float64frombits(uint64(12345)), nil // deterministic pseudo-random
 	},
+}
+
+// absExprFunc implements TCL's abs(): the result keeps the operand's type
+// (`expr {abs(-3)}` = 3, `expr {abs(-3.0)}` = 3.0).
+func absExprFunc(args []interface{}) (interface{}, error) {
+	if len(args) < 1 {
+		return nil, nil
+	}
+	if iv, ok := args[0].(int64); ok {
+		if iv < 0 {
+			return -iv, nil
+		}
+		return iv, nil
+	}
+	return math.Abs(toFloat(args[0])), nil
+}
+
+// minMaxArg implements TCL's min()/max(): the winning original operand is
+// returned, preserving its type (`expr {max(1,2.0)}` = 2.0, `expr {min(1,2.0)}`
+// = 1).
+func minMaxArg(args []interface{}, wantMax bool) (interface{}, error) {
+	if len(args) < 2 {
+		return nil, nil
+	}
+	best := args[0]
+	for _, a := range args[1:] {
+		if wantMax {
+			if toFloat(a) > toFloat(best) {
+				best = a
+			}
+		} else if toFloat(a) < toFloat(best) {
+			best = a
+		}
+	}
+	return best, nil
+}
+
+// toIntArg implements TCL's int()/wide()/round() result typing: an int64
+// (round first rounds to the nearest integer, halves away from zero).
+func toIntArg(args []interface{}, round bool) (interface{}, error) {
+	if len(args) < 1 {
+		return nil, nil
+	}
+	f := toFloat(args[0])
+	if round {
+		f = math.Round(f)
+	}
+	return int64(f), nil
 }
 
 // unaryExprFunc wraps a float-to-float function as a 1-argument expr func.
@@ -722,10 +920,7 @@ func evalFunc(name string, args []interface{}) (interface{}, error) {
 func formatExprResult(v interface{}) string {
 	switch x := v.(type) {
 	case float64:
-		if x == math.Trunc(x) && math.Abs(x) < 1e15 {
-			return strconv.FormatInt(int64(x), 10)
-		}
-		return strconv.FormatFloat(x, 'g', -1, 64)
+		return tclFormatDouble(x)
 	case int64:
 		return strconv.FormatInt(x, 10)
 	case bool:

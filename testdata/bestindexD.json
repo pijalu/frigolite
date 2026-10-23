@@ -1,13 +1,63 @@
 {
   "file": "bestindexD.test",
   "name": "bestindexD",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "bestindexD",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "bestindexD"
+          },
+          "callbackProcs": [
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE t1(a PRIMARY KEY, b, c) WITHOUT ROWID\"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set ::colUsed [$hdl mask]\n\n      set cost 1000000\n      set used \"\"\n\n      set cons 0\n      foreach c [$hdl constraints] {\n        set cost [expr $cost/10]\n        append used \" use $cons\"\n        incr cons\n      }\n\n      return \"cost $cost rows $cost $used\"\n    }\n  }\n\n  return {}\n",
+              "Defaults": null
+            },
+            {
+              "Name": "do_colsused_test",
+              "Args": [
+                "tn",
+                "sql"
+              ],
+              "Body": "\n  set ::colUsed \"\"\n  execsql $sql\n  set got $::colUsed\n\n  set expect 0\n  db eval \"EXPLAIN $sql\" x {\n    if {$x(opcode)==\"VColumn\"} {\n      set expect [expr $expect | (1\u003c\u003c$x(p2))]\n    }\n  }\n\n  uplevel [list do_test $tn.($expect/$got) [list expr ($expect \u0026 $got)] $expect]\n",
+              "Defaults": null
+            }
+          ],
+          "moduleArgs": [
+            "db"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bestindexD-1.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);\n\n  CREATE TABLE t2(a, b);"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM x1"
         },
         {
           "type": "exec",
@@ -15,7 +65,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT a,c FROM x1"
+        },
+        {
+          "type": "exec",
           "sql": "EXPLAIN  SELECT a,c FROM x1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM x1"
         },
         {
           "type": "exec",
@@ -23,11 +81,23 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT b FROM x1 WHERE c=?"
+        },
+        {
+          "type": "exec",
           "sql": "EXPLAIN  SELECT b FROM x1 WHERE c=?"
         },
         {
           "type": "exec",
+          "sql": "select 1 from t2 full join x1;"
+        },
+        {
+          "type": "exec",
           "sql": "EXPLAIN \n  select 1 from t2 full join x1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select 1 from x1 WHERE (b=? AND c=?) OR (b=? AND c=?)"
         },
         {
           "type": "exec",

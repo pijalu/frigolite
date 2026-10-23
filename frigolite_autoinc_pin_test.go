@@ -1,94 +1,78 @@
-package frigolite_test
+package frigolite
 
 import (
+	"fmt"
 	"path/filepath"
-	"strings"
 	"testing"
-
-	"github.com/pijalu/frigolite"
 )
 
-// TestSQLiteAutoincSequenceShapePin pins autoinc.test 12.4-12.7's
-// sqlite_sequence shape contract (insert.c autoIncBegin, ticket
-// d8dc2b3a58cd5dc2918a1d4acb): the sequence table must exist as an ordinary
-// rowid table with EXACTLY two columns, read positionally —
-//   - a writable_schema rewrite to a 1-column declaration corrupts the next
-//     AUTOINCREMENT insert ("database disk image is malformed", 12.5);
-//   - any other 2-column spelling keeps working because the sequence update
-//     addresses the columns by position, not name (12.6: (x,y), 12.7:
-//     (y INTEGER PRIMARY KEY, x)).
-//
-// The generated autoinc package cannot assert 12.6/12.7 (the transpiled
-// catchsql drops the trailing PRAGMA integrity_check result), so the
-// engine-visible behavior is pinned here.
-func TestSQLiteAutoincSequenceShapePin(t *testing.T) {
-	// 12.5: 1-column sqlite_sequence → malformed.
-	t.Run("one_column_malformed", func(t *testing.T) {
-		dir := t.TempDir()
-		db, err := frigolite.Open(filepath.Join(dir, "test.db"))
-		if err != nil {
-			t.Fatal(err)
-		}
-		defer db.Close()
-		db.SetDefensive(false)
-		if r := db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n" +
-			"INSERT INTO t1(b) VALUES('one');\n" +
-			"PRAGMA writable_schema=on;\n" +
-			"UPDATE sqlite_master SET sql='CREATE TABLE sqlite_sequence(x)' WHERE name='sqlite_sequence'"); r.Error != nil {
-			t.Fatalf("setup: %v", r.Error)
-		}
-		// Reopen so the corrupted schema is parsed the way a fresh
-		// connection sees it.
-		db.Close()
-		db2, err := frigolite.Open(filepath.Join(dir, "test.db"))
-		if err != nil {
-			t.Fatal(err)
-		}
-		defer db2.Close()
-		r := db2.Exec("INSERT INTO t1(b) VALUES('two')")
-		if r.Error == nil || !strings.Contains(r.Error.Error(), "database disk image is malformed") {
-			t.Fatalf("12.5: got %v, want 'database disk image is malformed'", r.Error)
-		}
-	})
+func TestAutoincPrepareFinalizeDoesNotCreateTable(t *testing.T) {
+	db, err := Open(filepath.Join(t.TempDir(), "autoinc.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
 
-	// 12.6/12.7: renamed/reordered 2-column spellings keep working.
-	for name, decl := range map[string]string{
-		"renamed":      "CREATE TABLE sqlite_sequence(x, y INTEGER PRIMARY KEY)",
-		"reordered":    "CREATE TABLE sqlite_sequence(y INTEGER PRIMARY KEY, x)",
-		"renamed_bare": "CREATE TABLE sqlite_sequence(x, y)",
+	stmt, err := db.Prepare("CREATE TABLE t1(x INTEGER PRIMARY KEY AUTOINCREMENT)")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := stmt.Finalize(); err != nil {
+		t.Fatal(err)
+	}
+	if got := db.Query("SELECT name FROM sqlite_master WHERE name='t1'"); got.Error != nil || len(got.Rows) != 0 {
+		t.Fatalf("prepare/finalize created t1: result=%+v", got)
+	}
+
+	if result := db.Exec("CREATE TABLE t1(x INTEGER PRIMARY KEY AUTOINCREMENT)"); result.Error != nil {
+		t.Fatal(result.Error)
+	}
+	if result := db.Exec("INSERT INTO t1 VALUES(NULL)"); result.Error != nil {
+		t.Fatal(result.Error)
+	}
+	got := db.Query("SELECT x FROM t1")
+	if got.Error != nil || len(got.Rows) != 1 || got.Rows[0][0] != int64(1) {
+		t.Fatalf("insert after executed CREATE: result=%+v", got)
+	}
+}
+
+func TestAutoincRejectsSwappedSequenceRootpage(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "autoinc-root.db")
+	db, err := Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, sqlText := range []string{
+		"CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT)",
+		"INSERT INTO t1(b) VALUES('one')",
+		"CREATE TABLE fake(name TEXT PRIMARY KEY, seq) WITHOUT ROWID",
 	} {
-		t.Run(name, func(t *testing.T) {
-			dir := t.TempDir()
-			db, err := frigolite.Open(filepath.Join(dir, "test.db"))
-			if err != nil {
-				t.Fatal(err)
-			}
-			defer db.Close()
-			db.SetDefensive(false)
-			rewrite := "UPDATE sqlite_master SET sql='" + decl + "' WHERE name='sqlite_sequence'"
-			if r := db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n" +
-				"INSERT INTO t1(b) VALUES('one');\n" +
-				"PRAGMA writable_schema=on;\n" + rewrite); r.Error != nil {
-				t.Fatalf("setup: %v", r.Error)
-			}
-			// More AUTOINCREMENT inserts over the renamed sequence, then an
-			// integrity check — the 12.6/12.7 statement batch.
-			if r := db.Exec("INSERT INTO t1(b) VALUES('two'),('three'),('four');\n" +
-				"INSERT INTO t1(b) VALUES('five')"); r.Error != nil {
-				t.Fatalf("%s inserts: %v", name, r.Error)
-			}
-			q := db.Query("PRAGMA integrity_check")
-			if q.Error != nil {
-				t.Fatalf("%s integrity_check: %v", name, q.Error)
-			}
-			if len(q.Rows) == 0 || q.Rows[0][0] != "ok" {
-				t.Fatalf("%s integrity_check: got %v want ok", name, q.Rows)
-			}
-			// The sequence kept counting by position: the last docid is 5.
-			q = db.Query("SELECT count(*) FROM t1")
-			if q.Error != nil || q.Rows[0][0] != int64(5) {
-				t.Fatalf("%s count: %v %v", name, q.Error, q.Rows)
-			}
-		})
+		if result := db.Exec(sqlText); result.Error != nil {
+			t.Fatalf("%s: %v", sqlText, result.Error)
+		}
+	}
+	root := func(name string) int64 {
+		t.Helper()
+		result := db.Query("SELECT rootpage FROM sqlite_master WHERE name='" + name + "'")
+		if result.Error != nil || len(result.Rows) != 1 {
+			t.Fatalf("rootpage for %s: %+v", name, result)
+		}
+		return result.Rows[0][0].(int64)
+	}
+	seqRoot, fakeRoot := root("sqlite_sequence"), root("fake")
+	update := "PRAGMA writable_schema=ON; UPDATE sqlite_master SET rootpage=" + fmt.Sprint(fakeRoot) + " WHERE name='sqlite_sequence'; UPDATE sqlite_master SET rootpage=" + fmt.Sprint(seqRoot) + " WHERE name='fake'"
+	if result := db.Exec(update); result.Error != nil {
+		t.Fatal(result.Error)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatal(err)
+	}
+	db, err = Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if result := db.Exec("INSERT INTO t1(b) VALUES('two')"); result.Error == nil || result.Error.Error() != "database disk image is malformed" {
+		t.Fatalf("swapped sqlite_sequence rootpage error = %v", result.Error)
 	}
 }

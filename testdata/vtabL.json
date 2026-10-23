@@ -1,13 +1,190 @@
 {
   "file": "vtabL.test",
   "name": "vtabL",
+  "ordered": true,
   "tests": [
     {
       "name": "setup_0",
       "steps": [
         {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "vtabL",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "vtabL"
+          },
+          "callbackProcs": [
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return $::create_table_sql\n    }\n  }\n\n  return {}\n",
+              "Defaults": null
+            }
+          ],
+          "moduleArgs": [
+            "db"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "vtabL-1.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);",
+          "expect": "1 {declare_vtab: syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "vtabL-1.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);",
+          "expect": "1 {declare_vtab: syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "vtabL-1.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);",
+          "expect": "1 {declare_vtab: syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "vtabL-1.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);",
+          "expect": "1 {declare_vtab: syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "vtabL-1.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);",
+          "expect": "1 {declare_vtab: syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "vtabL-1.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);",
+          "expect": "1 {declare_vtab: syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "vtabL-1.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);",
+          "expect": "1 {declare_vtab: syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "vtabL-1.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);",
+          "expect": "1 {declare_vtab: syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "vtabL-1.9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);",
+          "expect": "1 {declare_vtab: SQL logic error}"
+        }
+      ]
+    },
+    {
+      "name": "vtabL-1.10",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);",
+          "expect": "1 {declare_vtab: SQL logic error}"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS x1"
+        }
+      ]
+    },
+    {
+      "name": "vtabL-2.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);"
+        }
+      ]
+    },
+    {
+      "name": "vtabL-2.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS x1"
+        }
+      ]
+    },
+    {
+      "name": "vtabL-2.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);"
+        }
+      ]
+    },
+    {
+      "name": "vtabL-2.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM x1"
         }
       ]
     }

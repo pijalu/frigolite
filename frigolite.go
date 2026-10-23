@@ -76,6 +76,15 @@ type Result struct {
 	SQL             string // The SQL statement that produced this result
 }
 
+// CacheFlush writes dirty pages from active write transactions to the database files without committing.
+// It returns an error if a reader prevents a pager from spilling pages.
+func (db *DB) CacheFlush() error {
+	if db == nil || db.engine == nil {
+		return fmt.Errorf("database is closed")
+	}
+	return db.engine.CacheFlush()
+}
+
 // InTransaction reports whether an explicit transaction is open on the
 // connection — the negation of sqlite3_get_autocommit's return.
 func (db *DB) InTransaction() bool {
@@ -121,6 +130,54 @@ func (db *DB) SetLockStyle(style LockStyle) {
 	}
 }
 
+// sharedMemURI reports whether a path is a "file:NAME?mode=memory" URI and
+// returns the store name plus whether cache=shared was requested.
+//
+// SQLite's URI handling: "file:NAME?mode=memory" opens a database that lives
+// only in memory, keyed by NAME. With cache=shared, every connection that
+// uses the same NAME sees the SAME database; without it, each connection gets
+// a private one. Either way the database is NOT the file NAME - a plain
+// connection to that file sees a different database entirely (pager2-3.1:
+// db1/db2 share "file:test.db?mode=memory&cache=shared" while db3 opens the
+// file "test.db" and must not see their table).
+func sharedMemURI(path string) (string, bool) {
+	if !strings.HasPrefix(path, "file:") {
+		return "", false
+	}
+	rest := strings.TrimPrefix(path, "file:")
+	query := ""
+	if i := strings.IndexByte(rest, '?'); i >= 0 {
+		query = rest[i+1:]
+		rest = rest[:i]
+	}
+	shared := false
+	modeMemory := false
+	for _, param := range strings.Split(query, "&") {
+		if param == "" {
+			continue
+		}
+		key, value := param, ""
+		if eq := strings.IndexByte(param, '='); eq >= 0 {
+			key, value = param[:eq], param[eq+1:]
+		}
+		switch strings.ToLower(key) {
+		case "mode":
+			modeMemory = strings.EqualFold(value, "memory")
+		case "cache":
+			shared = strings.EqualFold(value, "shared")
+		}
+	}
+	if !modeMemory {
+		return "", false
+	}
+	name := strings.ReplaceAll(rest, "\\", "/")
+	name = strings.ReplaceAll(name, "//", "/")
+	if name == "" {
+		name = ":memory:"
+	}
+	return name, shared
+}
+
 // memdbName reports whether path is a memdb VFS URI
 // (file:/name?vfs=memdb, memdb.c) and returns the shared-store name.
 // Both slashes and backslashes after "file:" start the shared name:
@@ -157,6 +214,47 @@ func openMemdb(name string) (*DB, error) {
 	memdbRefcounts[name]++
 	memdbMu.Unlock()
 	return newDBOverPager(pg, "file:"+name+"?vfs=memdb")
+}
+
+// sharedMemStores holds the process-global in-memory databases named by a
+// "file:NAME?mode=memory&cache=shared" URI, and their reference counts.
+var (
+	sharedMemMu        sync.Mutex
+	sharedMemStores    = map[string]*pager.Pager{}
+	sharedMemRefcounts = map[string]int{}
+)
+
+// openSharedMem opens (or joins) the shared in-memory database named name.
+func openSharedMem(name string) (*DB, error) {
+	sharedMemMu.Lock()
+	pg, ok := sharedMemStores[name]
+	if !ok {
+		pg = pager.OpenInMemory(pager.DefaultPageSize)
+		sharedMemStores[name] = pg
+	}
+	sharedMemRefcounts[name]++
+	sharedMemMu.Unlock()
+	return newDBOverPager(pg, "file:"+name+"?mode=memory&cache=shared")
+}
+
+// releaseSharedMem drops a connection's reference to a shared in-memory
+// database, deleting the store when the last connection closes.
+func releaseSharedMem(db *DB) {
+	if db == nil || db.pager == nil {
+		return
+	}
+	sharedMemMu.Lock()
+	defer sharedMemMu.Unlock()
+	for name, pg := range sharedMemStores {
+		if pg == db.pager {
+			sharedMemRefcounts[name]--
+			if sharedMemRefcounts[name] <= 0 {
+				delete(sharedMemStores, name)
+				delete(sharedMemRefcounts, name)
+			}
+			return
+		}
+	}
 }
 
 // memdbRefcounts tracks open connections per shared memdb store so the
@@ -241,6 +339,13 @@ func Open(path string) (*DB, error) {
 	if name, ok := memdbName(path); ok {
 		return openMemdb(name)
 	}
+	// "file:NAME?mode=memory[&cache=shared]": an in-memory database keyed by
+	// NAME. With cache=shared, connections using the same NAME share it.
+	if name, shared := sharedMemURI(path); shared {
+		return openSharedMem(name)
+	} else if name != "" {
+		return newDBOverPager(pager.OpenInMemory(pager.DefaultPageSize), path)
+	}
 	path = normalizeURIPath(path)
 	// Canonicalize the filesystem path the way SQLite's unix VFS does in
 	// xFullPathname (os_unix.c unixFullPathname): collapse ".", "..",
@@ -313,7 +418,7 @@ func normalizeURIPath(path string) string {
 	return p
 }
 
-// Close closes the database.
+// SetDefensive configures defensive mode for compatibility tests.
 func (db *DB) Close() error {
 	if db == nil {
 		return nil

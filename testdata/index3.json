@@ -95,8 +95,19 @@
       "name": "index3-99.1",
       "steps": [
         {
+          "type": "defensive",
+          "sql": "0"
+        },
+        {
           "type": "exec",
           "sql": "PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET sql='nonsense' WHERE name='t1d'"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         },
         {
           "type": "catch",

@@ -1,9 +1,11 @@
 {
   "file": "rowvalue.test",
   "name": "rowvalue",
+  "nullToken": "NULL",
+  "ordered": true,
   "tests": [
     {
-      "name": "0.0",
+      "name": "rowvalue-0.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +14,1111 @@
       ]
     },
     {
-      "name": "3.0",
+      "name": "rowvalue-1.1.eq",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 2, 3) == (1, 2, 3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.1.ne",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 2, 3) != (1, 2, 3)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.1.is",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 2, 3) IS (1, 2, 3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.1.isnot",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 2, 3) IS NOT (1, 2, 3)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.1.2.eq",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT 1, 2, 3) == (SELECT 1, 2, 3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.1.2.ne",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT 1, 2, 3) != (SELECT 1, 2, 3)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.2.eq",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 0, 3) == (1, 2, 3)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.2.ne",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 0, 3) != (1, 2, 3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.2.is",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 0, 3) IS (1, 2, 3)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.2.isnot",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 0, 3) IS NOT (1, 2, 3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.2.2.eq",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT 1, 0, 3) == (SELECT 1, 2, 3)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.2.2.ne",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT 1, 0, 3) != (SELECT 1, 2, 3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.3.eq",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 2, NULL) == (1, 2, 3)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.3.ne",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 2, NULL) != (1, 2, 3)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.3.is",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 2, NULL) IS (1, 2, 3)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.3.isnot",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 2, NULL) IS NOT (1, 2, 3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.3.2.eq",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT 1, 2, NULL) == (SELECT 1, 2, 3)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.3.2.ne",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT 1, 2, NULL) != (SELECT 1, 2, 3)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.4.eq",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 2, NULL) == (1, 2, NULL)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.4.ne",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 2, NULL) != (1, 2, NULL)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.4.is",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 2, NULL) IS (1, 2, NULL)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.4.isnot",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 2, NULL) IS NOT (1, 2, NULL)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.4.2.eq",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT 1, 2, NULL) == (SELECT 1, 2, NULL)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.4.2.ne",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT 1, 2, NULL) != (SELECT 1, 2, NULL)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.5.eq",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (NULL, NULL, NULL) == (NULL, NULL, NULL)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.5.ne",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (NULL, NULL, NULL) != (NULL, NULL, NULL)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.5.is",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (NULL, NULL, NULL) IS (NULL, NULL, NULL)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.5.isnot",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (NULL, NULL, NULL) IS NOT (NULL, NULL, NULL)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.5.2.eq",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT NULL, NULL, NULL) == (SELECT NULL, NULL, NULL)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.5.2.ne",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT NULL, NULL, NULL) != (SELECT NULL, NULL, NULL)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.6.eq",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, NULL, 1) == (1, 1, 1)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.6.ne",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, NULL, 1) != (1, 1, 1)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.6.is",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, NULL, 1) IS (1, 1, 1)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.6.isnot",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, NULL, 1) IS NOT (1, 1, 1)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.6.2.eq",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT 1, NULL, 1) == (SELECT 1, 1, 1)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.6.2.ne",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT 1, NULL, 1) != (SELECT 1, 1, 1)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.7.eq",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, NULL, 1) == (1, 1, 2)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.7.ne",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, NULL, 1) != (1, 1, 2)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.7.is",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, NULL, 1) IS (1, 1, 2)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.7.isnot",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, NULL, 1) IS NOT (1, 1, 2)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.7.2.eq",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT 1, NULL, 1) == (SELECT 1, 1, 2)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-1.7.2.ne",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT 1, NULL, 1) != (SELECT 1, 1, 2)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.1.lt",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 1, 3) \u003c (1, 2, 3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.1.lt.where1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE (1, 1, 3) \u003c (1, 2, 3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.1.lt.where2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE NOT (1, 1, 3) \u003c (1, 2, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.1.gt",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 1, 3) \u003e (1, 2, 3)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.1.gt.where1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE (1, 1, 3) \u003e (1, 2, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.1.gt.where2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE NOT (1, 1, 3) \u003e (1, 2, 3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.1.le",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 1, 3) \u003c= (1, 2, 3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.1.le.where1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE (1, 1, 3) \u003c= (1, 2, 3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.1.le.where2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE NOT (1, 1, 3) \u003c= (1, 2, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.1.ge",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 1, 3) \u003e= (1, 2, 3)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.1.ge.where1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE (1, 1, 3) \u003e= (1, 2, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.1.ge.where2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE NOT (1, 1, 3) \u003e= (1, 2, 3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.2.lt",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 2, 3) \u003c (1, 2, 3)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.2.lt.where1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE (1, 2, 3) \u003c (1, 2, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.2.lt.where2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE NOT (1, 2, 3) \u003c (1, 2, 3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.2.gt",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 2, 3) \u003e (1, 2, 3)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.2.gt.where1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE (1, 2, 3) \u003e (1, 2, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.2.gt.where2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE NOT (1, 2, 3) \u003e (1, 2, 3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.2.le",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 2, 3) \u003c= (1, 2, 3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.2.le.where1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE (1, 2, 3) \u003c= (1, 2, 3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.2.le.where2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE NOT (1, 2, 3) \u003c= (1, 2, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.2.ge",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 2, 3) \u003e= (1, 2, 3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.2.ge.where1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE (1, 2, 3) \u003e= (1, 2, 3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.2.ge.where2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE NOT (1, 2, 3) \u003e= (1, 2, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.3.lt",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 3, 3) \u003c (1, 2, 3)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.3.lt.where1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE (1, 3, 3) \u003c (1, 2, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.3.lt.where2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE NOT (1, 3, 3) \u003c (1, 2, 3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.3.gt",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 3, 3) \u003e (1, 2, 3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.3.gt.where1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE (1, 3, 3) \u003e (1, 2, 3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.3.gt.where2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE NOT (1, 3, 3) \u003e (1, 2, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.3.le",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 3, 3) \u003c= (1, 2, 3)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.3.le.where1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE (1, 3, 3) \u003c= (1, 2, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.3.le.where2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE NOT (1, 3, 3) \u003c= (1, 2, 3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.3.ge",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 3, 3) \u003e= (1, 2, 3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.3.ge.where1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE (1, 3, 3) \u003e= (1, 2, 3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.3.ge.where2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE NOT (1, 3, 3) \u003e= (1, 2, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.4.lt",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, NULL, 3) \u003c (1, 2, 3)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.4.lt.where1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE (1, NULL, 3) \u003c (1, 2, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.4.lt.where2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE NOT (1, NULL, 3) \u003c (1, 2, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.4.gt",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, NULL, 3) \u003e (1, 2, 3)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.4.gt.where1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE (1, NULL, 3) \u003e (1, 2, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.4.gt.where2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE NOT (1, NULL, 3) \u003e (1, 2, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.4.le",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, NULL, 3) \u003c= (1, 2, 3)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.4.le.where1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE (1, NULL, 3) \u003c= (1, 2, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.4.le.where2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE NOT (1, NULL, 3) \u003c= (1, 2, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.4.ge",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, NULL, 3) \u003e= (1, 2, 3)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.4.ge.where1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE (1, NULL, 3) \u003e= (1, 2, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.4.ge.where2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE NOT (1, NULL, 3) \u003e= (1, 2, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.5.lt",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 3, 3) \u003c (1, NULL, 3)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.5.lt.where1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE (1, 3, 3) \u003c (1, NULL, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.5.lt.where2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE NOT (1, 3, 3) \u003c (1, NULL, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.5.gt",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 3, 3) \u003e (1, NULL, 3)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.5.gt.where1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE (1, 3, 3) \u003e (1, NULL, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.5.gt.where2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE NOT (1, 3, 3) \u003e (1, NULL, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.5.le",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 3, 3) \u003c= (1, NULL, 3)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.5.le.where1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE (1, 3, 3) \u003c= (1, NULL, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.5.le.where2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE NOT (1, 3, 3) \u003c= (1, NULL, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.5.ge",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 3, 3) \u003e= (1, NULL, 3)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.5.ge.where1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE (1, 3, 3) \u003e= (1, NULL, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.5.ge.where2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE NOT (1, 3, 3) \u003e= (1, NULL, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.6.lt",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, NULL, 3) \u003c (1, NULL, 3)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.6.lt.where1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE (1, NULL, 3) \u003c (1, NULL, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.6.lt.where2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE NOT (1, NULL, 3) \u003c (1, NULL, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.6.gt",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, NULL, 3) \u003e (1, NULL, 3)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.6.gt.where1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE (1, NULL, 3) \u003e (1, NULL, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.6.gt.where2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE NOT (1, NULL, 3) \u003e (1, NULL, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.6.le",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, NULL, 3) \u003c= (1, NULL, 3)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.6.le.where1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE (1, NULL, 3) \u003c= (1, NULL, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.6.le.where2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE NOT (1, NULL, 3) \u003c= (1, NULL, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.6.ge",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, NULL, 3) \u003e= (1, NULL, 3)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.6.ge.where1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE (1, NULL, 3) \u003e= (1, NULL, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-2.6.ge.where2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one WHERE NOT (1, NULL, 3) \u003e= (1, NULL, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-3.0",
       "steps": [
         {
           "type": "exec",
@@ -21,7 +1127,337 @@
       ]
     },
     {
-      "name": "6.0",
+      "name": "rowvalue-3.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 1) == (SELECT x,y FROM t1 ORDER BY y)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-3.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 1) == (SELECT * FROM t1 ORDER BY y)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-3.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT * FROM t1 ORDER BY y) == (SELECT * FROM t1 ORDER BY y)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-3.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT 0, 0) == (SELECT * FROM t1 ORDER BY y)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-3.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 1) == (SELECT x,y FROM t1 ORDER BY x, y)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-3.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 1) == (SELECT * FROM t1 ORDER BY x, y)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-3.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT * FROM t1 ORDER BY x, y) == (SELECT * FROM t1 ORDER BY x, y)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-3.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT 0, 0) == (SELECT * FROM t1 ORDER BY x, y)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-3.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 2) == (SELECT x,y FROM t1 ORDER BY x, y DESC)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-3.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 2) == (SELECT * FROM t1 ORDER BY x, y DESC)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-3.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT * FROM t1 ORDER BY x, y DESC) == (SELECT * FROM t1 ORDER BY x, y DESC)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-3.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT 0, 0) == (SELECT * FROM t1 ORDER BY x, y DESC)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-3.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (3, 6) == (SELECT x,y FROM t1 ORDER BY x DESC, y DESC)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-3.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (3, 6) == (SELECT * FROM t1 ORDER BY x DESC, y DESC)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-3.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT * FROM t1 ORDER BY x DESC, y DESC) == (SELECT * FROM t1 ORDER BY x DESC, y DESC)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-3.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT 0, 0) == (SELECT * FROM t1 ORDER BY x DESC, y DESC)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-3.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ((3, 5)) == (SELECT x,y FROM t1 ORDER BY x DESC, y)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-3.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ((3, 5)) == (SELECT * FROM t1 ORDER BY x DESC, y)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-3.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT * FROM t1 ORDER BY x DESC, y) == (SELECT * FROM t1 ORDER BY x DESC, y)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-3.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT 0, 0) == (SELECT * FROM t1 ORDER BY x DESC, y)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-3.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT 3, 5) == (SELECT x,y FROM t1 ORDER BY x DESC, y)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-3.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT 3, 5) == (SELECT * FROM t1 ORDER BY x DESC, y)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-3.6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT * FROM t1 ORDER BY x DESC, y) == (SELECT * FROM t1 ORDER BY x DESC, y)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-3.6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT 0, 0) == (SELECT * FROM t1 ORDER BY x DESC, y)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (2, 2) BETWEEN (2, 2) AND (3, 3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (2, 2) BETWEEN (2, NULL) AND (3, 3)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (2, 2) BETWEEN (3, NULL) AND (3, 3)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (2, 4) IN (SELECT * FROM t1)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (3, 4) IN (SELECT * FROM t1)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (NULL, 4) IN (SELECT * FROM t1)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (NULL, 0) IN (SELECT * FROM t1)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (NULL, 4) NOT IN (SELECT * FROM t1)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-5.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (NULL, 0) NOT IN (SELECT * FROM t1)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-6.0",
       "steps": [
         {
           "type": "exec",
@@ -30,7 +1466,7 @@
       ]
     },
     {
-      "name": "6.1",
+      "name": "rowvalue-6.1",
       "steps": [
         {
           "type": "query",
@@ -40,7 +1476,7 @@
       ]
     },
     {
-      "name": "6.2",
+      "name": "rowvalue-6.2",
       "steps": [
         {
           "type": "query",
@@ -50,7 +1486,7 @@
       ]
     },
     {
-      "name": "6.3",
+      "name": "rowvalue-6.3",
       "steps": [
         {
           "type": "query",
@@ -60,7 +1496,7 @@
       ]
     },
     {
-      "name": "6.4",
+      "name": "rowvalue-6.4",
       "steps": [
         {
           "type": "query",
@@ -70,7 +1506,7 @@
       ]
     },
     {
-      "name": "6.5",
+      "name": "rowvalue-6.5",
       "steps": [
         {
           "type": "query",
@@ -80,27 +1516,27 @@
       ]
     },
     {
-      "name": "6.6",
+      "name": "rowvalue-6.6",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT c FROM hh WHERE (a, b) = (SELECT 'abc', 1) COLLATE nocase;",
           "expect": "1 {row value misused}"
         }
       ]
     },
     {
-      "name": "6.7",
+      "name": "rowvalue-6.7",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT c FROM hh WHERE (a, b) = 1;",
           "expect": "1 {row value misused}"
         }
       ]
     },
     {
-      "name": "6.8",
+      "name": "rowvalue-6.8",
       "steps": [
         {
           "type": "query",
@@ -110,7 +1546,7 @@
       ]
     },
     {
-      "name": "6.9",
+      "name": "rowvalue-6.9",
       "steps": [
         {
           "type": "query",
@@ -120,7 +1556,7 @@
       ]
     },
     {
-      "name": "6.10",
+      "name": "rowvalue-6.10",
       "steps": [
         {
           "type": "query",
@@ -130,7 +1566,7 @@
       ]
     },
     {
-      "name": "7.0",
+      "name": "rowvalue-7.0",
       "steps": [
         {
           "type": "exec",
@@ -139,7 +1575,102 @@
       ]
     },
     {
-      "name": "8.0",
+      "name": "rowvalue-7.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM xy WHERE (i, j) IS (2, 2)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-7.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM xy WHERE (i, j) IS (2, 2)",
+          "expect": "2 2 2"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-7.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM xy WHERE (k, j) \u003c (2, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-7.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM xy WHERE (k, j) \u003c (2, 3)",
+          "expect": "1 1 1 2 2 2"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-7.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM xy WHERE (i, j) \u003c (2, 3)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-7.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM xy WHERE (i, j) \u003c (2, 3)",
+          "expect": "1 1 1 2 2 2"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-7.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM xy WHERE (i, j) \u003e (2, 1)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-7.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM xy WHERE (i, j) \u003e (2, 1)",
+          "expect": "2 2 2 3 3 3 4 4 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-7.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM xy WHERE (i, j) \u003e ('2', 1)"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-7.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM xy WHERE (i, j) \u003e ('2', 1)",
+          "expect": "2 2 2 3 3 3 4 4 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-8.0",
       "steps": [
         {
           "type": "exec",
@@ -148,7 +1679,7 @@
       ]
     },
     {
-      "name": "8.1",
+      "name": "rowvalue-8.1",
       "steps": [
         {
           "type": "query",
@@ -157,7 +1688,7 @@
       ]
     },
     {
-      "name": "9.0",
+      "name": "rowvalue-9.0",
       "steps": [
         {
           "type": "exec",
@@ -166,7 +1697,47 @@
       ]
     },
     {
-      "name": "10.0",
+      "name": "rowvalue-9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t2 WHERE (a, b) \u003e (2, 1)",
+          "expect": "2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t2 WHERE (a, b) \u003e (2, 2)",
+          "expect": "3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-9.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t2 WHERE (a, b) \u003c (4, 5)",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-9.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t2 WHERE (a, b) \u003c (4, 3)",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-10.0",
       "steps": [
         {
           "type": "query",
@@ -175,87 +1746,87 @@
       ]
     },
     {
-      "name": "11.1",
+      "name": "rowvalue-11.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t11(a);\n  SELECT * FROM t11 WHERE (a,a)<=1;",
+          "type": "catch",
+          "sql": "CREATE TABLE t11(a);\n  SELECT * FROM t11 WHERE (a,a)\u003c=1;",
           "expect": "1 {row value misused}"
         }
       ]
     },
     {
-      "name": "11.2",
+      "name": "rowvalue-11.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t11 WHERE (a,a)<1;",
+          "type": "catch",
+          "sql": "SELECT * FROM t11 WHERE (a,a)\u003c1;",
           "expect": "1 {row value misused}"
         }
       ]
     },
     {
-      "name": "11.3",
+      "name": "rowvalue-11.3",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t11 WHERE (a,a)>=1;",
+          "type": "catch",
+          "sql": "SELECT * FROM t11 WHERE (a,a)\u003e=1;",
           "expect": "1 {row value misused}"
         }
       ]
     },
     {
-      "name": "11.4",
+      "name": "rowvalue-11.4",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t11 WHERE (a,a)>1;",
+          "type": "catch",
+          "sql": "SELECT * FROM t11 WHERE (a,a)\u003e1;",
           "expect": "1 {row value misused}"
         }
       ]
     },
     {
-      "name": "11.5",
+      "name": "rowvalue-11.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM t11 WHERE (a,a)==1;",
           "expect": "1 {row value misused}"
         }
       ]
     },
     {
-      "name": "11.6",
+      "name": "rowvalue-11.6",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t11 WHERE (a,a)<>1;",
+          "type": "catch",
+          "sql": "SELECT * FROM t11 WHERE (a,a)\u003c\u003e1;",
           "expect": "1 {row value misused}"
         }
       ]
     },
     {
-      "name": "11.7",
+      "name": "rowvalue-11.7",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM t11 WHERE (a,a) IS 1;",
           "expect": "1 {row value misused}"
         }
       ]
     },
     {
-      "name": "11.8",
+      "name": "rowvalue-11.8",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM t11 WHERE (a,a) IS NOT 1;",
           "expect": "1 {row value misused}"
         }
       ]
     },
     {
-      "name": "12.1",
+      "name": "rowvalue-12.1",
       "steps": [
         {
           "type": "query",
@@ -265,7 +1836,16 @@
       ]
     },
     {
-      "name": "12.2",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "-"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-12.2",
       "steps": [
         {
           "type": "query",
@@ -275,17 +1855,85 @@
       ]
     },
     {
-      "name": "12.3",
+      "name": "rowvalue-12.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT t1.*, t2.* FROM t1 FULL JOIN t2 ON (a,b)=(x,y)\n   ORDER BY coalesce(a,x);",
-          "expect": "1 2 - -\n  - - 3 4"
+          "expect": "\n  1 2 - -\n  - - 3 4\n"
         }
       ]
     },
     {
-      "name": "14.0",
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "nullvalue"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-13.0",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT (1,2) AS x WHERE x=3",
+          "expect": "1 {row value misused}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-13.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT (1,2) BETWEEN 1 AND 2",
+          "expect": "1 {row value misused}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-13.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1 BETWEEN (1,2) AND 2",
+          "expect": "1 {row value misused}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-13.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 2 BETWEEN 1 AND (1,2)",
+          "expect": "1 {row value misused}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-13.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT (1,2) FROM (SELECT 1) ORDER BY 1",
+          "expect": "1 {row value misused}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-13.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT (1,2) FROM (SELECT 1) GROUP BY 1",
+          "expect": "1 {row value misused}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-14.0",
       "steps": [
         {
           "type": "exec",
@@ -294,7 +1942,57 @@
       ]
     },
     {
-      "name": "14.6",
+      "name": "rowvalue-14.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 WHERE (2,2) BETWEEN (1,1) AND (3,3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-14.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CASE (2,2) WHEN (1, 1) THEN 2 ELSE 1 END",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-14.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CASE (SELECT 2,2) WHEN (1, 1) THEN 2 ELSE 1 END",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-14.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 WHERE (SELECT 2,2) BETWEEN (1,1) AND (3,3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-14.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 FROM t12 WHERE (x,1) BETWEEN (1,1) AND (3,3)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-14.6",
       "steps": [
         {
           "type": "query",
@@ -304,7 +2002,7 @@
       ]
     },
     {
-      "name": "14.1",
+      "name": "rowvalue-14.1",
       "steps": [
         {
           "type": "exec",
@@ -313,57 +2011,117 @@
       ]
     },
     {
-      "name": "15.1",
+      "name": "rowvalue-14.2.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "DETACH (SELECT * FROM (SELECT 1,2))<3;",
+          "type": "catch",
+          "sql": "SELECT * FROM (SELECT (1, 1) AS c FROM x1) WHERE c=1",
           "expect": "1 {row value misused}"
         }
       ]
     },
     {
-      "name": "15.2",
+      "name": "rowvalue-14.2.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "UPDATE x1 SET a=(SELECT * FROM (SELECT b,2))<3;",
-          "expect": "1 {row value misused}"
-        }
-      ]
-    },
-    {
-      "name": "15.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE x1 SET a=NULL WHERE  a<(SELECT * FROM (SELECT b,2));",
+          "type": "catch",
+          "sql": "SELECT * FROM (SELECT 1 AS x, (SELECT 8,9) AS y) WHERE y\u003c1",
           "expect": "1 {sub-select returns 2 columns - expected 1}"
         }
       ]
     },
     {
-      "name": "15.4",
+      "name": "rowvalue-14.2.3",
       "steps": [
         {
-          "type": "exec",
-          "sql": "DELETE FROM x1 WHERE  a<(SELECT * FROM (SELECT b,2));",
-          "expect": "1 {sub-select returns 2 columns - expected 1}"
+          "type": "catch",
+          "sql": "SELECT * FROM (SELECT 1 AS x, (SELECT 8,9,10) AS y) WHERE y\u003c1",
+          "expect": "1 {sub-select returns 3 columns - expected 1}"
         }
       ]
     },
     {
-      "name": "15.5",
+      "name": "rowvalue-14.2.4",
       "steps": [
         {
-          "type": "exec",
-          "sql": "INSERT INTO x1(a,b) VALUES(1,(SELECT * FROM (SELECT 1,2))<3);",
+          "type": "catch",
+          "sql": "SELECT * FROM (SELECT (a, b) AS c FROM x1), x2 WHERE c=a",
           "expect": "1 {row value misused}"
         }
       ]
     },
     {
-      "name": "16.1",
+      "name": "rowvalue-14.2.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM (SELECT a AS c, (1, 2, 3) FROM x1), x2 WHERE c=a",
+          "expect": "1 {row value misused}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-14.2.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM (SELECT 1 AS c, (1, 2, 3) FROM x1) WHERE c=1",
+          "expect": "1 {row value misused}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-15.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DETACH (SELECT * FROM (SELECT 1,2))\u003c3;",
+          "expect": "1 {row value misused}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-15.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE x1 SET a=(SELECT * FROM (SELECT b,2))\u003c3;",
+          "expect": "1 {row value misused}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-15.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE x1 SET a=NULL WHERE  a\u003c(SELECT * FROM (SELECT b,2));",
+          "expect": "1 {sub-select returns 2 columns - expected 1}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-15.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DELETE FROM x1 WHERE  a\u003c(SELECT * FROM (SELECT b,2));",
+          "expect": "1 {sub-select returns 2 columns - expected 1}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-15.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO x1(a,b) VALUES(1,(SELECT * FROM (SELECT 1,2))\u003c3);",
+          "expect": "1 {row value misused}"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-16.1",
       "steps": [
         {
           "type": "query",
@@ -373,7 +2131,7 @@
       ]
     },
     {
-      "name": "16.2",
+      "name": "rowvalue-16.2",
       "steps": [
         {
           "type": "query",
@@ -383,7 +2141,7 @@
       ]
     },
     {
-      "name": "16.3",
+      "name": "rowvalue-16.3",
       "steps": [
         {
           "type": "query",
@@ -393,27 +2151,27 @@
       ]
     },
     {
-      "name": "16.4",
+      "name": "rowvalue-16.4",
       "steps": [
         {
           "type": "query",
           "sql": "INSERT INTO t16c VALUES(2, 'w', 'x', 'y', 'z');\n  SELECT * FROM t16c;",
-          "expect": "1 D A B C \n  2 w x y z"
+          "expect": "\n  1 D A B C \n  2 w x y z\n"
         }
       ]
     },
     {
-      "name": "16.5",
+      "name": "rowvalue-16.5",
       "steps": [
         {
           "type": "query",
-          "sql": "DROP TRIGGER t16c1;\n  PRAGMA recursive_triggers = 1;\n  INSERT INTO t16c VALUES(3, 'i', 'ii', 'iii', 'iv');\n  CREATE TRIGGER t16c1 AFTER UPDATE ON t16c WHEN new.a>1 BEGIN\n    UPDATE t16c SET (e, d) = (\n      SELECT b, c FROM t16c WHERE a = new.a-1\n    ), (c, b) = (\n      SELECT d, e FROM t16c WHERE a = new.a-1\n    ) WHERE a = new.a-1;\n  END;\n\n  UPDATE t16c SET a=a WHERE a=3;\n  SELECT * FROM t16c;",
-          "expect": "1 C B A D\n  2 z y x w\n  3 i ii iii iv"
+          "sql": "DROP TRIGGER t16c1;\n  PRAGMA recursive_triggers = 1;\n  INSERT INTO t16c VALUES(3, 'i', 'ii', 'iii', 'iv');\n  CREATE TRIGGER t16c1 AFTER UPDATE ON t16c WHEN new.a\u003e1 BEGIN\n    UPDATE t16c SET (e, d) = (\n      SELECT b, c FROM t16c WHERE a = new.a-1\n    ), (c, b) = (\n      SELECT d, e FROM t16c WHERE a = new.a-1\n    ) WHERE a = new.a-1;\n  END;\n\n  UPDATE t16c SET a=a WHERE a=3;\n  SELECT * FROM t16c;",
+          "expect": "\n  1 C B A D\n  2 z y x w\n  3 i ii iii iv\n"
         }
       ]
     },
     {
-      "name": "17.0",
+      "name": "rowvalue-17.0",
       "steps": [
         {
           "type": "exec",
@@ -422,7 +2180,7 @@
       ]
     },
     {
-      "name": "17.1",
+      "name": "rowvalue-17.1",
       "steps": [
         {
           "type": "query",
@@ -431,7 +2189,7 @@
       ]
     },
     {
-      "name": "18.0",
+      "name": "rowvalue-18.0",
       "steps": [
         {
           "type": "exec",
@@ -440,7 +2198,7 @@
       ]
     },
     {
-      "name": "18.1",
+      "name": "rowvalue-18.1",
       "steps": [
         {
           "type": "query",
@@ -450,7 +2208,7 @@
       ]
     },
     {
-      "name": "18.2",
+      "name": "rowvalue-18.2",
       "steps": [
         {
           "type": "query",
@@ -460,7 +2218,7 @@
       ]
     },
     {
-      "name": "18.3",
+      "name": "rowvalue-18.3",
       "steps": [
         {
           "type": "query",
@@ -470,7 +2228,7 @@
       ]
     },
     {
-      "name": "18.4",
+      "name": "rowvalue-18.4",
       "steps": [
         {
           "type": "query",
@@ -480,7 +2238,7 @@
       ]
     },
     {
-      "name": "18.5",
+      "name": "rowvalue-18.5",
       "steps": [
         {
           "type": "query",
@@ -490,7 +2248,7 @@
       ]
     },
     {
-      "name": "18.6",
+      "name": "rowvalue-18.6",
       "steps": [
         {
           "type": "query",
@@ -500,337 +2258,337 @@
       ]
     },
     {
-      "name": "19.1",
+      "name": "rowvalue-19.1",
       "steps": [
         {
           "type": "query",
-          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY,b);\n  INSERT INTO t1(a,b) VALUES(1,11),(2,22),(3,33),(4,44);\n  SELECT * FROM t1 WHERE (a,b)>(0,0) ORDER BY a;",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY,b);\n  INSERT INTO t1(a,b) VALUES(1,11),(2,22),(3,33),(4,44);\n  SELECT * FROM t1 WHERE (a,b)\u003e(0,0) ORDER BY a;",
           "expect": "1 11 2 22 3 33 4 44"
         }
       ]
     },
     {
-      "name": "19.2",
+      "name": "rowvalue-19.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (a,b)>=(0,0) ORDER BY a;",
+          "sql": "SELECT * FROM t1 WHERE (a,b)\u003e=(0,0) ORDER BY a;",
           "expect": "1 11 2 22 3 33 4 44"
         }
       ]
     },
     {
-      "name": "19.3",
+      "name": "rowvalue-19.3",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (a,b)<(5,0) ORDER BY a DESC;",
+          "sql": "SELECT * FROM t1 WHERE (a,b)\u003c(5,0) ORDER BY a DESC;",
           "expect": "4 44 3 33 2 22 1 11"
         }
       ]
     },
     {
-      "name": "19.4",
+      "name": "rowvalue-19.4",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (a,b)<=(5,0) ORDER BY a DESC;",
+          "sql": "SELECT * FROM t1 WHERE (a,b)\u003c=(5,0) ORDER BY a DESC;",
           "expect": "4 44 3 33 2 22 1 11"
         }
       ]
     },
     {
-      "name": "19.5",
+      "name": "rowvalue-19.5",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (a,b)>(3,0) ORDER BY a;",
+          "sql": "SELECT * FROM t1 WHERE (a,b)\u003e(3,0) ORDER BY a;",
           "expect": "3 33 4 44"
         }
       ]
     },
     {
-      "name": "19.6",
+      "name": "rowvalue-19.6",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (a,b)>=(3,0) ORDER BY a;",
+          "sql": "SELECT * FROM t1 WHERE (a,b)\u003e=(3,0) ORDER BY a;",
           "expect": "3 33 4 44"
         }
       ]
     },
     {
-      "name": "19.7",
+      "name": "rowvalue-19.7",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (a,b)<(3,0) ORDER BY a DESC;",
+          "sql": "SELECT * FROM t1 WHERE (a,b)\u003c(3,0) ORDER BY a DESC;",
           "expect": "2 22 1 11"
         }
       ]
     },
     {
-      "name": "19.8",
+      "name": "rowvalue-19.8",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (a,b)<=(3,0) ORDER BY a DESC;",
+          "sql": "SELECT * FROM t1 WHERE (a,b)\u003c=(3,0) ORDER BY a DESC;",
           "expect": "2 22 1 11"
         }
       ]
     },
     {
-      "name": "19.9",
+      "name": "rowvalue-19.9",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (a,b)>(3,32) ORDER BY a;",
+          "sql": "SELECT * FROM t1 WHERE (a,b)\u003e(3,32) ORDER BY a;",
           "expect": "3 33 4 44"
         }
       ]
     },
     {
-      "name": "19.10",
+      "name": "rowvalue-19.10",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (a,b)>(3,33) ORDER BY a;",
+          "sql": "SELECT * FROM t1 WHERE (a,b)\u003e(3,33) ORDER BY a;",
           "expect": "4 44"
         }
       ]
     },
     {
-      "name": "19.11",
+      "name": "rowvalue-19.11",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (a,b)>=(3,33) ORDER BY a;",
+          "sql": "SELECT * FROM t1 WHERE (a,b)\u003e=(3,33) ORDER BY a;",
           "expect": "3 33 4 44"
         }
       ]
     },
     {
-      "name": "19.12",
+      "name": "rowvalue-19.12",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (a,b)>=(3,34) ORDER BY a;",
+          "sql": "SELECT * FROM t1 WHERE (a,b)\u003e=(3,34) ORDER BY a;",
           "expect": "4 44"
         }
       ]
     },
     {
-      "name": "19.13",
+      "name": "rowvalue-19.13",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (a,b)<(3,34) ORDER BY a DESC;",
+          "sql": "SELECT * FROM t1 WHERE (a,b)\u003c(3,34) ORDER BY a DESC;",
           "expect": "3 33 2 22 1 11"
         }
       ]
     },
     {
-      "name": "19.14",
+      "name": "rowvalue-19.14",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (a,b)<(3,33) ORDER BY a DESC;",
+          "sql": "SELECT * FROM t1 WHERE (a,b)\u003c(3,33) ORDER BY a DESC;",
           "expect": "2 22 1 11"
         }
       ]
     },
     {
-      "name": "19.15",
+      "name": "rowvalue-19.15",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (a,b)<=(3,33) ORDER BY a DESC;",
+          "sql": "SELECT * FROM t1 WHERE (a,b)\u003c=(3,33) ORDER BY a DESC;",
           "expect": "3 33 2 22 1 11"
         }
       ]
     },
     {
-      "name": "19.16",
+      "name": "rowvalue-19.16",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (a,b)<=(3,32) ORDER BY a DESC;",
+          "sql": "SELECT * FROM t1 WHERE (a,b)\u003c=(3,32) ORDER BY a DESC;",
           "expect": "2 22 1 11"
         }
       ]
     },
     {
-      "name": "19.21",
+      "name": "rowvalue-19.21",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (0,0)<(a,b) ORDER BY a;",
+          "sql": "SELECT * FROM t1 WHERE (0,0)\u003c(a,b) ORDER BY a;",
           "expect": "1 11 2 22 3 33 4 44"
         }
       ]
     },
     {
-      "name": "19.22",
+      "name": "rowvalue-19.22",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (0,0)<=(a,b) ORDER BY a;",
+          "sql": "SELECT * FROM t1 WHERE (0,0)\u003c=(a,b) ORDER BY a;",
           "expect": "1 11 2 22 3 33 4 44"
         }
       ]
     },
     {
-      "name": "19.23",
+      "name": "rowvalue-19.23",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (5,0)>(a,b) ORDER BY a DESC;",
+          "sql": "SELECT * FROM t1 WHERE (5,0)\u003e(a,b) ORDER BY a DESC;",
           "expect": "4 44 3 33 2 22 1 11"
         }
       ]
     },
     {
-      "name": "19.24",
+      "name": "rowvalue-19.24",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (5,0)>=(a,b) ORDER BY a DESC;",
+          "sql": "SELECT * FROM t1 WHERE (5,0)\u003e=(a,b) ORDER BY a DESC;",
           "expect": "4 44 3 33 2 22 1 11"
         }
       ]
     },
     {
-      "name": "19.25",
+      "name": "rowvalue-19.25",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (3,0)<(a,b) ORDER BY a;",
+          "sql": "SELECT * FROM t1 WHERE (3,0)\u003c(a,b) ORDER BY a;",
           "expect": "3 33 4 44"
         }
       ]
     },
     {
-      "name": "19.26",
+      "name": "rowvalue-19.26",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (3,0)<=(a,b) ORDER BY a;",
+          "sql": "SELECT * FROM t1 WHERE (3,0)\u003c=(a,b) ORDER BY a;",
           "expect": "3 33 4 44"
         }
       ]
     },
     {
-      "name": "19.27",
+      "name": "rowvalue-19.27",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (3,0)>(a,b) ORDER BY a DESC;",
+          "sql": "SELECT * FROM t1 WHERE (3,0)\u003e(a,b) ORDER BY a DESC;",
           "expect": "2 22 1 11"
         }
       ]
     },
     {
-      "name": "19.28",
+      "name": "rowvalue-19.28",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (3,0)>=(a,b) ORDER BY a DESC;",
+          "sql": "SELECT * FROM t1 WHERE (3,0)\u003e=(a,b) ORDER BY a DESC;",
           "expect": "2 22 1 11"
         }
       ]
     },
     {
-      "name": "19.29",
+      "name": "rowvalue-19.29",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (3,32)<(a,b) ORDER BY a;",
+          "sql": "SELECT * FROM t1 WHERE (3,32)\u003c(a,b) ORDER BY a;",
           "expect": "3 33 4 44"
         }
       ]
     },
     {
-      "name": "19.30",
+      "name": "rowvalue-19.30",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (3,33)<(a,b) ORDER BY a;",
+          "sql": "SELECT * FROM t1 WHERE (3,33)\u003c(a,b) ORDER BY a;",
           "expect": "4 44"
         }
       ]
     },
     {
-      "name": "19.31",
+      "name": "rowvalue-19.31",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (3,33)<=(a,b) ORDER BY a;",
+          "sql": "SELECT * FROM t1 WHERE (3,33)\u003c=(a,b) ORDER BY a;",
           "expect": "3 33 4 44"
         }
       ]
     },
     {
-      "name": "19.32",
+      "name": "rowvalue-19.32",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (3,34)<=(a,b) ORDER BY a;",
+          "sql": "SELECT * FROM t1 WHERE (3,34)\u003c=(a,b) ORDER BY a;",
           "expect": "4 44"
         }
       ]
     },
     {
-      "name": "19.33",
+      "name": "rowvalue-19.33",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (3,34)>(a,b) ORDER BY a DESC;",
+          "sql": "SELECT * FROM t1 WHERE (3,34)\u003e(a,b) ORDER BY a DESC;",
           "expect": "3 33 2 22 1 11"
         }
       ]
     },
     {
-      "name": "19.34",
+      "name": "rowvalue-19.34",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (3,33)>(a,b) ORDER BY a DESC;",
+          "sql": "SELECT * FROM t1 WHERE (3,33)\u003e(a,b) ORDER BY a DESC;",
           "expect": "2 22 1 11"
         }
       ]
     },
     {
-      "name": "19.35",
+      "name": "rowvalue-19.35",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (3,33)>=(a,b) ORDER BY a DESC;",
+          "sql": "SELECT * FROM t1 WHERE (3,33)\u003e=(a,b) ORDER BY a DESC;",
           "expect": "3 33 2 22 1 11"
         }
       ]
     },
     {
-      "name": "19.36",
+      "name": "rowvalue-19.36",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (3,32)>=(a,b) ORDER BY a DESC;",
+          "sql": "SELECT * FROM t1 WHERE (3,32)\u003e=(a,b) ORDER BY a DESC;",
           "expect": "2 22 1 11"
         }
       ]
     },
     {
-      "name": "20.1",
+      "name": "rowvalue-20.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT 1 WHERE (2,(2,0)) IS (2,(2,0));",
           "expect": "0 1"
         }
       ]
     },
     {
-      "name": "21.0",
+      "name": "rowvalue-21.0",
       "steps": [
         {
           "type": "query",
@@ -840,7 +2598,7 @@
       ]
     },
     {
-      "name": "22.100",
+      "name": "rowvalue-22.100",
       "steps": [
         {
           "type": "query",
@@ -850,77 +2608,88 @@
       ]
     },
     {
-      "name": "23.100",
+      "name": "rowvalue-23.100",
       "steps": [
         {
           "type": "query",
-          "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(aa COLLATE NOCASE, bb);\n  INSERT INTO t0 VALUES('a', 'A');\n  SELECT (+bb,1) >= (aa, 1), (aa,1)<=(+bb,1) FROM t0;\n  SELECT 2 FROM t0 WHERE (+bb,1) >= (aa,1);\n  SELECT 3 FROM t0 WHERE (aa,1) <= (+bb,1);",
+          "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(aa COLLATE NOCASE, bb);\n  INSERT INTO t0 VALUES('a', 'A');\n  SELECT (+bb,1) \u003e= (aa, 1), (aa,1)\u003c=(+bb,1) FROM t0;\n  SELECT 2 FROM t0 WHERE (+bb,1) \u003e= (aa,1);\n  SELECT 3 FROM t0 WHERE (aa,1) \u003c= (+bb,1);",
           "expect": "0 1 3"
         }
       ]
     },
     {
-      "name": "23.110",
+      "name": "rowvalue-23.110",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT (SELECT +bb,1) >= (aa, 1), (aa,1)<=(SELECT +bb,1) FROM t0;\n  SELECT 2 FROM t0 WHERE (SELECT +bb,1) >= (aa,1);\n  SELECT 3 FROM t0 WHERE (aa,1) <= (SELECT +bb,1);",
+          "sql": "SELECT (SELECT +bb,1) \u003e= (aa, 1), (aa,1)\u003c=(SELECT +bb,1) FROM t0;\n  SELECT 2 FROM t0 WHERE (SELECT +bb,1) \u003e= (aa,1);\n  SELECT 3 FROM t0 WHERE (aa,1) \u003c= (SELECT +bb,1);",
           "expect": "0 1 3"
         }
       ]
     },
     {
-      "name": "24.100",
+      "name": "rowvalue-24.100",
       "steps": [
         {
           "type": "query",
-          "sql": "DROP TABLE t0;\n  CREATE TABLE t0(c0 TEXT PRIMARY KEY);\n  INSERT INTO t0(c0) VALUES ('');\n  SELECT (t0.c0, TRUE) > (CAST(0 AS REAL), FALSE) FROM t0;\n  SELECT 2 FROM t0 WHERE (t0.c0, TRUE) > (CAST('' AS REAL), FALSE);",
+          "sql": "DROP TABLE t0;\n  CREATE TABLE t0(c0 TEXT PRIMARY KEY);\n  INSERT INTO t0(c0) VALUES ('');\n  SELECT (t0.c0, TRUE) \u003e (CAST(0 AS REAL), FALSE) FROM t0;\n  SELECT 2 FROM t0 WHERE (t0.c0, TRUE) \u003e (CAST('' AS REAL), FALSE);",
           "expect": "1 2"
         }
       ]
     },
     {
-      "name": "25.10",
+      "name": "rowvalue-25.10",
       "steps": [
         {
           "type": "query",
-          "sql": "DROP TABLE t0;\n  CREATE TABLE t0(c0 UNIQUE);\n  INSERT INTO t0(c0) VALUES('a');\n  SELECT (t0.c0, 0) < ('B' COLLATE NOCASE, 0) FROM t0;\n  SELECT 2 FROM t0 WHERE (t0.c0, 0) < ('B' COLLATE NOCASE, 0);",
+          "sql": "DROP TABLE t0;\n  CREATE TABLE t0(c0 UNIQUE);\n  INSERT INTO t0(c0) VALUES('a');\n  SELECT (t0.c0, 0) \u003c ('B' COLLATE NOCASE, 0) FROM t0;\n  SELECT 2 FROM t0 WHERE (t0.c0, 0) \u003c ('B' COLLATE NOCASE, 0);",
           "expect": "1 2"
         }
       ]
     },
     {
-      "name": "25.20",
+      "name": "rowvalue-25.20",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT ('B' COLLATE NOCASE, 0)> (t0.c0, 0) FROM t0;\n  SELECT 2 FROM t0 WHERE ('B' COLLATE NOCASE, 0)> (t0.c0, 0);",
+          "sql": "SELECT ('B' COLLATE NOCASE, 0)\u003e (t0.c0, 0) FROM t0;\n  SELECT 2 FROM t0 WHERE ('B' COLLATE NOCASE, 0)\u003e (t0.c0, 0);",
           "expect": "1 2"
         }
       ]
     },
     {
-      "name": "25.30",
+      "name": "rowvalue-25.30",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT ('B', 0)> (t0.c0 COLLATE nocase, 0) FROM t0;\n  SELECT 2 FROM t0 WHERE ('B', 0)> (t0.c0 COLLATE nocase, 0);",
+          "sql": "SELECT ('B', 0)\u003e (t0.c0 COLLATE nocase, 0) FROM t0;\n  SELECT 2 FROM t0 WHERE ('B', 0)\u003e (t0.c0 COLLATE nocase, 0);",
           "expect": "1 2"
         }
       ]
     },
     {
-      "name": "25.40",
+      "name": "rowvalue-25.40",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT (t0.c0 COLLATE nocase, 0) < ('B', 0) FROM t0;\n  SELECT 2 FROM t0 WHERE (t0.c0 COLLATE nocase, 0) < ('B', 0);",
+          "sql": "SELECT (t0.c0 COLLATE nocase, 0) \u003c ('B', 0) FROM t0;\n  SELECT 2 FROM t0 WHERE (t0.c0 COLLATE nocase, 0) \u003c ('B', 0);",
           "expect": "1 2"
         }
       ]
     },
     {
-      "name": "26.10",
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-26.10",
       "steps": [
         {
           "type": "query",
@@ -930,7 +2699,7 @@
       ]
     },
     {
-      "name": "26.20",
+      "name": "rowvalue-26.20",
       "steps": [
         {
           "type": "query",
@@ -940,7 +2709,7 @@
       ]
     },
     {
-      "name": "26.21",
+      "name": "rowvalue-26.21",
       "steps": [
         {
           "type": "query",
@@ -950,7 +2719,7 @@
       ]
     },
     {
-      "name": "26.30",
+      "name": "rowvalue-26.30",
       "steps": [
         {
           "type": "query",
@@ -960,7 +2729,7 @@
       ]
     },
     {
-      "name": "26.31",
+      "name": "rowvalue-26.31",
       "steps": [
         {
           "type": "query",
@@ -970,37 +2739,49 @@
       ]
     },
     {
-      "name": "27.10",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rowvalue-27.10",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t0(c0 CHECK(((0, 0) > (0, c0))));\n  INSERT INTO t0(c0) VALUES(0) ON CONFLICT(c0) DO UPDATE SET c0 = 3;",
+          "type": "catch",
+          "sql": "CREATE TABLE t0(c0 CHECK(((0, 0) \u003e (0, c0))));\n  INSERT INTO t0(c0) VALUES(0) ON CONFLICT(c0) DO UPDATE SET c0 = 3;",
           "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
         }
       ]
     },
     {
-      "name": "28.10",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rowvalue-28.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t0(c0 PRIMARY KEY, c1);\n  CREATE TRIGGER trigger0 BEFORE DELETE ON t0 BEGIN\n   SELECT (SELECT c0,c1  FROM t0)  FROM t0;\n  END ;\n  DELETE FROM t0;",
           "expect": "1 {sub-select returns 2 columns - expected 1}"
         }
       ]
     },
     {
-      "name": "29.1",
+      "name": "rowvalue-29.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT (SELECT 1 WHERE ((SELECT 1 WHERE (2,(2,0)) IS (2,(20))),(2,0)) IS (2,(20))) WHERE (2,(2,0)) IS (2 IN(SELECT 1 WHERE (2,(2,2,0)) IS (2,(20))),(20));",
           "expect": "1 {row value misused}"
         }
       ]
     },
     {
-      "name": "30.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rowvalue-30.0",
       "steps": [
         {
           "type": "exec",
@@ -1009,7 +2790,7 @@
       ]
     },
     {
-      "name": "30.1",
+      "name": "rowvalue-30.1",
       "steps": [
         {
           "type": "exec",
@@ -1018,7 +2799,7 @@
       ]
     },
     {
-      "name": "30.2",
+      "name": "rowvalue-30.2",
       "steps": [
         {
           "type": "query",
@@ -1028,16 +2809,24 @@
       ]
     },
     {
-      "name": "30.3",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rowvalue-30.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x INT PRIMARY KEY, y, z);\n  CREATE TABLE t2(a,b,c,d,e,PRIMARY KEY(a,b))WITHOUT ROWID;\n\n  UPDATE t2 SET (d,d,a)=(SELECT EXISTS(SELECT 1 IN(SELECT max( 1 IN(SELECT x ORDER BY 1)) OVER(PARTITION BY sum((SELECT y FROM t1 UNION SELECT x ORDER BY 1)))INTERSECT SELECT EXISTS(SELECT 1 FROM t1 UNION SELECT x ORDER BY 1) ORDER BY 1) ORDERa)|9 AS blob, 2, 3) FROM t1 WHERE x<a;"
+          "sql": "CREATE TABLE t1(x INT PRIMARY KEY, y, z);\n  CREATE TABLE t2(a,b,c,d,e,PRIMARY KEY(a,b))WITHOUT ROWID;\n\n  UPDATE t2 SET (d,d,a)=(SELECT EXISTS(SELECT 1 IN(SELECT max( 1 IN(SELECT x ORDER BY 1)) OVER(PARTITION BY sum((SELECT y FROM t1 UNION SELECT x ORDER BY 1)))INTERSECT SELECT EXISTS(SELECT 1 FROM t1 UNION SELECT x ORDER BY 1) ORDER BY 1) ORDERa)|9 AS blob, 2, 3) FROM t1 WHERE x\u003ca;"
         }
       ]
     },
     {
-      "name": "31.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rowvalue-31.1",
       "steps": [
         {
           "type": "query",
@@ -1046,7 +2835,7 @@
       ]
     },
     {
-      "name": "31.1b",
+      "name": "rowvalue-31.1b",
       "steps": [
         {
           "type": "query",
@@ -1055,7 +2844,7 @@
       ]
     },
     {
-      "name": "31.2",
+      "name": "rowvalue-31.2",
       "steps": [
         {
           "type": "query",
@@ -1064,7 +2853,7 @@
       ]
     },
     {
-      "name": "31.2b",
+      "name": "rowvalue-31.2b",
       "steps": [
         {
           "type": "query",
@@ -1073,17 +2862,25 @@
       ]
     },
     {
-      "name": "32.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rowvalue-32.1",
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT, c INT);\n  CREATE TABLE t2(d INTEGER PRIMARY KEY);\n  INSERT INTO t1(a,b,c) VALUES(500,654,456);\n  INSERT INTO t1(a,b,c) VALUES(501,655,456);\n  INSERT INTO t1(a,b,c) VALUES(502,654,122);\n  INSERT INTO t1(a,b,c) VALUES(503,654,221);\n  INSERT INTO t1(a,b,c) VALUES(601,654,122);\n  INSERT INTO t2(d) VALUES(456);\n  INSERT INTO t2(d) VALUES(122);\n  SELECT a FROM (\n    SELECT t1.a FROM t2, t1 \n    WHERE (987, t1.b) = ( SELECT 987, 654 ) AND t2.d=t1.c\n  ) AS t3\n  WHERE a=1234 OR a<=567;",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT, c INT);\n  CREATE TABLE t2(d INTEGER PRIMARY KEY);\n  INSERT INTO t1(a,b,c) VALUES(500,654,456);\n  INSERT INTO t1(a,b,c) VALUES(501,655,456);\n  INSERT INTO t1(a,b,c) VALUES(502,654,122);\n  INSERT INTO t1(a,b,c) VALUES(503,654,221);\n  INSERT INTO t1(a,b,c) VALUES(601,654,122);\n  INSERT INTO t2(d) VALUES(456);\n  INSERT INTO t2(d) VALUES(122);\n  SELECT a FROM (\n    SELECT t1.a FROM t2, t1 \n    WHERE (987, t1.b) = ( SELECT 987, 654 ) AND t2.d=t1.c\n  ) AS t3\n  WHERE a=1234 OR a\u003c=567;",
           "expect": "500 502"
         }
       ]
     },
     {
-      "name": "33.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rowvalue-33.1",
       "steps": [
         {
           "type": "exec",
@@ -1092,7 +2889,7 @@
       ]
     },
     {
-      "name": "33.2",
+      "name": "rowvalue-33.2",
       "steps": [
         {
           "type": "query",
@@ -1102,57 +2899,32 @@
       ]
     },
     {
-      "name": "33.3",
+      "name": "rowvalue-33.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (b,a) BETWEEN (-8,5) AND (0,-2);",
           "expect": "15 -7"
-        }
-      ]
-    },
-    {
-      "name": "33.3",
-      "steps": [
+        },
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (b,a) BETWEEN (3,5) AND (100,4);",
           "expect": "3 100"
-        }
-      ]
-    },
-    {
-      "name": "33.3",
-      "steps": [
+        },
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (b,a) BETWEEN (3,5) AND (100,2);"
-        }
-      ]
-    },
-    {
-      "name": "33.3",
-      "steps": [
+        },
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (a,b) BETWEEN (-2,99) AND (1,0);",
           "expect": "0 1"
-        }
-      ]
-    },
-    {
-      "name": "33.3",
-      "steps": [
+        },
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (a,b) BETWEEN (14,99) AND (16,0);",
           "expect": "15 -7"
-        }
-      ]
-    },
-    {
-      "name": "33.3",
-      "steps": [
+        },
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (a,b) BETWEEN (2,99) AND (4,0);",
@@ -1161,7 +2933,11 @@
       ]
     },
     {
-      "name": "34.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rowvalue-34.1",
       "steps": [
         {
           "type": "query",
@@ -1171,7 +2947,16 @@
       ]
     },
     {
-      "name": "34.2",
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "rowvalue-34.2",
       "steps": [
         {
           "type": "query",
@@ -1181,7 +2966,7 @@
       ]
     },
     {
-      "name": "34.3",
+      "name": "rowvalue-34.3",
       "steps": [
         {
           "type": "query",
@@ -1191,138 +2976,71 @@
       ]
     },
     {
-      "name": "34.4",
+      "name": "rowvalue-34.4",
       "steps": [
         {
           "type": "query",
-          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, a INT);\n  CREATE INDEX t1a ON t1(a,id);  -- index includes PRIMARY KEY\n  CREATE TABLE t2(id INTEGER PRIMARY KEY);\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<100)\n    INSERT INTO t1(id,a) SELECT n, 777 FROM c;\n  INSERT INTO t2 SELECT id FROM t1;\n  SELECT *\n    FROM t1 JOIN t2 USING(id)\n   WHERE t1.a=777 AND t2.id>999\n   ORDER BY t1.id;"
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, a INT);\n  CREATE INDEX t1a ON t1(a,id);  -- index includes PRIMARY KEY\n  CREATE TABLE t2(id INTEGER PRIMARY KEY);\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n\u003c100)\n    INSERT INTO t1(id,a) SELECT n, 777 FROM c;\n  INSERT INTO t2 SELECT id FROM t1;\n  SELECT *\n    FROM t1 JOIN t2 USING(id)\n   WHERE t1.a=777 AND t2.id\u003e999\n   ORDER BY t1.id;"
         }
       ]
     },
     {
-      "name": "34.5",
+      "name": "rowvalue-34.5",
       "steps": [
         {
           "type": "query",
-          "sql": "EXPLAIN QUERY PLAN\n  SELECT *\n    FROM t1 JOIN t2 USING(id)\n   WHERE t1.a=777 AND t2.id>999\n   ORDER BY t1.id;",
-          "expect": "/SEARCH t1 USING COVERING INDEX t1a .a=. AND id>../"
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT *\n    FROM t1 JOIN t2 USING(id)\n   WHERE t1.a=777 AND t2.id\u003e999\n   ORDER BY t1.id;",
+          "expect": "/SEARCH t1 USING COVERING INDEX t1a .a=. AND id\u003e../"
         }
       ]
     },
     {
-      "name": "35.0",
+      "name": "rowvalue-35.0",
       "steps": [
         {
           "type": "query",
-          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(c1 TEXT, c2 INTEGER, PRIMARY KEY(c1, c2));\n  INSERT INTO t1(c1, c2) VALUES ('a', 1);\n  SELECT ('a', 1) IN (SELECT c1, c2 from t1);"
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(c1 TEXT, c2 INTEGER, PRIMARY KEY(c1, c2));\n  INSERT INTO t1(c1, c2) VALUES ('a', 1);\n  SELECT ('a', 1) IN (SELECT c1, c2 from t1);",
+          "expect": "1"
         }
       ]
     },
     {
-      "name": "35.1",
+      "name": "rowvalue-35.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT (1, 'a') IN (SELECT c2, c1 from t1);"
+          "sql": "SELECT (1, 'a') IN (SELECT c2, c1 from t1);",
+          "expect": "1"
         }
       ]
     },
     {
-      "name": "36.0",
+      "name": "rowvalue-36.0",
       "steps": [
         {
           "type": "query",
-          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1),(2),(3);\n  SELECT (1,2,3,max(x)) IN () FROM t1;"
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1),(2),(3);\n  SELECT (1,2,3,max(x)) IN () FROM t1;",
+          "expect": "0"
         }
       ]
     },
     {
-      "name": "36.1",
+      "name": "rowvalue-36.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT (1,2,max(x),3) IN () FROM t1;"
+          "sql": "SELECT (1,2,max(x),3) IN () FROM t1;",
+          "expect": "0"
         }
       ]
     },
     {
-      "name": "36.2",
+      "name": "rowvalue-36.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT (max(x),1,23) IN () FROM t1;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
+          "sql": "SELECT (max(x),1,23) IN () FROM t1;",
+          "expect": "0"
         }
       ]
     }

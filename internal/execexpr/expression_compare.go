@@ -302,12 +302,8 @@ func (ev *Evaluator) evalIsTrue(v *sql.IsTrue, row Row) (interface{}, error) {
 	if v.Negated {
 		result = !result
 	}
-	if result {
-		return int64(1), nil
-	}
-	return int64(0), nil
+	return boolToInt(result), nil
 }
-
 func (ev *Evaluator) evalIsFalse(v *sql.IsFalse, row Row) (interface{}, error) {
 	operand, err := ev.evalExpr(v.Operand, row)
 	if err != nil {

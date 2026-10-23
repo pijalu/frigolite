@@ -1,6 +1,7 @@
 {
   "file": "json105.test",
   "name": "json105",
+  "ordered": true,
   "tests": [
     {
       "name": "setup_0",

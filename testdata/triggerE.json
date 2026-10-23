@@ -1,9 +1,10 @@
 {
   "file": "triggerE.test",
   "name": "triggerE",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "triggerE-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,34 +13,306 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "setup_0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "#   ATTACH 'test.db2' AS aux;\n#   CREATE TABLE aux.t4(x);\n#   INSERT INTO aux.t4 VALUES(5);\n# \n#   CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN new.a IN (SELECT x FROM aux.t4)\n#   BEGIN\n#     SELECT 1;\n#   END;\n#"
+          "type": "catch",
+          "sql": "drop trigger tr1"
         }
       ]
     },
     {
-      "name": "1.2",
+      "name": "triggerE-1.1.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(1,1);"
+          "type": "catch",
+          "sql": "CREATE TRIGGER tr1  AFTER INSERT ON t1 WHEN new.a = ? BEGIN SELECT 1; END;",
+          "expect": "1 {trigger cannot use variables}"
         }
       ]
     },
     {
-      "name": "1.3",
+      "name": "triggerE-1.2.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(5,5);"
+          "type": "catch",
+          "sql": "CREATE TEMP TRIGGER tr1  AFTER INSERT ON t1 WHEN new.a = ? BEGIN SELECT 1; END;",
+          "expect": "1 {trigger cannot use variables}"
         }
       ]
     },
     {
-      "name": "2.1",
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "drop trigger tr1"
+        }
+      ]
+    },
+    {
+      "name": "triggerE-1.1.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TRIGGER tr1  BEFORE DELETE ON t1 BEGIN SELECT ?; END;",
+          "expect": "1 {trigger cannot use variables}"
+        }
+      ]
+    },
+    {
+      "name": "triggerE-1.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TEMP TRIGGER tr1  BEFORE DELETE ON t1 BEGIN SELECT ?; END;",
+          "expect": "1 {trigger cannot use variables}"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "drop trigger tr1"
+        }
+      ]
+    },
+    {
+      "name": "triggerE-1.1.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TRIGGER tr1  BEFORE DELETE ON t1 BEGIN SELECT * FROM (SELECT * FROM (SELECT ?)); END;",
+          "expect": "1 {trigger cannot use variables}"
+        }
+      ]
+    },
+    {
+      "name": "triggerE-1.2.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TEMP TRIGGER tr1  BEFORE DELETE ON t1 BEGIN SELECT * FROM (SELECT * FROM (SELECT ?)); END;",
+          "expect": "1 {trigger cannot use variables}"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "drop trigger tr1"
+        }
+      ]
+    },
+    {
+      "name": "triggerE-1.1.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TRIGGER tr1  BEFORE DELETE ON t1 BEGIN SELECT * FROM t2 GROUP BY ?; END;",
+          "expect": "1 {trigger cannot use variables}"
+        }
+      ]
+    },
+    {
+      "name": "triggerE-1.2.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TEMP TRIGGER tr1  BEFORE DELETE ON t1 BEGIN SELECT * FROM t2 GROUP BY ?; END;",
+          "expect": "1 {trigger cannot use variables}"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "drop trigger tr1"
+        }
+      ]
+    },
+    {
+      "name": "triggerE-1.1.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TRIGGER tr1  BEFORE DELETE ON t1 BEGIN SELECT * FROM t2 LIMIT ?; END;",
+          "expect": "1 {trigger cannot use variables}"
+        }
+      ]
+    },
+    {
+      "name": "triggerE-1.2.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TEMP TRIGGER tr1  BEFORE DELETE ON t1 BEGIN SELECT * FROM t2 LIMIT ?; END;",
+          "expect": "1 {trigger cannot use variables}"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "drop trigger tr1"
+        }
+      ]
+    },
+    {
+      "name": "triggerE-1.1.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TRIGGER tr1  BEFORE DELETE ON t1 BEGIN SELECT * FROM t2 ORDER BY ?; END;",
+          "expect": "1 {trigger cannot use variables}"
+        }
+      ]
+    },
+    {
+      "name": "triggerE-1.2.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TEMP TRIGGER tr1  BEFORE DELETE ON t1 BEGIN SELECT * FROM t2 ORDER BY ?; END;",
+          "expect": "1 {trigger cannot use variables}"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "drop trigger tr1"
+        }
+      ]
+    },
+    {
+      "name": "triggerE-1.1.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TRIGGER tr1  BEFORE UPDATE ON t1 BEGIN UPDATE t2 SET c = ?; END;",
+          "expect": "1 {trigger cannot use variables}"
+        }
+      ]
+    },
+    {
+      "name": "triggerE-1.2.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TEMP TRIGGER tr1  BEFORE UPDATE ON t1 BEGIN UPDATE t2 SET c = ?; END;",
+          "expect": "1 {trigger cannot use variables}"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "drop trigger tr1"
+        }
+      ]
+    },
+    {
+      "name": "triggerE-1.1.9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TRIGGER tr1  BEFORE UPDATE ON t1 BEGIN UPDATE t2 SET c = 1 WHERE d = ?; END;",
+          "expect": "1 {trigger cannot use variables}"
+        }
+      ]
+    },
+    {
+      "name": "triggerE-1.2.9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TEMP TRIGGER tr1  BEFORE UPDATE ON t1 BEGIN UPDATE t2 SET c = 1 WHERE d = ?; END;",
+          "expect": "1 {trigger cannot use variables}"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "drop trigger tr1"
+        }
+      ]
+    },
+    {
+      "name": "triggerE-1.1.10",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TRIGGER tr1  AFTER INSERT ON t1 BEGIN SELECT * FROM pragma_stats(?); END;",
+          "expect": "1 {trigger cannot use variables}"
+        }
+      ]
+    },
+    {
+      "name": "triggerE-1.2.10",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TEMP TRIGGER tr1  AFTER INSERT ON t1 BEGIN SELECT * FROM pragma_stats(?); END;",
+          "expect": "1 {trigger cannot use variables}"
+        }
+      ]
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "drop trigger tr1"
+        }
+      ]
+    },
+    {
+      "name": "triggerE-1.1.11",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TRIGGER tr1  BEFORE INSERT ON t1 BEGIN \n      INSERT INTO t1 SELECT max(b) OVER(ORDER BY $1) FROM t1; END",
+          "expect": "1 {trigger cannot use variables}"
+        }
+      ]
+    },
+    {
+      "name": "triggerE-1.2.11",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TEMP TRIGGER tr1  BEFORE INSERT ON t1 BEGIN \n      INSERT INTO t1 SELECT max(b) OVER(ORDER BY $1) FROM t1; END",
+          "expect": "1 {trigger cannot use variables}"
+        }
+      ]
+    },
+    {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
+    {
+      "name": "triggerE-2.1",
       "steps": [
         {
           "type": "exec",
@@ -48,7 +321,19 @@
       ]
     },
     {
-      "name": "2.2.1",
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "triggerE-2.2.1",
       "steps": [
         {
           "type": "query",
@@ -58,7 +343,17 @@
       ]
     },
     {
-      "name": "2.2.3",
+      "name": "triggerE-2.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t1 VALUES(3, ?1);\n    SELECT * FROM t2;",
+          "expect": "{} {}"
+        }
+      ]
+    },
+    {
+      "name": "triggerE-2.2.3",
       "steps": [
         {
           "type": "query",
@@ -68,7 +363,7 @@
       ]
     },
     {
-      "name": "2.3",
+      "name": "triggerE-2.3",
       "steps": [
         {
           "type": "query",
@@ -78,13 +373,25 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "setup_12",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "triggerE-3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n    CREATE VIRTUAL TABLE rr USING rtree(id, a, b);\n    CREATE TRIGGER r1 AFTER DELETE ON t1 BEGIN\n      SELECT a FROM t1 NATURAL LEFT JOIN rr;\n    END;\n    DELETE FROM t1;"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

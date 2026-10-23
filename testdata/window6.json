@@ -1,9 +1,363 @@
 {
   "file": "window6.test",
   "name": "window6",
+  "ordered": true,
   "tests": [
     {
-      "name": "2.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE %t1(%x, %y %typename);\n  INSERT INTO %t1 VALUES(1, 'a');\n  INSERT INTO %t1 VALUES(2, 'b');\n  INSERT INTO %t1 VALUES(3, 'c');\n  INSERT INTO %t1 VALUES(4, 'd');\n  INSERT INTO %t1 VALUES(5, 'e');"
+        }
+      ]
+    },
+    {
+      "name": "window6-1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat(%x, '.') OVER (ORDER BY %y) FROM %t1",
+          "expect": "1 1.2 1.2.3 1.2.3.4 1.2.3.4.5"
+        }
+      ]
+    },
+    {
+      "name": "window6-1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(%x) OVER %w FROM %t1 WINDOW %w AS (ORDER BY %y)",
+          "expect": "1 3 6 10 15"
+        }
+      ]
+    },
+    {
+      "name": "window6-1.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(%alias.%x) OVER %w FROM %t1 %alias WINDOW %w AS (ORDER BY %y)",
+          "expect": "1 3 6 10 15"
+        }
+      ]
+    },
+    {
+      "name": "window6-1.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(%x) %alias FROM %t1",
+          "expect": "15"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE %t1(%x, %y %typename);\n  INSERT INTO %t1 VALUES(1, 'a');\n  INSERT INTO %t1 VALUES(2, 'b');\n  INSERT INTO %t1 VALUES(3, 'c');\n  INSERT INTO %t1 VALUES(4, 'd');\n  INSERT INTO %t1 VALUES(5, 'e');"
+        }
+      ]
+    },
+    {
+      "name": "window6-1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat(%x, '.') OVER (ORDER BY %y) FROM %t1",
+          "expect": "1 1.2 1.2.3 1.2.3.4 1.2.3.4.5"
+        }
+      ]
+    },
+    {
+      "name": "window6-1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(%x) OVER %w FROM %t1 WINDOW %w AS (ORDER BY %y)",
+          "expect": "1 3 6 10 15"
+        }
+      ]
+    },
+    {
+      "name": "window6-1.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(%alias.%x) OVER %w FROM %t1 %alias WINDOW %w AS (ORDER BY %y)",
+          "expect": "1 3 6 10 15"
+        }
+      ]
+    },
+    {
+      "name": "window6-1.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(%x) %alias FROM %t1",
+          "expect": "15"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE %t1(%x, %y %typename);\n  INSERT INTO %t1 VALUES(1, 'a');\n  INSERT INTO %t1 VALUES(2, 'b');\n  INSERT INTO %t1 VALUES(3, 'c');\n  INSERT INTO %t1 VALUES(4, 'd');\n  INSERT INTO %t1 VALUES(5, 'e');"
+        }
+      ]
+    },
+    {
+      "name": "window6-1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat(%x, '.') OVER (ORDER BY %y) FROM %t1",
+          "expect": "1 1.2 1.2.3 1.2.3.4 1.2.3.4.5"
+        }
+      ]
+    },
+    {
+      "name": "window6-1.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(%x) OVER %w FROM %t1 WINDOW %w AS (ORDER BY %y)",
+          "expect": "1 3 6 10 15"
+        }
+      ]
+    },
+    {
+      "name": "window6-1.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(%alias.%x) OVER %w FROM %t1 %alias WINDOW %w AS (ORDER BY %y)",
+          "expect": "1 3 6 10 15"
+        }
+      ]
+    },
+    {
+      "name": "window6-1.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(%x) %alias FROM %t1",
+          "expect": "15"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE %t1(%x, %y %typename);\n  INSERT INTO %t1 VALUES(1, 'a');\n  INSERT INTO %t1 VALUES(2, 'b');\n  INSERT INTO %t1 VALUES(3, 'c');\n  INSERT INTO %t1 VALUES(4, 'd');\n  INSERT INTO %t1 VALUES(5, 'e');"
+        }
+      ]
+    },
+    {
+      "name": "window6-1.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat(%x, '.') OVER (ORDER BY %y) FROM %t1",
+          "expect": "1 1.2 1.2.3 1.2.3.4 1.2.3.4.5"
+        }
+      ]
+    },
+    {
+      "name": "window6-1.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(%x) OVER %w FROM %t1 WINDOW %w AS (ORDER BY %y)",
+          "expect": "1 3 6 10 15"
+        }
+      ]
+    },
+    {
+      "name": "window6-1.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(%alias.%x) OVER %w FROM %t1 %alias WINDOW %w AS (ORDER BY %y)",
+          "expect": "1 3 6 10 15"
+        }
+      ]
+    },
+    {
+      "name": "window6-1.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(%x) %alias FROM %t1",
+          "expect": "15"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE %t1(%x, %y %typename);\n  INSERT INTO %t1 VALUES(1, 'a');\n  INSERT INTO %t1 VALUES(2, 'b');\n  INSERT INTO %t1 VALUES(3, 'c');\n  INSERT INTO %t1 VALUES(4, 'd');\n  INSERT INTO %t1 VALUES(5, 'e');"
+        }
+      ]
+    },
+    {
+      "name": "window6-1.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat(%x, '.') OVER (ORDER BY %y) FROM %t1",
+          "expect": "1 1.2 1.2.3 1.2.3.4 1.2.3.4.5"
+        }
+      ]
+    },
+    {
+      "name": "window6-1.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(%x) OVER %w FROM %t1 WINDOW %w AS (ORDER BY %y)",
+          "expect": "1 3 6 10 15"
+        }
+      ]
+    },
+    {
+      "name": "window6-1.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(%alias.%x) OVER %w FROM %t1 %alias WINDOW %w AS (ORDER BY %y)",
+          "expect": "1 3 6 10 15"
+        }
+      ]
+    },
+    {
+      "name": "window6-1.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(%x) %alias FROM %t1",
+          "expect": "15"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE %t1(%x, %y %typename);\n  INSERT INTO %t1 VALUES(1, 'a');\n  INSERT INTO %t1 VALUES(2, 'b');\n  INSERT INTO %t1 VALUES(3, 'c');\n  INSERT INTO %t1 VALUES(4, 'd');\n  INSERT INTO %t1 VALUES(5, 'e');"
+        }
+      ]
+    },
+    {
+      "name": "window6-1.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat(%x, '.') OVER (ORDER BY %y) FROM %t1",
+          "expect": "1 1.2 1.2.3 1.2.3.4 1.2.3.4.5"
+        }
+      ]
+    },
+    {
+      "name": "window6-1.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(%x) OVER %w FROM %t1 WINDOW %w AS (ORDER BY %y)",
+          "expect": "1 3 6 10 15"
+        }
+      ]
+    },
+    {
+      "name": "window6-1.6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(%alias.%x) OVER %w FROM %t1 %alias WINDOW %w AS (ORDER BY %y)",
+          "expect": "1 3 6 10 15"
+        }
+      ]
+    },
+    {
+      "name": "window6-1.6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(%x) %alias FROM %t1",
+          "expect": "15"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "window",
+          "callbackVars": {
+            "": "\n    SELECT sum(%x) %alias FROM %t1\n  ",
+            "A(%alias)": "alias",
+            "A(%t1)": "t1",
+            "A(%typename)": "integer",
+            "A(%w)": "w",
+            "A(%x)": "window",
+            "A(%y)": "y",
+            "MAP": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "setup": "\n  CREATE TABLE %t1(%x, %y %typename);\n  INSERT INTO %t1 VALUES(1, 'a');\n  INSERT INTO %t1 VALUES(2, 'b');\n  INSERT INTO %t1 VALUES(3, 'c');\n  INSERT INTO %t1 VALUES(4, 'd');\n  INSERT INTO %t1 VALUES(5, 'e');\n",
+            "setup_sql": "\n  CREATE TABLE %t1(%x, %y %typename);\n  INSERT INTO %t1 VALUES(1, 'a');\n  INSERT INTO %t1 VALUES(2, 'b');\n  INSERT INTO %t1 VALUES(3, 'c');\n  INSERT INTO %t1 VALUES(4, 'd');\n  INSERT INTO %t1 VALUES(5, 'e');\n",
+            "testdir": "",
+            "testprefix": "window6",
+            "tn": "6",
+            "vars": " \n    set A(%x)       window \n  "
+          },
+          "functionProc": "winproc",
+          "functionArgs": [
+            "args"
+          ],
+          "functionBody": " return \"window: $args\" ",
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "window6-2.0",
       "steps": [
         {
           "type": "query",
@@ -13,7 +367,42 @@
       ]
     },
     {
-      "name": "3.0",
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "register_collation",
+          "collationName": "window",
+          "collationProc": "wincmp",
+          "collationBody": " string compare $b $a ",
+          "callbackVars": {
+            "": "\n    SELECT sum(%x) %alias FROM %t1\n  ",
+            "A(%alias)": "alias",
+            "A(%t1)": "t1",
+            "A(%typename)": "integer",
+            "A(%w)": "w",
+            "A(%x)": "window",
+            "A(%y)": "y",
+            "MAP": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "setup": "\n  CREATE TABLE %t1(%x, %y %typename);\n  INSERT INTO %t1 VALUES(1, 'a');\n  INSERT INTO %t1 VALUES(2, 'b');\n  INSERT INTO %t1 VALUES(3, 'c');\n  INSERT INTO %t1 VALUES(4, 'd');\n  INSERT INTO %t1 VALUES(5, 'e');\n",
+            "setup_sql": "\n  CREATE TABLE %t1(%x, %y %typename);\n  INSERT INTO %t1 VALUES(1, 'a');\n  INSERT INTO %t1 VALUES(2, 'b');\n  INSERT INTO %t1 VALUES(3, 'c');\n  INSERT INTO %t1 VALUES(4, 'd');\n  INSERT INTO %t1 VALUES(5, 'e');\n",
+            "testdir": "",
+            "testprefix": "window6",
+            "tn": "6",
+            "vars": " \n    set A(%x)       window \n  "
+          },
+          "functionArgs": [
+            "a",
+            "b"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "window6-3.0",
       "steps": [
         {
           "type": "query",
@@ -23,7 +412,7 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "window6-3.1",
       "steps": [
         {
           "type": "query",
@@ -33,7 +422,7 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "window6-4.0",
       "steps": [
         {
           "type": "exec",
@@ -42,16 +431,7 @@
       ]
     },
     {
-      "name": "4.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "PRAGMA parser_trace = 1"
-        }
-      ]
-    },
-    {
-      "name": "4.1",
+      "name": "window6-4.1",
       "steps": [
         {
           "type": "query",
@@ -60,7 +440,11 @@
       ]
     },
     {
-      "name": "5.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window6-5.0",
       "steps": [
         {
           "type": "query",
@@ -70,7 +454,7 @@
       ]
     },
     {
-      "name": "5.1",
+      "name": "window6-5.1",
       "steps": [
         {
           "type": "query",
@@ -80,7 +464,7 @@
       ]
     },
     {
-      "name": "5.2",
+      "name": "window6-5.2",
       "steps": [
         {
           "type": "query",
@@ -90,7 +474,7 @@
       ]
     },
     {
-      "name": "5.3",
+      "name": "window6-5.3",
       "steps": [
         {
           "type": "query",
@@ -100,7 +484,7 @@
       ]
     },
     {
-      "name": "5.4",
+      "name": "window6-5.4",
       "steps": [
         {
           "type": "query",
@@ -110,7 +494,7 @@
       ]
     },
     {
-      "name": "5.5",
+      "name": "window6-5.5",
       "steps": [
         {
           "type": "query",
@@ -120,35 +504,11 @@
       ]
     },
     {
-      "name": "6.0",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT LIKE('!', '', '!') x WHERE x;"
-        }
-      ]
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
-      "name": "6.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT LIKE(\"!\",\"\",\"!\")\"\"WHeRE\"\";"
-        }
-      ]
-    },
-    {
-      "name": "6.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT LIKE(\"!\",\"\",\"!\")\"\"window\"\";",
-          "expect": "1 {near \"window\": syntax error}"
-        }
-      ]
-    },
-    {
-      "name": "7.0",
+      "name": "window6-7.0",
       "steps": [
         {
           "type": "exec",
@@ -157,17 +517,7 @@
       ]
     },
     {
-      "name": "7.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM t1 WHERE x LIKE '!' ESCAPE '!';",
-          "expect": "0"
-        }
-      ]
-    },
-    {
-      "name": "8.0",
+      "name": "window6-8.0",
       "steps": [
         {
           "type": "exec",
@@ -176,135 +526,271 @@
       ]
     },
     {
-      "name": "8.1",
+      "name": "window6-8.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT \"counter\", \"value\", RANK() OVER w AS \"rank\" \n  FROM \"sample\"\n  WINDOW w AS (PARTITION BY \"counter\" ORDER BY \"value\" DESC) \n  ORDER BY \"counter\", RANK() OVER w",
-          "expect": "1 20.0 1   1 10.0 2   2 3.0 1   2 1.0 2  3 100.0 1"
+          "expect": "\n  1 20.0 1   1 10.0 2   2 3.0 1   2 1.0 2  3 100.0 1\n"
         }
       ]
     },
     {
-      "name": "8.2",
+      "name": "window6-8.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT \"counter\", \"value\", SUM(\"value\") OVER \n  (ORDER BY \"id\" ROWS 2 PRECEDING) \n    FROM \"sample\" \n  ORDER BY \"id\"",
-          "expect": "1 10.0 10.0   1 20.0 30.0   2 1.0 31.0   2 3.0 24.0   3 100.0 104.0"
+          "expect": "\n  1 10.0 10.0   1 20.0 30.0   2 1.0 31.0   2 3.0 24.0   3 100.0 104.0\n"
         }
       ]
     },
     {
-      "name": "8.3",
+      "name": "window6-8.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT SUM(\"value\") OVER \n  (ORDER BY \"id\" ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) \n    FROM \"sample\" \n  ORDER BY \"id\"",
-          "expect": "10.0   30.0   31.0   24.0   104.0"
+          "expect": "\n  10.0   30.0   31.0   24.0   104.0\n"
         }
       ]
     },
     {
-      "name": "9.0",
+      "name": "window6-9.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT x, group_concat(x) OVER (ORDER BY x ROWS 2 PRECEDING)\n  FROM c;"
+          "type": "query",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c5)\n  SELECT x, group_concat(x) OVER (ORDER BY x ROWS 2 PRECEDING)\n  FROM c;",
+          "expect": "\n  1 1  2 1,2  3 1,2,3  4 2,3,4  5 3,4,5\n"
         }
       ]
     },
     {
-      "name": "9.1",
+      "name": "window6-9.3",
       "steps": [
         {
-          "type": "exec",
-          "sql": "#  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n#  SELECT x, group_concat(x) OVER (ORDER BY x RANGE 2 PRECEDING)\n#  FROM c;\n#",
-          "expect": "1 {RANGE must use only UNBOUNDED or CURRENT ROW}"
-        }
-      ]
-    },
-    {
-      "name": "9.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "#  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n#  SELECT x, group_concat(x) OVER (ORDER BY x RANGE BETWEEN UNBOUNDED PRECEDING AND 2 FOLLOWING)\n#  FROM c;\n#",
-          "expect": "1 {RANGE must use only UNBOUNDED or CURRENT ROW}"
-        }
-      ]
-    },
-    {
-      "name": "9.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count(DISTINCT x) OVER (ORDER BY x) FROM c;",
+          "type": "catch",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c5)\n  SELECT count(DISTINCT x) OVER (ORDER BY x) FROM c;",
           "expect": "1 {DISTINCT is not supported for window functions}"
         }
       ]
     },
     {
-      "name": "9.4",
+      "name": "window6-9.4",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE UNBOUNDED FOLLOWING) FROM c;",
+          "type": "catch",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c5)\n  SELECT count() OVER (ORDER BY x RANGE UNBOUNDED FOLLOWING) FROM c;",
           "expect": "1 {near \"FOLLOWING\": syntax error}"
         }
       ]
     },
     {
-      "name": "9.5",
+      "name": "window6-9.5",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM c;",
+          "type": "catch",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c5)\n  SELECT count() OVER (ORDER BY x RANGE BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM c;",
           "expect": "1 {near \"FOLLOWING\": syntax error}"
         }
       ]
     },
     {
-      "name": "9.6",
+      "name": "window6-9.6",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED PRECEDING) FROM c;",
+          "type": "catch",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c5)\n  SELECT count() OVER (ORDER BY x RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED PRECEDING) FROM c;",
           "expect": "1 {near \"PRECEDING\": syntax error}"
         }
       ]
     },
     {
-      "name": "9.8.1",
+      "name": "window6-9.7.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (\n      ORDER BY x ROWS BETWEEN a PRECEDING AND 2 FOLLOWING\n  ) FROM c;",
+          "type": "catch",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c5)\n    SELECT count() OVER (\n        ORDER BY x ROWS BETWEEN CURRENT ROW AND 4 PRECEDING \n    ) FROM c;",
+          "expect": "1 {unsupported frame specification}"
+        }
+      ]
+    },
+    {
+      "name": "window6-9.7.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c5)\n    SELECT count() OVER (\n        ORDER BY x ROWS 4 FOLLOWING \n    ) FROM c;",
+          "expect": "1 {unsupported frame specification}"
+        }
+      ]
+    },
+    {
+      "name": "window6-9.7.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c5)\n    SELECT count() OVER (\n        ORDER BY x ROWS BETWEEN 4 FOLLOWING AND CURRENT ROW \n    ) FROM c;",
+          "expect": "1 {unsupported frame specification}"
+        }
+      ]
+    },
+    {
+      "name": "window6-9.7.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c5)\n    SELECT count() OVER (\n        ORDER BY x ROWS BETWEEN 4 FOLLOWING AND 2 PRECEDING \n    ) FROM c;",
+          "expect": "1 {unsupported frame specification}"
+        }
+      ]
+    },
+    {
+      "name": "window6-9.8.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c5)\n  SELECT count() OVER (\n      ORDER BY x ROWS BETWEEN a PRECEDING AND 2 FOLLOWING\n  ) FROM c;",
           "expect": "1 {frame starting offset must be a non-negative integer}"
         }
       ]
     },
     {
-      "name": "9.8.2",
+      "name": "window6-9.8.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (\n      ORDER BY x ROWS BETWEEN 2 PRECEDING AND a FOLLOWING\n  ) FROM c;",
+          "type": "catch",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c5)\n  SELECT count() OVER (\n      ORDER BY x ROWS BETWEEN 2 PRECEDING AND a FOLLOWING\n  ) FROM c;",
           "expect": "1 {frame ending offset must be a non-negative integer}"
         }
       ]
     },
     {
-      "name": "10.0",
+      "name": "window6-10.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH t1(a,b) AS (VALUES(1,2))\n  SELECT count() FILTER (where b<>5) OVER w1\n    FROM t1\n    WINDOW w1 AS (ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING);"
+          "type": "query",
+          "sql": "WITH t1(a,b) AS (VALUES(1,2))\n  SELECT count() FILTER (where b\u003c\u003e5) OVER w1\n    FROM t1\n    WINDOW w1 AS (ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING);",
+          "expect": "1"
         }
       ]
     },
     {
-      "name": "11.0",
+      "name": "window6-10.1.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH t1(a,b) AS ( VALUES(1, 2), (2, 3), (3, 4) )\n    SELECT nth_value(b, 0) OVER (ORDER BY a) FROM t1",
+          "expect": "1 {second argument to nth_value must be a positive integer}"
+        }
+      ]
+    },
+    {
+      "name": "window6-10.1.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH t1(a,b) AS ( VALUES(1, 2), (2, 3), (3, 4) )\n    SELECT nth_value(b, -1) OVER (ORDER BY a) FROM t1",
+          "expect": "1 {second argument to nth_value must be a positive integer}"
+        }
+      ]
+    },
+    {
+      "name": "window6-10.1.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH t1(a,b) AS ( VALUES(1, 2), (2, 3), (3, 4) )\n    SELECT nth_value(b, '4ab') OVER (ORDER BY a) FROM t1",
+          "expect": "1 {second argument to nth_value must be a positive integer}"
+        }
+      ]
+    },
+    {
+      "name": "window6-10.1.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH t1(a,b) AS ( VALUES(1, 2), (2, 3), (3, 4) )\n    SELECT nth_value(b, NULL) OVER (ORDER BY a) FROM t1",
+          "expect": "1 {second argument to nth_value must be a positive integer}"
+        }
+      ]
+    },
+    {
+      "name": "window6-10.1.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH t1(a,b) AS ( VALUES(1, 2), (2, 3), (3, 4) )\n    SELECT nth_value(b, 8.5) OVER (ORDER BY a) FROM t1",
+          "expect": "1 {second argument to nth_value must be a positive integer}"
+        }
+      ]
+    },
+    {
+      "name": "window6-10.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH t1(a,b) AS ( VALUES(1, 2), (2, 3), (3, 4) )\n    SELECT nth_value(b, 1) OVER (ORDER BY a) FROM t1",
+          "expect": "2 2 2"
+        }
+      ]
+    },
+    {
+      "name": "window6-10.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH t1(a,b) AS ( VALUES(1, 2), (2, 3), (3, 4) )\n    SELECT nth_value(b, 2) OVER (ORDER BY a) FROM t1",
+          "expect": "{} 3 3"
+        }
+      ]
+    },
+    {
+      "name": "window6-10.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH t1(a,b) AS ( VALUES(1, 2), (2, 3), (3, 4) )\n    SELECT nth_value(b, '2') OVER (ORDER BY a) FROM t1",
+          "expect": "{} 3 3"
+        }
+      ]
+    },
+    {
+      "name": "window6-10.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH t1(a,b) AS ( VALUES(1, 2), (2, 3), (3, 4) )\n    SELECT nth_value(b, 2.0) OVER (ORDER BY a) FROM t1",
+          "expect": "{} 3 3"
+        }
+      ]
+    },
+    {
+      "name": "window6-10.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH t1(a,b) AS ( VALUES(1, 2), (2, 3), (3, 4) )\n    SELECT nth_value(b, '2.0') OVER (ORDER BY a) FROM t1",
+          "expect": "{} 3 3"
+        }
+      ]
+    },
+    {
+      "name": "window6-10.2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH t1(a,b) AS ( VALUES(1, 2), (2, 3), (3, 4) )\n    SELECT nth_value(b, 10000000) OVER (ORDER BY a) FROM t1",
+          "expect": "{} {} {}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window6-11.0",
       "steps": [
         {
           "type": "exec",
@@ -313,89 +799,64 @@
       ]
     },
     {
-      "name": "11.1",
+      "name": "window6-11.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, (SELECT y FROM t3 WHERE x=a) FROM t1 ORDER BY a;",
-          "expect": "10 ten 15 fifteen 20 {} 20 {} 25 {} 30 thirty 30 thirty 50 {}"
+          "expect": "\n  10 ten 15 fifteen 20 {} 20 {} 25 {} 30 thirty 30 thirty 50 {}\n"
         }
       ]
     },
     {
-      "name": "11.2",
+      "name": "window6-11.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, (SELECT y FROM t3 WHERE x=a), sum(a) OVER (ORDER BY a)\n    FROM t1 ORDER BY a;",
-          "expect": "10 ten 10   15 fifteen 25   20 {} 65        20 {} 65   \n  25 {} 90    30 thirty 150   30 thirty 150   50 {} 200"
+          "expect": "\n  10 ten 10   15 fifteen 25   20 {} 65        20 {} 65   \n  25 {} 90    30 thirty 150   30 thirty 150   50 {} 200\n"
         }
       ]
     },
     {
-      "name": "11.3.1",
+      "name": "window6-11.3.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, sum(a) OVER win FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)",
-          "expect": "10 10 15 25 20 45 20 65 25 90 30 120 30 150 50 200"
+          "expect": "\n  10 10 15 25 20 45 20 65 25 90 30 120 30 150 50 200\n"
         }
       ]
     },
     {
-      "name": "11.3.2",
+      "name": "window6-11.3.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, sum(a) OVER win FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN UNBOUNDED PRECEDING AND 0 FOLLOWING)",
-          "expect": "10 10 15 25 20 45 20 65 25 90 30 120 30 150 50 200"
+          "expect": "\n  10 10 15 25 20 45 20 65 25 90 30 120 30 150 50 200\n"
         }
       ]
     },
     {
-      "name": "11.3.3",
+      "name": "window6-11.3.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, sum(a) OVER win FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN UNBOUNDED PRECEDING AND 0 PRECEDING)",
-          "expect": "10 10 15 25 20 45 20 65 25 90 30 120 30 150 50 200"
+          "expect": "\n  10 10 15 25 20 45 20 65 25 90 30 120 30 150 50 200\n"
         }
       ]
     },
     {
-      "name": "11.4.1",
+      "name": "window6-11.4.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT y, group_concat(y, '.') OVER win FROM t3\n  WINDOW win AS (\n    ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND 10 PRECEDING\n  );",
-          "expect": "fifteen fifteen \n  ten     fifteen.ten \n  thirty  fifteen.ten.thirty"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
+          "expect": "\n  fifteen fifteen \n  ten     fifteen.ten \n  thirty  fifteen.ten.thirty\n"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

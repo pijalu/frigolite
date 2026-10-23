@@ -5,6 +5,7 @@
 package e_droptrigger
 
 import (
+"errors"
 "fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
@@ -358,7 +359,38 @@ func Test_e_droptrigger(t *testing.T) {
 					_res = db.Exec("\n    ATTACH 'test.db2' AS aux;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n    CREATE TRIGGER tr1 AFTER " + event + " ON t1 BEGIN SELECT r('temp.tr1') ; END;\n\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('a', 'b');\n    CREATE TRIGGER tr1 BEFORE " + event + " ON t2 BEGIN SELECT r('main.tr1') ; END;\n    CREATE TRIGGER tr2 AFTER  " + event + " ON t2 BEGIN SELECT r('main.tr2') ; END;\n\n    CREATE TABLE aux.t3(a, b);\n    INSERT INTO t3 VALUES('a', 'b');\n    CREATE TRIGGER aux.tr1 BEFORE " + event + " ON t3 BEGIN SELECT r('aux.tr1') ; END;\n    CREATE TRIGGER aux.tr2 AFTER  " + event + " ON t3 BEGIN SELECT r('aux.tr2') ; END;\n    CREATE TRIGGER aux.tr3 AFTER  " + event + " ON t3 BEGIN SELECT r('aux.tr3') ; END;\n  ")
 					res = ""
 					_ = res // suppress unused warning
-					// $db eval { PRAGMA database_list } {\n    if {$name == "temp"} {\n      set tbl sqlit... (unsupported command, not transpiled)
+					_dbevalRows3 := tclConnByName(db, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).Query(" PRAGMA database_list ")
+					var _dbevalRb4 bool
+					var _dbevalErr5 error
+					var _dbevalInt6 bool
+					if _dbevalRows3.Error != nil { _dbevalErr5 = _dbevalRows3.Error }
+					tclConnByName(db, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).BeginActiveStatement()
+					for _ri := 0; _ri < len(_dbevalRows3.Rows) && _dbevalErr5 == nil; _ri++ {
+						for _ci := 0; _ci < len(_dbevalRows3.Columns); _ci++ {
+							switch _dbevalRows3.Columns[_ci] {
+								case "name":
+									name = tclStr(_dbevalRows3.Rows[_ri][_ci])
+								case "tbl":
+									tbl = tclStr(_dbevalRows3.Rows[_ri][_ci])
+							}
+						}
+						if name == "temp" {
+							vtab.TclVarSet("tbl", "", "sqlite_temp_master")
+							tbl = "sqlite_temp_master"
+							_ = tbl // suppress unused warning
+						} else {
+							vtab.TclVarSet("tbl", "", name + ".sqlite_master")
+							tbl = name + ".sqlite_master"
+							_ = tbl // suppress unused warning
+						}
+						res = tclListAppend(res, "*", tclExecSQL(db, "\"SELECT '$name.' || name FROM $tbl WHERE type = 'trigger'\""))
+						if _dbevalRb4 { _dbevalErr5 = errors.New("abort due to ROLLBACK") }
+						if _dbevalInt6 { _dbevalErr5 = errors.New("interrupted"); tclConnByName(db, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).ClearInterrupt() }
+					}
+					tclConnByName(db, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).EndActiveStatement()
+					if _dbevalErr5 != nil {
+						t.Errorf("db eval callback error: %v", _dbevalErr5)
+					}
 				}
 				{ // do_test "4.2"
 					event = "INSERT"
@@ -380,7 +412,38 @@ func Test_e_droptrigger(t *testing.T) {
 					}
 					res = ""
 					_ = res // suppress unused warning
-					// $db eval { PRAGMA database_list } {\n    if {$name == "temp"} {\n      set tbl sqlit... (unsupported command, not transpiled)
+					_dbevalRows7 := tclConnByName(db, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).Query(" PRAGMA database_list ")
+					var _dbevalRb8 bool
+					var _dbevalErr9 error
+					var _dbevalInt10 bool
+					if _dbevalRows7.Error != nil { _dbevalErr9 = _dbevalRows7.Error }
+					tclConnByName(db, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).BeginActiveStatement()
+					for _ri := 0; _ri < len(_dbevalRows7.Rows) && _dbevalErr9 == nil; _ri++ {
+						for _ci := 0; _ci < len(_dbevalRows7.Columns); _ci++ {
+							switch _dbevalRows7.Columns[_ci] {
+								case "name":
+									name = tclStr(_dbevalRows7.Rows[_ri][_ci])
+								case "tbl":
+									tbl = tclStr(_dbevalRows7.Rows[_ri][_ci])
+							}
+						}
+						if name == "temp" {
+							vtab.TclVarSet("tbl", "", "sqlite_temp_master")
+							tbl = "sqlite_temp_master"
+							_ = tbl // suppress unused warning
+						} else {
+							vtab.TclVarSet("tbl", "", name + ".sqlite_master")
+							tbl = name + ".sqlite_master"
+							_ = tbl // suppress unused warning
+						}
+						res = tclListAppend(res, "*", tclExecSQL(db, "\"SELECT '$name.' || name FROM $tbl WHERE type = 'trigger'\""))
+						if _dbevalRb8 { _dbevalErr9 = errors.New("abort due to ROLLBACK") }
+						if _dbevalInt10 { _dbevalErr9 = errors.New("interrupted"); tclConnByName(db, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).ClearInterrupt() }
+					}
+					tclConnByName(db, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).EndActiveStatement()
+					if _dbevalErr9 != nil {
+						t.Errorf("db eval callback error: %v", _dbevalErr9)
+					}
 				}
 				{ // do_test "4.3"
 					event = "INSERT"
@@ -402,7 +465,38 @@ func Test_e_droptrigger(t *testing.T) {
 					}
 					res = ""
 					_ = res // suppress unused warning
-					// $db eval { PRAGMA database_list } {\n    if {$name == "temp"} {\n      set tbl sqlit... (unsupported command, not transpiled)
+					_dbevalRows11 := tclConnByName(db, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).Query(" PRAGMA database_list ")
+					var _dbevalRb12 bool
+					var _dbevalErr13 error
+					var _dbevalInt14 bool
+					if _dbevalRows11.Error != nil { _dbevalErr13 = _dbevalRows11.Error }
+					tclConnByName(db, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).BeginActiveStatement()
+					for _ri := 0; _ri < len(_dbevalRows11.Rows) && _dbevalErr13 == nil; _ri++ {
+						for _ci := 0; _ci < len(_dbevalRows11.Columns); _ci++ {
+							switch _dbevalRows11.Columns[_ci] {
+								case "name":
+									name = tclStr(_dbevalRows11.Rows[_ri][_ci])
+								case "tbl":
+									tbl = tclStr(_dbevalRows11.Rows[_ri][_ci])
+							}
+						}
+						if name == "temp" {
+							vtab.TclVarSet("tbl", "", "sqlite_temp_master")
+							tbl = "sqlite_temp_master"
+							_ = tbl // suppress unused warning
+						} else {
+							vtab.TclVarSet("tbl", "", name + ".sqlite_master")
+							tbl = name + ".sqlite_master"
+							_ = tbl // suppress unused warning
+						}
+						res = tclListAppend(res, "*", tclExecSQL(db, "\"SELECT '$name.' || name FROM $tbl WHERE type = 'trigger'\""))
+						if _dbevalRb12 { _dbevalErr13 = errors.New("abort due to ROLLBACK") }
+						if _dbevalInt14 { _dbevalErr13 = errors.New("interrupted"); tclConnByName(db, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).ClearInterrupt() }
+					}
+					tclConnByName(db, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).EndActiveStatement()
+					if _dbevalErr13 != nil {
+						t.Errorf("db eval callback error: %v", _dbevalErr13)
+					}
 				}
 				{ // do_test "4.4"
 					event = "INSERT"
@@ -424,6 +518,37 @@ func Test_e_droptrigger(t *testing.T) {
 					}
 					res = ""
 					_ = res // suppress unused warning
-					// $db eval { PRAGMA database_list } {\n    if {$name == "temp"} {\n      set tbl sqlit... (unsupported command, not transpiled)
+					_dbevalRows15 := tclConnByName(db, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).Query(" PRAGMA database_list ")
+					var _dbevalRb16 bool
+					var _dbevalErr17 error
+					var _dbevalInt18 bool
+					if _dbevalRows15.Error != nil { _dbevalErr17 = _dbevalRows15.Error }
+					tclConnByName(db, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).BeginActiveStatement()
+					for _ri := 0; _ri < len(_dbevalRows15.Rows) && _dbevalErr17 == nil; _ri++ {
+						for _ci := 0; _ci < len(_dbevalRows15.Columns); _ci++ {
+							switch _dbevalRows15.Columns[_ci] {
+								case "name":
+									name = tclStr(_dbevalRows15.Rows[_ri][_ci])
+								case "tbl":
+									tbl = tclStr(_dbevalRows15.Rows[_ri][_ci])
+							}
+						}
+						if name == "temp" {
+							vtab.TclVarSet("tbl", "", "sqlite_temp_master")
+							tbl = "sqlite_temp_master"
+							_ = tbl // suppress unused warning
+						} else {
+							vtab.TclVarSet("tbl", "", name + ".sqlite_master")
+							tbl = name + ".sqlite_master"
+							_ = tbl // suppress unused warning
+						}
+						res = tclListAppend(res, "*", tclExecSQL(db, "\"SELECT '$name.' || name FROM $tbl WHERE type = 'trigger'\""))
+						if _dbevalRb16 { _dbevalErr17 = errors.New("abort due to ROLLBACK") }
+						if _dbevalInt18 { _dbevalErr17 = errors.New("interrupted"); tclConnByName(db, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).ClearInterrupt() }
+					}
+					tclConnByName(db, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).EndActiveStatement()
+					if _dbevalErr17 != nil {
+						t.Errorf("db eval callback error: %v", _dbevalErr17)
+					}
 				}
 }

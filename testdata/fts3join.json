@@ -1,9 +1,10 @@
 {
   "file": "fts3join.test",
   "name": "fts3join",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "fts3join-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,7 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "fts3join-1.1",
       "steps": [
         {
           "type": "query",
@@ -22,7 +23,7 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "fts3join-1.2",
       "steps": [
         {
           "type": "query",
@@ -32,7 +33,7 @@
       ]
     },
     {
-      "name": "2.0",
+      "name": "fts3join-2.0",
       "steps": [
         {
           "type": "exec",
@@ -41,7 +42,7 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "fts3join-2.1",
       "steps": [
         {
           "type": "query",
@@ -51,7 +52,7 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "fts3join-2.2",
       "steps": [
         {
           "type": "query",
@@ -61,7 +62,7 @@
       ]
     },
     {
-      "name": "2.3",
+      "name": "fts3join-2.3",
       "steps": [
         {
           "type": "query",
@@ -71,7 +72,7 @@
       ]
     },
     {
-      "name": "2.4",
+      "name": "fts3join-2.4",
       "steps": [
         {
           "type": "query",
@@ -81,17 +82,17 @@
       ]
     },
     {
-      "name": "2.5",
+      "name": "fts3join-2.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM ft3, ft2 WHERE y MATCH x AND x MATCH y;",
           "expect": "1 {unable to use function MATCH in the requested context}"
         }
       ]
     },
     {
-      "name": "3.0",
+      "name": "fts3join-3.0",
       "steps": [
         {
           "type": "exec",
@@ -100,7 +101,7 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "fts3join-3.1",
       "steps": [
         {
           "type": "query",
@@ -110,7 +111,7 @@
       ]
     },
     {
-      "name": "3.2",
+      "name": "fts3join-3.2",
       "steps": [
         {
           "type": "query",
@@ -120,11 +121,20 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "fts3join-4.1",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE VIRTUAL TABLE ft4 USING fts3(x);\n  CREATE TABLE t4(y, z);\n  CREATE INDEX t4y ON t1(y);"
+        }
+      ]
+    },
+    {
+      "name": "fts3join-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t4 LEFT JOIN (\n      SELECT docid, * FROM ft4 WHERE ft4 MATCH ?\n  ) AS rr ON t4.rowid=rr.docid \n  WHERE t4.y = ?;"
         }
       ]
     }

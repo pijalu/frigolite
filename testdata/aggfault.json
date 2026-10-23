@@ -1,9 +1,10 @@
 {
   "file": "aggfault.test",
   "name": "aggfault",
+  "ordered": true,
   "tests": [
     {
-      "name": "1",
+      "name": "aggfault-1",
       "steps": [
         {
           "type": "exec",

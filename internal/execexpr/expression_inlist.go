@@ -385,6 +385,27 @@ func castToInteger(val interface{}) (interface{}, error) {
 
 // castStringToInteger parses a string's numeric prefix as int64, clamping
 // out-of-range values to the int64 limits (SQLite CAST semantics).
+// parseInt64Exact parses a decimal integer that fits in int64 (with an
+// optional sign). ok is false for an empty run or an overflow.
+func parseInt64Exact(s string) (int64, bool) {
+	t := strings.TrimSpace(s)
+	end := 0
+	if end < len(t) && (t[end] == '+' || t[end] == '-') {
+		end++
+	}
+	for end < len(t) && t[end] >= '0' && t[end] <= '9' {
+		end++
+	}
+	if end == 0 {
+		return 0, false
+	}
+	i, err := strconv.ParseInt(t[:end], 10, 64)
+	if err != nil {
+		return 0, false
+	}
+	return i, true
+}
+
 func castStringToInteger(s string) interface{} {
 	t := strings.TrimSpace(s)
 	end := 0
@@ -440,7 +461,7 @@ func castToReal(val interface{}) (interface{}, error) {
 // A zeroblob's text view is the empty string: the expanded zero bytes are
 // NUL-terminated, so the C-string text read stops at the first NUL
 // (vdbemem.c sqlite3VdbeMemCast SQLITE_AFF_TEXT; oracle 3.54:
-// length(CAST(zeroblob(100) AS TEXT))=0, CAST(zeroblob(100) AS TEXT)='').
+// length(CAST(zeroblob(100) AS TEXT))=0, CAST(zeroblob(100) AS TEXT)=”).
 func castToText(val interface{}) (interface{}, error) {
 	if b, ok := val.([]byte); ok {
 		return string(b), nil
@@ -511,6 +532,16 @@ func numericFromText(s string) interface{} {
 		return int64(0)
 	}
 	if d > 0 && (d == len(body) || (body[d] != '.' && body[d] != 'e' && body[d] != 'E')) {
+		if i, ok := parseInt64Exact(t); ok {
+			return i
+		}
+		// An integer that does not fit in int64 becomes a REAL: SQLite's
+		// numeric cast falls back to sqlite3AtoF when sqlite3Atoi64
+		// overflows (CAST('9223372036854775808' AS NUMERIC) is
+		// 9.223372036854775808e18, not a clamped integer).
+		if f, ok := parseNumericPrefix(t); ok {
+			return f
+		}
 		return castStringToInteger(t)
 	}
 	if f, ok := parseNumericPrefix(t); ok {

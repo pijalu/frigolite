@@ -1,6 +1,7 @@
 {
   "file": "e_insert.test",
   "name": "e_insert",
+  "ordered": true,
   "tests": [
     {
       "name": "e_insert-0.0",
@@ -8,6 +9,674 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE a1(a, b);\n  CREATE TABLE a2(a, b, c DEFAULT 'xyz');\n  CREATE TABLE a3(x DEFAULT 1.0, y DEFAULT 'string', z);\n  CREATE TABLE a4(c UNIQUE, d);"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT             INTO a1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT             INTO main.a1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR ROLLBACK INTO main.a1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR ROLLBACK INTO a1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR ABORT    INTO main.a1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR ABORT    INTO a1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE  INTO main.a1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE  INTO a1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR FAIL     INTO main.a1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR FAIL     INTO a1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR FAIL     INTO main.a1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR IGNORE   INTO a1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "REPLACE            INTO a1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "REPLACE            INTO main.a1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT             INTO a1      VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT             INTO main.a1 VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR ROLLBACK INTO main.a1 VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR ROLLBACK INTO a1      VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR ABORT    INTO main.a1 VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR ABORT    INTO a1      VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE  INTO main.a1 VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE  INTO a1      VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR FAIL     INTO main.a1 VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR FAIL     INTO a1      VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR FAIL     INTO main.a1 VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR IGNORE   INTO a1      VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "REPLACE            INTO a1      VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "REPLACE            INTO main.a1 VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT             INTO a1      (b, a) VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT             INTO main.a1 (b, a) VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR ROLLBACK INTO main.a1 (b, a) VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR ROLLBACK INTO a1      (b, a) VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR ABORT    INTO main.a1 (b, a) VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR ABORT    INTO a1      (b, a) VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE  INTO main.a1 (b, a) VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE  INTO a1      (b, a) VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR FAIL     INTO main.a1 (b, a) VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR FAIL     INTO a1      (b, a) VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR FAIL     INTO main.a1 (b, a) VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR IGNORE   INTO a1      (b, a) VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "REPLACE            INTO a1      (b, a) VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "REPLACE            INTO main.a1 (b, a) VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT             INTO a1      SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT             INTO main.a1 SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR ROLLBACK INTO main.a1 SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR ROLLBACK INTO a1      SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR ABORT    INTO main.a1 SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR ABORT    INTO a1      SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE  INTO main.a1 SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE  INTO a1      SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR FAIL     INTO main.a1 SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR FAIL     INTO a1      SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR FAIL     INTO main.a1 SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR IGNORE   INTO a1      SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "REPLACE            INTO a1      SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "REPLACE            INTO main.a1 SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT             INTO a1      (b, a) SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT             INTO main.a1 (b, a) SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR ROLLBACK INTO main.a1 (b, a) SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR ROLLBACK INTO a1      (b, a) SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR ABORT    INTO main.a1 (b, a) SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR ABORT    INTO a1      (b, a) SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE  INTO main.a1 (b, a) SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE  INTO a1      (b, a) SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR FAIL     INTO main.a1 (b, a) SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR FAIL     INTO a1      (b, a) SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR FAIL     INTO main.a1 (b, a) SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR IGNORE   INTO a1      (b, a) SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "REPLACE            INTO a1      (b, a) SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "REPLACE            INTO main.a1 (b, a) SELECT c, b FROM a2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT             INTO a1      (b, a) VALUES(1, 2),(3,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT             INTO main.a1 (b, a) VALUES(1, 2),(3,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR ROLLBACK INTO main.a1 (b, a) VALUES(1, 2),(3,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR ROLLBACK INTO a1      (b, a) VALUES(1, 2),(3,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR ABORT    INTO main.a1 (b, a) VALUES(1, 2),(3,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR ABORT    INTO a1      (b, a) VALUES(1, 2),(3,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE  INTO main.a1 (b, a) VALUES(1, 2),(3,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE  INTO a1      (b, a) VALUES(1, 2),(3,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR FAIL     INTO main.a1 (b, a) VALUES(1, 2),(3,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR FAIL     INTO a1      (b, a) VALUES(1, 2),(3,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR FAIL     INTO main.a1 (b, a) VALUES(1, 2),(3,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR IGNORE   INTO a1      (b, a) VALUES(1, 2),(3,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "REPLACE            INTO a1      (b, a) VALUES(1, 2),(3,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "REPLACE            INTO main.a1 (b, a) VALUES(1, 2),(3,4)"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-1.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM a2",
+          "expect": "0"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a2 VALUES(1, 2, 3)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM a2",
+          "expect": "1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a2(a, b) VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM a2",
+          "expect": "2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a2(a) VALUES(3),(4)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM a2",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-1.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a2 VALUES(1)",
+          "expect": "1 {table a2 has 3 columns but 1 values were supplied}"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a2 VALUES(1,2)",
+          "expect": "1 {table a2 has 3 columns but 2 values were supplied}"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a2 VALUES(1,2,3,4)",
+          "expect": "1 {table a2 has 3 columns but 4 values were supplied}"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a2 VALUES(1,2,3,4,5)",
+          "expect": "1 {table a2 has 3 columns but 5 values were supplied}"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-1.3.1a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a2 VALUES(1, 2, 3)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM a2 WHERE oid=last_insert_rowid()",
+          "expect": "1 2 3"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a2 VALUES('abc', NULL, 3*3+1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM a2 WHERE oid=last_insert_rowid()",
+          "expect": "abc {} 10"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a2 VALUES((SELECT count(*) FROM a2), 'x', 'y')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM a2 WHERE oid=last_insert_rowid()",
+          "expect": "2 x y"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-1.4.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a2(a, b, c) VALUES(1)",
+          "expect": "1 {1 values for 3 columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a2(a, b, c) VALUES(1,2)",
+          "expect": "1 {2 values for 3 columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a2(a, b, c) VALUES(1,2,3,4)",
+          "expect": "1 {4 values for 3 columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a2(a, b, c) VALUES(1,2,3,4,5)",
+          "expect": "1 {5 values for 3 columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a2(c, a) VALUES(1)",
+          "expect": "1 {1 values for 2 columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a2(c, a) VALUES(1,2,3)",
+          "expect": "1 {3 values for 2 columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a2(c, a) VALUES(1,2,3,4)",
+          "expect": "1 {4 values for 2 columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a2(c, a) VALUES(1,2,3,4,5)",
+          "expect": "1 {5 values for 2 columns}"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-1.5.1a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a2(b, c) VALUES('b', 'c')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM a2",
+          "expect": "{} b c"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a2(a, b) VALUES('a', 'b')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM a2",
+          "expect": "{} b c a b xyz"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-2.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM a1",
+          "expect": "0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM (SELECT 1, 2)",
+          "expect": "1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a1 SELECT 1, 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM a1",
+          "expect": "1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM (SELECT b, a FROM a1)",
+          "expect": "1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a1 SELECT b, a FROM a1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM a1",
+          "expect": "2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM (SELECT b, a FROM a1)",
+          "expect": "2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a1 SELECT b, a FROM a1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM a1",
+          "expect": "4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM (SELECT b, a FROM a1)",
+          "expect": "4"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a1 SELECT b, a FROM a1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM a1",
+          "expect": "8"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM (SELECT min(b), min(a) FROM a1)",
+          "expect": "1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a1 SELECT min(b), min(a) FROM a1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM a1",
+          "expect": "9"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-2.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a3(x, y) SELECT a, b, c FROM a2",
+          "expect": "1 {3 values for 2 columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a3(x, y) SELECT * FROM a2",
+          "expect": "1 {3 values for 2 columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a3(x, y) SELECT * FROM a2 CROSS JOIN a1",
+          "expect": "1 {5 values for 2 columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a3(x, y) SELECT * FROM a2 NATURAL JOIN a1",
+          "expect": "1 {3 values for 2 columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a3(x, y) SELECT a2.a FROM a2,a1",
+          "expect": "1 {1 values for 2 columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a3(z) SELECT a, b, c FROM a2",
+          "expect": "1 {3 values for 1 columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a3(z) SELECT * FROM a2",
+          "expect": "1 {3 values for 1 columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a3(z) SELECT * FROM a2 CROSS JOIN a1",
+          "expect": "1 {5 values for 1 columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a3(z) SELECT * FROM a2 NATURAL JOIN a1",
+          "expect": "1 {3 values for 1 columns}"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a3(z) SELECT a1.* FROM a2,a1",
+          "expect": "1 {2 values for 1 columns}"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-2.3.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a1 SELECT a, b, c FROM a2",
+          "expect": "1 {table a1 has 2 columns but 3 values were supplied}"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a1 SELECT * FROM a2",
+          "expect": "1 {table a1 has 2 columns but 3 values were supplied}"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a1 SELECT * FROM a2 CROSS JOIN a1",
+          "expect": "1 {table a1 has 2 columns but 5 values were supplied}"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a1 SELECT * FROM a2 NATURAL JOIN a1",
+          "expect": "1 {table a1 has 2 columns but 3 values were supplied}"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a1 SELECT a2.a FROM a2,a1",
+          "expect": "1 {table a1 has 2 columns but 1 values were supplied}"
         }
       ]
     },
@@ -21,6 +690,110 @@
       ]
     },
     {
+      "name": "e_insert-2.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a1 SELECT a,b FROM a1 UNION SELECT b,a FROM a1 ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a1(b, a) SELECT * FROM a1 LIMIT 1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a1 SELECT 'a'||a, 'b'||b FROM a1 LIMIT 2 OFFSET 1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a1 SELECT * FROM a1 ORDER BY b, a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM a1",
+          "expect": "x y x y y x y x ax by ay bx ay bx ax by y x y x x y x y"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-3.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM a3",
+          "expect": "0"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a3 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM a3",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-3.2.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a3 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM a3",
+          "expect": "1.0 string {}"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a3 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM a3",
+          "expect": "1.0 string {} 1.0 string {}"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a2 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM a2",
+          "expect": "{} {} xyz"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a2 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM a2",
+          "expect": "{} {} xyz {} {} xyz"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM a1",
+          "expect": "{} {}"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a1 DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM a1",
+          "expect": "{} {} {} {}"
+        }
+      ]
+    },
+    {
       "name": "e_insert-4.1.0",
       "steps": [
         {
@@ -30,11 +803,232 @@
       ]
     },
     {
+      "name": "e_insert-4.1.1.1.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a4 VALUES(2,'b')",
+          "expect": "1 {UNIQUE constraint failed: a4.c}"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-4.1.1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM a4",
+          "expect": "1 a 2 a 3 a"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-4.1.1.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT OR REPLACE INTO a4 VALUES(2, 'b')",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-4.1.1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM a4",
+          "expect": "1 a 3 a 2 b"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-4.1.1.3.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT OR IGNORE INTO a4 VALUES(3, 'c')",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-4.1.1.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM a4",
+          "expect": "1 a 3 a 2 b"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-4.1.1.4.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "BEGIN",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-4.1.1.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM a4",
+          "expect": "1 a 3 a 2 b"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-4.1.1.5.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a4 VALUES(1, 'd')",
+          "expect": "1 {UNIQUE constraint failed: a4.c}"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-4.1.1.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM a4",
+          "expect": "1 a 3 a 2 b"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-4.1.1.6.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT OR ABORT INTO a4 VALUES(1, 'd')",
+          "expect": "1 {UNIQUE constraint failed: a4.c}"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-4.1.1.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM a4",
+          "expect": "1 a 3 a 2 b"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-4.1.1.7.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT OR ROLLBACK INTO a4 VALUES(1, 'd')",
+          "expect": "1 {UNIQUE constraint failed: a4.c}"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-4.1.1.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM a4",
+          "expect": "1 a 3 a 2 b"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-4.1.1.8.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a4 SELECT 4, 'e' UNION ALL SELECT 3, 'e'",
+          "expect": "1 {UNIQUE constraint failed: a4.c}"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-4.1.1.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM a4",
+          "expect": "1 a 3 a 2 b"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-4.1.1.9.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT OR FAIL INTO a4 SELECT 4, 'e' UNION ALL SELECT 3, 'e'",
+          "expect": "1 {UNIQUE constraint failed: a4.c}"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-4.1.1.9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM a4",
+          "expect": "1 a 3 a 2 b 4 e"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-4.1.2.1.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO a4 VALUES(2,'f')",
+          "expect": "1 {UNIQUE constraint failed: a4.c}"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-4.1.2.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM a4",
+          "expect": "1 a 3 a 2 b 4 e"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-4.1.2.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "REPLACE INTO a4 VALUES(2, 'f')",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-4.1.2.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM a4",
+          "expect": "1 a 3 a 4 e 2 f"
+        }
+      ]
+    },
+    {
       "name": "e_insert-5.1.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO main.a4 VALUES(new.a, new.b);\n  END;"
+          "type": "catch",
+          "sql": "CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO main.a4 VALUES(new.a, new.b);\n  END;",
+          "expect": "1 {qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers}"
         }
       ]
     },
@@ -42,8 +1036,9 @@
       "name": "e_insert-5.1.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TEMP TABLE IF NOT EXISTS tmptable(a, b);\n  CREATE TRIGGER AFTER DELETE ON a3 BEGIN\n    INSERT INTO temp.tmptable VALUES(1, 2);\n  END;"
+          "type": "catch",
+          "sql": "CREATE TEMP TABLE IF NOT EXISTS tmptable(a, b);\n  CREATE TRIGGER AFTER DELETE ON a3 BEGIN\n    INSERT INTO temp.tmptable VALUES(1, 2);\n  END;",
+          "expect": "1 {qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers}"
         }
       ]
     },
@@ -51,7 +1046,7 @@
       "name": "e_insert-5.2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO a4 DEFAULT VALUES;\n  END;",
           "expect": "1 {near \"DEFAULT\": syntax error}"
         }

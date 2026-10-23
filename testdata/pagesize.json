@@ -34,12 +34,29 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "pagesize-1.4",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
     },
     {
       "name": "pagesize-1.4",
       "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA page_size=511;\n    PRAGMA page_size;",
@@ -58,12 +75,14 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
       "name": "pagesize-2.512.0.1",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA page_size=512;"
@@ -100,12 +119,29 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "pagesize-2.512.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
     },
     {
       "name": "pagesize-2.512.1",
       "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA page_size=512"
@@ -121,771 +157,16 @@
       "name": "pagesize-2.512.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA page_size",
-          "expect": "512"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.512.4",
-      "steps": [
+          "type": "close_db"
+        },
         {
-          "type": "exec",
-          "sql": "VACUUM"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.512.6",
-      "steps": [
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA page_size",
           "expect": "512"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.512.7",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(randstr(10,9000));\n      INSERT INTO t1 VALUES(randstr(10,9000));\n      INSERT INTO t1 VALUES(randstr(10,9000));\n      BEGIN;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      SELECT count(*) FROM t1;",
-          "expect": "48"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.512.8",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ROLLBACK;\n      SELECT count(*) FROM t1;",
-          "expect": "3"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.512.10",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size",
-          "expect": "512"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.512.11",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      SELECT count(*) FROM t1;",
-          "expect": "192"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.512.12",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n      DELETE FROM t1 WHERE rowid%5!=0;\n      SELECT count(*) FROM t1;",
-          "expect": "38"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.512.13",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ROLLBACK;\n      SELECT count(*) FROM t1;",
-          "expect": "192"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.512.15",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE rowid%5!=0"
-        },
-        {
-          "type": "exec",
-          "sql": "VACUUM"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1",
-          "expect": "38"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.512.16",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t1"
-        },
-        {
-          "type": "exec",
-          "sql": "VACUUM"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
-      "name": "pagesize-2.512.30",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n      PRAGMA temp.page_size=512;\n      CREATE TEMP TABLE t2(y);\n      PRAGMA main.page_size;\n      PRAGMA temp.page_size;",
-          "expect": "1024 512"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
-      "name": "pagesize-2.512.40",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size=512;\n      CREATE TABLE t1(x);\n      CREATE TEMP TABLE t2(y);\n      PRAGMA main.page_size;\n      PRAGMA temp.page_size;",
-          "expect": "512 512"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
-      "name": "pagesize-2.2048.0.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size=2048;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size",
-          "expect": "2048"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.2048.0.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x UNIQUE, y UNIQUE, z UNIQUE)"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size",
-          "expect": "2048"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.2048.0.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(1,2,3);\n        INSERT INTO t1 VALUES(2,3,4);\n        SELECT * FROM t1;",
-          "expect": "1 2 3 2 3 4"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
-      "name": "pagesize-2.2048.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size=2048"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n      PRAGMA page_size;",
-          "expect": "2048"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.2048.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size",
-          "expect": "2048"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.2048.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "VACUUM"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.2048.6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size",
-          "expect": "2048"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.2048.7",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(randstr(10,9000));\n      INSERT INTO t1 VALUES(randstr(10,9000));\n      INSERT INTO t1 VALUES(randstr(10,9000));\n      BEGIN;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      SELECT count(*) FROM t1;",
-          "expect": "48"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.2048.8",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ROLLBACK;\n      SELECT count(*) FROM t1;",
-          "expect": "3"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.2048.10",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size",
-          "expect": "2048"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.2048.11",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      SELECT count(*) FROM t1;",
-          "expect": "192"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.2048.12",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n      DELETE FROM t1 WHERE rowid%5!=0;\n      SELECT count(*) FROM t1;",
-          "expect": "38"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.2048.13",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ROLLBACK;\n      SELECT count(*) FROM t1;",
-          "expect": "192"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.2048.15",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE rowid%5!=0"
-        },
-        {
-          "type": "exec",
-          "sql": "VACUUM"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1",
-          "expect": "38"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.2048.16",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t1"
-        },
-        {
-          "type": "exec",
-          "sql": "VACUUM"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
-      "name": "pagesize-2.2048.30",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n      PRAGMA temp.page_size=2048;\n      CREATE TEMP TABLE t2(y);\n      PRAGMA main.page_size;\n      PRAGMA temp.page_size;",
-          "expect": "1024 2048"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
-      "name": "pagesize-2.2048.40",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size=2048;\n      CREATE TABLE t1(x);\n      CREATE TEMP TABLE t2(y);\n      PRAGMA main.page_size;\n      PRAGMA temp.page_size;",
-          "expect": "2048 2048"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
-      "name": "pagesize-2.4096.0.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size=4096;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size",
-          "expect": "4096"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.4096.0.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x UNIQUE, y UNIQUE, z UNIQUE)"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size",
-          "expect": "4096"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.4096.0.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(1,2,3);\n        INSERT INTO t1 VALUES(2,3,4);\n        SELECT * FROM t1;",
-          "expect": "1 2 3 2 3 4"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
-      "name": "pagesize-2.4096.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size=4096"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n      PRAGMA page_size;",
-          "expect": "4096"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.4096.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size",
-          "expect": "4096"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.4096.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "VACUUM"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.4096.6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size",
-          "expect": "4096"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.4096.7",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(randstr(10,9000));\n      INSERT INTO t1 VALUES(randstr(10,9000));\n      INSERT INTO t1 VALUES(randstr(10,9000));\n      BEGIN;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      SELECT count(*) FROM t1;",
-          "expect": "48"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.4096.8",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ROLLBACK;\n      SELECT count(*) FROM t1;",
-          "expect": "3"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.4096.10",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size",
-          "expect": "4096"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.4096.11",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      SELECT count(*) FROM t1;",
-          "expect": "192"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.4096.12",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n      DELETE FROM t1 WHERE rowid%5!=0;\n      SELECT count(*) FROM t1;",
-          "expect": "38"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.4096.13",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ROLLBACK;\n      SELECT count(*) FROM t1;",
-          "expect": "192"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.4096.15",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE rowid%5!=0"
-        },
-        {
-          "type": "exec",
-          "sql": "VACUUM"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1",
-          "expect": "38"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.4096.16",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t1"
-        },
-        {
-          "type": "exec",
-          "sql": "VACUUM"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
-      "name": "pagesize-2.4096.30",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n      PRAGMA temp.page_size=4096;\n      CREATE TEMP TABLE t2(y);\n      PRAGMA main.page_size;\n      PRAGMA temp.page_size;",
-          "expect": "1024 4096"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
-      "name": "pagesize-2.4096.40",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size=4096;\n      CREATE TABLE t1(x);\n      CREATE TEMP TABLE t2(y);\n      PRAGMA main.page_size;\n      PRAGMA temp.page_size;",
-          "expect": "4096 4096"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
-      "name": "pagesize-2.8192.0.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size=8192;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size",
-          "expect": "8192"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.8192.0.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x UNIQUE, y UNIQUE, z UNIQUE)"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size",
-          "expect": "8192"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.8192.0.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(1,2,3);\n        INSERT INTO t1 VALUES(2,3,4);\n        SELECT * FROM t1;",
-          "expect": "1 2 3 2 3 4"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
-      "name": "pagesize-2.8192.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size=8192"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n      PRAGMA page_size;",
-          "expect": "8192"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.8192.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size",
-          "expect": "8192"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.8192.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "VACUUM"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.8192.6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size",
-          "expect": "8192"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.8192.7",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(randstr(10,9000));\n      INSERT INTO t1 VALUES(randstr(10,9000));\n      INSERT INTO t1 VALUES(randstr(10,9000));\n      BEGIN;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      SELECT count(*) FROM t1;",
-          "expect": "48"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.8192.8",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ROLLBACK;\n      SELECT count(*) FROM t1;",
-          "expect": "3"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.8192.10",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size",
-          "expect": "8192"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.8192.11",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      SELECT count(*) FROM t1;",
-          "expect": "192"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.8192.12",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n      DELETE FROM t1 WHERE rowid%5!=0;\n      SELECT count(*) FROM t1;",
-          "expect": "38"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.8192.13",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ROLLBACK;\n      SELECT count(*) FROM t1;",
-          "expect": "192"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.8192.15",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE rowid%5!=0"
-        },
-        {
-          "type": "exec",
-          "sql": "VACUUM"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1",
-          "expect": "38"
-        }
-      ]
-    },
-    {
-      "name": "pagesize-2.8192.16",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t1"
-        },
-        {
-          "type": "exec",
-          "sql": "VACUUM"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
-      "name": "pagesize-2.8192.30",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n      PRAGMA temp.page_size=8192;\n      CREATE TEMP TABLE t2(y);\n      PRAGMA main.page_size;\n      PRAGMA temp.page_size;",
-          "expect": "1024 8192"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
-      "name": "pagesize-2.8192.40",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size=8192;\n      CREATE TABLE t1(x);\n      CREATE TEMP TABLE t2(y);\n      PRAGMA main.page_size;\n      PRAGMA temp.page_size;",
-          "expect": "8192 8192"
         }
       ]
     },

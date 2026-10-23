@@ -1,0 +1,407 @@
+{
+  "file": "icu.test",
+  "name": "icu",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test1(i1 int, i2 int, r1 real, r2 real, t1 text, t2 text)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO test1 VALUES(1,2,1.1,2.2,'hello','world')"
+        }
+      ]
+    },
+    {
+      "name": "icu-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; \n      UPDATE test1 SET i1='hello'; \n      SELECT i1 REGEXP 'hello' FROM test1; \n      ROLLBACK;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "icu-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; \n      UPDATE test1 SET i1='hello'; \n      SELECT i1 REGEXP '.ello' FROM test1; \n      ROLLBACK;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "icu-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; \n      UPDATE test1 SET i1='hello'; \n      SELECT i1 REGEXP '.ell' FROM test1; \n      ROLLBACK;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "icu-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; \n      UPDATE test1 SET i1='hello'; \n      SELECT i1 REGEXP '.ell.*' FROM test1; \n      ROLLBACK;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "icu-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; \n      UPDATE test1 SET i1=NULL; \n      SELECT i1 REGEXP '.ell.*' FROM test1; \n      ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "icu-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; \n      UPDATE test1 SET i1='HellO WorlD'; \n      SELECT upper(i1) FROM test1; \n      ROLLBACK;",
+          "expect": "HELLO WORLD"
+        }
+      ]
+    },
+    {
+      "name": "icu-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; \n      UPDATE test1 SET i1='HellO WorlD'; \n      SELECT lower(i1) FROM test1; \n      ROLLBACK;",
+          "expect": "hello world"
+        }
+      ]
+    },
+    {
+      "name": "icu-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; \n      UPDATE test1 SET i1='xE8'; \n      SELECT lower(i1) FROM test1; \n      ROLLBACK;",
+          "expect": "xE8"
+        }
+      ]
+    },
+    {
+      "name": "icu-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; \n      UPDATE test1 SET i1='xE8'; \n      SELECT upper(i1) FROM test1; \n      ROLLBACK;",
+          "expect": "xC8"
+        }
+      ]
+    },
+    {
+      "name": "icu-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; \n      UPDATE test1 SET i1='xF2'; \n      SELECT lower(i1) FROM test1; \n      ROLLBACK;",
+          "expect": "xF2"
+        }
+      ]
+    },
+    {
+      "name": "icu-2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; \n      UPDATE test1 SET i1='xF2'; \n      SELECT upper(i1) FROM test1; \n      ROLLBACK;",
+          "expect": "xD2"
+        }
+      ]
+    },
+    {
+      "name": "icu-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; \n      UPDATE test1 SET i1='xC8'; \n      SELECT lower(i1) FROM test1; \n      ROLLBACK;",
+          "expect": "xE8"
+        }
+      ]
+    },
+    {
+      "name": "icu-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; \n      UPDATE test1 SET i1='xC8'; \n      SELECT upper(i1) FROM test1; \n      ROLLBACK;",
+          "expect": "xC8"
+        }
+      ]
+    },
+    {
+      "name": "icu-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; \n      UPDATE test1 SET i1='xD2'; \n      SELECT lower(i1) FROM test1; \n      ROLLBACK;",
+          "expect": "xF2"
+        }
+      ]
+    },
+    {
+      "name": "icu-2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; \n      UPDATE test1 SET i1='xD2'; \n      SELECT upper(i1) FROM test1; \n      ROLLBACK;",
+          "expect": "xD2"
+        }
+      ]
+    },
+    {
+      "name": "icu-2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; \n      UPDATE test1 SET i1='xDF'; \n      SELECT upper(i1) FROM test1; \n      ROLLBACK;",
+          "expect": "SS"
+        }
+      ]
+    },
+    {
+      "name": "icu-2.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; \n      UPDATE test1 SET i1='SS'; \n      SELECT lower(i1) FROM test1; \n      ROLLBACK;",
+          "expect": "ss"
+        }
+      ]
+    },
+    {
+      "name": "icu-2.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT upper(char(0xfb04,0xfb04,0xfb04,0xfb04));",
+          "expect": "FFLFFLFFLFFL"
+        }
+      ]
+    },
+    {
+      "name": "icu-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; \n      UPDATE test1 SET i1='I'; \n      SELECT lower(i1) FROM test1; \n      ROLLBACK;",
+          "expect": "i"
+        }
+      ]
+    },
+    {
+      "name": "icu-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; \n      UPDATE test1 SET i1='I'; \n      SELECT lower(i1, 'tr_tr') FROM test1; \n      ROLLBACK;",
+          "expect": "ı"
+        }
+      ]
+    },
+    {
+      "name": "icu-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; \n      UPDATE test1 SET i1='I'; \n      SELECT lower(i1, 'en_AU') FROM test1; \n      ROLLBACK;",
+          "expect": "i"
+        }
+      ]
+    },
+    {
+      "name": "icu-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE fruit(name);\n    INSERT INTO fruit VALUES('plum');\n    INSERT INTO fruit VALUES('cherry');\n    INSERT INTO fruit VALUES('apricot');\n    INSERT INTO fruit VALUES('peach');\n    INSERT INTO fruit VALUES('chokecherry');\n    INSERT INTO fruit VALUES('yamot');"
+        }
+      ]
+    },
+    {
+      "name": "icu-4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT icu_load_collation('en_US', 'AmericanEnglish');\n    SELECT icu_load_collation('lt_LT', 'Lithuanian');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM fruit ORDER BY name COLLATE AmericanEnglish ASC;",
+          "expect": "apricot cherry chokecherry peach plum yamot"
+        }
+      ]
+    },
+    {
+      "name": "icu-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM fruit ORDER BY name COLLATE Lithuanian ASC;",
+          "expect": "apricot cherry chokecherry yamot peach plum"
+        }
+      ]
+    },
+    {
+      "name": "icu-5.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT regexp('a[abc]c.*', 'abc')",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "icu-5.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT regexp('a[abc]c.*')",
+          "expect": "1 {wrong number of arguments to function regexp()}"
+        }
+      ]
+    },
+    {
+      "name": "icu-5.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT regexp('a[abc]c.*', 'abc', 'c')",
+          "expect": "1 {wrong number of arguments to function regexp()}"
+        }
+      ]
+    },
+    {
+      "name": "icu-5.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 'abc' REGEXP 'a[abc]c.*'",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "icu-5.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 'abc' REGEXP",
+          "expect": "1 {incomplete input}"
+        }
+      ]
+    },
+    {
+      "name": "icu-5.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 'abc' REGEXP, 1",
+          "expect": "1 {near \",\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "icu-6.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, x TEXT);\n  INSERT INTO t1 VALUES\n    (1,'abcde'),\n    (2,'abc_'),\n    (3,'abc__'),\n    (4,'abc%'),\n    (5,'abc%%');\n  SELECT id FROM t1 WHERE x LIKE 'abc%%' ESCAPE '%';",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "icu-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id FROM t1 WHERE x LIKE 'abc__' ESCAPE '_';",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "icu-7.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT icu_load_collation('en_US','error','xyzzy');",
+          "expect": "1 {unknown collation strength \"xyzzy\" - should be one of: PRIMARY SECONDARY TERTIARY DEFAULT QUARTERNARY IDENTICAL}"
+        }
+      ]
+    },
+    {
+      "name": "icu-7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT icu_load_collation('en_US','prim','PRIMARY'),\n         icu_load_collation('en_US','dflt','DEFAULT');",
+          "expect": "{} {}"
+        }
+      ]
+    },
+    {
+      "name": "icu-7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT char(0x100)=='a', char(0x100)=='a' COLLATE dflt, char(0x100)=='a' COLLATE prim;",
+          "expect": "0 0 1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "icu-8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x TEXT);\n  INSERT INTO t1 VALUES('abcdefg');\n  INSERT INTO t1 VALUES('1234567');"
+        }
+      ]
+    },
+    {
+      "name": "icu-8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE x LIKE CAST(x'C0A5' AS TEXT);"
+        }
+      ]
+    },
+    {
+      "name": "icu-8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE x LIKE CAST(x'C19F' AS TEXT) || 'bcdefg';"
+        }
+      ]
+    }
+  ]
+}

@@ -296,6 +296,11 @@ func (e *SelectEngine) execRealTableSelect(s *sql.SelectStmt) *Result {
 	} else {
 		colDefs = cd
 	}
+	if e.rowCallback != nil && e.viewRefDepth == 1 {
+		if streamed, handled := e.queryEachLiveJoin(s, tableEntry, dbCtx, colDefs); handled {
+			return streamed
+		}
+	}
 	// OP_Count shortcut (select.c:8854 isSimpleCount): a bare
 	// `SELECT count(*) FROM t` counts the table b-tree's entries from its page
 	// headers instead of decoding every row (sqlite3BtreeCount). Every other
@@ -306,7 +311,7 @@ func (e *SelectEngine) execRealTableSelect(s *sql.SelectStmt) *Result {
 	// Aggregate feed (OP_AggStep parity): compiled only for statements that can
 	// use one (see compileStatementAggFeed).
 	feed := e.compileStatementAggFeed(s, tableEntry, colDefs)
-	tree := e.ctx.TableBTreePg(dbCtx.Pager, tableEntry.Name, tableEntry.RootPage, true)
+	tree := e.ctx.TableBTreePg(dbCtx.Pager, tableEntry.Name, tableEntry.RootPage, !e.ctx.TableIsWithoutRowidEntry(tableEntry))
 	prevScanTable := e.currentScanTable
 	e.currentScanTable = tableEntry.Name
 	if s.From.As != "" {
@@ -329,7 +334,11 @@ func (e *SelectEngine) execRealTableSelect(s *sql.SelectStmt) *Result {
 	// the candidates through the index b-tree (seek + forward iteration +
 	// rowid join) instead of scanning the table; the rows arrive in the
 	// index's key order, which is the order SQLite's index loop produces.
-	if rows, rowMaps, handled := e.selectIndexSeekRows(s, tableEntry, dbCtx, colDefs, tree, feed); handled {
+	rows, rowMaps, handled, seekErr := e.selectIndexSeekRows(s, tableEntry, dbCtx, colDefs, tree, feed)
+	if seekErr != nil {
+		return &Result{Error: seekErr}
+	}
+	if handled {
 		if feed != nil {
 			return e.finishSimpleAggFeed(s, feed, colDefs)
 		}

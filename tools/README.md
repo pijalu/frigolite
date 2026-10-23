@@ -36,6 +36,18 @@ go build -o /tmp/bench .
 /tmp/bench -dir ../../testdata -limit 50 -csv results.csv
 ```
 
+### Full-suite Go test timing
+
+Capture complete `go test -json` events, summarize package/test elapsed time, and preserve command exit status:
+
+```sh
+tools/profile-go-test.sh                         # artifacts/go-test-profile.jsonl
+tools/profile-go-test.sh /tmp/full-suite.jsonl
+GO_TEST_TIMEOUT=45m tools/profile-go-test.sh
+```
+
+Package durations are sums and can exceed wall time due to parallel tests. An interrupted run's event log may be partial. The manually dispatched `Profile Full Go Test Suite` GitHub Actions job is available after its `workflow_dispatch` change reaches the repository's default branch; it uploads the raw JSON event log for 14 days. This diagnostic job does not change the normal CI gates.
+
 ## How to Add New Tests to the Skip List
 
 If a test file is too slow to run in the default test suite, add it to the

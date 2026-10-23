@@ -20,6 +20,24 @@ import (
 // columns, bind parameters count as constraints, a fully constrained index
 // prefix seeks directly (no skip-scan ANY()), and a WITHOUT ROWID table's
 // index scan is COVERING.
+func TestAnalyzeEmptyPartialIndex(t *testing.T) {
+	db, err := Open(t.TempDir() + "/empty-partial.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	for _, statement := range []string{
+		"CREATE TABLE t(a)",
+		"INSERT INTO t VALUES(1)",
+		"CREATE INDEX empty_idx ON t(a) WHERE false",
+		"ANALYZE",
+	} {
+		if result := db.Exec(statement); result.Error != nil {
+			t.Fatalf("%s: %v", statement, result.Error)
+		}
+	}
+}
+
 func TestAnalyzePartialIndexPin(t *testing.T) {
 	db, err := Open(t.TempDir() + "/t.db")
 	if err != nil {

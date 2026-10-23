@@ -1,9 +1,19 @@
 {
   "file": "unionvtab.test",
   "name": "unionvtab",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,27 +22,27 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "unionvtab-1.1",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE VIRTUAL TABLE temp.uuu USING unionvtab(\n    \"VALUES(NULL, 't1', 1, 9),  ('main', 't2', 10, 19), ('aux', 't3', 20, 29)\"\n  );\n  SELECT * FROM uuu;",
-          "expect": "1 one 2 two 3 three\n  10 ten 11 eleven 12 twelve\n  20 twenty 21 twenty-one 22 twenty-two"
+          "expect": "\n  1 one 2 two 3 three\n  10 ten 11 eleven 12 twelve\n  20 twenty 21 twenty-one 22 twenty-two\n"
         }
       ]
     },
     {
-      "name": "1.2",
+      "name": "unionvtab-1.2",
       "steps": [
         {
           "type": "query",
           "sql": "PRAGMA table_info(uuu);",
-          "expect": "0 a INTEGER 0 {} 0 \n  1 b TEXT 0 {} 0"
+          "expect": "\n  0 a INTEGER 0 {} 0 \n  1 b TEXT 0 {} 0\n"
         }
       ]
     },
     {
-      "name": "1.3",
+      "name": "unionvtab-1.3",
       "steps": [
         {
           "type": "query",
@@ -42,7 +52,7 @@
       ]
     },
     {
-      "name": "1.4",
+      "name": "unionvtab-1.4",
       "steps": [
         {
           "type": "query",
@@ -52,7 +62,7 @@
       ]
     },
     {
-      "name": "1.5",
+      "name": "unionvtab-1.5",
       "steps": [
         {
           "type": "query",
@@ -62,7 +72,7 @@
       ]
     },
     {
-      "name": "1.6",
+      "name": "unionvtab-1.6",
       "steps": [
         {
           "type": "query",
@@ -72,97 +82,97 @@
       ]
     },
     {
-      "name": "1.7",
+      "name": "unionvtab-1.7",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM uuu WHERE rowid BETWEEN -46 AND 1500;",
-          "expect": "1 one 2 two 3 three\n  10 ten 11 eleven 12 twelve\n  20 twenty 21 twenty-one 22 twenty-two"
+          "expect": "\n  1 one 2 two 3 three\n  10 ten 11 eleven 12 twelve\n  20 twenty 21 twenty-one 22 twenty-two\n"
         }
       ]
     },
     {
-      "name": "1.8",
+      "name": "unionvtab-1.8",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE src(db, tbl, min, max);\n  INSERT INTO src VALUES(NULL, 't1', 1, 9);\n  INSERT INTO src VALUES('main', 't2', 10, 19);\n  INSERT INTO src VALUES('aux', 't3', 20, 29);\n  CREATE VIRTUAL TABLE temp.opp USING unionvtab(src);\n  SELECT * FROM opp;",
-          "expect": "1 one 2 two 3 three\n  10 ten 11 eleven 12 twelve\n  20 twenty 21 twenty-one 22 twenty-two"
+          "expect": "\n  1 one 2 two 3 three\n  10 ten 11 eleven 12 twelve\n  20 twenty 21 twenty-one 22 twenty-two\n"
         }
       ]
     },
     {
-      "name": "1.9",
+      "name": "unionvtab-1.9",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE VIRTUAL TABLE temp.qll USING unionvtab(\n    'SELECT * FROM src WHERE db!=''xyz'''\n  );\n  SELECT * FROM qll WHERE rowid BETWEEN 10 AND 21;",
-          "expect": "10 ten 11 eleven 12 twelve\n  20 twenty 21 twenty-one"
+          "expect": "\n  10 ten 11 eleven 12 twelve\n  20 twenty 21 twenty-one\n"
         }
       ]
     },
     {
-      "name": "2.1.1",
+      "name": "unionvtab-2.1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE u1 USING unionvtab(\"VALUES(NULL, 't1', 1, 100)\");",
           "expect": "1 {unionvtab tables must be created in TEMP schema}"
         }
       ]
     },
     {
-      "name": "2.1.2",
+      "name": "unionvtab-2.1.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE main.u1 USING unionvtab(\"VALUES('', 't1', 1, 100)\");",
           "expect": "1 {unionvtab tables must be created in TEMP schema}"
         }
       ]
     },
     {
-      "name": "2.1.3",
+      "name": "unionvtab-2.1.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE aux.u1 USING unionvtab(\"VALUES('', 't1', 1, 100)\");",
           "expect": "1 {unionvtab tables must be created in TEMP schema}"
         }
       ]
     },
     {
-      "name": "2.2.1",
+      "name": "unionvtab-2.2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES(NULL, 't555', 1, 100)\");",
           "expect": "1 {no such rowid table: t555}"
         }
       ]
     },
     {
-      "name": "2.2.2",
+      "name": "unionvtab-2.2.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES('aux', 't555', 1, 100)\");",
           "expect": "1 {no such rowid table: aux.t555}"
         }
       ]
     },
     {
-      "name": "2.2.3",
+      "name": "unionvtab-2.2.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES('xua', 't555', 1, 100)\");",
           "expect": "1 {no such rowid table: xua.t555}"
         }
       ]
     },
     {
-      "name": "2.3.0",
+      "name": "unionvtab-2.3.0",
       "steps": [
         {
           "type": "exec",
@@ -171,57 +181,57 @@
       ]
     },
     {
-      "name": "2.3.1",
+      "name": "unionvtab-2.3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES('main', 'wr1', 1, 2)\");",
           "expect": "1 {no such rowid table: main.wr1}"
         }
       ]
     },
     {
-      "name": "2.3.2",
+      "name": "unionvtab-2.3.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES(NULL, 'v1', 1, 2)\");",
           "expect": "1 {no such rowid table: v1}"
         }
       ]
     },
     {
-      "name": "2.3.3",
+      "name": "unionvtab-2.3.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES(NULL, 'v2', 1, 2)\");",
           "expect": "1 {no such rowid table: v2}"
         }
       ]
     },
     {
-      "name": "2.3.4",
+      "name": "unionvtab-2.3.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES(NULL, 'wr2', 1, 2)\");",
           "expect": "1 {no such rowid table: wr2}"
         }
       ]
     },
     {
-      "name": "2.3.5",
+      "name": "unionvtab-2.3.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES(NULL, 'wr3', 1, 2)\");",
           "expect": "1 {no such rowid table: wr3}"
         }
       ]
     },
     {
-      "name": "2.4.0",
+      "name": "unionvtab-2.4.0",
       "steps": [
         {
           "type": "exec",
@@ -230,36 +240,110 @@
       ]
     },
     {
-      "name": "2.5",
+      "name": "unionvtab-2.4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
+          "sql": "DROP TABLE IF EXISTS temp.a1;\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\"VALUES (NULL, 'x1', 0, 0),(NULL, 'x2', 1, 1),(NULL, 'x3', 2, 2)\");",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-2.4.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE IF EXISTS temp.a1;\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\"VALUES (NULL, 'y1', 0, 0),(NULL, 'y2', 1, 1),(NULL, 'y3', 2, 2)\");",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-2.4.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE IF EXISTS temp.a1;\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\"VALUES (NULL, 'x1', 0, 0),(NULL, 'y2', 1, 1),(NULL, 'y3', 2, 2)\");",
+          "expect": "1 {source table schema mismatch}"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-2.4.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE IF EXISTS temp.a1;\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\"VALUES (NULL, 'x1', 0, 0),(NULL, 'y2', 1, 1),(NULL, 'x3', 2, 2)\");",
+          "expect": "1 {source table schema mismatch}"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-2.4.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE IF EXISTS temp.a1;\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\"VALUES (NULL, 'x1', 0, 0),(NULL, 'x2', 1, 1),(NULL, 'y3', 2, 2)\");",
+          "expect": "1 {source table schema mismatch}"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-2.5",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE temp.b1 USING unionvtab(\n    [SELECT 'main', 'b1', 0, 100 WHERE 0]\n  )",
           "expect": "1 {no source tables configured}"
         }
       ]
     },
     {
-      "name": "2.7.1",
+      "name": "unionvtab-2.6.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE temp.a1 USING unionvtab(` VALUES('main', 't1', 10, 20), ('main', 't2', 30, 29) `)",
+          "expect": "1 {rowid range mismatch error}"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-2.6.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE temp.a1 USING unionvtab(` VALUES('main', 't1', 10, 20), ('main', 't2', 15, 30) `)",
+          "expect": "1 {rowid range mismatch error}"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-2.7.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE temp.b1 USING unionvtab(1, 2, 3, 4)",
           "expect": "1 {wrong number of arguments for unionvtab}"
         }
       ]
     },
     {
-      "name": "3.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "unionvtab-3.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE tbl1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl2(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl3(a INTEGER PRIMARY KEY, b);\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl1 SELECT ii, '1.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl2 SELECT ii, '2.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl3 SELECT ii, '3.' || ii FROM ss;\n\n  CREATE VIRTUAL TABLE temp.uu USING unionvtab(\n    \"VALUES(NULL,'tbl2', 26, 74), (NULL,'tbl3', 75, 100), (NULL,'tbl1', 1, 25)\"\n  );"
+          "sql": "CREATE TABLE tbl1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl2(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl3(a INTEGER PRIMARY KEY, b);\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii\u003c100 )\n  INSERT INTO tbl1 SELECT ii, '1.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii\u003c100 )\n  INSERT INTO tbl2 SELECT ii, '2.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii\u003c100 )\n  INSERT INTO tbl3 SELECT ii, '3.' || ii FROM ss;\n\n  CREATE VIRTUAL TABLE temp.uu USING unionvtab(\n    \"VALUES(NULL,'tbl2', 26, 74), (NULL,'tbl3', 75, 100), (NULL,'tbl1', 1, 25)\"\n  );"
         }
       ]
     },
     {
-      "name": "3.1",
+      "name": "unionvtab-3.1",
       "steps": [
         {
           "type": "query",
@@ -269,7 +353,7 @@
       ]
     },
     {
-      "name": "3.2",
+      "name": "unionvtab-3.2",
       "steps": [
         {
           "type": "query",
@@ -279,605 +363,744 @@
       ]
     },
     {
-      "name": "3.3",
+      "name": "unionvtab-3.3",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid <= 24",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003c= 24",
           "expect": "24"
         }
       ]
     },
     {
-      "name": "3.4.1",
+      "name": "unionvtab-3.4.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid <= 25",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003c= 25",
           "expect": "100"
         }
       ]
     },
     {
-      "name": "3.4.2",
+      "name": "unionvtab-3.4.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid <= 26",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003c= 26",
           "expect": "126"
         }
       ]
     },
     {
-      "name": "3.4.3",
+      "name": "unionvtab-3.4.3",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid <= 73",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003c= 73",
           "expect": "173"
         }
       ]
     },
     {
-      "name": "3.4.4",
+      "name": "unionvtab-3.4.4",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid <= 74",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003c= 74",
           "expect": "200"
         }
       ]
     },
     {
-      "name": "3.4.5",
+      "name": "unionvtab-3.4.5",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid <= 75",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003c= 75",
           "expect": "275"
         }
       ]
     },
     {
-      "name": "3.4.6",
+      "name": "unionvtab-3.4.6",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid <= 99",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003c= 99",
           "expect": "299"
         }
       ]
     },
     {
-      "name": "3.4.7",
+      "name": "unionvtab-3.4.7",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid <= 100",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003c= 100",
           "expect": "300"
         }
       ]
     },
     {
-      "name": "3.4.8",
+      "name": "unionvtab-3.4.8",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid <= 101",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003c= 101",
           "expect": "300"
         }
       ]
     },
     {
-      "name": "3.5.1",
+      "name": "unionvtab-3.5.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid < 25",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003c 25",
           "expect": "24"
         }
       ]
     },
     {
-      "name": "3.5.2",
+      "name": "unionvtab-3.5.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid < 26",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003c 26",
           "expect": "100"
         }
       ]
     },
     {
-      "name": "3.5.3",
+      "name": "unionvtab-3.5.3",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid < 27",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003c 27",
           "expect": "126"
         }
       ]
     },
     {
-      "name": "3.5.4",
+      "name": "unionvtab-3.5.4",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid < 73",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003c 73",
           "expect": "172"
         }
       ]
     },
     {
-      "name": "3.5.5",
+      "name": "unionvtab-3.5.5",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid < 74",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003c 74",
           "expect": "173"
         }
       ]
     },
     {
-      "name": "3.5.6",
+      "name": "unionvtab-3.5.6",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid < 75",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003c 75",
           "expect": "200"
         }
       ]
     },
     {
-      "name": "3.5.7",
+      "name": "unionvtab-3.5.7",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid < 76",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003c 76",
           "expect": "275"
         }
       ]
     },
     {
-      "name": "3.5.8",
+      "name": "unionvtab-3.5.8",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid < 99",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003c 99",
           "expect": "298"
         }
       ]
     },
     {
-      "name": "3.5.9",
+      "name": "unionvtab-3.5.9",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid < 100",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003c 100",
           "expect": "299"
         }
       ]
     },
     {
-      "name": "3.5.10",
+      "name": "unionvtab-3.5.10",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid < 101",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003c 101",
           "expect": "300"
         }
       ]
     },
     {
-      "name": "3.6.1",
+      "name": "unionvtab-3.6.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid > 24",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003e 24",
           "expect": "276"
-        }
-      ]
-    },
-    {
-      "name": "3.6.1",
-      "steps": [
+        },
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid > 25",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003e 25",
           "expect": "200"
         }
       ]
     },
     {
-      "name": "3.6.2",
+      "name": "unionvtab-3.6.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid > 26",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003e 26",
           "expect": "174"
         }
       ]
     },
     {
-      "name": "3.6.3",
+      "name": "unionvtab-3.6.3",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid > 27",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003e 27",
           "expect": "173"
         }
       ]
     },
     {
-      "name": "3.6.4",
+      "name": "unionvtab-3.6.4",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid > 73",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003e 73",
           "expect": "127"
         }
       ]
     },
     {
-      "name": "3.6.5",
+      "name": "unionvtab-3.6.5",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid > 74",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003e 74",
           "expect": "100"
         }
       ]
     },
     {
-      "name": "3.6.6",
+      "name": "unionvtab-3.6.6",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid > 75",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003e 75",
           "expect": "25"
         }
       ]
     },
     {
-      "name": "3.6.7",
+      "name": "unionvtab-3.6.7",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid > 76",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003e 76",
           "expect": "24"
         }
       ]
     },
     {
-      "name": "3.6.8",
+      "name": "unionvtab-3.6.8",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid > 99",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003e 99",
           "expect": "1"
         }
       ]
     },
     {
-      "name": "3.6.9",
+      "name": "unionvtab-3.6.9",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid > 100",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003e 100",
           "expect": "0"
         }
       ]
     },
     {
-      "name": "3.6.10",
+      "name": "unionvtab-3.6.10",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid > 101",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003e 101",
           "expect": "0"
         }
       ]
     },
     {
-      "name": "3.7.1",
+      "name": "unionvtab-3.7.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid >= 24",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003e= 24",
           "expect": "277"
-        }
-      ]
-    },
-    {
-      "name": "3.7.1",
-      "steps": [
+        },
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid >= 25",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003e= 25",
           "expect": "276"
         }
       ]
     },
     {
-      "name": "3.7.2",
+      "name": "unionvtab-3.7.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid >= 26",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003e= 26",
           "expect": "200"
         }
       ]
     },
     {
-      "name": "3.7.3",
+      "name": "unionvtab-3.7.3",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid >= 27",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003e= 27",
           "expect": "174"
         }
       ]
     },
     {
-      "name": "3.7.4",
+      "name": "unionvtab-3.7.4",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid >= 73",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003e= 73",
           "expect": "128"
         }
       ]
     },
     {
-      "name": "3.7.5",
+      "name": "unionvtab-3.7.5",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid >= 74",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003e= 74",
           "expect": "127"
         }
       ]
     },
     {
-      "name": "3.7.6",
+      "name": "unionvtab-3.7.6",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid >= 75",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003e= 75",
           "expect": "100"
         }
       ]
     },
     {
-      "name": "3.7.7",
+      "name": "unionvtab-3.7.7",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid >= 76",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003e= 76",
           "expect": "25"
         }
       ]
     },
     {
-      "name": "3.7.8",
+      "name": "unionvtab-3.7.8",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid >= 99",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003e= 99",
           "expect": "2"
         }
       ]
     },
     {
-      "name": "3.7.9",
+      "name": "unionvtab-3.7.9",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid >= 100",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003e= 100",
           "expect": "1"
         }
       ]
     },
     {
-      "name": "3.7.10",
+      "name": "unionvtab-3.7.10",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE rowid >= 101",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003e= 101",
           "expect": "0"
         }
       ]
     },
     {
-      "name": "3.10.1",
+      "name": "unionvtab-3.8.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE a < 25",
-          "expect": "24"
-        }
-      ]
-    },
-    {
-      "name": "3.10.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE a < 26",
-          "expect": "100"
-        }
-      ]
-    },
-    {
-      "name": "3.10.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE a < 27",
-          "expect": "126"
-        }
-      ]
-    },
-    {
-      "name": "3.10.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE a < 73",
-          "expect": "172"
-        }
-      ]
-    },
-    {
-      "name": "3.10.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE a < 74",
-          "expect": "173"
-        }
-      ]
-    },
-    {
-      "name": "3.10.6",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE a < 75",
-          "expect": "200"
-        }
-      ]
-    },
-    {
-      "name": "3.10.7",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE a < 76",
-          "expect": "275"
-        }
-      ]
-    },
-    {
-      "name": "3.10.8",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE a < 99",
-          "expect": "298"
-        }
-      ]
-    },
-    {
-      "name": "3.10.9",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE a < 100",
-          "expect": "299"
-        }
-      ]
-    },
-    {
-      "name": "3.10.10",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM uu WHERE a < 101",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003e= -9.223372036854776e+18",
           "expect": "300"
         }
       ]
     },
     {
-      "name": "4.1",
+      "name": "unionvtab-3.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003e  -9.223372036854776e+18",
+          "expect": "300"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-3.8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003c= -9.223372036854776e+18",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-3.8.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003c  -9.223372036854776e+18",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-3.9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003e= 9223372036854775807",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-3.9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003e  9223372036854775807",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-3.9.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003c= 9223372036854775807",
+          "expect": "300"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-3.9.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM uu WHERE rowid \u003c  9223372036854775807",
+          "expect": "300"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-3.10.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM uu WHERE a \u003c 25",
+          "expect": "24"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-3.10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM uu WHERE a \u003c 26",
+          "expect": "100"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-3.10.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM uu WHERE a \u003c 27",
+          "expect": "126"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-3.10.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM uu WHERE a \u003c 73",
+          "expect": "172"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-3.10.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM uu WHERE a \u003c 74",
+          "expect": "173"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-3.10.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM uu WHERE a \u003c 75",
+          "expect": "200"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-3.10.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM uu WHERE a \u003c 76",
+          "expect": "275"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-3.10.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM uu WHERE a \u003c 99",
+          "expect": "298"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-3.10.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM uu WHERE a \u003c 100",
+          "expect": "299"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-3.10.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM uu WHERE a \u003c 101",
+          "expect": "300"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE s1(k INTEGER PRIMARY KEY, v);\n  INSERT INTO s1 VALUES(-9.223372036854776e+18, 'one');\n  INSERT INTO s1 VALUES(-9.223372036854776e+18+1, 'two');\n  INSERT INTO s1 VALUES(-9.223372036854776e+18+2, 'three');\n\n  CREATE TABLE l1(k INTEGER PRIMARY KEY, v);\n  INSERT INTO l1 VALUES(9223372036854775807, 'six');\n  INSERT INTO l1 VALUES(9223372036854775807-1, 'five');\n  INSERT INTO l1 VALUES(9223372036854775807-2, 'four');\n\n  CREATE VIRTUAL TABLE temp.sl USING unionvtab(\n    \"SELECT NULL, 'l1', 0, 9223372036854775807\n     UNION ALL\n     SELECT NULL, 's1', -9223372036854775808, -1\"\n  );"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-4.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM sl;",
-          "expect": "-9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six"
+          "expect": "\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n"
         }
       ]
     },
     {
-      "name": "4.3.1",
+      "name": "unionvtab-4.2.one",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM sl WHERE rowid>-9223372036854775808",
-          "expect": "-9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six"
-        }
-      ]
-    },
-    {
-      "name": "4.3.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM sl WHERE rowid>=-9223372036854775808",
-          "expect": "-9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six"
-        }
-      ]
-    },
-    {
-      "name": "4.3.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM sl WHERE rowid<=-9223372036854775808",
+          "sql": "SELECT * FROM sl WHERE rowid=-9223372036854775808",
           "expect": "-9223372036854775808 one"
         }
       ]
     },
     {
-      "name": "4.3.4",
+      "name": "unionvtab-4.2.two",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM sl WHERE rowid<-9223372036854775808"
+          "sql": "SELECT * FROM sl WHERE rowid=-9223372036854775807",
+          "expect": "-9223372036854775807 two"
         }
       ]
     },
     {
-      "name": "4.4.1",
+      "name": "unionvtab-4.2.three",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM sl WHERE rowid<9223372036854775807",
-          "expect": "-9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five"
+          "sql": "SELECT * FROM sl WHERE rowid=-9223372036854775806",
+          "expect": "-9223372036854775806 three"
         }
       ]
     },
     {
-      "name": "4.4.2",
+      "name": "unionvtab-4.2.four",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM sl WHERE rowid<=9223372036854775807",
-          "expect": "-9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six"
+          "sql": "SELECT * FROM sl WHERE rowid=9223372036854775805",
+          "expect": "9223372036854775805 four"
         }
       ]
     },
     {
-      "name": "4.4.3",
+      "name": "unionvtab-4.2.five",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM sl WHERE rowid>=9223372036854775807",
+          "sql": "SELECT * FROM sl WHERE rowid=9223372036854775806",
+          "expect": "9223372036854775806 five"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-4.2.six",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sl WHERE rowid=9223372036854775807",
           "expect": "9223372036854775807 six"
         }
       ]
     },
     {
-      "name": "4.4.4",
+      "name": "unionvtab-4.3.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM sl WHERE rowid>9223372036854775807"
+          "sql": "SELECT * FROM sl WHERE rowid\u003e-9223372036854775808",
+          "expect": "\n  -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n"
         }
       ]
     },
     {
-      "name": "5.0",
+      "name": "unionvtab-4.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sl WHERE rowid\u003e=-9223372036854775808",
+          "expect": "\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-4.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sl WHERE rowid\u003c=-9223372036854775808",
+          "expect": "\n  -9223372036854775808 one\n"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-4.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sl WHERE rowid\u003c-9223372036854775808"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-4.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sl WHERE rowid\u003c9223372036854775807",
+          "expect": "\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five\n"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-4.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sl WHERE rowid\u003c=9223372036854775807",
+          "expect": "\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-4.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sl WHERE rowid\u003e=9223372036854775807",
+          "expect": "\n  9223372036854775807 six\n"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-4.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sl WHERE rowid\u003e9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "unionvtab-5.0",
       "steps": [
         {
           "type": "query",
@@ -887,37 +1110,37 @@
       ]
     },
     {
-      "name": "5.1",
+      "name": "unionvtab-5.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT one FROM cc WHERE one>='seven'",
+          "sql": "SELECT one FROM cc WHERE one\u003e='seven'",
           "expect": "zero two three six seven"
         }
       ]
     },
     {
-      "name": "5.2",
+      "name": "unionvtab-5.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT y.one FROM cc AS x, cc AS y WHERE x.one=y.one AND x.rowid>5",
+          "sql": "SELECT y.one FROM cc AS x, cc AS y WHERE x.one=y.one AND x.rowid\u003e5",
           "expect": "six seven eight nine"
         }
       ]
     },
     {
-      "name": "5.3",
+      "name": "unionvtab-5.3",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT cc.one FROM c4, cc WHERE cc.rowid>c4.rowid",
+          "sql": "SELECT cc.one FROM c4, cc WHERE cc.rowid\u003ec4.rowid",
           "expect": "five six seven eight nine"
         }
       ]
     },
     {
-      "name": "5.4",
+      "name": "unionvtab-5.4",
       "steps": [
         {
           "type": "query",
@@ -927,38 +1150,26 @@
       ]
     },
     {
-      "name": "6.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "unionvtab-6.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE temp.t USING unionvtab('SELECT ''main'', ''xyz'', 1, 2');",
           "expect": "1 {no such rowid table: main.xyz}"
         }
       ]
     },
     {
-      "name": "6.1",
+      "name": "unionvtab-6.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE temp.t USING unionvtab('SELECT ''main'', NULL, 1, 2');",
           "expect": "1 {no such rowid table: main.}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

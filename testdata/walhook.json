@@ -1,6 +1,7 @@
 {
   "file": "walhook.test",
   "name": "walhook",
+  "ordered": true,
   "tests": [
     {
       "name": "walhook-1.1",
@@ -8,6 +9,11 @@
         {
           "type": "exec",
           "sql": "PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = wal;\n    PRAGMA synchronous = normal;\n    CREATE TABLE t1(i PRIMARY KEY, j);"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "wal_hook",
+          "expect": "main 3"
         }
       ]
     },
@@ -17,6 +23,11 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(1, 'one')"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "wal_hook",
+          "expect": "main 5"
         }
       ]
     },
@@ -25,7 +36,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(2, 'two')"
+          "sql": "INSERT INTO t1 VALUES(2, 'two')",
+          "expect": "3072"
         }
       ]
     },
@@ -33,8 +45,9 @@
       "name": "walhook-1.4",
       "steps": [
         {
-          "type": "query",
-          "sql": "PRAGMA wal_checkpoint"
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b)",
+          "expect": "4096"
         }
       ]
     },
@@ -42,8 +55,30 @@
       "name": "walhook-1.5",
       "steps": [
         {
-          "type": "query",
-          "sql": "PRAGMA wal_checkpoint"
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a PRIMARY KEY, b)",
+          "expect": "6144"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         }
       ]
     },
@@ -51,8 +86,12 @@
       "name": "walhook-2.1",
       "steps": [
         {
-          "type": "query",
-          "sql": "PRAGMA synchronous = NORMAL",
+          "type": "exec",
+          "sql": "PRAGMA synchronous = NORMAL"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_autocheckpoint",
           "expect": "1000"
         }
       ]
@@ -61,7 +100,7 @@
       "name": "walhook-2.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA wal_autocheckpoint = 10",
           "expect": "10"
         }
@@ -71,68 +110,83 @@
       "name": "walhook-2.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA wal_autocheckpoint",
           "expect": "10"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = wal;\n    PRAGMA synchronous = normal;\n    CREATE TABLE t1(i PRIMARY KEY, j);"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(1, 'one')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(2, 'two')"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA wal_checkpoint"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(a, b)"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA wal_checkpoint"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t3(a PRIMARY KEY, b)"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA synchronous = NORMAL"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA wal_autocheckpoint"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA wal_autocheckpoint = 10"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA wal_autocheckpoint"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA wal_checkpoint"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "walhook-2.4",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE TABLE t4(x PRIMARY KEY, y)",
+          "expect": "6144 {}"
+        }
+      ]
+    },
+    {
+      "name": "walhook-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(1, 'one')",
+          "expect": "6144 {}"
+        }
+      ]
+    },
+    {
+      "name": "walhook-2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(2, 'two')",
+          "expect": "6144 {}"
+        }
+      ]
+    },
+    {
+      "name": "walhook-2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(3, 'three')",
+          "expect": "6144 {}"
+        }
+      ]
+    },
+    {
+      "name": "walhook-2.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(4, 'four')",
+          "expect": "8192 {}"
+        }
+      ]
+    },
+    {
+      "name": "walhook-2.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(5, 'five')",
+          "expect": "8192 {}"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_db"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

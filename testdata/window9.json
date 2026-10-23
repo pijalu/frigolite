@@ -1,9 +1,10 @@
 {
   "file": "window9.test",
   "name": "window9",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "window9-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,7 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "window9-1.1",
       "steps": [
         {
           "type": "exec",
@@ -21,47 +22,47 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "window9-1.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT name, color, dense_rank() OVER (ORDER BY name) FROM fruits;",
-          "expect": "apple RED    1\n  APPLE yellow 1\n  pear  YELLOW 2\n  PEAR  green  2"
+          "expect": "\n  apple RED    1\n  APPLE yellow 1\n  pear  YELLOW 2\n  PEAR  green  2\n"
         }
       ]
     },
     {
-      "name": "1.3",
+      "name": "window9-1.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT name, color,\n    dense_rank() OVER (PARTITION BY name ORDER BY color)\n  FROM fruits;",
-          "expect": "apple RED    1 \n  APPLE yellow 2 \n  PEAR green   1 \n  pear YELLOW  2"
+          "expect": "\n  apple RED    1 \n  APPLE yellow 2 \n  PEAR green   1 \n  pear YELLOW  2\n"
         }
       ]
     },
     {
-      "name": "1.4",
+      "name": "window9-1.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT name, color,\n    dense_rank() OVER (ORDER BY name),\n    dense_rank() OVER (PARTITION BY name ORDER BY color)\n  FROM fruits;",
-          "expect": "apple RED    1 1 \n  APPLE yellow 1 2 \n  PEAR  green  2 1 \n  pear  YELLOW 2 2"
+          "expect": "\n  apple RED    1 1 \n  APPLE yellow 1 2 \n  PEAR  green  2 1 \n  pear  YELLOW 2 2\n"
         }
       ]
     },
     {
-      "name": "1.5",
+      "name": "window9-1.5",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT name, color,\n    dense_rank() OVER (ORDER BY name),\n    dense_rank() OVER (PARTITION BY name ORDER BY color)\n  FROM fruits ORDER BY color;",
-          "expect": "PEAR  green  2 1 \n  apple RED    1 1 \n  APPLE yellow 1 2 \n  pear  YELLOW 2 2"
+          "expect": "\n  PEAR  green  2 1 \n  apple RED    1 1 \n  APPLE yellow 1 2 \n  pear  YELLOW 2 2\n"
         }
       ]
     },
     {
-      "name": "2.0",
+      "name": "window9-2.0",
       "steps": [
         {
           "type": "exec",
@@ -70,7 +71,7 @@
       ]
     },
     {
-      "name": "2.1.1",
+      "name": "window9-2.1.1",
       "steps": [
         {
           "type": "query",
@@ -80,7 +81,7 @@
       ]
     },
     {
-      "name": "2.1.2",
+      "name": "window9-2.1.2",
       "steps": [
         {
           "type": "query",
@@ -90,7 +91,7 @@
       ]
     },
     {
-      "name": "2.2.1",
+      "name": "window9-2.2.1",
       "steps": [
         {
           "type": "query",
@@ -100,7 +101,7 @@
       ]
     },
     {
-      "name": "2.2.2",
+      "name": "window9-2.2.2",
       "steps": [
         {
           "type": "query",
@@ -110,7 +111,11 @@
       ]
     },
     {
-      "name": "3.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window9-3.0",
       "steps": [
         {
           "type": "exec",
@@ -119,7 +124,7 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "window9-3.1",
       "steps": [
         {
           "type": "query",
@@ -128,7 +133,7 @@
       ]
     },
     {
-      "name": "3.2",
+      "name": "window9-3.2",
       "steps": [
         {
           "type": "query",
@@ -137,27 +142,31 @@
       ]
     },
     {
-      "name": "3.3",
+      "name": "window9-3.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT a, sum(a) OVER (ORDER BY a DESC) FROM t2 \n  ORDER BY EXISTS(\n    SELECT 1 FROM t2 ORDER BY sum(a) OVER (ORDER BY a)\n  ) OVER (ORDER BY a);",
           "expect": "1 {near \"OVER\": syntax error}"
         }
       ]
     },
     {
-      "name": "3.4",
+      "name": "window9-3.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT y, y+1, y+2 FROM (\n      SELECT c IN (\n        SELECT min(a) OVER (),\n        (abs(row_number() OVER())+22)/19,\n        max(a) OVER () FROM t1\n        ) AS y FROM t2\n      );",
           "expect": "1 {sub-select returns 3 columns - expected 1}"
         }
       ]
     },
     {
-      "name": "4.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window9-4.0",
       "steps": [
         {
           "type": "exec",
@@ -166,7 +175,7 @@
       ]
     },
     {
-      "name": "4.1.1",
+      "name": "window9-4.1.1",
       "steps": [
         {
           "type": "query",
@@ -176,7 +185,7 @@
       ]
     },
     {
-      "name": "4.1.2",
+      "name": "window9-4.1.2",
       "steps": [
         {
           "type": "query",
@@ -186,7 +195,11 @@
       ]
     },
     {
-      "name": "5.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window9-5.0",
       "steps": [
         {
           "type": "exec",
@@ -195,7 +208,31 @@
       ]
     },
     {
-      "name": "6.0",
+      "name": "window9-5.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT \n      sum(e) OVER (),\n      sum(e) OVER (ORDER BY a),\n      sum(e) OVER (PARTITION BY a ORDER BY b),\n      sum(e) OVER (PARTITION BY a, b ORDER BY c),\n      sum(e) OVER (PARTITION BY a, b, c ORDER BY d)\n    FROM t1;",
+          "expect": "~/ORDER/"
+        }
+      ]
+    },
+    {
+      "name": "window9-5.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT sum(e) OVER (PARTITION BY a ORDER BY b) FROM t1 ORDER BY a;",
+          "expect": "~/ORDER/"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window9-6.0",
       "steps": [
         {
           "type": "exec",
@@ -204,17 +241,17 @@
       ]
     },
     {
-      "name": "6.1",
+      "name": "window9-6.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t0 WHERE \n  EXISTS (\n    SELECT MIN(c0) OVER (), CUME_DIST() OVER () FROM t0\n  ) >=1 AND \n  EXISTS (\n    SELECT MIN(c0) OVER (), CUME_DIST() OVER () FROM t0\n  ) <=1;",
+          "sql": "SELECT * FROM t0 WHERE \n  EXISTS (\n    SELECT MIN(c0) OVER (), CUME_DIST() OVER () FROM t0\n  ) \u003e=1 AND \n  EXISTS (\n    SELECT MIN(c0) OVER (), CUME_DIST() OVER () FROM t0\n  ) \u003c=1;",
           "expect": "0"
         }
       ]
     },
     {
-      "name": "6.2",
+      "name": "window9-6.2",
       "steps": [
         {
           "type": "query",
@@ -224,7 +261,11 @@
       ]
     },
     {
-      "name": "7.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window9-7.0",
       "steps": [
         {
           "type": "exec",
@@ -233,47 +274,51 @@
       ]
     },
     {
-      "name": "7.1",
+      "name": "window9-7.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT avg(x) OVER (ORDER BY y) AS z FROM t1 ORDER BY z",
-          "expect": "7.2 8.75 10.0 11.0 15.0"
+          "expect": "\n  7.2 8.75 10.0 11.0 15.0\n"
         }
       ]
     },
     {
-      "name": "7.2",
+      "name": "window9-7.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT avg(x) OVER (ORDER BY y) z FROM t1 ORDER BY (z IS y);",
-          "expect": "10.0 15.0 11.0 8.75 7.2"
+          "expect": "\n  10.0 15.0 11.0 8.75 7.2\n"
         }
       ]
     },
     {
-      "name": "7.3",
+      "name": "window9-7.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT avg(x) OVER (ORDER BY y) z FROM t1 ORDER BY (y IS z);",
-          "expect": "10.0 15.0 11.0 8.75 7.2"
+          "expect": "\n  10.0 15.0 11.0 8.75 7.2\n"
         }
       ]
     },
     {
-      "name": "7.4",
+      "name": "window9-7.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT avg(x) OVER (ORDER BY y) z FROM t1 ORDER BY z + 0.0;",
-          "expect": "7.2 8.75 10.0 11.0 15.0"
+          "expect": "\n  7.2 8.75 10.0 11.0 15.0\n"
         }
       ]
     },
     {
-      "name": "8.1.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window9-8.1.1",
       "steps": [
         {
           "type": "query",
@@ -283,7 +328,7 @@
       ]
     },
     {
-      "name": "8.1.2",
+      "name": "window9-8.1.2",
       "steps": [
         {
           "type": "query",
@@ -293,7 +338,7 @@
       ]
     },
     {
-      "name": "8.2",
+      "name": "window9-8.2",
       "steps": [
         {
           "type": "exec",
@@ -302,17 +347,17 @@
       ]
     },
     {
-      "name": "8.3",
+      "name": "window9-8.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT min( max((SELECT x FROM v1)) ) OVER()",
           "expect": "0 0"
         }
       ]
     },
     {
-      "name": "8.4",
+      "name": "window9-8.4",
       "steps": [
         {
           "type": "query",
@@ -322,7 +367,11 @@
       ]
     },
     {
-      "name": "9.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window9-9.0",
       "steps": [
         {
           "type": "exec",
@@ -331,17 +380,21 @@
       ]
     },
     {
-      "name": "9.1",
+      "name": "window9-9.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT sum(c) OVER (\n    ORDER BY c RANGE BETWEEN 0 PRECEDING AND '-700' PRECEDING\n  )\n  FROM t1",
           "expect": "1 {frame ending offset must be a non-negative number}"
         }
       ]
     },
     {
-      "name": "10.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "window9-10.0",
       "steps": [
         {
           "type": "exec",
@@ -350,106 +403,42 @@
       ]
     },
     {
-      "name": "10.1",
+      "name": "window9-10.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, min(b) OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING)",
-          "expect": "1 a\n  2 a\n  3 a\n  4 b\n  5 c\n  6 d"
+          "expect": "\n  1 a\n  2 a\n  3 a\n  4 b\n  5 c\n  6 d\n"
         }
       ]
     },
     {
-      "name": "10.2",
+      "name": "window9-10.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, min(b) FILTER (WHERE a%2) OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING)",
-          "expect": "1 a\n  2 a\n  3 a\n  4 c\n  5 c\n  6 e"
+          "expect": "\n  1 a\n  2 a\n  3 a\n  4 c\n  5 c\n  6 e\n"
         }
       ]
     },
     {
-      "name": "10.3",
+      "name": "window9-10.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, min(b) FILTER (WHERE (a%2)=0) OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING)",
-          "expect": "1 b\n  2 b\n  3 b\n  4 b\n  5 d\n  6 d"
+          "expect": "\n  1 b\n  2 b\n  3 b\n  4 b\n  5 d\n  6 d\n"
         }
       ]
     },
     {
-      "name": "10.4",
+      "name": "window9-10.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT a, nth_value(b, 1) FILTER (WHERE (a%2)=0) OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING)",
           "expect": "1 {FILTER clause may only be used with aggregate window functions}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

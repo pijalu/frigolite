@@ -1,7 +1,34 @@
 {
   "file": "corruptM.test",
   "name": "corruptM",
+  "ordered": true,
   "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
     {
       "name": "corruptM-100",
       "steps": [
@@ -23,12 +50,58 @@
       ]
     },
     {
+      "name": "corruptM-102",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "PRAGMA quick_check;",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 {malformed database schema (t1)}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
       "name": "corruptM-110",
       "steps": [
         {
           "type": "query",
           "sql": "UPDATE sqlite_master SET tbl_name='tx' WHERE name='t1';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;",
           "expect": "table t1 tx | index i1 t1 | view v2 v2 | trigger r1 t1 |"
+        }
+      ]
+    },
+    {
+      "name": "corruptM-111",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "PRAGMA quick_check;",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 {malformed database schema (t1)}",
+          "database": "db2"
         }
       ]
     },
@@ -43,12 +116,53 @@
       ]
     },
     {
+      "name": "corruptM-113",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "PRAGMA quick_check;",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 {malformed database schema (t1)}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
       "name": "corruptM-114",
       "steps": [
         {
           "type": "query",
           "sql": "UPDATE sqlite_master SET tbl_name='t9',type='table',name='t9'WHERE name='t1';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;",
           "expect": "table t9 t9 | index i1 t1 | view v2 v2 | trigger r1 t1 |"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "PRAGMA quick_check;",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 {malformed database schema (t9)}",
+          "database": "db2"
         }
       ]
     },
@@ -63,12 +177,58 @@
       ]
     },
     {
+      "name": "corruptM-121",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "PRAGMA quick_check;\n    SELECT * FROM t1, v2;",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "0 {ok 111 222 333 15 22}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
       "name": "corruptM-130",
       "steps": [
         {
           "type": "query",
           "sql": "UPDATE sqlite_master SET type='view' WHERE name='t1';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;",
           "expect": "view t1 T1 | index i1 t1 | view v2 v2 | trigger r1 t1 |"
+        }
+      ]
+    },
+    {
+      "name": "corruptM-131",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "PRAGMA quick_check;\n    SELECT * FROM t1, v2;",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 {malformed database schema (t1)}",
+          "database": "db2"
         }
       ]
     },
@@ -83,12 +243,58 @@
       ]
     },
     {
+      "name": "corruptM-141",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "PRAGMA quick_check;\n    SELECT * FROM t1, v2;",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 {malformed database schema (i1)}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
       "name": "corruptM-150",
       "steps": [
         {
           "type": "query",
           "sql": "UPDATE sqlite_master SET type='table', tbl_name='t1' WHERE name='i1';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;",
           "expect": "table t1 t1 | table i1 t1 | view v2 v2 | trigger r1 t1 |"
+        }
+      ]
+    },
+    {
+      "name": "corruptM-151",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "PRAGMA quick_check;\n    SELECT * FROM t1, v2;",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 {malformed database schema (i1)}",
+          "database": "db2"
         }
       ]
     },
@@ -103,12 +309,58 @@
       ]
     },
     {
+      "name": "corruptM-161",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "PRAGMA quick_check;\n    SELECT * FROM t1, v2;",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 {malformed database schema (i1)}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
       "name": "corruptM-170",
       "steps": [
         {
           "type": "query",
           "sql": "UPDATE sqlite_master SET type='index', tbl_name='t1' WHERE name='i1';\n  UPDATE sqlite_master SET type='table', tbl_name='v2' WHERE name='v2';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;",
           "expect": "table t1 t1 | index i1 t1 | table v2 v2 | trigger r1 t1 |"
+        }
+      ]
+    },
+    {
+      "name": "corruptM-171",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "PRAGMA quick_check;\n    SELECT * FROM t1, v2;",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 {malformed database schema (v2)}",
+          "database": "db2"
         }
       ]
     },
@@ -123,12 +375,58 @@
       ]
     },
     {
+      "name": "corruptM-181",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "PRAGMA quick_check;\n    SELECT * FROM t1, v2;",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 {malformed database schema (v3)}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
       "name": "corruptM-190",
       "steps": [
         {
           "type": "query",
           "sql": "UPDATE sqlite_master SET type='view',name='v2',tbl_name='v2' WHERE name='v3';\n  UPDATE sqlite_master SET type='view' WHERE name='r1';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;",
           "expect": "table t1 t1 | index i1 t1 | view v2 v2 | view r1 t1 |"
+        }
+      ]
+    },
+    {
+      "name": "corruptM-191",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "PRAGMA quick_check;\n    SELECT * FROM t1, v2;",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 {malformed database schema (r1)}",
+          "database": "db2"
         }
       ]
     },
@@ -143,132 +441,25 @@
       ]
     },
     {
-      "name": "corruptM-102",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA quick_check;",
-          "expect": "1 {malformed database schema (t1)}"
-        }
-      ]
-    },
-    {
-      "name": "corruptM-111",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA quick_check;",
-          "expect": "1 {malformed database schema (t1)}"
-        }
-      ]
-    },
-    {
-      "name": "corruptM-113",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA quick_check;",
-          "expect": "1 {malformed database schema (t1)}"
-        }
-      ]
-    },
-    {
-      "name": "corruptM-114",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA quick_check;",
-          "expect": "1 {malformed database schema (t9)}"
-        }
-      ]
-    },
-    {
-      "name": "corruptM-121",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA quick_check;\n    SELECT * FROM t1, v2;",
-          "expect": "0 {ok 111 222 333 15 22}"
-        }
-      ]
-    },
-    {
-      "name": "corruptM-131",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA quick_check;\n    SELECT * FROM t1, v2;",
-          "expect": "1 {malformed database schema (t1)}"
-        }
-      ]
-    },
-    {
-      "name": "corruptM-141",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA quick_check;\n    SELECT * FROM t1, v2;",
-          "expect": "1 {malformed database schema (i1)}"
-        }
-      ]
-    },
-    {
-      "name": "corruptM-151",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA quick_check;\n    SELECT * FROM t1, v2;",
-          "expect": "1 {malformed database schema (i1)}"
-        }
-      ]
-    },
-    {
-      "name": "corruptM-161",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA quick_check;\n    SELECT * FROM t1, v2;",
-          "expect": "1 {malformed database schema (i1)}"
-        }
-      ]
-    },
-    {
-      "name": "corruptM-171",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA quick_check;\n    SELECT * FROM t1, v2;",
-          "expect": "1 {malformed database schema (v2)}"
-        }
-      ]
-    },
-    {
-      "name": "corruptM-181",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA quick_check;\n    SELECT * FROM t1, v2;",
-          "expect": "1 {malformed database schema (v3)}"
-        }
-      ]
-    },
-    {
-      "name": "corruptM-191",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA quick_check;\n    SELECT * FROM t1, v2;",
-          "expect": "1 {malformed database schema (r1)}"
-        }
-      ]
-    },
-    {
       "name": "corruptM-193",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_named_db",
+          "sql": "test.db",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
           "sql": "PRAGMA quick_check;\n    SELECT * FROM t1, v2;",
-          "expect": "1 {malformed database schema (r1)}"
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 {malformed database schema (r1)}",
+          "database": "db2"
         }
       ]
     }

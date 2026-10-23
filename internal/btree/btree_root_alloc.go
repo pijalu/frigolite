@@ -69,7 +69,10 @@ func (t *BTree) AllocateRootPage() (*pager.Page, error) {
 func (t *BTree) prepareRootSlot(pgnoRoot uint32) error {
 	if pgnoRoot > t.pager.NumPages() {
 		for t.pager.NumPages() < pgnoRoot {
-			_ = t.pager.AllocatePageSkipFreelist()
+			if t.pager.AllocatePageSkipFreelist() == nil {
+				// PRAGMA max_page_count blocked the extend (pager.c:5587).
+				return fmt.Errorf("database or disk is full")
+			}
 		}
 		return nil
 	}
@@ -85,6 +88,9 @@ func (t *BTree) prepareRootSlot(pgnoRoot uint32) error {
 		return fmt.Errorf("btree: AllocateRootPage: page %d has ptrmap type %d (corrupt)", pgnoRoot, parentType)
 	}
 	moveTo := t.pager.AllocatePageSkipFreelist()
+	if moveTo == nil {
+		return fmt.Errorf("database or disk is full")
+	}
 	if _, err := t.RelocatePage(moveTo.PageNum, pgnoRoot); err != nil {
 		return fmt.Errorf("btree: AllocateRootPage: relocate occupant %d -> %d: %w", pgnoRoot, moveTo.PageNum, err)
 	}

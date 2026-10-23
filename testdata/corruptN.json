@@ -1,19 +1,44 @@
 {
   "file": "corruptN.test",
   "name": "corruptN",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "corruptN-1.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "corruptN-1.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "VACUUM;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "3.0",
+      "name": "corruptN-2.0",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "corruptN-3.0",
       "steps": [
         {
           "type": "exec",
@@ -22,17 +47,33 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "setup_0",
       "steps": [
         {
-          "type": "exec",
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "corruptN-3.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "PRAGMA writable_schema = 1;\n    INSERT INTO t1(y) VALUES('abc');",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "4.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "corruptN-4.1",
       "steps": [
         {
           "type": "exec",
@@ -41,17 +82,54 @@
       ]
     },
     {
-      "name": "4.2",
+      "name": "setup_1",
       "steps": [
         {
-          "type": "exec",
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "corruptN-4.2",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "PRAGMA writable_schema = 1;\n    REPLACE INTO x1 VALUES(5, 2, 3);",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "5.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "strreplace",
+          "callbackVars": {
+            "": "0",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "corruptN"
+          },
+          "functionProc": "strreplace",
+          "minArgs": -1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "corruptN-5.0",
       "steps": [
         {
           "type": "exec",
@@ -60,16 +138,11 @@
       ]
     },
     {
-      "name": "5.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "PRAGMA writable_schema = 1;\n      SELECT * FROM t1"
-        }
-      ]
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
-      "name": "6.0",
+      "name": "corruptN-6.0",
       "steps": [
         {
           "type": "exec",
@@ -78,36 +151,44 @@
       ]
     },
     {
-      "name": "6.1",
+      "name": "corruptN-6.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "UPDATE t1 SET b=zeroblob(299);",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "6.2",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "corruptN-6.2",
       "steps": [
         {
           "type": "query",
-          "sql": "-- Make \"t1\" a large table. Large enough that the children of the root\n  -- node are interior nodes.\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(x);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<500\n  )\n  INSERT INTO t1 SELECT zeroblob(300) FROM s;\n  \n  CREATE TABLE t2(y);\n  CREATE TRIGGER tr BEFORE UPDATE ON t1 BEGIN\n    DELETE FROM t2;\n  END;\n  \n  -- Set the root of table t2 to 137 - the leftmost child of the root of t1.\n  PRAGMA writable_schema = ON;\n  UPDATE sqlite_schema SET rootpage = 137 WHERE name='t2';\n  PRAGMA writable_schema = RESET;"
+          "sql": "-- Make \"t1\" a large table. Large enough that the children of the root\n  -- node are interior nodes.\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(x);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i\u003c500\n  )\n  INSERT INTO t1 SELECT zeroblob(300) FROM s;\n  \n  CREATE TABLE t2(y);\n  CREATE TRIGGER tr BEFORE UPDATE ON t1 BEGIN\n    DELETE FROM t2;\n  END;\n  \n  -- Set the root of table t2 to 137 - the leftmost child of the root of t1.\n  PRAGMA writable_schema = ON;\n  UPDATE sqlite_schema SET rootpage = 137 WHERE name='t2';\n  PRAGMA writable_schema = RESET;"
         }
       ]
     },
     {
-      "name": "6.3",
+      "name": "corruptN-6.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "-- Run an UPDATE on t1 that will hit a child of page 136. Have the trigger\n  -- clear page 136 and its children. Assert fails.\n  UPDATE t1 SET x='hello world' WHERE rowid=1;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "7.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "corruptN-7.0",
       "steps": [
         {
           "type": "exec",
@@ -116,7 +197,7 @@
       ]
     },
     {
-      "name": "7.1",
+      "name": "corruptN-7.1",
       "steps": [
         {
           "type": "query",
@@ -126,94 +207,22 @@
       ]
     },
     {
-      "name": "7.2",
+      "name": "corruptN-7.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM p1;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "7.3",
+      "name": "corruptN-7.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "PRAGMA integrity_check",
           "expect": "1 {database disk image is malformed}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

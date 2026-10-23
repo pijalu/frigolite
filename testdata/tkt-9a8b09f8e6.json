@@ -1,0 +1,474 @@
+{
+  "file": "tkt-9a8b09f8e6.test",
+  "name": "tkt-9a8b09f8e6",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "tkt-9a8b09f8e6-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x TEXT);\n    INSERT INTO t1 VALUES('1');"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x INTEGER);\n    INSERT INTO t2 VALUES(1);"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(x REAL);\n    INSERT INTO t3 VALUES(1.0);"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(x REAL);\n    INSERT INTO t4 VALUES(1.11);"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(x, y);\n    INSERT INTO t5 VALUES('1', 'one');\n    INSERT INTO t5 VALUES(1, 'two');\n    INSERT INTO t5 VALUES('1.0', 'three');\n    INSERT INTO t5 VALUES(1.0, 'four');"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE x IN (1);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE x IN (1.0);"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE x IN ('1');",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE x IN ('1.0');"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE 1 IN (x);"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE 1.0 IN (x);"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE '1' IN (x);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-2.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE '1.0' IN (x);"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE x IN (1);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE x IN (1.0);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE x IN ('1');",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE x IN ('1.0');",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE 1 IN (x);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-3.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE 1.0 IN (x);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-3.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE '1' IN (x);"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-3.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE '1.0' IN (x);"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE x IN (1);",
+          "expect": "1.0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE x IN (1.0);",
+          "expect": "1.0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE x IN ('1');",
+          "expect": "1.0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE x IN ('1.0');",
+          "expect": "1.0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE 1 IN (x);",
+          "expect": "1.0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-4.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE 1.0 IN (x);",
+          "expect": "1.0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-4.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE '1' IN (x);"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-4.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE '1.0' IN (x);"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE x IN (1);"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE x IN (1.0);"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE x IN ('1');"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE x IN ('1.0');"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-5.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE x IN (1.11);",
+          "expect": "1.11"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-5.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE x IN ('1.11');",
+          "expect": "1.11"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-5.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE 1 IN (x);"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-5.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE 1.0 IN (x);"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-5.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE '1' IN (x);"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-5.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE '1.0' IN (x);"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-5.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE 1.11 IN (x);",
+          "expect": "1.11"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-5.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE '1.11' IN (x);"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM t5 WHERE x IN (1);",
+          "expect": "1 two 1.0 four"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM t5 WHERE x IN (1.0);",
+          "expect": "1 two 1.0 four"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM t5 WHERE x IN ('1');",
+          "expect": "1 one"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-6.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM t5 WHERE x IN ('1.0');",
+          "expect": "1.0 three"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-6.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM t5 WHERE 1 IN (x);",
+          "expect": "1 two 1.0 four"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-6.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM t5 WHERE 1.0 IN (x);",
+          "expect": "1 two 1.0 four"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-6.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM t5 WHERE '1' IN (x);",
+          "expect": "1 one"
+        }
+      ]
+    },
+    {
+      "name": "tkt-9a8b09f8e6-6.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM t5 WHERE '1.0' IN (x);",
+          "expect": "1.0 three"
+        }
+      ]
+    }
+  ]
+}

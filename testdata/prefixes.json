@@ -1,9 +1,110 @@
 {
   "file": "prefixes.test",
   "name": "prefixes",
+  "ordered": true,
   "tests": [
     {
-      "name": "2.0",
+      "name": "prefixes-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT prefix_length('abcdxxx', 'abcyy')",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "prefixes-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT prefix_length('abcdxxx', 'bcyyy')",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "prefixes-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT prefix_length('abcdxxx', 'ab')",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "prefixes-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT prefix_length('ab', 'abcd')",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "prefixes-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT prefix_length('xyzu1234xz', 'xyzu1234xy')",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "prefixes-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT prefix_length('xyzu1234', 'xyzu1234xy')",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "prefixes-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT prefix_length('xyzu1234', 'xyzu1234')",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "prefixes-1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT prefix_length('xyzu1234xy', 'xyzu1234')",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "prefixes-1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT prefix_length('xyzu1234xy', 'xyzu1233')",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "prefixes-1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT prefix_length('xyzu1234xy', 'xyzu1235')",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "prefixes-2.0",
       "steps": [
         {
           "type": "exec",
@@ -12,29 +113,72 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "prefixes-2.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT prefix_length(null,'abc');"
+          "sql": "WITH finder(str) AS (\n      SELECT (SELECT max(k) FROM t1 WHERE k\u003c='abatementt')\n        UNION ALL\n        SELECT (\n          SELECT max(k) FROM t1 \n          WHERE k\u003c=substr('abatementt', 1, prefix_length(finder.str, 'abatementt'))\n        ) FROM finder WHERE length(finder.str)\u003e0\n      )\n    SELECT str FROM finder WHERE length(str)==prefix_length(str, 'abatementt') LIMIT 1",
+          "expect": "abatement"
         }
       ]
     },
     {
-      "name": "3.2",
+      "name": "prefixes-2.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT prefix_length('abc',null);"
+          "sql": "WITH finder(str) AS (\n      SELECT (SELECT max(k) FROM t1 WHERE k\u003c='abashet')\n        UNION ALL\n        SELECT (\n          SELECT max(k) FROM t1 \n          WHERE k\u003c=substr('abashet', 1, prefix_length(finder.str, 'abashet'))\n        ) FROM finder WHERE length(finder.str)\u003e0\n      )\n    SELECT str FROM finder WHERE length(str)==prefix_length(str, 'abashet') LIMIT 1",
+          "expect": "abash"
         }
       ]
     },
     {
-      "name": "3.3",
+      "name": "prefixes-2.3",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT prefix_length(zeroblob(15000),zeroblob(5000));"
+          "sql": "WITH finder(str) AS (\n      SELECT (SELECT max(k) FROM t1 WHERE k\u003c='abandonio')\n        UNION ALL\n        SELECT (\n          SELECT max(k) FROM t1 \n          WHERE k\u003c=substr('abandonio', 1, prefix_length(finder.str, 'abandonio'))\n        ) FROM finder WHERE length(finder.str)\u003e0\n      )\n    SELECT str FROM finder WHERE length(str)==prefix_length(str, 'abandonio') LIMIT 1",
+          "expect": "abandon"
+        }
+      ]
+    },
+    {
+      "name": "prefixes-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH finder(str) AS (\n      SELECT (SELECT max(k) FROM t1 WHERE k\u003c='abasemenu')\n        UNION ALL\n        SELECT (\n          SELECT max(k) FROM t1 \n          WHERE k\u003c=substr('abasemenu', 1, prefix_length(finder.str, 'abasemenu'))\n        ) FROM finder WHERE length(finder.str)\u003e0\n      )\n    SELECT str FROM finder WHERE length(str)==prefix_length(str, 'abasemenu') LIMIT 1",
+          "expect": "abase"
+        }
+      ]
+    },
+    {
+      "name": "prefixes-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT prefix_length(null,'abc');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "prefixes-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT prefix_length('abc',null);",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "prefixes-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT prefix_length(zeroblob(15000),zeroblob(5000));",
+          "expect": "0"
         }
       ]
     }

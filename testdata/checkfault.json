@@ -1,0 +1,16 @@
+{
+  "file": "checkfault.test",
+  "name": "checkfault",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "cffault-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1 (Col0 CHECK(1 COLLATE BINARY BETWEEN 1 AND 1) ) ;\n  CREATE TABLE t2(b, a CHECK(\n      CASE 'abc' COLLATE nocase WHEN a THEN 1 ELSE 0 END)\n  );"
+        }
+      ]
+    }
+  ]
+}

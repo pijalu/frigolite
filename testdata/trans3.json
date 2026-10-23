@@ -1,26 +1,61 @@
 {
   "file": "trans3.test",
   "name": "trans3",
+  "ordered": true,
   "tests": [
     {
-      "name": "setup_0",
+      "name": "trans3-1.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    SELECT * FROM t1;"
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    SELECT * FROM t1;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "trans3-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
         },
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(4);"
         },
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 LIMIT 1"
-        },
+          "type": "query",
+          "sql": "SELECT * FROM t1 LIMIT 1",
+          "variable": "x",
+          "catchResult": true,
+          "catchMessage": "errmsg",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "trans3-1.3",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
+          "type": "runtime_var",
+          "variable": "ecode"
+        }
+      ]
+    },
+    {
+      "name": "trans3-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "trans3-1.5",
+      "steps": [
         {
           "type": "exec",
           "sql": "BEGIN; CREATE TABLE xyzzy(abc);"
@@ -30,12 +65,31 @@
           "sql": "INSERT INTO t1 VALUES(5);"
         },
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "variable": "x",
+          "catchResult": true,
+          "catchMessage": "errmsg",
+          "expect": "1 {abort due to ROLLBACK}"
+        }
+      ]
+    },
+    {
+      "name": "trans3-1.6",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
+          "type": "runtime_var",
+          "variable": "ecode"
+        }
+      ]
+    },
+    {
+      "name": "trans3-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 4"
         }
       ]
     }

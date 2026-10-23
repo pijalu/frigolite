@@ -12,403 +12,403 @@
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(1,0,4,4)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(2,1,9,10)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(3,1,16,17)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(4,2,25,27)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(5,2,36,38)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(6,2,49,51)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(7,2,64,66)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(8,3,81,84)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(9,3,100,103)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(10,3,121,124)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(11,3,144,147)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(12,3,169,172)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(13,3,196,199)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(14,3,225,228)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(15,3,256,259)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(16,4,289,293)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(17,4,324,328)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(18,4,361,365)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(19,4,400,404)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(20,4,441,445)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(21,4,484,488)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(22,4,529,533)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(23,4,576,580)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(24,4,625,629)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(25,4,676,680)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(26,4,729,733)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(27,4,784,788)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(28,4,841,845)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(29,4,900,904)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(30,4,961,965)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(31,4,1024,1028)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(32,5,1089,1094)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(33,5,1156,1161)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(34,5,1225,1230)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(35,5,1296,1301)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(36,5,1369,1374)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(37,5,1444,1449)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(38,5,1521,1526)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(39,5,1600,1605)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(40,5,1681,1686)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(41,5,1764,1769)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(42,5,1849,1854)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(43,5,1936,1941)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(44,5,2025,2030)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(45,5,2116,2121)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(46,5,2209,2214)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(47,5,2304,2309)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(48,5,2401,2406)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(49,5,2500,2505)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(50,5,2601,2606)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(51,5,2704,2709)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(52,5,2809,2814)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(53,5,2916,2921)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(54,5,3025,3030)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(55,5,3136,3141)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(56,5,3249,3254)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(57,5,3364,3369)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(58,5,3481,3486)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(59,5,3600,3605)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(60,5,3721,3726)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(61,5,3844,3849)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(62,5,3969,3974)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(63,5,4096,4101)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(64,6,4225,4231)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(65,6,4356,4362)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(66,6,4489,4495)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(67,6,4624,4630)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(68,6,4761,4767)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(69,6,4900,4906)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(70,6,5041,5047)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(71,6,5184,5190)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(72,6,5329,5335)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(73,6,5476,5482)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(74,6,5625,5631)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(75,6,5776,5782)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(76,6,5929,5935)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(77,6,6084,6090)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(78,6,6241,6247)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(79,6,6400,6406)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(80,6,6561,6567)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(81,6,6724,6730)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(82,6,6889,6895)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(83,6,7056,7062)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(84,6,7225,7231)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(85,6,7396,7402)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(86,6,7569,7575)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(87,6,7744,7750)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(88,6,7921,7927)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(89,6,8100,8106)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(90,6,8281,8287)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(91,6,8464,8470)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(92,6,8649,8655)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(93,6,8836,8842)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(94,6,9025,9031)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(95,6,9216,9222)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(96,6,9409,9415)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(97,6,9604,9610)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(98,6,9801,9807)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(99,6,10000,10006)"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+          "sql": "INSERT INTO t1 VALUES(100,6,10201,10207)"
         },
         {
           "type": "exec",
@@ -420,12 +420,17 @@
       "name": "where2-1.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE w=85 AND x=6 AND y=7396"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE w=85 AND x=6 AND y=7396",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT * FROM t1 WHERE w=85 AND x=6 AND y=7396",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "85 6 7396 7402 nosort t1 i1w"
         }
       ]
@@ -434,12 +439,17 @@
       "name": "where2-1.3",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE w=85 AND x=6 AND y=7396 AND rowid=85"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE w=85 AND x=6 AND y=7396 AND rowid=85",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT * FROM t1 WHERE w=85 AND x=6 AND y=7396 AND rowid=85",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "85 6 7396 7402 nosort t1 *"
         }
       ]
@@ -448,12 +458,17 @@
       "name": "where2-2.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE w=85 ORDER BY random();"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE w=85 ORDER BY random();",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT * FROM t1 WHERE w=85 ORDER BY random();",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "85 6 7396 7402 nosort t1 i1w"
         }
       ]
@@ -462,12 +477,17 @@
       "name": "where2-2.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE x=6 AND y=7396 ORDER BY random();"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE x=6 AND y=7396 ORDER BY random();",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT * FROM t1 WHERE x=6 AND y=7396 ORDER BY random();",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "85 6 7396 7402 sort t1 i1xy"
         }
       ]
@@ -476,12 +496,17 @@
       "name": "where2-2.3",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE rowid=85 AND x=6 AND y=7396 ORDER BY random();"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE rowid=85 AND x=6 AND y=7396 ORDER BY random();",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT * FROM t1 WHERE rowid=85 AND x=6 AND y=7396 ORDER BY random();",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "85 6 7396 7402 nosort t1 *"
         }
       ]
@@ -494,16 +519,26 @@
           "sql": "CREATE TABLE x1(a INTEGER PRIMARY KEY, b DEFAULT 1);\n    WITH RECURSIVE\n       cnt(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM cnt WHERE x\u003c50)\n    INSERT INTO x1 SELECT x, 1 FROM cnt;\n    CREATE TABLE x2(x INTEGER PRIMARY KEY);\n    INSERT INTO x2 VALUES(1);"
         },
         {
-          "type": "query",
-          "sql": "SELECT * FROM x1, x2 WHERE x=1 ORDER BY random()"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT * FROM x1, x2 WHERE x=1 ORDER BY random()"
-        },
-        {
-          "type": "query",
+          "type": "query_assign",
           "sql": "SELECT * FROM x1, x2 WHERE x=1 ORDER BY random()",
+          "variable": "out1",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM x1, x2 WHERE x=1 ORDER BY random()",
+          "variable": "out2",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM x1, x2 WHERE x=1 ORDER BY random()",
+          "variable": "out3",
+          "resultAll": true
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "$out1!=$out2 \u0026\u0026 $out2!=$out3",
           "expect": "1"
         }
       ]
@@ -552,12 +587,17 @@
       "name": "where2-3.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 ORDER BY rowid LIMIT 2"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 ORDER BY rowid LIMIT 2",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT * FROM t1 ORDER BY rowid LIMIT 2",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "1 0 4 4 2 1 9 10 nosort t1 *"
         }
       ]
@@ -566,12 +606,17 @@
       "name": "where2-3.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 ORDER BY rowid DESC LIMIT 2"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 ORDER BY rowid DESC LIMIT 2",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT * FROM t1 ORDER BY rowid DESC LIMIT 2",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "100 6 10201 10207 99 6 10000 10006 nosort t1 *"
         }
       ]
@@ -580,12 +625,17 @@
       "name": "where2-4.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE z IN (10207,10006) AND y IN (10000,10201)\n                       AND x\u003e0 AND x\u003c10\n      ORDER BY w"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE z IN (10207,10006) AND y IN (10000,10201)\n                       AND x\u003e0 AND x\u003c10\n      ORDER BY w",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n      SELECT * FROM t1 WHERE z IN (10207,10006) AND y IN (10000,10201)\n                       AND x\u003e0 AND x\u003c10\n      ORDER BY w",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "99 6 10000 10006 100 6 10201 10207 sort t1 i1zyx"
         }
       ]
@@ -594,12 +644,17 @@
       "name": "where2-4.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE z IN (10207,10006) AND y=10000\n                       AND x\u003e0 AND x\u003c10\n      ORDER BY w"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE z IN (10207,10006) AND y=10000\n                       AND x\u003e0 AND x\u003c10\n      ORDER BY w",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n      SELECT * FROM t1 WHERE z IN (10207,10006) AND y=10000\n                       AND x\u003e0 AND x\u003c10\n      ORDER BY w",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "99 6 10000 10006 sort t1 i1zyx"
         }
       ]
@@ -608,12 +663,17 @@
       "name": "where2-4.3",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE z=10006 AND y IN (10000,10201)\n                       AND x\u003e0 AND x\u003c10\n      ORDER BY w"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE z=10006 AND y IN (10000,10201)\n                       AND x\u003e0 AND x\u003c10\n      ORDER BY w",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n      SELECT * FROM t1 WHERE z=10006 AND y IN (10000,10201)\n                       AND x\u003e0 AND x\u003c10\n      ORDER BY w",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "99 6 10000 10006 sort t1 i1zyx"
         }
       ]
@@ -622,12 +682,17 @@
       "name": "where2-4.4",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE z IN (SELECT 10207 UNION SELECT 10006)\n                         AND y IN (10000,10201)\n                         AND x\u003e0 AND x\u003c10\n        ORDER BY w"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE z IN (SELECT 10207 UNION SELECT 10006)\n                         AND y IN (10000,10201)\n                         AND x\u003e0 AND x\u003c10\n        ORDER BY w",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n        SELECT * FROM t1 WHERE z IN (SELECT 10207 UNION SELECT 10006)\n                         AND y IN (10000,10201)\n                         AND x\u003e0 AND x\u003c10\n        ORDER BY w",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "99 6 10000 10006 100 6 10201 10207 sort t1 i1zyx"
         }
       ]
@@ -636,12 +701,17 @@
       "name": "where2-4.5",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE z IN (SELECT 10207 UNION SELECT 10006)\n                         AND y IN (SELECT 10000 UNION SELECT 10201)\n                         AND x\u003e0 AND x\u003c10\n        ORDER BY w"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE z IN (SELECT 10207 UNION SELECT 10006)\n                         AND y IN (SELECT 10000 UNION SELECT 10201)\n                         AND x\u003e0 AND x\u003c10\n        ORDER BY w",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n        SELECT * FROM t1 WHERE z IN (SELECT 10207 UNION SELECT 10006)\n                         AND y IN (SELECT 10000 UNION SELECT 10201)\n                         AND x\u003e0 AND x\u003c10\n        ORDER BY w",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "99 6 10000 10006 100 6 10201 10207 sort t1 i1zyx"
         }
       ]
@@ -650,12 +720,17 @@
       "name": "where2-4.6a",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1\n       WHERE x IN (1,2,3,4,5,6,7,8)\n         AND y IN (10000,10001,10002,10003,10004,10005)\n       ORDER BY x"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1\n       WHERE x IN (1,2,3,4,5,6,7,8)\n         AND y IN (10000,10001,10002,10003,10004,10005)\n       ORDER BY x",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n      SELECT * FROM t1\n       WHERE x IN (1,2,3,4,5,6,7,8)\n         AND y IN (10000,10001,10002,10003,10004,10005)\n       ORDER BY x",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "99 6 10000 10006 nosort t1 i1xy"
         }
       ]
@@ -664,12 +739,17 @@
       "name": "where2-4.6b",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1\n       WHERE x IN (1,2,3,4,5,6,7,8)\n         AND y IN (10000,10001,10002,10003,10004,10005)\n       ORDER BY x DESC"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1\n       WHERE x IN (1,2,3,4,5,6,7,8)\n         AND y IN (10000,10001,10002,10003,10004,10005)\n       ORDER BY x DESC",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n      SELECT * FROM t1\n       WHERE x IN (1,2,3,4,5,6,7,8)\n         AND y IN (10000,10001,10002,10003,10004,10005)\n       ORDER BY x DESC",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "99 6 10000 10006 nosort t1 i1xy"
         }
       ]
@@ -678,12 +758,17 @@
       "name": "where2-4.6c",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1\n       WHERE x IN (1,2,3,4,5,6,7,8)\n         AND y IN (10000,10001,10002,10003,10004,10005)\n       ORDER BY x, y"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1\n       WHERE x IN (1,2,3,4,5,6,7,8)\n         AND y IN (10000,10001,10002,10003,10004,10005)\n       ORDER BY x, y",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n      SELECT * FROM t1\n       WHERE x IN (1,2,3,4,5,6,7,8)\n         AND y IN (10000,10001,10002,10003,10004,10005)\n       ORDER BY x, y",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "99 6 10000 10006 nosort t1 i1xy"
         }
       ]
@@ -692,12 +777,17 @@
       "name": "where2-4.6d",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1\n       WHERE x IN (1,2,3,4,5,6,7,8)\n         AND y IN (10000,10001,10002,10003,10004,10005)\n       ORDER BY x, y DESC"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1\n       WHERE x IN (1,2,3,4,5,6,7,8)\n         AND y IN (10000,10001,10002,10003,10004,10005)\n       ORDER BY x, y DESC",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n      SELECT * FROM t1\n       WHERE x IN (1,2,3,4,5,6,7,8)\n         AND y IN (10000,10001,10002,10003,10004,10005)\n       ORDER BY x, y DESC",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "99 6 10000 10006 sort t1 i1xy"
         }
       ]
@@ -706,12 +796,17 @@
       "name": "where2-4.6x",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE z IN (10207,10006,10006,10207)\n      ORDER BY w"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE z IN (10207,10006,10006,10207)\n      ORDER BY w",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n      SELECT * FROM t1 WHERE z IN (10207,10006,10006,10207)\n      ORDER BY w",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "99 6 10000 10006 100 6 10201 10207 sort t1 i1zyx"
         }
       ]
@@ -720,12 +815,17 @@
       "name": "where2-4.6y",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE z IN (10207,10006,10006,10207)\n      ORDER BY w DESC"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE z IN (10207,10006,10006,10207)\n      ORDER BY w DESC",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n      SELECT * FROM t1 WHERE z IN (10207,10006,10006,10207)\n      ORDER BY w DESC",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "100 6 10201 10207 99 6 10000 10006 sort t1 i1zyx"
         }
       ]
@@ -734,12 +834,17 @@
       "name": "where2-4.7",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE z IN (\n           SELECT 10207 UNION ALL SELECT 10006\n           UNION ALL SELECT 10006 UNION ALL SELECT 10207)\n        ORDER BY w"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE z IN (\n           SELECT 10207 UNION ALL SELECT 10006\n           UNION ALL SELECT 10006 UNION ALL SELECT 10207)\n        ORDER BY w",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n        SELECT * FROM t1 WHERE z IN (\n           SELECT 10207 UNION ALL SELECT 10006\n           UNION ALL SELECT 10006 UNION ALL SELECT 10207)\n        ORDER BY w",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "99 6 10000 10006 100 6 10201 10207 sort t1 i1zyx"
         }
       ]
@@ -748,12 +853,17 @@
       "name": "where2-5.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE w=99 ORDER BY w"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE w=99 ORDER BY w",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT * FROM t1 WHERE w=99 ORDER BY w",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "99 6 10000 10006 nosort t1 i1w"
         }
       ]
@@ -762,12 +872,17 @@
       "name": "where2-5.2a",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE w IN (99) ORDER BY w"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE w IN (99) ORDER BY w",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n      SELECT * FROM t1 WHERE w IN (99) ORDER BY w",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "99 6 10000 10006 nosort t1 i1w"
         }
       ]
@@ -776,12 +891,17 @@
       "name": "where2-5.2b",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE w IN (99) ORDER BY w DESC"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE w IN (99) ORDER BY w DESC",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n      SELECT * FROM t1 WHERE w IN (99) ORDER BY w DESC",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "99 6 10000 10006 nosort t1 i1w"
         }
       ]
@@ -790,12 +910,17 @@
       "name": "where2-6.1.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE w=99 OR w=100 ORDER BY +w"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE w=99 OR w=100 ORDER BY +w",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT * FROM t1 WHERE w=99 OR w=100 ORDER BY +w",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "99 6 10000 10006 100 6 10201 10207 sort t1 i1w"
         }
       ]
@@ -804,12 +929,17 @@
       "name": "where2-6.1.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE 99=w OR 100=w ORDER BY +w"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE 99=w OR 100=w ORDER BY +w",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT * FROM t1 WHERE 99=w OR 100=w ORDER BY +w",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "99 6 10000 10006 100 6 10201 10207 sort t1 i1w"
         }
       ]
@@ -818,12 +948,17 @@
       "name": "where2-6.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE w=99 OR w=100 OR 6=w ORDER BY +w"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE w=99 OR w=100 OR 6=w ORDER BY +w",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT * FROM t1 WHERE w=99 OR w=100 OR 6=w ORDER BY +w",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "6 2 49 51 99 6 10000 10006 100 6 10201 10207 sort t1 i1w"
         }
       ]
@@ -832,12 +967,17 @@
       "name": "where2-6.3",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE w=99 OR w=100 OR 6=+w ORDER BY +w"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE w=99 OR w=100 OR 6=+w ORDER BY +w",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT * FROM t1 WHERE w=99 OR w=100 OR 6=+w ORDER BY +w",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "6 2 49 51 99 6 10000 10006 100 6 10201 10207 sort t1 *"
         }
       ]
@@ -846,12 +986,17 @@
       "name": "where2-6.4",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT *, '|' FROM t1 WHERE w=99 OR +w=100 OR 6=w ORDER BY +w"
+          "type": "query_assign",
+          "sql": "SELECT *, '|' FROM t1 WHERE w=99 OR +w=100 OR 6=w ORDER BY +w",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT *, '|' FROM t1 WHERE w=99 OR +w=100 OR 6=w ORDER BY +w",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "6 2 49 51 | 99 6 10000 10006 | 100 6 10201 10207 | sort t1 *"
         }
       ]
@@ -860,21 +1005,31 @@
       "name": "where2-6.5",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT *, '|' FROM t1 WHERE w=99 OR y=10201 OR 6=w ORDER BY +w"
+          "type": "query_assign",
+          "sql": "SELECT *, '|' FROM t1 WHERE w=99 OR y=10201 OR 6=w ORDER BY +w",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT *, '|' FROM t1 WHERE w=99 OR y=10201 OR 6=w ORDER BY +w",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "6 2 49 51 | 99 6 10000 10006 | 100 6 10201 10207 | sort t1 *"
         },
         {
-          "type": "exec",
-          "sql": "SELECT b.* FROM t1 a, t1 b\n     WHERE a.w=1 AND (a.y=b.z OR b.z=10)\n     ORDER BY +b.w"
+          "type": "query_assign",
+          "sql": "SELECT b.* FROM t1 a, t1 b\n     WHERE a.w=1 AND (a.y=b.z OR b.z=10)\n     ORDER BY +b.w",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT b.* FROM t1 a, t1 b\n     WHERE a.w=1 AND (a.y=b.z OR b.z=10)\n     ORDER BY +b.w",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "1 0 4 4 2 1 9 10 sort a i1w b i1zyx"
         }
       ]
@@ -883,12 +1038,17 @@
       "name": "where2-6.6",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT b.* FROM t1 a, t1 b\n     WHERE a.w=1 AND (b.z=10 OR a.y=b.z OR b.z=10)\n     ORDER BY +b.w"
+          "type": "query_assign",
+          "sql": "SELECT b.* FROM t1 a, t1 b\n     WHERE a.w=1 AND (b.z=10 OR a.y=b.z OR b.z=10)\n     ORDER BY +b.w",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT b.* FROM t1 a, t1 b\n     WHERE a.w=1 AND (b.z=10 OR a.y=b.z OR b.z=10)\n     ORDER BY +b.w",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "1 0 4 4 2 1 9 10 sort a i1w b i1zyx"
         }
       ]
@@ -898,11 +1058,15 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t2249a(a TEXT UNIQUE, x CHAR(100));\n    CREATE TABLE t2249b(b INTEGER);\n    INSERT INTO t2249a(a) VALUES('0123');\n    INSERT INTO t2249b VALUES(123);"
+          "sql": "CREATE TABLE t2249a(a TEXT UNIQUE, x CHAR(100));\n    CREATE TABLE t2249b(b INTEGER);\n    INSERT INTO t2249a(a) VALUES('0123');\n    INSERT INTO t2249b VALUES(123);",
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    -- Because a is type TEXT and b is type INTEGER, both a and b\n    -- will attempt to convert to NUMERIC before the comparison.\n    -- They will thus compare equal.\n    --\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a=b;",
+          "variable": "eqp",
+          "resultAll": true,
+          "sortMarker": true,
           "expect": "123 0123 nosort t2249b * t2249a sqlite_autoindex_t2249a_1"
         }
       ]
@@ -911,8 +1075,10 @@
       "name": "where2-6.9",
       "steps": [
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    -- The + operator removes affinity from the rhs.  No conversions\n    -- occur and the comparison is false.  The result is an empty set.\n    --\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a=+b;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "nosort t2249b * t2249a sqlite_autoindex_t2249a_1"
         }
       ]
@@ -921,12 +1087,18 @@
       "name": "where2-6.9.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE +b=a"
+          "type": "query_assign",
+          "sql": "SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE +b=a",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE +b=a",
+          "variable": "eqp",
+          "resultAll": true,
+          "sortMarker": true,
           "expect": "nosort t2249b * t2249a sqlite_autoindex_t2249a_1"
         }
       ]
@@ -935,8 +1107,10 @@
       "name": "where2-6.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    -- Use + on both sides of the comparison to disable indices\n    -- completely.  Make sure we get the same result.\n    --\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE +a=+b;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "nosort t2249b * t2249a sqlite_autoindex_t2249a_1"
         }
       ]
@@ -945,12 +1119,17 @@
       "name": "where2-6.11",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a=b OR a='hello';"
+          "type": "query_assign",
+          "sql": "SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a=b OR a='hello';",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a=b OR a='hello';",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "123 0123 nosort t2249b * t2249a sqlite_autoindex_t2249a_1"
         }
       ]
@@ -959,12 +1138,17 @@
       "name": "where2-6.11.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE b=a OR a='hello';"
+          "type": "query_assign",
+          "sql": "SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE b=a OR a='hello';",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE b=a OR a='hello';",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "123 0123 nosort t2249b * t2249a sqlite_autoindex_t2249a_1"
         }
       ]
@@ -973,12 +1157,17 @@
       "name": "where2-6.11.3",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE 'hello'=a OR b=a;"
+          "type": "query_assign",
+          "sql": "SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE 'hello'=a OR b=a;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE 'hello'=a OR b=a;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "123 0123 nosort t2249b * t2249a sqlite_autoindex_t2249a_1"
         }
       ]
@@ -987,12 +1176,17 @@
       "name": "where2-6.11.4",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a='hello' OR b=a;"
+          "type": "query_assign",
+          "sql": "SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a='hello' OR b=a;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a='hello' OR b=a;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "123 0123 nosort t2249b * t2249a sqlite_autoindex_t2249a_1"
         }
       ]
@@ -1001,12 +1195,17 @@
       "name": "where2-6.12",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a=+b OR a='hello';"
+          "type": "query_assign",
+          "sql": "SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a=+b OR a='hello';",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n      SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a=+b OR a='hello';",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "nosort t2249b * t2249a sqlite_autoindex_t2249a_1"
         }
       ]
@@ -1015,12 +1214,17 @@
       "name": "where2-6.12.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a='hello' OR +b=a;"
+          "type": "query_assign",
+          "sql": "SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a='hello' OR +b=a;",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n      SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a='hello' OR +b=a;",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "nosort t2249b * t2249a sqlite_autoindex_t2249a_1"
         }
       ]
@@ -1029,12 +1233,17 @@
       "name": "where2-6.12.3",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE +b=a OR a='hello';"
+          "type": "query_assign",
+          "sql": "SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE +b=a OR a='hello';",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n      SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE +b=a OR a='hello';",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "nosort t2249b * t2249a sqlite_autoindex_t2249a_1"
         }
       ]
@@ -1043,12 +1252,17 @@
       "name": "where2-6.13",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a=+b OR +a='hello';"
+          "type": "query_assign",
+          "sql": "SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a=+b OR +a='hello';",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n      SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a=+b OR +a='hello';",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "nosort t2249b * t2249a sqlite_autoindex_t2249a_1"
         }
       ]
@@ -1202,12 +1416,17 @@
       "name": "where2-6.20",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x.a, y.a FROM t2249a x CROSS JOIN t2249a y WHERE x.a=y.a"
+          "type": "query_assign",
+          "sql": "SELECT x.a, y.a FROM t2249a x CROSS JOIN t2249a y WHERE x.a=y.a",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n    SELECT x.a, y.a FROM t2249a x CROSS JOIN t2249a y WHERE x.a=y.a",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "0123 0123 nosort x sqlite_autoindex_t2249a_1 y sqlite_autoindex_t2249a_1"
         }
       ]
@@ -1216,12 +1435,17 @@
       "name": "where2-6.21",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x.a,y.a FROM t2249a x CROSS JOIN t2249a y\n       WHERE x.a=y.a OR y.a='hello'"
+          "type": "query_assign",
+          "sql": "SELECT x.a,y.a FROM t2249a x CROSS JOIN t2249a y\n       WHERE x.a=y.a OR y.a='hello'",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n      SELECT x.a,y.a FROM t2249a x CROSS JOIN t2249a y\n       WHERE x.a=y.a OR y.a='hello'",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "0123 0123 nosort x sqlite_autoindex_t2249a_1 y sqlite_autoindex_t2249a_1"
         }
       ]
@@ -1230,12 +1454,17 @@
       "name": "where2-6.22",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x.a,y.a FROM t2249a x CROSS JOIN t2249a y\n       WHERE y.a=x.a OR y.a='hello'"
+          "type": "query_assign",
+          "sql": "SELECT x.a,y.a FROM t2249a x CROSS JOIN t2249a y\n       WHERE y.a=x.a OR y.a='hello'",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n      SELECT x.a,y.a FROM t2249a x CROSS JOIN t2249a y\n       WHERE y.a=x.a OR y.a='hello'",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "0123 0123 nosort x sqlite_autoindex_t2249a_1 y sqlite_autoindex_t2249a_1"
         }
       ]
@@ -1244,12 +1473,17 @@
       "name": "where2-6.23",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT x.a,y.a FROM t2249a x CROSS JOIN t2249a y\n       WHERE y.a='hello' OR x.a=y.a"
+          "type": "query_assign",
+          "sql": "SELECT x.a,y.a FROM t2249a x CROSS JOIN t2249a y\n       WHERE y.a='hello' OR x.a=y.a",
+          "variable": "data",
+          "resultAll": true,
+          "sortMarker": true
         },
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN QUERY PLAN \n      SELECT x.a,y.a FROM t2249a x CROSS JOIN t2249a y\n       WHERE y.a='hello' OR x.a=y.a",
+          "variable": "eqp",
+          "resultAll": true,
           "expect": "0123 0123 nosort x sqlite_autoindex_t2249a_1 y sqlite_autoindex_t2249a_1"
         }
       ]
@@ -1268,8 +1502,11 @@
       "name": "where2-7.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "select * from t8 where a=1 order by b, c",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
           "expect": "1 2 3 nosort"
         }
       ]
@@ -1278,8 +1515,11 @@
       "name": "where2-7.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "select * from t8, t9 where a=1 and y=3 order by b, x",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
           "expect": "1 2 3 2 3 sort"
         }
       ]

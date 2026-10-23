@@ -105,7 +105,12 @@ func fastIntArith(op string, l, r int64) interface{} {
 			return nil
 		}
 		if ri == -1 {
-			return 0 // minInt64 % -1 overflows int64 in Go; SQLite wraps to 0
+			// minInt64 % -1 overflows int64 in Go; SQLite wraps to 0. The
+			// result must be an int64: an untyped 0 would box as Go `int`
+			// and every downstream type assertion (int64) would fail —
+			// "0 - (1 % -1)" then errored with "cannot subtract
+			// non-numeric values".
+			return int64(0)
 		}
 		return int64(float64(l)) % ri
 	}

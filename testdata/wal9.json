@@ -1,18 +1,40 @@
 {
   "file": "wal9.test",
   "name": "wal9",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "setup_0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA page_size = 1024;\n  PRAGMA journal_mode = WAL;\n  PRAGMA wal_autocheckpoint = 0;\n  CREATE TABLE t(x);"
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
         }
       ]
     },
     {
-      "name": "1.2",
+      "name": "wal9-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n  PRAGMA journal_mode = WAL;\n  PRAGMA wal_autocheckpoint = 0;\n  CREATE TABLE t(x);",
+          "expect": "wal 0"
+        }
+      ]
+    },
+    {
+      "name": "wal9-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal9-1.2",
       "steps": [
         {
           "type": "exec",
@@ -21,19 +43,35 @@
       ]
     },
     {
-      "name": "1.7",
+      "name": "wal9-1.6",
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n      INSERT INTO t VALUES('hello');\n    ROLLBACK;"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n      INSERT INTO t VALUES('hello');\n    ROLLBACK;"
-        },
-        {
-          "type": "exec",
           "sql": "PRAGMA wal_checkpoint"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint",
+          "expect": "1 1 1 1"
+        }
+      ]
+    },
+    {
+      "name": "wal9-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t VALUES('hello');\n    ROLLBACK;",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     }

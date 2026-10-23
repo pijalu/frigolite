@@ -1,0 +1,207 @@
+{
+  "file": "fts3expr4.test",
+  "name": "fts3expr4",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "fts3expr4-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fts3_exprtest('icu en_US', 'abcd', 'a', 'b', 'c')",
+          "expect": "PHRASE 3 0 abcd"
+        }
+      ]
+    },
+    {
+      "name": "fts3expr4-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fts3_exprtest('icu en_US', ' tag ', 'a', 'b', 'c')",
+          "expect": "PHRASE 3 0 tag"
+        }
+      ]
+    },
+    {
+      "name": "fts3expr4-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fts3_exprtest('icu en_US', '\"x y z\"', 'a', 'b', 'c')",
+          "expect": "PHRASE 3 0 x y z"
+        }
+      ]
+    },
+    {
+      "name": "fts3expr4-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fts3_exprtest('icu en_US', 'x OR y', 'a', 'b', 'c')",
+          "expect": "OR {PHRASE 3 0 x} {PHRASE 3 0 y}"
+        }
+      ]
+    },
+    {
+      "name": "fts3expr4-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fts3_exprtest('icu en_US', '(x OR y)', 'a', 'b', 'c')",
+          "expect": "OR {PHRASE 3 0 x} {PHRASE 3 0 y}"
+        }
+      ]
+    },
+    {
+      "name": "fts3expr4-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fts3_exprtest('icu en_US', ' \"(x OR y)\" ', 'a', 'b', 'c')",
+          "expect": "PHRASE 3 0 ( x or y )"
+        }
+      ]
+    },
+    {
+      "name": "fts3expr4-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fts3_exprtest('icu en_US', 'a:word', 'a', 'b', 'c')",
+          "expect": "PHRASE 0 0 word"
+        }
+      ]
+    },
+    {
+      "name": "fts3expr4-1.8",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT fts3_exprtest('icu en_US', 'd:word', 'a', 'b', 'c')",
+          "variable": "res"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "$res==\"PHRASE 3 0 d:word\" ||\n    $res==\"AND {AND {PHRASE 3 0 d} {PHRASE 3 0 :}} {PHRASE 3 0 word}\"",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts3expr4-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fts3_exprtest('icu en_US', '\n  f (e NEAR/2 a)\n', 'a', 'b', 'c')",
+          "expectedExpr": "$res"
+        }
+      ]
+    },
+    {
+      "name": "fts3expr4-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fts3_exprtest('simple', '*lOl* *h4h*', 'a', 'b', 'c')",
+          "expectedExpr": "$res"
+        }
+      ]
+    },
+    {
+      "name": "fts3expr4-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fts3_exprtest('icu en_US', '*lOl* *h4h*', 'a', 'b', 'c')",
+          "expectedExpr": "$res"
+        }
+      ]
+    },
+    {
+      "name": "fts3expr4-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fts3_exprtest('simple', ' * ', 'a', 'b', 'c')",
+          "expectedExpr": "$res"
+        }
+      ]
+    },
+    {
+      "name": "fts3expr4-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fts3_exprtest('simple', ' *a ', 'a', 'b', 'c')",
+          "expectedExpr": "$res"
+        }
+      ]
+    },
+    {
+      "name": "fts3expr4-3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fts3_exprtest('simple', ' a*b ', 'a', 'b', 'c')",
+          "expectedExpr": "$res"
+        }
+      ]
+    },
+    {
+      "name": "fts3expr4-3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fts3_exprtest('simple', ' *a*b ', 'a', 'b', 'c')",
+          "expectedExpr": "$res"
+        }
+      ]
+    },
+    {
+      "name": "fts3expr4-3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fts3_exprtest('simple', ' *\"abc\" ', 'a', 'b', 'c')",
+          "expectedExpr": "$res"
+        }
+      ]
+    },
+    {
+      "name": "fts3expr4-3.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fts3_exprtest('simple', ' \"abc\"* ', 'a', 'b', 'c')",
+          "expectedExpr": "$res"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT fts3_exprtest('simple', ' \"ab*c\" ', 'a', 'b', 'c')",
+          "expectedExpr": "$res"
+        }
+      ]
+    },
+    {
+      "name": "fts3expr4-3.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fts3_exprtest('icu en_US', ' \"ab*c\" ', 'a', 'b', 'c')",
+          "expectedExpr": "$res"
+        }
+      ]
+    },
+    {
+      "name": "fts3expr4-3.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fts3_exprtest('icu en_US', ' ab*c ', 'a', 'b', 'c')",
+          "expectedExpr": "$res"
+        }
+      ]
+    }
+  ]
+}

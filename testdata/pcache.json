@@ -1,12 +1,26 @@
 {
   "file": "pcache.test",
   "name": "pcache",
+  "ordered": true,
   "tests": [
+    {
+      "name": "pcache-1.1",
+      "steps": [
+        {
+          "type": "close_db",
+          "expect": "current 0 max 0 min 0 recyclable 0"
+        }
+      ]
+    },
     {
       "name": "pcache-1.2",
       "steps": [
         {
-          "type": "query",
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
           "sql": "PRAGMA cache_size=12;\n    PRAGMA auto_vacuum=0;\n    PRAGMA mmap_size=0;",
           "expect": "current 1 max 12 min 10 recyclable 1"
         }
@@ -17,7 +31,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    CREATE TABLE t3(a, b, c);\n    CREATE TABLE t4(a, b, c);\n    CREATE TABLE t5(a, b, c);"
+          "sql": "BEGIN;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    CREATE TABLE t3(a, b, c);\n    CREATE TABLE t4(a, b, c);\n    CREATE TABLE t5(a, b, c);",
+          "expect": "current 6 max 12 min 10 recyclable 0"
         }
       ]
     },
@@ -26,7 +41,24 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t6(a, b, c);\n    CREATE TABLE t7(a, b, c);\n    CREATE TABLE t8(a, b, c);\n    CREATE TABLE t9(a, b, c);"
+          "sql": "CREATE TABLE t6(a, b, c);\n    CREATE TABLE t7(a, b, c);\n    CREATE TABLE t8(a, b, c);\n    CREATE TABLE t9(a, b, c);",
+          "expect": "current 10 max 12 min 10 recyclable 0"
+        }
+      ]
+    },
+    {
+      "name": "pcache-1.5",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size; PRAGMA cache_size=10",
+          "expect": "current 11 max 22 min 20 recyclable 1",
+          "database": "db2"
         }
       ]
     },
@@ -34,9 +66,10 @@
       "name": "pcache-1.6.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "BEGIN;\n    SELECT * FROM sqlite_master;",
-          "expect": "current 11 max 22 min 20 recyclable 0"
+          "expect": "current 11 max 22 min 20 recyclable 0",
+          "database": "db2"
         }
       ]
     },
@@ -45,7 +78,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX i1 ON t1(a, b);\n    CREATE INDEX i2 ON t2(a, b);\n    CREATE INDEX i3 ON t3(a, b);\n    CREATE INDEX i4 ON t4(a, b);\n    CREATE INDEX i5 ON t5(a, b);\n    CREATE INDEX i6 ON t6(a, b);\n    CREATE INDEX i7 ON t7(a, b);\n    CREATE INDEX i8 ON t8(a, b);\n    CREATE INDEX i9 ON t9(a, b);\n    CREATE INDEX i10 ON t9(a, b);\n    CREATE INDEX i11 ON t9(a, b);"
+          "sql": "CREATE INDEX i1 ON t1(a, b);\n    CREATE INDEX i2 ON t2(a, b);\n    CREATE INDEX i3 ON t3(a, b);\n    CREATE INDEX i4 ON t4(a, b);\n    CREATE INDEX i5 ON t5(a, b);\n    CREATE INDEX i6 ON t6(a, b);\n    CREATE INDEX i7 ON t7(a, b);\n    CREATE INDEX i8 ON t8(a, b);\n    CREATE INDEX i9 ON t9(a, b);\n    CREATE INDEX i10 ON t9(a, b);\n    CREATE INDEX i11 ON t9(a, b);",
+          "expect": "current 23 max 22 min 20 recyclable 0"
         }
       ]
     },
@@ -54,7 +88,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t10(a, b, c);"
+          "sql": "CREATE TABLE t10(a, b, c);",
+          "expect": "current 24 max 22 min 20 recyclable 0"
         }
       ]
     },
@@ -63,7 +98,29 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ROLLBACK"
+          "sql": "ROLLBACK",
+          "expect": "current 23 max 22 min 20 recyclable 0",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "pcache-1.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "current 22 max 22 min 20 recyclable 22"
+        }
+      ]
+    },
+    {
+      "name": "pcache-1.10",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "expect": "current 12 max 12 min 10 recyclable 12",
+          "database": "db2"
         }
       ]
     },
@@ -71,7 +128,7 @@
       "name": "pcache-1.11",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA cache_size = 20",
           "expect": "current 12 max 20 min 10 recyclable 12"
         }
@@ -81,7 +138,7 @@
       "name": "pcache-1.12",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM t1 ORDER BY a; SELECT * FROM t1;\n    SELECT * FROM t2 ORDER BY a; SELECT * FROM t2;\n    SELECT * FROM t3 ORDER BY a; SELECT * FROM t3;\n    SELECT * FROM t4 ORDER BY a; SELECT * FROM t4;\n    SELECT * FROM t5 ORDER BY a; SELECT * FROM t5;\n    SELECT * FROM t6 ORDER BY a; SELECT * FROM t6;\n    SELECT * FROM t7 ORDER BY a; SELECT * FROM t7;\n    SELECT * FROM t8 ORDER BY a; SELECT * FROM t8;\n    SELECT * FROM t9 ORDER BY a; SELECT * FROM t9;",
           "expect": "current 19 max 20 min 10 recyclable 19"
         }
@@ -91,7 +148,7 @@
       "name": "pcache-1.13",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA cache_size = 15",
           "expect": "current 15 max 15 min 10 recyclable 15"
         }
@@ -101,7 +158,13 @@
       "name": "pcache-1.14",
       "steps": [
         {
-          "type": "query",
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileTarget": "test.db",
+          "fileOffset": 24
+        },
+        {
+          "type": "exec",
           "sql": "SELECT * FROM sqlite_master",
           "expect": "current 2 max 15 min 10 recyclable 2"
         }
@@ -111,57 +174,9 @@
       "name": "pcache-1.15",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM t1 ORDER BY a; SELECT * FROM t1;\n    SELECT * FROM t2 ORDER BY a; SELECT * FROM t2;\n    SELECT * FROM t3 ORDER BY a; SELECT * FROM t3;\n    SELECT * FROM t4 ORDER BY a; SELECT * FROM t4;\n    SELECT * FROM t5 ORDER BY a; SELECT * FROM t5;\n    SELECT * FROM t6 ORDER BY a; SELECT * FROM t6;\n    SELECT * FROM t7 ORDER BY a; SELECT * FROM t7;\n    SELECT * FROM t8 ORDER BY a; SELECT * FROM t8;\n    SELECT * FROM t9 ORDER BY a; SELECT * FROM t9;",
           "expect": "current 14 max 15 min 10 recyclable 14"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA cache_size=12;\n    PRAGMA auto_vacuum=0;\n    PRAGMA mmap_size=0;"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    CREATE TABLE t3(a, b, c);\n    CREATE TABLE t4(a, b, c);\n    CREATE TABLE t5(a, b, c);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t6(a, b, c);\n    CREATE TABLE t7(a, b, c);\n    CREATE TABLE t8(a, b, c);\n    CREATE TABLE t9(a, b, c);"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    SELECT * FROM sqlite_master;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX i1 ON t1(a, b);\n    CREATE INDEX i2 ON t2(a, b);\n    CREATE INDEX i3 ON t3(a, b);\n    CREATE INDEX i4 ON t4(a, b);\n    CREATE INDEX i5 ON t5(a, b);\n    CREATE INDEX i6 ON t6(a, b);\n    CREATE INDEX i7 ON t7(a, b);\n    CREATE INDEX i8 ON t8(a, b);\n    CREATE INDEX i9 ON t9(a, b);\n    CREATE INDEX i10 ON t9(a, b);\n    CREATE INDEX i11 ON t9(a, b);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t10(a, b, c);"
-        },
-        {
-          "type": "exec",
-          "sql": "ROLLBACK"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA cache_size = 20"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 ORDER BY a; SELECT * FROM t1;\n    SELECT * FROM t2 ORDER BY a; SELECT * FROM t2;\n    SELECT * FROM t3 ORDER BY a; SELECT * FROM t3;\n    SELECT * FROM t4 ORDER BY a; SELECT * FROM t4;\n    SELECT * FROM t5 ORDER BY a; SELECT * FROM t5;\n    SELECT * FROM t6 ORDER BY a; SELECT * FROM t6;\n    SELECT * FROM t7 ORDER BY a; SELECT * FROM t7;\n    SELECT * FROM t8 ORDER BY a; SELECT * FROM t8;\n    SELECT * FROM t9 ORDER BY a; SELECT * FROM t9;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA cache_size = 15"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 ORDER BY a; SELECT * FROM t1;\n    SELECT * FROM t2 ORDER BY a; SELECT * FROM t2;\n    SELECT * FROM t3 ORDER BY a; SELECT * FROM t3;\n    SELECT * FROM t4 ORDER BY a; SELECT * FROM t4;\n    SELECT * FROM t5 ORDER BY a; SELECT * FROM t5;\n    SELECT * FROM t6 ORDER BY a; SELECT * FROM t6;\n    SELECT * FROM t7 ORDER BY a; SELECT * FROM t7;\n    SELECT * FROM t8 ORDER BY a; SELECT * FROM t8;\n    SELECT * FROM t9 ORDER BY a; SELECT * FROM t9;"
         }
       ]
     }

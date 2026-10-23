@@ -1,7 +1,18 @@
 {
   "file": "capi3b.test",
   "name": "capi3b",
+  "ordered": true,
   "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        }
+      ]
+    },
     {
       "name": "capi3b-1.1",
       "steps": [
@@ -18,7 +29,8 @@
         {
           "type": "exec",
           "sql": "SELECT * FROM t1",
-          "expect": "1 2"
+          "expect": "1 2",
+          "database": "db2"
         }
       ]
     },
@@ -33,11 +45,82 @@
       ]
     },
     {
+      "name": "capi3b-1.4",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t1 VALUES(3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES(3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_1__",
+          "expect": "SQLITE_BUSY"
+        }
+      ]
+    },
+    {
+      "name": "capi3b-1.5.1",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES(3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_1__",
+          "expect": "SQLITE_BUSY"
+        }
+      ]
+    },
+    {
+      "name": "capi3b-1.5.2",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES(3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_1__",
+          "expect": "SQLITE_BUSY"
+        }
+      ]
+    },
+    {
       "name": "capi3b-1.6",
       "steps": [
         {
           "type": "exec",
           "sql": "COMMIT"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES(3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_1__",
+          "expect": "SQLITE_DONE"
+        }
+      ]
+    },
+    {
+      "name": "capi3b-1.7",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t1 VALUES(3)",
+          "variable": "stmt_1",
+          "expect": "SQLITE_OK"
         }
       ]
     },
@@ -47,7 +130,8 @@
         {
           "type": "exec",
           "sql": "SELECT * FROM t1",
-          "expect": "1 2 3"
+          "expect": "1 2 3",
+          "database": "db2"
         }
       ]
     },
@@ -62,12 +146,161 @@
       ]
     },
     {
+      "name": "capi3b-2.1",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_2__",
+          "expect": "SQLITE_ROW"
+        }
+      ]
+    },
+    {
+      "name": "capi3b-2.3",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t1 VALUES(4)",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES(4)",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_3__",
+          "expect": "SQLITE_BUSY"
+        }
+      ]
+    },
+    {
+      "name": "capi3b-2.4",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_2__",
+          "expect": "SQLITE_ROW"
+        }
+      ]
+    },
+    {
+      "name": "capi3b-2.6",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES(4)",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_3__",
+          "expect": "SQLITE_BUSY"
+        }
+      ]
+    },
+    {
+      "name": "capi3b-2.7",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_2__",
+          "expect": "SQLITE_ROW"
+        }
+      ]
+    },
+    {
+      "name": "capi3b-2.9",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES(4)",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_3__",
+          "expect": "SQLITE_BUSY"
+        }
+      ]
+    },
+    {
+      "name": "capi3b-2.10",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_2__",
+          "expect": "SQLITE_DONE"
+        }
+      ]
+    },
+    {
+      "name": "capi3b-2.11",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES(4)",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_3__",
+          "expect": "SQLITE_DONE"
+        }
+      ]
+    },
+    {
       "name": "capi3b-2.12",
       "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t1 VALUES(4)",
+          "variable": "stmt_3"
+        },
         {
           "type": "exec",
           "sql": "SELECT * FROM t1",
           "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     }

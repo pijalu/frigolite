@@ -238,6 +238,8 @@ func (e *SelectEngine) buildQualifiedStarNames(ref *sql.ColumnRef, colDefs []sql
 	if sel != nil {
 		if t := selectAliasTarget(sel, ref.Table); t != "" {
 			refTable = t
+		} else if strings.EqualFold(ref.Table, "sqlite_master") || strings.EqualFold(ref.Table, "sqlite_schema") {
+			refTable = "sqlite_schema"
 		}
 	}
 	schemaNames, _ := e.tableColumnNames(refTable)
@@ -354,9 +356,26 @@ func matchUnqualifiedColDef(colDefs []sql.ColumnDef, refName string) (string, bo
 // stripped unless the column conflicts (join colDefs store conflicting
 // columns as table.col — keep those).
 func (e *SelectEngine) resolveColumnRefName(ref *sql.ColumnRef, colDefs []sql.ColumnDef, sel *sql.SelectStmt) string {
+	if strings.EqualFold(ref.Name, "rowid") || strings.EqualFold(ref.Name, "_rowid_") || strings.EqualFold(ref.Name, "oid") {
+		for _, cd := range colDefs {
+			if isIPKRowidAliasCol(cd) {
+				return cd.Name
+			}
+		}
+	}
+	if !e.ctx.FullColumnNames() && !e.ctx.ShortColumnNames() && ref.Table != "" {
+		return ref.Table + "." + ref.Name
+	}
 	if e.ctx.FullColumnNames() {
 		qualifier := ref.Table
-		if qualifier == "" {
+		if ref.Table != "" {
+			for _, operand := range fromOperands(sel) {
+				if strings.EqualFold(operand.ref, ref.Table) || strings.EqualFold(operand.table, ref.Table) {
+					qualifier = operand.table
+					break
+				}
+			}
+		} else {
 			qualifier = e.columnOwnerOperand(sel, ref, colDefs)
 		}
 		if qualifier != "" {
@@ -373,9 +392,9 @@ func (e *SelectEngine) resolveColumnRefName(ref *sql.ColumnRef, colDefs []sql.Co
 		}
 		return ref.Name
 	}
-	// Qualified reference with full_column_names=OFF: strip the
-	// table qualifier unless the column conflicts (join colDefs
-	// store conflicting columns as table.col — keep those).
+	// Qualified reference with full_column_names=OFF: strip the table
+	// qualifier unless the column conflicts (join colDefs store conflicting
+	// columns as table.col — keep those).
 	if qualifiedColDefExists(colDefs, ref.Name) {
 		return ref.Name
 	}

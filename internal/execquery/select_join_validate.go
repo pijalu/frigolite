@@ -139,24 +139,32 @@ func selectHasSubqueryOperand(s *sql.SelectStmt) bool {
 // under different aliases make every column ambiguous.
 func (e *SelectEngine) buildAmbiguousColMap(operands []fromOperand) map[string][]string {
 	colInTables := map[string][]string{}
-	for _, op := range operands {
+	declaredByOperand := make([]map[string]bool, len(operands))
+	shadowedAliases := map[string]bool{}
+	for opIndex, op := range operands {
 		cols, err := e.tableColumnNames(op.table)
 		if err != nil {
-			// A table we cannot resolve (e.g. a CTE reference) — skip; the
-			// execution path reports the missing table.
 			continue
 		}
 		declared := make(map[string]bool, len(cols))
 		for _, c := range cols {
-			l := strings.ToLower(c)
-			declared[l] = true
-			// No per-ref dedupe: a DUPLICATED alias contributes the same ref
-			// once per instance (select1-6.8c).
-			colInTables[l] = append(colInTables[l], op.ref)
+			lower := strings.ToLower(c)
+			declared[lower] = true
+			if rowIDAliasName(lower) {
+				shadowedAliases[lower] = true
+			}
+			colInTables[lower] = append(colInTables[lower], op.ref)
 		}
-		e.addRowidCols(colInTables, op.ref, op.table, declared)
+		declaredByOperand[opIndex] = declared
+	}
+	for i, op := range operands {
+		e.addRowidCols(colInTables, op.ref, op.table, declaredByOperand[i], shadowedAliases)
 	}
 	return colInTables
+}
+
+func rowIDAliasName(name string) bool {
+	return strings.EqualFold(name, "rowid") || strings.EqualFold(name, "_rowid_") || strings.EqualFold(name, "oid")
 }
 
 // addRowidCols adds the implicit rowid/_rowid_/oid columns for a table, unless
@@ -165,11 +173,11 @@ func (e *SelectEngine) buildAmbiguousColMap(operands []fromOperand) map[string][
 // rowid (fts4upfrom 1.3.8: CREATE VIEW ft AS SELECT rowid, ... ) contributes
 // it once via its declared columns, and the implicit pseudo-column must not
 // be counted a second time or the qualified ft.rowid reads as ambiguous.
-func (e *SelectEngine) addRowidCols(colInTables map[string][]string, ref, table string, declared map[string]bool) {
+func (e *SelectEngine) addRowidCols(colInTables map[string][]string, ref, table string, declared, shadowedAliases map[string]bool) {
 	te, _, terr := e.ctx.FindTable(table)
 	if terr != nil || !e.ctx.TableIsWithoutRowidEntry(te) {
 		for _, r := range []string{"rowid", "_rowid_", "oid"} {
-			if declared[r] {
+			if declared[r] || shadowedAliases[r] {
 				continue
 			}
 			colInTables[r] = append(colInTables[r], ref)
@@ -416,14 +424,49 @@ func collectSubqueryOnCols(sub *sql.SelectStmt, cols map[string]bool) {
 // checking USING/NATURAL ambiguity, and validating that ON clauses only
 // reference tables joined so far.
 func (v *joinOnValidator) validateJoins() error {
-	for _, join := range v.s.Joins {
+	for joinIndex, join := range v.s.Joins {
 		tn := joinTableName(join)
 		// A NATURAL join must not carry an explicit ON or USING clause.
 		if isNaturalJoinType(join.JoinType) && (join.On != nil || len(join.Using) > 0) {
 			return fmt.Errorf("a NATURAL join may not have an ON or USING clause")
 		}
-		// Every USING column must exist in both the accumulated left tables
-		// and the join's right table.
+		if join.Table.JoinGroup && (len(join.Using) > 0 || isNaturalJoinType(join.JoinType)) {
+			rightNames := v.engine.joinGroupColumnNames(join.Table.Subquery)
+			counts := make(map[string]int, len(rightNames))
+			for _, name := range rightNames {
+				counts[strings.ToLower(name)]++
+			}
+			for _, name := range join.Using {
+				if counts[strings.ToLower(name)] > 1 {
+					return fmt.Errorf("ambiguous column name: %s", name)
+				}
+			}
+			if isNaturalJoinType(join.JoinType) {
+				for name, count := range counts {
+					if count > 1 && countTablesWithCol(v.leftTables, name) > 0 {
+						return fmt.Errorf("ambiguous column name: %s", name)
+					}
+				}
+			}
+		}
+		if join.Table.ParenthesizedCommaGroupSize > 1 && len(join.Using) > 0 {
+			counts := map[string]int{}
+			end := joinIndex + join.Table.ParenthesizedCommaGroupSize - 1
+			for member := joinIndex; member <= end && member < len(v.s.Joins); member++ {
+				names, err := v.engine.tableColumnNames(v.s.Joins[member].Table.Name)
+				if err == nil {
+					for _, name := range names {
+						counts[strings.ToLower(name)]++
+					}
+				}
+			}
+			for _, name := range join.Using {
+				if counts[strings.ToLower(name)] > 1 {
+					return fmt.Errorf("ambiguous column name: %s", name)
+				}
+			}
+		}
+
 		if len(join.Using) > 0 {
 			if bad := v.engine.checkUsingColumnsExist(join, v.leftTables); bad != "" {
 				return fmt.Errorf("cannot join using column %s - column not present in both tables", bad)
@@ -525,7 +568,9 @@ func (v *joinOnValidator) validateOnForJoin(join sql.JoinClause) error {
 			return nil
 		}
 		if bad := v.engine.validateOnRefs(v.s, join, v.available, v.availableCols, v.hasRightOrFull); bad != "" {
-			return fmt.Errorf("ON clause references tables to its right")
+			if !v.correlatedQualifier(join, bad) {
+				return fmt.Errorf("ON clause references tables to its right")
+			}
 		}
 		return nil
 	}
@@ -548,9 +593,20 @@ func (v *joinOnValidator) validateOnForJoin(join sql.JoinClause) error {
 	return nil
 }
 
-// registerJoinAvailability makes the join's table name and columns (or derived
-// subquery's inner tables and output columns) available for subsequent ON
-// clause validation.
+// correlatedQualifier distinguishes an enclosing-scope qualifier from a local
+// operand to the right of this ON clause. The latter remains a SQLite error.
+func (v *joinOnValidator) correlatedQualifier(join sql.JoinClause, name string) bool {
+	qualified := false
+	walkJoinOnExpr(join.On, func(expr sql.Expr) {
+		ref, ok := expr.(*sql.ColumnRef)
+		if ok && ref.Table != "" && strings.EqualFold(ref.Table, name) {
+			qualified = true
+		}
+	})
+	return qualified && !v.fullTables[strings.ToLower(name)]
+}
+
+// registerJoinAvailability makes the join's table name and columns (or derived subquery's inner tables and output columns) available for subsequent ON clause validation.
 func (v *joinOnValidator) registerJoinAvailability(join sql.JoinClause, tn string) {
 	if tn != "" {
 		v.addAvailableName(tn)

@@ -1,9 +1,10 @@
 {
   "file": "fts3fault3.test",
   "name": "fts3fault3",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "fts3fault-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,35 +13,15 @@
       ]
     },
     {
-      "name": "2.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n  CREATE VIRTUAL TABLE t1 USING fts3(a);\n  WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50\n  )\n  INSERT INTO t1 SELECT 'abc def ghi jkl mno pqr' FROM s;\n  COMMIT;"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n      DELETE FROM t1 WHERE rowid=2;"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n      CREATE TABLE x1(a PRIMARY KEY);"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA integrity_check;"
-        }
-      ]
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
-      "name": "__RESET_DB__",
+      "name": "fts3fault-2.0",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "BEGIN;\n  CREATE VIRTUAL TABLE t1 USING fts3(a);\n  WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i\u003c50\n  )\n  INSERT INTO t1 SELECT 'abc def ghi jkl mno pqr' FROM s;\n  COMMIT;"
         }
       ]
     }

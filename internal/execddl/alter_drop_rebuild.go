@@ -214,9 +214,26 @@ func (e *DDLExecutor) applyDropRewrites(tree *btree.BTree, tableEntry *schema.En
 		// match (cell.RowID is a synthetic 0 shared by every row), re-insert
 		// CellIndexLeaf records in the NEW storage layout. Rowid-cache
 		// bookkeeping does not apply (WR rows have no rowid).
-		if _, err := tree.DeleteCellsWhere(func(c *storage.Cell) bool {
-			return execdml.WRCellMatchesPKKeys(c, wrKeys, oldOrder, pkIdx, colDefs)
-		}); err != nil {
+		cursor, err := tree.OpenCursor()
+		if err != nil {
+			return
+		}
+		var oldRecords [][]byte
+		for {
+			cell, readErr := cursor.ReadCell()
+			if readErr != nil {
+				break
+			}
+			if execdml.WRCellMatchesPKKeys(cell, wrKeys, oldOrder, pkIdx, colDefs) {
+				oldRecords = append(oldRecords, append([]byte(nil), cell.Payload...))
+			}
+			ok, nextErr := cursor.Next()
+			if nextErr != nil || !ok {
+				break
+			}
+		}
+		cursor.Close()
+		if _, err := tree.DeleteIndexEntries(oldRecords); err != nil {
 			return
 		}
 		for _, rw := range rewrites {

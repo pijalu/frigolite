@@ -187,6 +187,7 @@ func (t *BTree) seekLeafRow(rowID int64) (pg *pager.Page, page *storage.BTreePag
 	if err != nil {
 		return nil, nil, 0, false, err
 	}
+	defer c.Close() // seekLeafRow returns page coordinates, not cursor state
 	found, err := c.SeekToRowID(rowID)
 	if err != nil || !found {
 		return nil, nil, 0, false, err

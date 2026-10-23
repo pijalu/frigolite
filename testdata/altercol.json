@@ -880,11 +880,22 @@
       ]
     },
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
       "name": "altercol-2.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT b FROM t3"
+          "sql": "SELECT b FROM t3",
+          "database": "db2"
         }
       ]
     },
@@ -903,7 +914,8 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT biglongname FROM t3"
+          "sql": "SELECT biglongname FROM t3",
+          "database": "db2"
         }
       ]
     },
@@ -1069,6 +1081,18 @@
       ]
     },
     {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": null
     },
@@ -1219,6 +1243,29 @@
       ]
     },
     {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "register_collation",
+          "collationName": "nocase",
+          "collationProc": "string compare",
+          "callbackVars": {
+            "": "{CREATE TABLE t1(a INTEGER, d INTEGER PRIMARY KEY, c BLOB, FOREIGN KEY (d) REFERENCES t2)}",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "after": "CREATE TABLE t1(a INTEGER, d INTEGER PRIMARY KEY, c BLOB, FOREIGN KEY (d) REFERENCES t2)",
+            "before": "CREATE TABLE t1(a INTEGER, b INTEGER PRIMARY KEY, c BLOB, FOREIGN KEY (b) REFERENCES t2)",
+            "res": "{CREATE TABLE t1(a INTEGER, d INTEGER PRIMARY KEY, c BLOB, FOREIGN KEY (d) REFERENCES t2)}",
+            "testdir": "",
+            "testprefix": "altercol",
+            "tn": "17"
+          }
+        }
+      ]
+    },
+    {
       "name": "altercol-8.4.3",
       "steps": [
         {
@@ -1274,51 +1321,16 @@
           "type": "query",
           "sql": "SELECT x FROM vt5;",
           "expect": "bbb,ccc,aaa"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name, SELECT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP FROM type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP WHERE sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP IN type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 'view') ('table',"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name AND"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP LIKE NOT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP ORDER 'sqlite_%'"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 1 BY"
-        },
+        }
+      ]
+    },
+    {
+      "name": "__DROP_MAIN_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "setup_3",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, _x_)"
@@ -1355,51 +1367,16 @@
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
           "expect": "{CREATE TABLE t1(a, b, _xxx_)} {CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n        SELECT _xxx_ FROM t1;\n      END}"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name, SELECT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP FROM type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP WHERE sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP IN type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 'view') ('table',"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name AND"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP LIKE NOT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP ORDER 'sqlite_%'"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 1 BY"
-        },
+        }
+      ]
+    },
+    {
+      "name": "__DROP_MAIN_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "setup_4",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, _x_)"
@@ -1421,6 +1398,18 @@
       ]
     },
     {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
       "name": "altercol-9.1.1.2",
       "steps": [
         {
@@ -1436,51 +1425,16 @@
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
           "expect": "{CREATE TABLE t1(a, b, _xxx_)} {CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n        SELECT _xxx_ FROM t1;\n      END}"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name, SELECT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP FROM type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP WHERE sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP IN type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 'view') ('table',"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name AND"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP LIKE NOT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP ORDER 'sqlite_%'"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 1 BY"
-        },
+        }
+      ]
+    },
+    {
+      "name": "__DROP_MAIN_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "setup_6",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, _x_)"
@@ -1521,51 +1475,16 @@
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
           "expect": "{CREATE TABLE t1(a, b, _xxx_)} {CREATE TABLE t2(c, d, e)} {CREATE TRIGGER ttt AFTER INSERT ON t2 BEGIN\n        SELECT _xxx_ FROM t1;\n      END}"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name, SELECT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP FROM type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP WHERE sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP IN type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 'view') ('table',"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name AND"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP LIKE NOT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP ORDER 'sqlite_%'"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 1 BY"
-        },
+        }
+      ]
+    },
+    {
+      "name": "__DROP_MAIN_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "setup_7",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, _x_)"
@@ -1591,6 +1510,18 @@
       ]
     },
     {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
       "name": "altercol-9.2.1.2",
       "steps": [
         {
@@ -1606,51 +1537,16 @@
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
           "expect": "{CREATE TABLE t1(a, b, _xxx_)} {CREATE TABLE t2(c, d, e)} {CREATE TRIGGER ttt AFTER INSERT ON t2 BEGIN\n        SELECT _xxx_ FROM t1;\n      END}"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name, SELECT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP FROM type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP WHERE sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP IN type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 'view') ('table',"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name AND"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP LIKE NOT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP ORDER 'sqlite_%'"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 1 BY"
-        },
+        }
+      ]
+    },
+    {
+      "name": "__DROP_MAIN_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "setup_9",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_\u003e0))"
@@ -1691,51 +1587,16 @@
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
           "expect": "{CREATE TABLE t1(a, b, _xxx_ INTEGER, PRIMARY KEY(_xxx_), CHECK(_xxx_\u003e0))} {CREATE TABLE t2(c, d, e)} {CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t2 VALUES(new.a, new.b, new._xxx_);\n      END}"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name, SELECT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP FROM type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP WHERE sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP IN type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 'view') ('table',"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name AND"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP LIKE NOT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP ORDER 'sqlite_%'"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 1 BY"
-        },
+        }
+      ]
+    },
+    {
+      "name": "__DROP_MAIN_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "setup_10",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_\u003e0))"
@@ -1761,6 +1622,18 @@
       ]
     },
     {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
       "name": "altercol-9.3.1.2",
       "steps": [
         {
@@ -1776,51 +1649,16 @@
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
           "expect": "{CREATE TABLE t1(a, b, _xxx_ INTEGER, PRIMARY KEY(_xxx_), CHECK(_xxx_\u003e0))} {CREATE TABLE t2(c, d, e)} {CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t2 VALUES(new.a, new.b, new._xxx_);\n      END}"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name, SELECT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP FROM type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP WHERE sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP IN type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 'view') ('table',"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name AND"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP LIKE NOT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP ORDER 'sqlite_%'"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 1 BY"
-        },
+        }
+      ]
+    },
+    {
+      "name": "__DROP_MAIN_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "setup_12",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_\u003e0))"
@@ -1857,51 +1695,16 @@
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
           "expect": "{CREATE TABLE t1(a, b, _xxx_ INTEGER, PRIMARY KEY(_xxx_), CHECK(_xxx_\u003e0))} {CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b, new._xxx_)\n          ON CONFLICT (_xxx_) WHERE _xxx_\u003e10 DO UPDATE SET _xxx_ = _xxx_+1;\n      END}"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name, SELECT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP FROM type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP WHERE sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP IN type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 'view') ('table',"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name AND"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP LIKE NOT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP ORDER 'sqlite_%'"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 1 BY"
-        },
+        }
+      ]
+    },
+    {
+      "name": "__DROP_MAIN_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "setup_13",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_\u003e0))"
@@ -1923,6 +1726,18 @@
       ]
     },
     {
+      "name": "setup_14",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
       "name": "altercol-9.4.1.2",
       "steps": [
         {
@@ -1938,51 +1753,16 @@
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
           "expect": "{CREATE TABLE t1(a, b, _xxx_ INTEGER, PRIMARY KEY(_xxx_), CHECK(_xxx_\u003e0))} {CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b, new._xxx_)\n          ON CONFLICT (_xxx_) WHERE _xxx_\u003e10 DO UPDATE SET _xxx_ = _xxx_+1;\n      END}"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name, SELECT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP FROM type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP WHERE sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP IN type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 'view') ('table',"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name AND"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP LIKE NOT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP ORDER 'sqlite_%'"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 1 BY"
-        },
+        }
+      ]
+    },
+    {
+      "name": "__DROP_MAIN_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "setup_15",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_\u003e0))"
@@ -2019,51 +1799,16 @@
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
           "expect": "{CREATE TABLE t1(a, b, _xxx_ INTEGER, PRIMARY KEY(_xxx_), CHECK(_xxx_\u003e0))} {CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b, new._xxx_)\n          ON CONFLICT (_xxx_) WHERE _xxx_\u003e10 DO NOTHING;\n      END}"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name, SELECT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP FROM type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP WHERE sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP IN type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 'view') ('table',"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name AND"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP LIKE NOT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP ORDER 'sqlite_%'"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 1 BY"
-        },
+        }
+      ]
+    },
+    {
+      "name": "__DROP_MAIN_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "setup_16",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_\u003e0))"
@@ -2081,6 +1826,18 @@
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
           "expect": "{CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_\u003e0))} {CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b, new._x_)\n          ON CONFLICT (_x_) WHERE _x_\u003e10 DO NOTHING;\n      END}"
+        }
+      ]
+    },
+    {
+      "name": "setup_17",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         }
       ]
     },
@@ -2108,52 +1865,20 @@
       "steps": null
     },
     {
-      "name": "altercol-9.4.1.3",
+      "name": "setup_18",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name, SELECT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP FROM type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP WHERE sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP IN type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 'view') ('table',"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name AND"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP LIKE NOT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP ORDER 'sqlite_%'"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 1 BY"
-        },
+          "type": "register_echo_module"
+        }
+      ]
+    },
+    {
+      "name": "__DROP_MAIN_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "setup_19",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, _x_)"
@@ -2190,51 +1915,16 @@
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
           "expect": "{CREATE TABLE t1(a, b, _xxx_)} {CREATE VIEW s1 AS SELECT a, b, _xxx_ FROM t1 WHERE _xxx_='abc' COLLATE xyz}"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name, SELECT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP FROM type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP WHERE sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP IN type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 'view') ('table',"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name AND"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP LIKE NOT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP ORDER 'sqlite_%'"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 1 BY"
-        },
+        }
+      ]
+    },
+    {
+      "name": "__DROP_MAIN_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "setup_20",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, _x_)"
@@ -2256,6 +1946,18 @@
       ]
     },
     {
+      "name": "setup_21",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
       "name": "altercol-10.1.1.2",
       "steps": [
         {
@@ -2271,51 +1973,24 @@
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
           "expect": "{CREATE TABLE t1(a, b, _xxx_)} {CREATE VIEW s1 AS SELECT a, b, _xxx_ FROM t1 WHERE _xxx_='abc' COLLATE xyz}"
-        },
+        }
+      ]
+    },
+    {
+      "name": "setup_22",
+      "steps": [
         {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name, SELECT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP FROM type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP WHERE sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP IN type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 'view') ('table',"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name AND"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP LIKE NOT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP ORDER 'sqlite_%'"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 1 BY"
-        },
+          "type": "register_echo_module"
+        }
+      ]
+    },
+    {
+      "name": "__DROP_MAIN_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "setup_23",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, _x_)"
@@ -2352,51 +2027,16 @@
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
           "expect": "{CREATE TABLE t1(a, b, _xxx_)} {CREATE VIEW v1 AS SELECT a, b, _xxx_ FROM t1 WHERE scalar(_xxx_)}"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name, SELECT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP FROM type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP WHERE sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP IN type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 'view') ('table',"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name AND"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP LIKE NOT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP ORDER 'sqlite_%'"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 1 BY"
-        },
+        }
+      ]
+    },
+    {
+      "name": "__DROP_MAIN_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "setup_24",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, _x_)"
@@ -2418,6 +2058,18 @@
       ]
     },
     {
+      "name": "setup_25",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
       "name": "altercol-10.2.1.2",
       "steps": [
         {
@@ -2433,51 +2085,24 @@
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
           "expect": "{CREATE TABLE t1(a, b, _xxx_)} {CREATE VIEW v1 AS SELECT a, b, _xxx_ FROM t1 WHERE scalar(_xxx_)}"
-        },
+        }
+      ]
+    },
+    {
+      "name": "setup_26",
+      "steps": [
         {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name, SELECT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP FROM type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP WHERE sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP IN type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 'view') ('table',"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name AND"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP LIKE NOT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP ORDER 'sqlite_%'"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 1 BY"
-        },
+          "type": "register_echo_module"
+        }
+      ]
+    },
+    {
+      "name": "__DROP_MAIN_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "setup_27",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, _x_)"
@@ -2514,51 +2139,16 @@
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
           "expect": "{CREATE TABLE t1(a, b, _xxx_)} {CREATE VIEW v1 AS SELECT a, b, _xxx_ FROM t1 WHERE _xxx_ = unicode(1, 2, 3)}"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name, SELECT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP FROM type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP WHERE sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP IN type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 'view') ('table',"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name AND"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP LIKE NOT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP ORDER 'sqlite_%'"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 1 BY"
-        },
+        }
+      ]
+    },
+    {
+      "name": "__DROP_MAIN_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "setup_28",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, _x_)"
@@ -2580,6 +2170,18 @@
       ]
     },
     {
+      "name": "setup_29",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
       "name": "altercol-10.3.1.2",
       "steps": [
         {
@@ -2595,51 +2197,24 @@
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
           "expect": "{CREATE TABLE t1(a, b, _xxx_)} {CREATE VIEW v1 AS SELECT a, b, _xxx_ FROM t1 WHERE _xxx_ = unicode(1, 2, 3)}"
-        },
+        }
+      ]
+    },
+    {
+      "name": "setup_30",
+      "steps": [
         {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name, SELECT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP FROM type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP WHERE sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP IN type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 'view') ('table',"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name AND"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP LIKE NOT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP ORDER 'sqlite_%'"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 1 BY"
-        },
+          "type": "register_echo_module"
+        }
+      ]
+    },
+    {
+      "name": "__DROP_MAIN_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "setup_31",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, _x_)"
@@ -2676,51 +2251,16 @@
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master ORDER BY 1",
           "expect": "{CREATE TABLE t1(a, b, _xxx_)} {CREATE VIRTUAL TABLE e1 USING echo(t1)}"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name, type FROM sqlite_master \n    WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'\n    ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name, SELECT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP FROM type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP WHERE sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP IN type"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 'view') ('table',"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP name AND"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP LIKE NOT"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP ORDER 'sqlite_%'"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP 1 BY"
-        },
+        }
+      ]
+    },
+    {
+      "name": "__DROP_MAIN_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "setup_32",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, _x_)"
@@ -2738,6 +2278,18 @@
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1",
           "expect": "{CREATE TABLE t1(a, b, _x_)} {CREATE VIRTUAL TABLE e1 USING echo(t1)}"
+        }
+      ]
+    },
+    {
+      "name": "setup_33",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         }
       ]
     },
@@ -2765,11 +2317,31 @@
       "steps": null
     },
     {
+      "name": "setup_34",
+      "steps": [
+        {
+          "type": "register_echo_module"
+        }
+      ]
+    },
+    {
       "name": "altercol-11.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE x1(a, b, c);\n    CREATE VIRTUAL TABLE e1 USING echo(x1);"
+        }
+      ]
+    },
+    {
+      "name": "setup_35",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         }
       ]
     },
@@ -2946,6 +2518,15 @@
       ]
     },
     {
+      "name": "setup_36",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
+    {
       "name": "altercol-13.1.4",
       "steps": [
         {
@@ -3078,6 +2659,16 @@
       ]
     },
     {
+      "name": "setup_37",
+      "steps": [
+        {
+          "type": "internal_functions",
+          "sql": "enable",
+          "internalFunctions": true
+        }
+      ]
+    },
+    {
       "name": "altercol-14.1",
       "steps": [
         {
@@ -3093,6 +2684,15 @@
           "type": "query",
           "sql": "SELECT \n  sqlite_rename_column(sql, type, object, db, tbl, icol, znew, bquote, 0)\n  FROM ddd;",
           "expect": "{} {} {} {}"
+        }
+      ]
+    },
+    {
+      "name": "setup_38",
+      "steps": [
+        {
+          "type": "internal_functions",
+          "sql": "disable"
         }
       ]
     },
@@ -3279,6 +2879,15 @@
       "steps": null
     },
     {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
       "name": "altercol-18.0",
       "steps": [
         {
@@ -3321,8 +2930,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "setup_39",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        }
+      ]
     },
     {
       "name": "altercol-20.100",

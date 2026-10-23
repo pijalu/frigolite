@@ -1,9 +1,10 @@
 {
   "file": "fts3drop.test",
   "name": "fts3drop",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.1",
+      "name": "fts3drop-1.1",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,7 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "fts3drop-1.2",
       "steps": [
         {
           "type": "exec",
@@ -21,7 +22,7 @@
       ]
     },
     {
-      "name": "1.3",
+      "name": "fts3drop-1.3",
       "steps": [
         {
           "type": "query",
@@ -31,7 +32,7 @@
       ]
     },
     {
-      "name": "1.4",
+      "name": "fts3drop-1.4",
       "steps": [
         {
           "type": "exec",
@@ -40,7 +41,7 @@
       ]
     },
     {
-      "name": "1.5",
+      "name": "fts3drop-1.5",
       "steps": [
         {
           "type": "query",

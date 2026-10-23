@@ -208,11 +208,15 @@ func Test_whereA(t *testing.T) {
 		}
 	}
 	{ // "whereA-3.1" — skipped: index-assisted WHERE scan order not implemented (G3.INDEX) (SQL + file side effects only)
-		_res = db.Exec("\n    PRAGMA reverse_unordered_selects=0;\n    SELECT * FROM t1 WHERE b>0;\n  ")
+		_res = db.Exec("PRAGMA reverse_unordered_selects=0")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("SELECT * FROM t1 WHERE b>0")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "whereA-3.2" — skipped: index-assisted WHERE scan order not implemented (G3.INDEX) (SQL + file side effects only)
-		_res = db.Exec("\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 WHERE b>0;\n  ")
+		_res = db.Exec("PRAGMA reverse_unordered_selects=1")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("SELECT * FROM t1 WHERE b>0")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // do_test "whereA-3.3"

@@ -119,16 +119,15 @@ func ruleMinusNumMinusNumber(ruleNo int, p *Parser) interface{} {
 // Rule 363: nm ::= ID|INDEXED|JOIN_KW
 func ruleNmIdIndexedJoinKw(ruleNo int, p *Parser) interface{} {
 	if tok, ok := getRHS(p, ruleNo, 1).(sql.Token); ok {
-		return tok.Value
+		return tok
 	}
 	return fmt.Sprintf("%v", getRHS(p, ruleNo, 1))
 
 }
 
-// Rule 364: nm ::= STRING
 func ruleNmString(ruleNo int, p *Parser) interface{} {
 	if tok, ok := getRHS(p, ruleNo, 1).(sql.Token); ok {
-		return tok.Value
+		return tok
 	}
 	return fmt.Sprintf("%v", getRHS(p, ruleNo, 1))
 

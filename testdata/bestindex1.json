@@ -4,6 +4,47 @@
   "ordered": true,
   "tests": [
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "bestindex1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "bestindex1"
+          },
+          "callbackProcs": [
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE t1(a, b, c)\"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set clist [$hdl constraints]\n      set orderby [$hdl orderby]\n      \n      if {[llength $clist]!=1} { error \"unexpected constraint list\" }\n      catch { array unset C }\n      array set C [lindex $clist 0]\n      if {$C(usable)} {\n        return \"omit 0 cost 0 rows 1 idxnum 555 idxstr eq!\"\n      } else {\n        return \"cost 1000000 rows 0 idxnum 0 idxstr scan...\"\n      }\n    }\n\n  }\n\n  return {}\n",
+              "Defaults": null
+            },
+            {
+              "Name": "t1_vtab",
+              "Args": [
+                "mode",
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE t1(a, b)\"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set clist [$hdl constraints]\n      set orderby [$hdl orderby]\n\n      set SQL_FILTER {SELECT * FROM t1x WHERE a='%1%'}\n      set SQL_SCAN   {SELECT * FROM t1x}\n\n      set idx 0\n      for {set idx 0} {$idx \u003c [llength $clist]} {incr idx} {\n        array unset C\n        array set C [lindex $clist $idx]\n        if {$C(column)==0 \u0026\u0026 $C(op)==\"eq\" \u0026\u0026 $C(usable)} {\n          switch -- $mode {\n            \"omit\" {\n              return [list omit $idx rows 10 cost 10 idxstr $SQL_FILTER]\n            }\n            \"use\" {\n              return [list use $idx rows 10 cost 10 idxstr $SQL_FILTER]\n            }\n            \"use2\" {\n              return [list use $idx rows 10 cost 10 idxstr $SQL_SCAN]\n            }\n            default {\n              error \"Bad mode - $mode\"\n            }\n          }\n        }\n      }\n\n      return [list idxstr {SELECT * FROM t1x}]\n    }\n\n    xFilter {\n      set map [list %1% [lindex $args 2 0]]\n      set sql [string map $map [lindex $args 1]]\n      return [list sql $sql]\n    }\n  }\n\n  return {}\n",
+              "Defaults": null
+            }
+          ],
+          "moduleArgs": [
+            "db"
+          ]
+        }
+      ]
+    },
+    {
       "name": "bestindex1-1.0",
       "steps": [
         {
@@ -33,6 +74,47 @@
     {
       "name": "__RESET_DB__",
       "steps": null
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "bestindex1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "bestindex1"
+          },
+          "callbackProcs": [
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE t1(a, b, c)\"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set clist [$hdl constraints]\n      set orderby [$hdl orderby]\n      \n      if {[llength $clist]!=1} { error \"unexpected constraint list\" }\n      catch { array unset C }\n      array set C [lindex $clist 0]\n      if {$C(usable)} {\n        return \"omit 0 cost 0 rows 1 idxnum 555 idxstr eq!\"\n      } else {\n        return \"cost 1000000 rows 0 idxnum 0 idxstr scan...\"\n      }\n    }\n\n  }\n\n  return {}\n",
+              "Defaults": null
+            },
+            {
+              "Name": "t1_vtab",
+              "Args": [
+                "mode",
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE t1(a, b)\"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set clist [$hdl constraints]\n      set orderby [$hdl orderby]\n\n      set SQL_FILTER {SELECT * FROM t1x WHERE a='%1%'}\n      set SQL_SCAN   {SELECT * FROM t1x}\n\n      set idx 0\n      for {set idx 0} {$idx \u003c [llength $clist]} {incr idx} {\n        array unset C\n        array set C [lindex $clist $idx]\n        if {$C(column)==0 \u0026\u0026 $C(op)==\"eq\" \u0026\u0026 $C(usable)} {\n          switch -- $mode {\n            \"omit\" {\n              return [list omit $idx rows 10 cost 10 idxstr $SQL_FILTER]\n            }\n            \"use\" {\n              return [list use $idx rows 10 cost 10 idxstr $SQL_FILTER]\n            }\n            \"use2\" {\n              return [list use $idx rows 10 cost 10 idxstr $SQL_SCAN]\n            }\n            default {\n              error \"Bad mode - $mode\"\n            }\n          }\n        }\n      }\n\n      return [list idxstr {SELECT * FROM t1x}]\n    }\n\n    xFilter {\n      set map [list %1% [lindex $args 2 0]]\n      set sql [string map $map [lindex $args 1]]\n      return [list sql $sql]\n    }\n  }\n\n  return {}\n",
+              "Defaults": null
+            }
+          ],
+          "moduleArgs": [
+            "db"
+          ]
+        }
+      ]
     },
     {
       "name": "bestindex1-2.1",
@@ -218,8 +300,74 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "NULL",
+            "G(collist)": "PrimaryKey flagA columnA",
+            "G(cols)": "PrimaryKey,flagA,columnA",
+            "G(nulls)": "NULL",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "mode": "use2",
+            "plan(omit)": "\n    QUERY PLAN\n    |--SCAN t1 VIRTUAL TABLE INDEX 0:SELECT * FROM t1x WHERE a='%1%'\n    `--USE TEMP B-TREE FOR ORDER BY\n  ",
+            "plan(use)": "\n    QUERY PLAN\n    |--SCAN t1 VIRTUAL TABLE INDEX 0:SELECT * FROM t1x WHERE a='%1%'\n    `--USE TEMP B-TREE FOR ORDER BY\n  ",
+            "plan(use2)": "\n    QUERY PLAN\n    |--SCAN t1 VIRTUAL TABLE INDEX 0:SELECT * FROM t1x\n    `--USE TEMP B-TREE FOR ORDER BY\n  ",
+            "testdir": "",
+            "testprefix": "bestindex1",
+            "tn": "3"
+          },
+          "callbackProcs": [
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n  global G\n\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE t1($G(cols))\"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set clist [$hdl constraints]\n      set orderby [$hdl orderby]\n      \n      #puts $clist\n      set W [list]\n      set U [list]\n\n      set i 0\n      for {set idx 0} {$idx \u003c [llength $clist]} {incr idx} {\n        array set c [lindex $clist $idx]\n        if {$c(op)==\"eq\" \u0026\u0026 $c(usable)} {\n          lappend W \"[lindex $G(collist) $c(column)] = %$i%\"\n          lappend U use $idx\n          incr i\n        }\n      }\n\n      if {$W==\"\"} {\n        set sql \"SELECT rowid, * FROM t1\"\n      } else {\n        set sql \"SELECT rowid, * FROM t1 WHERE [join $W { AND }]\"\n      }\n\n      return [concat [list idxstr $sql] $U]\n    }\n\n    xFilter {\n      foreach {idxnum idxstr vals} $args {}\n\n      set map [list]\n      for {set i 0} {$i \u003c [llength $vals]} {incr i} {\n        lappend map \"%$i%\" \n        set v [lindex $vals $i]\n        if {[string is integer $v]} { \n          lappend map $v \n        } else {\n          lappend map \"'$v'\"\n        }\n      }\n      set sql [string map $map $idxstr]\n\n      #puts \"SQL: $sql\"\n      return [list sql $sql]\n    }\n  }\n\n  return {}\n",
+              "Defaults": null
+            },
+            {
+              "Name": "t1_vtab",
+              "Args": [
+                "mode",
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE t1(a, b)\"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set clist [$hdl constraints]\n      set orderby [$hdl orderby]\n\n      set SQL_FILTER {SELECT * FROM t1x WHERE a='%1%'}\n      set SQL_SCAN   {SELECT * FROM t1x}\n\n      set idx 0\n      for {set idx 0} {$idx \u003c [llength $clist]} {incr idx} {\n        array unset C\n        array set C [lindex $clist $idx]\n        if {$C(column)==0 \u0026\u0026 $C(op)==\"eq\" \u0026\u0026 $C(usable)} {\n          switch -- $mode {\n            \"omit\" {\n              return [list omit $idx rows 10 cost 10 idxstr $SQL_FILTER]\n            }\n            \"use\" {\n              return [list use $idx rows 10 cost 10 idxstr $SQL_FILTER]\n            }\n            \"use2\" {\n              return [list use $idx rows 10 cost 10 idxstr $SQL_SCAN]\n            }\n            default {\n              error \"Bad mode - $mode\"\n            }\n          }\n        }\n      }\n\n      return [list idxstr {SELECT * FROM t1x}]\n    }\n\n    xFilter {\n      set map [list %1% [lindex $args 2 0]]\n      set sql [string map $map [lindex $args 1]]\n      return [list sql $sql]\n    }\n  }\n\n  return {}\n",
+              "Defaults": null
+            }
+          ],
+          "moduleArgs": [
+            "db"
+          ]
+        }
+      ]
     },
     {
       "name": "bestindex1-3.1",
@@ -283,7 +431,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM x1 WHERE a=? AND b BETWEEN ? AND ? AND c IN (1, 2, 3, 4);",
+          "sql": "SELECT * FROM x1 WHERE a=? AND b BETWEEN ? AND ? AND c IN (1, 2, 3, 4);"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "bestindex_calls",
           "expect": "{{op eq column 0 usable 1} {op eq column 2 usable 1} {op ge column 1 usable 1} {op le column 1 usable 1}} {{op eq column 0 usable 1} {op eq column 2 usable 0} {op ge column 1 usable 1} {op le column 1 usable 1}}"
         }
       ]

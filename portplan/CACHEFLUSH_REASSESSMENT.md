@@ -1,0 +1,1 @@
+go test ./... -count=1 exit ; TestSQLiteSuite 154.44s; 298 failing JSON families; two native join tests failed. First earliest family check-7 fails because generated fixture omits source `db func myfunc -deterministic myfunc` and db2 named connection function registration in check.test:452-480.

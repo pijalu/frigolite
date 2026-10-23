@@ -1,17 +1,501 @@
 {
   "file": "carray01.test",
   "name": "carray01",
+  "ordered": true,
   "tests": [
     {
-      "name": "400",
+      "name": "carray01-100",
       "steps": [
         {
-          "type": "exec",
+          "type": "prepare_stmt",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "carray01-101",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "carray01-102",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "carray01-103",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT DISTINCT typeof(value) FROM carray(?3)",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT DISTINCT typeof(value) FROM carray(?3)",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT DISTINCT typeof(value) FROM carray(?3)",
+          "variable": "stmt_2",
+          "expect": "integer"
+        }
+      ]
+    },
+    {
+      "name": "carray01-110",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "carray01-120",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "carray01-120b",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT DISTINCT typeof(value) FROM carray(?3)",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT DISTINCT typeof(value) FROM carray(?3)",
+          "variable": "stmt_2",
+          "expect": "integer"
+        }
+      ]
+    },
+    {
+      "name": "carray01-121",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "carray01-122",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "carray01-123",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "carray01-124",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "carray01-125",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "carray01-130",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "carray01-131",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1",
+          "expect": "0"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "carray01-140",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "carray01-141",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "carray01-142",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "carray01-143",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT DISTINCT typeof(value) FROM carray(?3)",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT DISTINCT typeof(value) FROM carray(?3)",
+          "variable": "stmt_2",
+          "expect": "real"
+        }
+      ]
+    },
+    {
+      "name": "carray01-150",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "carray01-160",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "carray01-161",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "carray01-170",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "carray01-171",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT DISTINCT typeof(value) FROM carray(?3)",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT DISTINCT typeof(value) FROM carray(?3)",
+          "variable": "stmt_2",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "carray01-180",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "carray01-190",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "carray01-191",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT DISTINCT typeof(value) FROM carray(?3)",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT DISTINCT typeof(value) FROM carray(?3)",
+          "variable": "stmt_2",
+          "expect": "blob"
+        }
+      ]
+    },
+    {
+      "name": "carray01-200",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "carray01-300",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT 5 IN carray(?3)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT DISTINCT typeof(value) FROM carray(?3)",
+          "variable": "stmt_2"
+        }
+      ]
+    },
+    {
+      "name": "carray01-400",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INT PRIMARY KEY, b INT) WITHOUT ROWID;\n  WITH c(x) AS (\n    VALUES(1)\n    UNION\n    SELECT x+1 FROM (carray NATURAL FULL JOIN carray(t1.b)), t1, c\n  )\n  SELECT * FROM c;",
           "expect": "1 {table-function argument references tables to its right}"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

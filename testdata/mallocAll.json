@@ -1,0 +1,15 @@
+{
+  "file": "mallocAll.test",
+  "name": "mallocAll",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    }
+  ]
+}

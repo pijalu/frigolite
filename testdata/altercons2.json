@@ -260,6 +260,46 @@
       "steps": null
     },
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "auth_proc",
+          "authProc": "xAuth",
+          "callbackVars": {
+            "": "{CREATE TABLE}",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "alter": "ALTER TABLE t1 ADD CONSTRAINT nn CHECK (a!=0)",
+            "final": "CREATE TABLE",
+            "newsql": "CREATE TABLE",
+            "res": "1 {database disk image is malformed}",
+            "testdir": "",
+            "testprefix": "altercons2",
+            "tn": "6"
+          },
+          "callbackProcs": [
+            {
+              "Name": "xAuth",
+              "Args": [
+                "t",
+                "args"
+              ],
+              "Body": "\n  if {$t==\"SQLITE_ALTER_TABLE\"} {\n    return \"SQLITE_DENY\"\n  }\n  return \"SQLITE_OK\"\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "xAuth",
+          "functionBody": "\n  if {$t==\"SQLITE_ALTER_TABLE\"} {\n    return \"SQLITE_DENY\"\n  }\n  return \"SQLITE_OK\"\n"
+        }
+      ]
+    },
+    {
       "name": "altercons2-2.0",
       "steps": [
         {

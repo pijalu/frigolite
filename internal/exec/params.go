@@ -33,9 +33,13 @@ func (p *paramAssigner) grow(n int) {
 }
 
 // assignBare gives the next sequential index to an anonymous "?".
-func (p *paramAssigner) assignBare() {
+func (p *paramAssigner) assignBare() error {
 	p.next++
+	if p.next > MaxVariableNumber {
+		return errTooManySQLVariables
+	}
 	p.grow(p.next)
+	return nil
 }
 
 // assignNumbered binds a numbered variable token ("?4" or ":123", num being
@@ -59,19 +63,27 @@ func (p *paramAssigner) assignNumbered(token, num string) (int, error) {
 
 // assignNamed dedups named parameters on case-folded full token text (:abc and
 // @abc are distinct variables, matching SQLite's token-text key).
-func (p *paramAssigner) assignNamed(token string) {
+func (p *paramAssigner) assignNamed(token string) error {
 	key := strings.ToLower(token)
 	if _, ok := p.named[key]; ok {
-		return
+		return nil
 	}
 	if p.named == nil {
 		p.named = make(map[string]int)
 	}
 	p.next++
+	if p.next > MaxVariableNumber {
+		return errTooManySQLVariables
+	}
 	p.grow(p.next)
 	p.named[key] = p.next
 	p.names[p.next-1] = token
+	return nil
 }
+
+// errTooManySQLVariables mirrors expr.c's prepare-time error when the
+// assigned variable index passes SQLITE_LIMIT_VARIABLE_NUMBER.
+var errTooManySQLVariables = fmt.Errorf("too many SQL variables")
 
 // isDigitByte reports whether c is an ASCII digit.
 func isDigitByte(c byte) bool { return c >= '0' && c <= '9' }
@@ -108,9 +120,9 @@ func CollectParameterNames(sqlText string) ([]string, error) {
 		case numbered:
 			_, err = p.assignNumbered(tok.Value, strings.TrimLeft(tok.Value[1:], ":?"))
 		case tok.Value[0] == '?':
-			p.assignBare()
+			err = p.assignBare()
 		default:
-			p.assignNamed(tok.Value)
+			err = p.assignNamed(tok.Value)
 		}
 		if err != nil {
 			return nil, err

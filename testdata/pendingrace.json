@@ -1,31 +1,102 @@
 {
   "file": "pendingrace.test",
   "name": "pendingrace",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "setup_0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA cache_size = 5;\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<10\n  )\n  INSERT INTO t1 SELECT hex(randomblob(100)), hex(randomblob(100)) FROM s;"
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         }
       ]
     },
     {
-      "name": "1.3",
+      "name": "pendingrace-1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 5;\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i\u003c10\n  )\n  INSERT INTO t1 SELECT hex(randomblob(100)), hex(randomblob(100)) FROM s;"
+        }
+      ]
+    },
+    {
+      "name": "pendingrace-1.1a",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_count",
+          "variable": "nPg",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "pendingrace-1.1",
       "steps": [
         {
           "type": "exec",
+          "sql": "PRAGMA cache_size = 5;\n  BEGIN;\n    UPDATE t1 SET b=hex(randomblob(100));",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "copy_file",
+          "sql": "sv_test.db-journal",
+          "fileTarget": "test.db-journal"
+        },
+        {
+          "type": "write_file",
+          "sql": "test.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "pendingrace-1.3",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "PRAGMA integrity_check",
           "expect": "1 {database is locked}"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "setup_3",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     }

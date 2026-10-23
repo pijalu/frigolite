@@ -1,0 +1,16 @@
+{
+  "file": "withM.test",
+  "name": "withM",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "withM-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x INTEGER, y INTEGER);\n  INSERT INTO t1 VALUES(123, 456);"
+        }
+      ]
+    }
+  ]
+}

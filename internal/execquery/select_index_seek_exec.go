@@ -37,35 +37,40 @@ type indexSeekRun struct {
 	stopStrict  bool
 }
 
-// selectIndexSeekRows resolves an index-driven SELECT through the driving
-// index's b-tree. handled=false keeps the regular scan: any gate miss, seek
-// anomaly or decode error (the scan re-evaluates and surfaces it
-// identically).
-func (e *SelectEngine) selectIndexSeekRows(s *sql.SelectStmt, tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef, tree *btree.BTree, feed *simpleAggFeed) (allRows [][]interface{}, allRowMaps []RowMap, handled bool) {
-	plan := e.selectIndexSeekPlanFor(s, tableEntry, colDefs)
+func (e *SelectEngine) selectIndexSeekRows(s *sql.SelectStmt, tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef, tree *btree.BTree, feed *simpleAggFeed) (allRows [][]interface{}, allRowMaps []RowMap, handled bool, err error) {
+	plan, err := e.selectIndexSeekPlanFor(s, tableEntry, colDefs)
+	if err != nil {
+		return nil, nil, false, err
+	}
 	if plan == nil {
-		return nil, nil, false
+		return nil, nil, false, nil
 	}
 	if plan.empty {
-		return [][]interface{}{}, nil, true
+		return [][]interface{}{}, nil, true, nil
+	}
+	if !e.indexIsUnique(plan.index) || len(plan.eq) < len(e.indexColumns(plan.index)) {
+		e.ctx.MarkStatsUsed(tableEntry.Name)
 	}
 	run, idxTree, ok := e.openIndexSeekRun(plan, tableEntry, dbCtx, colDefs)
 	if !ok {
-		return nil, nil, false
+		return nil, nil, false, nil
 	}
-	defer idxTree.Close() // the seek's index tree is statement-local
+	defer idxTree.Close()
 	cursor, ok := run.position(idxTree)
 	if !ok {
-		return [][]interface{}{}, nil, true
+		return [][]interface{}{}, nil, true, nil
 	}
 	needMaps := e.selectNeedsRowMapsCached(s, tableEntry.Name)
 	if e.indexSeekCoversQuery(s, colDefs, run.cols, needMaps) {
-		return e.indexSeekCoveredRows(s, colDefs, run, cursor, needMaps, feed)
+		rows, maps, done := e.indexSeekCoveredRows(s, colDefs, run, cursor, needMaps, feed)
+		return rows, maps, done, nil
 	}
 	if e.indexSeekReversed(s) {
-		return e.indexSeekReverseRows(s, tableEntry, colDefs, tree, run, cursor, needMaps, feed)
+		rows, maps, done := e.indexSeekReverseRows(s, tableEntry, colDefs, tree, run, cursor, needMaps, feed)
+		return rows, maps, done, nil
 	}
-	return e.indexSeekForwardRows(s, tableEntry, colDefs, tree, run, cursor, needMaps, feed)
+	rows, maps, done := e.indexSeekForwardRows(s, tableEntry, colDefs, tree, run, cursor, needMaps, feed)
+	return rows, maps, done, nil
 }
 
 // indexSeekReversed reports whether the loop runs backwards: PRAGMA

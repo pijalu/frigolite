@@ -1,0 +1,4162 @@
+{
+  "file": "fts3malloc.test",
+  "name": "fts3malloc",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "fts3_malloc-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE ft1;\n    DROP TABLE ft2;\n    DROP TABLE ft3;\n    DROP TABLE ft4;\n    DROP TABLE ft6;\n    DROP TABLE ft7;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE ft USING fts3(a, b)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one', 'neung')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two', 'song')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two', 'neung song')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three', 'sahm')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three', 'neung sahm')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three', 'song sahm')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three', 'neung song sahm')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four', 'see')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four', 'neung see')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four', 'song see')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four', 'neung song see')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four', 'sahm see')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four', 'neung sahm see')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four', 'song sahm see')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four', 'neung song sahm see')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five', 'hah')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five', 'neung hah')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five', 'song hah')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five', 'neung song hah')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five', 'sahm hah')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five', 'neung sahm hah')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five', 'song sahm hah')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five', 'neung song sahm hah')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five', 'see hah')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five', 'neung see hah')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five', 'song see hah')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five', 'neung song see hah')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five', 'sahm see hah')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five', 'neung sahm see hah')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five', 'song sahm see hah')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five', 'neung song sahm see hah')"
+        }
+      ]
+    },
+    {
+      "name": "fts3_malloc-3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('six', 'hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one six', 'neung hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two six', 'song hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two six', 'neung song hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three six', 'sahm hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three six', 'neung sahm hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three six', 'song sahm hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three six', 'neung song sahm hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four six', 'see hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four six', 'neung see hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four six', 'song see hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four six', 'neung song see hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four six', 'sahm see hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four six', 'neung sahm see hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four six', 'song sahm see hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four six', 'neung song sahm see hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five six', 'hah hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five six', 'neung hah hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five six', 'song hah hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five six', 'neung song hah hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five six', 'sahm hah hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five six', 'neung sahm hah hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five six', 'song sahm hah hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five six', 'neung song sahm hah hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five six', 'see hah hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five six', 'neung see hah hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five six', 'song see hah hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five six', 'neung song see hah hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five six', 'sahm see hah hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five six', 'neung sahm see hah hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five six', 'song sahm see hah hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five six', 'neung song sahm see hah hok')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('seven', 'jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one seven', 'neung jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two seven', 'song jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two seven', 'neung song jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three seven', 'sahm jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three seven', 'neung sahm jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three seven', 'song sahm jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three seven', 'neung song sahm jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four seven', 'see jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four seven', 'neung see jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four seven', 'song see jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four seven', 'neung song see jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four seven', 'sahm see jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four seven', 'neung sahm see jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four seven', 'song sahm see jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four seven', 'neung song sahm see jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five seven', 'hah jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five seven', 'neung hah jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five seven', 'song hah jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five seven', 'neung song hah jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five seven', 'sahm hah jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five seven', 'neung sahm hah jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five seven', 'song sahm hah jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five seven', 'neung song sahm hah jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five seven', 'see hah jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five seven', 'neung see hah jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five seven', 'song see hah jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five seven', 'neung song see hah jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five seven', 'sahm see hah jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five seven', 'neung sahm see hah jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five seven', 'song sahm see hah jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five seven', 'neung song sahm see hah jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('six seven', 'hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one six seven', 'neung hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two six seven', 'song hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two six seven', 'neung song hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three six seven', 'sahm hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three six seven', 'neung sahm hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three six seven', 'song sahm hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three six seven', 'neung song sahm hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four six seven', 'see hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four six seven', 'neung see hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four six seven', 'song see hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four six seven', 'neung song see hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four six seven', 'sahm see hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four six seven', 'neung sahm see hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four six seven', 'song sahm see hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four six seven', 'neung song sahm see hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five six seven', 'hah hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five six seven', 'neung hah hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five six seven', 'song hah hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five six seven', 'neung song hah hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five six seven', 'sahm hah hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five six seven', 'neung sahm hah hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five six seven', 'song sahm hah hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five six seven', 'neung song sahm hah hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five six seven', 'see hah hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five six seven', 'neung see hah hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five six seven', 'song see hah hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five six seven', 'neung song see hah hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five six seven', 'sahm see hah hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five six seven', 'neung sahm see hah hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five six seven', 'song sahm see hah hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five six seven', 'neung song sahm see hah hok jet')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('eight', 'bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one eight', 'neung bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two eight', 'song bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two eight', 'neung song bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three eight', 'sahm bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three eight', 'neung sahm bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three eight', 'song sahm bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three eight', 'neung song sahm bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four eight', 'see bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four eight', 'neung see bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four eight', 'song see bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four eight', 'neung song see bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four eight', 'sahm see bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four eight', 'neung sahm see bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four eight', 'song sahm see bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four eight', 'neung song sahm see bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five eight', 'hah bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five eight', 'neung hah bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five eight', 'song hah bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five eight', 'neung song hah bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five eight', 'sahm hah bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five eight', 'neung sahm hah bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five eight', 'song sahm hah bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five eight', 'neung song sahm hah bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five eight', 'see hah bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five eight', 'neung see hah bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five eight', 'song see hah bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five eight', 'neung song see hah bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five eight', 'sahm see hah bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five eight', 'neung sahm see hah bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five eight', 'song sahm see hah bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five eight', 'neung song sahm see hah bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('six eight', 'hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one six eight', 'neung hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two six eight', 'song hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two six eight', 'neung song hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three six eight', 'sahm hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three six eight', 'neung sahm hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three six eight', 'song sahm hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three six eight', 'neung song sahm hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four six eight', 'see hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four six eight', 'neung see hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four six eight', 'song see hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four six eight', 'neung song see hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four six eight', 'sahm see hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four six eight', 'neung sahm see hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four six eight', 'song sahm see hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four six eight', 'neung song sahm see hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five six eight', 'hah hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five six eight', 'neung hah hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five six eight', 'song hah hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five six eight', 'neung song hah hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five six eight', 'sahm hah hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five six eight', 'neung sahm hah hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five six eight', 'song sahm hah hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five six eight', 'neung song sahm hah hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five six eight', 'see hah hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five six eight', 'neung see hah hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five six eight', 'song see hah hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five six eight', 'neung song see hah hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five six eight', 'sahm see hah hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five six eight', 'neung sahm see hah hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five six eight', 'song sahm see hah hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five six eight', 'neung song sahm see hah hok bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('seven eight', 'jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one seven eight', 'neung jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two seven eight', 'song jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two seven eight', 'neung song jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three seven eight', 'sahm jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three seven eight', 'neung sahm jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three seven eight', 'song sahm jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three seven eight', 'neung song sahm jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four seven eight', 'see jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four seven eight', 'neung see jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four seven eight', 'song see jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four seven eight', 'neung song see jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four seven eight', 'sahm see jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four seven eight', 'neung sahm see jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four seven eight', 'song sahm see jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four seven eight', 'neung song sahm see jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five seven eight', 'hah jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five seven eight', 'neung hah jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five seven eight', 'song hah jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five seven eight', 'neung song hah jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five seven eight', 'sahm hah jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five seven eight', 'neung sahm hah jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five seven eight', 'song sahm hah jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five seven eight', 'neung song sahm hah jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five seven eight', 'see hah jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five seven eight', 'neung see hah jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five seven eight', 'song see hah jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five seven eight', 'neung song see hah jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five seven eight', 'sahm see hah jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five seven eight', 'neung sahm see hah jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five seven eight', 'song sahm see hah jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five seven eight', 'neung song sahm see hah jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('six seven eight', 'hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one six seven eight', 'neung hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two six seven eight', 'song hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two six seven eight', 'neung song hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three six seven eight', 'sahm hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three six seven eight', 'neung sahm hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three six seven eight', 'song sahm hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three six seven eight', 'neung song sahm hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four six seven eight', 'see hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four six seven eight', 'neung see hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four six seven eight', 'song see hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four six seven eight', 'neung song see hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four six seven eight', 'sahm see hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four six seven eight', 'neung sahm see hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four six seven eight', 'song sahm see hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four six seven eight', 'neung song sahm see hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five six seven eight', 'hah hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five six seven eight', 'neung hah hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five six seven eight', 'song hah hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five six seven eight', 'neung song hah hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five six seven eight', 'sahm hah hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five six seven eight', 'neung sahm hah hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five six seven eight', 'song sahm hah hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five six seven eight', 'neung song sahm hah hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five six seven eight', 'see hah hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five six seven eight', 'neung see hah hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five six seven eight', 'song see hah hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five six seven eight', 'neung song see hah hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five six seven eight', 'sahm see hah hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five six seven eight', 'neung sahm see hah hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five six seven eight', 'song sahm see hah hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five six seven eight', 'neung song sahm see hah hok jet bairt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('nine', 'gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one nine', 'neung gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two nine', 'song gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two nine', 'neung song gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three nine', 'sahm gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three nine', 'neung sahm gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three nine', 'song sahm gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three nine', 'neung song sahm gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four nine', 'see gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four nine', 'neung see gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four nine', 'song see gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four nine', 'neung song see gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four nine', 'sahm see gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four nine', 'neung sahm see gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four nine', 'song sahm see gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four nine', 'neung song sahm see gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five nine', 'hah gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five nine', 'neung hah gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five nine', 'song hah gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five nine', 'neung song hah gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five nine', 'sahm hah gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five nine', 'neung sahm hah gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five nine', 'song sahm hah gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five nine', 'neung song sahm hah gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five nine', 'see hah gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five nine', 'neung see hah gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five nine', 'song see hah gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five nine', 'neung song see hah gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five nine', 'sahm see hah gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five nine', 'neung sahm see hah gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five nine', 'song sahm see hah gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five nine', 'neung song sahm see hah gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('six nine', 'hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one six nine', 'neung hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two six nine', 'song hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two six nine', 'neung song hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three six nine', 'sahm hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three six nine', 'neung sahm hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three six nine', 'song sahm hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three six nine', 'neung song sahm hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four six nine', 'see hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four six nine', 'neung see hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four six nine', 'song see hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four six nine', 'neung song see hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four six nine', 'sahm see hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four six nine', 'neung sahm see hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four six nine', 'song sahm see hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four six nine', 'neung song sahm see hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five six nine', 'hah hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five six nine', 'neung hah hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five six nine', 'song hah hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five six nine', 'neung song hah hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five six nine', 'sahm hah hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five six nine', 'neung sahm hah hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five six nine', 'song sahm hah hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five six nine', 'neung song sahm hah hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five six nine', 'see hah hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five six nine', 'neung see hah hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five six nine', 'song see hah hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five six nine', 'neung song see hah hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five six nine', 'sahm see hah hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five six nine', 'neung sahm see hah hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five six nine', 'song sahm see hah hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five six nine', 'neung song sahm see hah hok gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('seven nine', 'jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one seven nine', 'neung jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two seven nine', 'song jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two seven nine', 'neung song jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three seven nine', 'sahm jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three seven nine', 'neung sahm jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three seven nine', 'song sahm jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three seven nine', 'neung song sahm jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four seven nine', 'see jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four seven nine', 'neung see jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four seven nine', 'song see jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four seven nine', 'neung song see jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four seven nine', 'sahm see jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four seven nine', 'neung sahm see jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four seven nine', 'song sahm see jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four seven nine', 'neung song sahm see jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five seven nine', 'hah jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five seven nine', 'neung hah jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five seven nine', 'song hah jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five seven nine', 'neung song hah jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five seven nine', 'sahm hah jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five seven nine', 'neung sahm hah jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five seven nine', 'song sahm hah jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five seven nine', 'neung song sahm hah jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five seven nine', 'see hah jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five seven nine', 'neung see hah jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five seven nine', 'song see hah jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five seven nine', 'neung song see hah jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five seven nine', 'sahm see hah jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five seven nine', 'neung sahm see hah jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five seven nine', 'song sahm see hah jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five seven nine', 'neung song sahm see hah jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('six seven nine', 'hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one six seven nine', 'neung hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two six seven nine', 'song hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two six seven nine', 'neung song hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three six seven nine', 'sahm hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three six seven nine', 'neung sahm hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three six seven nine', 'song sahm hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three six seven nine', 'neung song sahm hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four six seven nine', 'see hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four six seven nine', 'neung see hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four six seven nine', 'song see hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four six seven nine', 'neung song see hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four six seven nine', 'sahm see hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four six seven nine', 'neung sahm see hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four six seven nine', 'song sahm see hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four six seven nine', 'neung song sahm see hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five six seven nine', 'hah hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five six seven nine', 'neung hah hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five six seven nine', 'song hah hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five six seven nine', 'neung song hah hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five six seven nine', 'sahm hah hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five six seven nine', 'neung sahm hah hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five six seven nine', 'song sahm hah hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five six seven nine', 'neung song sahm hah hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five six seven nine', 'see hah hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five six seven nine', 'neung see hah hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five six seven nine', 'song see hah hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five six seven nine', 'neung song see hah hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five six seven nine', 'sahm see hah hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five six seven nine', 'neung sahm see hah hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five six seven nine', 'song sahm see hah hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five six seven nine', 'neung song sahm see hah hok jet gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('eight nine', 'bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one eight nine', 'neung bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two eight nine', 'song bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two eight nine', 'neung song bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three eight nine', 'sahm bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three eight nine', 'neung sahm bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three eight nine', 'song sahm bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three eight nine', 'neung song sahm bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four eight nine', 'see bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four eight nine', 'neung see bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four eight nine', 'song see bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four eight nine', 'neung song see bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four eight nine', 'sahm see bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four eight nine', 'neung sahm see bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four eight nine', 'song sahm see bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four eight nine', 'neung song sahm see bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five eight nine', 'hah bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five eight nine', 'neung hah bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five eight nine', 'song hah bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five eight nine', 'neung song hah bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five eight nine', 'sahm hah bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five eight nine', 'neung sahm hah bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five eight nine', 'song sahm hah bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five eight nine', 'neung song sahm hah bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five eight nine', 'see hah bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five eight nine', 'neung see hah bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five eight nine', 'song see hah bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five eight nine', 'neung song see hah bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five eight nine', 'sahm see hah bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five eight nine', 'neung sahm see hah bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five eight nine', 'song sahm see hah bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five eight nine', 'neung song sahm see hah bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('six eight nine', 'hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one six eight nine', 'neung hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two six eight nine', 'song hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two six eight nine', 'neung song hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three six eight nine', 'sahm hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three six eight nine', 'neung sahm hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three six eight nine', 'song sahm hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three six eight nine', 'neung song sahm hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four six eight nine', 'see hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four six eight nine', 'neung see hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four six eight nine', 'song see hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four six eight nine', 'neung song see hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four six eight nine', 'sahm see hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four six eight nine', 'neung sahm see hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four six eight nine', 'song sahm see hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four six eight nine', 'neung song sahm see hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five six eight nine', 'hah hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five six eight nine', 'neung hah hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five six eight nine', 'song hah hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five six eight nine', 'neung song hah hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five six eight nine', 'sahm hah hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five six eight nine', 'neung sahm hah hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five six eight nine', 'song sahm hah hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five six eight nine', 'neung song sahm hah hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five six eight nine', 'see hah hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five six eight nine', 'neung see hah hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five six eight nine', 'song see hah hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five six eight nine', 'neung song see hah hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five six eight nine', 'sahm see hah hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five six eight nine', 'neung sahm see hah hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five six eight nine', 'song sahm see hah hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five six eight nine', 'neung song sahm see hah hok bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('seven eight nine', 'jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one seven eight nine', 'neung jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two seven eight nine', 'song jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two seven eight nine', 'neung song jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three seven eight nine', 'sahm jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three seven eight nine', 'neung sahm jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three seven eight nine', 'song sahm jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three seven eight nine', 'neung song sahm jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four seven eight nine', 'see jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four seven eight nine', 'neung see jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four seven eight nine', 'song see jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four seven eight nine', 'neung song see jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four seven eight nine', 'sahm see jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four seven eight nine', 'neung sahm see jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four seven eight nine', 'song sahm see jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four seven eight nine', 'neung song sahm see jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five seven eight nine', 'hah jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five seven eight nine', 'neung hah jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five seven eight nine', 'song hah jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five seven eight nine', 'neung song hah jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five seven eight nine', 'sahm hah jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five seven eight nine', 'neung sahm hah jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five seven eight nine', 'song sahm hah jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five seven eight nine', 'neung song sahm hah jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five seven eight nine', 'see hah jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five seven eight nine', 'neung see hah jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five seven eight nine', 'song see hah jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five seven eight nine', 'neung song see hah jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five seven eight nine', 'sahm see hah jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five seven eight nine', 'neung sahm see hah jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five seven eight nine', 'song sahm see hah jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five seven eight nine', 'neung song sahm see hah jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('six seven eight nine', 'hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one six seven eight nine', 'neung hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two six seven eight nine', 'song hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two six seven eight nine', 'neung song hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three six seven eight nine', 'sahm hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three six seven eight nine', 'neung sahm hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three six seven eight nine', 'song sahm hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three six seven eight nine', 'neung song sahm hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four six seven eight nine', 'see hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four six seven eight nine', 'neung see hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four six seven eight nine', 'song see hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four six seven eight nine', 'neung song see hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four six seven eight nine', 'sahm see hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four six seven eight nine', 'neung sahm see hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four six seven eight nine', 'song sahm see hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four six seven eight nine', 'neung song sahm see hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five six seven eight nine', 'hah hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five six seven eight nine', 'neung hah hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five six seven eight nine', 'song hah hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five six seven eight nine', 'neung song hah hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five six seven eight nine', 'sahm hah hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five six seven eight nine', 'neung sahm hah hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five six seven eight nine', 'song sahm hah hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five six seven eight nine', 'neung song sahm hah hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five six seven eight nine', 'see hah hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five six seven eight nine', 'neung see hah hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five six seven eight nine', 'song see hah hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five six seven eight nine', 'neung song see hah hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five six seven eight nine', 'sahm see hah hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five six seven eight nine', 'neung sahm see hah hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five six seven eight nine', 'song sahm see hah hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five six seven eight nine', 'neung song sahm see hah hok jet bairt gow')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('ten', 'sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one ten', 'neung sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two ten', 'song sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two ten', 'neung song sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three ten', 'sahm sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three ten', 'neung sahm sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three ten', 'song sahm sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three ten', 'neung song sahm sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four ten', 'see sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four ten', 'neung see sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four ten', 'song see sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four ten', 'neung song see sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four ten', 'sahm see sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four ten', 'neung sahm see sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four ten', 'song sahm see sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four ten', 'neung song sahm see sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five ten', 'hah sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five ten', 'neung hah sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five ten', 'song hah sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five ten', 'neung song hah sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five ten', 'sahm hah sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five ten', 'neung sahm hah sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five ten', 'song sahm hah sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five ten', 'neung song sahm hah sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five ten', 'see hah sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five ten', 'neung see hah sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five ten', 'song see hah sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five ten', 'neung song see hah sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five ten', 'sahm see hah sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five ten', 'neung sahm see hah sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five ten', 'song sahm see hah sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five ten', 'neung song sahm see hah sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('six ten', 'hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one six ten', 'neung hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two six ten', 'song hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two six ten', 'neung song hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three six ten', 'sahm hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three six ten', 'neung sahm hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three six ten', 'song sahm hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three six ten', 'neung song sahm hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four six ten', 'see hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four six ten', 'neung see hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four six ten', 'song see hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four six ten', 'neung song see hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four six ten', 'sahm see hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four six ten', 'neung sahm see hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four six ten', 'song sahm see hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four six ten', 'neung song sahm see hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five six ten', 'hah hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five six ten', 'neung hah hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five six ten', 'song hah hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five six ten', 'neung song hah hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five six ten', 'sahm hah hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five six ten', 'neung sahm hah hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five six ten', 'song sahm hah hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five six ten', 'neung song sahm hah hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five six ten', 'see hah hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five six ten', 'neung see hah hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five six ten', 'song see hah hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five six ten', 'neung song see hah hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five six ten', 'sahm see hah hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five six ten', 'neung sahm see hah hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five six ten', 'song sahm see hah hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five six ten', 'neung song sahm see hah hok sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('seven ten', 'jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one seven ten', 'neung jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two seven ten', 'song jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two seven ten', 'neung song jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three seven ten', 'sahm jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three seven ten', 'neung sahm jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three seven ten', 'song sahm jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three seven ten', 'neung song sahm jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four seven ten', 'see jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four seven ten', 'neung see jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four seven ten', 'song see jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four seven ten', 'neung song see jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four seven ten', 'sahm see jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four seven ten', 'neung sahm see jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four seven ten', 'song sahm see jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four seven ten', 'neung song sahm see jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five seven ten', 'hah jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five seven ten', 'neung hah jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five seven ten', 'song hah jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five seven ten', 'neung song hah jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five seven ten', 'sahm hah jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five seven ten', 'neung sahm hah jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five seven ten', 'song sahm hah jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five seven ten', 'neung song sahm hah jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five seven ten', 'see hah jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five seven ten', 'neung see hah jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five seven ten', 'song see hah jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five seven ten', 'neung song see hah jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five seven ten', 'sahm see hah jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five seven ten', 'neung sahm see hah jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five seven ten', 'song sahm see hah jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five seven ten', 'neung song sahm see hah jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('six seven ten', 'hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one six seven ten', 'neung hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two six seven ten', 'song hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two six seven ten', 'neung song hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three six seven ten', 'sahm hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three six seven ten', 'neung sahm hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three six seven ten', 'song sahm hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three six seven ten', 'neung song sahm hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four six seven ten', 'see hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four six seven ten', 'neung see hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four six seven ten', 'song see hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four six seven ten', 'neung song see hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four six seven ten', 'sahm see hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four six seven ten', 'neung sahm see hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four six seven ten', 'song sahm see hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four six seven ten', 'neung song sahm see hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five six seven ten', 'hah hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five six seven ten', 'neung hah hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five six seven ten', 'song hah hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five six seven ten', 'neung song hah hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five six seven ten', 'sahm hah hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five six seven ten', 'neung sahm hah hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five six seven ten', 'song sahm hah hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five six seven ten', 'neung song sahm hah hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five six seven ten', 'see hah hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five six seven ten', 'neung see hah hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five six seven ten', 'song see hah hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five six seven ten', 'neung song see hah hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five six seven ten', 'sahm see hah hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five six seven ten', 'neung sahm see hah hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five six seven ten', 'song sahm see hah hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five six seven ten', 'neung song sahm see hah hok jet sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('eight ten', 'bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one eight ten', 'neung bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two eight ten', 'song bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two eight ten', 'neung song bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three eight ten', 'sahm bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three eight ten', 'neung sahm bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three eight ten', 'song sahm bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three eight ten', 'neung song sahm bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four eight ten', 'see bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four eight ten', 'neung see bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four eight ten', 'song see bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four eight ten', 'neung song see bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four eight ten', 'sahm see bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four eight ten', 'neung sahm see bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four eight ten', 'song sahm see bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four eight ten', 'neung song sahm see bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five eight ten', 'hah bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five eight ten', 'neung hah bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five eight ten', 'song hah bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five eight ten', 'neung song hah bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five eight ten', 'sahm hah bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five eight ten', 'neung sahm hah bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five eight ten', 'song sahm hah bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five eight ten', 'neung song sahm hah bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five eight ten', 'see hah bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five eight ten', 'neung see hah bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five eight ten', 'song see hah bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five eight ten', 'neung song see hah bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five eight ten', 'sahm see hah bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five eight ten', 'neung sahm see hah bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five eight ten', 'song sahm see hah bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five eight ten', 'neung song sahm see hah bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('six eight ten', 'hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one six eight ten', 'neung hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two six eight ten', 'song hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two six eight ten', 'neung song hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three six eight ten', 'sahm hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three six eight ten', 'neung sahm hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three six eight ten', 'song sahm hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three six eight ten', 'neung song sahm hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four six eight ten', 'see hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four six eight ten', 'neung see hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four six eight ten', 'song see hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four six eight ten', 'neung song see hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four six eight ten', 'sahm see hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four six eight ten', 'neung sahm see hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four six eight ten', 'song sahm see hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four six eight ten', 'neung song sahm see hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five six eight ten', 'hah hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five six eight ten', 'neung hah hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five six eight ten', 'song hah hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five six eight ten', 'neung song hah hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five six eight ten', 'sahm hah hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five six eight ten', 'neung sahm hah hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five six eight ten', 'song sahm hah hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five six eight ten', 'neung song sahm hah hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five six eight ten', 'see hah hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five six eight ten', 'neung see hah hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five six eight ten', 'song see hah hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five six eight ten', 'neung song see hah hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five six eight ten', 'sahm see hah hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five six eight ten', 'neung sahm see hah hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five six eight ten', 'song sahm see hah hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five six eight ten', 'neung song sahm see hah hok bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('seven eight ten', 'jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one seven eight ten', 'neung jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two seven eight ten', 'song jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two seven eight ten', 'neung song jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three seven eight ten', 'sahm jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three seven eight ten', 'neung sahm jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three seven eight ten', 'song sahm jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three seven eight ten', 'neung song sahm jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four seven eight ten', 'see jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four seven eight ten', 'neung see jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four seven eight ten', 'song see jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four seven eight ten', 'neung song see jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four seven eight ten', 'sahm see jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four seven eight ten', 'neung sahm see jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four seven eight ten', 'song sahm see jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four seven eight ten', 'neung song sahm see jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five seven eight ten', 'hah jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five seven eight ten', 'neung hah jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five seven eight ten', 'song hah jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five seven eight ten', 'neung song hah jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five seven eight ten', 'sahm hah jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five seven eight ten', 'neung sahm hah jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five seven eight ten', 'song sahm hah jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five seven eight ten', 'neung song sahm hah jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five seven eight ten', 'see hah jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five seven eight ten', 'neung see hah jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five seven eight ten', 'song see hah jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five seven eight ten', 'neung song see hah jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five seven eight ten', 'sahm see hah jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five seven eight ten', 'neung sahm see hah jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five seven eight ten', 'song sahm see hah jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five seven eight ten', 'neung song sahm see hah jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('six seven eight ten', 'hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one six seven eight ten', 'neung hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two six seven eight ten', 'song hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two six seven eight ten', 'neung song hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three six seven eight ten', 'sahm hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three six seven eight ten', 'neung sahm hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three six seven eight ten', 'song sahm hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three six seven eight ten', 'neung song sahm hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four six seven eight ten', 'see hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four six seven eight ten', 'neung see hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four six seven eight ten', 'song see hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four six seven eight ten', 'neung song see hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four six seven eight ten', 'sahm see hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four six seven eight ten', 'neung sahm see hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four six seven eight ten', 'song sahm see hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four six seven eight ten', 'neung song sahm see hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five six seven eight ten', 'hah hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five six seven eight ten', 'neung hah hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five six seven eight ten', 'song hah hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five six seven eight ten', 'neung song hah hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five six seven eight ten', 'sahm hah hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five six seven eight ten', 'neung sahm hah hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five six seven eight ten', 'song sahm hah hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five six seven eight ten', 'neung song sahm hah hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five six seven eight ten', 'see hah hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five six seven eight ten', 'neung see hah hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five six seven eight ten', 'song see hah hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five six seven eight ten', 'neung song see hah hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five six seven eight ten', 'sahm see hah hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five six seven eight ten', 'neung sahm see hah hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five six seven eight ten', 'song sahm see hah hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five six seven eight ten', 'neung song sahm see hah hok jet bairt sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('nine ten', 'gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one nine ten', 'neung gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two nine ten', 'song gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two nine ten', 'neung song gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three nine ten', 'sahm gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three nine ten', 'neung sahm gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three nine ten', 'song sahm gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three nine ten', 'neung song sahm gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four nine ten', 'see gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four nine ten', 'neung see gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four nine ten', 'song see gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four nine ten', 'neung song see gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four nine ten', 'sahm see gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four nine ten', 'neung sahm see gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four nine ten', 'song sahm see gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four nine ten', 'neung song sahm see gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five nine ten', 'hah gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five nine ten', 'neung hah gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five nine ten', 'song hah gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five nine ten', 'neung song hah gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five nine ten', 'sahm hah gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five nine ten', 'neung sahm hah gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five nine ten', 'song sahm hah gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five nine ten', 'neung song sahm hah gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five nine ten', 'see hah gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five nine ten', 'neung see hah gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five nine ten', 'song see hah gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five nine ten', 'neung song see hah gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five nine ten', 'sahm see hah gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five nine ten', 'neung sahm see hah gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five nine ten', 'song sahm see hah gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five nine ten', 'neung song sahm see hah gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('six nine ten', 'hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one six nine ten', 'neung hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two six nine ten', 'song hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two six nine ten', 'neung song hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three six nine ten', 'sahm hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three six nine ten', 'neung sahm hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three six nine ten', 'song sahm hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three six nine ten', 'neung song sahm hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four six nine ten', 'see hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four six nine ten', 'neung see hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four six nine ten', 'song see hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four six nine ten', 'neung song see hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four six nine ten', 'sahm see hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four six nine ten', 'neung sahm see hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four six nine ten', 'song sahm see hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four six nine ten', 'neung song sahm see hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five six nine ten', 'hah hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five six nine ten', 'neung hah hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five six nine ten', 'song hah hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five six nine ten', 'neung song hah hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five six nine ten', 'sahm hah hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five six nine ten', 'neung sahm hah hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five six nine ten', 'song sahm hah hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five six nine ten', 'neung song sahm hah hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five six nine ten', 'see hah hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five six nine ten', 'neung see hah hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five six nine ten', 'song see hah hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five six nine ten', 'neung song see hah hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five six nine ten', 'sahm see hah hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five six nine ten', 'neung sahm see hah hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five six nine ten', 'song sahm see hah hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five six nine ten', 'neung song sahm see hah hok gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('seven nine ten', 'jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one seven nine ten', 'neung jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two seven nine ten', 'song jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two seven nine ten', 'neung song jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three seven nine ten', 'sahm jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three seven nine ten', 'neung sahm jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three seven nine ten', 'song sahm jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three seven nine ten', 'neung song sahm jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four seven nine ten', 'see jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four seven nine ten', 'neung see jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four seven nine ten', 'song see jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four seven nine ten', 'neung song see jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four seven nine ten', 'sahm see jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four seven nine ten', 'neung sahm see jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four seven nine ten', 'song sahm see jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four seven nine ten', 'neung song sahm see jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five seven nine ten', 'hah jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five seven nine ten', 'neung hah jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five seven nine ten', 'song hah jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five seven nine ten', 'neung song hah jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five seven nine ten', 'sahm hah jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five seven nine ten', 'neung sahm hah jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five seven nine ten', 'song sahm hah jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five seven nine ten', 'neung song sahm hah jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five seven nine ten', 'see hah jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five seven nine ten', 'neung see hah jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five seven nine ten', 'song see hah jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five seven nine ten', 'neung song see hah jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five seven nine ten', 'sahm see hah jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five seven nine ten', 'neung sahm see hah jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five seven nine ten', 'song sahm see hah jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five seven nine ten', 'neung song sahm see hah jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('six seven nine ten', 'hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one six seven nine ten', 'neung hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two six seven nine ten', 'song hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two six seven nine ten', 'neung song hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three six seven nine ten', 'sahm hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three six seven nine ten', 'neung sahm hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three six seven nine ten', 'song sahm hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three six seven nine ten', 'neung song sahm hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four six seven nine ten', 'see hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four six seven nine ten', 'neung see hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four six seven nine ten', 'song see hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four six seven nine ten', 'neung song see hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four six seven nine ten', 'sahm see hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four six seven nine ten', 'neung sahm see hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four six seven nine ten', 'song sahm see hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four six seven nine ten', 'neung song sahm see hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five six seven nine ten', 'hah hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five six seven nine ten', 'neung hah hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five six seven nine ten', 'song hah hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five six seven nine ten', 'neung song hah hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five six seven nine ten', 'sahm hah hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five six seven nine ten', 'neung sahm hah hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five six seven nine ten', 'song sahm hah hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five six seven nine ten', 'neung song sahm hah hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five six seven nine ten', 'see hah hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five six seven nine ten', 'neung see hah hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five six seven nine ten', 'song see hah hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five six seven nine ten', 'neung song see hah hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five six seven nine ten', 'sahm see hah hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five six seven nine ten', 'neung sahm see hah hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five six seven nine ten', 'song sahm see hah hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five six seven nine ten', 'neung song sahm see hah hok jet gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('eight nine ten', 'bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one eight nine ten', 'neung bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two eight nine ten', 'song bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two eight nine ten', 'neung song bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three eight nine ten', 'sahm bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three eight nine ten', 'neung sahm bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three eight nine ten', 'song sahm bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three eight nine ten', 'neung song sahm bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four eight nine ten', 'see bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four eight nine ten', 'neung see bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four eight nine ten', 'song see bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four eight nine ten', 'neung song see bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four eight nine ten', 'sahm see bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four eight nine ten', 'neung sahm see bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four eight nine ten', 'song sahm see bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four eight nine ten', 'neung song sahm see bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five eight nine ten', 'hah bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five eight nine ten', 'neung hah bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five eight nine ten', 'song hah bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five eight nine ten', 'neung song hah bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five eight nine ten', 'sahm hah bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five eight nine ten', 'neung sahm hah bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five eight nine ten', 'song sahm hah bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five eight nine ten', 'neung song sahm hah bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five eight nine ten', 'see hah bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five eight nine ten', 'neung see hah bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five eight nine ten', 'song see hah bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five eight nine ten', 'neung song see hah bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five eight nine ten', 'sahm see hah bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five eight nine ten', 'neung sahm see hah bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five eight nine ten', 'song sahm see hah bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five eight nine ten', 'neung song sahm see hah bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('six eight nine ten', 'hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one six eight nine ten', 'neung hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two six eight nine ten', 'song hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two six eight nine ten', 'neung song hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three six eight nine ten', 'sahm hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three six eight nine ten', 'neung sahm hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three six eight nine ten', 'song sahm hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three six eight nine ten', 'neung song sahm hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four six eight nine ten', 'see hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four six eight nine ten', 'neung see hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four six eight nine ten', 'song see hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four six eight nine ten', 'neung song see hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four six eight nine ten', 'sahm see hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four six eight nine ten', 'neung sahm see hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four six eight nine ten', 'song sahm see hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four six eight nine ten', 'neung song sahm see hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five six eight nine ten', 'hah hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five six eight nine ten', 'neung hah hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five six eight nine ten', 'song hah hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five six eight nine ten', 'neung song hah hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five six eight nine ten', 'sahm hah hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five six eight nine ten', 'neung sahm hah hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five six eight nine ten', 'song sahm hah hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five six eight nine ten', 'neung song sahm hah hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five six eight nine ten', 'see hah hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five six eight nine ten', 'neung see hah hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five six eight nine ten', 'song see hah hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five six eight nine ten', 'neung song see hah hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five six eight nine ten', 'sahm see hah hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five six eight nine ten', 'neung sahm see hah hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five six eight nine ten', 'song sahm see hah hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five six eight nine ten', 'neung song sahm see hah hok bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('seven eight nine ten', 'jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one seven eight nine ten', 'neung jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two seven eight nine ten', 'song jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two seven eight nine ten', 'neung song jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three seven eight nine ten', 'sahm jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three seven eight nine ten', 'neung sahm jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three seven eight nine ten', 'song sahm jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three seven eight nine ten', 'neung song sahm jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four seven eight nine ten', 'see jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four seven eight nine ten', 'neung see jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four seven eight nine ten', 'song see jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four seven eight nine ten', 'neung song see jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four seven eight nine ten', 'sahm see jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four seven eight nine ten', 'neung sahm see jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four seven eight nine ten', 'song sahm see jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four seven eight nine ten', 'neung song sahm see jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five seven eight nine ten', 'hah jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five seven eight nine ten', 'neung hah jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five seven eight nine ten', 'song hah jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five seven eight nine ten', 'neung song hah jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five seven eight nine ten', 'sahm hah jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five seven eight nine ten', 'neung sahm hah jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five seven eight nine ten', 'song sahm hah jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five seven eight nine ten', 'neung song sahm hah jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five seven eight nine ten', 'see hah jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five seven eight nine ten', 'neung see hah jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five seven eight nine ten', 'song see hah jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five seven eight nine ten', 'neung song see hah jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five seven eight nine ten', 'sahm see hah jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five seven eight nine ten', 'neung sahm see hah jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five seven eight nine ten', 'song sahm see hah jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five seven eight nine ten', 'neung song sahm see hah jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('six seven eight nine ten', 'hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one six seven eight nine ten', 'neung hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two six seven eight nine ten', 'song hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two six seven eight nine ten', 'neung song hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three six seven eight nine ten', 'sahm hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three six seven eight nine ten', 'neung sahm hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three six seven eight nine ten', 'song sahm hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three six seven eight nine ten', 'neung song sahm hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four six seven eight nine ten', 'see hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four six seven eight nine ten', 'neung see hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four six seven eight nine ten', 'song see hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four six seven eight nine ten', 'neung song see hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four six seven eight nine ten', 'sahm see hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four six seven eight nine ten', 'neung sahm see hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four six seven eight nine ten', 'song sahm see hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four six seven eight nine ten', 'neung song sahm see hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('five six seven eight nine ten', 'hah hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one five six seven eight nine ten', 'neung hah hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two five six seven eight nine ten', 'song hah hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two five six seven eight nine ten', 'neung song hah hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three five six seven eight nine ten', 'sahm hah hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three five six seven eight nine ten', 'neung sahm hah hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three five six seven eight nine ten', 'song sahm hah hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three five six seven eight nine ten', 'neung song sahm hah hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('four five six seven eight nine ten', 'see hah hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one four five six seven eight nine ten', 'neung see hah hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two four five six seven eight nine ten', 'song see hah hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two four five six seven eight nine ten', 'neung song see hah hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('three four five six seven eight nine ten', 'sahm see hah hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one three four five six seven eight nine ten', 'neung sahm see hah hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('two three four five six seven eight nine ten', 'song sahm see hah hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('one two three four five six seven eight nine ten', 'neung song sahm see hah hok jet bairt gow sip')"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "fts3_malloc-4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM ft WHERE docid\u003e=32"
+        }
+      ]
+    },
+    {
+      "name": "fts3_malloc-4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM ft",
+          "expect": "two four {two four}"
+        }
+      ]
+    },
+    {
+      "name": "fts3_malloc-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE ft8 USING fts3(x, tokenize porter)"
+        }
+      ]
+    }
+  ]
+}

@@ -1,9 +1,35 @@
 {
   "file": "sort3.test",
   "name": "sort3",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "cksum",
+          "callbackVars": {
+            "": "sort3",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "sort3"
+          },
+          "functionProc": "cksum",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": "\n  set i1 1\n  set i2 2\n  binary scan $x c* L\n  foreach {a b} $L {\n    set i1 [expr (($i2\u003c\u003c3) + $a) \u0026 0x7FFFFFFF]\n    set i2 [expr (($i1\u003c\u003c3) + $b) \u0026 0x7FFFFFFF]\n  }\n  list $i1 $i2\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "sort3-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,18 +38,52 @@
       ]
     },
     {
-      "name": "3",
+      "name": "sort3-1.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA cache_size = 20000;\n  WITH r(x,y) AS (\n    SELECT 1, randomblob(1000)\n    UNION ALL\n    SELECT x+1, randomblob(1000) FROM r\n    LIMIT 2200000\n  )\n  SELECT count(*), sum(length(y)) FROM r GROUP BY (x%5);"
-        },
-        {
-          "type": "exec",
+          "type": "query",
           "sql": "SELECT * FROM t11 ORDER BY b"
         }
       ]
+    },
+    {
+      "name": "sort3-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t11 ORDER BY b"
+        }
+      ]
+    },
+    {
+      "name": "sort3-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH r(x,y) AS (\n        SELECT 1, randomblob(1000)\n        UNION ALL\n        SELECT x+1, randomblob(1000) FROM r\n        LIMIT 20000\n    )\n    SELECT count(*), sum(length(y)) FROM r GROUP BY (x%5);",
+          "expect": "\n    4000 4000000 \n    4000 4000000 \n    4000 4000000 \n    4000 4000000 \n    4000 4000000\n  "
+        }
+      ]
+    },
+    {
+      "name": "sort3-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH r(x,y) AS (\n        SELECT 1, randomblob(1000)\n        UNION ALL\n        SELECT x+1, randomblob(1000) FROM r\n        LIMIT 20000\n    )\n    SELECT count(*), sum(length(y)) FROM r GROUP BY (x%5);",
+          "expect": "\n    4000 4000000 \n    4000 4000000 \n    4000 4000000 \n    4000 4000000 \n    4000 4000000\n  "
+        }
+      ]
+    },
+    {
+      "name": "sort3-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 20000;\n  WITH r(x,y) AS (\n    SELECT 1, randomblob(1000)\n    UNION ALL\n    SELECT x+1, randomblob(1000) FROM r\n    LIMIT 2200000\n  )\n  SELECT count(*), sum(length(y)) FROM r GROUP BY (x%5);",
+          "expect": "\n  440000 440000000 \n  440000 440000000 \n  440000 440000000 \n  440000 440000000 \n  440000 440000000\n"
+        }
+      ]
     }
-  ],
-  "source": "capi"
+  ]
 }

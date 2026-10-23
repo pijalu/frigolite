@@ -37,20 +37,6 @@ func preprocessInput(input string) (*parsePreprocess, error) {
 	// FIRST so all later rewrites (which split on statements) see a clean
 	// statement stream.
 	input = collapseEmptyStatements(input)
-	// Normalize generated-column storage syntax unsupported by legacy tables.
-	// The fold-scan gates keep the no-match case a single scan (the pipeline
-	// runs once per statement; ReplaceAll alone would copy on a match only,
-	// but the gate skips even the scan when the keyword family is absent).
-	if containsFoldASCII(input, "GENERATED ALWAYS") {
-		input = strings.ReplaceAll(input, "GENERATED ALWAYS", "")
-		input = strings.ReplaceAll(input, "generated always", "")
-	}
-	if containsFoldASCII(input, ") VIRTUAL") {
-		input = strings.ReplaceAll(input, ") VIRTUAL", ")")
-	}
-	if containsFoldASCII(input, ") STORED") {
-		input = strings.ReplaceAll(input, ") STORED", ")")
-	}
 
 	// The LALR tables are generated from SQLite's grammar, which accepts
 	// UPDATE ... ORDER BY ... LIMIT and DELETE ... ORDER BY ... LIMIT (SQLite

@@ -1,74 +1,196 @@
 {
   "file": "wal8.test",
   "name": "wal8",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.1",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-wal"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal8-1.0",
       "steps": [
         {
           "type": "exec",
+          "sql": "PRAGMA journal_mode = wal;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);",
+          "expect": "wal",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal8-1.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "PRAGMA page_size = 4096;\n  VACUUM;",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "2.1",
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-wal"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal8-2.0",
       "steps": [
         {
           "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA journal_mode = wal;",
+          "expect": "wal",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal8-2.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "PRAGMA page_size = 4096;\n  VACUUM;",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "3.1",
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-wal"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal8-3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = wal;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);",
+          "expect": "wal",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal8-3.1",
       "steps": [
         {
           "type": "query",
           "sql": "PRAGMA page_size = 4096;\n  SELECT name FROM sqlite_master;",
           "expect": "t1"
-        }
-      ]
-    },
-    {
-      "name": "1.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA journal_mode = wal;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);"
-        }
-      ]
-    },
-    {
-      "name": "2.0",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA journal_mode = wal;",
-          "expect": "wal"
-        }
-      ]
-    },
-    {
-      "name": "3.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA journal_mode = wal;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA journal_mode = wal;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA journal_mode = wal;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA journal_mode = wal;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);"
         }
       ]
     }

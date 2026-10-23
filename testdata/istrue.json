@@ -1,6 +1,7 @@
 {
   "file": "istrue.test",
   "name": "istrue",
+  "ordered": true,
   "tests": [
     {
       "name": "istrue-100",
@@ -58,6 +59,66 @@
         {
           "type": "query",
           "sql": "SELECT x FROM t1 WHERE y IS NOT NULL;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "istrue-160",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y IS TRUE OR (8==9)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "istrue-170",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y IS FALSE OR (8==9)",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "istrue-180",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y IS NULL OR (8==9);",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "istrue-190",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y IS NOT TRUE OR (8==9);",
+          "expect": "2 3"
+        }
+      ]
+    },
+    {
+      "name": "istrue-200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y IS NOT FALSE OR (8==9);",
+          "expect": "1 3"
+        }
+      ]
+    },
+    {
+      "name": "istrue-210",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y IS NOT NULL OR (8==9);",
           "expect": "1 2"
         }
       ]
@@ -125,7 +186,7 @@
       "name": "istrue-521",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t2 VALUES(2,false,false,null,null);",
           "expect": "1 {CHECK constraint failed: b IS TRUE}"
         }
@@ -135,7 +196,7 @@
       "name": "istrue-522",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t2 VALUES(2,true,true,null,null);",
           "expect": "1 {CHECK constraint failed: c IS FALSE}"
         }
@@ -145,7 +206,7 @@
       "name": "istrue-523",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t2 VALUES(2,true,false,true,null);",
           "expect": "1 {CHECK constraint failed: d IS NOT TRUE}"
         }
@@ -155,9 +216,363 @@
       "name": "istrue-524",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t2 VALUES(2,true,false,null,false);",
           "expect": "1 {CHECK constraint failed: e IS NOT FALSE}"
+        }
+      ]
+    },
+    {
+      "name": "istrue-600.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "istrue-600.1.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t1 VALUES(?)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES(?)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "INSERT INTO t1 VALUES(?)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t1 VALUES(?)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "SQLITE_OK",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "istrue-600.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x IS TRUE FROM t1;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "istrue-600.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x IS FALSE FROM t1;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "istrue-600.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "istrue-600.2.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t1 VALUES(?)",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES(?)",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "INSERT INTO t1 VALUES(?)",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t1 VALUES(?)",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "SQLITE_OK",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "istrue-600.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x IS TRUE FROM t1;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "istrue-600.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x IS FALSE FROM t1;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "istrue-600.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "istrue-600.3.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t1 VALUES(?)",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES(?)",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "INSERT INTO t1 VALUES(?)",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t1 VALUES(?)",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "SQLITE_OK",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "istrue-600.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x IS TRUE FROM t1;",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "istrue-600.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x IS FALSE FROM t1;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "istrue-600.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "istrue-600.4.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t1 VALUES(?)",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES(?)",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "INSERT INTO t1 VALUES(?)",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t1 VALUES(?)",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "SQLITE_OK",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "istrue-600.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x IS TRUE FROM t1;",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "istrue-600.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x IS FALSE FROM t1;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "istrue-600.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "istrue-600.5.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t1 VALUES(?)",
+          "variable": "stmt_5"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES(?)",
+          "variable": "stmt_5"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "INSERT INTO t1 VALUES(?)",
+          "variable": "stmt_5"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t1 VALUES(?)",
+          "variable": "stmt_5"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "SQLITE_OK",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "istrue-600.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x IS TRUE FROM t1;",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "istrue-600.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x IS FALSE FROM t1;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "istrue-600.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "istrue-600.6.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t1 VALUES(?)",
+          "variable": "stmt_6"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES(?)",
+          "variable": "stmt_6"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "INSERT INTO t1 VALUES(?)",
+          "variable": "stmt_6"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t1 VALUES(?)",
+          "variable": "stmt_6"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "SQLITE_OK",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "istrue-600.6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x IS TRUE FROM t1;",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "istrue-600.6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x IS FALSE FROM t1;",
+          "expect": "0"
         }
       ]
     },
@@ -185,7 +600,7 @@
       "name": "istrue-800",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT 9 IN (false.false);",
           "expect": "1 {no such column: false.false}"
         }
@@ -205,7 +620,7 @@
       "name": "istrue-820",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT 9 IN (false.false) FROM t8;",
           "expect": "1 {no such column: false.false}"
         }
@@ -233,7 +648,7 @@
       "name": "istrue-841",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO False VALUES(5,6,7);",
           "expect": "1 {CHECK constraint failed: 5 IN (false.false)}"
         }
@@ -259,6 +674,5 @@
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

@@ -258,6 +258,13 @@ func (v *columnRefValidator) checkUnqualifiedRef(ref *sql.ColumnRef) error {
 	if strings.EqualFold(ref.Name, "TRUE") || strings.EqualFold(ref.Name, "FALSE") {
 		return nil
 	}
+	// CURRENT_TIME / CURRENT_DATE / CURRENT_TIMESTAMP are SQL keywords
+	// evaluated as the statement-cached current time; they never name a
+	// column (e_expr-12.3.6: "SELECT CURRENT_TIME FROM tblname").
+	switch strings.ToUpper(ref.Name) {
+	case "CURRENT_TIME", "CURRENT_DATE", "CURRENT_TIMESTAMP":
+		return nil
+	}
 	if v.colByName[strings.ToLower(ref.Name)] {
 		return nil
 	}

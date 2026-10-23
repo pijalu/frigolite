@@ -1,21 +1,551 @@
 {
   "file": "numcast.test",
   "name": "numcast",
+  "ordered": true,
   "tests": [
     {
-      "name": "setup_0",
+      "name": "numcast-utf8.0",
       "steps": [
         {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
+        {
           "type": "exec",
-          "sql": "PRAGMA encoding"
+          "sql": "PRAGMA encoding='utf8'"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA encoding",
+          "variable": "x",
+          "resultAll": true,
+          "expect": "utf8"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "numcast-utf8.1.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "query",
+          "sql": "SELECT CAST(12345.0 AS real)",
+          "expect": "12345.0"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf8.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(12345.0 AS integer)",
+          "expect": "12345"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf8.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(12345.0e0 AS real)",
+          "expect": "12345.0"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf8.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(12345.0e0 AS integer)",
+          "expect": "12345"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf8.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(-12345.0e0 AS real)",
+          "expect": "-12345.0"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf8.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(-12345.0e0 AS integer)",
+          "expect": "-12345"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf8.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(-12345.25 AS real)",
+          "expect": "-12345.25"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf8.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(-12345.25 AS integer)",
+          "expect": "-12345"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf8.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(-12345.0 AS real)",
+          "expect": "-12345.0"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf8.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(-12345.0 AS integer)",
+          "expect": "-12345"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf8.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(' 876xyz' AS real)",
+          "expect": "876.0"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf8.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(' 876xyz' AS integer)",
+          "expect": "876"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf8.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(' 456ķ89' AS real)",
+          "expect": "456.0"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf8.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(' 456ķ89' AS integer)",
+          "expect": "456"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf8.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(' Ġ 321.5' AS real)",
+          "expect": "0.0"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf8.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(' Ġ 321.5' AS integer)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16le.0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding='utf16le'"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA encoding",
+          "variable": "x",
+          "resultAll": true,
+          "expect": "utf16le"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16le.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(12345.0 AS real)",
+          "expect": "12345.0"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16le.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(12345.0 AS integer)",
+          "expect": "12345"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16le.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(12345.0e0 AS real)",
+          "expect": "12345.0"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16le.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(12345.0e0 AS integer)",
+          "expect": "12345"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16le.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(-12345.0e0 AS real)",
+          "expect": "-12345.0"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16le.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(-12345.0e0 AS integer)",
+          "expect": "-12345"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16le.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(-12345.25 AS real)",
+          "expect": "-12345.25"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16le.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(-12345.25 AS integer)",
+          "expect": "-12345"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16le.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(-12345.0 AS real)",
+          "expect": "-12345.0"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16le.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(-12345.0 AS integer)",
+          "expect": "-12345"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16le.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(' 876xyz' AS real)",
+          "expect": "876.0"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16le.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(' 876xyz' AS integer)",
+          "expect": "876"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16le.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(' 456ķ89' AS real)",
+          "expect": "456.0"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16le.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(' 456ķ89' AS integer)",
+          "expect": "456"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16le.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(' Ġ 321.5' AS real)",
+          "expect": "0.0"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16le.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(' Ġ 321.5' AS integer)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16be.0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding='utf16be'"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA encoding",
+          "variable": "x",
+          "resultAll": true,
+          "expect": "utf16be"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16be.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(12345.0 AS real)",
+          "expect": "12345.0"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16be.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(12345.0 AS integer)",
+          "expect": "12345"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16be.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(12345.0e0 AS real)",
+          "expect": "12345.0"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16be.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(12345.0e0 AS integer)",
+          "expect": "12345"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16be.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(-12345.0e0 AS real)",
+          "expect": "-12345.0"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16be.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(-12345.0e0 AS integer)",
+          "expect": "-12345"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16be.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(-12345.25 AS real)",
+          "expect": "-12345.25"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16be.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(-12345.25 AS integer)",
+          "expect": "-12345"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16be.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(-12345.0 AS real)",
+          "expect": "-12345.0"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16be.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(-12345.0 AS integer)",
+          "expect": "-12345"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16be.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(' 876xyz' AS real)",
+          "expect": "876.0"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16be.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(' 876xyz' AS integer)",
+          "expect": "876"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16be.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(' 456ķ89' AS real)",
+          "expect": "456.0"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16be.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(' 456ķ89' AS integer)",
+          "expect": "456"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16be.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(' Ġ 321.5' AS real)",
+          "expect": "0.0"
+        }
+      ]
+    },
+    {
+      "name": "numcast-utf16be.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(' Ġ 321.5' AS integer)",
+          "expect": "0"
         }
       ]
     }

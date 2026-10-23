@@ -1,6 +1,7 @@
 {
   "file": "e_delete.test",
   "name": "e_delete",
+  "ordered": true,
   "tests": [
     {
       "name": "e_delete-0.0",
@@ -8,6 +9,175 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-0.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 INDEXED BY i1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 NOT INDEXED"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM main.t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM main.t1 INDEXED BY i1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM main.t1 NOT INDEXED"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a\u003e2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 INDEXED BY i1 WHERE a\u003e2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 NOT INDEXED WHERE a\u003e2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM main.t1 WHERE a\u003e2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM main.t1 INDEXED BY i1 WHERE a\u003e2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM main.t1 NOT INDEXED WHERE a\u003e2"
+        }
+      ]
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "e_delete-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y);\n        INSERT INTO t1 VALUES(1, 'one');\n        INSERT INTO t1 VALUES(2, 'two');\n        INSERT INTO t1 VALUES(3, 'three');\n        INSERT INTO t1 VALUES(4, 'four');\n        INSERT INTO t1 VALUES(5, 'five');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x, y);\n        INSERT INTO t2 VALUES(1, 'one');\n        INSERT INTO t2 VALUES(2, 'two');\n        INSERT INTO t2 VALUES(3, 'three');\n        INSERT INTO t2 VALUES(4, 'four');\n        INSERT INTO t2 VALUES(5, 'five');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(x, y);\n        INSERT INTO t3 VALUES(1, 'one');\n        INSERT INTO t3 VALUES(2, 'two');\n        INSERT INTO t3 VALUES(3, 'three');\n        INSERT INTO t3 VALUES(4, 'four');\n        INSERT INTO t3 VALUES(5, 'five');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(x, y);\n        INSERT INTO t4 VALUES(1, 'one');\n        INSERT INTO t4 VALUES(2, 'two');\n        INSERT INTO t4 VALUES(3, 'three');\n        INSERT INTO t4 VALUES(4, 'four');\n        INSERT INTO t4 VALUES(5, 'five');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(x, y);\n        INSERT INTO t5 VALUES(1, 'one');\n        INSERT INTO t5 VALUES(2, 'two');\n        INSERT INTO t5 VALUES(3, 'three');\n        INSERT INTO t5 VALUES(4, 'four');\n        INSERT INTO t5 VALUES(5, 'five');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(x, y);\n        INSERT INTO t6 VALUES(1, 'one');\n        INSERT INTO t6 VALUES(2, 'two');\n        INSERT INTO t6 VALUES(3, 'three');\n        INSERT INTO t6 VALUES(4, 'four');\n        INSERT INTO t6 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-1.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1       ; SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM main.t2  ; SELECT * FROM t2"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-1.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE 1       ; SELECT x FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM main.t4 WHERE 0  ; SELECT x FROM t4",
+          "expect": "1 2 3 4 5"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t4 WHERE 0.0     ; SELECT x FROM t4",
+          "expect": "1 2 3 4 5"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t4 WHERE NULL    ; SELECT x FROM t4",
+          "expect": "1 2 3 4 5"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t4 WHERE y!='two'; SELECT x FROM t4",
+          "expect": "2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t4 WHERE y='two' ; SELECT x FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t5 WHERE x=(SELECT max(x) FROM t5);SELECT x FROM t5",
+          "expect": "1 2 3 4"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t5 WHERE (SELECT max(x) FROM t4)  ;SELECT x FROM t5",
+          "expect": "1 2 3 4"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t5 WHERE (SELECT max(x) FROM t6)  ;SELECT x FROM t5"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE y\u003e'seven' ; SELECT y FROM t6",
+          "expect": "one four five"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db3"
         }
       ]
     },
@@ -21,6 +191,41 @@
       ]
     },
     {
+      "name": "e_delete-2.1.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n        DELETE FROM main.t2;\n      END;",
+          "expect": "1 {qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers}"
+        },
+        {
+          "type": "catch",
+          "sql": "CREATE TRIGGER tr1 BEFORE UPDATE ON t2 BEGIN\n        DELETE FROM temp.t7 WHERE a=new.a;\n      END;",
+          "expect": "1 {qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers}"
+        },
+        {
+          "type": "catch",
+          "sql": "CREATE TRIGGER tr1 AFTER UPDATE ON t8 BEGIN\n        DELETE FROM aux2.t8 WHERE b!=a;\n      END;",
+          "expect": "1 {qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers}"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-2.2.1.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TRIGGER main.tr1 AFTER INSERT ON main.t7 BEGIN\n        DELETE FROM t9;\n      END;\n      INSERT INTO main.t7 VALUES(1, 2);",
+          "expect": "1 {no such table: main.t9}"
+        },
+        {
+          "type": "catch",
+          "sql": "CREATE TRIGGER aux.tr2 BEFORE UPDATE ON t9 BEGIN\n        DELETE FROM t10;\n      END;\n      UPDATE t9 SET a=1;",
+          "expect": "1 {no such table: aux.t10}"
+        }
+      ]
+    },
+    {
       "name": "e_delete-2.2.X",
       "steps": [
         {
@@ -30,11 +235,26 @@
       ]
     },
     {
+      "name": "e_delete-2.2.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER aux.tr1 AFTER INSERT ON t8 BEGIN\n        DELETE FROM t9;\n      END;\n      INSERT INTO aux.t8 VALUES(1, 2);\n\n      SELECT count(*) FROM aux.t9 \n        UNION ALL\n      SELECT count(*) FROM aux2.t9;",
+          "expect": "0 1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER main.tr1 AFTER INSERT ON t8 BEGIN\n        DELETE FROM t7;\n      END;\n      INSERT INTO main.t8 VALUES(1, 2);\n\n      SELECT count(*) FROM temp.t7 \n        UNION ALL\n      SELECT count(*) FROM main.t7\n        UNION ALL\n      SELECT count(*) FROM aux.t7\n        UNION ALL\n      SELECT count(*) FROM aux2.t7;",
+          "expect": "1 0 1 1"
+        }
+      ]
+    },
+    {
       "name": "e_delete-2.3.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP TRIGGER aux.tr1;\n  DROP TRIGGER main.tr1;\n  DELETE FROM main.t8 WHERE oid>1;\n  DELETE FROM aux.t8 WHERE oid>1;\n  INSERT INTO aux.t9 VALUES(1, 2);\n  INSERT INTO main.t7 VALUES(3, 4);"
+          "sql": "DROP TRIGGER aux.tr1;\n  DROP TRIGGER main.tr1;\n  DELETE FROM main.t8 WHERE oid\u003e1;\n  DELETE FROM aux.t8 WHERE oid\u003e1;\n  INSERT INTO aux.t9 VALUES(1, 2);\n  INSERT INTO main.t7 VALUES(3, 4);"
         }
       ]
     },
@@ -73,10 +293,1710 @@
         {
           "type": "exec",
           "sql": "CREATE INDEX i8 ON t8(a, b);"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-2.4.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TRIGGER tr3 AFTER INSERT ON t8 BEGIN\n      DELETE FROM t8 INDEXED BY i8 WHERE a=5;\n    END;",
+          "expect": "1 {the INDEXED BY clause is not allowed on UPDATE or DELETE statements within triggers}"
+        },
+        {
+          "type": "catch",
+          "sql": "CREATE TRIGGER tr3 AFTER INSERT ON t8 BEGIN\n      DELETE FROM t8 NOT INDEXED WHERE a=5;\n    END;",
+          "expect": "1 {the NOT INDEXED clause is not allowed on UPDATE or DELETE statements within triggers}"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-2.5.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TRIGGER tr3 AFTER INSERT ON t8 BEGIN\n      DELETE FROM t8 LIMIT 10;\n    END;",
+          "expect": "1 {near \"LIMIT\": syntax error}"
+        },
+        {
+          "type": "catch",
+          "sql": "CREATE TRIGGER tr3 AFTER INSERT ON t8 BEGIN\n      DELETE FROM t8 ORDER BY a LIMIT 5;\n    END;",
+          "expect": "1 {near \"ORDER\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT 5"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT 5-1 OFFSET 2+2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT 2+2, 16/4"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY x LIMIT 5"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY x LIMIT 5-1 OFFSET 2+2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY x LIMIT 2+2, 16/4"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x\u003e2 LIMIT 5"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x\u003e2 LIMIT 5-1 OFFSET 2+2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x\u003e2 LIMIT 2+2, 16/4"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x\u003e2 ORDER BY x LIMIT 5"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x\u003e2 ORDER BY x LIMIT 5-1 OFFSET 2+2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x\u003e2 ORDER BY x LIMIT 2+2, 16/4"
+        }
+      ]
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
         },
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT 3"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "4 5"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT 1+1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.2.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT '4'"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.2.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.2.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT '1.0'"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.2.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.3.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1 LIMIT 'abc'",
+          "expect": "1 {datatype mismatch}"
+        },
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1 LIMIT NULL",
+          "expect": "1 {datatype mismatch}"
+        },
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1 LIMIT X'ABCD'",
+          "expect": "1 {datatype mismatch}"
+        },
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1 LIMIT 1.2",
+          "expect": "1 {datatype mismatch}"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.4.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT -1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.4.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.4.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT 2-4"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.4.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.4.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT -4.0"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.4.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.4.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT 5*-1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.4.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.5.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1 LIMIT 1 OFFSET 'abc'",
+          "expect": "1 {datatype mismatch}"
+        },
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1 LIMIT 1 OFFSET NULL",
+          "expect": "1 {datatype mismatch}"
+        },
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1 LIMIT 1 OFFSET X'ABCD'",
+          "expect": "1 {datatype mismatch}"
+        },
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1 LIMIT 1 OFFSET 1.2",
+          "expect": "1 {datatype mismatch}"
+        },
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1 LIMIT 'abc', 1",
+          "expect": "1 {datatype mismatch}"
+        },
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1 LIMIT NULL, 1",
+          "expect": "1 {datatype mismatch}"
+        },
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1 LIMIT X'ABCD', 1",
+          "expect": "1 {datatype mismatch}"
+        },
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1 LIMIT 1.2, 1",
+          "expect": "1 {datatype mismatch}"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.1a",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.1a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT 3 OFFSET 0"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "4 5"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.1a",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.1b",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.1b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT 3"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "4 5"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.1b",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.1c",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.1c",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT 3 OFFSET -1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "4 5"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.1c",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.2a",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.2a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT 1+1 OFFSET 0"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.2a",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.2b",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.2b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT 1+1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.2b",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.2c",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.2c",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT 1+1 OFFSET 2-5"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.2c",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.3a",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.3a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT '4' OFFSET 0"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.3a",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.3b",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.3b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT '4'"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.3b",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.3c",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.3c",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT '4' OFFSET -1.0"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.3c",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.4a",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.4a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT '1.0' OFFSET 0"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.4a",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.4b",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.4b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT '1.0'"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.4b",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.4c",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.4c",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT '1.0' OFFSET -11"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.6.4c",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.7.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY b LIMIT 2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.7.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.7.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY length(b), a LIMIT 3"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "3 5"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.7.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.7.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY a DESC LIMIT 1 OFFSET 0"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.7.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.7.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.7.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY a DESC LIMIT 1 OFFSET 1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "1 2 3 5"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.7.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.7.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.7.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY a DESC LIMIT 1 OFFSET 2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "1 2 4 5"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.7.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.8.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY a ASC LIMIT 10"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.8.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.8.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY a ASC LIMIT -1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.8.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.8.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.8.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY a ASC LIMIT 4 OFFSET 2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.8.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.9.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT 2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.9.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.9.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.9.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT 3"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "4 5"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.9.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.9.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.9.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT 1 OFFSET 0"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.9.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.9.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.9.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT 1 OFFSET 1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "1 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.9.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.9.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.9.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT 1 OFFSET 2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "1 2 4 5"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.9.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.10.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1log"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1log(x);\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN\n      INSERT INTO t1log VALUES(old.a);\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY a DESC LIMIT 2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1log",
+          "expect": "4 5"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.10.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1log"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1log(x);\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN\n      INSERT INTO t1log VALUES(old.a);\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.10.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1log"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1log(x);\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN\n      INSERT INTO t1log VALUES(old.a);\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.10.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY a DESC LIMIT -1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1log",
+          "expect": "1 2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.10.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1log"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1log(x);\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN\n      INSERT INTO t1log VALUES(old.a);\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.10.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1log"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1log(x);\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN\n      INSERT INTO t1log VALUES(old.a);\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.10.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY a ASC LIMIT 2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1log",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.10.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1log"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1log(x);\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN\n      INSERT INTO t1log VALUES(old.a);\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.10.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1log"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1log(x);\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN\n      INSERT INTO t1log VALUES(old.a);\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.10.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY a ASC LIMIT -1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1log",
+          "expect": "1 2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "e_delete-3.10.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');"
+        },
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1log"
         },
         {
           "type": "exec",

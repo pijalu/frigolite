@@ -1,9 +1,36 @@
 {
   "file": "fts3matchinfo.test",
   "name": "fts3matchinfo",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "mit",
+          "callbackVars": {
+            "": "0",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "sqlite_fts3_enable_parentheses": "0",
+            "testdir": "",
+            "testprefix": "fts3matchinfo"
+          },
+          "functionProc": "mit",
+          "functionArgs": [
+            "blob"
+          ],
+          "functionBody": "\n  set scan(littleEndian) i*\n  set scan(bigEndian) I*\n  binary scan $blob $scan($::tcl_platform(byteOrder)) r\n  return $r\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-1.0",
       "steps": [
         {
           "type": "query",
@@ -13,7 +40,7 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "fts3matchinfo-1.1",
       "steps": [
         {
           "type": "query",
@@ -23,7 +50,7 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "fts3matchinfo-1.2",
       "steps": [
         {
           "type": "query",
@@ -33,37 +60,37 @@
       ]
     },
     {
-      "name": "2.0",
+      "name": "fts3matchinfo-2.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE x1 USING fts4(matchinfo=fs3);",
           "expect": "1 {unrecognized matchinfo: fs3}"
         }
       ]
     },
     {
-      "name": "2.1",
+      "name": "fts3matchinfo-2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE x2 USING fts4(mtchinfo=fts3);",
           "expect": "1 {unrecognized parameter: mtchinfo=fts3}"
         }
       ]
     },
     {
-      "name": "2.2",
+      "name": "fts3matchinfo-2.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE x2 USING fts4(matchinfo=fts5);",
           "expect": "1 {unrecognized matchinfo: fts5}"
         }
       ]
     },
     {
-      "name": "3.1",
+      "name": "fts3matchinfo-3.1",
       "steps": [
         {
           "type": "query",
@@ -73,7 +100,7 @@
       ]
     },
     {
-      "name": "3.2",
+      "name": "fts3matchinfo-3.2",
       "steps": [
         {
           "type": "exec",
@@ -82,7 +109,7 @@
       ]
     },
     {
-      "name": "3.3",
+      "name": "fts3matchinfo-3.3",
       "steps": [
         {
           "type": "query",
@@ -91,7 +118,7 @@
       ]
     },
     {
-      "name": "3.4",
+      "name": "fts3matchinfo-3.4",
       "steps": [
         {
           "type": "query",
@@ -100,7 +127,7 @@
       ]
     },
     {
-      "name": "4.1.0",
+      "name": "fts3matchinfo-4.1.0",
       "steps": [
         {
           "type": "exec",
@@ -109,7 +136,79 @@
       ]
     },
     {
-      "name": "4.2.0",
+      "name": "fts3matchinfo-4.1.1.multi",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  FROM t4 WHERE t4 MATCH 'a b c'"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-4.1.2.multi",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  FROM t4 WHERE t4 MATCH '\"g h i\"'"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-4.1.3.multi",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  FROM t4 WHERE t4 MATCH 'a b'"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-4.1.4.multi",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  FROM t4 WHERE t4 MATCH '\"a b\" c'"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-4.1.5.multi",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  FROM t4 WHERE t4 MATCH 'a \"b c\"'"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-4.1.6.multi",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  FROM t4 WHERE t4 MATCH 'd d'"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-4.1.7.multi",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  FROM t4 WHERE t4 MATCH 'f OR abcd'"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-4.1.8.multi",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  FROM t4 WHERE t4 MATCH 'f -abcd'"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-4.2.0",
       "steps": [
         {
           "type": "exec",
@@ -118,7 +217,115 @@
       ]
     },
     {
-      "name": "4.4.0.1",
+      "name": "fts3matchinfo-4.2.1.multi",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  FROM t5 WHERE t5 MATCH 'a a'"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-4.2.2.multi",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  FROM t5 WHERE t5 MATCH 'a b'"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-4.2.3.multi",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  FROM t5 WHERE t5 MATCH 'a b a'"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-4.2.4.multi",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  FROM t5 WHERE t5 MATCH 'a a a'"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-4.2.5.multi",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  FROM t5 WHERE t5 MATCH '\"a b\" \"a b\"'"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-4.2.6.multi",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  FROM t5 WHERE t5 MATCH 'a OR b'"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-4.3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('x y b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b b ')"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-4.3.2.multi",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  FROM t5 WHERE t5 MATCH 'a b'"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-4.3.3.multi",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  FROM t5 WHERE t5 MATCH 'a b a'"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-4.3.4.multi",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  FROM t5 WHERE t5 MATCH 'a a a'"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-4.3.5.multi",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  FROM t5 WHERE t5 MATCH '\"a b\" \"a b\"'"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-4.3.6.multi",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  FROM t5 WHERE t5 MATCH 'a OR b'"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-4.4.0.1",
       "steps": [
         {
           "type": "exec",
@@ -127,16 +334,79 @@
       ]
     },
     {
-      "name": "4.4.0.2",
+      "name": "setup_1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "UPDATE t5_segments \n    SET block = zeroblob(length(block)) \n    WHERE length(block)>10000;"
+          "type": "defensive",
+          "sql": "0"
         }
       ]
     },
     {
-      "name": "4.5.0",
+      "name": "fts3matchinfo-4.4.0.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t5_segments \n    SET block = zeroblob(length(block)) \n    WHERE length(block)\u003e10000;"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-4.4.2.multi",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  FROM t5 WHERE t5 MATCH 'a b'"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-4.4.1.multi",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  FROM t5 WHERE t5 MATCH 'a a'"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-4.4.2.multi",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  FROM t5 WHERE t5 MATCH 'a b'"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-4.4.3.multi",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  FROM t5 WHERE t5 MATCH 'a b a'"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-4.4.4.multi",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  FROM t5 WHERE t5 MATCH 'a a a'"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-4.4.5.multi",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  FROM t5 WHERE t5 MATCH '\"a b\" \"a b\"'"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-4.5.0",
       "steps": [
         {
           "type": "exec",
@@ -145,7 +415,16 @@
       ]
     },
     {
-      "name": "5.1",
+      "name": "fts3matchinfo-4.5.1.multi",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT  FROM t6 WHERE t6 MATCH 'a b c'"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-5.1",
       "steps": [
         {
           "type": "exec",
@@ -154,47 +433,47 @@
       ]
     },
     {
-      "name": "5.2.1",
+      "name": "fts3matchinfo-5.2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT matchinfo(t7, 'a') FROM t7 WHERE t7 MATCH 'x y'",
           "expect": "1 {unrecognized matchinfo request: a}"
         }
       ]
     },
     {
-      "name": "5.2.2",
+      "name": "fts3matchinfo-5.2.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT matchinfo(t7, 'l') FROM t7 WHERE t7 MATCH 'x y'",
           "expect": "1 {unrecognized matchinfo request: l}"
         }
       ]
     },
     {
-      "name": "5.2.3",
+      "name": "fts3matchinfo-5.2.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT matchinfo(t7, 'n') FROM t7 WHERE t7 MATCH 'x y'",
           "expect": "1 {unrecognized matchinfo request: n}"
         }
       ]
     },
     {
-      "name": "5.3.1",
+      "name": "fts3matchinfo-5.3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT matchinfo(t8, 'l') FROM t8 WHERE t8 MATCH 'x y'",
           "expect": "1 {unrecognized matchinfo request: l}"
         }
       ]
     },
     {
-      "name": "6.1",
+      "name": "fts3matchinfo-6.1",
       "steps": [
         {
           "type": "query",
@@ -204,17 +483,26 @@
       ]
     },
     {
-      "name": "6.2",
+      "name": "setup_2",
       "steps": [
         {
-          "type": "exec",
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-6.2",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "UPDATE t9_content SET c0content = 'this record is used to'; \n  SELECT offsets(t9) FROM t9 WHERE t9 MATCH 'to';",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "7.1",
+      "name": "fts3matchinfo-7.1",
       "steps": [
         {
           "type": "exec",
@@ -223,7 +511,7 @@
       ]
     },
     {
-      "name": "7.2",
+      "name": "fts3matchinfo-7.2",
       "steps": [
         {
           "type": "query",
@@ -233,7 +521,7 @@
       ]
     },
     {
-      "name": "7.3",
+      "name": "fts3matchinfo-7.3",
       "steps": [
         {
           "type": "query",
@@ -243,7 +531,7 @@
       ]
     },
     {
-      "name": "7.4",
+      "name": "fts3matchinfo-7.4",
       "steps": [
         {
           "type": "query",
@@ -253,7 +541,7 @@
       ]
     },
     {
-      "name": "8.1",
+      "name": "fts3matchinfo-8.1",
       "steps": [
         {
           "type": "exec",
@@ -262,143 +550,800 @@
       ]
     },
     {
-      "name": "8.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT mit(matchinfo(t11, 'nxa')) FROM t11 WHERE t11 MATCH 'a*'",
-          "expect": "{204 1 3 3 0} {204 1 3 3 0} {204 1 3 3 0}"
-        }
-      ]
-    },
-    {
-      "name": "8.4.1.1",
+      "name": "fts3matchinfo-8.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE t11_stat SET value = X'0000';"
-        }
-      ]
-    },
-    {
-      "name": "8.5.1.2",
-      "steps": [
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
         {
           "type": "exec",
-          "sql": "SELECT mit(matchinfo(t11, 'nxa')) FROM t11 WHERE t11 MATCH 'a*'",
-          "expect": "1 {database disk image is malformed}"
-        }
-      ]
-    },
-    {
-      "name": "8.4.2.1",
-      "steps": [
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
         {
           "type": "exec",
-          "sql": "UPDATE t11_stat SET value = X'00';"
-        }
-      ]
-    },
-    {
-      "name": "8.5.2.2",
-      "steps": [
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
         {
           "type": "exec",
-          "sql": "SELECT mit(matchinfo(t11, 'nxa')) FROM t11 WHERE t11 MATCH 'a*'",
-          "expect": "1 {database disk image is malformed}"
-        }
-      ]
-    },
-    {
-      "name": "8.4.3.1",
-      "steps": [
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
         {
           "type": "exec",
-          "sql": "UPDATE t11_stat SET value = NULL;"
-        }
-      ]
-    },
-    {
-      "name": "8.5.3.2",
-      "steps": [
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
         {
           "type": "exec",
-          "sql": "SELECT mit(matchinfo(t11, 'nxa')) FROM t11 WHERE t11 MATCH 'a*'",
-          "expect": "1 {database disk image is malformed}"
-        }
-      ]
-    },
-    {
-      "name": "8.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE VIRTUAL TABLE t12 USING fts4;\n  INSERT INTO t12 VALUES('a b c d');\n  SELECT mit(matchinfo(t12, 'x')) FROM t12 WHERE t12 MATCH 'a NEAR/1 d OR a';",
-          "expect": "{0 0 0 0 0 0 1 1 1}"
-        }
-      ]
-    },
-    {
-      "name": "8.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "INSERT INTO t12 VALUES('a d c d');\n  SELECT mit(matchinfo(t12, 'x')) FROM t12 WHERE t12 MATCH 'a NEAR/1 d OR a';",
-          "expect": "{0 1 1 0 1 1 1 2 2} {1 1 1 1 1 1 1 2 2}"
-        }
-      ]
-    },
-    {
-      "name": "8.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "INSERT INTO t12 VALUES('a d d a');\n  SELECT mit(matchinfo(t12, 'x')) FROM t12 WHERE t12 MATCH 'a NEAR/1 d OR a';",
-          "expect": "{0 3 2 0 3 2 1 4 3} {1 3 2 1 3 2 1 4 3} {2 3 2 2 3 2 2 4 3}"
-        }
-      ]
-    },
-    {
-      "name": "9.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE VIRTUAL TABLE ft2 USING fts4;\n  INSERT INTO ft2 VALUES('a b c d e');\n  INSERT INTO ft2 VALUES('f a b c d');\n  SELECT snippet(ft2, '[', ']', '', -1, 1) FROM ft2 WHERE ft2 MATCH 'c';",
-          "expect": "{[c]} {[c]}"
-        }
-      ]
-    },
-    {
-      "name": "10.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "DROP TABLE t10;\n  CREATE VIRTUAL TABLE t10 USING fts4(idx, value);\n  INSERT INTO t10 values (1, 'one'),(2, 'two'),(3, 'three');\n  SELECT docId, t10.*\n    FROM t10\n    JOIN (SELECT 1 AS idx UNION SELECT 2 UNION SELECT 3) AS x\n   WHERE t10 MATCH x.idx\n     AND matchinfo(t10) not null\n   GROUP BY docId\n   ORDER BY 1;",
-          "expect": "1 1 one 2 2 two 3 3 three"
-        }
-      ]
-    },
-    {
-      "name": "11.0",
-      "steps": [
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
         {
           "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE tt USING fts3(x, y);\n  INSERT INTO tt VALUES('c d a c d d', 'e a g b d a');   -- 1\n  INSERT INTO tt VALUES('c c g a e b', 'c g d g e c');   -- 2\n  INSERT INTO tt VALUES('b e f d e g', 'b a c b c g');   -- 3\n  INSERT INTO tt VALUES('a c f f g d', 'd b f d e g');   -- 4\n  INSERT INTO tt VALUES('g a c f c f', 'd g g b c c');   -- 5\n  INSERT INTO tt VALUES('g a c e b b', 'd b f b g g');   -- 6\n  INSERT INTO tt VALUES('f d a a f c', 'e e a d c f');   -- 7\n  INSERT INTO tt VALUES('a c b b g f', 'a b a e d f');   -- 8\n  INSERT INTO tt VALUES('b a f e c c', 'f d b b a b');   -- 9\n  INSERT INTO tt VALUES('f d c e a c', 'f a f a a f');   -- 10"
-        }
-      ]
-    },
-    {
-      "name": "12.1",
-      "steps": [
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
         {
-          "type": "query",
-          "sql": "INSERT INTO tt (rowid, c4, c45) VALUES(1, 'abc', 'abc');\n  SELECT mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'abc';"
-        }
-      ]
-    },
-    {
-      "name": "8.2",
-      "steps": [
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES('')"
+        },
         {
           "type": "exec",
           "sql": "INSERT INTO t11 VALUES('')"
@@ -414,21 +1359,404 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "fts3matchinfo-8.3",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "query",
+          "sql": "SELECT mit(matchinfo(t11, 'nxa')) FROM t11 WHERE t11 MATCH 'a*'",
+          "expect": "{204 1 3 3 0} {204 1 3 3 0} {204 1 3 3 0}"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-8.4.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t11_stat SET value = X'0000';"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-8.5.1.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT mit(matchinfo(t11, 'nxa')) FROM t11 WHERE t11 MATCH 'a*'",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-8.4.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t11_stat SET value = X'00';"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-8.5.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT mit(matchinfo(t11, 'nxa')) FROM t11 WHERE t11 MATCH 'a*'",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-8.4.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t11_stat SET value = NULL;"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-8.5.3.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT mit(matchinfo(t11, 'nxa')) FROM t11 WHERE t11 MATCH 'a*'",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE t12 USING fts4;\n  INSERT INTO t12 VALUES('a b c d');\n  SELECT mit(matchinfo(t12, 'x')) FROM t12 WHERE t12 MATCH 'a NEAR/1 d OR a';",
+          "expect": "{0 0 0 0 0 0 1 1 1}"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t12 VALUES('a d c d');\n  SELECT mit(matchinfo(t12, 'x')) FROM t12 WHERE t12 MATCH 'a NEAR/1 d OR a';",
+          "expect": "\n  {0 1 1 0 1 1 1 2 2} {1 1 1 1 1 1 1 2 2}\n"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t12 VALUES('a d d a');\n  SELECT mit(matchinfo(t12, 'x')) FROM t12 WHERE t12 MATCH 'a NEAR/1 d OR a';",
+          "expect": "\n  {0 3 2 0 3 2 1 4 3} {1 3 2 1 3 2 1 4 3} {2 3 2 2 3 2 2 4 3}\n"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE ft2 USING fts4;\n  INSERT INTO ft2 VALUES('a b c d e');\n  INSERT INTO ft2 VALUES('f a b c d');\n  SELECT snippet(ft2, '[', ']', '', -1, 1) FROM ft2 WHERE ft2 MATCH 'c';",
+          "expect": "{[c]} {[c]}"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-10.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t10;\n  CREATE VIRTUAL TABLE t10 USING fts4(idx, value);\n  INSERT INTO t10 values (1, 'one'),(2, 'two'),(3, 'three');\n  SELECT docId, t10.*\n    FROM t10\n    JOIN (SELECT 1 AS idx UNION SELECT 2 UNION SELECT 3) AS x\n   WHERE t10 MATCH x.idx\n     AND matchinfo(t10) not null\n   GROUP BY docId\n   ORDER BY 1;",
+          "expect": "1 1 one 2 2 two 3 3 three"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3matchinfo-11.0",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE tt USING fts3(x, y);\n  INSERT INTO tt VALUES('c d a c d d', 'e a g b d a');   -- 1\n  INSERT INTO tt VALUES('c c g a e b', 'c g d g e c');   -- 2\n  INSERT INTO tt VALUES('b e f d e g', 'b a c b c g');   -- 3\n  INSERT INTO tt VALUES('a c f f g d', 'd b f d e g');   -- 4\n  INSERT INTO tt VALUES('g a c f c f', 'd g g b c c');   -- 5\n  INSERT INTO tt VALUES('g a c e b b', 'd b f b g g');   -- 6\n  INSERT INTO tt VALUES('f d a a f c', 'e e a d c f');   -- 7\n  INSERT INTO tt VALUES('a c b b g f', 'a b a e d f');   -- 8\n  INSERT INTO tt VALUES('b a f e c c', 'f d b b a b');   -- 9\n  INSERT INTO tt VALUES('f d c e a c', 'f a f a a f');   -- 10"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "mit",
+          "callbackVars": {
+            "": "1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "i": "200",
+            "sqlite_fts3_enable_parentheses": "1",
+            "testdir": "",
+            "testprefix": "fts3matchinfo"
+          },
+          "functionProc": "mit",
+          "functionArgs": [
+            "blob"
+          ],
+          "functionBody": "\n  set scan(littleEndian) i*\n  set scan(bigEndian) I*\n  binary scan $blob $scan($::tcl_platform(byteOrder)) r\n  return $r\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-11.1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, mit(matchinfo(tt, 'y')) FROM tt WHERE tt MATCH 'a'",
+          "expect": "\n      1 {1 2}   2 {1 0}   3 {0 1}   4 {1 0}   5 {1 0}\n      6 {1 0}   7 {2 1}   8 {1 2}   9 {1 1}  10 {1 3}\n  "
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-11.1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'a'",
+          "expect": "1 3 2 1 3 2 4 1 5 1 6 1 7 3 8 3 9 3 10 3"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'a'",
+          "expect": "1 3 2 1 3 2 4 1 5 1 6 1 7 3 8 3 9 3 10 3"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-11.1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, mit(matchinfo(tt, 'y')) FROM tt WHERE tt MATCH 'b'",
+          "expect": "\n      1 {0 1}   2 {1 0}   3 {1 2}   4 {0 1}   5 {0 1}\n      6 {2 2}             8 {2 1}   9 {1 3}            \n  "
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-11.1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'b'",
+          "expect": "1 2 2 1 3 3 4 2 5 2 6 3 8 3 9 3"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'b'",
+          "expect": "1 2 2 1 3 3 4 2 5 2 6 3 8 3 9 3"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-11.1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, mit(matchinfo(tt, 'y')) FROM tt WHERE tt MATCH 'y:a'",
+          "expect": "\n      1 {0 2}             3 {0 1}                    \n                7 {0 1}   8 {0 2}   9 {0 1}  10 {0 3}\n  "
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-11.1.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'y:a'",
+          "expect": "1 2 3 2 7 2 8 2 9 2 10 2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'y:a'",
+          "expect": "1 2 3 2 7 2 8 2 9 2 10 2"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-11.1.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, mit(matchinfo(tt, 'y')) FROM tt WHERE tt MATCH 'x:a'",
+          "expect": "\n      1 {1 0}   2 {1 0}             4 {1 0}   5 {1 0}\n      6 {1 0}   7 {2 0}   8 {1 0}   9 {1 0}  10 {1 0}\n  "
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-11.1.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'x:a'",
+          "expect": "1 1 2 1 4 1 5 1 6 1 7 1 8 1 9 1 10 1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'x:a'",
+          "expect": "1 1 2 1 4 1 5 1 6 1 7 1 8 1 9 1 10 1"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-11.1.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, mit(matchinfo(tt, 'y')) FROM tt WHERE tt MATCH 'a OR b'",
+          "expect": "\n      1 {1 2 0 1}   2 {1 0 1 0}   3 {0 1 1 2}   4 {1 0 0 1}   5 {1 0 0 1}\n      6 {1 0 2 2}   7 {2 1 0 0}   8 {1 2 2 1}   9 {1 1 1 3}  10 {1 3 0 0}\n  "
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-11.1.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'a OR b'",
+          "expect": "1 {3 2} 2 {1 1} 3 {2 3} 4 {1 2} 5 {1 2} 6 {1 3} 7 {3 0} 8 {3 3} 9 {3 3} 10 {3 0}"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'a OR b'",
+          "expect": "1 {3 2} 2 {1 1} 3 {2 3} 4 {1 2} 5 {1 2} 6 {1 3} 7 {3 0} 8 {3 3} 9 {3 3} 10 {3 0}"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-11.1.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, mit(matchinfo(tt, 'y')) FROM tt WHERE tt MATCH 'a AND b'",
+          "expect": "\n      1 {1 2 0 1}   2 {1 0 1 0}   3 {0 1 1 2}   4 {1 0 0 1}   5 {1 0 0 1}\n      6 {1 0 2 2}                 8 {1 2 2 1}   9 {1 1 1 3}              \n  "
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-11.1.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'a AND b'",
+          "expect": "1 {3 2} 2 {1 1} 3 {2 3} 4 {1 2} 5 {1 2} 6 {1 3} 8 {3 3} 9 {3 3}"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'a AND b'",
+          "expect": "1 {3 2} 2 {1 1} 3 {2 3} 4 {1 2} 5 {1 2} 6 {1 3} 8 {3 3} 9 {3 3}"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-11.1.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, mit(matchinfo(tt, 'y')) FROM tt WHERE tt MATCH 'a OR (a AND b)'",
+          "expect": "\n      1 {1 2 1 2 0 1}   2 {1 0 1 0 1 0}   3 {0 1 0 1 1 2}   4 {1 0 1 0 0 1}   \n      5 {1 0 1 0 0 1}   6 {1 0 1 0 2 2}   7 {2 1 0 0 0 0}   8 {1 2 1 2 2 1}   \n      9 {1 1 1 1 1 3}  10 {1 3 0 0 0 0}\n  "
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-11.1.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'a OR (a AND b)'",
+          "expect": "1 {3 3 2} 2 {1 1 1} 3 {2 2 3} 4 {1 1 2} 5 {1 1 2} 6 {1 1 3} 7 {3 0 0} 8 {3 3 3} 9 {3 3 3} 10 {3 0 0}"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'a OR (a AND b)'",
+          "expect": "1 {3 3 2} 2 {1 1 1} 3 {2 2 3} 4 {1 1 2} 5 {1 1 2} 6 {1 1 3} 7 {3 0 0} 8 {3 3 3} 9 {3 3 3} 10 {3 0 0}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "mit",
+          "callbackVars": {
+            "": "1",
+            "L": "1 3 0 0 0 0",
+            "M": "3 0 0",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "a": "0",
+            "b": "0",
+            "expr": "a OR (a AND b)",
+            "i": "200",
+            "r2": "1 {3 3 2} 2 {1 1 1} 3 {2 2 3} 4 {1 1 2} 5 {1 1 2} 6 {1 1 3} 7 {3 0 0} 8 {3 3 3} 9 {3 3 3} 10 {3 0 0}",
+            "res": "\n      1 {1 2 1 2 0 1}   2 {1 0 1 0 1 0}   3 {0 1 0 1 1 2}   4 {1 0 1 0 0 1}   \n      5 {1 0 1 0 0 1}   6 {1 0 1 0 2 2}   7 {2 1 0 0 0 0}   8 {1 2 1 2 2 1}   \n      9 {1 1 1 1 1 3}  10 {1 3 0 0 0 0}\n  ",
+            "rowid": "10",
+            "sqlite_fts3_enable_parentheses": "1",
+            "testdir": "",
+            "testprefix": "fts3matchinfo",
+            "tn": "7"
+          },
+          "functionProc": "mit",
+          "functionArgs": [
+            "blob"
+          ],
+          "functionBody": "\n  set scan(littleEndian) i*\n  set scan(bigEndian) I*\n  binary scan $blob $scan($::tcl_platform(byteOrder)) r\n  return $r\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-12.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE tt USING fts3(c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18,c19,c20,c21,c22,c23,c24,c25,c26,c27,c28,c29,c30,c31,c32,c33,c34,c35,c36,c37,c38,c39,c40,c41,c42,c43,c44,c45,c46,c47,c48,c49)"
+        }
+      ]
+    },
+    {
+      "name": "fts3matchinfo-12.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO tt (rowid, c4, c45) VALUES(1, 'abc', 'abc');\n  SELECT mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'abc';",
+          "expect": "{16 8192}"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

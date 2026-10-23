@@ -1,13 +1,23 @@
 {
   "file": "fts3corrupt2.test",
   "name": "fts3corrupt2",
+  "ordered": true,
   "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
     {
       "name": "fts3corrupt2-1.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE t2 USING FTS3(a, b);"
+          "sql": "BEGIN"
         },
         {
           "type": "exec",
@@ -19,18 +29,203 @@
         },
         {
           "type": "exec",
-          "sql": "SELECT count(*) FROM t2_segments"
+          "sql": "INSERT INTO t2 VALUES('amxtvoo adqwroyhz auq aithtir avniqnuynvf axp ahibayfynig agbicpm', 'amxtvoo adqwroyhz auq aithtir avniqnuynvf axp ahibayfynig agbicpm')"
         },
         {
           "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('ajdtebs anteaxr aieynenwmd awpl alo akxcrwow aoxftge aoqvgul', 'ajdtebs anteaxr aieynenwmd awpl alo akxcrwow aoxftge aoqvgul')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('amcfvdr auz apu aebelm ahuxyz aqc asyafdb agulvhvqu', 'amcfvdr auz apu aebelm ahuxyz aqc asyafdb agulvhvqu')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('apepwfyz azkhdvkw aenyelxzbk aslnitbyet aycdsdcpgr aqzzdbc agfi axnypydou', 'apepwfyz azkhdvkw aenyelxzbk aslnitbyet aycdsdcpgr aqzzdbc agfi axnypydou')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('aaqrzzcm apcxdxo atumltzj aevvivo aodknoft aqoyytoz alobx apldt', 'aaqrzzcm apcxdxo atumltzj aevvivo aodknoft aqoyytoz alobx apldt')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('adjllxlhnmj aiuhvuj adwppceuht atvj azrsam ahkjqdhny audlqxr aotgcd', 'adjllxlhnmj aiuhvuj adwppceuht atvj azrsam ahkjqdhny audlqxr aotgcd')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('aira azflsceos awj auzbobfkc awmezplr aeh awec ahndxlmv', 'aira azflsceos awj auzbobfkc awmezplr aeh awec ahndxlmv')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('aydwnied alk auoap agihyqeix aymqxzajnl aydwnied aojkarx agbo', 'aydwnied alk auoap agihyqeix aymqxzajnl aydwnied aojkarx agbo')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('ahajsmcl anvx amdhjm aoptsj agugzjjm apkevm acnj acjg', 'ahajsmcl anvx amdhjm aoptsj agugzjjm apkevm acnj acjg')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('amwtkw aogttbykvt aubwrfqnbjf ajow agsj aerkqzjdqst anenlvbalkn arfajzzgckx', 'amwtkw aogttbykvt aubwrfqnbjf ajow agsj aerkqzjdqst anenlvbalkn arfajzzgckx')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('adqqqofkmz amjpavjuhw aqgehgnb awvvxlbtqzn agstqko akmkzehyh atagzey agwja', 'adqqqofkmz amjpavjuhw aqgehgnb awvvxlbtqzn agstqko akmkzehyh atagzey agwja')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('amag ahe autkllywhr avnk atmt akn anvdh aixfrv', 'amag ahe autkllywhr avnk atmt akn anvdh aixfrv')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('aqdyerbws avefykly awl azaduojgzo anxfsmw axpt abgbvk ati', 'aqdyerbws avefykly awl azaduojgzo anxfsmw axpt abgbvk ati')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('attyqkwz aiweypiczul afy asitaqbczhh aitxisizpv auhviq aibql ajfqc', 'attyqkwz aiweypiczul afy asitaqbczhh aitxisizpv auhviq aibql ajfqc')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('aylzprtmta aiuemihqrpi awluvgsw ampbuy axlifpzfqr aems aoaxwads apianfn', 'aylzprtmta aiuemihqrpi awluvgsw ampbuy axlifpzfqr aems aoaxwads apianfn')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('aodrkijelq acdb aaserrdxm aqyasgofqu aevvivo afi apmwu aeoqysl', 'aodrkijelq acdb aaserrdxm aqyasgofqu aevvivo afi apmwu aeoqysl')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('amqnk ankaotm ayfy ajcupeeoc advcbukan aucahlwnyk adbfyo azqjpeant', 'amqnk ankaotm ayfy ajcupeeoc advcbukan aucahlwnyk adbfyo azqjpeant')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('afczpp asqrs ahslvda akhlf aiqgdp atyd aznuglxqbrg awirndrh', 'afczpp asqrs ahslvda akhlf aiqgdp atyd aznuglxqbrg awirndrh')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('aqhiajp amxeazb asxuehg akod axvolvsp agcz asmovmohy acmqa', 'aqhiajp amxeazb asxuehg akod axvolvsp agcz asmovmohy acmqa')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('avvomv aafms ashuaec arevx audtq alrwqhjvao avgsgpg ajbrctpsel', 'avvomv aafms ashuaec arevx audtq alrwqhjvao avgsgpg ajbrctpsel')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('atxoirr ayopboobqdu ajunntua arh aernimxid aipljda aglo aefk', 'atxoirr ayopboobqdu ajunntua arh aernimxid aipljda aglo aefk')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('aonxf acmnnkna abgviaswe aulvcbv axp apemgakpzo aibql acioaid', 'aonxf acmnnkna abgviaswe aulvcbv axp apemgakpzo aibql acioaid')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('axo alrwqhjvao ayqounftdzl azmoakdyh apajze ajk artvy apxiamy', 'axo alrwqhjvao ayqounftdzl azmoakdyh apajze ajk artvy apxiamy')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('ayjafsraz addjj agsj asejtziqws acatvhegu aoxdjqblsvv aekdmmbs aaobe', 'ayjafsraz addjj agsj asejtziqws acatvhegu aoxdjqblsvv aekdmmbs aaobe')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('abjjvzubkwt alczv ati awz auyxgcxeb aymjoym anqoukprtyt atwfhpmbooh', 'abjjvzubkwt alczv ati awz auyxgcxeb aymjoym anqoukprtyt atwfhpmbooh')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('ajfqz aethlgir aclcx aowlyvetby aproqm afjlqtkv anebfy akzrcpfrrvw', 'ajfqz aethlgir aclcx aowlyvetby aproqm afjlqtkv anebfy akzrcpfrrvw')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('aoledfotm aiwlfm aeejlaej anz abgbvk aktfn aayoh anpywgdvgz', 'aoledfotm aiwlfm aeejlaej anz abgbvk aktfn aayoh anpywgdvgz')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('acvmldguld asdvz aqb aeomsyzyu aggylhprbdz asrfkwz auipybpsn agsnszzfb', 'acvmldguld asdvz aqb aeomsyzyu aggylhprbdz asrfkwz auipybpsn agsnszzfb')"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t2_segments",
+          "expect": "163"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, length(block), block FROM t2_segments"
+        },
+        {
+          "type": "query",
           "sql": "SELECT rowid, length(block), block FROM t2_segments"
         },
         {
           "type": "exec",
+          "sql": "UPDATE t2_segments SET block = '' WHERE rowid = ''"
+        },
+        {
+          "type": "query",
           "sql": "SELECT rowid, length(root), root FROM t2_segdir"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT rowid, length(root), root FROM t2_segdir"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t2_segdir SET root = '' WHERE rowid = ''"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT rowid, length(root), root FROM t2_segdir"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT rowid, length(root), root FROM t2_segdir"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t2_segdir SET root = '' WHERE rowid = ''"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT rowid, length(root), root FROM t2_segdir"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT rowid, length(root), root FROM t2_segdir"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t2_segdir SET root = '' WHERE rowid = ''"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT rowid, length(root), root FROM t2_segdir"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT rowid, length(root), root FROM t2_segdir"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t2_segdir SET root = '' WHERE rowid = ''"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT rowid, length(root), root FROM t2_segdir"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT rowid, length(root), root FROM t2_segdir"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t2_segdir SET root = '' WHERE rowid = ''"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

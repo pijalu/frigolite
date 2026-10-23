@@ -1,17 +1,25 @@
 {
   "file": "tkt3541.test",
   "name": "tkt3541",
+  "ordered": true,
   "tests": [
     {
-      "name": "setup_0",
+      "name": "tkt3541-1.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(123);\n    SELECT CASE ~max(x) WHEN min(x) THEN 1 ELSE max(x) END FROM t1;"
-        },
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(123);\n    SELECT CASE ~max(x) WHEN min(x) THEN 1 ELSE max(x) END FROM t1;",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "tkt3541-1.2",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT CASE NOT max(x) WHEN min(x) THEN 1 ELSE max(x) END FROM t1;"
+          "type": "query",
+          "sql": "SELECT CASE NOT max(x) WHEN min(x) THEN 1 ELSE max(x) END FROM t1;",
+          "expect": "123"
         }
       ]
     }

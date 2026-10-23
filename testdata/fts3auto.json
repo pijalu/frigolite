@@ -1,0 +1,407 @@
+{
+  "file": "fts3auto.test",
+  "name": "fts3auto",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "mit",
+          "callbackVars": {
+            "": "1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "sfep": "",
+            "sqlite_fts3_enable_parentheses": "1",
+            "testdir": "",
+            "testprefix": "fts3auto"
+          },
+          "functionProc": "mit",
+          "functionArgs": [
+            "blob"
+          ],
+          "functionBody": "\n  set scan(littleEndian) i*\n  set scan(bigEndian) I*\n  binary scan $blob $scan($::tcl_platform(byteOrder)) r\n  return $r\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "fts3auto-2.1.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(a, b)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('one', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('two', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('one two', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('three', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('one three', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('two three', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('one two three', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('four', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('one four', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('two four', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('one two four', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('three four', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('one three four', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('two three four', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('one two three four', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('five', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('one five', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('two five', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('one two five', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('three five', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('one three five', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('two three five', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('one two three five', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('four five', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('one four five', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('two four five', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('one two four five', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('three four five', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('one three four five', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('two three four five', null)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('one two three four five', null)"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(x)"
+        }
+      ]
+    },
+    {
+      "name": "fts3auto-3.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, x) VALUES(-2, 'a b c d e f g h i j k');\n    INSERT INTO t1(docid, x) VALUES(-1, 'b c d e f g h i j k a');\n    INSERT INTO t1(docid, x) VALUES(0, 'c d e f g h i j k a b');\n    INSERT INTO t1(docid, x) VALUES(1, 'd e f g h i j k a b c');\n    INSERT INTO t1(docid, x) VALUES(2, 'e f g h i j k a b c d');\n    INSERT INTO t1(docid, x) VALUES(3, 'f g h i j k a b c d e');\n    INSERT INTO t1(docid, x) VALUES(4, 'a c e g i k');\n    INSERT INTO t1(docid, x) VALUES(5, 'a d g j');\n    INSERT INTO t1(docid, x) VALUES(6, 'c a b');"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*) FROM t1",
+          "variable": "nRow"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_size",
+          "variable": "pgsz"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 () VALUES('aaaaaaa caaaaa')"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts4(x, y);\n    INSERT INTO t1 VALUES('one two five four five', '');\n    INSERT INTO t1 VALUES('', 'one two five four five');\n    INSERT INTO t1 VALUES('one two', 'five four five');"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE VIRTUAL TABLE t1 USING fts4(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b) VALUES('the song of songs which is solomons', 'let him kiss me with the kisses of his mouth for thy love is better than wine')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b) VALUES('because of the savour of thy good ointments thy name is as ointment poured forth therefore do the virgins love thee', 'draw me we will run after thee the king hath brought me into his chambers we will be glad and rejoice in thee we will remember thy love more than wine the upright love thee')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b) VALUES('i am black but comely o ye daughters of jerusalem as the tents of kedar as the curtains of solomon', 'look not upon me because i am black because the sun hath looked upon me my mothers children were angry with me they made me the keeper of the vineyards but mine own vineyard have i not kept')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b) VALUES('tell me o thou whom my soul loveth where thou feedest where thou makest thy flock to rest at noon for why should i be as one that turneth aside by the flocks of thy companions?', 'if thou know not o thou fairest among women go thy way forth by the footsteps of the flock and feed thy kids beside the shepherds tents')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b) VALUES('i have compared thee o my love to a company of horses in pharaohs chariots', 'thy cheeks are comely with rows of jewels thy neck with chains of gold')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b) VALUES('we will make thee borders of gold with studs of silver', 'while the king sitteth at his table my spikenard sendeth forth the smell thereof')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b) VALUES('a bundle of myrrh is my wellbeloved unto me he shall lie all night betwixt my breasts', 'my beloved is unto me as a cluster of camphire in the vineyards of en gedi')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b) VALUES('behold thou art fair my love behold thou art fair thou hast doves eyes', 'behold thou art fair my beloved yea pleasant also our bed is green')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a, b) VALUES('the beams of our house are cedar and our rafters of fir', '')"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE VIRTUAL TABLE t1 USING fts4(a, b, c, d);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('A B C', 'D E F', 'G H I', 'J K L')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('B C D', 'E F G', 'H I J', 'K L A')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('C D E', 'F G H', 'I J K', 'L A B')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('D E F', 'G H I', 'J K L', 'A B C')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('E F G', 'H I J', 'K L A', 'B C D')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('F G H', 'I J K', 'L A B', 'C D E')"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE VIRTUAL TABLE t1 USING fts4(x);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('F E N O T K X V A X I E X A P G Q V H U')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('R V A E T C V Q N I E L O N U G J K L U')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('U Y I G W M V F J L X I D C H F P J Q B')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('S G D Z X R P G S S Y B K A S G A I L L')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('L S I C H T Z S R Q P R N K J X L F M J')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('C C C D P X B Z C M A D A C X S B T X V')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('W Y J M D R G V R K B X S A W R I T N C')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('P K L W T M S P O Y Y V V O E H Q A I R')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('C D Y I C Z F H J C O Y A Q F L S B D K')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('P G S C Y C Y V I M B D S Z D D Y W I E')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('Z K Z U E E S F Y X T U A L W O U J C Q')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('P A T Z S W L P L Q V Y Y I P W U X S S')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('I U I H U O F Z F R H R F T N D X A G M')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('N A B M S H K X S O Y D T X S B R Y H Z')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('L U D A S K I L S V Z J P U B E B Y H M')"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*) FROM t1",
+          "variable": "nRow",
+          "condition": "$nRow==0"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_size",
+          "variable": "pgsz"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 () VALUES('aaaaaaa Baaaaa')"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    }
+  ]
+}

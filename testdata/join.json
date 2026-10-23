@@ -35,6 +35,46 @@
       ]
     },
     {
+      "name": "join-1.3",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "SELECT * FROM t1 NATURAL JOIN t2;",
+          "expect": "a 1 b 2 c 3 d 4 a 2 b 3 c 4 d 5"
+        }
+      ]
+    },
+    {
+      "name": "join-1.3.1",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "SELECT * FROM t2 NATURAL JOIN t1;",
+          "expect": "b 2 c 3 d 4 a 1 b 3 c 4 d 5 a 2"
+        }
+      ]
+    },
+    {
+      "name": "join-1.3.2",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "SELECT * FROM t2 AS x NATURAL JOIN t1;",
+          "expect": "b 2 c 3 d 4 a 1 b 3 c 4 d 5 a 2"
+        }
+      ]
+    },
+    {
+      "name": "join-1.3.3",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "SELECT * FROM t2 NATURAL JOIN t1 AS y;",
+          "expect": "b 2 c 3 d 4 a 1 b 3 c 4 d 5 a 2"
+        }
+      ]
+    },
+    {
       "name": "join-1.3.4",
       "steps": [
         {
@@ -45,12 +85,162 @@
       ]
     },
     {
+      "name": "join-1.3.5",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "SELECT t2.* FROM t2 NATURAL JOIN t1",
+          "expect": "b 2 c 3 d 4 b 3 c 4 d 5"
+        }
+      ]
+    },
+    {
+      "name": "join-1.3.6",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "SELECT xyzzy.* FROM t2 AS xyzzy NATURAL JOIN t1",
+          "expect": "b 2 c 3 d 4 b 3 c 4 d 5"
+        }
+      ]
+    },
+    {
+      "name": "join-1.3.7",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "SELECT t1.* FROM t2 NATURAL JOIN t1",
+          "expect": "a 1 b 2 c 3 a 2 b 3 c 4"
+        }
+      ]
+    },
+    {
+      "name": "join-1.3.8",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "SELECT xyzzy.* FROM t2 NATURAL JOIN t1 AS xyzzy",
+          "expect": "a 1 b 2 c 3 a 2 b 3 c 4"
+        }
+      ]
+    },
+    {
+      "name": "join-1.3.9",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "SELECT aaa.*, bbb.* FROM t2 AS aaa NATURAL JOIN t1 AS bbb",
+          "expect": "b 2 c 3 d 4 a 1 b 2 c 3 b 3 c 4 d 5 a 2 b 3 c 4"
+        }
+      ]
+    },
+    {
+      "name": "join-1.3.10",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "SELECT t1.*, t2.* FROM t2 NATURAL JOIN t1",
+          "expect": "a 1 b 2 c 3 b 2 c 3 d 4 a 2 b 3 c 4 b 3 c 4 d 5"
+        }
+      ]
+    },
+    {
+      "name": "join-1.4.1",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "SELECT * FROM t1 INNER JOIN t2 USING(b,c);",
+          "expect": "a 1 b 2 c 3 d 4 a 2 b 3 c 4 d 5"
+        }
+      ]
+    },
+    {
+      "name": "join-1.4.2",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "SELECT * FROM t1 AS x INNER JOIN t2 USING(b,c);",
+          "expect": "a 1 b 2 c 3 d 4 a 2 b 3 c 4 d 5"
+        }
+      ]
+    },
+    {
+      "name": "join-1.4.3",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "SELECT * FROM t1 INNER JOIN t2 AS y USING(b,c);",
+          "expect": "a 1 b 2 c 3 d 4 a 2 b 3 c 4 d 5"
+        }
+      ]
+    },
+    {
+      "name": "join-1.4.4",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "SELECT * FROM t1 AS x INNER JOIN t2 AS y USING(b,c);",
+          "expect": "a 1 b 2 c 3 d 4 a 2 b 3 c 4 d 5"
+        }
+      ]
+    },
+    {
       "name": "join-1.4.5",
       "steps": [
         {
           "type": "exec",
           "sql": "SELECT b FROM t1 JOIN t2 USING(b);",
           "expect": "2 3"
+        }
+      ]
+    },
+    {
+      "name": "join-1.4.6",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "SELECT t1.* FROM t1 JOIN t2 USING(b);",
+          "expect": "a 1 b 2 c 3 a 2 b 3 c 4"
+        }
+      ]
+    },
+    {
+      "name": "join-1.4.7",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(b);",
+          "expect": "b 2 c 3 d 4 b 3 c 4 d 5"
+        }
+      ]
+    },
+    {
+      "name": "join-1.5",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "SELECT * FROM t1 INNER JOIN t2 USING(b);",
+          "expect": "a 1 b 2 c 3 c 3 d 4 a 2 b 3 c 4 c 4 d 5"
+        }
+      ]
+    },
+    {
+      "name": "join-1.6",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "SELECT * FROM t1 INNER JOIN t2 USING(c);",
+          "expect": "a 1 b 2 c 3 b 2 d 4 a 2 b 3 c 4 b 3 d 5"
+        }
+      ]
+    },
+    {
+      "name": "join-1.7",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "SELECT * FROM t1 INNER JOIN t2 USING(c,b);",
+          "expect": "a 1 b 2 c 3 d 4 a 2 b 3 c 4 d 5"
         }
       ]
     },
@@ -105,6 +295,26 @@
       ]
     },
     {
+      "name": "join-1.13",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "SELECT * FROM t1 NATURAL JOIN \n        (SELECT b as 'c', c as 'd', d as 'e' FROM t2) as t3",
+          "expect": "a 1 b 2 c 3 d 4 e 5"
+        }
+      ]
+    },
+    {
+      "name": "join-1.14",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "SELECT * FROM (SELECT b as 'c', c as 'd', d as 'e' FROM t2) as 'tx'\n          NATURAL JOIN t1",
+          "expect": "c 3 d 4 e 5 a 1 b 2"
+        }
+      ]
+    },
+    {
       "name": "join-1.15",
       "steps": [
         {
@@ -125,6 +335,16 @@
       ]
     },
     {
+      "name": "join-1.17",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "SELECT * FROM t1 natural join t2 natural join t3;",
+          "expect": "a 1 b 2 c 3 d 4 e 5 a 2 b 3 c 4 d 5 e 6"
+        }
+      ]
+    },
+    {
       "name": "join-1.18",
       "steps": [
         {
@@ -141,6 +361,16 @@
           "type": "exec",
           "sql": "SELECT * FROM t1 natural join t2 natural join t4;",
           "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "join-1.19.2",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "SELECT * FROM t1 natural join t2 natural join t4;",
+          "expect": "a 1 b 2 c 3 d 4 e 5 f 6"
         }
       ]
     },
@@ -181,6 +411,36 @@
           "type": "exec",
           "sql": "SELECT * FROM t1 NATURAL LEFT OUTER JOIN t2;",
           "expect": "1 2 3 4 2 3 4 5 3 4 5 {}"
+        }
+      ]
+    },
+    {
+      "name": "join-2.1.1",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "SELECT * FROM t1 NATURAL LEFT JOIN t2;",
+          "expect": "a 1 b 2 c 3 d 4 a 2 b 3 c 4 d 5 a 3 b 4 c 5 d {}"
+        }
+      ]
+    },
+    {
+      "name": "join-2.1.2",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "SELECT t1.* FROM t1 NATURAL LEFT JOIN t2;",
+          "expect": "a 1 b 2 c 3 a 2 b 3 c 4 a 3 b 4 c 5"
+        }
+      ]
+    },
+    {
+      "name": "join-2.1.3",
+      "steps": [
+        {
+          "type": "query2",
+          "sql": "SELECT t2.* FROM t1 NATURAL LEFT JOIN t2;",
+          "expect": "b 2 c 3 d 4 b 3 c 4 d 5 b {} c {} d {}"
         }
       ]
     },
@@ -684,6 +944,76 @@
       ]
     },
     {
+      "name": "join-12.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1 FROM t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14, t14;",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "join-12.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1 FROM t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14, t14;",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "join-12.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1 FROM t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14, t14;",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "join-12.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1 FROM t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14, t14;",
+          "expect": "1 {at most 64 tables in a join}"
+        }
+      ]
+    },
+    {
+      "name": "join-12.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1 FROM t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14, t14;",
+          "expect": "1 {at most 64 tables in a join}"
+        }
+      ]
+    },
+    {
+      "name": "join-12.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1 FROM t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14, t14;",
+          "expect": "1 {at most 64 tables in a join}"
+        }
+      ]
+    },
+    {
+      "name": "join-12.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1 FROM t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14,t14, t14;",
+          "expect": "1 {at most 64 tables in a join}"
+        }
+      ]
+    },
+    {
       "name": "join-13.0",
       "steps": [
         {
@@ -833,8 +1163,15 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        }
+      ]
     },
     {
       "name": "join-14.10",
@@ -867,8 +1204,15 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        }
+      ]
     },
     {
       "name": "join-14.20",
@@ -881,8 +1225,15 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        }
+      ]
     },
     {
       "name": "join-15.100",
@@ -991,7 +1342,7 @@
       "name": "join-18.2",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT * FROM v0 WHERE NOT(v0.a IS FALSE);",
           "expect": "{}"
         }
@@ -1034,7 +1385,7 @@
       "name": "join-19.1",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT * FROM v0 WHERE v0.c NOTNULL NOTNULL;",
           "expect": "{}"
         }
@@ -1081,8 +1432,15 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        }
+      ]
     },
     {
       "name": "join-20.1",
@@ -1330,6 +1688,15 @@
       ]
     },
     {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
       "name": "join-27.6",
       "steps": [
         {
@@ -1404,6 +1771,15 @@
       "steps": null
     },
     {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
       "name": "join-29.1",
       "steps": [
         {
@@ -1438,6 +1814,15 @@
       "steps": null
     },
     {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
       "name": "join-30.1",
       "steps": [
         {
@@ -1467,6 +1852,15 @@
     {
       "name": "__RESET_DB__",
       "steps": null
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
     },
     {
       "name": "join-31.1",
@@ -1552,6 +1946,15 @@
       "steps": null
     },
     {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
+    {
       "name": "join-32.1",
       "steps": [
         {
@@ -1583,6 +1986,15 @@
     {
       "name": "__RESET_DB__",
       "steps": null
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
     },
     {
       "name": "join-33.1",

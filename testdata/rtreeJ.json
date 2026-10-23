@@ -1,0 +1,282 @@
+{
+  "file": "rtreeJ.test",
+  "name": "rtreeJ",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "rtreeJ-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(id, x1, x2);\n  INSERT INTO t1 VALUES(1, 1, 1), (2, 2, 2);"
+        }
+      ]
+    },
+    {
+      "name": "rtreeJ-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 1.0 1.0 2 2.0 2.0"
+        }
+      ]
+    },
+    {
+      "name": "rtreeJ-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES(3, 3, 3);\n      INSERT INTO t1 VALUES(4, 4, 4);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "rtreeJ-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "1 1.0 1.0 2 2.0 2.0"
+        }
+      ]
+    },
+    {
+      "name": "rtreeJ-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES(5, 5, 5);\n      INSERT INTO t1 VALUES(6, 6, 6);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 1.0 1.0 2 2.0 2.0 5 5.0 5.0 6 6.0 6.0"
+        }
+      ]
+    },
+    {
+      "name": "rtreeJ-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "1 1.0 1.0 2 2.0 2.0 5 5.0 5.0 6 6.0 6.0"
+        }
+      ]
+    },
+    {
+      "name": "rtreeJ-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE  FROM t1;\n  INSERT INTO t1 VALUES(1,1,1),(2,2,2),(3,3,3),(4,4,4);\n  CREATE TABLE t2(x);\n  SELECT * FROM t1;",
+          "expect": "1 1.0 1.0 2 2.0 2.0 3 3.0 3.0 4 4.0 4.0"
+        }
+      ]
+    },
+    {
+      "name": "rtreeJ-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t2(x) VALUES(12345);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 1.0 1.0 2 2.0 2.0 3 3.0 3.0 4 4.0 4.0"
+        }
+      ]
+    },
+    {
+      "name": "rtreeJ-1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE rowid\u003e1;\n    BEGIN;\n    DELETE FROM t2;\n    INSERT INTO t2(x) VALUES(23456);\n    SAVEPOINT 'one';\n    INSERT INTO t1 VALUES(2,2,2),(3,3,3);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "rtreeJ-1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "COMMIT;\n  SELECT * FROM t1;",
+          "expect": "1 1.0 1.0"
+        }
+      ]
+    },
+    {
+      "name": "rtreeJ-1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1 VALUES(1,1,1),(2,2,2),(3,3,3);\n  BEGIN;\n  DELETE FROM t2;\n  INSERT INTO t2(x) VALUES(34567);\n  SAVEPOINT 'one';\n  INSERT INTO t2(x) VALUES('a string');\n  SELECT * FROM t1;",
+          "expect": "1 1.0 1.0 2 2.0 2.0 3 3.0 3.0"
+        }
+      ]
+    },
+    {
+      "name": "rtreeJ-1.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "rtreeJ-1.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "COMMIT;\n  SELECT * FROM t1;",
+          "expect": "1 1.0 1.0 2 2.0 2.0 3 3.0 3.0"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rtreeJ-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(id, x1, x2);\n  INSERT INTO t1 VALUES(1, 1, 1), (2, 2, 2);\n  CREATE TABLE t2(x);"
+        }
+      ]
+    },
+    {
+      "name": "rtreeJ-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(3, 3, 3);\n    PRAGMA writable_schema = RESET;"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x1, x2 FROM t1",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE bak_node(nodeno, data);\n  CREATE TABLE bak_parent(nodeno, parentnode);\n  CREATE TABLE bak_rowid(rowid, nodeno);"
+        }
+      ]
+    },
+    {
+      "name": "rtreeJ-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM bak_node;\n    DELETE FROM bak_parent;\n    DELETE FROM bak_rowid;\n    INSERT INTO bak_node SELECT * FROM t1_node;\n    INSERT INTO bak_parent SELECT * FROM t1_parent;\n    INSERT INTO bak_rowid SELECT * FROM t1_rowid;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3, 3, 3);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT rowid, x1, x2 FROM t1",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "rtreeJ-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 1.0 1.0 2 2.0 2.0"
+        }
+      ]
+    },
+    {
+      "name": "rtreeJ-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM bak_node;\n    DELETE FROM bak_parent;\n    DELETE FROM bak_rowid;\n    INSERT INTO bak_node SELECT * FROM t1_node;\n    INSERT INTO bak_parent SELECT * FROM t1_parent;\n    INSERT INTO bak_rowid SELECT * FROM t1_rowid;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3, 3, 3);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x1 FROM t1",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "rtreeJ-2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 1.0 1.0 2 2.0 2.0"
+        }
+      ]
+    },
+    {
+      "name": "rtreeJ-2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM bak_node;\n    DELETE FROM bak_parent;\n    DELETE FROM bak_rowid;\n    INSERT INTO bak_node SELECT * FROM t1_node;\n    INSERT INTO bak_parent SELECT * FROM t1_parent;\n    INSERT INTO bak_rowid SELECT * FROM t1_rowid;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3, 3, 3);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT 'abc' FROM t1",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "expect": "abc abc abc"
+        }
+      ]
+    },
+    {
+      "name": "rtreeJ-2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 1.0 1.0 2 2.0 2.0"
+        }
+      ]
+    }
+  ]
+}

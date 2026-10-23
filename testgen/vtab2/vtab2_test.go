@@ -91,7 +91,9 @@ func Test_vtab2(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	// register_schema_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 	{ // "vtab2-1.1" — skipped: schema test module (C test-only vtab) not implemented (SQL + file side effects only)
-		_res = db.Exec("\n    CREATE VIRTUAL TABLE schema USING schema;\n    SELECT * FROM schema;\n  ")
+		_res = db.Exec("CREATE VIRTUAL TABLE schema USING schema")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("SELECT * FROM schema")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "vtab2-1.2" — skipped: schema test module (C test-only vtab) not implemented (SQL + file side effects only)
@@ -108,7 +110,9 @@ func Test_vtab2(t *testing.T) {
 	}
 	// register_tclvar_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 	{ // "vtab2-2.1" — skipped: tclvar test module (C test-only vtab) not implemented (SQL + file side effects only)
-		_res = db.Exec("\n    CREATE VIRTUAL TABLE vars USING tclvar;\n    SELECT name, arrayname, value FROM vars WHERE name='abc';\n  ")
+		_res = db.Exec("CREATE VIRTUAL TABLE vars USING tclvar")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("SELECT name, arrayname, value FROM vars WHERE name='abc'")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "vtab2-2.2" — skipped: tclvar test module (C test-only vtab) not implemented (SQL + file side effects only)
@@ -144,7 +148,15 @@ func Test_vtab2(t *testing.T) {
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "vtab2-4.1" — skipped: schema test module (C test-only vtab) not implemented (SQL + file side effects only)
-		_res = db.Exec("\n    BEGIN TRANSACTION;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, UNIQUE(b, c));\n    CREATE TABLE fkey(\n      to_tbl,\n      to_col\n    );\n    INSERT INTO \"fkey\" VALUES('t1',NULL);\n    COMMIT;\n  ")
+		_res = db.Exec("BEGIN TRANSACTION")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, UNIQUE(b, c))")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("CREATE TABLE fkey(\n      to_tbl,\n      to_col\n    )")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("INSERT INTO \"fkey\" VALUES('t1',NULL)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("COMMIT")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "vtab2-4.2" — skipped: schema test module (C test-only vtab) not implemented (SQL + file side effects only)

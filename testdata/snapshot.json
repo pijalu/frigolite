@@ -1,50 +1,220 @@
 {
   "file": "snapshot.test",
   "name": "snapshot",
+  "ordered": true,
   "tests": [
     {
-      "name": "setup_0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "snapshot-1.1.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN; SELECT * FROM t1;"
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.1.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; SELECT * FROM t1;",
+          "expect": "1 SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.1.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.1.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n      BEGIN;\n        INSERT INTO t1 VALUES(5, 6);\n        INSERT INTO t1 VALUES(7, 8);",
+          "expect": "1 SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.1.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.2.1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n      SELECT * FROM t1;",
+          "expect": "1 2 3 4 5 6 7 8"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.2.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n      INSERT INTO t1 VALUES(9, 10);\n      SELECT * FROM t1;",
+          "expect": "1 2 3 4 5 6 7 8 9 10"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.2.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
         },
         {
           "type": "exec",
-          "sql": "PRAGMA journal_mode = WAL;\n      BEGIN;\n        INSERT INTO t1 VALUES(5, 6);\n        INSERT INTO t1 VALUES(7, 8);"
+          "sql": "SELECT * FROM t1;",
+          "expect": "1 2 3 4 5 6 7 8"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.2.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.2.2.0",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
         },
         {
           "type": "exec",
-          "sql": "COMMIT;\n      INSERT INTO t1 VALUES(9, 10);\n      SELECT * FROM t1;"
+          "sql": "BEGIN;\n        SELECT * FROM t1;",
+          "expect": "1 2 3 4 5 6 7 8 9 10",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.2.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(11, 12);\n      SELECT * FROM t1;",
+          "expect": "1 2 3 4 5 6 7 8 9 10 11 12"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.2.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM t1;"
+          "sql": "SELECT * FROM t1;",
+          "expect": "1 2 3 4 5 6 7 8 9 10"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.2.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
         },
         {
           "type": "exec",
-          "sql": "BEGIN;\n        SELECT * FROM t1;"
+          "sql": "COMMIT",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.2.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a\u003e6"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(11, 12);\n      SELECT * FROM t1;"
+          "sql": "INSERT INTO t1 VALUES('a', 'b');\n      INSERT INTO t1 VALUES('c', 'd');\n      SELECT * FROM t1;",
+          "expect": "1 2 3 4 5 6 a b c d"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.2.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM t1;"
-        },
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.2.3.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES('x','y')",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.2.3.4",
+      "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM t1 WHERE a>6"
-        },
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.3.0.0",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES('a', 'b');\n      INSERT INTO t1 VALUES('c', 'd');\n      SELECT * FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
+          "type": "query",
+          "sql": "CREATE TABLE t2(x, y);\n    INSERT INTO t2 VALUES('a', 'b');\n    INSERT INTO t2 VALUES('c', 'd');\n    BEGIN;\n      SELECT * FROM t2;",
+          "expect": "a b c d"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.3.0.1",
+      "steps": [
         {
           "type": "exec",
           "sql": "COMMIT"
@@ -52,63 +222,344 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t2 VALUES('e', 'f');"
-        },
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.3.2.1",
+      "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n        SELECT * FROM t2;"
-        },
+          "sql": "BEGIN;\n        SELECT * FROM t2;",
+          "expect": "a b c d e f"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.3.2.2a",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2",
+          "expect": "1 SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.3.2.3",
+      "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT;\n      BEGIN;\n        INSERT INTO t2 VALUES('g', 'h');"
-        },
+          "sql": "COMMIT;\n      BEGIN;\n        INSERT INTO t2 VALUES('g', 'h');",
+          "expect": "1 SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.3.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.3.3.1a",
+      "steps": [
         {
           "type": "exec",
           "sql": "PRAGMA journal_mode = DELETE"
         },
         {
           "type": "exec",
-          "sql": "BEGIN"
-        },
+          "sql": "BEGIN",
+          "expect": "1 SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.3.3.1b",
+      "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT ; BEGIN ; SELECT * FROM t2"
-        },
+          "sql": "COMMIT ; BEGIN ; SELECT * FROM t2",
+          "expect": "1 SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.1.3.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.4.1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = wal;\n    CREATE TABLE t3(i, j);\n    INSERT INTO t3 VALUES('o', 't');\n    INSERT INTO t3 VALUES('t', 'f');\n    BEGIN;\n      SELECT * FROM t3;",
+          "expect": "wal o t t f"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.4.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.4.1.2",
+      "steps": [
         {
           "type": "exec",
           "sql": "INSERT INTO t3 VALUES('f', 's'); \n      BEGIN;"
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM t3"
-        },
+          "sql": "SELECT * FROM t3",
+          "expect": "o t t f"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.4.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n      PRAGMA wal_checkpoint;\n      BEGIN;",
+          "expect": "1 SQLITE_ERROR_SNAPSHOT"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.4.1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.4.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES('s', 'e');\n      INSERT INTO t3 VALUES('n', 't');\n      BEGIN;\n        SELECT * FROM t3;",
+          "expect": "o t t f f s s e n t"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.4.2.2",
+      "steps": [
         {
           "type": "exec",
           "sql": "COMMIT;\n      PRAGMA wal_checkpoint;\n      BEGIN;"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t3 VALUES('s', 'e');\n      INSERT INTO t3 VALUES('n', 't');\n      BEGIN;\n        SELECT * FROM t3;"
-        },
+          "sql": "SELECT * FROM t3",
+          "expect": "o t t f f s s e n t"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.4.2.3",
+      "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT;\n      PRAGMA wal_checkpoint;\n      BEGIN;"
+          "sql": "COMMIT;\n      INSERT INTO t3 VALUES('e', 't');\n      BEGIN;",
+          "expect": "1 SQLITE_ERROR_SNAPSHOT"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
         },
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t3"
-        },
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.5.1",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "COMMIT;\n      INSERT INTO t3 VALUES('e', 't');\n      BEGIN;"
+          "type": "query",
+          "sql": "PRAGMA journal_mode = wal;\n    CREATE TABLE x1(x, xx, xxx);\n    INSERT INTO x1 VALUES('z', 'zz', 'zzz');\n    BEGIN;\n      SELECT * FROM x1;",
+          "expect": "wal z zz zzz"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.5.2",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
         },
         {
           "type": "exec",
           "sql": "INSERT INTO x1 VALUES('a', 'aa', 'aaa');\n      COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint",
+          "database": "db2"
         },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "snapshot-1.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = wal;\n    CREATE TABLE x1(x, xx, xxx);\n    INSERT INTO x1 VALUES('z', 'zz', 'zzz');\n    BEGIN;\n      PRAGMA user_version;",
+          "expect": "wal 0"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.6.2",
+      "steps": [
         {
           "type": "exec",
           "sql": "INSERT INTO x1 VALUES('a', 'aa', 'aaa');\n      COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.6.3",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
         },
+        {
+          "type": "exec",
+          "sql": "PRAGMA user_version ; BEGIN",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1",
+          "expect": "z zz zzz",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.6.4",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA application_id",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1",
+          "expect": "z zz zzz",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.6.5",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN",
+          "expect": "1 SQLITE_ERROR",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "snapshot-1.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x);",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.7.1.2",
+      "steps": [
         {
           "type": "exec",
           "sql": "BEGIN ; PRAGMA application_id"
@@ -123,18 +574,656 @@
         },
         {
           "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.7.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(11);\n    INSERT INTO t1 VALUES(12);\n    INSERT INTO t1 VALUES(13);\n    BEGIN; \n      PRAGMA application_id;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.7.2.2",
+      "steps": [
+        {
+          "type": "exec",
           "sql": "COMMIT;\n      INSERT INTO t1 VALUES(14);\n      PRAGMA wal_checkpoint;\n      BEGIN;\n        PRAGMA application_id;"
         },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-1.7.3.1",
+      "steps": [
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(14);\n      BEGIN;\n        PRAGMA application_id;"
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM t2"
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "snapshot-2.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.1.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; SELECT * FROM t1;",
+          "expect": "1 SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.1.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.1.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n      BEGIN;\n        INSERT INTO t1 VALUES(5, 6);\n        INSERT INTO t1 VALUES(7, 8);",
+          "expect": "1 SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.1.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.2.1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n      SELECT * FROM t1;",
+          "expect": "1 2 3 4 5 6 7 8"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.2.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n      INSERT INTO t1 VALUES(9, 10);\n      SELECT * FROM t1;",
+          "expect": "1 2 3 4 5 6 7 8 9 10"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.2.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;",
+          "expect": "1 2 3 4 5 6 7 8"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.2.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.2.2.0",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        SELECT * FROM t1;",
+          "expect": "1 2 3 4 5 6 7 8 9 10",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.2.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(11, 12);\n      SELECT * FROM t1;",
+          "expect": "1 2 3 4 5 6 7 8 9 10 11 12"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.2.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;",
+          "expect": "1 2 3 4 5 6 7 8 9 10"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.2.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.2.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a\u003e6"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('a', 'b');\n      INSERT INTO t1 VALUES('c', 'd');\n      SELECT * FROM t1;",
+          "expect": "1 2 3 4 5 6 a b c d"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.2.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.2.3.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES('x','y')",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.2.3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.3.0.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t2(x, y);\n    INSERT INTO t2 VALUES('a', 'b');\n    INSERT INTO t2 VALUES('c', 'd');\n    BEGIN;\n      SELECT * FROM t2;",
+          "expect": "a b c d"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.3.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('e', 'f');"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.3.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        SELECT * FROM t2;",
+          "expect": "a b c d e f"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.3.2.2a",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2",
+          "expect": "1 SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.3.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n      BEGIN;\n        INSERT INTO t2 VALUES('g', 'h');",
+          "expect": "1 SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.3.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.3.3.1a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = DELETE"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN",
+          "expect": "1 SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.3.3.1b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT ; BEGIN ; SELECT * FROM t2",
+          "expect": "1 SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.2.3.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.4.1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = wal;\n    CREATE TABLE t3(i, j);\n    INSERT INTO t3 VALUES('o', 't');\n    INSERT INTO t3 VALUES('t', 'f');\n    BEGIN;\n      SELECT * FROM t3;",
+          "expect": "wal o t t f"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.4.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.4.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES('f', 's'); \n      BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3",
+          "expect": "o t t f"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.4.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n      PRAGMA wal_checkpoint;\n      BEGIN;",
+          "expect": "1 SQLITE_ERROR_SNAPSHOT"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.4.1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.4.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES('s', 'e');\n      INSERT INTO t3 VALUES('n', 't');\n      BEGIN;\n        SELECT * FROM t3;",
+          "expect": "o t t f f s s e n t"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.4.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n      PRAGMA wal_checkpoint;\n      BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3",
+          "expect": "o t t f f s s e n t"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.4.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n      INSERT INTO t3 VALUES('e', 't');\n      BEGIN;",
+          "expect": "1 SQLITE_ERROR_SNAPSHOT"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = wal;\n    CREATE TABLE x1(x, xx, xxx);\n    INSERT INTO x1 VALUES('z', 'zz', 'zzz');\n    BEGIN;\n      SELECT * FROM x1;",
+          "expect": "wal z zz zzz"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.5.2",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES('a', 'aa', 'aaa');\n      COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint",
+          "database": "db2"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "snapshot-2.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = wal;\n    CREATE TABLE x1(x, xx, xxx);\n    INSERT INTO x1 VALUES('z', 'zz', 'zzz');\n    BEGIN;\n      PRAGMA user_version;",
+          "expect": "wal 0"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES('a', 'aa', 'aaa');\n      COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.6.3",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA user_version ; BEGIN",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1",
+          "expect": "z zz zzz",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.6.4",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA application_id",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1",
+          "expect": "z zz zzz",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.6.5",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN",
+          "expect": "1 SQLITE_ERROR",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "snapshot-2.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x);",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.7.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN ; PRAGMA application_id"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(10);\n      COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN ; PRAGMA application_id"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.7.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(11);\n    INSERT INTO t1 VALUES(12);\n    INSERT INTO t1 VALUES(13);\n    BEGIN; \n      PRAGMA application_id;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.7.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n      INSERT INTO t1 VALUES(14);\n      PRAGMA wal_checkpoint;\n      BEGIN;\n        PRAGMA application_id;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "snapshot-2.7.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(14);\n      BEGIN;\n        PRAGMA application_id;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

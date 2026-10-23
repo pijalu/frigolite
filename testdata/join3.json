@@ -1,0 +1,17 @@
+{
+  "file": "join3.test",
+  "name": "join3",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "join3-3.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1 AS t0, t1",
+          "expect": "1 {at most  tables in a join}"
+        }
+      ]
+    }
+  ]
+}

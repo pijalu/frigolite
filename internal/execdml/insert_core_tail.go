@@ -105,9 +105,11 @@ func (e *DMLExecutor) fireTrigger(t *schema.Entry, owning *DatabaseContext, even
 	// A trigger loaded from sqlite_master may reference objects that no
 	// longer exist or live in a different schema after a reopen (SQLite
 	// reports "malformed database schema (NAME)" at schema load). Validate
-	// the trigger's body references against the current schema.
-	if e.ctx.TriggerDepth() == 0 {
-		if err := e.validateLoadedTriggerSchemaCtx(t, e.currentDMLCtx); err != nil {
+	// the trigger's body references against the schema the trigger lives in.
+	// TEMP triggers are exempt: attach.c fixSelectCb's bTemp rule lets a temp
+	// trigger reference objects in any database (triggerupfrom-2.2).
+	if e.ctx.TriggerDepth() == 0 && owning != e.ctx.GetDB("temp") {
+		if err := e.validateLoadedTriggerSchemaCtx(t, owning); err != nil {
 			return &Result{Error: err}
 		}
 	}

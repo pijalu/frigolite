@@ -1,9 +1,10 @@
 {
   "file": "unionall.test",
   "name": "unionall",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "unionall-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,27 +13,27 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "unionall-1.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, b FROM (\n    SELECT a, b FROM t1_a   UNION ALL\n    SELECT c, d FROM t1_b   UNION ALL\n    SELECT e, f FROM t1_c\n  ) ORDER BY a",
-          "expect": "1 one 2 two 3 three 4 four 5 five 6 six"
+          "expect": "\n  1 one 2 two 3 three 4 four 5 five 6 six\n"
         }
       ]
     },
     {
-      "name": "1.2",
+      "name": "unionall-1.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, b FROM t1 ORDER BY a",
-          "expect": "1 one 2 two 3 three 4 four 5 five 6 six"
+          "expect": "\n  1 one 2 two 3 three 4 four 5 five 6 six\n"
         }
       ]
     },
     {
-      "name": "1.3",
+      "name": "unionall-1.3",
       "steps": [
         {
           "type": "query",
@@ -42,7 +43,11 @@
       ]
     },
     {
-      "name": "1.10",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "unionall-1.10",
       "steps": [
         {
           "type": "query",
@@ -52,7 +57,7 @@
       ]
     },
     {
-      "name": "1.11",
+      "name": "unionall-1.11",
       "steps": [
         {
           "type": "query",
@@ -62,7 +67,11 @@
       ]
     },
     {
-      "name": "2.1.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "unionall-2.1.0",
       "steps": [
         {
           "type": "exec",
@@ -71,26 +80,27 @@
       ]
     },
     {
-      "name": "2.1.1",
+      "name": "unionall-2.1.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<3\n  )\n  SELECT * FROM (\n    SELECT 0 AS i UNION ALL SELECT i FROM s UNION ALL SELECT 0\n  ), t1 WHERE x=i;"
+          "type": "query",
+          "sql": "WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i\u003c3\n  )\n  SELECT * FROM (\n    SELECT 0 AS i UNION ALL SELECT i FROM s UNION ALL SELECT 0\n  ), t1 WHERE x=i;",
+          "expect": "\n  1 1 one 1 1 ONE 2 2 two 2 2 TWO 3 3 three 3 3 THREE\n"
         }
       ]
     },
     {
-      "name": "2.1.2",
+      "name": "unionall-2.1.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<3 UNION ALL SELECT 4\n  )\n  SELECT * FROM s, t1 WHERE x=i;",
+          "type": "catch",
+          "sql": "WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i\u003c3 UNION ALL SELECT 4\n  )\n  SELECT * FROM s, t1 WHERE x=i;",
           "expect": "1 {circular reference: s}"
         }
       ]
     },
     {
-      "name": "2.2.0",
+      "name": "unionall-2.2.0",
       "steps": [
         {
           "type": "exec",
@@ -99,107 +109,111 @@
       ]
     },
     {
-      "name": "2.2.1",
+      "name": "unionall-2.2.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t1, t2 WHERE x=k;",
-          "expect": "2 two 2 ii 2 TWO 2 ii 3 three 3 iii 3 THREE 3 iii"
+          "expect": "\n  2 two 2 ii 2 TWO 2 ii 3 three 3 iii 3 THREE 3 iii\n"
         }
       ]
     },
     {
-      "name": "2.2.2",
+      "name": "unionall-2.2.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t1 LEFT JOIN t2 ON (x=k);",
-          "expect": "1 one {} {}\n  1 ONE {} {}\n  2 two 2 ii 2 TWO 2 ii 3 three 3 iii 3 THREE 3 iii"
+          "expect": "\n  1 one {} {}\n  1 ONE {} {}\n  2 two 2 ii 2 TWO 2 ii 3 three 3 iii 3 THREE 3 iii\n"
         }
       ]
     },
     {
-      "name": "2.2.3",
+      "name": "unionall-2.2.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT x1.*, x2.* FROM t2 AS x1, t2 AS x2 WHERE x1.k=x2.k+1",
-          "expect": "4 iv   3 iii \n  3 iii  2 ii \n  5 v    4 iv"
+          "expect": "\n  4 iv   3 iii \n  3 iii  2 ii \n  5 v    4 iv\n"
         }
       ]
     },
     {
-      "name": "2.2.4",
+      "name": "unionall-2.2.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t1, t2 WHERE x=k ORDER BY y;",
-          "expect": "3 THREE 3 iii \n  2 TWO 2 ii \n  3 three 3 iii \n  2 two 2 ii"
+          "expect": "\n  3 THREE 3 iii \n  2 TWO 2 ii \n  3 three 3 iii \n  2 two 2 ii\n"
         }
       ]
     },
     {
-      "name": "2.2.5",
+      "name": "unionall-2.2.5",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t1, t2 WHERE x=k ORDER BY y||'';",
-          "expect": "3 THREE 3 iii \n  2 TWO 2 ii \n  3 three 3 iii \n  2 two 2 ii"
+          "expect": "\n  3 THREE 3 iii \n  2 TWO 2 ii \n  3 three 3 iii \n  2 two 2 ii\n"
         }
       ]
     },
     {
-      "name": "2.2.6",
+      "name": "unionall-2.2.6",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t1, t2 WHERE x=k ORDER BY v",
-          "expect": "2 two   2 ii\n  2 TWO   2 ii \n  3 three 3 iii \n  3 THREE 3 iii"
+          "expect": "\n  2 two   2 ii\n  2 TWO   2 ii \n  3 three 3 iii \n  3 THREE 3 iii \n"
         }
       ]
     },
     {
-      "name": "2.2.7",
+      "name": "unionall-2.2.7",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t1, t2 WHERE x=k ORDER BY v||''",
-          "expect": "2 two   2 ii\n  2 TWO   2 ii \n  3 three 3 iii \n  3 THREE 3 iii"
+          "expect": "\n  2 two   2 ii\n  2 TWO   2 ii \n  3 three 3 iii \n  3 THREE 3 iii \n"
         }
       ]
     },
     {
-      "name": "2.2.8",
+      "name": "unionall-2.2.8",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t1, t2 WHERE x=k ORDER BY k,v||''",
-          "expect": "2 two   2 ii\n  2 TWO   2 ii \n  3 three 3 iii \n  3 THREE 3 iii"
+          "expect": "\n  2 two   2 ii\n  2 TWO   2 ii \n  3 three 3 iii \n  3 THREE 3 iii \n"
         }
       ]
     },
     {
-      "name": "2.2.9a",
+      "name": "unionall-2.2.9a",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t1, t2 ORDER BY +k",
-          "expect": "1 one 2 ii 1 ONE 2 ii 2 two 2 ii \n  2 TWO 2 ii 3 three 2 ii 3 THREE 2 ii \n  \n  1 one 3 iii 1 ONE 3 iii 2 two 3 iii \n  2 TWO 3 iii 3 three 3 iii 3 THREE 3 iii \n\n  1 one 4 iv 1 ONE 4 iv 2 two 4 iv \n  2 TWO 4 iv 3 three 4 iv 3 THREE 4 iv \n\n  1 one 5 v 1 ONE 5 v 2 two 5 v \n  2 TWO 5 v 3 three 5 v 3 THREE 5 v"
+          "expect": "\n  1 one 2 ii 1 ONE 2 ii 2 two 2 ii \n  2 TWO 2 ii 3 three 2 ii 3 THREE 2 ii \n  \n  1 one 3 iii 1 ONE 3 iii 2 two 3 iii \n  2 TWO 3 iii 3 three 3 iii 3 THREE 3 iii \n\n  1 one 4 iv 1 ONE 4 iv 2 two 4 iv \n  2 TWO 4 iv 3 three 4 iv 3 THREE 4 iv \n\n  1 one 5 v 1 ONE 5 v 2 two 5 v \n  2 TWO 5 v 3 three 5 v 3 THREE 5 v\n"
         }
       ]
     },
     {
-      "name": "2.2.9b",
+      "name": "unionall-2.2.9b",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t1, t2 ORDER BY k",
-          "expect": "1 one 2 ii 1 ONE 2 ii 2 two 2 ii \n  2 TWO 2 ii 3 three 2 ii 3 THREE 2 ii \n  \n  1 one 3 iii 1 ONE 3 iii 2 two 3 iii \n  2 TWO 3 iii 3 three 3 iii 3 THREE 3 iii \n\n  1 one 4 iv 1 ONE 4 iv 2 two 4 iv \n  2 TWO 4 iv 3 three 4 iv 3 THREE 4 iv \n\n  1 one 5 v 1 ONE 5 v 2 two 5 v \n  2 TWO 5 v 3 three 5 v 3 THREE 5 v"
+          "expect": "\n  1 one 2 ii 1 ONE 2 ii 2 two 2 ii \n  2 TWO 2 ii 3 three 2 ii 3 THREE 2 ii \n  \n  1 one 3 iii 1 ONE 3 iii 2 two 3 iii \n  2 TWO 3 iii 3 three 3 iii 3 THREE 3 iii \n\n  1 one 4 iv 1 ONE 4 iv 2 two 4 iv \n  2 TWO 4 iv 3 three 4 iv 3 THREE 4 iv \n\n  1 one 5 v 1 ONE 5 v 2 two 5 v \n  2 TWO 5 v 3 three 5 v 3 THREE 5 v\n"
         }
       ]
     },
     {
-      "name": "3.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "unionall-3.0",
       "steps": [
         {
           "type": "exec",
@@ -208,7 +222,7 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "unionall-3.1",
       "steps": [
         {
           "type": "query",
@@ -218,7 +232,11 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "unionall-4.0",
       "steps": [
         {
           "type": "exec",
@@ -227,7 +245,7 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "unionall-4.1",
       "steps": [
         {
           "type": "query",
@@ -237,7 +255,7 @@
       ]
     },
     {
-      "name": "4.2",
+      "name": "unionall-4.2",
       "steps": [
         {
           "type": "query",
@@ -247,37 +265,31 @@
       ]
     },
     {
-      "name": "4.3",
+      "name": "unionall-4.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM (SELECT * FROM t1, t3), (\n    SELECT max(a) OVER () FROM t1\n      UNION ALL\n    SELECT min(a) OVER () FROM t1\n  )\n  ORDER BY k;",
-          "expect": "123 t1_a 456 t3_a 123\n  123 t1_a 456 t3_a 123"
-        }
-      ]
-    },
-    {
-      "name": "4.3",
-      "steps": [
+          "expect": "\n  123 t1_a 456 t3_a 123\n  123 t1_a 456 t3_a 123\n"
+        },
         {
           "type": "query",
           "sql": "SELECT * FROM (SELECT * FROM t1, t3), (\n    SELECT group_concat(a) OVER (ORDER BY a), \n           group_concat(a) OVER (ORDER BY a),\n           group_concat(a) OVER (ORDER BY a),\n           group_concat(a) OVER (ORDER BY a),\n           group_concat(a) OVER (ORDER BY a),\n           group_concat(a) OVER (ORDER BY a),\n           group_concat(a) OVER (ORDER BY a),\n           group_concat(a) OVER (ORDER BY a),\n           group_concat(a) OVER (ORDER BY a)\n    FROM t1\n  )\n  ORDER BY k;",
-          "expect": "123 t1_a 456 t3_a 123 123 123 123 123 123 123 123 123"
-        }
-      ]
-    },
-    {
-      "name": "4.3",
-      "steps": [
+          "expect": "\n  123 t1_a 456 t3_a 123 123 123 123 123 123 123 123 123\n"
+        },
         {
           "type": "query",
           "sql": "SELECT * FROM (SELECT * FROM t1, t3) AS o, (\n    SELECT * FROM t1 LEFT JOIN t3 ON a=k\n  );",
-          "expect": "123 t1_a 456 t3_a 123 t1_a {} {}"
+          "expect": "\n  123 t1_a 456 t3_a 123 t1_a {} {}\n"
         }
       ]
     },
     {
-      "name": "5.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "unionall-5.1",
       "steps": [
         {
           "type": "exec",
@@ -286,7 +298,7 @@
       ]
     },
     {
-      "name": "5.10",
+      "name": "unionall-5.10",
       "steps": [
         {
           "type": "query",
@@ -296,7 +308,7 @@
       ]
     },
     {
-      "name": "5.20",
+      "name": "unionall-5.20",
       "steps": [
         {
           "type": "query",
@@ -306,17 +318,21 @@
       ]
     },
     {
-      "name": "5.30",
+      "name": "unionall-5.30",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM (t1 NATURAL JOIN pragma_table_xinfo('t1_a') NATURAL JOIN t3) t1\n                NATURAL JOIN t2 NATURAL JOIN t3\n   WHERE rowid ISNULL>0 AND 0%y;",
+          "type": "catch",
+          "sql": "SELECT * FROM (t1 NATURAL JOIN pragma_table_xinfo('t1_a') NATURAL JOIN t3) t1\n                NATURAL JOIN t2 NATURAL JOIN t3\n   WHERE rowid ISNULL\u003e0 AND 0%y;",
           "expect": "1 {ambiguous column name: rowid}"
         }
       ]
     },
     {
-      "name": "6.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "unionall-6.0",
       "steps": [
         {
           "type": "exec",
@@ -325,181 +341,127 @@
       ]
     },
     {
-      "name": "6.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "WITH x(c) AS (\n    SELECT 1000 FROM t1 UNION ALL SELECT 800 FROM t2\n  ),\n  y(d) AS (\n    SELECT  100 FROM t3 UNION ALL SELECT 400 FROM t4\n  )\n  SELECT * FROM t5, x, y;"
-        }
-      ]
-    },
-    {
-      "name": "7.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "WITH c1(x) AS (VALUES(0) UNION ALL SELECT 100+x FROM c1 WHERE x<100 UNION ALL SELECT 1+x FROM c1 WHERE x<1)\n  SELECT x, y, '|'\n    FROM c1 AS x1, (SELECT x+1 AS y FROM c1 WHERE x<1 UNION ALL SELECT 1+x FROM c1 WHERE 1<x) AS x2\n   ORDER BY x, y;"
-        }
-      ]
-    },
-    {
-      "name": "8.1",
+      "name": "unionall-6.1",
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE TABLE t0(c0 INT);\n  INSERT INTO t0 VALUES(0);\n  CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1_a VALUES(1,'one');\n  INSERT INTO t1_a VALUES(4,'four');\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n  INSERT INTO t1_b VALUES(2,'two');\n  INSERT INTO t1_b VALUES(5,'five');\n  CREATE TABLE t1_c(e INTEGER PRIMARY KEY, f TEXT);\n  INSERT INTO t1_c VALUES(3,'three');\n  INSERT INTO t1_c VALUES(6,'six');\n  CREATE VIEW v0(c0) AS SELECT CAST(t0.c0 AS INTEGER) FROM t0;\n  CREATE VIEW t1 AS \n    SELECT a, b FROM t1_a   UNION ALL\n    SELECT c, c FROM t1_b   UNION ALL\n    SELECT e, f FROM t1_c;\n  SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1;",
+          "sql": "WITH x(c) AS (\n    SELECT 1000 FROM t1 UNION ALL SELECT 800 FROM t2\n  ),\n  y(d) AS (\n    SELECT  100 FROM t3 UNION ALL SELECT 400 FROM t4\n  )\n  SELECT * FROM t5, x, y;",
+          "expect": "\n  9 10 1000 100     9 10 1000 400\n  9 10 800 100      9 10 800 400\n"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "unionall-7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c1(x) AS (VALUES(0) UNION ALL SELECT 100+x FROM c1 WHERE x\u003c100 UNION ALL SELECT 1+x FROM c1 WHERE x\u003c1)\n  SELECT x, y, '|'\n    FROM c1 AS x1, (SELECT x+1 AS y FROM c1 WHERE x\u003c1 UNION ALL SELECT 1+x FROM c1 WHERE 1\u003cx) AS x2\n   ORDER BY x, y;",
+          "expect": "0 1 | 0 101 | 0 102 | 1 1 | 1 101 | 1 102 | 100 1 | 100 101 | 100 102 | 101 1 | 101 101 | 101 102 |"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "unionall-8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t0(c0 INT);\n  INSERT INTO t0 VALUES(0);\n  CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1_a VALUES(1,'one');\n  INSERT INTO t1_a VALUES(4,'four');\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n  INSERT INTO t1_b VALUES(2,'two');\n  INSERT INTO t1_b VALUES(5,'five');\n  CREATE TABLE t1_c(e INTEGER PRIMARY KEY, f TEXT);\n  INSERT INTO t1_c VALUES(3,'three');\n  INSERT INTO t1_c VALUES(6,'six');\n  CREATE VIEW v0(c0) AS SELECT CAST(t0.c0 AS INTEGER) FROM t0;\n  CREATE VIEW t1 AS \n    SELECT a, b FROM t1_a   UNION ALL\n    SELECT c, c FROM t1_b   UNION ALL\n    SELECT e, f FROM t1_c;\n  SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0\u003e'0',t1;",
           "expect": "1 one 0 {} 4 four 0 {} 2 2 0 {} 5 5 0 {} 3 three 0 {} 6 six 0 {}"
         }
       ]
     },
     {
-      "name": "8.2",
+      "name": "unionall-8.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b=2;",
+          "sql": "SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0\u003e'0',t1) WHERE b=2;",
           "expect": "2 2 0 {}"
         }
       ]
     },
     {
-      "name": "8.3",
+      "name": "unionall-8.3",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b=2.0;",
+          "sql": "SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0\u003e'0',t1) WHERE b=2.0;",
           "expect": "2 2 0 {}"
         }
       ]
     },
     {
-      "name": "8.4",
+      "name": "unionall-8.4",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b='2';"
+          "sql": "SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0\u003e'0',t1) WHERE b='2';"
         }
       ]
     },
     {
-      "name": "8.5",
+      "name": "unionall-8.5",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b=2;",
+          "sql": "SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0\u003e'0',t1) WHERE b=2;",
           "expect": "2 2 0 {}"
         }
       ]
     },
     {
-      "name": "8.6",
+      "name": "unionall-8.6",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b=2.0;",
+          "sql": "SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0\u003e'0',t1) WHERE b=2.0;",
           "expect": "2 2 0 {}"
         }
       ]
     },
     {
-      "name": "8.7",
+      "name": "unionall-8.7",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b='2';"
+          "sql": "SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0\u003e'0',t1) WHERE b='2';"
         }
       ]
     },
     {
-      "name": "8.8",
+      "name": "unionall-8.8",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b=2;",
+          "sql": "SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0\u003e'0',t1) WHERE b=2;",
           "expect": "2 2 0 {}"
         }
       ]
     },
     {
-      "name": "8.9",
+      "name": "unionall-8.9",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b=2.0;",
+          "sql": "SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0\u003e'0',t1) WHERE b=2.0;",
           "expect": "2 2 0 {}"
         }
       ]
     },
     {
-      "name": "8.10",
+      "name": "unionall-8.10",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b='2';"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
+          "sql": "SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0\u003e'0',t1) WHERE b='2';"
         }
       ]
     }

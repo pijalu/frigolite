@@ -1,81 +1,163 @@
 {
   "file": "with6.test",
   "name": "with6",
+  "nullToken": "-",
+  "ordered": true,
   "tests": [
     {
-      "name": "100",
+      "name": "with6-100",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH c(x) AS (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x FROM c c1, c c2, c c3;"
+          "type": "query",
+          "sql": "WITH c(x) AS (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x FROM c c1, c c2, c c3;",
+          "expect": "000 001 010 011 100 101 110 111"
         }
       ]
     },
     {
-      "name": "110",
+      "name": "with6-101",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH c(x) AS MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x FROM c c1, c c2, c c3;"
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  WITH c(x) AS (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x FROM c c1, c c2, c c3;"
         }
       ]
     },
     {
-      "name": "120",
+      "name": "with6-110",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH c(x) AS NOT MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x FROM c c1, c c2, c c3;"
+          "type": "query",
+          "sql": "WITH c(x) AS MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x FROM c c1, c c2, c c3;",
+          "expect": "000 001 010 011 100 101 110 111"
         }
       ]
     },
     {
-      "name": "130",
+      "name": "with6-111",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH c(x) AS NOT MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x\n    FROM (SELECT x FROM c LIMIT 5) AS c1,\n         (SELECT x FROM c LIMIT 5) AS c2,\n         (SELECT x FROM c LIMIT 5) AS c3;"
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  WITH c(x) AS MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x FROM c c1, c c2, c c3;"
         }
       ]
     },
     {
-      "name": "140",
+      "name": "with6-120",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH c(x) AS MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x\n    FROM (SELECT x FROM c LIMIT 5) AS c1,\n         (SELECT x FROM c LIMIT 6) AS c2,\n         (SELECT x FROM c LIMIT 7) AS c3;"
+          "type": "query",
+          "sql": "WITH c(x) AS NOT MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x FROM c c1, c c2, c c3;",
+          "expect": "000 001 010 011 100 101 110 111"
         }
       ]
     },
     {
-      "name": "150",
+      "name": "with6-121",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH c(x) AS (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x\n    FROM (SELECT x FROM c LIMIT 5) AS c1,\n         (SELECT x FROM c LIMIT 6) AS c2,\n         (SELECT x FROM c LIMIT 7) AS c3;"
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  WITH c(x) AS NOT MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x FROM c c1, c c2, c c3;"
         }
       ]
     },
     {
-      "name": "160",
+      "name": "with6-130",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH c(x) AS (VALUES(0),(1))\n  SELECT c2.x + 100*(SELECT sum(x+1) FROM c WHERE c.x<=c2.x)\n    FROM c AS c2 WHERE c2.x<10;"
+          "type": "query",
+          "sql": "WITH c(x) AS NOT MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x\n    FROM (SELECT x FROM c LIMIT 5) AS c1,\n         (SELECT x FROM c LIMIT 5) AS c2,\n         (SELECT x FROM c LIMIT 5) AS c3;",
+          "expect": "000 001 010 011 100 101 110 111"
         }
       ]
     },
     {
-      "name": "170",
+      "name": "with6-131",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH c(x) AS NOT MATERIALIZED (VALUES(0),(1))\n  SELECT c2.x + 100*(SELECT sum(x+1) FROM c WHERE c.x<=c2.x)\n    FROM c AS c2 WHERE c2.x<10;"
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  WITH c(x) AS NOT MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x\n    FROM (SELECT x FROM c LIMIT 5) AS c1,\n         (SELECT x FROM c LIMIT 5) AS c2,\n         (SELECT x FROM c LIMIT 5) AS c3;"
         }
       ]
     },
     {
-      "name": "200",
+      "name": "with6-140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c(x) AS MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x\n    FROM (SELECT x FROM c LIMIT 5) AS c1,\n         (SELECT x FROM c LIMIT 6) AS c2,\n         (SELECT x FROM c LIMIT 7) AS c3;",
+          "expect": "000 001 010 011 100 101 110 111"
+        }
+      ]
+    },
+    {
+      "name": "with6-141",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  WITH c(x) AS MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x\n    FROM (SELECT x FROM c LIMIT 5) AS c1,\n         (SELECT x FROM c LIMIT 6) AS c2,\n         (SELECT x FROM c LIMIT 7) AS c3;"
+        }
+      ]
+    },
+    {
+      "name": "with6-150",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c(x) AS (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x\n    FROM (SELECT x FROM c LIMIT 5) AS c1,\n         (SELECT x FROM c LIMIT 6) AS c2,\n         (SELECT x FROM c LIMIT 7) AS c3;",
+          "expect": "000 001 010 011 100 101 110 111"
+        }
+      ]
+    },
+    {
+      "name": "with6-151",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  WITH c(x) AS (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x\n    FROM (SELECT x FROM c LIMIT 5) AS c1,\n         (SELECT x FROM c LIMIT 6) AS c2,\n         (SELECT x FROM c LIMIT 7) AS c3;"
+        }
+      ]
+    },
+    {
+      "name": "with6-160",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c(x) AS (VALUES(0),(1))\n  SELECT c2.x + 100*(SELECT sum(x+1) FROM c WHERE c.x\u003c=c2.x)\n    FROM c AS c2 WHERE c2.x\u003c10;",
+          "expect": "100 301"
+        }
+      ]
+    },
+    {
+      "name": "with6-161",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  WITH c(x) AS (VALUES(0),(1))\n  SELECT c2.x + 100*(SELECT sum(x+1) FROM c WHERE c.x\u003c=c2.x)\n    FROM c AS c2 WHERE c2.x\u003c10;"
+        }
+      ]
+    },
+    {
+      "name": "with6-170",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH c(x) AS NOT MATERIALIZED (VALUES(0),(1))\n  SELECT c2.x + 100*(SELECT sum(x+1) FROM c WHERE c.x\u003c=c2.x)\n    FROM c AS c2 WHERE c2.x\u003c10;",
+          "expect": "100 301"
+        }
+      ]
+    },
+    {
+      "name": "with6-171",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  WITH c(x) AS NOT MATERIALIZED (VALUES(0),(1))\n  SELECT c2.x + 100*(SELECT sum(x+1) FROM c WHERE c.x\u003c=c2.x)\n    FROM c AS c2 WHERE c2.x\u003c10;"
+        }
+      ]
+    },
+    {
+      "name": "with6-200",
       "steps": [
         {
           "type": "query",
@@ -85,7 +167,7 @@
       ]
     },
     {
-      "name": "210",
+      "name": "with6-210",
       "steps": [
         {
           "type": "query",
@@ -95,7 +177,16 @@
       ]
     },
     {
-      "name": "220",
+      "name": "with6-211",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT y FROM t2 ORDER BY y;"
+        }
+      ]
+    },
+    {
+      "name": "with6-220",
       "steps": [
         {
           "type": "query",
@@ -105,7 +196,20 @@
       ]
     },
     {
-      "name": "300",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "-"
+        }
+      ]
+    },
+    {
+      "name": "with6-300",
       "steps": [
         {
           "type": "exec",
@@ -114,30 +218,69 @@
       ]
     },
     {
-      "name": "310",
+      "name": "with6-310",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH t23 AS MATERIALIZED (SELECT * FROM t2 FULL JOIN t3 USING(b))\n  SELECT * FROM t23;"
+          "type": "query",
+          "sql": "WITH t23 AS MATERIALIZED (SELECT * FROM t2 FULL JOIN t3 USING(b))\n  SELECT * FROM t23;",
+          "expect": "\n  4 5 6 - -\n  7 8 9 8 8\n  - 3 - 3 3\n"
         }
       ]
     },
     {
-      "name": "320",
+      "name": "with6-311",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH t23 AS NOT MATERIALIZED (SELECT * FROM t2 FULL JOIN t3 USING(b))\n  SELECT * FROM t23;"
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  WITH t23 AS MATERIALIZED (SELECT * FROM t2 FULL JOIN t3 USING(b))\n  SELECT * FROM t23;"
         }
       ]
     },
     {
-      "name": "330",
+      "name": "with6-320",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH t23 AS (SELECT * FROM t2 FULL JOIN t3 USING(b))\n  SELECT * FROM t23;"
-        },
+          "type": "query",
+          "sql": "WITH t23 AS NOT MATERIALIZED (SELECT * FROM t2 FULL JOIN t3 USING(b))\n  SELECT * FROM t23;",
+          "expect": "\n  4 5 6 - -\n  7 8 9 8 8\n  - 3 - 3 3\n"
+        }
+      ]
+    },
+    {
+      "name": "with6-321",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  WITH t23 AS NOT MATERIALIZED (SELECT * FROM t2 FULL JOIN t3 USING(b))\n  SELECT * FROM t23;"
+        }
+      ]
+    },
+    {
+      "name": "with6-330",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH t23 AS (SELECT * FROM t2 FULL JOIN t3 USING(b))\n  SELECT * FROM t23;",
+          "expect": "\n  4 5 6 - -\n  7 8 9 8 8\n  - 3 - 3 3\n"
+        }
+      ]
+    },
+    {
+      "name": "with6-331",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  WITH t23 AS (SELECT * FROM t2 FULL JOIN t3 USING(b))\n  SELECT * FROM t23;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_1",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE raw(country,date,total,delta, UNIQUE(country,date));"
@@ -145,18 +288,20 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "with6-400",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  with recursive\n    init(country, date, fin) AS (SELECT country, min(date), max(date) FROM raw WHERE total \u003e 0 GROUP BY country),\n    src(country, date) AS (SELECT raw.country, raw.date\n        FROM raw JOIN init i on raw.country = i.country AND raw.date \u003e i.date\n        ORDER BY raw.country, raw.date),\n    vals(country, date, x, y) AS (SELECT src.country, src.date, julianday(raw.date) - julianday(src.date), log(delta+1)\n        FROM src JOIN raw on raw.country = src.country AND raw.date \u003e date(src.date,'-7 days') AND raw.date \u003c= src.date AND delta \u003e= 0),\n    sums(country, date, x2, x, n, xy, y) AS (SELECT country, date, sum(x*x*1.0), sum(x*1.0), sum(1.0), sum(x*y*1.0), sum(y*1.0) FROM vals GROUP BY 1, 2),\n    mult(country, date, m) AS (SELECT country, date, 1.0/(x2 * n - x * x) FROM sums),\n    inv(country, date, a,b,c,d) AS (SELECT mult.country, mult.date, n * m, -x * m, -x * m, x2 * m\n        FROM mult JOIN sums on sums.country=mult.country AND mult.date=sums.date),\n    fit(country, date, a, b) AS (SELECT inv.country, inv.date, a * xy + b * y, c * xy + d * y\n        FROM inv\n        JOIN mult on mult.country = inv.country AND mult.date = inv.date\n        JOIN sums on sums.country = mult.country AND sums.date = mult.date\n  )\n  SELECT *, nFin/nPrev - 1 AS growth, log(2)/log(nFin/nPrev) AS doubling\n    FROM (SELECT f.*, exp(b) - 1 AS nFin, exp(a* (-1) + b) - 1 AS nPrev\n            FROM fit f JOIN init i on i.country = f.country AND f.date \u003c= date(i.fin,'-3 days'))\n   WHERE nPrev \u003e 0 AND nFin \u003e 0;"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "with6-410",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  with recursive\n    init(country, date, fin) AS (SELECT country, min(date), max(date) FROM raw WHERE total \u003e 0 GROUP BY country),\n    src(country, date) AS (SELECT raw.country, raw.date\n        FROM raw JOIN init i on raw.country = i.country AND raw.date \u003e i.date\n        ORDER BY raw.country, raw.date),\n    vals(country, date, x, y) AS (SELECT src.country, src.date, julianday(raw.date) - julianday(src.date), log(delta+1)\n        FROM src JOIN raw on raw.country = src.country AND raw.date \u003e date(src.date,'-7 days') AND raw.date \u003c= src.date AND delta \u003e= 0),\n    sums(country, date, x2, x, n, xy, y) AS (SELECT country, date, sum(x*x*1.0), sum(x*1.0), sum(1.0), sum(x*y*1.0), sum(y*1.0) FROM vals GROUP BY 1, 2),\n    mult(country, date, m) AS (SELECT country, date, 1.0/(x2 * n - x * x) FROM sums),\n    inv(country, date, a,b,c,d) AS (SELECT mult.country, mult.date, n * m, -x * m, -x * m, x2 * m\n        FROM mult JOIN sums on sums.country=mult.country AND mult.date=sums.date),\n    fit(country, date, a, b) AS (SELECT inv.country, inv.date, a * xy + b * y, c * xy + d * y\n        FROM inv\n        JOIN mult on mult.country = inv.country AND mult.date = inv.date\n        JOIN sums on sums.country = mult.country AND sums.date = mult.date\n  )\n  SELECT *, nFin/nPrev - 1 AS growth, log(2)/log(nFin/nPrev) AS doubling\n    FROM (SELECT f.*, exp(b) - 1 AS nFin, exp(a* (-1) + b) - 1 AS nPrev\n            FROM fit f JOIN init i on i.country = f.country AND f.date \u003c= date(i.fin,'-3 days'))\n   WHERE nPrev \u003e 0 AND nFin \u003e 0;"
         }
       ]
     }

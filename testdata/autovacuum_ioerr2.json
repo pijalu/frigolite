@@ -1,5 +1,16 @@
 {
   "file": "autovacuum_ioerr2.test",
   "name": "autovacuum_ioerr2",
-  "tests": []
+  "ordered": true,
+  "tests": [
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "backup.db"
+        }
+      ]
+    }
+  ]
 }

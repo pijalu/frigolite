@@ -1,9 +1,10 @@
 {
   "file": "expridx1.test",
   "name": "expridx1",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0.1",
+      "name": "expridx1-1.0.1",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,31 @@
       ]
     },
     {
-      "name": "1.1.1",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT rootpage FROM sqlite_schema WHERE name='i1'",
+          "variable": "root"
+        }
+      ]
+    },
+    {
+      "name": "expridx1-1.0.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(b, rowid, PRIMARY KEY(b, rowid)) WITHOUT ROWID;"
+        },
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "expridx1-1.1.1",
       "steps": [
         {
           "type": "exec",
@@ -21,7 +46,7 @@
       ]
     },
     {
-      "name": "1.1.1b",
+      "name": "expridx1-1.1.1b",
       "steps": [
         {
           "type": "query",
@@ -31,7 +56,17 @@
       ]
     },
     {
-      "name": "1.1.2",
+      "name": "expridx1-1.1.1c",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 AS o NOT INDEXED \n  WHERE NOT EXISTS (SELECT 1 FROM t1 WHERE +a=o.a AND b+0.0=o.b+0.0)",
+          "expect": "20"
+        }
+      ]
+    },
+    {
+      "name": "expridx1-1.1.2",
       "steps": [
         {
           "type": "exec",
@@ -40,7 +75,7 @@
       ]
     },
     {
-      "name": "1.1.3",
+      "name": "expridx1-1.1.3",
       "steps": [
         {
           "type": "query",
@@ -50,17 +85,36 @@
       ]
     },
     {
-      "name": "1.2.1",
+      "name": "expridx1-1.1.4",
       "steps": [
         {
           "type": "query",
-          "sql": "UPDATE x1 SET b=26.0 WHERE rowid=25;\n  PRAGMA integrity_check;",
-          "expect": "{row 3 missing from index i1}"
+          "sql": "SELECT rowid FROM t1 AS o NOT INDEXED \n  WHERE NOT EXISTS (SELECT 1 FROM t1 WHERE +a=o.a AND b+0.0=o.b+0.0)"
         }
       ]
     },
     {
-      "name": "1.2.3",
+      "name": "expridx1-1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE x1 SET b=26.0 WHERE rowid=25;\n  PRAGMA integrity_check;",
+          "expect": "\n  {row 3 missing from index i1}\n"
+        }
+      ]
+    },
+    {
+      "name": "expridx1-1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 AS o NOT INDEXED \n  WHERE NOT EXISTS (SELECT 1 FROM t1 WHERE +a=o.a AND b+0.0=o.b+0.0)",
+          "expect": "25"
+        }
+      ]
+    },
+    {
+      "name": "expridx1-1.2.3",
       "steps": [
         {
           "type": "exec",
@@ -69,7 +123,7 @@
       ]
     },
     {
-      "name": "1.2.4",
+      "name": "expridx1-1.2.4",
       "steps": [
         {
           "type": "query",
@@ -79,17 +133,81 @@
       ]
     },
     {
-      "name": "1.3.1",
+      "name": "expridx1-1.2.5",
       "steps": [
         {
           "type": "query",
-          "sql": "DELETE FROM t1;\n  INSERT INTO t1 VALUES(5,  15.0);\n  INSERT INTO t1 VALUES(10, 20.0);\n  INSERT INTO t1 VALUES(15, 20.0);\n  INSERT INTO t1 VALUES(20, 20.0);\n  INSERT INTO t1 VALUES(25, 20.0);\n  INSERT INTO t1 VALUES(30, 20.0);\n  INSERT INTO t1 VALUES(35, 25.0);\n\n  UPDATE x1 SET b=19.0 WHERE b=20.0;\n  PRAGMA integrity_check;",
-          "expect": "{row 2 missing from index i1} \n  {row 3 missing from index i1} \n  {row 4 missing from index i1} \n  {row 5 missing from index i1}\n  {row 6 missing from index i1}"
+          "sql": "SELECT rowid FROM t1 AS o NOT INDEXED \n  WHERE NOT EXISTS (SELECT 1 FROM t1 WHERE +a=o.a AND b+0.0=o.b+0.0)"
         }
       ]
     },
     {
-      "name": "1.3.4",
+      "name": "expridx1-1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1 VALUES(5,  15.0);\n  INSERT INTO t1 VALUES(10, 20.0);\n  INSERT INTO t1 VALUES(15, 20.0);\n  INSERT INTO t1 VALUES(20, 20.0);\n  INSERT INTO t1 VALUES(25, 20.0);\n  INSERT INTO t1 VALUES(30, 20.0);\n  INSERT INTO t1 VALUES(35, 25.0);\n\n  UPDATE x1 SET b=19.0 WHERE b=20.0;\n  PRAGMA integrity_check;",
+          "expect": "\n  {row 2 missing from index i1} \n  {row 3 missing from index i1} \n  {row 4 missing from index i1} \n  {row 5 missing from index i1}\n  {row 6 missing from index i1}\n"
+        }
+      ]
+    },
+    {
+      "name": "expridx1-1.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 AS o NOT INDEXED \n  WHERE NOT EXISTS (SELECT 1 FROM t1 WHERE +a=o.a AND b+0.0=o.b+0.0)",
+          "expect": "10 15 20 25 30"
+        }
+      ]
+    },
+    {
+      "name": "expridx1-1.3.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=15"
+        }
+      ]
+    },
+    {
+      "name": "expridx1-1.3.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=30"
+        }
+      ]
+    },
+    {
+      "name": "expridx1-1.3.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=20"
+        }
+      ]
+    },
+    {
+      "name": "expridx1-1.3.3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=10"
+        }
+      ]
+    },
+    {
+      "name": "expridx1-1.3.3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=25"
+        }
+      ]
+    },
+    {
+      "name": "expridx1-1.3.4",
       "steps": [
         {
           "type": "query",
@@ -99,7 +217,48 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "expridx1-1.3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 AS o NOT INDEXED \n  WHERE NOT EXISTS (SELECT 1 FROM t1 WHERE +a=o.a AND b+0.0=o.b+0.0)"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "expridx1-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i\u003c1000\n  )\n  INSERT INTO t1 SELECT i, random(), hex(randomblob(50)) FROM s;\n  CREATE INDEX t1c ON t1(+c);"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT rootpage FROM sqlite_schema WHERE name='t1c'",
+          "variable": "root"
+        }
+      ]
+    },
+    {
+      "name": "expridx1-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a, b, c, PRIMARY KEY(c, a, b)) WITHOUT ROWID;"
+        }
+      ]
+    },
+    {
+      "name": "expridx1-2.2",
       "steps": [
         {
           "type": "exec",
@@ -108,7 +267,2041 @@
       ]
     },
     {
-      "name": "3.0",
+      "name": "expridx1-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM ( \n  SELECT a, b FROM t1 AS o NOT INDEXED \n  WHERE NOT EXISTS (SELECT 1 FROM t1 WHERE +a=o.a AND +b=o.b AND +c=o.c)\n )",
+          "expect": "500"
+        }
+      ]
+    },
+    {
+      "name": "expridx1-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=3"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=5"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=7"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=9"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=11"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=13"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=15"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=17"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=19"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=21"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=23"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=25"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=27"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=29"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=31"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=33"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=35"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=37"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=39"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=41"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=43"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=45"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=47"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=49"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=51"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=53"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=55"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=57"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=59"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=61"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=63"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=65"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=67"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=69"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=71"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=73"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=75"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=77"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=79"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=81"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=83"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=85"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=87"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=89"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=91"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=93"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=95"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=97"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=99"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=101"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=103"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=105"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=107"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=109"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=111"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=113"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=115"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=117"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=119"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=121"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=123"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=125"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=127"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=129"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=131"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=133"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=135"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=137"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=139"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=141"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=143"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=145"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=147"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=149"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=151"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=153"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=155"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=157"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=159"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=161"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=163"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=165"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=167"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=169"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=171"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=173"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=175"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=177"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=179"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=181"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=183"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=185"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=187"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=189"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=191"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=193"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=195"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=197"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=199"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=201"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=203"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=205"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=207"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=209"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=211"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=213"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=215"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=217"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=219"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=221"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=223"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=225"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=227"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=229"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=231"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=233"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=235"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=237"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=239"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=241"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=243"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=245"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=247"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=249"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=251"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=253"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=255"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=257"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=259"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=261"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=263"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=265"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=267"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=269"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=271"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=273"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=275"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=277"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=279"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=281"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=283"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=285"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=287"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=289"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=291"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=293"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=295"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=297"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=299"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=301"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=303"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=305"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=307"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=309"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=311"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=313"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=315"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=317"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=319"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=321"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=323"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=325"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=327"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=329"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=331"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=333"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=335"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=337"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=339"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=341"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=343"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=345"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=347"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=349"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=351"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=353"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=355"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=357"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=359"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=361"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=363"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=365"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=367"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=369"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=371"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=373"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=375"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=377"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=379"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=381"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=383"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=385"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=387"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=389"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=391"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=393"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=395"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=397"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=399"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=401"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=403"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=405"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=407"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=409"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=411"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=413"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=415"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=417"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=419"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=421"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=423"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=425"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=427"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=429"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=431"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=433"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=435"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=437"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=439"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=441"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=443"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=445"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=447"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=449"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=451"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=453"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=455"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=457"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=459"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=461"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=463"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=465"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=467"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=469"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=471"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=473"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=475"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=477"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=479"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=481"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=483"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=485"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=487"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=489"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=491"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=493"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=495"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=497"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=499"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=501"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=503"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=505"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=507"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=509"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=511"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=513"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=515"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=517"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=519"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=521"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=523"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=525"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=527"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=529"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=531"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=533"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=535"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=537"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=539"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=541"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=543"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=545"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=547"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=549"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=551"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=553"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=555"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=557"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=559"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=561"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=563"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=565"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=567"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=569"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=571"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=573"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=575"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=577"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=579"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=581"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=583"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=585"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=587"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=589"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=591"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=593"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=595"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=597"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=599"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=601"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=603"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=605"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=607"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=609"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=611"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=613"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=615"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=617"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=619"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=621"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=623"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=625"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=627"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=629"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=631"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=633"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=635"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=637"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=639"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=641"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=643"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=645"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=647"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=649"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=651"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=653"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=655"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=657"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=659"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=661"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=663"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=665"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=667"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=669"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=671"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=673"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=675"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=677"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=679"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=681"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=683"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=685"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=687"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=689"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=691"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=693"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=695"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=697"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=699"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=701"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=703"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=705"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=707"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=709"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=711"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=713"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=715"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=717"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=719"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=721"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=723"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=725"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=727"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=729"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=731"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=733"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=735"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=737"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=739"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=741"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=743"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=745"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=747"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=749"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=751"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=753"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=755"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=757"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=759"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=761"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=763"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=765"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=767"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=769"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=771"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=773"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=775"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=777"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=779"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=781"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=783"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=785"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=787"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=789"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=791"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=793"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=795"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=797"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=799"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=801"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=803"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=805"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=807"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=809"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=811"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=813"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=815"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=817"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=819"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=821"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=823"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=825"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=827"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=829"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=831"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=833"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=835"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=837"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=839"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=841"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=843"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=845"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=847"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=849"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=851"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=853"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=855"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=857"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=859"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=861"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=863"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=865"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=867"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=869"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=871"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=873"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=875"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=877"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=879"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=881"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=883"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=885"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=887"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=889"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=891"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=893"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=895"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=897"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=899"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=901"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=903"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=905"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=907"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=909"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=911"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=913"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=915"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=917"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=919"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=921"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=923"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=925"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=927"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=929"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=931"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=933"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=935"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=937"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=939"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=941"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=943"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=945"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=947"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=949"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=951"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=953"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=955"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=957"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=959"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=961"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=963"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=965"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=967"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=969"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=971"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=973"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=975"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=977"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=979"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=981"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=983"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=985"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=987"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=989"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=991"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=993"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=995"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=997"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=999"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "expridx1-2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM ( \n  SELECT a, b FROM t1 AS o NOT INDEXED \n  WHERE NOT EXISTS (SELECT 1 FROM t1 WHERE +a=o.a AND +b=o.b AND +c=o.c)\n )",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "expridx1-3.0",
       "steps": [
         {
           "type": "exec",
@@ -117,7 +2310,26 @@
       ]
     },
     {
-      "name": "3.2",
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT rootpage FROM sqlite_schema WHERE name='i1'",
+          "variable": "root"
+        }
+      ]
+    },
+    {
+      "name": "expridx1-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(c, rowid, PRIMARY KEY(c, rowid)) WITHOUT ROWID;"
+        }
+      ]
+    },
+    {
+      "name": "expridx1-3.2",
       "steps": [
         {
           "type": "exec",
@@ -126,7 +2338,17 @@
       ]
     },
     {
-      "name": "3.4",
+      "name": "expridx1-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM y1 AS o NOT INDEXED \n  WHERE NOT EXISTS (SELECT 1 FROM y1 WHERE +rowid=o.rowid AND c=o.c)",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "expridx1-3.4",
       "steps": [
         {
           "type": "exec",
@@ -135,7 +2357,20 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "expridx1-3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM y1 AS o NOT INDEXED \n  WHERE NOT EXISTS (SELECT 1 FROM y1 WHERE +rowid=o.rowid AND c=o.c)"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "expridx1-4.0",
       "steps": [
         {
           "type": "exec",
@@ -144,7 +2379,26 @@
       ]
     },
     {
-      "name": "4.2",
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT rootpage FROM sqlite_schema WHERE name='z1b'",
+          "variable": "root"
+        }
+      ]
+    },
+    {
+      "name": "expridx1-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(b, a, PRIMARY KEY(b, a)) WITHOUT ROWID;"
+        }
+      ]
+    },
+    {
+      "name": "expridx1-4.2",
       "steps": [
         {
           "type": "exec",
@@ -153,17 +2407,17 @@
       ]
     },
     {
-      "name": "4.3",
+      "name": "expridx1-4.3",
       "steps": [
         {
           "type": "query",
           "sql": "PRAGMA integrity_check",
-          "expect": "{index z1b stores an imprecise floating-point value for row 2}\n  {index z1b stores an imprecise floating-point value for row 3}\n  {row 4 missing from index z1b}\n  {index z1b stores an imprecise floating-point value for row 5}\n  {index z1b stores an imprecise floating-point value for row 6}\n  {row 7 missing from index z1b}"
+          "expect": "\n  {index z1b stores an imprecise floating-point value for row 2}\n  {index z1b stores an imprecise floating-point value for row 3}\n  {row 4 missing from index z1b}\n  {index z1b stores an imprecise floating-point value for row 5}\n  {index z1b stores an imprecise floating-point value for row 6}\n  {row 7 missing from index z1b}\n"
         }
       ]
     },
     {
-      "name": "4.4",
+      "name": "expridx1-4.4",
       "steps": [
         {
           "type": "query",
@@ -173,7 +2427,7 @@
       ]
     },
     {
-      "name": "4.5",
+      "name": "expridx1-4.5",
       "steps": [
         {
           "type": "exec",
@@ -182,59 +2436,14 @@
       ]
     },
     {
-      "name": "4.6",
+      "name": "expridx1-4.6",
       "steps": [
         {
           "type": "query",
           "sql": "PRAGMA integrity_check",
-          "expect": "{index z1b stores an imprecise floating-point value for row 2}\n  {index z1b stores an imprecise floating-point value for row 3}\n  {row 4 missing from index z1b}\n  {index z1b stores an imprecise floating-point value for row 5}\n  {index z1b stores an imprecise floating-point value for row 6}\n  {row 7 missing from index z1b}"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA integrity_check"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE x1(b, rowid, PRIMARY KEY(b, rowid)) WITHOUT ROWID;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE x1(a, b, c, PRIMARY KEY(c, a, b)) WITHOUT ROWID;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE x1(c, rowid, PRIMARY KEY(c, rowid)) WITHOUT ROWID;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE x1(b, a, PRIMARY KEY(b, a)) WITHOUT ROWID;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
+          "expect": "\n  {index z1b stores an imprecise floating-point value for row 2}\n  {index z1b stores an imprecise floating-point value for row 3}\n  {row 4 missing from index z1b}\n  {index z1b stores an imprecise floating-point value for row 5}\n  {index z1b stores an imprecise floating-point value for row 6}\n  {row 7 missing from index z1b}\n"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

@@ -17,13 +17,12 @@ import (
 // each result column (nil → BINARY).
 
 func installRowidAliases(row RowMap, colDefs []sql.ColumnDef, rowID int64) {
-	if RowHasRowIDColumn(colDefs) {
-		return
-	}
 	rowidCV := &util.ColumnValue{Value: rowID, Affinity: 'I'}
-	row["rowid"] = rowidCV
-	row["_rowid_"] = rowidCV
-	row["oid"] = rowidCV
+	for _, name := range []string{"rowid", "_rowid_", "oid"} {
+		if !rowIDAliasShadowed(colDefs, name) {
+			row[name] = rowidCV
+		}
+	}
 }
 
 // applyRowMapDefaults applies DEFAULT values for columns added after the record
@@ -345,7 +344,6 @@ func appendUnqualifiedStar(outRow []interface{}, colDefs []sql.ColumnDef, row Ro
 // appendOutputExpr appends an evaluated expression column to outRow. Returns
 // (row, nil) on success and (row, err) when the expression raised an error
 // (the error aborts the query — SQLite propagates function errors from result
-// columns rather than silently substituting NULL).
 func appendOutputExpr(outRow []interface{}, e *SelectEngine, expr sql.Expr, row Row) ([]interface{}, error) {
 	v, err := e.ctx.EvalExpr(expr, row)
 	if err != nil {

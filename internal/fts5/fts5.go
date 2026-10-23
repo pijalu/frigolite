@@ -55,6 +55,19 @@ func (m *Module) Connect(args []string) (vtab.VirtualTable, error) {
 	return &vtabInstance{mod: m, cfg: cfg, tok: tok, tokErr: tokErr}, nil
 }
 
+// ShadowName implements SQLite's xShadowName for FTS5.
+func (m *Module) ShadowName(tableName, name string) bool {
+	if !strings.HasPrefix(strings.ToLower(name), strings.ToLower(tableName)+"_") {
+		return false
+	}
+	switch strings.ToLower(name[len(tableName)+1:]) {
+	case "data", "idx", "content", "docsize", "config":
+		return true
+	default:
+		return false
+	}
+}
+
 // SchemaDeclared implements vtab.SchemaDeclaredMarker: fts5's constructor
 // always declares the schema (fts5ConfigParse + declare), even for an empty
 // column list.

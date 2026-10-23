@@ -14,6 +14,18 @@
       ]
     },
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
       "name": "snapshot2-1.1.2",
       "steps": [
         {
@@ -34,7 +46,7 @@
       ]
     },
     {
-      "name": "setup_0",
+      "name": "setup_1",
       "steps": [
         {
           "type": "exec",
@@ -57,11 +69,18 @@
       ]
     },
     {
-      "name": "setup_1",
+      "name": "setup_2",
       "steps": [
         {
           "type": "exec",
           "sql": "COMMIT"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         }
       ]
     },
@@ -86,7 +105,7 @@
       ]
     },
     {
-      "name": "setup_2",
+      "name": "setup_3",
       "steps": [
         {
           "type": "exec",
@@ -98,8 +117,14 @@
       "name": "snapshot2-1.2.4",
       "steps": [
         {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(10, 11, 12)"
+          "sql": "INSERT INTO t1 VALUES(10, 11, 12)",
+          "database": "db2"
         },
         {
           "type": "exec",
@@ -109,11 +134,15 @@
       ]
     },
     {
-      "name": "setup_3",
+      "name": "setup_4",
       "steps": [
         {
           "type": "exec",
           "sql": "COMMIT"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     },
@@ -135,6 +164,13 @@
       "name": "snapshot2-2.1",
       "steps": [
         {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "exec",
           "sql": "SELECT * FROM sqlite_master"
         },
@@ -155,6 +191,13 @@
     {
       "name": "snapshot2-2.2",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
         {
           "type": "exec",
           "sql": "SELECT * FROM sqlite_master"
@@ -206,6 +249,13 @@
           "sql": "PRAGMA wal_checkpoint"
         },
         {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "exec",
           "sql": "BEGIN",
           "expect": "1 SQLITE_ERROR_SNAPSHOT"
@@ -230,8 +280,18 @@
       "name": "snapshot2-3.1",
       "steps": [
         {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES('e', 'f')"
+          "sql": "INSERT INTO t1 VALUES('e', 'f')",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     },
@@ -265,6 +325,15 @@
       ]
     },
     {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
       "name": "snapshot2-4.5",
       "steps": [
         {
@@ -289,6 +358,16 @@
       "steps": null
     },
     {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
       "name": "snapshot2-5.0",
       "steps": [
         {
@@ -303,7 +382,13 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM t2;\n    BEGIN;"
+          "sql": "SELECT * FROM t2;\n    BEGIN;",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "END",
+          "database": "db2"
         }
       ]
     },
@@ -313,7 +398,13 @@
         {
           "type": "exec",
           "sql": "BEGIN",
-          "expect": "abc def ghi"
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2 ; END",
+          "expect": "abc def ghi",
+          "database": "db2"
         }
       ]
     },
@@ -327,7 +418,13 @@
         {
           "type": "exec",
           "sql": "BEGIN",
-          "expect": "abc def ghi"
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2 ; END",
+          "expect": "abc def ghi",
+          "database": "db2"
         }
       ]
     },
@@ -341,7 +438,8 @@
         {
           "type": "exec",
           "sql": "BEGIN",
-          "expect": "1 SQLITE_ERROR_SNAPSHOT"
+          "expect": "1 SQLITE_ERROR_SNAPSHOT",
+          "database": "db2"
         }
       ]
     }

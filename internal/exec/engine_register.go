@@ -10,7 +10,9 @@ import (
 	"github.com/pijalu/frigolite/internal/fts5"
 	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/pager"
+	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
+	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/vtab"
 )
 
@@ -67,6 +69,10 @@ func newTempContext() *DatabaseContext {
 // applies until this is called (vtab1-1.1.x / vtab1.2.6).
 func (e *Engine) RegisterEchoModule() {
 	e.vtabs.Register("echo", vtab.NewEchoModule(engineEchoSource{e: e}))
+}
+
+func (e *Engine) UnregisterEchoModule() {
+	e.vtabs.Unregister("echo")
 }
 
 // engineEchoSource adapts the engine's schema to vtab.EchoSource: it resolves
@@ -208,6 +214,18 @@ func (e *Engine) registerFTSModules() {
 	// fts3tokenize exposes a tokenizer as a virtual table (fts3_tokenize_vtab.c):
 	// querying WHERE input = <text> returns one row per token.
 	e.vtabs.Register("fts3tokenize", fts.NewFTS3TokenizeModule())
+	// fts3_exprtest/fts3_exprtest_rebalance: the FTS3 query expression
+	// parser's test interface (fts3_expr.c's sqlite3Fts3ExprInitTestInterface,
+	// SQLITE_TEST-only in C). They parse an expression with a tokenizer and
+	// return a text rendering of the parse tree.
+	e.funcs.Register("fts3_exprtest", fts.ExprTestFunc(false), 3, -1)
+	e.funcs.Register("fts3_exprtest_rebalance", fts.ExprTestFunc(true), 3, -1)
+	// fts3_exprtest/fts3_exprtest_rebalance: the FTS3 query expression
+	// parser's test interface (fts3_expr.c's sqlite3Fts3ExprInitTestInterface,
+	// SQLITE_TEST-only in C). They parse an expression with a tokenizer and
+	// return a text rendering of the parse tree.
+	e.funcs.Register("fts3_exprtest", fts.ExprTestFunc(false), 3, -1)
+	e.funcs.Register("fts3_exprtest_rebalance", fts.ExprTestFunc(true), 3, -1)
 	// fts5's test-support scalar functions (fts5_index.c's fts5_rowid and
 	// fts5_expr.c's fts5_expr/fts5_expr_tcl, SQLITE_TEST-only in C and
 	// registered unconditionally here).
@@ -275,6 +293,33 @@ func (e *Engine) resolveFTS5VocabTarget(dbName, tbl string) (*fts5.Table, string
 func (e *Engine) registerEngineFuncs() {
 	// SQLite-internal functions used by ALTER TABLE machinery.
 	e.funcs.Register("sqlite_rename_quotefix", execddl.FnSQLiteRenameQuoteFix, 2, 2)
+	e.funcs.RegisterInternal("sqlite_rename_table", execddl.FnSQLiteRenameTable, 7, 7)
+	e.funcs.RegisterInternal("sqlite_rename_column", func(args []interface{}) (interface{}, error) {
+		if len(args) < 9 || args[3] == nil || args[4] == nil || args[5] == nil {
+			return nil, nil
+		}
+		db := e.getDB(fmt.Sprint(args[3]))
+		if db == nil {
+			return nil, nil
+		}
+		entry, err := db.Schema.FindTable(fmt.Sprint(args[4]))
+		if err != nil || entry == nil {
+			return nil, nil
+		}
+		column, err := strconv.Atoi(fmt.Sprint(args[5]))
+		if err != nil || column < 0 {
+			return nil, nil
+		}
+		statements, err := parse.ParseSQL(entry.SQL)
+		if err != nil || len(statements) != 1 {
+			return nil, nil
+		}
+		create, ok := statements[0].(*sql.CreateTableStmt)
+		if !ok || column >= len(create.Columns) {
+			return nil, nil
+		}
+		return execddl.FnSQLiteRenameColumn(args, create.Columns[column].Name, column)
+	}, 9, 9)
 	// The rank() test-harness function (src/test_func.c): reads an FTS
 	// matchinfo blob plus one weight per column and returns a relevance score.
 	// The SQLite test build registers it via install_fts3_rank_function; the

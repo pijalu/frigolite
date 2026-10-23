@@ -100,7 +100,9 @@ func Test_tkt_d82e3f3721(t *testing.T) {
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "tkt-d82e3-1.4" — skipped: sqlite_sequence synthetic table not backed by real storage N-A; SQLITE_SEQUENCE NEEDED (SQL + file side effects only)
-		_res = db.Exec("\n    VACUUM;\n    SELECT 'main', * FROM main.sqlite_sequence\n    UNION ALL\n    SELECT 'temp', * FROM temp.sqlite_sequence\n    ORDER BY 2\n  ")
+		_res = db.Exec("VACUUM")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("SELECT 'main', * FROM main.sqlite_sequence\n    UNION ALL\n    SELECT 'temp', * FROM temp.sqlite_sequence\n    ORDER BY 2")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	db2, err = frigolite.Open("test.db")
@@ -113,7 +115,9 @@ func Test_tkt_d82e3f3721(t *testing.T) {
 		_res = db.Exec("\n    SELECT * FROM temp.t3 JOIN main.t3;\n  ")
 	}
 	{ // "tkt-d82e3-2.2" — skipped: multi-connection schema visibility (db2-created table) DEFERRED (SQL + file side effects only)
-		_res = db.Exec("\n    VACUUM;\n    SELECT * FROM temp.t3 JOIN main.t3;\n  ")
+		_res = db.Exec("VACUUM")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("SELECT * FROM temp.t3 JOIN main.t3")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	if db2 != nil { db2.Close() }

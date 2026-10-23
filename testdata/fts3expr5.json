@@ -1,9 +1,10 @@
 {
   "file": "fts3expr5.test",
   "name": "fts3expr5",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "fts3expr5-1.0",
       "steps": [
         {
           "type": "query",
@@ -12,7 +13,7 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "fts3expr5-1.1",
       "steps": [
         {
           "type": "query",
@@ -21,7 +22,7 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "fts3expr5-1.2",
       "steps": [
         {
           "type": "query",
@@ -30,7 +31,7 @@
       ]
     },
     {
-      "name": "1.3",
+      "name": "fts3expr5-1.3",
       "steps": [
         {
           "type": "query",
@@ -39,7 +40,7 @@
       ]
     },
     {
-      "name": "1.4",
+      "name": "fts3expr5-1.4",
       "steps": [
         {
           "type": "query",
@@ -48,11 +49,41 @@
       ]
     },
     {
-      "name": "1.5",
+      "name": "fts3expr5-1.5",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT rowid FROM t0 WHERE x MATCH '\"\"\"\"';"
+        }
+      ]
+    },
+    {
+      "name": "fts3expr5-2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fts3_exprtest('simple', '(a:123)(b:234)()(c:456)', 'a', 'b', 'c')",
+          "expect": "AND {AND {PHRASE 0 0 123} {PHRASE 1 0 234}} {PHRASE 2 0 456}"
+        }
+      ]
+    },
+    {
+      "name": "fts3expr5-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fts3_exprtest('simple', '(a:123)(b:234)(c:456)', 'a', 'b', 'c')",
+          "expect": "AND {AND {PHRASE 0 0 123} {PHRASE 1 0 234}} {PHRASE 2 0 456}"
+        }
+      ]
+    },
+    {
+      "name": "fts3expr5-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fts3_exprtest('simple', '\"123\" AND ( )', 'a', 'b', 'c')",
+          "catchMessage": "msg"
         }
       ]
     }

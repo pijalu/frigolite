@@ -1,0 +1,87 @@
+{
+  "file": "tkt-f7b4edec.test",
+  "name": "tkt-f7b4edec",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db1"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-f7b4edec-1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y);",
+          "database": "db1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 2)",
+          "database": "db1"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "HOOKS",
+          "expect": "{INSERT main t1 1}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-f7b4edec-2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DROP TABLE t1;\n      CREATE TABLE t1(x, y);\n    ROLLBACK;",
+          "database": "db2"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "HOOKS"
+        }
+      ]
+    },
+    {
+      "name": "tkt-f7b4edec-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 2)",
+          "database": "db1"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "HOOKS",
+          "expect": "{INSERT main t1 2}"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db1"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    }
+  ]
+}

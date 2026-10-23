@@ -1,6 +1,7 @@
 {
   "file": "gencol1.test",
   "name": "gencol1",
+  "ordered": true,
   "tests": [
     {
       "name": "gencol1-100",
@@ -9,6 +10,892 @@
           "type": "query",
           "sql": "CREATE TABLE t0(c0 AS(TYPEOF(c1)), c1);\n  INSERT INTO t0(c1) VALUES(0);\n  CREATE TABLE t1(x AS (typeof(y)), y);\n  INSERT INTO t1 SELECT * FROM t0;\n  SELECT * FROM t1;",
           "expect": "integer 0"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n     a INT,\n     b TEXT,\n     c ANY,\n     w INT GENERATED ALWAYS AS (a*10),\n     x TEXT AS (typeof(c)),\n     y TEXT AS (substr(b,a,a+2))\n   );"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.1.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1(a,b,c) VALUES(1,'abcdef',5.5),(3,'cantaloupe',NULL);\n    SELECT w, x, y, '|' FROM t1 ORDER BY a;",
+          "expect": "10 real abc | 30 null ntalo |"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.1.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w, x, y, '|' FROM t1 ORDER BY w;",
+          "expect": "10 real abc | 30 null ntalo |"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.1.102",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE w=30;",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.1.103",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE x='real';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.1.104",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE y LIKE '%tal%' OR x='real' ORDER BY b;",
+          "expect": "1 3"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.1.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t1w ON t1(w);\n    SELECT a FROM t1 WHERE w=10;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.1.120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t1x ON t1(x) WHERE w BETWEEN 20 AND 40;\n    SELECT a FROM t1 WHERE x='null' AND w BETWEEN 20 AND 40;",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.1.121",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE x='real';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.1.130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "VACUUM;\n    PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.1.140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t1 SET a=a+100 WHERE w\u003c20;\n    SELECT a, w, '|' FROM t1 ORDER BY w;",
+          "expect": "3 30 | 101 1010 |"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.1.150",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(4,'jambalaya','Chef John'),(15,87719874135,0);\n    SELECT w, x, y, '|' FROM t1 ORDER BY w;",
+          "expect": "30 null ntalo | 40 text balaya | 150 integer {} | 1010 real {} |"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n     w INT GENERATED ALWAYS AS (a*10),\n     x TEXT AS (typeof(c)),\n     y TEXT AS (substr(b,a,a+2)),\n     a INT,\n     b TEXT,\n     c ANY\n   );"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.2.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1(a,b,c) VALUES(1,'abcdef',5.5),(3,'cantaloupe',NULL);\n    SELECT w, x, y, '|' FROM t1 ORDER BY a;",
+          "expect": "10 real abc | 30 null ntalo |"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.2.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w, x, y, '|' FROM t1 ORDER BY w;",
+          "expect": "10 real abc | 30 null ntalo |"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.2.102",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE w=30;",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.2.103",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE x='real';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.2.104",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE y LIKE '%tal%' OR x='real' ORDER BY b;",
+          "expect": "1 3"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.2.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t1w ON t1(w);\n    SELECT a FROM t1 WHERE w=10;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.2.120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t1x ON t1(x) WHERE w BETWEEN 20 AND 40;\n    SELECT a FROM t1 WHERE x='null' AND w BETWEEN 20 AND 40;",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.2.121",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE x='real';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.2.130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "VACUUM;\n    PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.2.140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t1 SET a=a+100 WHERE w\u003c20;\n    SELECT a, w, '|' FROM t1 ORDER BY w;",
+          "expect": "3 30 | 101 1010 |"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.2.150",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(4,'jambalaya','Chef John'),(15,87719874135,0);\n    SELECT w, x, y, '|' FROM t1 ORDER BY w;",
+          "expect": "30 null ntalo | 40 text balaya | 150 integer {} | 1010 real {} |"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n     w INT GENERATED ALWAYS AS (a*10),\n     a INT,\n     x TEXT AS (typeof(c)) STORED,\n     b TEXT,\n     y TEXT AS (substr(b,a,a+2)),\n     c ANY\n   );"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.3.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1(a,b,c) VALUES(1,'abcdef',5.5),(3,'cantaloupe',NULL);\n    SELECT w, x, y, '|' FROM t1 ORDER BY a;",
+          "expect": "10 real abc | 30 null ntalo |"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.3.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w, x, y, '|' FROM t1 ORDER BY w;",
+          "expect": "10 real abc | 30 null ntalo |"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.3.102",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE w=30;",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.3.103",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE x='real';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.3.104",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE y LIKE '%tal%' OR x='real' ORDER BY b;",
+          "expect": "1 3"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.3.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t1w ON t1(w);\n    SELECT a FROM t1 WHERE w=10;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.3.120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t1x ON t1(x) WHERE w BETWEEN 20 AND 40;\n    SELECT a FROM t1 WHERE x='null' AND w BETWEEN 20 AND 40;",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.3.121",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE x='real';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.3.130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "VACUUM;\n    PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.3.140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t1 SET a=a+100 WHERE w\u003c20;\n    SELECT a, w, '|' FROM t1 ORDER BY w;",
+          "expect": "3 30 | 101 1010 |"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.3.150",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(4,'jambalaya','Chef John'),(15,87719874135,0);\n    SELECT w, x, y, '|' FROM t1 ORDER BY w;",
+          "expect": "30 null ntalo | 40 text balaya | 150 integer {} | 1010 real {} |"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n     a INTEGER PRIMARY KEY,\n     w INT GENERATED ALWAYS AS (a*10),\n     b TEXT,\n     x TEXT AS (typeof(c)),\n     y TEXT AS (substr(b,a,a+2)) STORED,\n     c ANY\n   );"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.4.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1(a,b,c) VALUES(1,'abcdef',5.5),(3,'cantaloupe',NULL);\n    SELECT w, x, y, '|' FROM t1 ORDER BY a;",
+          "expect": "10 real abc | 30 null ntalo |"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.4.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w, x, y, '|' FROM t1 ORDER BY w;",
+          "expect": "10 real abc | 30 null ntalo |"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.4.102",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE w=30;",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.4.103",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE x='real';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.4.104",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE y LIKE '%tal%' OR x='real' ORDER BY b;",
+          "expect": "1 3"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.4.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t1w ON t1(w);\n    SELECT a FROM t1 WHERE w=10;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.4.120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t1x ON t1(x) WHERE w BETWEEN 20 AND 40;\n    SELECT a FROM t1 WHERE x='null' AND w BETWEEN 20 AND 40;",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.4.121",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE x='real';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.4.130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "VACUUM;\n    PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.4.140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t1 SET a=a+100 WHERE w\u003c20;\n    SELECT a, w, '|' FROM t1 ORDER BY w;",
+          "expect": "3 30 | 101 1010 |"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.4.150",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(4,'jambalaya','Chef John'),(15,87719874135,0);\n    SELECT w, x, y, '|' FROM t1 ORDER BY w;",
+          "expect": "30 null ntalo | 40 text balaya | 150 integer {} | 1010 real {} |"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n     w INT GENERATED ALWAYS AS (a*10),\n     a INT,\n     x TEXT AS (typeof(c)),\n     b TEXT,\n     y TEXT AS (substr(b,a,a+2)) STORED,\n     c ANY,\n     PRIMARY KEY(a,b)\n   ) WITHOUT ROWID;"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.5.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1(a,b,c) VALUES(1,'abcdef',5.5),(3,'cantaloupe',NULL);\n    SELECT w, x, y, '|' FROM t1 ORDER BY a;",
+          "expect": "10 real abc | 30 null ntalo |"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.5.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w, x, y, '|' FROM t1 ORDER BY w;",
+          "expect": "10 real abc | 30 null ntalo |"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.5.102",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE w=30;",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.5.103",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE x='real';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.5.104",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE y LIKE '%tal%' OR x='real' ORDER BY b;",
+          "expect": "1 3"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.5.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t1w ON t1(w);\n    SELECT a FROM t1 WHERE w=10;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.5.120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t1x ON t1(x) WHERE w BETWEEN 20 AND 40;\n    SELECT a FROM t1 WHERE x='null' AND w BETWEEN 20 AND 40;",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.5.121",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE x='real';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.5.130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "VACUUM;\n    PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.5.140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t1 SET a=a+100 WHERE w\u003c20;\n    SELECT a, w, '|' FROM t1 ORDER BY w;",
+          "expect": "3 30 | 101 1010 |"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.5.150",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(4,'jambalaya','Chef John'),(15,87719874135,0);\n    SELECT w, x, y, '|' FROM t1 ORDER BY w;",
+          "expect": "30 null ntalo | 40 text balaya | 150 integer {} | 1010 real {} |"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n     w INT GENERATED ALWAYS AS (m*5),\n     m INT AS (a*2) STORED,\n     a INT,\n     x TEXT AS (typeof(c)),\n     b TEXT,\n     y TEXT AS (substr(b,m/2,m/2+2)) STORED,\n     c ANY,\n     PRIMARY KEY(a,b)\n   );"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.6.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1(a,b,c) VALUES(1,'abcdef',5.5),(3,'cantaloupe',NULL);\n    SELECT w, x, y, '|' FROM t1 ORDER BY a;",
+          "expect": "10 real abc | 30 null ntalo |"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.6.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w, x, y, '|' FROM t1 ORDER BY w;",
+          "expect": "10 real abc | 30 null ntalo |"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.6.102",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE w=30;",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.6.103",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE x='real';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.6.104",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE y LIKE '%tal%' OR x='real' ORDER BY b;",
+          "expect": "1 3"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.6.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t1w ON t1(w);\n    SELECT a FROM t1 WHERE w=10;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.6.120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t1x ON t1(x) WHERE w BETWEEN 20 AND 40;\n    SELECT a FROM t1 WHERE x='null' AND w BETWEEN 20 AND 40;",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.6.121",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE x='real';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.6.130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "VACUUM;\n    PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.6.140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t1 SET a=a+100 WHERE w\u003c20;\n    SELECT a, w, '|' FROM t1 ORDER BY w;",
+          "expect": "3 30 | 101 1010 |"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.6.150",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(4,'jambalaya','Chef John'),(15,87719874135,0);\n    SELECT w, x, y, '|' FROM t1 ORDER BY w;",
+          "expect": "30 null ntalo | 40 text balaya | 150 integer {} | 1010 real {} |"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n     w INT GENERATED ALWAYS AS (m*5),\n     m INT AS (a*2) NOT NULL,\n     a INT,\n     x TEXT AS (typeof(c)) CHECK (x\u003c\u003e'blank'),\n     b TEXT,\n     y TEXT AS (substr(b,m/2,m/2+2)) STORED,\n     c ANY,\n     PRIMARY KEY(b,a)\n   ) WITHOUT ROWID;"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.7.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1(a,b,c) VALUES(1,'abcdef',5.5),(3,'cantaloupe',NULL);\n    SELECT w, x, y, '|' FROM t1 ORDER BY a;",
+          "expect": "10 real abc | 30 null ntalo |"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.7.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w, x, y, '|' FROM t1 ORDER BY w;",
+          "expect": "10 real abc | 30 null ntalo |"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.7.102",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE w=30;",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.7.103",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE x='real';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.7.104",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE y LIKE '%tal%' OR x='real' ORDER BY b;",
+          "expect": "1 3"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.7.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t1w ON t1(w);\n    SELECT a FROM t1 WHERE w=10;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.7.120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t1x ON t1(x) WHERE w BETWEEN 20 AND 40;\n    SELECT a FROM t1 WHERE x='null' AND w BETWEEN 20 AND 40;",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.7.121",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE x='real';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.7.130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "VACUUM;\n    PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.7.140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t1 SET a=a+100 WHERE w\u003c20;\n    SELECT a, w, '|' FROM t1 ORDER BY w;",
+          "expect": "3 30 | 101 1010 |"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-2.7.150",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(4,'jambalaya','Chef John'),(15,87719874135,0);\n    SELECT w, x, y, '|' FROM t1 ORDER BY w;",
+          "expect": "30 null ntalo | 40 text balaya | 150 integer {} | 1010 real {} |"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
         }
       ]
     },
@@ -26,9 +913,20 @@
       "name": "gencol1-3.110",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "UPDATE t0 SET c1 = c0, c3 = c0+1;",
           "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
         }
       ]
     },
@@ -45,9 +943,20 @@
       "name": "gencol1-4.110",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "REPLACE INTO t0(c0,c2,c3) VALUES(0,0,0),(0,0,0);",
           "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
         }
       ]
     },
@@ -65,11 +974,15 @@
       "name": "gencol1-6.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 NOT NULL AS(c1), c1);\n  REPLACE INTO t0(c1) VALUES(NULL);",
           "expect": "1 {NOT NULL constraint failed: t0.c0}"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "gencol1-7.10",
@@ -186,7 +1099,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(\n    c0 AS (('a', 9) < ('b', c1)),\n    c1 AS (1),\n    c2 CHECK (1 = c1)\n  );\n  INSERT INTO t0 VALUES (0),(99);\n  SELECT * FROM t0;",
+          "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(\n    c0 AS (('a', 9) \u003c ('b', c1)),\n    c1 AS (1),\n    c2 CHECK (1 = c1)\n  );\n  INSERT INTO t0 VALUES (0),(99);\n  SELECT * FROM t0;",
           "expect": "1 1 0 1 1 99"
         }
       ]
@@ -195,11 +1108,15 @@
       "name": "gencol1-8.20",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(\n    c0,\n    c1 AS(c0 + c2),\n    c2 AS(c1) CHECK(c2)\n  );\n  UPDATE t0 SET c0 = NULL;",
           "expect": "1 {generated column loop on \"c2\"}"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "gencol1-9.10",
@@ -222,12 +1139,28 @@
       ]
     },
     {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
       "name": "gencol1-10.10",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t1(aa,bb);\n  CREATE TABLE IF NOT EXISTS t1(aa, bb AS (aa+1));\n  PRAGMA integrity_check;",
           "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "open_empty_db"
         }
       ]
     },
@@ -244,7 +1177,7 @@
       "name": "gencol1-11.20",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT OR REPLACE INTO t0(c0, c1) VALUES (2, 1), (1, 0)",
           "expect": "1 {FOREIGN KEY constraint failed}"
         }
@@ -263,7 +1196,7 @@
       "name": "gencol1-11.40",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT OR REPLACE INTO t0(c0, c1) VALUES (2, 1), (1, 0)",
           "expect": "1 {FOREIGN KEY constraint failed}"
         }
@@ -282,7 +1215,7 @@
       "name": "gencol1-11.60",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT OR REPLACE INTO t0(c0, c1) VALUES (2, 1), (1, 0)",
           "expect": "1 {FOREIGN KEY constraint failed}"
         }
@@ -301,9 +1234,17 @@
       "name": "gencol1-11.80",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT OR REPLACE INTO t0(c0, c1) VALUES (2, 1), (1, 0)",
           "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "setup_12",
+      "steps": [
+        {
+          "type": "open_empty_db"
         }
       ]
     },
@@ -334,12 +1275,7 @@
           "type": "query",
           "sql": "SELECT 123 FROM t1 JOIN t1 USING (x);",
           "expect": "123"
-        }
-      ]
-    },
-    {
-      "name": "gencol1-13.11",
-      "steps": [
+        },
         {
           "type": "query",
           "sql": "SELECT 456 FROM t1 JOIN t1 USING (x,x);",
@@ -378,12 +1314,10 @@
       ]
     },
     {
-      "name": "gencol1-14.10",
+      "name": "setup_13",
       "steps": [
         {
-          "type": "query",
-          "sql": "CREATE TABLE t0(c0 AS(1 >= 1), c1 UNIQUE AS(TYPEOF(c0)), c2);\n  INSERT INTO t0 VALUES(0);\n  REINDEX;\n  SELECT * FROM t0;",
-          "expect": "1 integer 0"
+          "type": "open_empty_db"
         }
       ]
     },
@@ -391,9 +1325,26 @@
       "name": "gencol1-14.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
+          "sql": "CREATE TABLE t0(c0 AS(1 \u003e= 1), c1 UNIQUE AS(TYPEOF(c0)), c2);\n  INSERT INTO t0 VALUES(0);\n  REINDEX;\n  SELECT * FROM t0;",
+          "expect": "1 integer 0"
+        },
+        {
+          "type": "catch",
           "sql": "INSERT INTO t0 VALUES(2);",
           "expect": "1 {UNIQUE constraint failed: t0.c1}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "gencol1-15.10",
+      "steps": [
+        {
+          "type": "open_empty_db"
         }
       ]
     },
@@ -406,6 +1357,10 @@
           "expect": "9 NULL"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "gencol1-16.10",
@@ -446,6 +1401,10 @@
           "expect": "0 {} {}"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "gencol1-17.10",
@@ -497,6 +1456,10 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
       "name": "gencol1-18.10",
       "steps": [
         {
@@ -511,16 +1474,20 @@
       "steps": [
         {
           "type": "query",
-          "sql": "UPDATE t0 SET c1=0, c2=0 WHERE c0>=0;\n  SELECT * FROM t0;",
+          "sql": "UPDATE t0 SET c1=0, c2=0 WHERE c0\u003e=0;\n  SELECT * FROM t0;",
           "expect": "0 0 0"
         }
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
       "name": "gencol1-19.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t0(\n    c0 INT AS(2) UNIQUE,\n    c1 TEXT UNIQUE,\n    FOREIGN KEY(c0) REFERENCES t0(c1)\n  );\n  INSERT INTO t0(c1) VALUES(0.16334143182538696), (0);",
           "expect": "1 {UNIQUE constraint failed: t0.c0}"
         }
@@ -530,8 +1497,9 @@
       "name": "gencol1-20.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TEMPORARY TABLE tab (\n    prim DATE PRIMARY KEY,\n    a INTEGER,\n    comp INTEGER AS (a),\n    b INTEGER,\n    x INTEGER\n  );\n  -- Add some data\n  INSERT INTO tab (prim, a, b) VALUES ('2001-01-01', 0, 0);\n  -- Check that each column is 0 like I expect\n  SELECT * FROM tab;"
+          "type": "query",
+          "sql": "CREATE TEMPORARY TABLE tab (\n    prim DATE PRIMARY KEY,\n    a INTEGER,\n    comp INTEGER AS (a),\n    b INTEGER,\n    x INTEGER\n  );\n  -- Add some data\n  INSERT INTO tab (prim, a, b) VALUES ('2001-01-01', 0, 0);\n  -- Check that each column is 0 like I expect\n  SELECT * FROM tab;",
+          "expect": "2001-01-01 0 0 0 {}"
         }
       ]
     },
@@ -539,10 +1507,15 @@
       "name": "gencol1-20.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "-- Do an UPSERT on the b column\n  INSERT INTO tab (prim, b)\n  VALUES ('2001-01-01',5)\n      ON CONFLICT(prim) DO UPDATE SET  b=excluded.b;\n  -- Now b is NULL rather than 5\n  SELECT * FROM tab;"
+          "type": "query",
+          "sql": "-- Do an UPSERT on the b column\n  INSERT INTO tab (prim, b)\n  VALUES ('2001-01-01',5)\n      ON CONFLICT(prim) DO UPDATE SET  b=excluded.b;\n  -- Now b is NULL rather than 5\n  SELECT * FROM tab;",
+          "expect": "2001-01-01 0 0 5 {}"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "gencol1-21.1",
@@ -555,12 +1528,880 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
       "name": "gencol1-22.1",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t0(a PRIMARY KEY,b TEXT AS ('2') UNIQUE);\n  INSERT INTO t0(a) VALUES(2);\n  SELECT * FROM t0 AS x JOIN t0 AS y\n   WHERE x.b='2'\n     AND (y.a=2 OR (x.b LIKE '2*' AND y.a=x.b));",
           "expect": "2 2 2 2"
+        }
+      ]
+    },
+    {
+      "name": "setup_14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x ANY,\n        a ANY AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x ANY,\n        a INT AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x ANY,\n        a REAL AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_17",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x ANY,\n        a BLOB AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_18",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x ANY,\n        a TEXT AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_19",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x ANY,\n        a  AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x INT,\n        a ANY AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_21",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x INT,\n        a INT AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_22",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x INT,\n        a REAL AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_23",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x INT,\n        a BLOB AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_24",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x INT,\n        a TEXT AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_25",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x INT,\n        a  AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_26",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x REAL,\n        a ANY AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_27",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x REAL,\n        a INT AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_28",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x REAL,\n        a REAL AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_29",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x REAL,\n        a BLOB AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_30",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x REAL,\n        a TEXT AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.17",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_31",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x REAL,\n        a  AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.18",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_32",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x BLOB,\n        a ANY AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.19",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_33",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x BLOB,\n        a INT AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_34",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x BLOB,\n        a REAL AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_35",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x BLOB,\n        a BLOB AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_36",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x BLOB,\n        a TEXT AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.23",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_37",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x BLOB,\n        a  AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.24",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_38",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x TEXT,\n        a ANY AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.25",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_39",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x TEXT,\n        a INT AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_40",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x TEXT,\n        a REAL AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.27",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_41",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x TEXT,\n        a BLOB AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_42",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x TEXT,\n        a TEXT AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_43",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x TEXT,\n        a  AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_44",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x ,\n        a ANY AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.31",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_45",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x ,\n        a INT AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.32",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_46",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x ,\n        a REAL AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.33",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_47",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x ,\n        a BLOB AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.34",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_48",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x ,\n        a TEXT AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.35",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "setup_49",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x ,\n        a  AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.1.36",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2",
+          "resultTransform": "lsort:ascii"
         }
       ]
     },
@@ -598,113 +2439,9 @@
       "name": "gencol1-23.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE v0(c1 INT, c2 AS (RAISE(IGNORE)));",
           "expect": "1 {RAISE() may only be used within a trigger-program}"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(b) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

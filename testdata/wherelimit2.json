@@ -238,6 +238,30 @@
       ]
     },
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "log",
+          "callbackVars": {
+            "": "wherelimit2",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "wherelimit2"
+          },
+          "functionProc": "log",
+          "functionArgs": [
+            "args"
+          ],
+          "functionBody": " lappend ::log {*}$args ",
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
       "name": "wherelimit2-5.3",
       "steps": [
         {
@@ -251,7 +275,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM \"v w\" ORDER BY \"a b\" LIMIT 3",
+          "sql": "DELETE FROM \"v w\" ORDER BY \"a b\" LIMIT 3"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "log",
           "expect": "a a b b c c"
         }
       ]
@@ -261,7 +289,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE \"v w\" SET \"a b\" = \"a b\" || 'x' ORDER BY \"a b\" LIMIT 5;",
+          "sql": "UPDATE \"v w\" SET \"a b\" = \"a b\" || 'x' ORDER BY \"a b\" LIMIT 5;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "log",
           "expect": "ax a bx b cx c dx d ex a"
         }
       ]

@@ -30,6 +30,7 @@ const (
 	ActionFunction                    // function call
 	ActionPragma                      // PRAGMA
 	ActionSavepoint                   // SAVEPOINT / RELEASE / ROLLBACK TO
+	ActionAnalyze                     // ANALYZE
 )
 
 // String returns a human-readable name for the action.
@@ -56,6 +57,7 @@ var actionNames = map[Action]string{
 	ActionFunction:      "SQLITE_FUNCTION",
 	ActionPragma:        "SQLITE_PRAGMA",
 	ActionSavepoint:     "SQLITE_SAVEPOINT",
+	ActionAnalyze:       "SQLITE_ANALYZE",
 }
 
 func (a Action) String() string {

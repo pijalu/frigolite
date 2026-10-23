@@ -1,24 +1,27 @@
 {
   "file": "walro2.test",
   "name": "walro2",
+  "ordered": true,
   "tests": [
     {
-      "name": "0.0",
+      "name": "walro2-0.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x);"
-        },
+          "sql": "PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x);",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
+          "type": "query_assign",
+          "sql": "PRAGMA page_size",
+          "variable": "dfltpgsz"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

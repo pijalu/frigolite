@@ -1,0 +1,20 @@
+{
+  "file": "incrblob_err.test",
+  "name": "incrblob_err",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    }
+  ]
+}

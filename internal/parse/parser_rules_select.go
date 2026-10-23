@@ -368,12 +368,15 @@ func ruleSeltablistStlPrefixLpSeltablistRpAsOnUsing(ruleNo int, p *Parser) inter
 				{Expr: &sql.ColumnRef{Name: "*"}},
 			},
 		}
-		ref := sql.TableRef{Subquery: sub, As: alias}
+		ref := sql.TableRef{Subquery: sub, As: alias, JoinGroup: true}
 		return acc.appendTableWithOn(p, ref, on, using)
 	}
 	ref := inner.firstTable()
 	if alias != "" {
 		ref.As = alias
+	}
+	if !inner.hasExplicitJoins() && len(inner.Joins) > 0 {
+		ref.ParenthesizedCommaGroupSize = len(inner.Joins) + 1
 	}
 	// A parenthesized comma list (t1, t2) contributes its joins. The
 	// trailing ON/USING of the parenthesized group binds to the first

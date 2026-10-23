@@ -59,6 +59,7 @@ type Token struct {
 	Type  TokenType
 	Value string
 	Pos   int
+	End   int
 	// QuotedIdent is true when the token came from a double-quoted
 	// identifier ("name"). SQLite's DQS behavior treats double-quoted
 	// strings as string literals when they are not column references;
@@ -730,9 +731,9 @@ func (t *Tokenizer) readIdent() Token {
 	// (e.g. CREATE TABLE savepoint(...)) preserve their original case,
 	// matching SQLite.
 	if tokType, ok := util.LookupUpperASCII(keywords, word); ok {
-		t.last = Token{Type: tokType, Value: word, Pos: pos}
+		t.last = Token{Type: tokType, Value: word, Pos: pos, End: t.pos}
 	} else {
-		t.last = Token{Type: TokenIdentifier, Value: word, Pos: pos}
+		t.last = Token{Type: TokenIdentifier, Value: word, Pos: pos, End: t.pos}
 	}
 	return t.last
 }
@@ -868,8 +869,9 @@ func (t *Tokenizer) tokenAt(typ TokenType, pos int) Token {
 func (t *Tokenizer) readAtParam(pos int) Token {
 	t.pos++ // skip @
 	start := t.pos
-	// tokenize.c CC_VARALPHA: '@' takes a plain IdChar run — no ':'.
-	for t.pos < len(t.input) && isIdentPart(t.input[t.pos]) {
+	// tokenize.c CC_VARALPHA: '@' takes a plain IdChar run — no ':'. IdChar
+	// includes '$', so "@_$_" is a valid parameter name (e_expr-11.2.4).
+	for t.pos < len(t.input) && (isIdentPart(t.input[t.pos]) || t.input[t.pos] == '$') {
 		t.pos++
 	}
 	value := t.input[start:t.pos]
@@ -880,7 +882,8 @@ func (t *Tokenizer) readAtParam(pos int) Token {
 func (t *Tokenizer) readColonParam(pos int) Token {
 	t.pos++ // skip :
 	start := t.pos
-	for t.pos < len(t.input) && isIdentPart(t.input[t.pos]) {
+	// IdChar includes '$' (e_expr-11.2.4: ":_$_" is a valid parameter name).
+	for t.pos < len(t.input) && (isIdentPart(t.input[t.pos]) || t.input[t.pos] == '$') {
 		t.pos++
 	}
 	value := t.input[start:t.pos]
@@ -925,7 +928,7 @@ func (t *Tokenizer) readQuotedIdent(pos int) Token {
 				continue
 			}
 			t.pos++ // skip closing "
-			t.last = Token{Type: TokenIdentifier, Value: string(buf), Pos: pos, QuotedIdent: true}
+			t.last = Token{Type: TokenIdentifier, Value: string(buf), Pos: pos, End: t.pos, QuotedIdent: true}
 			return t.last
 		}
 		buf = append(buf, ch)
@@ -950,7 +953,7 @@ func (t *Tokenizer) readBacktickIdent(pos int) Token {
 				continue
 			}
 			t.pos++ // skip closing `
-			t.last = Token{Type: TokenIdentifier, Value: string(buf), Pos: pos}
+			t.last = Token{Type: TokenIdentifier, Value: string(buf), Pos: pos, End: t.pos}
 			return t.last
 		}
 		buf = append(buf, ch)
@@ -968,7 +971,7 @@ func (t *Tokenizer) readBracketIdent(pos int) Token {
 		ch := t.input[t.pos]
 		if ch == ']' {
 			t.pos++ // skip closing ]
-			t.last = Token{Type: TokenIdentifier, Value: string(buf), Pos: pos}
+			t.last = Token{Type: TokenIdentifier, Value: string(buf), Pos: pos, End: t.pos}
 			return t.last
 		}
 		buf = append(buf, ch)

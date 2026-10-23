@@ -84,8 +84,34 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
     },
     {
       "name": "default-4.0",
@@ -93,6 +119,18 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a TEXT, b TEXT DEFAULT(99));\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE t1(a TEXT, b TEXT DEFAULT(:xyz))';"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         }
       ]
     },

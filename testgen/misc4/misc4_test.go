@@ -91,7 +91,13 @@ func Test_misc4(t *testing.T) {
 		}
 	}
 	{ // "misc4-1.2" — skipped: C-API prepared-statement lifecycle test (sqlite3_prepare/step) N-A (SQL + file side effects only)
-		_res = db.Exec("\n      BEGIN;\n      CREATE TABLE t3(a,b,c);\n      INSERT INTO t1 SELECT * FROM t1;\n      ROLLBACK;\n    ")
+		_res = db.Exec("BEGIN")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("CREATE TABLE t3(a,b,c)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("INSERT INTO t1 SELECT * FROM t1")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("ROLLBACK")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "misc4-1.2.1" — skipped: C-API prepared-statement lifecycle test (sqlite3_prepare/step) N-A

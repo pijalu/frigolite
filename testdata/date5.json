@@ -1,0 +1,8747 @@
+{
+  "file": "date5.test",
+  "name": "date5",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "date5-jd2460369.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2460369.5);",
+          "expect": "2024-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2024-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2024-02-29');",
+          "expect": "2460369.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2606466.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2606466.5);",
+          "expect": "2424-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2424-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2424-02-29');",
+          "expect": "2606466.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2752563.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2752563.5);",
+          "expect": "2824-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2824-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2824-02-29');",
+          "expect": "2752563.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2898660.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2898660.5);",
+          "expect": "3224-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/3224-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('3224-02-29');",
+          "expect": "2898660.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3044757.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3044757.5);",
+          "expect": "3624-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/3624-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('3624-02-29');",
+          "expect": "3044757.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3190854.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3190854.5);",
+          "expect": "4024-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4024-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4024-02-29');",
+          "expect": "3190854.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3336951.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3336951.5);",
+          "expect": "4424-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4424-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4424-02-29');",
+          "expect": "3336951.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3483048.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3483048.5);",
+          "expect": "4824-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4824-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4824-02-29');",
+          "expect": "3483048.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3629145.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3629145.5);",
+          "expect": "5224-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/5224-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('5224-02-29');",
+          "expect": "3629145.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3775242.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3775242.5);",
+          "expect": "5624-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/5624-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('5624-02-29');",
+          "expect": "3775242.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3921339.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3921339.5);",
+          "expect": "6024-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6024-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6024-02-29');",
+          "expect": "3921339.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4067436.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4067436.5);",
+          "expect": "6424-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6424-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6424-02-29');",
+          "expect": "4067436.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4213533.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4213533.5);",
+          "expect": "6824-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6824-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6824-02-29');",
+          "expect": "4213533.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4359630.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4359630.5);",
+          "expect": "7224-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/7224-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('7224-02-29');",
+          "expect": "4359630.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4505727.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4505727.5);",
+          "expect": "7624-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/7624-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('7624-02-29');",
+          "expect": "4505727.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4651824.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4651824.5);",
+          "expect": "8024-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8024-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8024-02-29');",
+          "expect": "4651824.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4797921.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4797921.5);",
+          "expect": "8424-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8424-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8424-02-29');",
+          "expect": "4797921.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4944018.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4944018.5);",
+          "expect": "8824-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8824-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8824-02-29');",
+          "expect": "4944018.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd5090115.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(5090115.5);",
+          "expect": "9224-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/9224-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('9224-02-29');",
+          "expect": "5090115.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd5236212.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(5236212.5);",
+          "expect": "9624-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/9624-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('9624-02-29');",
+          "expect": "5236212.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2314272.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2314272.5);",
+          "expect": "1624-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/1624-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('1624-02-29');",
+          "expect": "2314272.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2168175.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2168175.5);",
+          "expect": "1224-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/1224-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('1224-02-29');",
+          "expect": "2168175.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2022078.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2022078.5);",
+          "expect": "0824-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0824-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0824-02-29');",
+          "expect": "2022078.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1875981.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1875981.5);",
+          "expect": "0424-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0424-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0424-02-29');",
+          "expect": "1875981.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1729884.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1729884.5);",
+          "expect": "0024-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0024-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0024-02-29');",
+          "expect": "1729884.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1583787.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1583787.5);",
+          "expect": "-0376-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-0376-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-0376-02-29');",
+          "expect": "1583787.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1437690.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1437690.5);",
+          "expect": "-0776-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-0776-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-0776-02-29');",
+          "expect": "1437690.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1291593.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1291593.5);",
+          "expect": "-1176-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1176-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1176-02-29');",
+          "expect": "1291593.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1145496.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1145496.5);",
+          "expect": "-1576-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1576-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1576-02-29');",
+          "expect": "1145496.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd999399.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(999399.5);",
+          "expect": "-1976-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1976-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1976-02-29');",
+          "expect": "999399.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd853302.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(853302.5);",
+          "expect": "-2376-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2376-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2376-02-29');",
+          "expect": "853302.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd707205.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(707205.5);",
+          "expect": "-2776-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2776-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2776-02-29');",
+          "expect": "707205.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd561108.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(561108.5);",
+          "expect": "-3176-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3176-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3176-02-29');",
+          "expect": "561108.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd415011.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(415011.5);",
+          "expect": "-3576-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3576-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3576-02-29');",
+          "expect": "415011.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd268914.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(268914.5);",
+          "expect": "-3976-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3976-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3976-02-29');",
+          "expect": "268914.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd122817.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(122817.5);",
+          "expect": "-4376-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-4376-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-4376-02-29');",
+          "expect": "122817.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2460370.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2460370.5);",
+          "expect": "2024-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2024-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2024-03-01');",
+          "expect": "2460370.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2606467.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2606467.5);",
+          "expect": "2424-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2424-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2424-03-01');",
+          "expect": "2606467.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2752564.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2752564.5);",
+          "expect": "2824-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2824-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2824-03-01');",
+          "expect": "2752564.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2898661.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2898661.5);",
+          "expect": "3224-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/3224-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('3224-03-01');",
+          "expect": "2898661.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3044758.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3044758.5);",
+          "expect": "3624-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/3624-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('3624-03-01');",
+          "expect": "3044758.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3190855.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3190855.5);",
+          "expect": "4024-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4024-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4024-03-01');",
+          "expect": "3190855.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3336952.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3336952.5);",
+          "expect": "4424-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4424-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4424-03-01');",
+          "expect": "3336952.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3483049.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3483049.5);",
+          "expect": "4824-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4824-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4824-03-01');",
+          "expect": "3483049.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3629146.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3629146.5);",
+          "expect": "5224-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/5224-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('5224-03-01');",
+          "expect": "3629146.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3775243.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3775243.5);",
+          "expect": "5624-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/5624-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('5624-03-01');",
+          "expect": "3775243.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3921340.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3921340.5);",
+          "expect": "6024-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6024-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6024-03-01');",
+          "expect": "3921340.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4067437.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4067437.5);",
+          "expect": "6424-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6424-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6424-03-01');",
+          "expect": "4067437.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4213534.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4213534.5);",
+          "expect": "6824-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6824-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6824-03-01');",
+          "expect": "4213534.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4359631.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4359631.5);",
+          "expect": "7224-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/7224-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('7224-03-01');",
+          "expect": "4359631.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4505728.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4505728.5);",
+          "expect": "7624-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/7624-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('7624-03-01');",
+          "expect": "4505728.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4651825.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4651825.5);",
+          "expect": "8024-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8024-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8024-03-01');",
+          "expect": "4651825.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4797922.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4797922.5);",
+          "expect": "8424-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8424-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8424-03-01');",
+          "expect": "4797922.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4944019.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4944019.5);",
+          "expect": "8824-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8824-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8824-03-01');",
+          "expect": "4944019.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd5090116.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(5090116.5);",
+          "expect": "9224-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/9224-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('9224-03-01');",
+          "expect": "5090116.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd5236213.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(5236213.5);",
+          "expect": "9624-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/9624-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('9624-03-01');",
+          "expect": "5236213.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2314273.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2314273.5);",
+          "expect": "1624-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/1624-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('1624-03-01');",
+          "expect": "2314273.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2168176.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2168176.5);",
+          "expect": "1224-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/1224-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('1224-03-01');",
+          "expect": "2168176.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2022079.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2022079.5);",
+          "expect": "0824-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0824-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0824-03-01');",
+          "expect": "2022079.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1875982.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1875982.5);",
+          "expect": "0424-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0424-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0424-03-01');",
+          "expect": "1875982.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1729885.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1729885.5);",
+          "expect": "0024-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0024-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0024-03-01');",
+          "expect": "1729885.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1583788.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1583788.5);",
+          "expect": "-0376-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-0376-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-0376-03-01');",
+          "expect": "1583788.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1437691.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1437691.5);",
+          "expect": "-0776-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-0776-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-0776-03-01');",
+          "expect": "1437691.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1291594.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1291594.5);",
+          "expect": "-1176-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1176-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1176-03-01');",
+          "expect": "1291594.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1145497.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1145497.5);",
+          "expect": "-1576-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1576-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1576-03-01');",
+          "expect": "1145497.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd999400.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(999400.5);",
+          "expect": "-1976-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1976-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1976-03-01');",
+          "expect": "999400.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd853303.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(853303.5);",
+          "expect": "-2376-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2376-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2376-03-01');",
+          "expect": "853303.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd707206.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(707206.5);",
+          "expect": "-2776-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2776-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2776-03-01');",
+          "expect": "707206.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd561109.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(561109.5);",
+          "expect": "-3176-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3176-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3176-03-01');",
+          "expect": "561109.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd415012.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(415012.5);",
+          "expect": "-3576-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3576-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3576-03-01');",
+          "expect": "415012.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd268915.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(268915.5);",
+          "expect": "-3976-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3976-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3976-03-01');",
+          "expect": "268915.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd122818.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(122818.5);",
+          "expect": "-4376-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-4376-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-4376-03-01');",
+          "expect": "122818.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2460003.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2460003.5);",
+          "expect": "2023-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2023-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2023-02-28');",
+          "expect": "2460003.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2606100.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2606100.5);",
+          "expect": "2423-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2423-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2423-02-28');",
+          "expect": "2606100.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2752197.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2752197.5);",
+          "expect": "2823-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2823-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2823-02-28');",
+          "expect": "2752197.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2898294.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2898294.5);",
+          "expect": "3223-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/3223-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('3223-02-28');",
+          "expect": "2898294.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3044391.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3044391.5);",
+          "expect": "3623-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/3623-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('3623-02-28');",
+          "expect": "3044391.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3190488.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3190488.5);",
+          "expect": "4023-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4023-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4023-02-28');",
+          "expect": "3190488.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3336585.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3336585.5);",
+          "expect": "4423-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4423-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4423-02-28');",
+          "expect": "3336585.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3482682.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3482682.5);",
+          "expect": "4823-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4823-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4823-02-28');",
+          "expect": "3482682.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3628779.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3628779.5);",
+          "expect": "5223-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/5223-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('5223-02-28');",
+          "expect": "3628779.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3774876.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3774876.5);",
+          "expect": "5623-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/5623-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('5623-02-28');",
+          "expect": "3774876.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3920973.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3920973.5);",
+          "expect": "6023-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6023-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6023-02-28');",
+          "expect": "3920973.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4067070.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4067070.5);",
+          "expect": "6423-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6423-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6423-02-28');",
+          "expect": "4067070.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4213167.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4213167.5);",
+          "expect": "6823-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6823-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6823-02-28');",
+          "expect": "4213167.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4359264.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4359264.5);",
+          "expect": "7223-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/7223-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('7223-02-28');",
+          "expect": "4359264.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4505361.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4505361.5);",
+          "expect": "7623-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/7623-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('7623-02-28');",
+          "expect": "4505361.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4651458.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4651458.5);",
+          "expect": "8023-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8023-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8023-02-28');",
+          "expect": "4651458.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4797555.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4797555.5);",
+          "expect": "8423-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8423-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8423-02-28');",
+          "expect": "4797555.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4943652.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4943652.5);",
+          "expect": "8823-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8823-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8823-02-28');",
+          "expect": "4943652.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd5089749.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(5089749.5);",
+          "expect": "9223-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/9223-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('9223-02-28');",
+          "expect": "5089749.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd5235846.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(5235846.5);",
+          "expect": "9623-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/9623-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('9623-02-28');",
+          "expect": "5235846.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2313906.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2313906.5);",
+          "expect": "1623-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/1623-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('1623-02-28');",
+          "expect": "2313906.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2167809.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2167809.5);",
+          "expect": "1223-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/1223-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('1223-02-28');",
+          "expect": "2167809.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2021712.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2021712.5);",
+          "expect": "0823-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0823-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0823-02-28');",
+          "expect": "2021712.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1875615.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1875615.5);",
+          "expect": "0423-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0423-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0423-02-28');",
+          "expect": "1875615.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1729518.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1729518.5);",
+          "expect": "0023-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0023-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0023-02-28');",
+          "expect": "1729518.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1583421.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1583421.5);",
+          "expect": "-0377-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-0377-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-0377-02-28');",
+          "expect": "1583421.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1437324.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1437324.5);",
+          "expect": "-0777-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-0777-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-0777-02-28');",
+          "expect": "1437324.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1291227.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1291227.5);",
+          "expect": "-1177-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1177-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1177-02-28');",
+          "expect": "1291227.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1145130.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1145130.5);",
+          "expect": "-1577-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1577-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1577-02-28');",
+          "expect": "1145130.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd999033.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(999033.5);",
+          "expect": "-1977-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1977-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1977-02-28');",
+          "expect": "999033.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd852936.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(852936.5);",
+          "expect": "-2377-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2377-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2377-02-28');",
+          "expect": "852936.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd706839.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(706839.5);",
+          "expect": "-2777-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2777-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2777-02-28');",
+          "expect": "706839.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd560742.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(560742.5);",
+          "expect": "-3177-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3177-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3177-02-28');",
+          "expect": "560742.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd414645.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(414645.5);",
+          "expect": "-3577-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3577-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3577-02-28');",
+          "expect": "414645.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd268548.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(268548.5);",
+          "expect": "-3977-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3977-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3977-02-28');",
+          "expect": "268548.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd122451.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(122451.5);",
+          "expect": "-4377-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-4377-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-4377-02-28');",
+          "expect": "122451.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2460004.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2460004.5);",
+          "expect": "2023-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2023-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2023-03-01');",
+          "expect": "2460004.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2606101.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2606101.5);",
+          "expect": "2423-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2423-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2423-03-01');",
+          "expect": "2606101.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2752198.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2752198.5);",
+          "expect": "2823-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2823-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2823-03-01');",
+          "expect": "2752198.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2898295.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2898295.5);",
+          "expect": "3223-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/3223-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('3223-03-01');",
+          "expect": "2898295.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3044392.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3044392.5);",
+          "expect": "3623-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/3623-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('3623-03-01');",
+          "expect": "3044392.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3190489.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3190489.5);",
+          "expect": "4023-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4023-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4023-03-01');",
+          "expect": "3190489.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3336586.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3336586.5);",
+          "expect": "4423-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4423-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4423-03-01');",
+          "expect": "3336586.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3482683.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3482683.5);",
+          "expect": "4823-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4823-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4823-03-01');",
+          "expect": "3482683.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3628780.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3628780.5);",
+          "expect": "5223-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/5223-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('5223-03-01');",
+          "expect": "3628780.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3774877.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3774877.5);",
+          "expect": "5623-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/5623-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('5623-03-01');",
+          "expect": "3774877.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3920974.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3920974.5);",
+          "expect": "6023-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6023-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6023-03-01');",
+          "expect": "3920974.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4067071.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4067071.5);",
+          "expect": "6423-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6423-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6423-03-01');",
+          "expect": "4067071.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4213168.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4213168.5);",
+          "expect": "6823-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6823-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6823-03-01');",
+          "expect": "4213168.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4359265.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4359265.5);",
+          "expect": "7223-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/7223-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('7223-03-01');",
+          "expect": "4359265.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4505362.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4505362.5);",
+          "expect": "7623-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/7623-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('7623-03-01');",
+          "expect": "4505362.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4651459.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4651459.5);",
+          "expect": "8023-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8023-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8023-03-01');",
+          "expect": "4651459.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4797556.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4797556.5);",
+          "expect": "8423-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8423-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8423-03-01');",
+          "expect": "4797556.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4943653.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4943653.5);",
+          "expect": "8823-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8823-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8823-03-01');",
+          "expect": "4943653.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd5089750.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(5089750.5);",
+          "expect": "9223-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/9223-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('9223-03-01');",
+          "expect": "5089750.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd5235847.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(5235847.5);",
+          "expect": "9623-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/9623-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('9623-03-01');",
+          "expect": "5235847.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2313907.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2313907.5);",
+          "expect": "1623-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/1623-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('1623-03-01');",
+          "expect": "2313907.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2167810.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2167810.5);",
+          "expect": "1223-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/1223-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('1223-03-01');",
+          "expect": "2167810.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2021713.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2021713.5);",
+          "expect": "0823-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0823-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0823-03-01');",
+          "expect": "2021713.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1875616.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1875616.5);",
+          "expect": "0423-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0423-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0423-03-01');",
+          "expect": "1875616.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1729519.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1729519.5);",
+          "expect": "0023-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0023-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0023-03-01');",
+          "expect": "1729519.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1583422.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1583422.5);",
+          "expect": "-0377-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-0377-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-0377-03-01');",
+          "expect": "1583422.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1437325.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1437325.5);",
+          "expect": "-0777-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-0777-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-0777-03-01');",
+          "expect": "1437325.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1291228.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1291228.5);",
+          "expect": "-1177-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1177-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1177-03-01');",
+          "expect": "1291228.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1145131.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1145131.5);",
+          "expect": "-1577-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1577-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1577-03-01');",
+          "expect": "1145131.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd999034.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(999034.5);",
+          "expect": "-1977-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1977-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1977-03-01');",
+          "expect": "999034.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd852937.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(852937.5);",
+          "expect": "-2377-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2377-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2377-03-01');",
+          "expect": "852937.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd706840.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(706840.5);",
+          "expect": "-2777-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2777-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2777-03-01');",
+          "expect": "706840.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd560743.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(560743.5);",
+          "expect": "-3177-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3177-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3177-03-01');",
+          "expect": "560743.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd414646.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(414646.5);",
+          "expect": "-3577-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3577-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3577-03-01');",
+          "expect": "414646.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd268549.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(268549.5);",
+          "expect": "-3977-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3977-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3977-03-01');",
+          "expect": "268549.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd122452.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(122452.5);",
+          "expect": "-4377-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-4377-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-4377-03-01');",
+          "expect": "122452.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2451603.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2451603.5);",
+          "expect": "2000-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2000-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2000-02-29');",
+          "expect": "2451603.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2597700.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2597700.5);",
+          "expect": "2400-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2400-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2400-02-29');",
+          "expect": "2597700.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2743797.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2743797.5);",
+          "expect": "2800-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2800-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2800-02-29');",
+          "expect": "2743797.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2889894.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2889894.5);",
+          "expect": "3200-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/3200-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('3200-02-29');",
+          "expect": "2889894.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3035991.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3035991.5);",
+          "expect": "3600-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/3600-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('3600-02-29');",
+          "expect": "3035991.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3182088.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3182088.5);",
+          "expect": "4000-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4000-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4000-02-29');",
+          "expect": "3182088.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3328185.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3328185.5);",
+          "expect": "4400-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4400-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4400-02-29');",
+          "expect": "3328185.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3474282.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3474282.5);",
+          "expect": "4800-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4800-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4800-02-29');",
+          "expect": "3474282.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3620379.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3620379.5);",
+          "expect": "5200-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/5200-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('5200-02-29');",
+          "expect": "3620379.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3766476.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3766476.5);",
+          "expect": "5600-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/5600-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('5600-02-29');",
+          "expect": "3766476.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3912573.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3912573.5);",
+          "expect": "6000-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6000-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6000-02-29');",
+          "expect": "3912573.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4058670.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4058670.5);",
+          "expect": "6400-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6400-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6400-02-29');",
+          "expect": "4058670.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4204767.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4204767.5);",
+          "expect": "6800-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6800-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6800-02-29');",
+          "expect": "4204767.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4350864.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4350864.5);",
+          "expect": "7200-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/7200-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('7200-02-29');",
+          "expect": "4350864.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4496961.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4496961.5);",
+          "expect": "7600-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/7600-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('7600-02-29');",
+          "expect": "4496961.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4643058.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4643058.5);",
+          "expect": "8000-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8000-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8000-02-29');",
+          "expect": "4643058.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4789155.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4789155.5);",
+          "expect": "8400-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8400-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8400-02-29');",
+          "expect": "4789155.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4935252.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4935252.5);",
+          "expect": "8800-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8800-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8800-02-29');",
+          "expect": "4935252.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd5081349.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(5081349.5);",
+          "expect": "9200-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/9200-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('9200-02-29');",
+          "expect": "5081349.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd5227446.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(5227446.5);",
+          "expect": "9600-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/9600-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('9600-02-29');",
+          "expect": "5227446.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2305506.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2305506.5);",
+          "expect": "1600-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/1600-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('1600-02-29');",
+          "expect": "2305506.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2159409.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2159409.5);",
+          "expect": "1200-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/1200-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('1200-02-29');",
+          "expect": "2159409.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2013312.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2013312.5);",
+          "expect": "0800-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0800-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0800-02-29');",
+          "expect": "2013312.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1867215.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1867215.5);",
+          "expect": "0400-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0400-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0400-02-29');",
+          "expect": "1867215.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1721118.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1721118.5);",
+          "expect": "0000-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0000-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0000-02-29');",
+          "expect": "1721118.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1575021.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1575021.5);",
+          "expect": "-0400-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-0400-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-0400-02-29');",
+          "expect": "1575021.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1428924.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1428924.5);",
+          "expect": "-0800-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-0800-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-0800-02-29');",
+          "expect": "1428924.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1282827.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1282827.5);",
+          "expect": "-1200-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1200-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1200-02-29');",
+          "expect": "1282827.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1136730.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1136730.5);",
+          "expect": "-1600-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1600-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1600-02-29');",
+          "expect": "1136730.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd990633.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(990633.5);",
+          "expect": "-2000-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2000-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2000-02-29');",
+          "expect": "990633.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd844536.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(844536.5);",
+          "expect": "-2400-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2400-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2400-02-29');",
+          "expect": "844536.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd698439.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(698439.5);",
+          "expect": "-2800-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2800-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2800-02-29');",
+          "expect": "698439.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd552342.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(552342.5);",
+          "expect": "-3200-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3200-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3200-02-29');",
+          "expect": "552342.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd406245.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(406245.5);",
+          "expect": "-3600-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3600-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3600-02-29');",
+          "expect": "406245.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd260148.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(260148.5);",
+          "expect": "-4000-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-4000-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-4000-02-29');",
+          "expect": "260148.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd114051.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(114051.5);",
+          "expect": "-4400-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-4400-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-4400-02-29');",
+          "expect": "114051.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2451604.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2451604.5);",
+          "expect": "2000-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2000-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2000-03-01');",
+          "expect": "2451604.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2597701.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2597701.5);",
+          "expect": "2400-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2400-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2400-03-01');",
+          "expect": "2597701.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2743798.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2743798.5);",
+          "expect": "2800-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2800-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2800-03-01');",
+          "expect": "2743798.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2889895.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2889895.5);",
+          "expect": "3200-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/3200-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('3200-03-01');",
+          "expect": "2889895.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3035992.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3035992.5);",
+          "expect": "3600-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/3600-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('3600-03-01');",
+          "expect": "3035992.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3182089.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3182089.5);",
+          "expect": "4000-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4000-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4000-03-01');",
+          "expect": "3182089.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3328186.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3328186.5);",
+          "expect": "4400-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4400-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4400-03-01');",
+          "expect": "3328186.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3474283.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3474283.5);",
+          "expect": "4800-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4800-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4800-03-01');",
+          "expect": "3474283.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3620380.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3620380.5);",
+          "expect": "5200-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/5200-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('5200-03-01');",
+          "expect": "3620380.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3766477.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3766477.5);",
+          "expect": "5600-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/5600-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('5600-03-01');",
+          "expect": "3766477.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3912574.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3912574.5);",
+          "expect": "6000-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6000-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6000-03-01');",
+          "expect": "3912574.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4058671.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4058671.5);",
+          "expect": "6400-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6400-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6400-03-01');",
+          "expect": "4058671.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4204768.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4204768.5);",
+          "expect": "6800-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6800-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6800-03-01');",
+          "expect": "4204768.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4350865.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4350865.5);",
+          "expect": "7200-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/7200-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('7200-03-01');",
+          "expect": "4350865.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4496962.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4496962.5);",
+          "expect": "7600-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/7600-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('7600-03-01');",
+          "expect": "4496962.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4643059.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4643059.5);",
+          "expect": "8000-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8000-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8000-03-01');",
+          "expect": "4643059.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4789156.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4789156.5);",
+          "expect": "8400-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8400-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8400-03-01');",
+          "expect": "4789156.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4935253.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4935253.5);",
+          "expect": "8800-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8800-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8800-03-01');",
+          "expect": "4935253.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd5081350.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(5081350.5);",
+          "expect": "9200-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/9200-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('9200-03-01');",
+          "expect": "5081350.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd5227447.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(5227447.5);",
+          "expect": "9600-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/9600-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('9600-03-01');",
+          "expect": "5227447.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2305507.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2305507.5);",
+          "expect": "1600-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/1600-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('1600-03-01');",
+          "expect": "2305507.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2159410.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2159410.5);",
+          "expect": "1200-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/1200-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('1200-03-01');",
+          "expect": "2159410.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2013313.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2013313.5);",
+          "expect": "0800-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0800-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0800-03-01');",
+          "expect": "2013313.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1867216.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1867216.5);",
+          "expect": "0400-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0400-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0400-03-01');",
+          "expect": "1867216.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1721119.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1721119.5);",
+          "expect": "0000-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0000-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0000-03-01');",
+          "expect": "1721119.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1575022.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1575022.5);",
+          "expect": "-0400-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-0400-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-0400-03-01');",
+          "expect": "1575022.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1428925.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1428925.5);",
+          "expect": "-0800-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-0800-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-0800-03-01');",
+          "expect": "1428925.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1282828.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1282828.5);",
+          "expect": "-1200-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1200-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1200-03-01');",
+          "expect": "1282828.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1136731.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1136731.5);",
+          "expect": "-1600-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1600-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1600-03-01');",
+          "expect": "1136731.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd990634.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(990634.5);",
+          "expect": "-2000-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2000-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2000-03-01');",
+          "expect": "990634.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd844537.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(844537.5);",
+          "expect": "-2400-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2400-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2400-03-01');",
+          "expect": "844537.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd698440.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(698440.5);",
+          "expect": "-2800-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2800-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2800-03-01');",
+          "expect": "698440.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd552343.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(552343.5);",
+          "expect": "-3200-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3200-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3200-03-01');",
+          "expect": "552343.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd406246.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(406246.5);",
+          "expect": "-3600-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3600-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3600-03-01');",
+          "expect": "406246.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd260149.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(260149.5);",
+          "expect": "-4000-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-4000-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-4000-03-01');",
+          "expect": "260149.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd114052.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(114052.5);",
+          "expect": "-4400-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-4400-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-4400-03-01');",
+          "expect": "114052.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2415078.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2415078.5);",
+          "expect": "1900-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/1900-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('1900-02-28');",
+          "expect": "2415078.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2561175.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2561175.5);",
+          "expect": "2300-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2300-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2300-02-28');",
+          "expect": "2561175.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2707272.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2707272.5);",
+          "expect": "2700-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2700-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2700-02-28');",
+          "expect": "2707272.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2853369.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2853369.5);",
+          "expect": "3100-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/3100-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('3100-02-28');",
+          "expect": "2853369.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2999466.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2999466.5);",
+          "expect": "3500-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/3500-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('3500-02-28');",
+          "expect": "2999466.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3145563.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3145563.5);",
+          "expect": "3900-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/3900-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('3900-02-28');",
+          "expect": "3145563.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3291660.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3291660.5);",
+          "expect": "4300-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4300-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4300-02-28');",
+          "expect": "3291660.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3437757.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3437757.5);",
+          "expect": "4700-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4700-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4700-02-28');",
+          "expect": "3437757.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3583854.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3583854.5);",
+          "expect": "5100-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/5100-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('5100-02-28');",
+          "expect": "3583854.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3729951.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3729951.5);",
+          "expect": "5500-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/5500-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('5500-02-28');",
+          "expect": "3729951.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3876048.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3876048.5);",
+          "expect": "5900-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/5900-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('5900-02-28');",
+          "expect": "3876048.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4022145.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4022145.5);",
+          "expect": "6300-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6300-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6300-02-28');",
+          "expect": "4022145.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4168242.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4168242.5);",
+          "expect": "6700-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6700-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6700-02-28');",
+          "expect": "4168242.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4314339.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4314339.5);",
+          "expect": "7100-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/7100-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('7100-02-28');",
+          "expect": "4314339.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4460436.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4460436.5);",
+          "expect": "7500-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/7500-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('7500-02-28');",
+          "expect": "4460436.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4606533.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4606533.5);",
+          "expect": "7900-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/7900-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('7900-02-28');",
+          "expect": "4606533.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4752630.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4752630.5);",
+          "expect": "8300-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8300-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8300-02-28');",
+          "expect": "4752630.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4898727.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4898727.5);",
+          "expect": "8700-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8700-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8700-02-28');",
+          "expect": "4898727.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd5044824.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(5044824.5);",
+          "expect": "9100-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/9100-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('9100-02-28');",
+          "expect": "5044824.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd5190921.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(5190921.5);",
+          "expect": "9500-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/9500-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('9500-02-28');",
+          "expect": "5190921.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd5337018.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(5337018.5);",
+          "expect": "9900-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/9900-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('9900-02-28');",
+          "expect": "5337018.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2268981.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2268981.5);",
+          "expect": "1500-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/1500-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('1500-02-28');",
+          "expect": "2268981.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2122884.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2122884.5);",
+          "expect": "1100-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/1100-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('1100-02-28');",
+          "expect": "2122884.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1976787.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1976787.5);",
+          "expect": "0700-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0700-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0700-02-28');",
+          "expect": "1976787.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1830690.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1830690.5);",
+          "expect": "0300-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0300-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0300-02-28');",
+          "expect": "1830690.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1684593.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1684593.5);",
+          "expect": "-0100-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-0100-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-0100-02-28');",
+          "expect": "1684593.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1538496.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1538496.5);",
+          "expect": "-0500-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-0500-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-0500-02-28');",
+          "expect": "1538496.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1392399.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1392399.5);",
+          "expect": "-0900-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-0900-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-0900-02-28');",
+          "expect": "1392399.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1246302.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1246302.5);",
+          "expect": "-1300-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1300-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1300-02-28');",
+          "expect": "1246302.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1100205.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1100205.5);",
+          "expect": "-1700-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1700-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1700-02-28');",
+          "expect": "1100205.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd954108.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(954108.5);",
+          "expect": "-2100-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2100-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2100-02-28');",
+          "expect": "954108.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd808011.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(808011.5);",
+          "expect": "-2500-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2500-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2500-02-28');",
+          "expect": "808011.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd661914.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(661914.5);",
+          "expect": "-2900-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2900-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2900-02-28');",
+          "expect": "661914.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd515817.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(515817.5);",
+          "expect": "-3300-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3300-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3300-02-28');",
+          "expect": "515817.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd369720.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(369720.5);",
+          "expect": "-3700-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3700-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3700-02-28');",
+          "expect": "369720.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd223623.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(223623.5);",
+          "expect": "-4100-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-4100-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-4100-02-28');",
+          "expect": "223623.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd77526.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(77526.5);",
+          "expect": "-4500-02-28"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-4500-02-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-4500-02-28');",
+          "expect": "77526.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2415079.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2415079.5);",
+          "expect": "1900-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/1900-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('1900-03-01');",
+          "expect": "2415079.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2561176.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2561176.5);",
+          "expect": "2300-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2300-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2300-03-01');",
+          "expect": "2561176.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2707273.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2707273.5);",
+          "expect": "2700-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2700-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2700-03-01');",
+          "expect": "2707273.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2853370.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2853370.5);",
+          "expect": "3100-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/3100-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('3100-03-01');",
+          "expect": "2853370.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2999467.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2999467.5);",
+          "expect": "3500-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/3500-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('3500-03-01');",
+          "expect": "2999467.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3145564.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3145564.5);",
+          "expect": "3900-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/3900-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('3900-03-01');",
+          "expect": "3145564.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3291661.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3291661.5);",
+          "expect": "4300-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4300-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4300-03-01');",
+          "expect": "3291661.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3437758.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3437758.5);",
+          "expect": "4700-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4700-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4700-03-01');",
+          "expect": "3437758.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3583855.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3583855.5);",
+          "expect": "5100-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/5100-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('5100-03-01');",
+          "expect": "3583855.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3729952.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3729952.5);",
+          "expect": "5500-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/5500-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('5500-03-01');",
+          "expect": "3729952.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3876049.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3876049.5);",
+          "expect": "5900-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/5900-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('5900-03-01');",
+          "expect": "3876049.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4022146.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4022146.5);",
+          "expect": "6300-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6300-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6300-03-01');",
+          "expect": "4022146.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4168243.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4168243.5);",
+          "expect": "6700-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6700-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6700-03-01');",
+          "expect": "4168243.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4314340.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4314340.5);",
+          "expect": "7100-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/7100-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('7100-03-01');",
+          "expect": "4314340.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4460437.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4460437.5);",
+          "expect": "7500-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/7500-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('7500-03-01');",
+          "expect": "4460437.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4606534.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4606534.5);",
+          "expect": "7900-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/7900-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('7900-03-01');",
+          "expect": "4606534.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4752631.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4752631.5);",
+          "expect": "8300-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8300-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8300-03-01');",
+          "expect": "4752631.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4898728.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4898728.5);",
+          "expect": "8700-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8700-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8700-03-01');",
+          "expect": "4898728.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd5044825.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(5044825.5);",
+          "expect": "9100-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/9100-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('9100-03-01');",
+          "expect": "5044825.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd5190922.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(5190922.5);",
+          "expect": "9500-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/9500-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('9500-03-01');",
+          "expect": "5190922.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd5337019.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(5337019.5);",
+          "expect": "9900-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/9900-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('9900-03-01');",
+          "expect": "5337019.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2268982.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2268982.5);",
+          "expect": "1500-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/1500-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('1500-03-01');",
+          "expect": "2268982.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2122885.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2122885.5);",
+          "expect": "1100-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/1100-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('1100-03-01');",
+          "expect": "2122885.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1976788.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1976788.5);",
+          "expect": "0700-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0700-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0700-03-01');",
+          "expect": "1976788.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1830691.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1830691.5);",
+          "expect": "0300-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0300-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0300-03-01');",
+          "expect": "1830691.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1684594.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1684594.5);",
+          "expect": "-0100-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-0100-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-0100-03-01');",
+          "expect": "1684594.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1538497.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1538497.5);",
+          "expect": "-0500-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-0500-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-0500-03-01');",
+          "expect": "1538497.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1392400.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1392400.5);",
+          "expect": "-0900-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-0900-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-0900-03-01');",
+          "expect": "1392400.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1246303.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1246303.5);",
+          "expect": "-1300-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1300-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1300-03-01');",
+          "expect": "1246303.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1100206.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1100206.5);",
+          "expect": "-1700-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1700-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1700-03-01');",
+          "expect": "1100206.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd954109.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(954109.5);",
+          "expect": "-2100-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2100-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2100-03-01');",
+          "expect": "954109.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd808012.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(808012.5);",
+          "expect": "-2500-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2500-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2500-03-01');",
+          "expect": "808012.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd661915.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(661915.5);",
+          "expect": "-2900-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2900-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2900-03-01');",
+          "expect": "661915.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd515818.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(515818.5);",
+          "expect": "-3300-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3300-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3300-03-01');",
+          "expect": "515818.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd369721.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(369721.5);",
+          "expect": "-3700-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3700-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3700-03-01');",
+          "expect": "369721.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd223624.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(223624.5);",
+          "expect": "-4100-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-4100-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-4100-03-01');",
+          "expect": "223624.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd77527.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(77527.5);",
+          "expect": "-4500-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-4500-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-4500-03-01');",
+          "expect": "77527.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2346413.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2346413.5);",
+          "expect": "1712-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/1712-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('1712-02-29');",
+          "expect": "2346413.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2492510.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2492510.5);",
+          "expect": "2112-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2112-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2112-02-29');",
+          "expect": "2492510.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2638607.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2638607.5);",
+          "expect": "2512-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2512-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2512-02-29');",
+          "expect": "2638607.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2784704.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2784704.5);",
+          "expect": "2912-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2912-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2912-02-29');",
+          "expect": "2784704.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2930801.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2930801.5);",
+          "expect": "3312-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/3312-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('3312-02-29');",
+          "expect": "2930801.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3076898.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3076898.5);",
+          "expect": "3712-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/3712-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('3712-02-29');",
+          "expect": "3076898.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3222995.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3222995.5);",
+          "expect": "4112-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4112-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4112-02-29');",
+          "expect": "3222995.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3369092.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3369092.5);",
+          "expect": "4512-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4512-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4512-02-29');",
+          "expect": "3369092.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3515189.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3515189.5);",
+          "expect": "4912-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4912-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4912-02-29');",
+          "expect": "3515189.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3661286.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3661286.5);",
+          "expect": "5312-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/5312-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('5312-02-29');",
+          "expect": "3661286.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3807383.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3807383.5);",
+          "expect": "5712-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/5712-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('5712-02-29');",
+          "expect": "3807383.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3953480.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3953480.5);",
+          "expect": "6112-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6112-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6112-02-29');",
+          "expect": "3953480.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4099577.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4099577.5);",
+          "expect": "6512-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6512-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6512-02-29');",
+          "expect": "4099577.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4245674.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4245674.5);",
+          "expect": "6912-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6912-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6912-02-29');",
+          "expect": "4245674.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4391771.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4391771.5);",
+          "expect": "7312-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/7312-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('7312-02-29');",
+          "expect": "4391771.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4537868.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4537868.5);",
+          "expect": "7712-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/7712-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('7712-02-29');",
+          "expect": "4537868.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4683965.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4683965.5);",
+          "expect": "8112-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8112-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8112-02-29');",
+          "expect": "4683965.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4830062.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4830062.5);",
+          "expect": "8512-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8512-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8512-02-29');",
+          "expect": "4830062.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4976159.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4976159.5);",
+          "expect": "8912-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8912-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8912-02-29');",
+          "expect": "4976159.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd5122256.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(5122256.5);",
+          "expect": "9312-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/9312-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('9312-02-29');",
+          "expect": "5122256.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd5268353.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(5268353.5);",
+          "expect": "9712-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/9712-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('9712-02-29');",
+          "expect": "5268353.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2200316.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2200316.5);",
+          "expect": "1312-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/1312-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('1312-02-29');",
+          "expect": "2200316.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2054219.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2054219.5);",
+          "expect": "0912-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0912-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0912-02-29');",
+          "expect": "2054219.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1908122.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1908122.5);",
+          "expect": "0512-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0512-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0512-02-29');",
+          "expect": "1908122.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1762025.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1762025.5);",
+          "expect": "0112-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0112-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0112-02-29');",
+          "expect": "1762025.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1615928.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1615928.5);",
+          "expect": "-0288-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-0288-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-0288-02-29');",
+          "expect": "1615928.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1469831.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1469831.5);",
+          "expect": "-0688-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-0688-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-0688-02-29');",
+          "expect": "1469831.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1323734.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1323734.5);",
+          "expect": "-1088-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1088-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1088-02-29');",
+          "expect": "1323734.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1177637.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1177637.5);",
+          "expect": "-1488-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1488-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1488-02-29');",
+          "expect": "1177637.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1031540.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1031540.5);",
+          "expect": "-1888-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1888-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1888-02-29');",
+          "expect": "1031540.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd885443.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(885443.5);",
+          "expect": "-2288-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2288-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2288-02-29');",
+          "expect": "885443.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd739346.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(739346.5);",
+          "expect": "-2688-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2688-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2688-02-29');",
+          "expect": "739346.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd593249.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(593249.5);",
+          "expect": "-3088-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3088-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3088-02-29');",
+          "expect": "593249.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd447152.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(447152.5);",
+          "expect": "-3488-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3488-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3488-02-29');",
+          "expect": "447152.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd301055.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(301055.5);",
+          "expect": "-3888-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3888-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3888-02-29');",
+          "expect": "301055.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd154958.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(154958.5);",
+          "expect": "-4288-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-4288-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-4288-02-29');",
+          "expect": "154958.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd8861.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(8861.5);",
+          "expect": "-4688-02-29"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-4688-02-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-4688-02-29');",
+          "expect": "8861.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2346414.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2346414.5);",
+          "expect": "1712-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/1712-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('1712-03-01');",
+          "expect": "2346414.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2492511.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2492511.5);",
+          "expect": "2112-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2112-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2112-03-01');",
+          "expect": "2492511.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2638608.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2638608.5);",
+          "expect": "2512-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2512-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2512-03-01');",
+          "expect": "2638608.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2784705.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2784705.5);",
+          "expect": "2912-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2912-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2912-03-01');",
+          "expect": "2784705.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2930802.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2930802.5);",
+          "expect": "3312-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/3312-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('3312-03-01');",
+          "expect": "2930802.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3076899.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3076899.5);",
+          "expect": "3712-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/3712-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('3712-03-01');",
+          "expect": "3076899.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3222996.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3222996.5);",
+          "expect": "4112-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4112-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4112-03-01');",
+          "expect": "3222996.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3369093.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3369093.5);",
+          "expect": "4512-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4512-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4512-03-01');",
+          "expect": "3369093.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3515190.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3515190.5);",
+          "expect": "4912-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4912-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4912-03-01');",
+          "expect": "3515190.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3661287.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3661287.5);",
+          "expect": "5312-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/5312-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('5312-03-01');",
+          "expect": "3661287.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3807384.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3807384.5);",
+          "expect": "5712-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/5712-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('5712-03-01');",
+          "expect": "3807384.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3953481.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3953481.5);",
+          "expect": "6112-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6112-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6112-03-01');",
+          "expect": "3953481.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4099578.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4099578.5);",
+          "expect": "6512-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6512-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6512-03-01');",
+          "expect": "4099578.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4245675.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4245675.5);",
+          "expect": "6912-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6912-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6912-03-01');",
+          "expect": "4245675.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4391772.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4391772.5);",
+          "expect": "7312-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/7312-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('7312-03-01');",
+          "expect": "4391772.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4537869.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4537869.5);",
+          "expect": "7712-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/7712-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('7712-03-01');",
+          "expect": "4537869.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4683966.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4683966.5);",
+          "expect": "8112-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8112-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8112-03-01');",
+          "expect": "4683966.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4830063.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4830063.5);",
+          "expect": "8512-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8512-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8512-03-01');",
+          "expect": "4830063.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4976160.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4976160.5);",
+          "expect": "8912-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8912-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8912-03-01');",
+          "expect": "4976160.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd5122257.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(5122257.5);",
+          "expect": "9312-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/9312-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('9312-03-01');",
+          "expect": "5122257.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd5268354.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(5268354.5);",
+          "expect": "9712-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/9712-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('9712-03-01');",
+          "expect": "5268354.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2200317.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2200317.5);",
+          "expect": "1312-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/1312-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('1312-03-01');",
+          "expect": "2200317.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2054220.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2054220.5);",
+          "expect": "0912-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0912-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0912-03-01');",
+          "expect": "2054220.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1908123.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1908123.5);",
+          "expect": "0512-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0512-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0512-03-01');",
+          "expect": "1908123.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1762026.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1762026.5);",
+          "expect": "0112-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0112-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0112-03-01');",
+          "expect": "1762026.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1615929.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1615929.5);",
+          "expect": "-0288-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-0288-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-0288-03-01');",
+          "expect": "1615929.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1469832.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1469832.5);",
+          "expect": "-0688-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-0688-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-0688-03-01');",
+          "expect": "1469832.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1323735.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1323735.5);",
+          "expect": "-1088-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1088-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1088-03-01');",
+          "expect": "1323735.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1177638.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1177638.5);",
+          "expect": "-1488-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1488-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1488-03-01');",
+          "expect": "1177638.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1031541.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1031541.5);",
+          "expect": "-1888-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1888-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1888-03-01');",
+          "expect": "1031541.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd885444.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(885444.5);",
+          "expect": "-2288-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2288-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2288-03-01');",
+          "expect": "885444.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd739347.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(739347.5);",
+          "expect": "-2688-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2688-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2688-03-01');",
+          "expect": "739347.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd593250.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(593250.5);",
+          "expect": "-3088-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3088-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3088-03-01');",
+          "expect": "593250.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd447153.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(447153.5);",
+          "expect": "-3488-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3488-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3488-03-01');",
+          "expect": "447153.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd301056.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(301056.5);",
+          "expect": "-3888-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3888-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3888-03-01');",
+          "expect": "301056.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd154959.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(154959.5);",
+          "expect": "-4288-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-4288-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-4288-03-01');",
+          "expect": "154959.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd8862.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(8862.5);",
+          "expect": "-4688-03-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-4688-03-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-4688-03-01');",
+          "expect": "8862.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2443259.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2443259.5);",
+          "expect": "1977-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/1977-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('1977-04-26');",
+          "expect": "2443259.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2589356.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2589356.5);",
+          "expect": "2377-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2377-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2377-04-26');",
+          "expect": "2589356.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2735453.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2735453.5);",
+          "expect": "2777-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2777-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2777-04-26');",
+          "expect": "2735453.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2881550.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2881550.5);",
+          "expect": "3177-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/3177-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('3177-04-26');",
+          "expect": "2881550.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3027647.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3027647.5);",
+          "expect": "3577-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/3577-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('3577-04-26');",
+          "expect": "3027647.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3173744.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3173744.5);",
+          "expect": "3977-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/3977-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('3977-04-26');",
+          "expect": "3173744.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3319841.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3319841.5);",
+          "expect": "4377-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4377-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4377-04-26');",
+          "expect": "3319841.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3465938.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3465938.5);",
+          "expect": "4777-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4777-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4777-04-26');",
+          "expect": "3465938.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3612035.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3612035.5);",
+          "expect": "5177-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/5177-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('5177-04-26');",
+          "expect": "3612035.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3758132.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3758132.5);",
+          "expect": "5577-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/5577-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('5577-04-26');",
+          "expect": "3758132.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3904229.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3904229.5);",
+          "expect": "5977-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/5977-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('5977-04-26');",
+          "expect": "3904229.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4050326.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4050326.5);",
+          "expect": "6377-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6377-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6377-04-26');",
+          "expect": "4050326.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4196423.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4196423.5);",
+          "expect": "6777-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6777-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6777-04-26');",
+          "expect": "4196423.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4342520.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4342520.5);",
+          "expect": "7177-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/7177-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('7177-04-26');",
+          "expect": "4342520.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4488617.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4488617.5);",
+          "expect": "7577-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/7577-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('7577-04-26');",
+          "expect": "4488617.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4634714.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4634714.5);",
+          "expect": "7977-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/7977-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('7977-04-26');",
+          "expect": "4634714.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4780811.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4780811.5);",
+          "expect": "8377-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8377-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8377-04-26');",
+          "expect": "4780811.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4926908.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4926908.5);",
+          "expect": "8777-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8777-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8777-04-26');",
+          "expect": "4926908.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd5073005.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(5073005.5);",
+          "expect": "9177-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/9177-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('9177-04-26');",
+          "expect": "5073005.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd5219102.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(5219102.5);",
+          "expect": "9577-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/9577-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('9577-04-26');",
+          "expect": "5219102.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd5365199.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(5365199.5);",
+          "expect": "9977-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/9977-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('9977-04-26');",
+          "expect": "5365199.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2297162.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2297162.5);",
+          "expect": "1577-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/1577-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('1577-04-26');",
+          "expect": "2297162.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2151065.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2151065.5);",
+          "expect": "1177-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/1177-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('1177-04-26');",
+          "expect": "2151065.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2004968.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2004968.5);",
+          "expect": "0777-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0777-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0777-04-26');",
+          "expect": "2004968.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1858871.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1858871.5);",
+          "expect": "0377-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0377-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0377-04-26');",
+          "expect": "1858871.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1712774.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1712774.5);",
+          "expect": "-0023-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-0023-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-0023-04-26');",
+          "expect": "1712774.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1566677.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1566677.5);",
+          "expect": "-0423-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-0423-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-0423-04-26');",
+          "expect": "1566677.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1420580.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1420580.5);",
+          "expect": "-0823-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-0823-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-0823-04-26');",
+          "expect": "1420580.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1274483.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1274483.5);",
+          "expect": "-1223-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1223-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1223-04-26');",
+          "expect": "1274483.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1128386.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1128386.5);",
+          "expect": "-1623-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1623-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1623-04-26');",
+          "expect": "1128386.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd982289.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(982289.5);",
+          "expect": "-2023-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2023-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2023-04-26');",
+          "expect": "982289.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd836192.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(836192.5);",
+          "expect": "-2423-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2423-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2423-04-26');",
+          "expect": "836192.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd690095.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(690095.5);",
+          "expect": "-2823-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2823-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2823-04-26');",
+          "expect": "690095.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd543998.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(543998.5);",
+          "expect": "-3223-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3223-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3223-04-26');",
+          "expect": "543998.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd397901.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(397901.5);",
+          "expect": "-3623-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3623-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3623-04-26');",
+          "expect": "397901.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd251804.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(251804.5);",
+          "expect": "-4023-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-4023-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-4023-04-26');",
+          "expect": "251804.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd105707.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(105707.5);",
+          "expect": "-4423-04-26"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-4423-04-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-4423-04-26');",
+          "expect": "105707.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2456293.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2456293.5);",
+          "expect": "2013-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2013-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2013-01-01');",
+          "expect": "2456293.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2602390.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2602390.5);",
+          "expect": "2413-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2413-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2413-01-01');",
+          "expect": "2602390.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2748487.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2748487.5);",
+          "expect": "2813-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/2813-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('2813-01-01');",
+          "expect": "2748487.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2894584.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2894584.5);",
+          "expect": "3213-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/3213-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('3213-01-01');",
+          "expect": "2894584.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3040681.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3040681.5);",
+          "expect": "3613-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/3613-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('3613-01-01');",
+          "expect": "3040681.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3186778.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3186778.5);",
+          "expect": "4013-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4013-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4013-01-01');",
+          "expect": "3186778.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3332875.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3332875.5);",
+          "expect": "4413-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4413-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4413-01-01');",
+          "expect": "3332875.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3478972.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3478972.5);",
+          "expect": "4813-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/4813-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('4813-01-01');",
+          "expect": "3478972.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3625069.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3625069.5);",
+          "expect": "5213-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/5213-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('5213-01-01');",
+          "expect": "3625069.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3771166.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3771166.5);",
+          "expect": "5613-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/5613-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('5613-01-01');",
+          "expect": "3771166.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd3917263.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(3917263.5);",
+          "expect": "6013-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6013-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6013-01-01');",
+          "expect": "3917263.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4063360.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4063360.5);",
+          "expect": "6413-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6413-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6413-01-01');",
+          "expect": "4063360.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4209457.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4209457.5);",
+          "expect": "6813-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/6813-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('6813-01-01');",
+          "expect": "4209457.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4355554.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4355554.5);",
+          "expect": "7213-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/7213-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('7213-01-01');",
+          "expect": "4355554.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4501651.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4501651.5);",
+          "expect": "7613-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/7613-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('7613-01-01');",
+          "expect": "4501651.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4647748.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4647748.5);",
+          "expect": "8013-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8013-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8013-01-01');",
+          "expect": "4647748.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4793845.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4793845.5);",
+          "expect": "8413-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8413-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8413-01-01');",
+          "expect": "4793845.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd4939942.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(4939942.5);",
+          "expect": "8813-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/8813-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('8813-01-01');",
+          "expect": "4939942.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd5086039.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(5086039.5);",
+          "expect": "9213-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/9213-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('9213-01-01');",
+          "expect": "5086039.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd5232136.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(5232136.5);",
+          "expect": "9613-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/9613-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('9613-01-01');",
+          "expect": "5232136.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2310196.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2310196.5);",
+          "expect": "1613-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/1613-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('1613-01-01');",
+          "expect": "2310196.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2164099.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2164099.5);",
+          "expect": "1213-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/1213-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('1213-01-01');",
+          "expect": "2164099.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd2018002.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(2018002.5);",
+          "expect": "0813-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0813-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0813-01-01');",
+          "expect": "2018002.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1871905.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1871905.5);",
+          "expect": "0413-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0413-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0413-01-01');",
+          "expect": "1871905.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1725808.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1725808.5);",
+          "expect": "0013-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/0013-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('0013-01-01');",
+          "expect": "1725808.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1579711.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1579711.5);",
+          "expect": "-0387-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-0387-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-0387-01-01');",
+          "expect": "1579711.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1433614.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1433614.5);",
+          "expect": "-0787-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-0787-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-0787-01-01');",
+          "expect": "1433614.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1287517.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1287517.5);",
+          "expect": "-1187-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1187-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1187-01-01');",
+          "expect": "1287517.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd1141420.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(1141420.5);",
+          "expect": "-1587-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1587-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1587-01-01');",
+          "expect": "1141420.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd995323.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(995323.5);",
+          "expect": "-1987-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-1987-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-1987-01-01');",
+          "expect": "995323.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd849226.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(849226.5);",
+          "expect": "-2387-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2387-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2387-01-01');",
+          "expect": "849226.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd703129.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(703129.5);",
+          "expect": "-2787-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-2787-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-2787-01-01');",
+          "expect": "703129.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd557032.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(557032.5);",
+          "expect": "-3187-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3187-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3187-01-01');",
+          "expect": "557032.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd410935.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(410935.5);",
+          "expect": "-3587-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3587-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3587-01-01');",
+          "expect": "410935.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd264838.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(264838.5);",
+          "expect": "-3987-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-3987-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-3987-01-01');",
+          "expect": "264838.5"
+        }
+      ]
+    },
+    {
+      "name": "date5-jd118741.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT date(118741.5);",
+          "expect": "-4387-01-01"
+        }
+      ]
+    },
+    {
+      "name": "date5-cal/-4387-01-01",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT julianday('-4387-01-01');",
+          "expect": "118741.5"
+        }
+      ]
+    }
+  ]
+}

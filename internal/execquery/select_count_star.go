@@ -25,7 +25,7 @@ func (e *SelectEngine) countStarShortCircuit(s *sql.SelectStmt, tableEntry *sche
 	if !isSimpleCountShape(s, tableEntry) {
 		return nil, false
 	}
-	tree := e.ctx.TableBTreePg(dbCtx.Pager, tableEntry.Name, tableEntry.RootPage, true)
+	tree := e.ctx.TableBTreePg(dbCtx.Pager, tableEntry.Name, tableEntry.RootPage, !e.ctx.TableIsWithoutRowidEntry(tableEntry))
 	n, err := tree.CountEntries()
 	if err != nil {
 		return nil, false

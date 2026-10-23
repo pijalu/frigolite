@@ -1,6 +1,7 @@
 {
   "file": "btree02.test",
   "name": "btree02",
+  "ordered": true,
   "tests": [
     {
       "name": "btree02-100",
@@ -20,8 +21,12 @@
           "sql": "BEGIN"
         },
         {
-          "type": "exec",
-          "sql": "SELECT a, ax, b, cnt FROM t1 CROSS JOIN t3 WHERE b IS NOT NULL",
+          "type": "query",
+          "sql": "SELECT a, ax, b, cnt FROM t1 CROSS JOIN t3 WHERE b IS NOT NULL"
+        },
+        {
+          "type": "query",
+          "sql": "COMMIT; SELECT count(*) FROM t1;",
           "expect": "10"
         }
       ]

@@ -1,7 +1,93 @@
 {
   "file": "fallocate.test",
   "name": "fallocate",
+  "ordered": true,
   "tests": [
+    {
+      "name": "fallocate-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(a, b);",
+          "expect": "1048576"
+        }
+      ]
+    },
+    {
+      "name": "fallocate-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, zeroblob(1024*900))",
+          "expect": "1048576"
+        }
+      ]
+    },
+    {
+      "name": "fallocate-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2, zeroblob(1024*900))",
+          "expect": "2097152"
+        }
+      ]
+    },
+    {
+      "name": "fallocate-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a = 1",
+          "expect": "1048576"
+        }
+      ]
+    },
+    {
+      "name": "fallocate-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a = 2",
+          "expect": "1048576"
+        }
+      ]
+    },
+    {
+      "name": "fallocate-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA freelist_count",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "fallocate-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; INSERT INTO t1 VALUES(1, 2);",
+          "expect": "1024"
+        }
+      ]
+    },
+    {
+      "name": "fallocate-1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_count",
+          "variable": "nPg",
+          "expect": "1 1"
+        }
+      ]
+    },
     {
       "name": "fallocate-1.9",
       "steps": [
@@ -13,75 +99,28 @@
       ]
     },
     {
-      "name": "fallocate-1.1",
+      "name": "setup_0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(a, b);"
+          "type": "close_db"
         }
       ]
     },
     {
-      "name": "fallocate-1.2",
+      "name": "delete_file",
       "steps": [
         {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(1, zeroblob(1024*900))"
+          "type": "delete_file",
+          "sql": "test.db"
         }
       ]
     },
     {
-      "name": "fallocate-1.3",
+      "name": "setup_1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(2, zeroblob(1024*900))"
-        }
-      ]
-    },
-    {
-      "name": "fallocate-1.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE a = 1"
-        }
-      ]
-    },
-    {
-      "name": "fallocate-1.5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE a = 2"
-        }
-      ]
-    },
-    {
-      "name": "fallocate-1.6",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "PRAGMA freelist_count",
-          "expect": "0"
-        }
-      ]
-    },
-    {
-      "name": "fallocate-1.7",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN; INSERT INTO t1 VALUES(1, 2);"
-        }
-      ]
-    },
-    {
-      "name": "fallocate-1.8",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "COMMIT"
+          "type": "reopen_db",
+          "sql": "test.db"
         }
       ]
     },
@@ -90,7 +129,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA page_size = 1024;\n      PRAGMA journal_mode = WAL;\n      CREATE TABLE t1(a, b);"
+          "sql": "PRAGMA page_size = 1024;\n      PRAGMA journal_mode = WAL;\n      CREATE TABLE t1(a, b);",
+          "expect": "32768"
         }
       ]
     },
@@ -100,6 +140,11 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(1, zeroblob(35*1024))"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint",
+          "expect": "65536"
         }
       ]
     },
@@ -109,6 +154,11 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "VACUUM",
+          "expect": "65536"
         }
       ]
     },
@@ -116,8 +166,9 @@
       "name": "fallocate-2.4",
       "steps": [
         {
-          "type": "query",
-          "sql": "PRAGMA wal_checkpoint"
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint",
+          "expect": "32768"
         }
       ]
     },
@@ -126,7 +177,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(2, randomblob(35*1024));\n      PRAGMA wal_checkpoint;\n      INSERT INTO t1 VALUES(3, randomblob(128));\n      DELETE FROM t1 WHERE a = 2;\n      VACUUM;"
+          "sql": "INSERT INTO t1 VALUES(2, randomblob(35*1024));\n      PRAGMA wal_checkpoint;\n      INSERT INTO t1 VALUES(3, randomblob(128));\n      DELETE FROM t1 WHERE a = 2;\n      VACUUM;",
+          "expect": "65536"
         }
       ]
     },
@@ -134,8 +186,19 @@
       "name": "fallocate-2.6",
       "steps": [
         {
-          "type": "query",
-          "sql": "BEGIN ; SELECT count(a) FROM t1"
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN ; SELECT count(a) FROM t1",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4, randomblob(128));\n      PRAGMA wal_checkpoint;",
+          "expect": "65536"
         }
       ]
     },
@@ -143,9 +206,10 @@
       "name": "fallocate-2.7",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT count(b) FROM t1",
-          "expect": "1"
+          "expect": "1",
+          "database": "db2"
         }
       ]
     },
@@ -154,87 +218,13 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT"
+          "sql": "COMMIT",
+          "database": "db2"
         },
         {
           "type": "exec",
-          "sql": "PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(a, b);"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(1, zeroblob(1024*900))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(2, zeroblob(1024*900))"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE a = 1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE a = 2"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA freelist_count"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN; INSERT INTO t1 VALUES(1, 2);"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size = 1024;\n      PRAGMA journal_mode = WAL;\n      CREATE TABLE t1(a, b);"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(1, zeroblob(35*1024))"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA wal_checkpoint"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "VACUUM"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA wal_checkpoint"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(2, randomblob(35*1024));\n      PRAGMA wal_checkpoint;\n      INSERT INTO t1 VALUES(3, randomblob(128));\n      DELETE FROM t1 WHERE a = 2;\n      VACUUM;"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN ; SELECT count(a) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(4, randomblob(128));\n      PRAGMA wal_checkpoint;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(b) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA wal_checkpoint"
+          "sql": "PRAGMA wal_checkpoint",
+          "expect": "32768"
         }
       ]
     }

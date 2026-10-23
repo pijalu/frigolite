@@ -1,7 +1,35 @@
 {
   "file": "corrupt.test",
   "name": "corrupt",
+  "ordered": true,
   "tests": [
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.bu"
+        }
+      ]
+    },
     {
       "name": "corrupt-1.1",
       "steps": [
@@ -12,11 +40,50 @@
       ]
     },
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "test.bu"
+        }
+      ]
+    },
+    {
+      "name": "corrupt-3.1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "copy_file",
+          "sql": "test.bu",
+          "fileTarget": "test.db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
       "name": "corrupt-3.2",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT rootpage FROM sqlite_master WHERE name = 't1i1'"
+          "type": "query_assign",
+          "sql": "SELECT rootpage FROM sqlite_master WHERE name = 't1i1'",
+          "variable": "t1_r",
+          "resultAll": true
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT rootpage FROM sqlite_master WHERE name = 't1'",
+          "variable": "t1i1_r",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA schema_version"
         }
       ]
     },
@@ -24,7 +91,14 @@
       "name": "corrupt-3.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
           "sql": "INSERT INTO t1 VALUES('abc');",
           "expect": "1 {database disk image is malformed}"
         }
@@ -34,7 +108,14 @@
       "name": "corrupt-3.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
           "sql": "SELECT * FROM t1;",
           "expect": "1 {database disk image is malformed}"
         }
@@ -44,7 +125,14 @@
       "name": "corrupt-3.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
           "sql": "SELECT * FROM t1 WHERE oid = 10;",
           "expect": "1 {database disk image is malformed}"
         }
@@ -54,7 +142,14 @@
       "name": "corrupt-3.6",
       "steps": [
         {
-          "type": "exec",
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
           "sql": "SELECT * FROM t1 WHERE x = 'abcde';",
           "expect": "1 {database disk image is malformed}"
         }
@@ -64,8 +159,82 @@
       "name": "corrupt-4.1",
       "steps": [
         {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "corrupt-4.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "exec",
           "sql": "PRAGMA page_size = 1024;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0, 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2, 2222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3, 3333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4, 4444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5, 5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6, 6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(7, 7777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(8, 8888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(9, 9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(b)"
         }
       ]
     },
@@ -73,7 +242,19 @@
       "name": "corrupt-4.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query_assign",
+          "sql": "SELECT rootpage FROM sqlite_master WHERE name = 'i1'",
+          "variable": "iRoot"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
           "sql": "DELETE FROM t1 WHERE rowid = 3",
           "expect": "1 {database disk image is malformed}"
         }
@@ -83,8 +264,42 @@
       "name": "corrupt-5.1",
       "steps": [
         {
-          "type": "query",
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "corrupt-5.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
           "sql": "PRAGMA page_size = 1024"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(c0 , c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42, c43, c44, c45, c46, c47, c48, c49, c50, c51, c52, c53, c54, c55, c56, c57, c58, c59, c60, c61, c62, c63, c64, c65, c66, c67, c68, c69, c70, c71, c72, c73, c74, c75, c76, c77, c78, c79, c80, c81, c82, c83, c84, c85, c86, c87, c88, c89, c90, c91, c92, c93, c94, c95, c96, c97, c98, c99, c100, c101, c102, c103, c104, c105, c106, c107, c108, c109, c110, c111, c112, c113, c114, c115, c116, c117, c118, c119, c120, c121, c122, c123, c124, c125, c126, c127, c128, c129, c130, c131, c132, c133, c134, c135, c136, c137, c138, c139, c140, c141, c142, c143, c144, c145, c146, c147, c148, c149, c150, c151, c152, c153, c154, c155, c156, c157, c158, c159, c160, c161, c162, c163, c164, c165, c166, c167, c168, c169, c170, c171, c172, c173, c174)"
         }
       ]
     },
@@ -92,7 +307,21 @@
       "name": "corrupt-5.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "close_db"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileData": "00000000",
+          "fileTarget": "test.db",
+          "fileOffset": 108
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
           "sql": "SELECT * FROM sqlite_master",
           "expect": "1 {database disk image is malformed}"
         }
@@ -101,6 +330,353 @@
     {
       "name": "corrupt-6.1",
       "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "corrupt-6.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024; CREATE TABLE t1(x);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE rowid=1"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT rootpage FROM sqlite_master WHERE name = 't1'",
+          "variable": "rootpage"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "($rootpage * 1024)-14+2",
+          "variable": "offset"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA page_size = 1024; CREATE TABLE t1(x);"
@@ -113,6 +689,170 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         }
       ]
     },
@@ -129,9 +869,35 @@
       "name": "corrupt-7.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');",
           "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
         }
       ]
     },
@@ -139,8 +905,55 @@
       "name": "corrupt-8.1",
       "steps": [
         {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "exec",
           "sql": "PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(1900));"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileTarget": "test.db",
+          "fileOffset": 2044
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileTarget": "test.db",
+          "fileOffset": 24
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT OR REPLACE INTO t1 VALUES(5, randomblob(1900))",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
         }
       ]
     },
@@ -148,111 +961,32 @@
       "name": "corrupt-8.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(900));\n    INSERT INTO t1 VALUES(6, randomblob(900));"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randstr(100,100));\n    INSERT INTO t1 VALUES(randstr(90,90));\n    INSERT INTO t1 VALUES(randstr(80,80));\n    INSERT INTO t1 SELECT x || randstr(5,5) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(6,6) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(7,7) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(8,8) FROM t1;\n    INSERT INTO t1 VALUES(randstr(3000,3000));\n    INSERT INTO t1 SELECT x || randstr(9,9) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(10,10) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(11,11) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(12,12) FROM t1;\n    CREATE INDEX t1i1 ON t1(x);\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    DELETE FROM t2 WHERE rowid%5!=0;\n    COMMIT;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT rootpage FROM sqlite_master WHERE name = 't1i1'"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT rootpage FROM sqlite_master WHERE name = 't1'"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA schema_version"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size = 1024;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX i1 ON t1(b)"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size = 1024"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size = 1024; CREATE TABLE t1(x);"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE rowid=1"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size = 1024; CREATE TABLE t1(x);"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET x = X'870400020003000400050006000700080009000A' \n      WHERE rowid = 10;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(1900));"
+          "type": "reopen_db",
+          "sql": "test.db"
         },
         {
           "type": "exec",
           "sql": "PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(900));\n    INSERT INTO t1 VALUES(6, randomblob(900));"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
+        },
         {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileData": "FF",
+          "fileTarget": "test.db",
+          "fileOffset": 2047
+        },
         {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileTarget": "test.db",
+          "fileOffset": 24
+        },
         {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES(4, randomblob(1900))",
+          "expect": "1 {database disk image is malformed}"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

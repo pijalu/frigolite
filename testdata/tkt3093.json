@@ -1,29 +1,78 @@
 {
   "file": "tkt3093.test",
   "name": "tkt3093",
+  "ordered": true,
   "tests": [
+    {
+      "name": "tkt3093.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt3093.2",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1",
+          "database": "db2"
+        }
+      ]
+    },
     {
       "name": "tkt3093.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE t1 SET x=x+1;",
-          "expect": "0 {}"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
           "sql": "BEGIN;\n     INSERT INTO t1 VALUES(2);"
         },
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
+          "type": "catch",
+          "sql": "UPDATE t1 SET x=x+1;",
+          "expect": "0 {}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "tkt3093.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "2 3"
+        }
+      ]
+    },
+    {
+      "name": "tkt3093.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "2 3",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

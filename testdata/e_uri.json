@@ -1,16 +1,1149 @@
 {
   "file": "e_uri.test",
   "name": "e_uri",
+  "ordered": true,
   "tests": [
     {
       "name": "setup_0",
       "steps": [
         {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "e_uri-5.1.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "vfs",
+          "expect": "vfs1"
+        }
+      ]
+    },
+    {
+      "name": "e_uri-5.1.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "vfs",
+          "expect": "vfs2"
+        }
+      ]
+    },
+    {
+      "name": "e_uri-5.2.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "vfs",
+          "expect": "vfs1"
+        }
+      ]
+    },
+    {
+      "name": "e_uri-5.2.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "vfs",
+          "expect": "vfs3"
+        }
+      ]
+    },
+    {
+      "name": "e_uri-5.3.1",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "vfs",
+          "expect": "vfs1"
+        }
+      ]
+    },
+    {
+      "name": "e_uri-5.3.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "vfs",
+          "expect": "vfs2"
+        }
+      ]
+    },
+    {
+      "name": "e_uri-5.3.3",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "vfs",
+          "expect": "vfs2"
+        }
+      ]
+    },
+    {
+      "name": "e_uri-5.3.4",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "vfs",
+          "expect": "vfs1"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "e_uri-8.1.c",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b) ; INSERT INTO t1 VALUES('a', 'b') ;"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "e_uri-8.1.r",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {a b}"
+        }
+      ]
+    },
+    {
+      "name": "e_uri-8.1.w",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES(1, 2)",
+          "expect": "1 {attempt to write a readonly database}"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "e_uri-8.2.c",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b) ; INSERT INTO t1 VALUES('a', 'b') ;"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "e_uri-8.2.r",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {a b}"
+        }
+      ]
+    },
+    {
+      "name": "e_uri-8.2.w",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES(1, 2)",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "e_uri-8.3.c",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b) ; INSERT INTO t1 VALUES('a', 'b') ;"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "e_uri-8.3.r",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {a b}"
+        }
+      ]
+    },
+    {
+      "name": "e_uri-8.3.w",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES(1, 2)",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('ok');"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('ko');"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('ok');"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('ko');"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('ok');"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('ko');"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_12",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('ok');"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('ko');"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_13",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('ok');"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_5"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('ko');"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_5"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_5"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_14",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('ok');"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_6"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('ko');"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_6"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_6"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_15",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('ok');"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_7"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('ko');"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_7"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_7"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_16",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('ok');"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_8"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('ko');"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_8"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_8"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_17",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('ok');"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_9"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('ko');"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_9"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_9"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_18",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('ok');"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_10"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('ko');"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_10"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_10"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_19",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('ok');"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_11"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('ko');"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_11"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_11"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_20",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('ok');"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_12"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('ko');"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_12"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_12"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_21",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('ok');"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_13"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('ko');"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_13"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_13"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_22",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('ok');"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_14"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('ko');"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_14"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_14"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_23",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('ok');"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_15"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('ko');"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_15"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_15"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_24",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('ok');"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_16"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('ko');"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_16"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_16"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_25",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('ok');"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_17"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('ko');"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_17"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_17"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_26",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('ok');"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_18"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('ko');"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_18"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_18"
+        },
+        {
+          "type": "close_db"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

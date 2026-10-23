@@ -1,9 +1,10 @@
 {
   "file": "vtabrhs1.test",
   "name": "vtabrhs1",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.1",
+      "name": "vtabrhs1-1.1",
       "steps": [
         {
           "type": "query",
@@ -13,37 +14,37 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "vtabrhs1-1.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT rhs FROM qpvtab\n   WHERE cn='a'\n     AND a<>4.5",
+          "sql": "SELECT rhs FROM qpvtab\n   WHERE cn='a'\n     AND a\u003c\u003e4.5",
           "expect": "4.5"
         }
       ]
     },
     {
-      "name": "1.3",
+      "name": "vtabrhs1-1.3",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT rhs FROM qpvtab\n   WHERE cn='a'\n     AND 'quokka' < a",
+          "sql": "SELECT rhs FROM qpvtab\n   WHERE cn='a'\n     AND 'quokka' \u003c a",
           "expect": "'quokka'"
         }
       ]
     },
     {
-      "name": "1.4",
+      "name": "vtabrhs1-1.4",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT rhs FROM qpvtab\n   WHERE cn='a'\n     AND a IS NULL",
           "expect": "{}"
         }
       ]
     },
     {
-      "name": "1.5",
+      "name": "vtabrhs1-1.5",
       "steps": [
         {
           "type": "query",
@@ -53,7 +54,7 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "vtabrhs1-2.1",
       "steps": [
         {
           "type": "query",
@@ -63,7 +64,7 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "vtabrhs1-2.2",
       "steps": [
         {
           "type": "query",
@@ -72,6 +73,5 @@
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

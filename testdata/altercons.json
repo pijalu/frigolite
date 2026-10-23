@@ -1732,6 +1732,15 @@
       "steps": null
     },
     {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
       "name": "altercons-9.0",
       "steps": [
         {

@@ -250,11 +250,14 @@ type Page struct {
 // PagerState is a deep snapshot of a pager's in-memory state, used for
 // statement-level rollback (e.g. a failed REPLACE that fired triggers).
 type PagerState struct {
-	pages    map[uint32]*Page
-	dirty    map[uint32]bool
-	numPages uint32
-	header   []byte
-	fileSize int64
+	pages     map[uint32]*Page
+	dirty     map[uint32]bool
+	numPages  uint32
+	header    []byte
+	fileSize  int64
+	walNFrame int
+	walCksum1 uint32
+	walCksum2 uint32
 }
 
 // deriveCksumInit produces a non-zero random-ish uint32 used as the

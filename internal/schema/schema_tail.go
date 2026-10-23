@@ -28,7 +28,7 @@ func (m *Manager) UpdateEntryFull(oldName, newName, newSQL string) error {
 	// position).
 	var foundRowID int64 = -1
 	var foundType, foundTbl, foundRoot interface{}
-	if _, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
+	if _, err := tree.DeleteCellsWhereFullPayload(func(cell *storage.Cell) bool {
 		rec, err := storage.DecodeRecord(cell.Payload)
 		if err != nil || rec == nil || len(rec.Values) < 5 {
 			return false
@@ -85,7 +85,7 @@ func (m *Manager) RemoveEntryOfType(name string, schemaType SchemaType) error {
 
 	tree := btree.NewSchemaBTree(m.pager)
 	defer tree.Close() // schema tree and its cursors are function-local
-	_, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
+	_, err := tree.DeleteCellsWhereFullPayload(func(cell *storage.Cell) bool {
 		rec, err := storage.DecodeRecord(cell.Payload)
 		if err != nil {
 			return false
@@ -289,6 +289,10 @@ func (m *Manager) freeSpaceWalk(rootPage uint32, seen map[uint32]bool) int64 {
 	for len(stack) > 0 {
 		pageNum := stack[len(stack)-1]
 		stack = stack[:len(stack)-1]
+		if seen[pageNum] {
+			continue
+		}
+		seen[pageNum] = true
 		pg, err := m.pager.ReadPage(pageNum)
 		if err != nil {
 			continue

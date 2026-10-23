@@ -1,13 +1,1255 @@
 {
   "file": "date3.test",
   "name": "date3",
+  "ordered": true,
   "tests": [
+    {
+      "name": "date3-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch('1970-01-01'),'NULL')",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch('1969-12-31 23:59:59'),'NULL')",
+          "expect": "-1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch('2106-02-07 06:28:15'),'NULL')",
+          "expect": "4294967295"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch('2106-02-07 06:28:16'),'NULL')",
+          "expect": "4294967296"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch('9999-12-31 23:59:59'),'NULL')",
+          "expect": "253402300799"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch('0000-01-01 00:00:00'),'NULL')",
+          "expect": "-62167219200"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(12374886472,'unixepoch')==12374886472,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(-3369345183,'unixepoch')==-3369345183,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(22034133996,'unixepoch')==22034133996,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(24199748621,'unixepoch')==24199748621,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(362081059,'unixepoch')==362081059,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(63952195647,'unixepoch')==63952195647,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(28986428240,'unixepoch')==28986428240,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(48298643512,'unixepoch')==48298643512,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(-2107364159,'unixepoch')==-2107364159,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(-2169097183,'unixepoch')==-2169097183,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(59795595741,'unixepoch')==59795595741,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(56719649692,'unixepoch')==56719649692,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(36340902355,'unixepoch')==36340902355,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(28606453391,'unixepoch')==28606453391,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(52972706650,'unixepoch')==52972706650,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(8509889926,'unixepoch')==8509889926,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.17",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(46258701815,'unixepoch')==46258701815,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.18",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(3611426468,'unixepoch')==3611426468,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.19",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(43716488214,'unixepoch')==43716488214,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(20141961164,'unixepoch')==20141961164,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.21",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(39568675156,'unixepoch')==39568675156,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.22",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(58116783549,'unixepoch')==58116783549,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.23",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(15908587370,'unixepoch')==15908587370,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.24",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(13913741641,'unixepoch')==13913741641,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.25",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(21646222700,'unixepoch')==21646222700,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.26",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(32924883633,'unixepoch')==32924883633,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.27",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(-3657125823,'unixepoch')==-3657125823,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.28",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(64387763519,'unixepoch')==64387763519,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.29",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(-3408354399,'unixepoch')==-3408354399,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.30",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(53601007739,'unixepoch')==53601007739,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.31",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(54286340251,'unixepoch')==54286340251,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.32",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(27797783151,'unixepoch')==27797783151,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.33",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(-611106366,'unixepoch')==-611106366,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.34",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(62826616031,'unixepoch')==62826616031,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.35",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(9225915719,'unixepoch')==9225915719,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.36",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(54595764763,'unixepoch')==54595764763,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.37",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(5615326821,'unixepoch')==5615326821,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.38",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(50726119321,'unixepoch')==50726119321,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.39",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(45828855447,'unixepoch')==45828855447,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.40",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(63448050143,'unixepoch')==63448050143,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.41",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(8308577094,'unixepoch')==8308577094,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.42",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(30048292880,'unixepoch')==30048292880,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.43",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(27993704943,'unixepoch')==27993704943,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.44",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(62431046719,'unixepoch')==62431046719,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.45",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(26681729230,'unixepoch')==26681729230,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.46",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(2287800387,'unixepoch')==2287800387,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.47",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(62643413759,'unixepoch')==62643413759,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.48",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(22521781901,'unixepoch')==22521781901,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.49",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(42480343382,'unixepoch')==42480343382,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.50",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(-2462265663,'unixepoch')==-2462265663,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.51",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(11595798344,'unixepoch')==11595798344,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.52",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(27916537999,'unixepoch')==27916537999,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.53",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(2436799556,'unixepoch')==2436799556,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.54",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(24251792269,'unixepoch')==24251792269,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.55",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(50425952569,'unixepoch')==50425952569,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.56",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(17448053962,'unixepoch')==17448053962,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.57",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(49205512697,'unixepoch')==49205512697,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.58",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(52638659770,'unixepoch')==52638659770,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.59",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(29181067504,'unixepoch')==29181067504,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.60",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(21065871756,'unixepoch')==21065871756,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.61",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(37132259795,'unixepoch')==37132259795,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.62",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(-2627533119,'unixepoch')==-2627533119,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.63",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(51444210234,'unixepoch')==51444210234,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.64",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(20154913516,'unixepoch')==20154913516,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.65",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(51100425113,'unixepoch')==51100425113,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.66",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(14594444809,'unixepoch')==14594444809,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.67",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(54791234427,'unixepoch')==54791234427,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.68",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(61058564606,'unixepoch')==61058564606,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.69",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(49119045401,'unixepoch')==49119045401,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.70",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(42491826678,'unixepoch')==42491826678,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.71",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(53098536826,'unixepoch')==53098536826,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.72",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(61753356862,'unixepoch')==61753356862,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.73",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(44181452310,'unixepoch')==44181452310,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.74",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(773178371,'unixepoch')==773178371,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.75",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(32597571313,'unixepoch')==32597571313,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.76",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(61482324990,'unixepoch')==61482324990,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.77",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(24434242061,'unixepoch')==24434242061,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.78",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(24483155021,'unixepoch')==24483155021,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.79",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(21929553292,'unixepoch')==21929553292,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.80",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(53218250810,'unixepoch')==53218250810,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.81",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(12201984808,'unixepoch')==12201984808,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.82",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(45609886263,'unixepoch')==45609886263,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.83",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(25365239950,'unixepoch')==25365239950,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.84",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(3723970116,'unixepoch')==3723970116,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.85",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(11092232423,'unixepoch')==11092232423,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.86",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(16979755146,'unixepoch')==16979755146,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.87",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(12527656424,'unixepoch')==12527656424,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.88",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(21614600044,'unixepoch')==21614600044,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.89",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(51198717882,'unixepoch')==51198717882,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.90",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(17333555690,'unixepoch')==17333555690,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.91",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(48978402905,'unixepoch')==48978402905,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.92",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(15175604329,'unixepoch')==15175604329,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.93",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(64173595103,'unixepoch')==64173595103,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.94",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(39195343220,'unixepoch')==39195343220,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.95",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(36999315251,'unixepoch')==36999315251,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.96",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(30716247120,'unixepoch')==30716247120,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.97",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(53025913882,'unixepoch')==53025913882,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.98",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(9410640999,'unixepoch')==9410640999,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.99",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(-1822382686,'unixepoch')==-1822382686,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.7.100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch(45870610167,'unixepoch')==45870610167,'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "date3-1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(unixepoch('2022-01-27 12:59:28.052'),'NULL')",
+          "expect": "1643288368"
+        }
+      ]
+    },
+    {
+      "name": "date3-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(datetime(0.0,'auto'),'NULL')",
+          "expect": "{-4713-11-24 12:00:00}"
+        }
+      ]
+    },
+    {
+      "name": "date3-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(datetime(5373484.4999999,'auto'),'NULL')",
+          "expect": "{9999-12-31 23:59:59}"
+        }
+      ]
+    },
+    {
+      "name": "date3-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(datetime(2440587.5,'auto'),'NULL')",
+          "expect": "{1970-01-01 00:00:00}"
+        }
+      ]
+    },
+    {
+      "name": "date3-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(datetime(2440587.49998843,'auto'),'NULL')",
+          "expect": "{1969-12-31 23:59:59}"
+        }
+      ]
+    },
+    {
+      "name": "date3-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(datetime(2440615.7475463,'auto'),'NULL')",
+          "expect": "{1970-01-29 05:56:28}"
+        }
+      ]
+    },
+    {
+      "name": "date3-2.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(datetime(-1,'auto'),'NULL')",
+          "expect": "{1969-12-31 23:59:59}"
+        }
+      ]
+    },
+    {
+      "name": "date3-2.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(datetime(5373485,'auto'),'NULL')",
+          "expect": "{1970-03-04 04:38:05}"
+        }
+      ]
+    },
+    {
+      "name": "date3-2.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(datetime(-210866760000,'auto'),'NULL')",
+          "expect": "{-4713-11-24 12:00:00}"
+        }
+      ]
+    },
+    {
+      "name": "date3-2.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(datetime(253402300799,'auto'),'NULL')",
+          "expect": "{9999-12-31 23:59:59}"
+        }
+      ]
+    },
+    {
+      "name": "date3-2.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(datetime(-210866760001,'auto'),'NULL')",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "date3-2.21",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(datetime(253402300800,'auto'),'NULL')",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "date3-2.30",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(date('2022-01-29','auto')==date('2022-01-29'),'NULL')",
+          "expect": "1"
+        }
+      ]
+    },
     {
       "name": "date3-2.40",
       "steps": [
         {
+          "type": "query",
+          "sql": "WITH tx(timeval,datetime) AS (\n     VALUES('2022-01-27 13:15:44','2022-01-27 13:15:44'),\n           (2459607.05260275,'2022-01-27 13:15:44'),\n           (1643289344,'2022-01-27 13:15:44')\n  )\n  SELECT datetime(timeval,'auto') == datetime FROM tx;",
+          "expect": "1 1 1"
+        }
+      ]
+    },
+    {
+      "name": "date3-3.1",
+      "steps": [
+        {
           "type": "exec",
-          "sql": "WITH tx(timeval,datetime) AS (\n     VALUES('2022-01-27 13:15:44','2022-01-27 13:15:44'),\n           (2459607.05260275,'2022-01-27 13:15:44'),\n           (1643289344,'2022-01-27 13:15:44')\n  )\n  SELECT datetime(timeval,'auto') == datetime FROM tx;"
+          "sql": "SELECT coalesce(datetime(2459607.05,'+1 hour','unixepoch'),'NULL')",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "date3-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(datetime(2459607.05,'unixepoch','+1 hour'),'NULL')",
+          "expect": "{1970-01-29 12:13:27}"
+        }
+      ]
+    },
+    {
+      "name": "date3-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(datetime(2459607,'julianday'),'NULL')",
+          "expect": "{2022-01-27 12:00:00}"
+        }
+      ]
+    },
+    {
+      "name": "date3-4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(datetime(2459607,'+1 hour','julianday'),'NULL')",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "date3-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(datetime('2022-01-27','julianday'),'NULL')",
+          "expect": "NULL"
         }
       ]
     },
@@ -15,8 +1257,9 @@
       "name": "date3-5.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH inc(x) AS (VALUES(-10) UNION ALL SELECT x+1 FROM inc WHERE x<100)\n  SELECT count(*) FROM inc\n  WHERE datetime('1970-01-01',format('%+d days',x))\n     <> datetime(unixepoch('1970-01-01',format('%+d days',x)),'auto');"
+          "type": "query",
+          "sql": "WITH inc(x) AS (VALUES(-10) UNION ALL SELECT x+1 FROM inc WHERE x\u003c100)\n  SELECT count(*) FROM inc\n  WHERE datetime('1970-01-01',format('%+d days',x))\n     \u003c\u003e datetime(unixepoch('1970-01-01',format('%+d days',x)),'auto');",
+          "expect": "63"
         }
       ]
     }

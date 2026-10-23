@@ -1,7 +1,495 @@
 {
   "file": "fts3an.test",
   "name": "fts3an",
+  "ordered": true,
   "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts3(c);\n\n  INSERT INTO t1(rowid, c) VALUES(1, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n');\n  INSERT INTO t1(rowid, c) VALUES(2, 'Another lovely row');"
+        }
+      ]
+    },
+    {
+      "name": "fts3an-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE t1 MATCH 'lorem'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts3an-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE t1 MATCH 'lore*'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts3an-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE t1 MATCH 'lorem*'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts3an-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE t1 MATCH 'lore'"
+        }
+      ]
+    },
+    {
+      "name": "fts3an-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE t1 MATCH 'lo*'",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "fts3an-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE t1 MATCH 'l*'",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "fts3an-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE t1 MATCH 'lov*'",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "fts3an-1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE t1 MATCH 'lo *'"
+        }
+      ]
+    },
+    {
+      "name": "fts3an-1.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE t1 MATCH '*'"
+        }
+      ]
+    },
+    {
+      "name": "fts3an-1.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE t1 MATCH '\"lovely r*\"'",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "fts3an-1.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE t1 MATCH '\"lovely r\"'"
+        }
+      ]
+    },
+    {
+      "name": "fts3an-1.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE t1 MATCH '\"a* l*\"'",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "fts3an-1.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE t1 MATCH '\"a* l* row\"'",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t2 USING fts3(c);\n\n  INSERT INTO t2(rowid, c) VALUES(1, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n');\n  INSERT INTO t2(rowid, c) VALUES(2, 'Another lovely row');\n  UPDATE t2 SET c = $ntext WHERE rowid = 1;"
+        }
+      ]
+    },
+    {
+      "name": "fts3an-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t2 WHERE t2 MATCH 'lorem'"
+        }
+      ]
+    },
+    {
+      "name": "fts3an-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t2 WHERE t2 MATCH 'lore*'"
+        }
+      ]
+    },
+    {
+      "name": "fts3an-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t2 WHERE t2 MATCH 'lo*'",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "fts3an-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t2 WHERE t2 MATCH 'l*'",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "fts3an-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t2 WHERE t2 MATCH 'lov*'",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n  CREATE VIRTUAL TABLE t3 USING fts3(c);\n\n  INSERT INTO t3(rowid, c) VALUES(1, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n');\n  INSERT INTO t3(rowid, c) VALUES(2, 'Another lovely row');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+0, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+1, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+2, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+3, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+4, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+5, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+6, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+7, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+8, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+9, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+10, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+11, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+12, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+13, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+14, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+15, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+16, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+17, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+18, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+19, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+20, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+21, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+22, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+23, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+24, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+25, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+26, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+27, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+28, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+29, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+30, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+31, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+32, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+33, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+34, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+35, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+36, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+37, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+38, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+39, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+40, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+41, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+42, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+43, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+44, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+45, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+46, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+47, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+48, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+49, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+50, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+51, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+52, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+53, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+54, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+55, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+56, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+57, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+58, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+59, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+60, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+61, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+62, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+63, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+64, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+65, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+66, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(rowid, c) VALUES(3+67, '\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n')"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "fts3an-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offsets(t3) as o FROM t3 WHERE t3 MATCH 'l*'",
+          "expect": "6 1 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192 192"
+        }
+      ]
+    },
     {
       "name": "fts3an-4.1",
       "steps": [
@@ -11,7 +499,7 @@
         },
         {
           "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE ft USING fts3(x)"
+          "sql": "BEGIN"
         },
         {
           "type": "exec",
@@ -87,19 +575,16 @@
         },
         {
           "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
           "sql": "UPDATE ft SET x = 'abc' || rowid"
         },
         {
           "type": "exec",
-          "sql": "SELECT count(*) FROM ft WHERE x MATCH 'abc*'"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT offsets(t3) as o FROM t3 WHERE t3 MATCH 'l*'"
+          "sql": "SELECT count(*) FROM ft WHERE x MATCH 'abc*'",
+          "expect": "131072"
         }
       ]
     }

@@ -60,19 +60,19 @@ func NumericIsInt(v interface{}) bool {
 	if _, ok := v.(int64); ok {
 		return true
 	}
-	s, ok := v.(string)
-	if !ok {
+	var text string
+	switch x := v.(type) {
+	case string:
+		text = x
+	case []byte:
+		text = string(x)
+	default:
 		return false
 	}
-	// A decimal point or exponent in the numeric prefix makes the value REAL
-	// even when the parsed number is whole ('10.y' -> 10.0, '1e1y' -> 10.0;
-	// SQLite arithmetic treats them as REAL, so 1234/'10.y' is 123.4, not
-	// 123).
-	t := strings.TrimSpace(s)
-	if numericPrefixIsReal(t) {
+	if numericPrefixIsReal(strings.TrimSpace(text)) {
 		return false
 	}
-	f, ok := parseNumericPrefix(s)
+	f, ok := parseNumericPrefix(text)
 	if !ok {
 		return true
 	}
@@ -269,9 +269,14 @@ func modValues(a, b interface{}) (interface{}, error) {
 	return nil, fmt.Errorf("cannot mod non-numeric values")
 }
 
+// bitwiseAnd/bitwiseOr port vdbe.c OP_BitAnd/OP_BitOr: NULL propagates NULL
+// (handled by the caller), every other operand is coerced with
+// sqlite3VdbeIntValue (integers as-is, reals truncated toward zero, text and
+// blobs parsed as integers with 0 on failure) and the result is an INTEGER.
+// `'2245' & 66` is therefore 64, exactly like the C engine.
 func bitwiseAnd(a, b interface{}) (interface{}, error) {
-	ai, aok := a.(int64)
-	bi, bok := b.(int64)
+	ai, aok := ToInt64(a)
+	bi, bok := ToInt64(b)
 	if aok && bok {
 		return ai & bi, nil
 	}
@@ -287,37 +292,38 @@ func bitwiseOr(a, b interface{}) (interface{}, error) {
 	return nil, fmt.Errorf("cannot bitwise-OR non-integer values")
 }
 
-func shiftLeft(a, b interface{}) (interface{}, error) {
+func shiftLeft(a, b interface{}) (interface{}, error) { return shiftOp(a, b, true) }
+
+func shiftRight(a, b interface{}) (interface{}, error) { return shiftOp(a, b, false) }
+
+// shiftOp ports vdbe.c OP_ShiftLeft/OP_ShiftRight. A negative count reverses
+// the direction first; a count of 64 or more (including MinInt64, whose
+// negation overflows) then yields 0 for a left shift or for a non-negative
+// right-shift operand, and -1 when right-shifting a negative value.
+func shiftOp(a, b interface{}, left bool) (interface{}, error) {
 	ai, aok := ToInt64(a)
 	bi, bok := ToInt64(b)
-	if aok && bok {
-		if bi < 0 {
-			return shiftRight(a, int64(-bi))
+	if !aok || !bok {
+		return nil, fmt.Errorf("cannot shift non-integer values")
+	}
+	if bi < 0 {
+		left = !left
+		if bi > -64 {
+			bi = -bi
+		} else {
+			bi = 64
 		}
-		if bi >= 64 {
+	}
+	if bi >= 64 {
+		if left || ai >= 0 {
 			return int64(0), nil
 		}
+		return int64(-1), nil
+	}
+	if left {
 		return ai << uint(bi), nil
 	}
-	return nil, fmt.Errorf("cannot shift non-integer values")
-}
-
-func shiftRight(a, b interface{}) (interface{}, error) {
-	ai, aok := ToInt64(a)
-	bi, bok := ToInt64(b)
-	if aok && bok {
-		if bi < 0 {
-			return shiftLeft(a, int64(-bi))
-		}
-		if bi >= 64 {
-			if ai < 0 {
-				return int64(-1), nil
-			}
-			return int64(0), nil
-		}
-		return ai >> uint(bi), nil
-	}
-	return nil, fmt.Errorf("cannot shift non-integer values")
+	return ai >> uint(bi), nil
 }
 
 func ConcatValues(a, b interface{}) (interface{}, error) {

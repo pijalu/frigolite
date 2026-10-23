@@ -950,7 +950,11 @@ func Test_view(t *testing.T) {
 		_ = tclSort("array names x") // lsort result
 	}
 	{ // "view-25.1" — skipped: authorizer framework test (db authorizer) not supported by transpiler; DROP VIEW fires no sqlite_stat authorizer events (SQL + file side effects only)
-		_res = db.Exec("\n    CREATE TABLE t25 (x);\n    INSERT INTO t25 (x) VALUES (1);\n    ANALYZE;\n  ")
+		_res = db.Exec("CREATE TABLE t25 (x)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("INSERT INTO t25 (x) VALUES (1)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("ANALYZE")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		_res = db.Exec("DROP VIEW x1;")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests

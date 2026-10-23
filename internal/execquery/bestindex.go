@@ -16,7 +16,8 @@ import (
 // estimated row count, and formatted column conditions for the plan output.
 // It always renders the conditions: the caller is EXPLAIN QUERY PLAN.
 func (e *SelectEngine) bestIndexForQuery(tableName string, where sql.Expr, estimate *float64) (string, string) {
-	return e.bestIndexForRowCount(tableName, where, estimate, e.tableRowCount(tableName), true)
+	name, conditions, _ := e.bestIndexForRowCount(tableName, where, estimate, e.tableRowCount(tableName), true)
+	return name, conditions
 }
 
 // bestIndexForRowCount is bestIndexForQuery with a caller-supplied row count:
@@ -32,11 +33,20 @@ func (e *SelectEngine) bestIndexForQuery(tableName string, where sql.Expr, estim
 // allocations (alloc profile: refsForBestIndex's where walk plus
 // formatConditions' strings.Builder/Sprintf/error chain), so on that path the
 // second return value is the empty string.
-func (e *SelectEngine) bestIndexForRowCount(tableName string, where sql.Expr, estimate *float64, rowCount int64, wantConditions bool) (string, string) {
+func (e *SelectEngine) bestIndexForRowCount(tableName string, where sql.Expr, estimate *float64, rowCount int64, wantConditions bool) (string, string, error) {
 	// Collect all column references with their operators
 	refs := collectIndexedRefs(where, tableName, e)
+	if len(refs) > 0 {
+		eligible := refs[:0]
+		for _, ref := range refs {
+			if isEqualitySeekOp(ref.op) || !e.indexIsUnordered(ref.indexName) {
+				eligible = append(eligible, ref)
+			}
+		}
+		refs = eligible
+	}
 	if len(refs) == 0 {
-		return "", ""
+		return "", "", nil
 	}
 	// where.c builds an index seek from the index's LEADING columns only:
 	// whereScanInit scans WHERE terms for index column nEq, equality terms
@@ -47,13 +57,23 @@ func (e *SelectEngine) bestIndexForRowCount(tableName string, where sql.Expr, es
 	// (skip-scan needs stat1 evidence; skipscan.go owns that path).
 	refs = e.seekableRefs(refs, tableName)
 	if len(refs) == 0 {
-		return "", ""
+		return "", "", nil
 	}
 	// Pick the one with the lowest estimate
 	bestName := ""
 	bestEst := *estimate
 	var bestRefs []indexedRef // all refs matching the best index
 	for _, ref := range refs {
+		if ref.op == "=" || ref.op == "==" {
+			if selectivity, ok := e.stat1EqualitySelectivity(ref); ok {
+				ref.selectivity = selectivity
+			}
+		}
+		if selectivity, ok, err := e.stat4RangeSelectivity(ref, refs, tableName); err != nil {
+			return "", "", err
+		} else if ok {
+			ref.selectivity = selectivity
+		}
 		est := refEstimate(ref, rowCount)
 		if est < bestEst {
 			bestEst = est
@@ -62,17 +82,11 @@ func (e *SelectEngine) bestIndexForRowCount(tableName string, where sql.Expr, es
 			bestName = e.tiebreakIndex(refs, bestName, ref.indexName)
 		}
 	}
-	// Collect all refs for the best index to build conditions. Only
-	// column-to-constant predicates ON THE CHOSEN INDEX'S COLUMNS are listed:
-	// SQLite's explainIndexRange renders one constraint per leading index
-	// column satisfied by the query, so a constraint on a column outside the
-	// index never appears (analyze7-2.3 "SEARCH t1 USING INDEX t1a (a=?)" for
-	// "WHERE a=123 AND b=123" — b is not in t1a and is not listed).
 	if bestName != "" && wantConditions {
 		bestRefs = e.refsForBestIndex(refs, where, tableName, bestName)
 	}
 	*estimate = bestEst
-	return bestName, formatConditions(bestRefs)
+	return bestName, formatConditions(bestRefs), nil
 }
 
 // seekableRefs filters refs to those that can drive an index seek under the

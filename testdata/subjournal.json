@@ -1,9 +1,10 @@
 {
   "file": "subjournal.test",
   "name": "subjournal",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "subjournal-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,7 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "subjournal-1.1",
       "steps": [
         {
           "type": "query",
@@ -22,7 +23,7 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "subjournal-1.2",
       "steps": [
         {
           "type": "exec",
@@ -31,16 +32,41 @@
       ]
     },
     {
-      "name": "2.0",
+      "name": "subjournal-2.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA cache_size = 5;\n  CREATE TABLE t2(a BLOB);\n  CREATE INDEX i2 ON t2(a);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100\n  ) INSERT INTO t2 SELECT randomblob(500) FROM s;"
+          "type": "query",
+          "sql": "PRAGMA cache_size = 5;\n  CREATE TABLE t2(a BLOB);\n  CREATE INDEX i2 ON t2(a);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i\u003c100\n  ) INSERT INTO t2 SELECT randomblob(500) FROM s;"
         }
       ]
     },
     {
-      "name": "2.2",
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "subjournal-2.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test2.db",
+          "database": "db2"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_count",
+          "variable": "nPage",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "subjournal-2.2",
       "steps": [
         {
           "type": "query",
@@ -50,16 +76,13 @@
       ]
     },
     {
-      "name": "2.4",
+      "name": "subjournal-2.4",
       "steps": [
         {
-          "type": "query",
-          "sql": "PRAGMA integrity_check",
-          "expect": "ok"
-        },
-        {
           "type": "exec",
-          "sql": "PRAGMA integrity_check"
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok",
+          "database": "db2"
         }
       ]
     }

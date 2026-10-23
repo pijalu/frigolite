@@ -1,0 +1,68 @@
+{
+  "file": "rtreeconnect.test",
+  "name": "rtreeconnect",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "rtreeconnect-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE r1 USING rtree(id, x1, x2, y1, y2);\n  CREATE TABLE t1(id, x1, x2, y1, y2);\n  CREATE TABLE log(l);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO r1 VALUES(new.id, new.x1, new.x2, new.y1, new.y2);\n    INSERT INTO log VALUES('r1: ' || new.id);\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "rtreeconnect-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO log VALUES('startup');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE newtable(x,y);",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "rtreeconnect-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 2, 3, 4, 5);"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    }
+  ]
+}

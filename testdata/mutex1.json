@@ -1,0 +1,105 @@
+{
+  "file": "mutex1.test",
+  "name": "mutex1",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "mutex1-1.1",
+      "steps": [
+        {
+          "type": "close_db",
+          "expect": "SQLITE_MISUSE"
+        }
+      ]
+    },
+    {
+      "name": "mutex1.2.serialized.1",
+      "steps": [
+        {
+          "type": "close_db",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "mutex1.2.serialized.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
+          "sql": "CREATE TABLE abc(a, b, c)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(1, 2, 3);"
+        }
+      ]
+    },
+    {
+      "name": "mutex1.4.1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT 1, 2, 3",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "mutex1.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1, 2, 3",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "mutex1.4.3",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT 1, 2, 3",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "mutex1.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1, 2, 3",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "mutex1-X",
+      "steps": [
+        {
+          "type": "close_db",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    }
+  ]
+}

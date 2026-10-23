@@ -1,13 +1,14 @@
 {
   "file": "limit2.test",
   "name": "limit2",
+  "ordered": true,
   "tests": [
     {
       "name": "limit2-100",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(a,b) SELECT 1, (x*17)%1000 + 1000 FROM c;\n  INSERT INTO t1(a,b) VALUES(2,2),(3,1006),(4,4),(5,9999);\n  CREATE INDEX t1ab ON t1(a,b);"
+          "sql": "CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c1000)\n    INSERT INTO t1(a,b) SELECT 1, (x*17)%1000 + 1000 FROM c;\n  INSERT INTO t1(a,b) VALUES(2,2),(3,1006),(4,4),(5,9999);\n  CREATE INDEX t1ab ON t1(a,b);"
         }
       ]
     },
@@ -94,7 +95,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE TABLE t200(a, b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t200(a,b) SELECT x, x FROM c;\n  CREATE TABLE t201(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t201(x,y) VALUES(2,12345);\n\n  SELECT *, '|' FROM t200, t201 WHERE x=b ORDER BY y LIMIT 3;",
+          "sql": "CREATE TABLE t200(a, b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c1000)\n    INSERT INTO t200(a,b) SELECT x, x FROM c;\n  CREATE TABLE t201(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t201(x,y) VALUES(2,12345);\n\n  SELECT *, '|' FROM t200, t201 WHERE x=b ORDER BY y LIMIT 3;",
           "expect": "2 2 2 12345 |"
         }
       ]
@@ -140,7 +141,7 @@
       ]
     },
     {
-      "name": "500",
+      "name": "limit2-500",
       "steps": [
         {
           "type": "query",
@@ -150,7 +151,7 @@
       ]
     },
     {
-      "name": "501",
+      "name": "limit2-501",
       "steps": [
         {
           "type": "query",
@@ -160,7 +161,7 @@
       ]
     },
     {
-      "name": "502",
+      "name": "limit2-502",
       "steps": [
         {
           "type": "query",
@@ -170,17 +171,17 @@
       ]
     },
     {
-      "name": "600",
+      "name": "limit2-600",
       "steps": [
         {
           "type": "query",
-          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a, b);  INSERT INTO t1 VALUES(1,2);\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(x, y);  INSERT INTO t2 VALUES(1,3);\n  CREATE INDEX t1ab ON t1(a,b);\n  SELECT y FROM t1, t2 WHERE a=x AND b<=y ORDER BY b DESC;",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a, b);  INSERT INTO t1 VALUES(1,2);\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(x, y);  INSERT INTO t2 VALUES(1,3);\n  CREATE INDEX t1ab ON t1(a,b);\n  SELECT y FROM t1, t2 WHERE a=x AND b\u003c=y ORDER BY b DESC;",
           "expect": "3"
         }
       ]
     },
     {
-      "name": "700",
+      "name": "limit2-700",
       "steps": [
         {
           "type": "query",
@@ -190,7 +191,7 @@
       ]
     },
     {
-      "name": "710",
+      "name": "limit2-710",
       "steps": [
         {
           "type": "query",
@@ -200,7 +201,7 @@
       ]
     },
     {
-      "name": "720",
+      "name": "limit2-720",
       "steps": [
         {
           "type": "query",

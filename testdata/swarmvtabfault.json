@@ -1,21 +1,32 @@
 {
   "file": "swarmvtabfault.test",
   "name": "swarmvtabfault",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtabfault-1.0",
       "steps": [
         {
           "type": "exec",
           "sql": "ATTACH 'test.db1' AS aux;\n  CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO aux.t1 VALUES(1, NULL);\n  INSERT INTO aux.t1 VALUES(2, NULL);\n  INSERT INTO aux.t1 VALUES(9, NULL);\n  DETACH aux;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM xyz"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE temp.xyz USING swarmvtab(\n        'VALUES\n        (\"test.db1\", \"t1\", 1, 10),\n        (\"test.db2\", \"t1\", 11, 20)\n        ', 'fetch_db'\n    );"
         }
       ]
     }

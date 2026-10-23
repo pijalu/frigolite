@@ -1,0 +1,40 @@
+{
+  "file": "misc6.test",
+  "name": "misc6",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "misc6-1.1",
+      "steps": [
+        {
+          "type": "register_test_funcs"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT hex8(?)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT hex8(?)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_1__",
+          "expect": "SQLITE_ROW"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT hex8(?)",
+          "variable": "stmt_1"
+        }
+      ]
+    }
+  ]
+}

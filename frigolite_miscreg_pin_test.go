@@ -1,6 +1,7 @@
 package frigolite
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -53,13 +54,19 @@ func TestMiscregAttachedMalformedTriggerStillDetected(t *testing.T) {
 // invalidation of the validated-trigger cache: a schema name whose trigger
 // validated against one file must re-validate when a different file is
 // attached under the same name (the name-keyed marks and the walk memo
-// describe the previous schema state).
+// describe the previous schema state). Oracle (sqlite3 3.54):
+//
+//   - a trigger whose body uses only unqualified references is valid in any
+//     schema the file is loaded under;
+//   - a trigger body naming another database (`main.missing` stored in a
+//     trigger that now lives in yyy) fails its schema load, so the ATTACH
+//     itself fails and the database is not attached.
 func TestMiscregReattachedSchemaNameRevalidatesTriggers(t *testing.T) {
 	dir, _ := os.MkdirTemp("", "miscreg2")
 	defer os.RemoveAll(dir)
 	t.Chdir(dir)
 
-	// File A: trigger references main.good — valid while main has good.
+	// File A: trigger with only unqualified references — valid in any schema.
 	a, err := Open("a.db")
 	if err != nil {
 		t.Fatal(err)
@@ -67,15 +74,17 @@ func TestMiscregReattachedSchemaNameRevalidatesTriggers(t *testing.T) {
 	if r := a.Exec(`
 		CREATE TABLE t1(x);
 		CREATE TABLE good(v);
+		INSERT INTO good VALUES(5);
 		CREATE TRIGGER tr AFTER INSERT ON t1 BEGIN
-			UPDATE t1 SET x=1 FROM main.good;
+			UPDATE t1 SET x=1 FROM good;
 		END;
 	`); r.Error != nil {
 		t.Fatal(r.Error)
 	}
 	a.Close()
 
-	// File B: same trigger name, but main.missing never exists anywhere.
+	// File B: same trigger name, but an explicit reference to a foreign
+	// database — malformed when the file is attached under another name.
 	b, err := Open("b.db")
 	if err != nil {
 		t.Fatal(err)
@@ -96,26 +105,24 @@ func TestMiscregReattachedSchemaNameRevalidatesTriggers(t *testing.T) {
 	}
 	defer db.Close()
 
-	// Attach A, validate tr (runs the memoized statement), detach.
-	if r := db.Exec("CREATE TABLE good(v)"); r.Error != nil {
-		t.Fatal(r.Error)
-	}
+	// Attach A, validate tr (runs the memoized statement), fire it, detach.
 	if r := db.Exec("ATTACH 'a.db' AS yyy"); r.Error != nil {
 		t.Fatal(r.Error)
 	}
 	if r := db.Exec("INSERT INTO yyy.t1 VALUES(1)"); r.Error != nil {
 		t.Fatalf("file A trigger should be valid: %v", r.Error)
 	}
+	if r := db.Query("SELECT x FROM yyy.t1"); r.Error != nil || len(r.Rows) != 1 || fmt.Sprint(r.Rows[0][0]) != "1" {
+		t.Fatalf("file A trigger result: rows=%v err=%v, want one row 1", r.Rows, r.Error)
+	}
 	if r := db.Exec("DETACH yyy"); r.Error != nil {
 		t.Fatal(r.Error)
 	}
 
 	// Re-attach DIFFERENT content under the same schema name: the walk must
-	// re-run and report the malformed trigger, not inherit A's verdict.
-	if r := db.Exec("ATTACH 'b.db' AS yyy"); r.Error != nil {
-		t.Fatal(r.Error)
-	}
-	r := db.Exec("INSERT INTO yyy.t1 VALUES(2)")
+	// re-run and report the malformed trigger (attachFunc schema init), not
+	// inherit A's verdict.
+	r := db.Exec("ATTACH 'b.db' AS yyy")
 	if r.Error == nil || !strings.Contains(r.Error.Error(), "trigger tr cannot reference objects in database main") {
 		t.Fatalf("re-attached schema must re-validate triggers, got: %v", r.Error)
 	}

@@ -67,6 +67,9 @@
         {
           "type": "catch",
           "sql": "INSERT INTO t1 VALUES(5,'second','entry');",
+          "variable": "r",
+          "catchResult": true,
+          "catchMessage": "msg",
           "expect": "1 {UNIQUE constraint failed: t1.a}"
         }
       ]
@@ -87,6 +90,9 @@
         {
           "type": "catch",
           "sql": "INSERT INTO t1 VALUES(6,'second','entry');",
+          "variable": "r",
+          "catchResult": true,
+          "catchMessage": "msg",
           "expect": "0 {}"
         }
       ]
@@ -147,6 +153,9 @@
         {
           "type": "catch",
           "sql": "INSERT INTO t1 VALUES('x','y','z');",
+          "variable": "r",
+          "catchResult": true,
+          "catchMessage": "msg",
           "expect": "1 {datatype mismatch}"
         }
       ]
@@ -157,6 +166,9 @@
         {
           "type": "catch",
           "sql": "INSERT INTO t1 VALUES('','y','z');",
+          "variable": "r",
+          "catchResult": true,
+          "catchMessage": "msg",
           "expect": "1 {datatype mismatch}"
         }
       ]
@@ -167,6 +179,9 @@
         {
           "type": "catch",
           "sql": "INSERT INTO t1 VALUES(3.4,'y','z');",
+          "variable": "r",
+          "catchResult": true,
+          "catchMessage": "msg",
           "expect": "1 {datatype mismatch}"
         }
       ]
@@ -177,6 +192,9 @@
         {
           "type": "catch",
           "sql": "INSERT INTO t1 VALUES(-3,'y','z');",
+          "variable": "r",
+          "catchResult": true,
+          "catchMessage": "msg",
           "expect": "0 {}"
         }
       ]

@@ -1,49 +1,74 @@
 {
   "file": "corruptL.test",
   "name": "corruptL",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "corruptL-1.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "corruptL-1.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "PRAGMA cell_size_check = off;\n  DROP INDEX t1x1;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "1.2",
+      "name": "corruptL-1.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT sum(s+length(b)) FROM t1 WHERE a IN (110,10,150) AND q IS NULL;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "1.3",
+      "name": "corruptL-1.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "REINDEX t1;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "1.4",
+      "name": "corruptL-1.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "PRAGMA integrity_check",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "2.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "corruptL-2.0",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "corruptL-2.1",
       "steps": [
         {
           "type": "exec",
@@ -52,17 +77,21 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "corruptL-2.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT b,c FROM t1 ORDER BY a;",
           "expect": "1 {out of memory}"
         }
       ]
     },
     {
-      "name": "3.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "corruptL-3.0",
       "steps": [
         {
           "type": "exec",
@@ -71,85 +100,171 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "setup_0",
       "steps": [
         {
-          "type": "exec",
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "corruptL-3.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "INSERT INTO t1 SELECT * FROM t2;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "4.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "corruptL-4.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  INSERT INTO t3 SELECT * FROM t2;"
+          "type": "open_empty_db"
         }
       ]
     },
     {
-      "name": "5.1",
+      "name": "corruptL-4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
+          "sql": "PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  INSERT INTO t3 SELECT * FROM t2;",
+          "expect": "1 {no such table: t3}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "corruptL-5.0",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "corruptL-5.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "INSERT INTO t1(b) VALUES(zeroblob(40000));",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "5.2",
+      "name": "corruptL-5.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DROP INDEX t1x2;",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "5.3",
+      "name": "corruptL-5.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1(b) VALUES(zeroblob(40000));",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "6.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "corruptL-6.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "corruptL-6.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "BEGIN;\n    INSERT INTO t1(b) VALUES(1);\n    INSERT INTO t1(b) VALUES(2);\n  COMMIT;",
           "expect": "1 {malformed database schema (t1b) - invalid rootpage}"
         }
       ]
     },
     {
-      "name": "7.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "corruptL-7.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "corruptL-7.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "SELECT * FROM sqlite_master;",
           "expect": "1 {malformed database schema (t1x1) - invalid rootpage}"
         }
       ]
     },
     {
-      "name": "8.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "corruptL-8.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  INSERT INTO t3 SELECT * FROM t2;"
+          "type": "open_empty_db"
         }
       ]
     },
     {
-      "name": "9.1",
+      "name": "corruptL-8.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  INSERT INTO t3 SELECT * FROM t2;",
+          "expect": "1 {no such table: t3}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "corruptL-9.0",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "corruptL-9.1",
       "steps": [
         {
           "type": "exec",
@@ -158,18 +273,13 @@
       ]
     },
     {
-      "name": "9.3",
+      "name": "corruptL-9.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1(b,c) VALUES(5,6);",
           "expect": "1 {database disk image is malformed}"
-        }
-      ]
-    },
-    {
-      "name": "9.3",
-      "steps": [
+        },
         {
           "type": "exec",
           "sql": "ROLLBACK TO one;"
@@ -177,77 +287,149 @@
       ]
     },
     {
-      "name": "10.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "corruptL-10.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  SELECT * FROM t1 WHERE a<='2019-05-09' ORDER BY a DESC;",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "corruptL-10.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  SELECT * FROM t1 WHERE a\u003c='2019-05-09' ORDER BY a DESC;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "11.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "corruptL-11.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "corruptL-11.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  DELETE FROM t3 WHERE x IN (SELECT x FROM t4);",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "12.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "corruptL-12.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "corruptL-12.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "SELECT CAST((SELECT b FROM t1 WHERE 16=c) AS int) FROM t1 WHERE 16=c;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "13.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "corruptL-13.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x-2019 FROM c WHERE x<2)\n    INSERT INTO t1(b,c) SELECT last_insert_rowid(), x FROM c;",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "corruptL-13.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x-2019 FROM c WHERE x\u003c2)\n    INSERT INTO t1(b,c) SELECT last_insert_rowid(), x FROM c;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "14.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "corruptL-14.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "corruptL-14.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "PRAGMA integrity_check;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "14.2",
+      "name": "corruptL-14.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "ALTER TABLE t1 RENAME TO alkjalkjdfiiiwuer987lkjwer82mx97sf98788s9789s;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "15.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "corruptL-15.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "corruptL-15.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "PRAGMA cell_size_check = 0;\n  UPDATE c1 SET c= NOT EXISTS(SELECT 1 FROM c1 ORDER BY (SELECT 1 FROM c1 ORDER BY a)) +10 WHERE d BETWEEN 4 AND 7;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "15.2",
+      "name": "corruptL-15.2",
       "steps": [
         {
           "type": "query",
@@ -257,7 +439,11 @@
       ]
     },
     {
-      "name": "16.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "corruptL-16.0",
       "steps": [
         {
           "type": "exec",
@@ -266,36 +452,63 @@
       ]
     },
     {
-      "name": "16.1",
+      "name": "setup_1",
       "steps": [
         {
-          "type": "exec",
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "corruptL-16.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "PRAGMA writable_schema = ON;\n  INSERT INTO t1(rowid, w, x, y, z) VALUES(5, 10, 11, 10, NULL);",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "17.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "corruptL-18.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(o INTEGER PRIMARY KEY, t UNIQUE);\n    INSERT INTO t1(t) VALUES(randomblob(123));\n    INSERT INTO t1(t) SELECT randomblob(123) FROM t1;\n    INSERT INTO t1(t) SELECT randomblob(123) FROM t1;\n    INSERT INTO t1(t) SELECT randomblob(123) FROM t1;\n    INSERT INTO t1(t) SELECT randomblob(123) FROM t1;\n    INSERT INTO t1(t) SELECT randomblob(123) FROM t1;\n    INSERT INTO t1(t) SELECT randomblob(123) FROM t1;\n    INSERT INTO t1(t) SELECT randomblob(123) FROM t1;\n    INSERT INTO t1(t) SELECT randomblob(123) FROM t1;\n    INSERT INTO t1(t) SELECT randomblob(123) FROM t1;\n  \n    PRAGMA journal_mode = wal;\n    INSERT INTO t1 VALUES(-1, 'b');"
+          "type": "open_empty_db"
         }
       ]
     },
     {
-      "name": "17.2",
+      "name": "corruptL-18.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA wal_checkpoint",
-          "expect": "1 {database disk image is malformed}"
+          "type": "catch",
+          "sql": "SELECT \n    json_group_array(c) OVER win4 \n  FROM t1\n    WINDOW win4 AS (\n        ORDER BY a COLLATE nocase RANGE BETWEEN 1.0 PRECEDING AND CURRENT ROW\n    )",
+          "expect": "1 {JSON cannot hold BLOB values}"
         }
       ]
     },
     {
-      "name": "19.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "corruptL-19.0",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "corruptL-19.1",
       "steps": [
         {
           "type": "query",
@@ -304,17 +517,21 @@
       ]
     },
     {
-      "name": "19.2",
+      "name": "corruptL-19.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "UPDATE t1 SET a=1;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "19.3",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "corruptL-19.3",
       "steps": [
         {
           "type": "exec",
@@ -323,206 +540,46 @@
       ]
     },
     {
-      "name": "19.4",
+      "name": "setup_2",
       "steps": [
         {
-          "type": "exec",
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "corruptL-19.4",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "PRAGMA integrity_check;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "18.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "corruptL-18.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE b GLOB b AND b GLOB '0^x]\u24056\u241axz]';",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "corruptL-18.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT a FROM t1 WHERE b GLOB b AND b GLOB '0^x]␅6␚xz]';",
           "expect": "1 {database disk image is malformed}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

@@ -20,13 +20,19 @@ import (
 
 // Rule 13: create_table ::= createkw temp TABLE ifnotexists nm dbnm
 func ruleCreateTableCreatekwTempTableIfnotexistsNmDbnm(ruleNo int, p *Parser) interface{} {
-	name := getString(getRHS(p, ruleNo, 5))
+	nameValue := getRHS(p, ruleNo, 5)
+	name := getString(nameValue)
+	var nameTok sql.TokenInfo
+	if tok, ok := nameValue.(sql.Token); ok {
+		nameTok = sql.TokenInfo{Start: tok.Pos, End: tok.End}
+	}
 	schema := getString(getRHS(p, ruleNo, 6)) // dbnm - optional schema
 	if schema != "" {
 		name = name + "." + schema
 	}
 	return &sql.CreateTableStmt{
 		Name:        name,
+		NameTok:     nameTok,
 		IfNotExists: getBool(getRHS(p, ruleNo, 4)),
 		Temporary:   getBool(getRHS(p, ruleNo, 2)),
 		Columns:     nil, // will be filled by create_table_args
@@ -345,11 +351,17 @@ func ruleCmdAlterTableFullnameDropKwcolumnOptNm(ruleNo int, p *Parser) interface
 
 // Rule 296: cmd ::= ALTER TABLE fullname RENAME kwcolumn_opt nm TO nm
 func ruleCmdAlterTableFullnameRenameKwcolumnOptNmToNm(ruleNo int, p *Parser) interface{} {
+	newName := getRHS(p, ruleNo, 8)
+	quoted := false
+	if token, ok := newName.(sql.Token); ok {
+		quoted = token.QuotedIdent || token.Type == sql.TokenString
+	}
 	return &sql.AlterTableStmt{
-		Table:   getString(getRHS(p, ruleNo, 3)),
-		Action:  "RENAME",
-		Column:  getString(getRHS(p, ruleNo, 6)),
-		NewName: getString(getRHS(p, ruleNo, 8)),
+		Table:         getString(getRHS(p, ruleNo, 3)),
+		Action:        "RENAME",
+		Column:        getString(getRHS(p, ruleNo, 6)),
+		NewName:       getString(newName),
+		NewNameQuoted: quoted,
 	}
 
 }

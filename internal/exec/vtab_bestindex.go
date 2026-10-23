@@ -77,7 +77,7 @@ func (e *Engine) readVtabWithBestIndexPlan(vt vtab.VirtualTable, pbi vtab.PlanBe
 	// tableName "": the builder's ColumnRef qualification rules accept
 	// unqualified references unconditionally, and a FROM-materialized scan is
 	// single-table, so "" cannot mis-qualify.
-	ii, conjuncts, err := execquery.BuildVtabIndexInfoWithInstance(&opts, "", columns, fo)
+	ii, conjuncts, err := execquery.BuildVtabIndexInfoWithInstance(&opts, opts.TableName, columns, fo)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -89,14 +89,39 @@ func (e *Engine) readVtabWithBestIndexPlan(vt vtab.VirtualTable, pbi vtab.PlanBe
 		}
 		return nil, nil, perr
 	}
+	if opts.JoinPlanAware != nil && vtabPlanUsesJoinOn(ii, countVtabConjuncts(opts.Where)) {
+		*opts.JoinPlanAware = true
+	}
 	slots, n, merr := validateVtabArgvSlots(ii)
 	if merr != nil {
 		return nil, nil, merr
 	}
 	argv := e.buildVtabFilterArgv(ii, conjuncts, &opts, slots, n)
-	combos := vtabStreamCombos(argv, e.vtabInSlots(ii, conjuncts, slots))
+	combos := vtabStreamCombos(argv, e.vtabInSlots(ii, conjuncts, slots, &opts))
 	vtabResidualAfterOmit(&opts, ii, conjuncts)
 	return e.readVtabPlanStreams(vt, ii, combos, opts)
+}
+
+// vtabPlanUsesJoinOn reports whether xBestIndex selected a constraint sourced
+// from the JOIN ON clause. WHERE terms precede ON terms in the offered list.
+func vtabPlanUsesJoinOn(ii *vtab.IndexInfo, whereTerms int) bool {
+	for i, constraint := range ii.Constraints {
+		usage := ii.Usage[i]
+		if constraint.TermOffset >= whereTerms && (usage.ArgvIndex > 0 || usage.Omit) {
+			return true
+		}
+	}
+	return false
+}
+
+func countVtabConjuncts(expr sql.Expr) int {
+	if expr == nil {
+		return 0
+	}
+	if binary, ok := expr.(*sql.BinaryOp); ok && binary.Operator == "AND" {
+		return countVtabConjuncts(binary.Left) + countVtabConjuncts(binary.Right)
+	}
+	return 1
 }
 
 // vtabDeclaredColumns returns the instance's declared column names in order.
@@ -164,7 +189,7 @@ func (e *Engine) buildVtabFilterArgv(ii *vtab.IndexInfo, conjuncts []sql.Expr, o
 		if !ok {
 			continue // no value side: bind nil (already the zero slot value)
 		}
-		v, err := e.evalExpr(valExpr, nil)
+		v, err := e.evalExpr(valExpr, opts.OuterRow)
 		if err != nil {
 			continue // bind nil
 		}
@@ -179,7 +204,7 @@ func (e *Engine) buildVtabFilterArgv(ii *vtab.IndexInfo, conjuncts []sql.Expr, o
 // element binds nil; a constraint that is not backed by an InList conjunct
 // keeps the nil base binding (VtabConjunctValue resolves no single value for
 // IN terms).
-func (e *Engine) vtabInSlots(ii *vtab.IndexInfo, conjuncts []sql.Expr, slots []int) []vtabInSlot {
+func (e *Engine) vtabInSlots(ii *vtab.IndexInfo, conjuncts []sql.Expr, slots []int, opts *execquery.VtabScanOptions) []vtabInSlot {
 	var ins []vtabInSlot
 	for pos, ci := range slots {
 		c := ii.Constraints[ci]
@@ -192,7 +217,7 @@ func (e *Engine) vtabInSlots(ii *vtab.IndexInfo, conjuncts []sql.Expr, slots []i
 		}
 		vals := make([]interface{}, 0, len(inl.List))
 		for _, elem := range inl.List {
-			v, err := e.evalExpr(elem, nil)
+			v, err := e.evalExpr(elem, opts.OuterRow)
 			if err != nil {
 				vals = append(vals, nil)
 				continue
@@ -278,14 +303,26 @@ func vtabResidualAfterOmit(opts *execquery.VtabScanOptions, ii *vtab.IndexInfo, 
 func (e *Engine) readVtabPlanStreams(vt vtab.VirtualTable, ii *vtab.IndexInfo, combos [][]interface{}, opts execquery.VtabScanOptions) ([][]interface{}, []int64, error) {
 	var all [][]interface{}
 	var allRowids []int64
+	seenRowids := make(map[int64]struct{})
 	for _, argv := range combos {
 		remaining := opts.MaxRows - int64(len(all))
 		rows, rowids, err := readVtabPlanStream(vt, ii, argv, remaining)
 		if err != nil {
 			return nil, nil, err
 		}
-		all = append(all, rows...)
-		allRowids = append(allRowids, rowids...)
+		if len(combos) > 1 && len(rowids) == len(rows) {
+			for i, rowid := range rowids {
+				if _, duplicate := seenRowids[rowid]; duplicate {
+					continue
+				}
+				seenRowids[rowid] = struct{}{}
+				all = append(all, rows[i])
+				allRowids = append(allRowids, rowid)
+			}
+		} else {
+			all = append(all, rows...)
+			allRowids = append(allRowids, rowids...)
+		}
 		if opts.MaxRows >= 0 && int64(len(all)) >= opts.MaxRows {
 			break
 		}

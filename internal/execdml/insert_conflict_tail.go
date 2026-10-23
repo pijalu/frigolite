@@ -192,13 +192,28 @@ func (e *DMLExecutor) validateLoadedTrigger(t *schema.Entry, ctx *DatabaseContex
 	return true, nil
 }
 
-// validateLoadedTriggerSchemaCtx parses a trigger body loaded from sqlite_master
-// and checks that every referenced table exists in the trigger's database
-// context. A trigger whose references no longer resolve (after a reopen with
-// different attachments) is malformed: SQLite reports "malformed database
-// schema (NAME) - trigger NAME cannot reference objects in database X".
-// Unqualified references resolve in the trigger's owning database context (a
-// trigger inside an ATTACHed database references tables there).
+// ValidateAttachedSchemaTriggers validates every trigger of one freshly opened
+// schema BEFORE ATTACH registers the new database context. attach.c attachFunc
+// runs sqlite3Init synchronously, so a malformed trigger aborts the ATTACH
+// itself (the attach is rolled back) instead of surfacing on the next
+// statement. The trigger's own schema is not yet in Databases(), which is fine:
+// checkLoadedTableRefCtx compares explicit names against the trigger's context
+// directly.
+func (e *DMLExecutor) ValidateAttachedSchemaTriggers(ctx *DatabaseContext) error {
+	if ctx == nil || ctx.Schema == nil {
+		return nil
+	}
+	triggers, err := ctx.Schema.GetEntries(schema.TypeTrigger)
+	if err != nil {
+		return nil
+	}
+	for _, t := range triggers {
+		if _, verr := e.validateLoadedTrigger(t, ctx); verr != nil {
+			return verr
+		}
+	}
+	return nil
+}
 
 // checkConstraintText extracts the original CHECK constraint expression text
 // from a CREATE TABLE SQL for the given column. Falls back to the re-rendered

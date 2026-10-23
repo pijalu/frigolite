@@ -1,0 +1,124 @@
+{
+  "file": "rtreefuzz001.test",
+  "name": "rtreefuzz001",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "rtreefuzz001-100",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "catch",
+          "sql": "PRAGMA writable_schema = 1;\n     SELECT rtreecheck('t1');",
+          "expect": "1 {SQL logic error}"
+        }
+      ]
+    },
+    {
+      "name": "rtreefuzz001-200",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "catch",
+          "sql": "WITH RECURSIVE\n      c1(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c1 WHERE x\u003c99),\n      c2(y) AS (VALUES(0) UNION ALL SELECT y+1 FROM c2 WHERE y\u003c99)\n    INSERT INTO t1(id, x0,x1,y0,y1,label)\n      SELECT 1000+x+y*100, x, x+1, y, y+1, printf('box-%d,%d',x,y) FROM c1, c2;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "rtreefuzz001-210",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT rtreecheck('t1');",
+          "expect": "/1 .*corrupt.*/"
+        }
+      ]
+    },
+    {
+      "name": "rtreefuzz001-300",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "catch",
+          "sql": "UPDATE t1 SET label='x';",
+          "expect": "1 {rtree constraint failed: t1.(y0\u003c=y1)}"
+        }
+      ]
+    },
+    {
+      "name": "rtreefuzz001-310",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT rtreecheck('t1');",
+          "expect": "/1 .*corrupt.*/"
+        }
+      ]
+    },
+    {
+      "name": "rtreefuzz001-400",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "catch",
+          "sql": "WITH RECURSIVE\n      c1(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c1 WHERE x\u003c8),\n      c2(y) AS (VALUES(0) UNION ALL SELECT y+1 FROM c2 WHERE y\u003c5)\n    INSERT INTO t1(id, x0,x1,y0,y1,label)\n      SELECT 1000+x+y*100, x, x+1, y, y+1, printf('box-%d,%d',x,y) FROM c1, c2;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "rtreefuzz001-500",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema = 1;"
+        },
+        {
+          "type": "catch",
+          "sql": "UPDATE t1 SET ex= ex ISNULL",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "rtreefuzz001-600",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "rtreefuzz001-601",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SAVEPOINT one;\n  UPDATE geo1 SET clr=CASE WHEN rowid IN ( SELECT geo1.rowid FROM geo1, querypoly ) THEN 'e' ELSE 'blue' END;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "rtreefuzz001-602",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT geopoly_svg(_shape, printf('j',geo1.clr)) \n    FROM geo1, querypoly WHERE geopoly_overlap(_shape, poly);",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    }
+  ]
+}

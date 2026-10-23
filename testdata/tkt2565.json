@@ -1,13 +1,25 @@
 {
   "file": "tkt2565.test",
   "name": "tkt2565",
+  "ordered": true,
   "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
     {
       "name": "tkt2565-1.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE A(Id INTEGER, Name TEXT)"
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         },
         {
           "type": "exec",
@@ -16,17 +28,103 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE A(Id INTEGER, Name TEXT)"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma page_size=512;\n    pragma auto_vacuum=2;\n    pragma cache_size=16;"
         },
         {
           "type": "exec",
           "sql": "pragma locking_mode=exclusive"
         },
         {
+          "type": "query_assign",
+          "sql": "SELECT count(*) FROM a",
+          "variable": "nRow"
+        }
+      ]
+    },
+    {
+      "name": "tkt2565-1.1.1",
+      "steps": [
+        {
           "type": "exec",
           "sql": "BEGIN EXCLUSIVE;\n      INSERT INTO a VALUES(1, 'ABCDEFGHIJKLMNOP');"
         }
       ]
+    },
+    {
+      "name": "tkt2565-1.1.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma page_size=512;\n    pragma auto_vacuum=2;\n    pragma cache_size=16;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma locking_mode=exclusive"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*) FROM a",
+          "variable": "nRow"
+        }
+      ]
+    },
+    {
+      "name": "tkt2565-1.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE;\n      INSERT INTO a VALUES(1, 'ABCDEFGHIJKLMNOP');"
+        }
+      ]
+    },
+    {
+      "name": "tkt2565-1.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "tkt2565-1.X",
+      "steps": [
+        {
+          "type": "close_db",
+          "expect": "0"
+        }
+      ]
     }
-  ],
-  "source": "capi"
+  ]
 }

@@ -1,9 +1,10 @@
 {
   "file": "altermalloc3.test",
   "name": "altermalloc3",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "altermalloc3-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,11 @@
       ]
     },
     {
-      "name": "2.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altermalloc3-2.0",
       "steps": [
         {
           "type": "exec",
@@ -21,7 +26,7 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "altermalloc3-2.1",
       "steps": [
         {
           "type": "exec",

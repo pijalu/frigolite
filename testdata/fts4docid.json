@@ -1,9 +1,10 @@
 {
   "file": "fts4docid.test",
   "name": "fts4docid",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "fts4docid-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,132 @@
       ]
     },
     {
-      "name": "2.1.1",
+      "name": "fts4docid-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(0, 'F N K B T I K V B A')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(1, 'D M J E S P H E L O')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(2, 'W U T Q T Q T L H G')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(3, 'D W H M B R S Z B K')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(4, 'F Q I N P Q J L Z D')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(5, 'J O Q E Y A O E L B')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(6, 'O V R A C R K C Y H')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(7, 'Z J H T Q Q O R A G')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(8, 'L K J W G D Y W B M')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(9, 'K E Y I A Q R Q T S')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(10, 'N P H Y Z M R T I C')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(11, 'E X H O I S E S Z F')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(12, 'B Y Q T J X C L L J')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(13, 'Q D C U U A Q E Z U')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(14, 'S I T C J R X S J M')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(15, 'M X M K E X L H Q Y')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(16, 'O W E I C H U Y S Y')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(17, 'P V V E M T H C C S')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(18, 'L Y A M I E N M X O')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(19, 'S Y R U L S Q Y F P')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(20, 'U J S T T J J S V X')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(21, 'T E I W P O V A A P')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(22, 'W D K H D H F G O J')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(23, 'T X Y P G M J U I L')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(24, 'F V X E B C N B K W')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(25, 'E B A Y N N T Z I C')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(26, 'G E E B C P U D H G')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(27, 'J D J K N S B Q T M')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(28, 'Q T G M D O D Y V G')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(docid, content) VALUES(29, 'P X W I W V P W Z G')"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-2.1.1",
       "steps": [
         {
           "type": "query",
@@ -22,7 +148,7 @@
       ]
     },
     {
-      "name": "2.1.2",
+      "name": "fts4docid-2.1.2",
       "steps": [
         {
           "type": "query",
@@ -32,7 +158,7 @@
       ]
     },
     {
-      "name": "2.1.3",
+      "name": "fts4docid-2.1.3",
       "steps": [
         {
           "type": "query",
@@ -42,7 +168,7 @@
       ]
     },
     {
-      "name": "2.1.4",
+      "name": "fts4docid-2.1.4",
       "steps": [
         {
           "type": "query",
@@ -52,27 +178,27 @@
       ]
     },
     {
-      "name": "2.1.5",
+      "name": "fts4docid-2.1.5",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT docid FROM t1 WHERE docid < 5",
+          "sql": "SELECT docid FROM t1 WHERE docid \u003c 5",
           "expect": "0 1 2 3 4"
         }
       ]
     },
     {
-      "name": "2.1.6",
+      "name": "fts4docid-2.1.6",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT docid FROM t1 WHERE docid < '5'",
+          "sql": "SELECT docid FROM t1 WHERE docid \u003c '5'",
           "expect": "0 1 2 3 4"
         }
       ]
     },
     {
-      "name": "2.2.1",
+      "name": "fts4docid-2.2.1",
       "steps": [
         {
           "type": "query",
@@ -82,7 +208,7 @@
       ]
     },
     {
-      "name": "2.2.2",
+      "name": "fts4docid-2.2.2",
       "steps": [
         {
           "type": "query",
@@ -92,7 +218,7 @@
       ]
     },
     {
-      "name": "2.2.3",
+      "name": "fts4docid-2.2.3",
       "steps": [
         {
           "type": "query",
@@ -102,7 +228,7 @@
       ]
     },
     {
-      "name": "2.2.4",
+      "name": "fts4docid-2.2.4",
       "steps": [
         {
           "type": "query",
@@ -112,22 +238,958 @@
       ]
     },
     {
-      "name": "2.2.5",
+      "name": "fts4docid-2.2.5",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT rowid FROM t1 WHERE rowid < 5",
+          "sql": "SELECT rowid FROM t1 WHERE rowid \u003c 5",
           "expect": "0 1 2 3 4"
         }
       ]
     },
     {
-      "name": "2.2.6",
+      "name": "fts4docid-2.2.6",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT rowid FROM t1 WHERE rowid < '5'",
+          "sql": "SELECT rowid FROM t1 WHERE rowid \u003c '5'",
           "expect": "0 1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND docid \u003c 17 ORDER BY docid ASC",
+          "expect": "1 5 6 7 11 16"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +docid \u003c 17 ORDER BY docid ASC",
+          "expect": "1 5 6 7 11 16"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND rowid \u003c 17 ORDER BY docid ASC",
+          "expect": "1 5 6 7 11 16"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +rowid \u003c 17 ORDER BY docid ASC",
+          "expect": "1 5 6 7 11 16"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND docid \u003c 17 ORDER BY docid DESC",
+          "expect": "16 11 7 6 5 1"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +docid \u003c 17 ORDER BY docid DESC",
+          "expect": "16 11 7 6 5 1"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND rowid \u003c 17 ORDER BY docid DESC",
+          "expect": "16 11 7 6 5 1"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +rowid \u003c 17 ORDER BY docid DESC",
+          "expect": "16 11 7 6 5 1"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND docid \u003c 4123456789123456 ORDER BY docid ASC",
+          "expect": "1 5 6 7 11 16 18 21 22 28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +docid \u003c 4123456789123456 ORDER BY docid ASC",
+          "expect": "1 5 6 7 11 16 18 21 22 28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND rowid \u003c 4123456789123456 ORDER BY docid ASC",
+          "expect": "1 5 6 7 11 16 18 21 22 28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +rowid \u003c 4123456789123456 ORDER BY docid ASC",
+          "expect": "1 5 6 7 11 16 18 21 22 28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND docid \u003c 4123456789123456 ORDER BY docid DESC",
+          "expect": "28 22 21 18 16 11 7 6 5 1"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +docid \u003c 4123456789123456 ORDER BY docid DESC",
+          "expect": "28 22 21 18 16 11 7 6 5 1"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND rowid \u003c 4123456789123456 ORDER BY docid DESC",
+          "expect": "28 22 21 18 16 11 7 6 5 1"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.2.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +rowid \u003c 4123456789123456 ORDER BY docid DESC",
+          "expect": "28 22 21 18 16 11 7 6 5 1"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND docid \u003c 1 ORDER BY docid ASC"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +docid \u003c 1 ORDER BY docid ASC"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND rowid \u003c 1 ORDER BY docid ASC"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +rowid \u003c 1 ORDER BY docid ASC"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND docid \u003c 1 ORDER BY docid DESC"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +docid \u003c 1 ORDER BY docid DESC"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND rowid \u003c 1 ORDER BY docid DESC"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.3.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +rowid \u003c 1 ORDER BY docid DESC"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND docid \u003c -4123456789123456 ORDER BY docid ASC"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +docid \u003c -4123456789123456 ORDER BY docid ASC"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND rowid \u003c -4123456789123456 ORDER BY docid ASC"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +rowid \u003c -4123456789123456 ORDER BY docid ASC"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND docid \u003c -4123456789123456 ORDER BY docid DESC"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +docid \u003c -4123456789123456 ORDER BY docid DESC"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.4.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND rowid \u003c -4123456789123456 ORDER BY docid DESC"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.4.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +rowid \u003c -4123456789123456 ORDER BY docid DESC"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND docid \u003e 17 ORDER BY docid ASC",
+          "expect": "18 21 22 28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +docid \u003e 17 ORDER BY docid ASC",
+          "expect": "18 21 22 28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND rowid \u003e 17 ORDER BY docid ASC",
+          "expect": "18 21 22 28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +rowid \u003e 17 ORDER BY docid ASC",
+          "expect": "18 21 22 28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND docid \u003e 17 ORDER BY docid DESC",
+          "expect": "28 22 21 18"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.5.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +docid \u003e 17 ORDER BY docid DESC",
+          "expect": "28 22 21 18"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.5.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND rowid \u003e 17 ORDER BY docid DESC",
+          "expect": "28 22 21 18"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.5.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +rowid \u003e 17 ORDER BY docid DESC",
+          "expect": "28 22 21 18"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND docid \u003e 4123456789123456 ORDER BY docid ASC"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +docid \u003e 4123456789123456 ORDER BY docid ASC"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND rowid \u003e 4123456789123456 ORDER BY docid ASC"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +rowid \u003e 4123456789123456 ORDER BY docid ASC"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.6.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND docid \u003e 4123456789123456 ORDER BY docid DESC"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.6.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +docid \u003e 4123456789123456 ORDER BY docid DESC"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.6.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND rowid \u003e 4123456789123456 ORDER BY docid DESC"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.6.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +rowid \u003e 4123456789123456 ORDER BY docid DESC"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND docid \u003e 1 ORDER BY docid ASC",
+          "expect": "5 6 7 11 16 18 21 22 28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +docid \u003e 1 ORDER BY docid ASC",
+          "expect": "5 6 7 11 16 18 21 22 28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND rowid \u003e 1 ORDER BY docid ASC",
+          "expect": "5 6 7 11 16 18 21 22 28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.7.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +rowid \u003e 1 ORDER BY docid ASC",
+          "expect": "5 6 7 11 16 18 21 22 28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.7.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND docid \u003e 1 ORDER BY docid DESC",
+          "expect": "28 22 21 18 16 11 7 6 5"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.7.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +docid \u003e 1 ORDER BY docid DESC",
+          "expect": "28 22 21 18 16 11 7 6 5"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.7.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND rowid \u003e 1 ORDER BY docid DESC",
+          "expect": "28 22 21 18 16 11 7 6 5"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.7.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +rowid \u003e 1 ORDER BY docid DESC",
+          "expect": "28 22 21 18 16 11 7 6 5"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND docid \u003e -4123456789123456 ORDER BY docid ASC",
+          "expect": "1 5 6 7 11 16 18 21 22 28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +docid \u003e -4123456789123456 ORDER BY docid ASC",
+          "expect": "1 5 6 7 11 16 18 21 22 28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND rowid \u003e -4123456789123456 ORDER BY docid ASC",
+          "expect": "1 5 6 7 11 16 18 21 22 28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.8.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +rowid \u003e -4123456789123456 ORDER BY docid ASC",
+          "expect": "1 5 6 7 11 16 18 21 22 28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.8.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND docid \u003e -4123456789123456 ORDER BY docid DESC",
+          "expect": "28 22 21 18 16 11 7 6 5 1"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.8.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +docid \u003e -4123456789123456 ORDER BY docid DESC",
+          "expect": "28 22 21 18 16 11 7 6 5 1"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.8.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND rowid \u003e -4123456789123456 ORDER BY docid DESC",
+          "expect": "28 22 21 18 16 11 7 6 5 1"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.8.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH 'O' AND +rowid \u003e -4123456789123456 ORDER BY docid DESC",
+          "expect": "28 22 21 18 16 11 7 6 5 1"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND docid \u003c 27 ORDER BY docid ASC",
+          "expect": "2 9 12"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND +docid \u003c 27 ORDER BY docid ASC",
+          "expect": "2 9 12"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.9.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND rowid \u003c 27 ORDER BY docid ASC",
+          "expect": "2 9 12"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.9.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND +rowid \u003c 27 ORDER BY docid ASC",
+          "expect": "2 9 12"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.9.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND docid \u003c 27 ORDER BY docid DESC",
+          "expect": "12 9 2"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.9.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND +docid \u003c 27 ORDER BY docid DESC",
+          "expect": "12 9 2"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.9.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND rowid \u003c 27 ORDER BY docid DESC",
+          "expect": "12 9 2"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.9.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND +rowid \u003c 27 ORDER BY docid DESC",
+          "expect": "12 9 2"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.10.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND docid \u003c= 27 ORDER BY docid ASC",
+          "expect": "2 9 12 27"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND +docid \u003c= 27 ORDER BY docid ASC",
+          "expect": "2 9 12 27"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.10.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND rowid \u003c= 27 ORDER BY docid ASC",
+          "expect": "2 9 12 27"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.10.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND +rowid \u003c= 27 ORDER BY docid ASC",
+          "expect": "2 9 12 27"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.10.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND docid \u003c= 27 ORDER BY docid DESC",
+          "expect": "27 12 9 2"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.10.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND +docid \u003c= 27 ORDER BY docid DESC",
+          "expect": "27 12 9 2"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.10.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND rowid \u003c= 27 ORDER BY docid DESC",
+          "expect": "27 12 9 2"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.10.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND +rowid \u003c= 27 ORDER BY docid DESC",
+          "expect": "27 12 9 2"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.11.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND docid \u003e 27 ORDER BY docid ASC",
+          "expect": "28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.11.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND +docid \u003e 27 ORDER BY docid ASC",
+          "expect": "28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.11.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND rowid \u003e 27 ORDER BY docid ASC",
+          "expect": "28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.11.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND +rowid \u003e 27 ORDER BY docid ASC",
+          "expect": "28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.11.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND docid \u003e 27 ORDER BY docid DESC",
+          "expect": "28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.11.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND +docid \u003e 27 ORDER BY docid DESC",
+          "expect": "28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.11.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND rowid \u003e 27 ORDER BY docid DESC",
+          "expect": "28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.11.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND +rowid \u003e 27 ORDER BY docid DESC",
+          "expect": "28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.12.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND docid \u003e= 27 ORDER BY docid ASC",
+          "expect": "27 28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.12.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND +docid \u003e= 27 ORDER BY docid ASC",
+          "expect": "27 28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.12.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND rowid \u003e= 27 ORDER BY docid ASC",
+          "expect": "27 28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.12.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND +rowid \u003e= 27 ORDER BY docid ASC",
+          "expect": "27 28"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.12.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND docid \u003e= 27 ORDER BY docid DESC",
+          "expect": "28 27"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.12.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND +docid \u003e= 27 ORDER BY docid DESC",
+          "expect": "28 27"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.12.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND rowid \u003e= 27 ORDER BY docid DESC",
+          "expect": "28 27"
+        }
+      ]
+    },
+    {
+      "name": "fts4docid-3.12.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE t1 MATCH '\"Q T\"' AND +rowid \u003e= 27 ORDER BY docid DESC",
+          "expect": "28 27"
         }
       ]
     }

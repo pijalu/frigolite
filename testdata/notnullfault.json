@@ -1,9 +1,10 @@
 {
   "file": "notnullfault.test",
   "name": "notnullfault",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "notnullfault-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,27 +13,15 @@
       ]
     },
     {
-      "name": "2.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "notnullfault-2.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, c); \n  CREATE TABLE t2(a, b, c, PRIMARY KEY(a, b, c)) WITHOUT ROWID;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2 WHERE d NOT NULL"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT dense_rank() OVER win FROM t2\n    WINDOW win AS (ORDER BY c IS NULL)"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

@@ -22,6 +22,30 @@ func (e *DDLExecutor) checkTriggerTableRefs(entry *schema.Entry, oldName string)
 	return nil
 }
 
+func (e *DDLExecutor) validateTriggerFromSubqueries(entry *schema.Entry) error {
+	statements, err := parse.ParseSQL(entry.SQL)
+	if err != nil {
+		return nil
+	}
+	for _, stmt := range statements {
+		trigger, ok := stmt.(*sql.CreateTriggerStmt)
+		if !ok {
+			continue
+		}
+		for _, body := range trigger.Statements {
+			update, ok := body.(*sql.UpdateStmt)
+			if !ok || update.From.Subquery == nil {
+				continue
+			}
+			result := e.ctx.ExecSelect(update.From.Subquery)
+			if result != nil && result.Error != nil {
+				return fmt.Errorf("error in trigger %s: %w", entry.Name, result.Error)
+			}
+		}
+	}
+	return nil
+}
+
 // TriggerBodyTableRefs exposes the table references found in a trigger's
 // stored SQL (INSERT INTO / FROM / UPDATE / DELETE FROM / JOIN operands,
 // minus CTE names and NEW/OLD) for engine-side consumers such as the
@@ -46,7 +70,13 @@ func (e *DDLExecutor) checkTriggerTableRef(entry *schema.Entry, ref, oldName str
 	if _, _, err := e.ctx.FindTable(lookupName); err == nil {
 		return nil
 	}
-	if _, _, err2 := e.ctx.FindView(lookupName); err2 == nil {
+	if view, _, err2 := e.ctx.FindView(lookupName); err2 == nil {
+		if missing := e.viewMissingTable(view); missing != "" {
+			if !strings.Contains(missing, ".") {
+				missing = "main." + missing
+			}
+			return fmt.Errorf("error in trigger %s: no such table: %s", entry.Name, missing)
+		}
 		return nil
 	}
 	refName := ref
@@ -570,12 +600,15 @@ func viewFromTable(viewSQL string) (string, int) {
 	if fromIdx < 0 {
 		return "", -1
 	}
-	fromRest := strings.TrimSpace(upperSQL[fromIdx+6:])
+	fromRest := strings.TrimSpace(viewSQL[fromIdx+6:])
 	spaceIdx := strings.IndexAny(fromRest, " \n\t\r")
 	if spaceIdx > 0 {
-		return fromRest[:spaceIdx], fromIdx
+		fromRest = fromRest[:spaceIdx]
 	}
-	return fromRest, fromIdx
+	if dotIdx := strings.LastIndex(fromRest, "."); dotIdx >= 0 {
+		fromRest = fromRest[dotIdx+1:]
+	}
+	return dequoteSQLToken(fromRest), fromIdx
 }
 
 // viewSelectCols splits the SELECT-list fragment of a view's SQL into

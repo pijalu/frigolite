@@ -1,0 +1,355 @@
+{
+  "file": "shell6.test",
+  "name": "shell6",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-wal"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p1(a PRIMARY KEY, b);\n    CREATE TABLE c1(x, y REFERENCES p1);"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p1(a PRIMARY KEY, b);\n    CREATE TABLE c2(x REFERENCES p1, y REFERENCES p1);"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE 'p 1'(a, b, c, PRIMARY KEY(c, b));\n    CREATE TABLE 'c 1'(x, y, z, FOREIGN KEY (z, y) REFERENCES 'p 1');"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p1(a, 'b b b' PRIMARY KEY);\n    CREATE TABLE c1('x y z' REFERENCES p1);\n    CREATE INDEX i1 ON c1('x y z') WHERE \"x y z\" IS NOT NULL;"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p1(a, 'b b b' PRIMARY KEY);\n    CREATE TABLE c1('x y z' REFERENCES p1);\n    CREATE INDEX i1 ON c1('x y z') WHERE \"x y z\" IS NOT 12;"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a, b, c, UNIQUE(a, b));\n    CREATE TABLE y1(a, b, c, FOREIGN KEY(b, a) REFERENCES x1(a, b));\n    CREATE INDEX y1i ON y1(a, c, b);"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a COLLATE nocase, b, UNIQUE(a));\n    CREATE TABLE y1(a COLLATE rtrim REFERENCES x1(a));"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a PRIMARY KEY COLLATE nocase, b);\n    CREATE TABLE y1(a REFERENCES x1);"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a, b COLLATE nocase, c COLLATE rtrim, PRIMARY KEY(c, b, a));\n    CREATE TABLE y1(d, e, f, FOREIGN KEY(d, e, f) REFERENCES x1);"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p1(a, b UNIQUE);\n    CREATE TABLE c1(x INTEGER PRIMARY KEY REFERENCES p1(b));"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_12",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent (id INTEGER PRIMARY KEY); \n    CREATE TABLE child2 (id INT PRIMARY KEY, parentID INT REFERENCES parent) \n      WITHOUT ROWID;"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    }
+  ]
+}

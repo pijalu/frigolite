@@ -31,6 +31,7 @@ var pragmaTableFuncs = map[string]bool{
 	"pragma_compile_options":   true,
 	"pragma_database_list":     true,
 	"pragma_collation_list":    true,
+	"pragma_stats":             true,
 }
 
 // isPragmaTableFunc reports whether name names a table-valued pragma function.
@@ -95,10 +96,11 @@ func buildRowMapFromValues(values []interface{}, colDefs []sql.ColumnDef, rowID 
 		}
 		row[cd.Name] = wrapValueForRowMap(v, cd)
 	}
-	if !RowHasRowIDColumn(colDefs) {
-		row["rowid"] = &util.ColumnValue{Value: rowID, Affinity: 'I'}
-		row["_rowid_"] = &util.ColumnValue{Value: rowID, Affinity: 'I'}
-		row["oid"] = &util.ColumnValue{Value: rowID, Affinity: 'I'}
+	rowidCV := &util.ColumnValue{Value: rowID, Affinity: 'I'}
+	for _, alias := range []string{"rowid", "_rowid_", "oid"} {
+		if !rowIDAliasShadowed(colDefs, alias) {
+			row[alias] = rowidCV
+		}
 	}
 	return row
 }
@@ -440,10 +442,22 @@ func buildColumnIndex(colDefs []sql.ColumnDef) map[string]int {
 	for i, cd := range colDefs {
 		colIndex[strings.ToLower(cd.Name)] = i
 	}
-	if !RowHasRowIDColumn(colDefs) {
-		colIndex["rowid"] = -1
+	for _, alias := range []string{"rowid", "_rowid_", "oid"} {
+		if !rowIDAliasShadowed(colDefs, alias) {
+			colIndex[alias] = -1
+		}
 	}
 	return colIndex
+}
+
+// rowIDAliasShadowed reports whether a declared column hides one rowid alias.
+func rowIDAliasShadowed(colDefs []sql.ColumnDef, alias string) bool {
+	for _, def := range colDefs {
+		if strings.EqualFold(def.Name, alias) {
+			return true
+		}
+	}
+	return false
 }
 
 // isIPKRowidAliasCol reports whether a column is an INTEGER PRIMARY KEY

@@ -1,0 +1,1108 @@
+{
+  "file": "walmode.test",
+  "name": "walmode",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "walmode-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = wal",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "walmode-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b)",
+          "expect": "1024"
+        }
+      ]
+    },
+    {
+      "name": "walmode-1.7",
+      "steps": [
+        {
+          "type": "close_db",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "walmode-2.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "walmode-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "walmode-2.3",
+      "steps": [
+        {
+          "type": "close_db",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "walmode-3.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = wal",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "walmode-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = persist",
+          "expect": "persist"
+        }
+      ]
+    },
+    {
+      "name": "walmode-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "walmode-4.4",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "walmode-4.6",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode",
+          "expect": "delete",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "walmode-4.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode = wal",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "walmode-4.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "walmode-4.9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "PRAGMA journal_mode = delete",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "walmode-4.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "walmode-4.11",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = delete",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "walmode-4.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "walmode-4.14",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      SELECT * FROM t1;",
+          "expect": "1 2",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "walmode-4.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "walmode-4.17",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode",
+          "expect": "delete",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "PRAGMA main.journal_mode = wal",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "walmode-4.18",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "walmode-5.1.1",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode",
+          "expect": "memory"
+        }
+      ]
+    },
+    {
+      "name": "walmode-5.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode = wal",
+          "expect": "memory"
+        }
+      ]
+    },
+    {
+      "name": "walmode-5.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n    COMMIT;\n    SELECT * FROM t1;\n    PRAGMA main.journal_mode;",
+          "expect": "1 2 memory"
+        }
+      ]
+    },
+    {
+      "name": "walmode-5.1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode = wal",
+          "expect": "memory"
+        }
+      ]
+    },
+    {
+      "name": "walmode-5.1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3, 4);\n    SELECT * FROM t1;\n    PRAGMA main.journal_mode;",
+          "expect": "1 2 3 4 memory"
+        }
+      ]
+    },
+    {
+      "name": "walmode-5.2.1",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "walmode-5.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode = wal",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "walmode-5.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n    COMMIT;\n    SELECT * FROM t1;\n    PRAGMA main.journal_mode;",
+          "expect": "1 2 delete"
+        }
+      ]
+    },
+    {
+      "name": "walmode-5.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode = wal",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "walmode-5.2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3, 4);\n    SELECT * FROM t1;\n    PRAGMA main.journal_mode;",
+          "expect": "1 2 3 4 delete"
+        }
+      ]
+    },
+    {
+      "name": "walmode-5.3.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp.journal_mode",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "walmode-5.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp.journal_mode = wal",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "walmode-5.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TEMP TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n    COMMIT;\n    SELECT * FROM t1;\n    PRAGMA temp.journal_mode;",
+          "expect": "1 2 delete"
+        }
+      ]
+    },
+    {
+      "name": "walmode-5.3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp.journal_mode = wal",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "walmode-5.3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3, 4);\n    SELECT * FROM t1;\n    PRAGMA temp.journal_mode;",
+          "expect": "1 2 3 4 delete"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "walmode-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = off;\n      PRAGMA journal_mode = wal;",
+          "expect": "off wal"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "walmode-6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = memory;\n      PRAGMA journal_mode = wal;",
+          "expect": "memory wal"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "walmode-6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = persist;\n      PRAGMA journal_mode = wal;",
+          "expect": "persist wal"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "walmode-6.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = delete;\n      PRAGMA journal_mode = wal;",
+          "expect": "delete wal"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "walmode-6.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = truncate;\n      PRAGMA journal_mode = wal;",
+          "expect": "truncate wal"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "walmode-7.0",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "walmode-7.1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "walmode-7.2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "walmode-7.3",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = delete",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "walmode-7.4",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "walmode-7.5",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "walmode-7.6",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = wal",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "walmode-7.7",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "walmode-7.8",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "walmode-7.9",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "walmode-7.10",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "walmode-7.11",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode = delete",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "walmode-7.12",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "walmode-7.13",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "walmode-7.14",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode = wal",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "walmode-7.15",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "walmode-7.16",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "walmode-8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  PRAGMA journal_mode = WAL;\n  ATTACH 'test.db2' AS two;\n  CREATE TABLE two.t2(a, b);",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "walmode-8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.journal_mode",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "walmode-8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA two.journal_mode",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "walmode-8.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA two.journal_mode = DELETE",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "walmode-8.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS two"
+        }
+      ]
+    },
+    {
+      "name": "walmode-8.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.journal_mode",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "walmode-8.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA two.journal_mode",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "walmode-8.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO two.t2 DEFAULT VALUES"
+        }
+      ]
+    },
+    {
+      "name": "walmode-8.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA two.journal_mode",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "walmode-8.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
+        }
+      ]
+    },
+    {
+      "name": "walmode-8.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.journal_mode",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "walmode-8.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "walmode-8.x1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA two.journal_mode=WAL;\n     PRAGMA two.journal_mode;",
+          "expect": "wal wal"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "walmode-8.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = WAL",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "walmode-8.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS two"
+        }
+      ]
+    },
+    {
+      "name": "walmode-8.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.journal_mode",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "walmode-8.16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA two.journal_mode",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "walmode-8.17",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO two.t2 DEFAULT VALUES"
+        }
+      ]
+    },
+    {
+      "name": "walmode-8.18",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA two.journal_mode",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db2",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "walmode-8.19",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode",
+          "expect": "wal",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "walmode-8.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = DELETE",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "walmode-8.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.journal_mode",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "walmode-8.22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA two.journal_mode",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "walmode-8.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = WAL",
+          "expect": "wal"
+        },
+        {
+          "type": "query",
+          "sql": "PRAGMA main.journal_mode",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "walmode-8.22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA two.journal_mode",
+          "expect": "wal"
+        }
+      ]
+    }
+  ]
+}

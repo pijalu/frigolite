@@ -118,7 +118,17 @@ func Test_fts3aj(t *testing.T) {
 		if _res.Error != nil { _catchErr = _res.Error }
 	}
 	{ // "fts3aj-1.3" — skipped: ATTACH of a file already open as the same connection's main db reports 'database is locked' (C shares the pager; engine same-file-attach gap) (SQL + file side effects only)
-		_res = db2.Exec("\n    ATTACH DATABASE 'test2.db' AS two;\n\n    CREATE VIRTUAL TABLE two.t3 USING fts3(content);\n    INSERT INTO two.t3 (rowid, content) VALUES(2, 'hello there');\n    INSERT INTO two.t3 (rowid, content) VALUES(3, 'cruel world');\n    SELECT rowid FROM two.t3 WHERE t3 MATCH 'hello';\n\n    DETACH DATABASE two;\n  ")
+		_res = db2.Exec("ATTACH DATABASE 'test2.db' AS two")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db2.Exec("CREATE VIRTUAL TABLE two.t3 USING fts3(content)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db2.Exec("INSERT INTO two.t3 (rowid, content) VALUES(2, 'hello there')")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db2.Exec("INSERT INTO two.t3 (rowid, content) VALUES(3, 'cruel world')")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db2.Exec("SELECT rowid FROM two.t3 WHERE t3 MATCH 'hello'")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db2.Exec("DETACH DATABASE two")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{

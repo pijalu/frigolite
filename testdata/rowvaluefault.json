@@ -1,0 +1,16 @@
+{
+  "file": "rowvaluefault.test",
+  "name": "rowvaluefault",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "rowvaluefault-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE xyz(one, two, thr, fou);\n  INSERT INTO xyz VALUES('A', 'A', 'A',  1);\n  INSERT INTO xyz VALUES('B', 'B', 'B',  2);\n  INSERT INTO xyz VALUES('C', 'C', 'C',  3);\n  INSERT INTO xyz VALUES('D', 'D', 'D',  4);\n\n  CREATE UNIQUE INDEX xyz_one_two ON xyz(one, two);"
+        }
+      ]
+    }
+  ]
+}

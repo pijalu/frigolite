@@ -93,7 +93,7 @@ func Test_tkt1667(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	db.Close()
-	first_ptrmap_page = "207.8"
+	first_ptrmap_page = "207"
 	_ = first_ptrmap_page // suppress unused warning
 	// sqlite3_test_control_pending_byte [expr 1024 * ($first_ptrmap_page-1)] (parse error: strconv.ParseInt: parsing "[expr 1024 * ($first_ptrmap_page-1)]": invalid syntax)
 	db, err = frigolite.Open("test.db")

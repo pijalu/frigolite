@@ -1,6 +1,7 @@
 {
   "file": "affinity2.test",
   "name": "affinity2",
+  "ordered": true,
   "tests": [
     {
       "name": "affinity2-100",
@@ -102,7 +103,7 @@
       ]
     },
     {
-      "name": "400",
+      "name": "affinity2-400",
       "steps": [
         {
           "type": "exec",
@@ -111,7 +112,7 @@
       ]
     },
     {
-      "name": "410",
+      "name": "affinity2-410",
       "steps": [
         {
           "type": "query",
@@ -121,7 +122,7 @@
       ]
     },
     {
-      "name": "420",
+      "name": "affinity2-420",
       "steps": [
         {
           "type": "query",
@@ -131,7 +132,7 @@
       ]
     },
     {
-      "name": "430",
+      "name": "affinity2-430",
       "steps": [
         {
           "type": "exec",
@@ -140,7 +141,7 @@
       ]
     },
     {
-      "name": "440",
+      "name": "affinity2-440",
       "steps": [
         {
           "type": "query",
@@ -150,7 +151,7 @@
       ]
     },
     {
-      "name": "500",
+      "name": "affinity2-500",
       "steps": [
         {
           "type": "query",
@@ -160,7 +161,7 @@
       ]
     },
     {
-      "name": "501",
+      "name": "affinity2-501",
       "steps": [
         {
           "type": "query",
@@ -170,7 +171,7 @@
       ]
     },
     {
-      "name": "502",
+      "name": "affinity2-502",
       "steps": [
         {
           "type": "query",
@@ -180,7 +181,7 @@
       ]
     },
     {
-      "name": "503",
+      "name": "affinity2-503",
       "steps": [
         {
           "type": "query",
@@ -190,7 +191,7 @@
       ]
     },
     {
-      "name": "504",
+      "name": "affinity2-504",
       "steps": [
         {
           "type": "query",
@@ -200,7 +201,7 @@
       ]
     },
     {
-      "name": "505",
+      "name": "affinity2-505",
       "steps": [
         {
           "type": "query",
@@ -210,7 +211,7 @@
       ]
     },
     {
-      "name": "506",
+      "name": "affinity2-506",
       "steps": [
         {
           "type": "query",
@@ -220,12 +221,32 @@
       ]
     },
     {
-      "name": "507",
+      "name": "affinity2-507",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t0 WHERE +-+'ce' \u003e= t0.c0;",
           "expect": "-1 {}"
+        }
+      ]
+    },
+    {
+      "name": "affinity2-600",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t0;\n    CREATE TABLE t0(c0 REAL UNIQUE);\n    INSERT INTO t0(c0) VALUES (3175546974276630385);\n    SELECT 3175546974276630385 \u003c c0 FROM t0;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "affinity2-601",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 FROM t0 WHERE 3175546974276630385 \u003c c0;",
+          "expect": "1"
         }
       ]
     }

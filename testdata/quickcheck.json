@@ -1,9 +1,10 @@
 {
   "file": "quickcheck.test",
   "name": "quickcheck",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "quickcheck-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,12 +13,12 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "quickcheck-1.1",
       "steps": [
         {
           "type": "query",
           "sql": "PRAGMA quick_check",
-          "expect": "ok"
+          "expect": "\n  ok\n"
         }
       ]
     }

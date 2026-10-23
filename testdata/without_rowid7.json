@@ -1,9 +1,10 @@
 {
   "file": "without_rowid7.test",
   "name": "without_rowid7",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "without_rowid7-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,17 +13,17 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "without_rowid7-1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1 VALUES(1, 'one'), (1, 'ONE');",
           "expect": "1 {UNIQUE constraint failed: t1.a, t1.b}"
         }
       ]
     },
     {
-      "name": "2.0",
+      "name": "without_rowid7-2.0",
       "steps": [
         {
           "type": "exec",
@@ -31,7 +32,7 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "without_rowid7-2.1",
       "steps": [
         {
           "type": "query",
@@ -41,7 +42,7 @@
       ]
     },
     {
-      "name": "2.2a",
+      "name": "without_rowid7-2.2a",
       "steps": [
         {
           "type": "query",
@@ -51,7 +52,17 @@
       ]
     },
     {
-      "name": "2.3a",
+      "name": "without_rowid7-2.2b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, '|' FROM pragma_index_info('t2');",
+          "expect": "0 0 a | 1 0 a |"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid7-2.3a",
       "steps": [
         {
           "type": "query",
@@ -61,7 +72,17 @@
       ]
     },
     {
-      "name": "2.4",
+      "name": "without_rowid7-2.3b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, '|' FROM pragma_index_xinfo('t2');",
+          "expect": "0 0 a 0 nocase 1 | 1 0 a 0 BINARY 1 | 2 1 b 0 BINARY 0 |"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid7-2.4",
       "steps": [
         {
           "type": "query",
@@ -70,7 +91,44 @@
       ]
     },
     {
-      "name": "3.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_collation",
+          "collationName": "mysort",
+          "collationProc": "mysort",
+          "callbackVars": {
+            "": "do_execsql_test 2.3b {\n  SELECT *, '|' FROM pragma_index_xinfo('t2');\n} {0 0 a 0 nocase 1 | 1 0 a 0 BINARY 1 | 2 1 b 0 BINARY 0 |}",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "without_rowid7"
+          }
+        },
+        {
+          "type": "register_collation",
+          "collationName": "mysort2",
+          "collationProc": "mysort",
+          "callbackVars": {
+            "": "do_execsql_test 2.3b {\n  SELECT *, '|' FROM pragma_index_xinfo('t2');\n} {0 0 a 0 nocase 1 | 1 0 a 0 BINARY 1 | 2 1 b 0 BINARY 0 |}",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "without_rowid7"
+          }
+        }
+      ]
+    },
+    {
+      "name": "without_rowid7-3.0",
       "steps": [
         {
           "type": "exec",
@@ -79,69 +137,114 @@
       ]
     },
     {
-      "name": "3.1.1",
+      "name": "setup_1",
       "steps": [
         {
-          "type": "exec",
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid7-3.1.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "SELECT * FROM t1 WHERE a=1;",
           "expect": "1 {no such collation sequence: mysort}"
         }
       ]
     },
     {
-      "name": "3.2.1",
+      "name": "setup_2",
       "steps": [
         {
-          "type": "exec",
+          "type": "register_collation",
+          "collationName": "mysort",
+          "collationProc": "mysort",
+          "collationBody": " string compare $a $b ",
+          "callbackVars": {
+            "": "do_execsql_test 2.3b {\n  SELECT *, '|' FROM pragma_index_xinfo('t2');\n} {0 0 a 0 nocase 1 | 1 0 a 0 BINARY 1 | 2 1 b 0 BINARY 0 |}",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "without_rowid7"
+          },
+          "functionArgs": [
+            "a",
+            "b"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "without_rowid7-3.2.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "CREATE UNIQUE INDEX i1 ON t1(b);",
           "expect": "1 {no such collation sequence: mysort2}"
         }
       ]
     },
     {
-      "name": "3.3.1",
+      "name": "setup_3",
       "steps": [
         {
-          "type": "exec",
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid7-3.3.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "CREATE UNIQUE INDEX i1 ON t1(1);",
           "expect": "1 {no such collation sequence: mysort}"
         }
       ]
     },
     {
-      "name": "3.6",
+      "name": "without_rowid7-3.4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "prepare_stmt",
+          "sql": "CREATE UNIQUE INDEX i1 ON t1(1)",
+          "variable": "stmt_1",
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid7-3.5.1",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "CREATE UNIQUE INDEX i1 ON t1(1)",
+          "variable": "stmt_2",
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid7-3.6",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "SELECT * FROM t1 WHERE a=1;",
           "expect": "1 {no such collation sequence: mysort}"
         }
       ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
     }
-  ],
-  "source": "capi"
+  ]
 }

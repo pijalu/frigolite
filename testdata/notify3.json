@@ -1,7 +1,54 @@
 {
   "file": "notify3.test",
   "name": "notify3",
+  "ordered": true,
   "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2-journal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2-wal"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db2",
+          "database": "db2"
+        }
+      ]
+    },
     {
       "name": "notify3-1.1",
       "steps": [
@@ -16,7 +63,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('t2 A', 't2 B');"
+          "sql": "CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('t2 A', 't2 B');",
+          "database": "db2"
         }
       ]
     },
@@ -25,7 +73,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN EXCLUSIVE;\n    INSERT INTO t2 VALUES('t2 C', 't2 D');"
+          "sql": "BEGIN EXCLUSIVE;\n    INSERT INTO t2 VALUES('t2 C', 't2 D');",
+          "database": "db2"
         }
       ]
     },
@@ -33,7 +82,7 @@
       "name": "notify3-1.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "ATTACH 'test.db2' AS aux",
           "expect": "0 {}"
         }
@@ -43,9 +92,25 @@
       "name": "notify3-1.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM t2",
           "expect": "1 {database schema is locked: aux}"
+        }
+      ]
+    },
+    {
+      "name": "notify3-1.7",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t2",
+          "variable": "stmt_1",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "msg",
+          "expect": "(262) database schema is locked: aux"
         }
       ]
     },
@@ -54,7 +119,13 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT"
+          "sql": "COMMIT",
+          "database": "db2"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "res",
+          "expect": "2"
         }
       ]
     },
@@ -62,28 +133,432 @@
       "name": "notify3-1.9",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM t2",
           "expect": "0 {{t2 A} {t2 B} {t2 C} {t2 D}}"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "notify3-2.0.1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db1"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db1"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db2",
+          "database": "db2"
         },
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b); \n    INSERT INTO t1 VALUES('t1 A', 't1 B');"
+          "sql": "BEGIN EXCLUSIVE",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'test.db2' AS two",
+          "expect": "1 {unable to open database: test.db2}",
+          "database": "db1"
+        }
+      ]
+    },
+    {
+      "name": "notify3-2.0.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "commit",
+          "expect": "1",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "notify3-2.1.1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db1"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db1"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db2",
+          "database": "db2"
         },
         {
           "type": "exec",
-          "sql": "CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('t2 A', 't2 B');"
+          "sql": "BEGIN EXCLUSIVE",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'test.db2' AS two",
+          "expect": "1 {unable to open database: test.db2}",
+          "database": "db1"
+        }
+      ]
+    },
+    {
+      "name": "notify3-2.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "commit",
+          "expect": "1",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "notify3-2.2.1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db1"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db1"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db2",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_master",
+          "database": "db2"
         },
         {
           "type": "exec",
-          "sql": "BEGIN EXCLUSIVE;\n    INSERT INTO t2 VALUES('t2 C', 't2 D');"
+          "sql": "BEGIN EXCLUSIVE",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'test.db2' AS two",
+          "expect": "0 {}",
+          "database": "db1"
+        }
+      ]
+    },
+    {
+      "name": "notify3-2.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "commit",
+          "expect": "0",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "notify3-2.3.1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db1"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db1"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db2",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_master",
+          "database": "db2"
         },
         {
           "type": "exec",
-          "sql": "COMMIT"
+          "sql": "BEGIN EXCLUSIVE",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'test.db2' AS two",
+          "expect": "0 {}",
+          "database": "db1"
+        }
+      ]
+    },
+    {
+      "name": "notify3-2.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "commit",
+          "expect": "0",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "notify3-2.4.1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db1"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db1"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db2",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_master",
+          "database": "db1"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'test.db2' AS two",
+          "expect": "1 {unable to open database: test.db2}",
+          "database": "db1"
+        }
+      ]
+    },
+    {
+      "name": "notify3-2.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "commit",
+          "expect": "1",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "notify3-2.5.1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db1"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db1"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db2",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_master",
+          "database": "db1"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'test.db2' AS two",
+          "expect": "1 {unable to open database: test.db2}",
+          "database": "db1"
+        }
+      ]
+    },
+    {
+      "name": "notify3-2.5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "commit",
+          "expect": "1",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "notify3-2.6.1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db1"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db1"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db2",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_master",
+          "database": "db1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_master",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'test.db2' AS two",
+          "expect": "0 {}",
+          "database": "db1"
+        }
+      ]
+    },
+    {
+      "name": "notify3-2.6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "commit",
+          "expect": "0",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "notify3-2.7.1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db1"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db1"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db2",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_master",
+          "database": "db1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_master",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'test.db2' AS two",
+          "expect": "0 {}",
+          "database": "db1"
+        }
+      ]
+    },
+    {
+      "name": "notify3-2.7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "commit",
+          "expect": "0",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db1"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

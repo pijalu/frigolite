@@ -1,17 +1,20 @@
 {
   "file": "tkt2213.test",
   "name": "tkt2213",
+  "ordered": true,
   "tests": [
     {
       "name": "tkt2213-1",
       "steps": [
         {
-          "type": "exec",
+          "type": "register_test_funcs"
+        },
+        {
+          "type": "catch",
           "sql": "SELECT tkt2213func(tkt2213func('abcd'));",
           "expect": "0 abcd"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

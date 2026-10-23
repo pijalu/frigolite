@@ -47,7 +47,7 @@ func resolveOrderByValue(obExpr sql.Expr, rows [][]interface{}, resultCols []str
 			return rows[idx][pos-1], true
 		}
 	}
-	if ref, ok := stripCollate(obExpr).(*sql.ColumnRef); ok {
+	if ref, ok := stripCollate(obExpr).(*sql.ColumnRef); ok && ref.Table == "" {
 		if pos := resultColumnIndex(resultCols, ref.Name); pos >= 0 && pos < len(rows[idx]) {
 			return rows[idx][pos], true
 		}

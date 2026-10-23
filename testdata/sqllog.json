@@ -1,9 +1,61 @@
 {
   "file": "sqllog.test",
   "name": "sqllog",
+  "ordered": true,
   "tests": [
     {
-      "name": "2.1",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "sqllog-1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES('a', 'b');\n  SELECT * FROM t1;",
+          "expect": "1 2 a b"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-sqllog"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "sqllog-2.1",
       "steps": [
         {
           "type": "query",
@@ -13,7 +65,19 @@
       ]
     },
     {
-      "name": "2.3",
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "sqllog-2.3",
       "steps": [
         {
           "type": "query",
@@ -21,7 +85,17 @@
           "expect": "1 2 a b 4 5 6 7"
         }
       ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
     }
-  ],
-  "source": "capi"
+  ]
 }

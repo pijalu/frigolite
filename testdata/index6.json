@@ -168,12 +168,21 @@
       ]
     },
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ANALYZE"
+        }
+      ]
+    },
+    {
       "name": "index6-2.3stat4",
       "steps": [
         {
           "type": "exec",
-          "sql": "EXPLAIN QUERY PLAN\n      SELECT * FROM t2 WHERE a IS NOT NULL AND a\u003e0;",
-          "expect": "/(SEARCH|SCANE) t2 USING INDEX t2a1 /"
+          "sql": "EXPLAIN QUERY PLAN\n      SELECT * FROM t2 WHERE a IS NOT NULL;",
+          "expect": "/(SEARCH|SCAN) t2 USING INDEX t2a1 /"
         }
       ]
     },
@@ -546,7 +555,7 @@
       "name": "index6-13.1",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0);\n  CREATE INDEX index_0 ON t0(c0) WHERE c0 NOT NULL;\n  INSERT INTO t0(c0) VALUES (NULL);\n  SELECT * FROM t0 WHERE c0 OR 1;",
           "expect": "{}"
         }
@@ -656,8 +665,15 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        }
+      ]
     },
     {
       "name": "index6-17.1",

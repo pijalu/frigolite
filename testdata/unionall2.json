@@ -1,9 +1,10 @@
 {
   "file": "unionall2.test",
   "name": "unionall2",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "unionall2-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,7 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "unionall2-1.1",
       "steps": [
         {
           "type": "query",
@@ -21,7 +22,7 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "unionall2-2.1",
       "steps": [
         {
           "type": "exec",
@@ -30,7 +31,7 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "unionall2-2.2",
       "steps": [
         {
           "type": "query",

@@ -1,26 +1,29 @@
 {
   "file": "unionvtabfault.test",
   "name": "unionvtabfault",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "unionvtabfault-1.0",
       "steps": [
         {
           "type": "exec",
           "sql": "ATTACH 'test.db2' AS aux;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE aux.t3(a INTEGER PRIMARY KEY, b TEXT);\n\n  INSERT INTO t1 VALUES(1, 'one'), (2, 'two'), (3, 'three');\n  INSERT INTO t2 VALUES(10, 'ten'), (11, 'eleven'), (12, 'twelve');\n  INSERT INTO t3 VALUES(20, 'twenty'), (21, 'twenty-one'), (22, 'twenty-two');"
-        },
-        {
-          "type": "exec",
-          "sql": "ATTACH 'test.db2' AS aux;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TEMP TABLE xyz(x);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE temp.uuu USING unionvtab(\n    \"VALUES(NULL, 't1', 1, 9),  ('main', 't2', 10, 19), ('aux', 't3', 20, 29)\"\n    );"
-        },
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
         {
           "type": "exec",
           "sql": "ATTACH 'test.db2' AS aux;"
@@ -32,10 +35,6 @@
         {
           "type": "exec",
           "sql": "CREATE VIRTUAL TABLE temp.uuu USING unionvtab(\n      \"VALUES(NULL, 't1', 1, 9),  ('main', 't2', 10, 19), ('aux', 't3', 20, 29)\"\n  );"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM uuu"
         }
       ]
     }

@@ -467,6 +467,71 @@ func fnUNICODE(args []interface{}) (interface{}, error) {
 	return int64(r), nil
 }
 
+func fnSOUNDEX(args []interface{}) (interface{}, error) {
+	if len(args) == 0 || args[0] == nil {
+		return "?000", nil
+	}
+	input := fmt.Sprint(args[0])
+	first := -1
+	for i := 0; i < len(input); i++ {
+		if isSoundexAlpha(input[i]) {
+			first = i
+			break
+		}
+	}
+	if first < 0 {
+		return "?000", nil
+	}
+	result := [4]byte{asciiUpper(input[first]), '0', '0', '0'}
+	prev := soundexCode(input[first])
+	out := 1
+	for i := first + 1; i < len(input) && out < len(result); i++ {
+		code := soundexCode(input[i])
+		if code > 0 {
+			if code != prev {
+				result[out] = '0' + code
+				out++
+			}
+		} else {
+			prev = 0
+		}
+		if code > 0 {
+			prev = code
+		}
+	}
+	return string(result[:]), nil
+}
+
+func isSoundexAlpha(c byte) bool {
+	return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z'
+}
+
+func asciiUpper(c byte) byte {
+	if c >= 'a' && c <= 'z' {
+		return c - ('a' - 'A')
+	}
+	return c
+}
+
+func soundexCode(c byte) byte {
+	switch asciiUpper(c) {
+	case 'B', 'F', 'P', 'V':
+		return 1
+	case 'C', 'G', 'J', 'K', 'Q', 'S', 'X', 'Z':
+		return 2
+	case 'D', 'T':
+		return 3
+	case 'L':
+		return 4
+	case 'M', 'N':
+		return 5
+	case 'R':
+		return 6
+	default:
+		return 0
+	}
+}
+
 func fnCHAR(args []interface{}) (interface{}, error) {
 	// SQLite char(): each argument is a Unicode codepoint encoded as UTF-8;
 	// NULL arguments are skipped; values above U+10FFFF become U+FFFD.

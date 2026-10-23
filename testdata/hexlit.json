@@ -1,7 +1,1268 @@
 {
   "file": "hexlit.test",
   "name": "hexlit",
+  "ordered": true,
   "tests": [
+    {
+      "name": "hexlit-100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x0",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x0000000000000000000000000000000000000000000001",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-102",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x2",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-103",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x4",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-104",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x8",
+          "expect": "8"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-105",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x00000000000000000000000000000000000000000000010",
+          "expect": "16"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-103",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x20",
+          "expect": "32"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-106",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x40",
+          "expect": "64"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-107",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x80",
+          "expect": "128"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-108",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x100",
+          "expect": "256"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-109",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x200",
+          "expect": "512"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X400",
+          "expect": "1024"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-111",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x800",
+          "expect": "2048"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-112",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x1000",
+          "expect": "4096"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-113",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x2000",
+          "expect": "8192"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-114",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x4000",
+          "expect": "16384"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-115",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x8000",
+          "expect": "32768"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-116",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x10000",
+          "expect": "65536"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-117",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x20000",
+          "expect": "131072"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-118",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x40000",
+          "expect": "262144"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-119",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x80000",
+          "expect": "524288"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x100000",
+          "expect": "1048576"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-121",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x200000",
+          "expect": "2097152"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-122",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x400000",
+          "expect": "4194304"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-123",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x800000",
+          "expect": "8388608"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-124",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x1000000",
+          "expect": "16777216"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-125",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x2000000",
+          "expect": "33554432"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-126",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x4000000",
+          "expect": "67108864"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-127",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x8000000",
+          "expect": "134217728"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-128",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x10000000",
+          "expect": "268435456"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-129",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x20000000",
+          "expect": "536870912"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x40000000",
+          "expect": "1073741824"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-131",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x80000000",
+          "expect": "2147483648"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-132",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x100000000",
+          "expect": "4294967296"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-133",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x200000000",
+          "expect": "8589934592"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-134",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x400000000",
+          "expect": "17179869184"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-135",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x800000000",
+          "expect": "34359738368"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-136",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x1000000000",
+          "expect": "68719476736"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-137",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x2000000000",
+          "expect": "137438953472"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-138",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x4000000000",
+          "expect": "274877906944"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-139",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x8000000000",
+          "expect": "549755813888"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x10000000000",
+          "expect": "1099511627776"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-141",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x20000000000",
+          "expect": "2199023255552"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-142",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x40000000000",
+          "expect": "4398046511104"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-143",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x80000000000",
+          "expect": "8796093022208"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-144",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x100000000000",
+          "expect": "17592186044416"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-145",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x200000000000",
+          "expect": "35184372088832"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-146",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x400000000000",
+          "expect": "70368744177664"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-147",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x800000000000",
+          "expect": "140737488355328"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-148",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x1000000000000",
+          "expect": "281474976710656"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-149",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x2000000000000",
+          "expect": "562949953421312"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-150",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x4000000000000",
+          "expect": "1125899906842624"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-151",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x8000000000000",
+          "expect": "2251799813685248"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-152",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x10000000000000",
+          "expect": "4503599627370496"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-153",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x20000000000000",
+          "expect": "9007199254740992"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-154",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x40000000000000",
+          "expect": "18014398509481984"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-155",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x80000000000000",
+          "expect": "36028797018963968"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-156",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x100000000000000",
+          "expect": "72057594037927936"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-157",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x200000000000000",
+          "expect": "144115188075855872"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-158",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x400000000000000",
+          "expect": "288230376151711744"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-159",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x800000000000000",
+          "expect": "576460752303423488"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-160",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X1000000000000000",
+          "expect": "1152921504606846976"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-161",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x2000000000000000",
+          "expect": "2305843009213693952"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-162",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X4000000000000000",
+          "expect": "4611686018427387904"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-163",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x8000000000000000",
+          "expect": "-9223372036854775808"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-164",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0XFFFFFFFFFFFFFFFF",
+          "expect": "-1"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X001",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x001",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X001",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x001",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X002",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x002",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X002",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x002",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X003",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x003",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X003",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x003",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X004",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x004",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X004",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x004",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X005",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x005",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X005",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x005",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X006",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x006",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X006",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x006",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X007",
+          "expect": "7"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x007",
+          "expect": "7"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X007",
+          "expect": "7"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.7.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x007",
+          "expect": "7"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X008",
+          "expect": "8"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x008",
+          "expect": "8"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X008",
+          "expect": "8"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.8.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x008",
+          "expect": "8"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X009",
+          "expect": "9"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x009",
+          "expect": "9"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.9.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X009",
+          "expect": "9"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.9.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x009",
+          "expect": "9"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.10.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X00A",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x00A",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.10.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X00a",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.10.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x00a",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.11.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X00B",
+          "expect": "11"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.11.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x00B",
+          "expect": "11"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.11.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X00b",
+          "expect": "11"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.11.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x00b",
+          "expect": "11"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.12.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X00C",
+          "expect": "12"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.12.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x00C",
+          "expect": "12"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.12.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X00c",
+          "expect": "12"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.12.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x00c",
+          "expect": "12"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.13.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X00D",
+          "expect": "13"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.13.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x00D",
+          "expect": "13"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.13.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X00d",
+          "expect": "13"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.13.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x00d",
+          "expect": "13"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.14.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X00E",
+          "expect": "14"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.14.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x00E",
+          "expect": "14"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.14.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X00e",
+          "expect": "14"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.14.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x00e",
+          "expect": "14"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.15.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X00F",
+          "expect": "15"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.15.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x00F",
+          "expect": "15"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.15.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0X00f",
+          "expect": "15"
+        }
+      ]
+    },
+    {
+      "name": "hexlit-200.15.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0x00f",
+          "expect": "15"
+        }
+      ]
+    },
     {
       "name": "hexlit-300",
       "steps": [
@@ -26,7 +1287,7 @@
       "name": "hexlist-400",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT 0x10000000000000000;",
           "expect": "1 {hex literal too big: 0x10000000000000000}"
         }
@@ -36,7 +1297,7 @@
       "name": "hexlist-401",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT DISTINCT 0x10000000000000000;",
           "expect": "1 {hex literal too big: 0x10000000000000000}"
         }
@@ -46,7 +1307,7 @@
       "name": "hexlist-402",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT DISTINCT -0x08000000000000000;",
           "expect": "1 {hex literal too big: -0x08000000000000000}"
         }
@@ -56,7 +1317,7 @@
       "name": "hexlist-410",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1+0x10000000000000000);",
           "expect": "1 {hex literal too big: 0x10000000000000000}"
         }

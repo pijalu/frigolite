@@ -1,0 +1,29 @@
+{
+  "file": "returningfault.test",
+  "name": "returningfault",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "returningfault-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1 (b);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "returningfault-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);"
+        }
+      ]
+    }
+  ]
+}

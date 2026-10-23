@@ -1,6 +1,7 @@
 {
   "file": "queryonly.test",
   "name": "queryonly",
+  "ordered": true,
   "tests": [
     {
       "name": "queryonly-1.1",
@@ -29,6 +30,76 @@
           "type": "query",
           "sql": "PRAGMA query_only=ON;\n  PRAGMA query_only;",
           "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "queryonly-1.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES(789);",
+          "expect": "1 {attempt to write a readonly database}"
+        }
+      ]
+    },
+    {
+      "name": "queryonly-1.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1;",
+          "expect": "1 {attempt to write a readonly database}"
+        }
+      ]
+    },
+    {
+      "name": "queryonly-1.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE t1 SET a=a+1;",
+          "expect": "1 {attempt to write a readonly database}"
+        }
+      ]
+    },
+    {
+      "name": "queryonly-1.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TABLE t2(b);",
+          "expect": "1 {attempt to write a readonly database}"
+        }
+      ]
+    },
+    {
+      "name": "queryonly-1.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE INDEX t1a ON t1(a);",
+          "expect": "1 {attempt to write a readonly database}"
+        }
+      ]
+    },
+    {
+      "name": "queryonly-1.9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1;",
+          "expect": "1 {attempt to write a readonly database}"
+        }
+      ]
+    },
+    {
+      "name": "queryonly-1.10",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ANALYZE;",
+          "expect": "1 {attempt to write a readonly database}"
         }
       ]
     },
@@ -79,76 +150,6 @@
           "type": "query",
           "sql": "UPDATE t1 SET a=a+1;\n  SELECT a FROM t1 ORDER BY a;",
           "expect": "124 457 790"
-        }
-      ]
-    },
-    {
-      "name": "queryonly-1.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(789);",
-          "expect": "1 {attempt to write a readonly database}"
-        }
-      ]
-    },
-    {
-      "name": "queryonly-1.5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1;",
-          "expect": "1 {attempt to write a readonly database}"
-        }
-      ]
-    },
-    {
-      "name": "queryonly-1.6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET a=a+1;",
-          "expect": "1 {attempt to write a readonly database}"
-        }
-      ]
-    },
-    {
-      "name": "queryonly-1.7",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(b);",
-          "expect": "1 {attempt to write a readonly database}"
-        }
-      ]
-    },
-    {
-      "name": "queryonly-1.8",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX t1a ON t1(a);",
-          "expect": "1 {attempt to write a readonly database}"
-        }
-      ]
-    },
-    {
-      "name": "queryonly-1.9",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t1;",
-          "expect": "1 {attempt to write a readonly database}"
-        }
-      ]
-    },
-    {
-      "name": "queryonly-1.10",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ANALYZE;",
-          "expect": "1 {attempt to write a readonly database}"
         }
       ]
     }

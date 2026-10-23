@@ -1,9 +1,69 @@
 {
   "file": "bestindex5.test",
   "name": "bestindex5",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "bestindex5",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "bestindex5"
+          },
+          "callbackProcs": [
+            {
+              "Name": "vtab_simple",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE t2(x)\"\n    }\n    xBestIndex {\n      return [list cost 999999.0]\n    }\n    xFilter {\n      return [list sql \"SELECT rowid, * FROM t2x\"]\n    }\n  }\n  return \"\"\n",
+              "Defaults": null
+            },
+            {
+              "Name": "vtab_cmd",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n\n  set binops(ne)    !=\n  set binops(eq)    =\n  set binops(isnot) \"IS NOT\"\n  set binops(is)    \"IS\"\n\n  set unops(isnotnull) \"IS NOT NULL\"\n  set unops(isnull)    \"IS NULL\"\n\n  set cols(0) a\n  set cols(1) b\n  set cols(2) c\n\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE t1(a, b, c)\"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set clist [$hdl constraints]\n      set orderby [$hdl orderby]\n      set mask [$hdl mask]\n\n      set cost 1000000.0\n      set ret [list]\n      set str [list]\n\n      set v 0\n      for {set i 0} {$i \u003c [llength $clist]} {incr i} {\n        array unset C\n        array set C [lindex $clist $i]\n        if {$C(usable)} {\n          if {[info exists binops($C(op))]} {\n            lappend ret omit $i\n            lappend str \"$cols($C(column)) $binops($C(op)) %$v%\"\n            incr v\n            set cost [expr $cost / 2]\n          }\n          if {[info exists unops($C(op))]} {\n            lappend ret omit $i\n            lappend str \"$cols($C(column)) $unops($C(op))\"\n            incr v\n            set cost [expr $cost / 2]\n          }\n        }\n      }\n\n      lappend ret idxstr [join $str \" AND \"]\n      lappend ret cost $cost\n      return $ret\n    }\n\n    xFilter {\n      set q [lindex $args 1]\n      set a [lindex $args 2]\n      for {set v 0} {$v \u003c [llength $a]} {incr v} {\n        set val [lindex $a $v]\n        set q [string map [list %$v% '$val'] $q]\n      }\n      if {$q==\"\"} { set q 1 }\n      lappend ::xFilterQueries \"WHERE $q\"\n      return [list sql \"SELECT rowid, * FROM t1x WHERE $q\"]\n    }\n  }\n  return \"\"\n",
+              "Defaults": null
+            },
+            {
+              "Name": "do_vtab_query_test",
+              "Args": [
+                "tn",
+                "query",
+                "result"
+              ],
+              "Body": "\n  set ::xFilterQueries [list]\n  uplevel [list\n    do_test $tn [string map [list %QUERY% $query] {\n      set r [execsql {%QUERY%}]\n      set r [concat $::xFilterQueries $r]\n      set r\n    }] [list {*}$result]\n  ]\n",
+              "Defaults": null
+            },
+            {
+              "Name": "vtab_simple_integer",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE t4(x INTEGER)\"\n    }\n    xBestIndex {\n      return [list cost 999999.0]\n    }\n    xFilter {\n      return [list sql \"SELECT rowid, * FROM t4x\"]\n    }\n  }\n  return \"\"\n",
+              "Defaults": null
+            }
+          ],
+          "moduleArgs": [
+            "db"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bestindex5-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +72,163 @@
       ]
     },
     {
-      "name": "2.0.0",
+      "name": "bestindex5-1.1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE a!='hello';",
+          "variable": "r",
+          "resultAll": true,
+          "expect": "{WHERE a != 'hello'} 1 2 3.0 4 5 6.0 7 8 9.0"
+        }
+      ]
+    },
+    {
+      "name": "bestindex5-1.2.1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE b!=8",
+          "variable": "r",
+          "resultAll": true,
+          "expect": "{WHERE b != '8'} 1 2 3.0 4 5 6.0"
+        }
+      ]
+    },
+    {
+      "name": "bestindex5-1.2.2",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE 8!=b",
+          "variable": "r",
+          "resultAll": true,
+          "expect": "{WHERE b != '8'} 1 2 3.0 4 5 6.0"
+        }
+      ]
+    },
+    {
+      "name": "bestindex5-1.3",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE c IS NOT 3",
+          "variable": "r",
+          "resultAll": true,
+          "expect": "{WHERE c IS NOT '3'} 4 5 6.0 7 8 9.0"
+        }
+      ]
+    },
+    {
+      "name": "bestindex5-1.3.2",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE 3 IS NOT c",
+          "variable": "r",
+          "resultAll": true,
+          "expect": "{WHERE c IS NOT '3'} 4 5 6.0 7 8 9.0"
+        }
+      ]
+    },
+    {
+      "name": "bestindex5-1.4.1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1, t2 WHERE x != a",
+          "variable": "r",
+          "resultAll": true,
+          "expect": "{WHERE a != '1'} 4 5 6.0 1 7 8 9.0 1"
+        }
+      ]
+    },
+    {
+      "name": "bestindex5-1.4.2",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1, t2 WHERE a != x",
+          "variable": "r",
+          "resultAll": true,
+          "expect": "{WHERE a != '1'} 4 5 6.0 1 7 8 9.0 1"
+        }
+      ]
+    },
+    {
+      "name": "bestindex5-1.5.1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE a IS NOT NULL",
+          "variable": "r",
+          "resultAll": true,
+          "expect": "{WHERE a IS NOT NULL} 1 2 3.0 4 5 6.0 7 8 9.0"
+        }
+      ]
+    },
+    {
+      "name": "bestindex5-1.5.2",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE NULL IS NOT a",
+          "variable": "r",
+          "resultAll": true,
+          "expect": "{WHERE a IS NOT ''} 1 2 3.0 4 5 6.0 7 8 9.0"
+        }
+      ]
+    },
+    {
+      "name": "bestindex5-1.6.1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE a IS NULL",
+          "variable": "r",
+          "resultAll": true,
+          "expect": "{WHERE a IS NULL}"
+        }
+      ]
+    },
+    {
+      "name": "bestindex5-1.6.2",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE NULL IS a",
+          "variable": "r",
+          "resultAll": true,
+          "expect": "{WHERE a IS ''}"
+        }
+      ]
+    },
+    {
+      "name": "bestindex5-1.7.1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE (a, b) IS (1, 2)",
+          "variable": "r",
+          "resultAll": true,
+          "expect": "{WHERE a IS '1' AND b IS '2'} 1 2 3.0"
+        }
+      ]
+    },
+    {
+      "name": "bestindex5-1.7.2",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1 WHERE (5, 4) IS (b, a)",
+          "variable": "r",
+          "resultAll": true,
+          "expect": "{WHERE b IS '5' AND a IS '4'} 4 5 6.0"
+        }
+      ]
+    },
+    {
+      "name": "bestindex5-2.0.0",
       "steps": [
         {
           "type": "exec",
@@ -21,7 +237,7 @@
       ]
     },
     {
-      "name": "2.0.1",
+      "name": "bestindex5-2.0.1",
       "steps": [
         {
           "type": "query",
@@ -31,7 +247,7 @@
       ]
     },
     {
-      "name": "2.0.2",
+      "name": "bestindex5-2.0.2",
       "steps": [
         {
           "type": "query",
@@ -40,7 +256,7 @@
       ]
     },
     {
-      "name": "2.1.0",
+      "name": "bestindex5-2.1.0",
       "steps": [
         {
           "type": "exec",
@@ -49,7 +265,7 @@
       ]
     },
     {
-      "name": "2.1.1",
+      "name": "bestindex5-2.1.1",
       "steps": [
         {
           "type": "query",
@@ -59,7 +275,7 @@
       ]
     },
     {
-      "name": "2.1.2",
+      "name": "bestindex5-2.1.2",
       "steps": [
         {
           "type": "query",
@@ -68,7 +284,7 @@
       ]
     },
     {
-      "name": "2.1.3",
+      "name": "bestindex5-2.1.3",
       "steps": [
         {
           "type": "query",
@@ -77,7 +293,7 @@
       ]
     },
     {
-      "name": "2.1.4",
+      "name": "bestindex5-2.1.4",
       "steps": [
         {
           "type": "query",
@@ -86,7 +302,7 @@
       ]
     },
     {
-      "name": "2.2.1",
+      "name": "bestindex5-2.2.1",
       "steps": [
         {
           "type": "exec",
@@ -95,7 +311,7 @@
       ]
     },
     {
-      "name": "2.2.2",
+      "name": "bestindex5-2.2.2",
       "steps": [
         {
           "type": "query",
@@ -104,7 +320,7 @@
       ]
     },
     {
-      "name": "2.2.3",
+      "name": "bestindex5-2.2.3",
       "steps": [
         {
           "type": "query",
@@ -113,7 +329,7 @@
       ]
     },
     {
-      "name": "2.2.4",
+      "name": "bestindex5-2.2.4",
       "steps": [
         {
           "type": "query",
@@ -123,7 +339,7 @@
       ]
     },
     {
-      "name": "2.2.5",
+      "name": "bestindex5-2.2.5",
       "steps": [
         {
           "type": "query",
@@ -133,7 +349,7 @@
       ]
     },
     {
-      "name": "3.0",
+      "name": "bestindex5-3.0",
       "steps": [
         {
           "type": "exec",
@@ -142,7 +358,7 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "bestindex5-3.1",
       "steps": [
         {
           "type": "query",
@@ -152,7 +368,7 @@
       ]
     },
     {
-      "name": "3.2",
+      "name": "bestindex5-3.2",
       "steps": [
         {
           "type": "query",
@@ -162,7 +378,7 @@
       ]
     },
     {
-      "name": "3.3",
+      "name": "bestindex5-3.3",
       "steps": [
         {
           "type": "query",
@@ -171,7 +387,7 @@
       ]
     },
     {
-      "name": "3.4",
+      "name": "bestindex5-3.4",
       "steps": [
         {
           "type": "query",
@@ -180,7 +396,7 @@
       ]
     },
     {
-      "name": "3.5",
+      "name": "bestindex5-3.5",
       "steps": [
         {
           "type": "query",

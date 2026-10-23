@@ -1,13 +1,79 @@
 {
   "file": "walbig.test",
   "name": "walbig",
+  "ordered": true,
   "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "a_string",
+          "callbackVars": {
+            "": "1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "a_string_counter": "1",
+            "testdir": ""
+          },
+          "functionProc": "a_string",
+          "functionArgs": [
+            "n"
+          ],
+          "functionBody": "\n  incr ::a_string_counter\n  string range [string repeat \"${::a_string_counter}.\" $n] 1 $n\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
     {
       "name": "walbig-1.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(300), a_string(500));\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;"
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(300), a_string(500));\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileData": "00000000",
+          "fileTarget": "test.db",
+          "fileOffset": 28
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "a_string",
+          "callbackVars": {
+            "": "0",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "a_string_counter": "1",
+            "testdir": ""
+          },
+          "functionProc": "a_string",
+          "functionArgs": [
+            "n"
+          ],
+          "functionBody": "\n  incr ::a_string_counter\n  string range [string repeat \"${::a_string_counter}.\" $n] 1 $n\n",
+          "minArgs": 1,
+          "maxArgs": -1
         }
       ]
     },
@@ -21,11 +87,48 @@
       ]
     },
     {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 ORDER BY rowid",
+          "resultTransform": "lsort:ascii"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 ORDER BY rowid",
+          "resultTransform": "lsort:ascii"
+        }
+      ]
+    },
+    {
       "name": "walbig-1.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a FROM t1 ORDER BY a"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 ORDER BY rowid",
+          "resultTransform": "lsort:ascii"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 ORDER BY rowid",
+          "resultTransform": "lsort:ascii"
         }
       ]
     },
@@ -33,40 +136,8 @@
       "name": "walbig-1.3",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT b FROM t1 ORDER BY b"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(300), a_string(500));\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 ORDER BY a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 ORDER BY rowid"
-        },
-        {
           "type": "exec",
           "sql": "SELECT b FROM t1 ORDER BY b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT b FROM t1 ORDER BY rowid"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

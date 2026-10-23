@@ -1,6 +1,7 @@
 {
   "file": "autovacuum2.test",
   "name": "autovacuum2",
+  "ordered": true,
   "tests": [
     {
       "name": "autovacuum2-1.0",

@@ -1,0 +1,79 @@
+{
+  "file": "quota2.test",
+  "name": "quota2",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "quota2a/x1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "quota2a/x2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "quota2a"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "quota2b"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "quota2c"
+        }
+      ]
+    },
+    {
+      "name": "quota2-1.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "quota",
+          "expect": "PWD/quota2a/xyz.txt 4000 7000"
+        }
+      ]
+    },
+    {
+      "name": "quota2-2.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "quota"
+        }
+      ]
+    }
+  ]
+}

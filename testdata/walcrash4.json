@@ -1,29 +1,2117 @@
 {
   "file": "walcrash4.test",
   "name": "walcrash4",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "walcrash4-1.0",
       "steps": [
         {
           "type": "query",
           "sql": "PRAGMA autovacuum = 0;\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = wal;\n  PRAGMA main.synchronous = full;",
           "expect": "wal"
-        },
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=0.i=0.1",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);"
-        },
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (0+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=0.i=0.2",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;"
-        },
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=0.i=1.1",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t[set e] (x)"
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (0+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=0.i=1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=0.i=2.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (0+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=0.i=2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=0.i=3.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (0+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=0.i=3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=0.i=4.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (0+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=0.i=4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=0.i=5.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (0+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=0.i=5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=0.i=6.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (0+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=0.i=6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=0.i=7.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (0+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=0.i=7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=0.i=8.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (0+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=0.i=8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=0.i=9.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (0+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=0.i=9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=1.i=0.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (1+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=1.i=0.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=1.i=1.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (1+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=1.i=1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=1.i=2.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (1+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=1.i=2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=1.i=3.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (1+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=1.i=3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=1.i=4.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (1+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=1.i=4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=1.i=5.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (1+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=1.i=5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=1.i=6.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (1+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=1.i=6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=1.i=7.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (1+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=1.i=7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=1.i=8.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (1+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=1.i=8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=1.i=9.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (1+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=1.i=9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=2.i=0.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (2+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=2.i=0.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=2.i=1.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (2+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=2.i=1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=2.i=2.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (2+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=2.i=2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=2.i=3.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (2+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=2.i=3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=2.i=4.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (2+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=2.i=4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=2.i=5.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (2+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=2.i=5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=2.i=6.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (2+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=2.i=6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=2.i=7.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (2+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=2.i=7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=2.i=8.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (2+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=2.i=8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=2.i=9.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (2+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=2.i=9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=3.i=0.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (3+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=3.i=0.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=3.i=1.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (3+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=3.i=1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=3.i=2.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (3+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=3.i=2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=3.i=3.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (3+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=3.i=3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=3.i=4.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (3+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=3.i=4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=3.i=5.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (3+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=3.i=5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=3.i=6.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (3+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=3.i=6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=3.i=7.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (3+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=3.i=7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=3.i=8.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (3+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=3.i=8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=3.i=9.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (3+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=3.i=9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=4.i=0.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (4+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=4.i=0.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=4.i=1.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (4+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=4.i=1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=4.i=2.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (4+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=4.i=2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=4.i=3.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (4+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=4.i=3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=4.i=4.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (4+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=4.i=4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=4.i=5.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (4+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=4.i=5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=4.i=6.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (4+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=4.i=6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=4.i=7.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (4+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=4.i=7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=4.i=8.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (4+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=4.i=8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=4.i=9.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (4+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=4.i=9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=5.i=0.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (5+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=5.i=0.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=5.i=1.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (5+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=5.i=1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=5.i=2.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (5+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=5.i=2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=5.i=3.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (5+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=5.i=3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=5.i=4.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (5+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=5.i=4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=5.i=5.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (5+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=5.i=5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=5.i=6.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (5+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=5.i=6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=5.i=7.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (5+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=5.i=7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=5.i=8.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (5+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=5.i=8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=5.i=9.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (5+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=5.i=9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=6.i=0.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (6+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=6.i=0.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=6.i=1.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (6+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=6.i=1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=6.i=2.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (6+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=6.i=2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=6.i=3.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (6+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=6.i=3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=6.i=4.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (6+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=6.i=4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=6.i=5.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (6+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=6.i=5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=6.i=6.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (6+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=6.i=6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=6.i=7.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (6+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=6.i=7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=6.i=8.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (6+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=6.i=8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=6.i=9.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (6+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=6.i=9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=7.i=0.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (7+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=7.i=0.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=7.i=1.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (7+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=7.i=1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=7.i=2.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (7+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=7.i=2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=7.i=3.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (7+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=7.i=3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=7.i=4.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (7+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=7.i=4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=7.i=5.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (7+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=7.i=5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=7.i=6.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (7+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=7.i=6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=7.i=7.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (7+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=7.i=7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=7.i=8.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (7+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=7.i=8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=7.i=9.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (7+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=7.i=9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=8.i=0.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (8+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=8.i=0.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=8.i=1.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (8+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=8.i=1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=8.i=2.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (8+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=8.i=2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=8.i=3.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (8+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=8.i=3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=8.i=4.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (8+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=8.i=4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=8.i=5.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (8+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=8.i=5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=8.i=6.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (8+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=8.i=6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=8.i=7.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (8+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=8.i=7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=8.i=8.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (8+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=8.i=8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=8.i=9.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (8+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=8.i=9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=9.i=0.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (9+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=9.i=0.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=9.i=1.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (9+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=9.i=1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=9.i=2.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (9+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=9.i=2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=9.i=3.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (9+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=9.i=3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=9.i=4.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (9+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=9.i=4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=9.i=5.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (9+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=9.i=5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=9.i=6.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (9+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=9.i=6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=9.i=7.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (9+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=9.i=7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=9.i=8.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (9+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=9.i=8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=9.i=9.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "crash.tcl",
+          "expect": "1 {child process exited abnormally}",
+          "fileData": "\n        sqlite3_crash_enable 1\n        sqlite3_test_control_pending_byte \n        sqlite3 db test.db -vfs crash\n        db eval {\n          PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);\n        }\n        for {set e 2} {[set e] \u003c (9+2)} {incr e} {\n          db eval \"CREATE TABLE t[set e] (x)\"\n        }\n        db eval {\n          INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;\n        }\n        sqlite3_crash_now\n      \n"
+        }
+      ]
+    },
+    {
+      "name": "walcrash4-1.nExtra=9.i=9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n      PRAGMA integrity_check;",
+          "expect": "1 ok"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

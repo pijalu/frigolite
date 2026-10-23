@@ -1,9 +1,22 @@
 {
   "file": "sortfault.test",
   "name": "sortfault",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "sortfault-1.0",
       "steps": [
         {
           "type": "query",
@@ -12,7 +25,43 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA threads=0"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA threads=0"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA threads=1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA threads=0"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 5"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "sortfault-4.0",
       "steps": [
         {
           "type": "exec",
@@ -21,66 +70,1046 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "sortfault-4.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 SELECT\n        ((a<<3) + b) & 2147483647,\n        ((b<<3) + c) & 2147483647,\n        ((c<<3) + a) & 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
         },
         {
           "type": "exec",
-          "sql": "PRAGMA cache_size = 5"
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
         },
         {
           "type": "exec",
-          "sql": "WITH r(x,y) AS (\n          SELECT 1, $::str\n          UNION ALL\n          SELECT x+1, $::str FROM r\n          LIMIT 200\n      )\n      SELECT count(x), length(y) FROM r GROUP BY (x%5)"
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
         },
         {
           "type": "exec",
-          "sql": "PRAGMA cache_size = 5"
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
         },
         {
           "type": "exec",
-          "sql": "WITH r(x,y) AS (\n          SELECT 100, $::str\n          UNION ALL\n          SELECT x-1, $::str FROM r\n          LIMIT 100\n      )\n      SELECT count(x), length(y) FROM r GROUP BY y COLLATE utf16bin, (x%5)"
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
         },
         {
           "type": "exec",
-          "sql": "PRAGMA cache_size = 5"
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
         },
         {
           "type": "exec",
-          "sql": "WITH r(x,y) AS (\n            SELECT 300, $::str2\n            UNION ALL\n            SELECT x-1, $::str2 FROM r\n            LIMIT 300\n        )\n        SELECT count(x), length(y) FROM r GROUP BY y, (x%5)"
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 SELECT\n        ((a<<3) + b) & 2147483647,\n        ((b<<3) + c) & 2147483647,\n        ((c<<3) + a) & 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
         },
         {
           "type": "exec",
-          "sql": "CREATE UNIQUE INDEX i1 ON t1(a,b,c)"
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM t1 ORDER BY a"
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT\n        ((a\u003c\u003c3) + b) \u0026 2147483647,\n        ((b\u003c\u003c3) + c) \u0026 2147483647,\n        ((c\u003c\u003c3) + a) \u0026 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
+      "steps": null
     },
     {
-      "name": "__RESET_DB__",
+      "name": "sortfault-5.0",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc'); \n  INSERT INTO t1 VALUES('cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc', 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

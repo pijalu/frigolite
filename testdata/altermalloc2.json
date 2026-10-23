@@ -1,9 +1,10 @@
 {
   "file": "altermalloc2.test",
   "name": "altermalloc2",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "altermalloc2-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,33 @@
       ]
     },
     {
-      "name": "2.0",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "altermalloc2-2.0",
       "steps": [
         {
           "type": "exec",
@@ -21,7 +48,11 @@
       ]
     },
     {
-      "name": "3.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altermalloc2-3.0",
       "steps": [
         {
           "type": "exec",
@@ -30,7 +61,11 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altermalloc2-4.0",
       "steps": [
         {
           "type": "exec",
@@ -39,7 +74,11 @@
       ]
     },
     {
-      "name": "5.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altermalloc2-5.0",
       "steps": [
         {
           "type": "exec",

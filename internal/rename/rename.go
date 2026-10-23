@@ -16,11 +16,12 @@ import (
 
 // RenameContext tracks the rename operation state.
 type RenameContext struct {
-	OldName   string // the name being replaced
-	NewName   string // the replacement name
-	QuotedNew string // NewName, double-quoted if needed
-	IsTable   bool   // true = rename table, false = rename column
-	TableName string // for column renames: which table's column
+	OldName    string // the name being replaced
+	NewName    string // the replacement name
+	QuotedNew  string // NewName, double-quoted if needed
+	ForceQuote bool   // render selected replacements as double-quoted identifiers
+	IsTable    bool   // true = rename table, false = rename column
+	TableName  string // for column renames: which table's column
 }
 
 // RenameRange represents a byte range in the original SQL text to replace.
@@ -66,9 +67,7 @@ func collectRanges(stmt sql.Stmt, ctx *RenameContext, ranges *[]RenameRange) {
 	case *sql.InsertStmt:
 		collectInsertRanges(s, ctx, ranges)
 	case *sql.UpdateStmt:
-		// UPDATE table SET ... — the table name. UpdateStmt doesn't have
-		// TokenInfo on its Table field yet, so no token-level rename here;
-		// the string replacement handles it.
+		collectUpdateRanges(s, ctx, ranges)
 	case *sql.DeleteStmt:
 		// Same as UPDATE — no TokenInfo on DeleteStmt.Table yet.
 	case *sql.CreateTriggerStmt:
@@ -85,6 +84,17 @@ func collectRanges(stmt sql.Stmt, ctx *RenameContext, ranges *[]RenameRange) {
 }
 
 // collectInsertRanges walks an INSERT statement's SELECT for rename ranges.
+func collectUpdateRanges(s *sql.UpdateStmt, ctx *RenameContext, ranges *[]RenameRange) {
+	if ctx.IsTable || !strings.EqualFold(s.Table, ctx.TableName) {
+		return
+	}
+	for _, assignment := range s.Assignments {
+		if strings.EqualFold(assignment.Column, ctx.OldName) && assignment.ColumnTok.Start >= 0 && assignment.ColumnTok.End > assignment.ColumnTok.Start {
+			*ranges = append(*ranges, RenameRange{Start: assignment.ColumnTok.Start, End: assignment.ColumnTok.End})
+		}
+	}
+}
+
 func collectInsertRanges(s *sql.InsertStmt, ctx *RenameContext, ranges *[]RenameRange) {
 	if s.Select != nil {
 		collectSelectRanges(s.Select, ctx, ranges)
@@ -130,6 +140,9 @@ func collectTableRanges(s *sql.CreateTableStmt, ctx *RenameContext, ranges *[]Re
 		}
 		if col.Default != nil {
 			collectExprRange(col.Default, ctx, ranges)
+		}
+		if col.Generated != nil {
+			collectExprRange(col.Generated, ctx, ranges)
 		}
 	}
 	// Walk table-level constraints (CHECK expressions)
@@ -424,9 +437,39 @@ func deduplicateRanges(ranges []RenameRange) []RenameRange {
 	return result
 }
 
-// ApplyRenames applies a set of byte-range replacements to a SQL text.
-// Ranges must be sorted in ascending order (they will be sorted if not).
-// Each range [start, end) is replaced with the replacement string.
+// ApplyContextRenames renders selected ranges using SQLite's rename-token rules.
+// ForceQuote quotes all replacements; otherwise already-quoted source tokens retain quoting.
+func ApplyContextRenames(sqlText string, ranges []RenameRange, ctx *RenameContext) string {
+	if len(ranges) == 0 {
+		return sqlText
+	}
+	sorted := append([]RenameRange(nil), ranges...)
+	sort.Slice(sorted, func(i, j int) bool { return sorted[i].Start > sorted[j].Start })
+	result := sqlText
+	for _, r := range sorted {
+		if r.Start < 0 || r.End > len(result) || r.Start >= r.End {
+			continue
+		}
+		replacement := ctx.NewName
+		quoted := ctx.ForceQuote || !isIdentifierByte(result[r.Start])
+		if quoted {
+			replacement = quoteIdentifier(ctx.NewName)
+			if r.End < len(sqlText) && sqlText[r.End] == '"' {
+				replacement += " "
+			}
+		}
+		result = result[:r.Start] + replacement + result[r.End:]
+	}
+	return result
+}
+func isIdentifierByte(b byte) bool {
+	return b == '_' || b == '$' || b >= 0x80 || b >= '0' && b <= '9' || b >= 'A' && b <= 'Z' || b >= 'a' && b <= 'z'
+}
+
+func quoteIdentifier(name string) string {
+	return `"` + strings.ReplaceAll(name, `"`, `""`) + `"`
+}
+
 func ApplyRenames(sqlText string, ranges []RenameRange, replacement string) string {
 	if len(ranges) == 0 {
 		return sqlText

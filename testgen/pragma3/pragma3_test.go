@@ -158,7 +158,17 @@ func Test_pragma3(t *testing.T) {
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "pragma3-160" — skipped: data_version cross-connection bump not representable with db2 aliasing (SQL + file side effects only)
-		_res = db.Exec("\n    BEGIN;\n    PRAGMA data_version;\n    UPDATE t1 SET a=555 WHERE a=501;\n    PRAGMA data_version;\n    SELECT * FROM t1 ORDER BY a;\n    PRAGMA data_version;\n  ")
+		_res = db.Exec("BEGIN")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("PRAGMA data_version")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("UPDATE t1 SET a=555 WHERE a=501")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("PRAGMA data_version")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("SELECT * FROM t1 ORDER BY a")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("PRAGMA data_version")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "pragma3-170" — skipped: data_version cross-connection bump not representable with db2 aliasing (SQL + file side effects only)
@@ -166,7 +176,9 @@ func Test_pragma3(t *testing.T) {
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "pragma3-180" — skipped: data_version cross-connection bump not representable with db2 aliasing (SQL + file side effects only)
-		_res = db.Exec("\n    COMMIT;\n    PRAGMA data_version;\n  ")
+		_res = db.Exec("COMMIT")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("PRAGMA data_version")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "pragma3-190" — skipped: data_version cross-connection bump not representable with db2 aliasing (SQL + file side effects only)
@@ -176,12 +188,16 @@ func Test_pragma3(t *testing.T) {
 	{ // "pragma3-195" — skipped: data_version cross-connection bump not representable with db2 aliasing
 	}
 	{ // "pragma3-200" — skipped: data_version cross-connection bump not representable with db2 aliasing (SQL + file side effects only)
-		_res = db.Exec("PRAGMA data_version; SELECT * FROM t1;")
+		_res = db.Exec("PRAGMA data_version")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("SELECT * FROM t1")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "pragma3-201" — skipped: data_version cross-connection bump not representable with db2 aliasing (SQL + file side effects only)
 		os.RemoveAll("pragma3.txt")
-		_res = db.Exec("\n    PRAGMA data_version;\n    SELECT * FROM t1;\n  ")
+		_res = db.Exec("PRAGMA data_version")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("SELECT * FROM t1")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	if db2 != nil { db2.Close() }
@@ -196,19 +212,33 @@ func Test_pragma3(t *testing.T) {
 			tclConnRegister("db2", db2)
 			if err != nil { t.Fatal(err) }
 			{ // "pragma3-400" — skipped: WAL-mode data_version reopen not supported (SQL + file side effects only)
-				_res = db.Exec("\n      PRAGMA data_version;\n      PRAGMA journal_mode;\n      SELECT * FROM t1;\n    ")
+				_res = db.Exec("PRAGMA data_version")
+				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+				_res = db.Exec("PRAGMA journal_mode")
+				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+				_res = db.Exec("SELECT * FROM t1")
 				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 			}
 			{ // "pragma3-410" — skipped: WAL-mode data_version reopen not supported (SQL + file side effects only)
-				_res = db2.Exec("\n      PRAGMA data_version;\n      PRAGMA journal_mode;\n      SELECT * FROM t1;\n    ")
+				_res = db2.Exec("PRAGMA data_version")
+				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+				_res = db2.Exec("PRAGMA journal_mode")
+				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+				_res = db2.Exec("SELECT * FROM t1")
 				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 			}
 			{ // "pragma3-420" — skipped: WAL-mode data_version reopen not supported (SQL + file side effects only)
-				_res = db.Exec("UPDATE t1 SET a=111*(a/100); PRAGMA data_version; SELECT * FROM t1")
+				_res = db.Exec("UPDATE t1 SET a=111*(a/100)")
+				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+				_res = db.Exec("PRAGMA data_version")
+				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+				_res = db.Exec("SELECT * FROM t1")
 				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 			}
 			{ // "pragma3-430" — skipped: WAL-mode data_version reopen not supported (SQL + file side effects only)
-				_res = db2.Exec("PRAGMA data_version; SELECT * FROM t1;")
+				_res = db2.Exec("PRAGMA data_version")
+				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+				_res = db2.Exec("SELECT * FROM t1")
 				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 			}
 			if db2 != nil { db2.Close() }

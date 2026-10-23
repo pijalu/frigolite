@@ -1,31 +1,56 @@
 {
   "file": "walsetlk_recover.test",
   "name": "walsetlk_recover",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "walsetlk_recover-1.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);"
+          "sql": "PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);",
+          "expect": "wal"
         }
       ]
     },
     {
-      "name": "1.4",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "walsetlk_recover-1.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "msg",
+          "expect": "database is locked"
+        }
+      ]
+    },
+    {
+      "name": "walsetlk_recover-1.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t1",
           "expect": "1 2 3 4 5 6"
-        },
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
+          "type": "close_db"
         }
       ]
     }

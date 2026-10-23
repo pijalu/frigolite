@@ -1,12 +1,13 @@
 {
   "file": "fts3ad.test",
   "name": "fts3ad",
+  "ordered": true,
   "tests": [
     {
       "name": "fts3ad-1.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "CREATE VIRTUAL TABLE t1 USING fts3(content, tokenize porter);\n    INSERT INTO t1(rowid, content) VALUES(1, 'running and jumping');\n    SELECT rowid FROM t1 WHERE content MATCH 'run jump';",
           "expect": "1"
         }
@@ -16,9 +17,9 @@
       "name": "fts3ad-1.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT snippet(t1) FROM t1 WHERE t1 MATCH 'run jump';",
-          "expect": "{<b>running</b> and <b>jumping</b>}"
+          "expect": "{\u003cb\u003erunning\u003c/b\u003e and \u003cb\u003ejumping\u003c/b\u003e}"
         }
       ]
     },
@@ -26,9 +27,9 @@
       "name": "fts3ad-1.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "INSERT INTO t1(rowid, content) \n          VALUES(2, 'abcdefghijklmnopqrstuvwyxz');\n    SELECT rowid, snippet(t1) FROM t1 WHERE t1 MATCH 'abcdefghijqrstuvwyxz'",
-          "expect": "2 <b>abcdefghijklmnopqrstuvwyxz</b>"
+          "expect": "2 \u003cb\u003eabcdefghijklmnopqrstuvwyxz\u003c/b\u003e"
         }
       ]
     },
@@ -36,9 +37,9 @@
       "name": "fts3ad-1.4",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT rowid, snippet(t1) FROM t1 WHERE t1 MATCH 'abcdefghijXXXXqrstuvwyxz'",
-          "expect": "2 <b>abcdefghijklmnopqrstuvwyxz</b>"
+          "expect": "2 \u003cb\u003eabcdefghijklmnopqrstuvwyxz\u003c/b\u003e"
         }
       ]
     },
@@ -46,9 +47,9 @@
       "name": "fts3ad-1.5",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "INSERT INTO t1(rowid, content) \n          VALUES(3, 'The value is 123456789');\n    SELECT rowid, snippet(t1) FROM t1 WHERE t1 MATCH '123789'",
-          "expect": "3 {The value is <b>123456789</b>}"
+          "expect": "3 {The value is \u003cb\u003e123456789\u003c/b\u003e}"
         }
       ]
     },
@@ -56,9 +57,9 @@
       "name": "fts3ad-1.6",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT rowid, snippet(t1) FROM t1 WHERE t1 MATCH '123000000789'",
-          "expect": "3 {The value is <b>123456789</b>}"
+          "expect": "3 {The value is \u003cb\u003e123456789\u003c/b\u003e}"
         }
       ]
     },
@@ -66,7 +67,7 @@
       "name": "fts3ad-2.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3(content, tokenize    porter);\n    INSERT INTO t1(rowid, content) VALUES(1, 'running and jumping');\n    SELECT rowid FROM t1 WHERE content MATCH 'run jump';",
           "expect": "1"
         }
@@ -76,7 +77,7 @@
       "name": "fts3ad-2.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3(content, tokenize=   porter);\n    INSERT INTO t1(rowid, content) VALUES(1, 'running and jumping');\n    SELECT rowid FROM t1 WHERE content MATCH 'run jump';",
           "expect": "1"
         }
@@ -86,7 +87,7 @@
       "name": "fts3ad-2.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3(content, tokenize=   simple);\n    INSERT INTO t1(rowid, content) VALUES(1, 'running and jumping');\n    SELECT rowid FROM t1 WHERE content MATCH 'run jump';"
         }
       ]
@@ -95,7 +96,7 @@
       "name": "fts3ad-2.4",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3(content,   tokenize=   porter);\n    INSERT INTO t1(rowid, content) VALUES(1, 'running and jumping');\n    SELECT rowid FROM t1 WHERE content MATCH 'run jump';",
           "expect": "1"
         }
@@ -105,53 +106,9 @@
       "name": "fts3ad-2.5",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3(content,\t   tokenize =   porter);\n    INSERT INTO t1(rowid, content) VALUES(1, 'running and jumping');\n    SELECT rowid FROM t1 WHERE content MATCH 'run jump';",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE t1 USING fts3(content, tokenize porter);\n    INSERT INTO t1(rowid, content) VALUES(1, 'running and jumping');\n    SELECT rowid FROM t1 WHERE content MATCH 'run jump';"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT snippet(t1) FROM t1 WHERE t1 MATCH 'run jump';"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1(rowid, content) \n          VALUES(2, 'abcdefghijklmnopqrstuvwyxz');\n    SELECT rowid, snippet(t1) FROM t1 WHERE t1 MATCH 'abcdefghijqrstuvwyxz'"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT rowid, snippet(t1) FROM t1 WHERE t1 MATCH 'abcdefghijXXXXqrstuvwyxz'"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1(rowid, content) \n          VALUES(3, 'The value is 123456789');\n    SELECT rowid, snippet(t1) FROM t1 WHERE t1 MATCH '123789'"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT rowid, snippet(t1) FROM t1 WHERE t1 MATCH '123000000789'"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3(content, tokenize    porter);\n    INSERT INTO t1(rowid, content) VALUES(1, 'running and jumping');\n    SELECT rowid FROM t1 WHERE content MATCH 'run jump';"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3(content, tokenize=   porter);\n    INSERT INTO t1(rowid, content) VALUES(1, 'running and jumping');\n    SELECT rowid FROM t1 WHERE content MATCH 'run jump';"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3(content, tokenize=   simple);\n    INSERT INTO t1(rowid, content) VALUES(1, 'running and jumping');\n    SELECT rowid FROM t1 WHERE content MATCH 'run jump';"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3(content,   tokenize=   porter);\n    INSERT INTO t1(rowid, content) VALUES(1, 'running and jumping');\n    SELECT rowid FROM t1 WHERE content MATCH 'run jump';"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3(content,\t   tokenize =   porter);\n    INSERT INTO t1(rowid, content) VALUES(1, 'running and jumping');\n    SELECT rowid FROM t1 WHERE content MATCH 'run jump';"
         }
       ]
     }

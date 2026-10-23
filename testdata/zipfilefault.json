@@ -1,0 +1,69 @@
+{
+  "file": "zipfilefault.test",
+  "name": "zipfilefault",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.zip"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "zipfilefault-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE setup USING zipfile('test.zip');\n  INSERT INTO setup(name, data) VALUES('a.txt', '1234567890');"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.zip"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "zipfilefault-3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE setup USING zipfile('test.zip');\n  INSERT INTO setup(name, data) VALUES('a.txt', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaa');"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "zipfilefault-5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE setup USING zipfile('test.zip')"
+        }
+      ]
+    }
+  ]
+}

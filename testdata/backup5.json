@@ -1,9 +1,19 @@
 {
   "file": "backup5.test",
   "name": "backup5",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db"
+        }
+      ]
+    },
+    {
+      "name": "backup5-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,8 +22,13 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "backup5-1.1",
       "steps": [
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "test.db2"
+        },
         {
           "type": "exec",
           "sql": "DROP TABLE t2;\n    INSERT INTO t1 VALUES(zeroblob(1000), zeroblob(1000));\n    INSERT INTO t1 VALUES(randomblob(1000), randomblob(1000));"
@@ -21,7 +36,135 @@
       ]
     },
     {
-      "name": "2.0",
+      "name": "backup5-1.2",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db2",
+          "database": "db2"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t2",
+          "variable": "stmt_1",
+          "database": "db2"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t2",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_1__",
+          "expect": "SQLITE_ROW"
+        }
+      ]
+    },
+    {
+      "name": "backup5-1.5",
+      "steps": [
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT * FROM t2",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "SQLITE_OK",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "backup5-1.6",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t2",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t2",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_1__ SQLITE_OK",
+          "expect": "SQLITE_ERROR SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test3.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test4.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test5.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test6.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test7.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test8.db"
+        }
+      ]
+    },
+    {
+      "name": "backup5-2.0",
       "steps": [
         {
           "type": "exec",
@@ -30,7 +173,17 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test2.db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "backup5-2.1",
       "steps": [
         {
           "type": "exec",
@@ -40,7 +193,16 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "backup5-2.2",
       "steps": [
         {
           "type": "exec",
@@ -49,7 +211,17 @@
       ]
     },
     {
-      "name": "2.3",
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test2.db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "backup5-2.3",
       "steps": [
         {
           "type": "exec",
@@ -59,7 +231,20 @@
       ]
     },
     {
-      "name": "3.0",
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "backup5-3.0",
       "steps": [
         {
           "type": "exec",
@@ -68,20 +253,50 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "delete_file",
       "steps": [
         {
-          "type": "exec",
-          "sql": "ATTACH 'test.db3' AS aux;"
+          "type": "delete_file",
+          "sql": "test.db2"
         }
       ]
     },
     {
-      "name": "3.2",
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db3"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db2",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "backup5-3.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "DETACH aux"
+          "sql": "ATTACH 'test.db3' AS aux;",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "backup5-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DETACH aux",
+          "database": "db2"
         }
       ]
     }

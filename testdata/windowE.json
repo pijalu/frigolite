@@ -1,9 +1,34 @@
 {
   "file": "windowE.test",
   "name": "windowE",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_collation",
+          "collationName": "custom",
+          "collationProc": "custom",
+          "collationBody": " return [string compare $a $b] ",
+          "callbackVars": {
+            "": "windowE",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "windowE"
+          },
+          "functionArgs": [
+            "a",
+            "b"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "windowE-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,37 +37,41 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "windowE-1.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t1",
-          "expect": "1 one 2 two 3 three 4 four 5 five 6 six"
+          "expect": "\n  1 one 2 two 3 three 4 four 5 five 6 six\n"
         }
       ]
     },
     {
-      "name": "1.2",
+      "name": "windowE-1.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT group_concat(a,',') OVER win FROM t1 \n  WINDOW win AS (\n    ORDER BY b RANGE BETWEEN 1 PRECEDING AND 2 PRECEDING\n  )",
-          "expect": "5 4 1 6 3 2"
+          "expect": "\n  5 4 1 6 3 2\n"
         }
       ]
     },
     {
-      "name": "1.3",
+      "name": "windowE-1.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT group_concat(a,',') OVER win FROM t1 \n  WINDOW win AS (\n    ORDER BY b RANGE BETWEEN 1 PRECEDING AND 2 PRECEDING\n  )",
-          "expect": "5 5,4 5,4,1 5,4,1,6 5,4,1,6,3 5,4,1,6,3,2"
+          "expect": "\n  5 5,4 5,4,1 5,4,1,6 5,4,1,6,3 5,4,1,6,3,2\n"
         }
       ]
     },
     {
-      "name": "2.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "windowE-2.0",
       "steps": [
         {
           "type": "exec",
@@ -51,27 +80,31 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "windowE-2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT min(x) OVER w1 FROM t1\n    WINDOW w1 AS (PARTITION BY x_count(x) OVER w1);",
           "expect": "1 {x_count() may not be used as a window function}"
         }
       ]
     },
     {
-      "name": "2.2",
+      "name": "windowE-2.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT min(x) FILTER (WHERE x_count(x) OVER w1) OVER w1 FROM t1\n    WINDOW w1 AS (PARTITION BY x OVER w1);",
           "expect": "1 {near \"OVER\": syntax error}"
         }
       ]
     },
     {
-      "name": "3.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "windowE-3.0",
       "steps": [
         {
           "type": "exec",
@@ -80,17 +113,21 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "windowE-3.1",
       "steps": [
         {
           "type": "query",
           "sql": "select c1, max(c2) over (order by c1 range 366.0 preceding) from t2;",
-          "expect": "447 0.0 448 0.0 449 0.0 452 0.0 453 0.0 454 0.0 455 0.0 456 0.0 459 0.0 \n  460 0.0 462 0.0 463 0.0 466 0.0 467 0.0 468 0.0 469 0.0 470 0.0 473 0.0 \n  474 0.0 475 0.0 476 0.0 477 0.0 480 0.0 481 0.0 482 0.0 483 0.0 484 0.0 \n  487 0.0 488 0.0 489 0.0 490 0.0 491 0.0 494 0.0 495 0.0 496 0.0 497 0.0 \n  498 0.0 501 0.0 502 0.0 503 0.0 504 0.0 505 0.0 508 0.0 509 0.0 510 0.0 \n  511 0.0 512 0.0 515 0.0 516 0.0 517 0.0 518 0.0 519 0.0 522 0.0 523 0.0 \n  524 0.0 525 0.0 526 0.0 529 0.0 530 0.0 531 0.0 532 0.0 533 0.0 536 0.0 \n  537 1.0 538 1.0 539 1.0 540 1.0 543 1.0 544 1.0"
+          "expect": "\n  447 0.0 448 0.0 449 0.0 452 0.0 453 0.0 454 0.0 455 0.0 456 0.0 459 0.0 \n  460 0.0 462 0.0 463 0.0 466 0.0 467 0.0 468 0.0 469 0.0 470 0.0 473 0.0 \n  474 0.0 475 0.0 476 0.0 477 0.0 480 0.0 481 0.0 482 0.0 483 0.0 484 0.0 \n  487 0.0 488 0.0 489 0.0 490 0.0 491 0.0 494 0.0 495 0.0 496 0.0 497 0.0 \n  498 0.0 501 0.0 502 0.0 503 0.0 504 0.0 505 0.0 508 0.0 509 0.0 510 0.0 \n  511 0.0 512 0.0 515 0.0 516 0.0 517 0.0 518 0.0 519 0.0 522 0.0 523 0.0 \n  524 0.0 525 0.0 526 0.0 529 0.0 530 0.0 531 0.0 532 0.0 533 0.0 536 0.0 \n  537 1.0 538 1.0 539 1.0 540 1.0 543 1.0 544 1.0\n"
         }
       ]
     },
     {
-      "name": "4.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "windowE-4.0",
       "steps": [
         {
           "type": "exec",
@@ -99,27 +136,31 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "windowE-4.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, \n    total(b) OVER (ORDER BY a ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING)\n  FROM t1;",
-          "expect": "1 9.22337203685478e+18 2 9.22337203685478e+18 3 7.0 4 4.0"
+          "expect": "\n  1 9.22337203685478e+18 2 9.22337203685478e+18 3 7.0 4 4.0\n"
         }
       ]
     },
     {
-      "name": "4.2",
+      "name": "windowE-4.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, \n    total(b) OVER (ORDER BY a ROWS BETWEEN CURRENT ROW AND 2 FOLLOWING)\n  FROM t1;",
-          "expect": "1 9.22337203685478e+18 2 9.22337203685478e+18 3 7.0 4 4.0"
+          "expect": "\n  1 9.22337203685478e+18 2 9.22337203685478e+18 3 7.0 4 4.0\n"
         }
       ]
     },
     {
-      "name": "5.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "windowE-5.0",
       "steps": [
         {
           "type": "exec",
@@ -128,57 +169,24 @@
       ]
     },
     {
-      "name": "5.1",
+      "name": "windowE-5.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT id,\n    sum(id) OVER (ORDER BY id ROWS BETWEEN CURRENT ROW AND 2 FOLLOWING) \n  FROM t t1",
-          "expect": "1 6\n  2 9\n  3 7\n  4 4"
+          "expect": "\n  1 6\n  2 9\n  3 7\n  4 4\n"
         }
       ]
     },
     {
-      "name": "5.2",
+      "name": "windowE-5.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT id,\n    sum(x) OVER (ORDER BY id ROWS BETWEEN CURRENT ROW AND 2 FOLLOWING) \n  FROM t t1",
-          "expect": "1 9223372036854775807 \n  2 9.22337203685478e+18 \n  3 1.5 \n  4 0.5"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
+          "expect": "\n  1 9223372036854775807 \n  2 9.22337203685478e+18 \n  3 1.5 \n  4 0.5\n"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

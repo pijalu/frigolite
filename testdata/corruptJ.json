@@ -1,37 +1,103 @@
 {
   "file": "corruptJ.test",
   "name": "corruptJ",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.1",
+      "name": "corruptJ-1.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<10)\n    INSERT INTO t1(a,b) SELECT i, zeroblob(700) FROM c;"
+          "type": "query",
+          "sql": "PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i\u003c10)\n    INSERT INTO t1(a,b) SELECT i, zeroblob(700) FROM c;"
         }
       ]
     },
     {
-      "name": "1.2",
+      "name": "setup_0",
       "steps": [
         {
-          "type": "exec",
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "corruptJ-1.2",
+      "steps": [
+        {
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileData": "02",
+          "fileTarget": "test.db",
+          "fileOffset": 2046
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
           "sql": "DROP TABLE t1",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "2.2b",
+      "name": "corruptJ-2.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA secure_delete=ON; DROP TABLE t1;",
-          "expect": "1 {database disk image is malformed}"
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "corruptJ-2.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         },
         {
           "type": "exec",
-          "sql": "PRAGMA page_size=1024;\n    PRAGMA auto_vacuum=0;\n    CREATE TABLE t1(a,b,PRIMARY KEY(a,b)) WITHOUT ROWID;\n    WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<100)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(200) FROM c;"
+          "sql": "PRAGMA page_size=1024;\n    PRAGMA auto_vacuum=0;\n    CREATE TABLE t1(a,b,PRIMARY KEY(a,b)) WITHOUT ROWID;\n    WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i\u003c100)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(200) FROM c;"
+        }
+      ]
+    },
+    {
+      "name": "corruptJ-2.2",
+      "steps": [
+        {
+          "type": "close_db",
+          "expect": "00000008814D0401"
+        }
+      ]
+    },
+    {
+      "name": "corruptJ-2.2b",
+      "steps": [
+        {
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileData": "00000002",
+          "fileTarget": "test.db",
+          "fileOffset": 9607
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
+          "sql": "PRAGMA secure_delete=ON; DROP TABLE t1;",
+          "expect": "1 {database disk image is malformed}"
         }
       ]
     }

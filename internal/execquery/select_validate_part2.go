@@ -108,6 +108,13 @@ func compoundTermCollationPos(expr sql.Expr, resultCols []string) int {
 func (e *SelectEngine) resolveCompoundOrderByTerms(s *sql.SelectStmt, orderBy []sql.OrderByTerm) []sql.OrderByTerm {
 	for i := range orderBy {
 		ob := &orderBy[i]
+		// SQLite resolves integer ORDER BY terms as output ordinals before
+		// searching member expressions (resolve.c:1625). In particular, a
+		// VALUES arm may contain the same integer literal; that is not a
+		// matching result expression and must not rewrite the ordinal.
+		if _, ordinal := stripCollate(ob.Expr).(*sql.NumericLit); ordinal {
+			continue
+		}
 		ref, ok := unwrapCollate(ob.Expr).(*sql.ColumnRef)
 		if ok && ref.Table == "" {
 			// Resolve the term against the compound members leftmost-first

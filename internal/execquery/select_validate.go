@@ -137,10 +137,14 @@ func (e *SelectEngine) validateRowValueInRowValue(v *sql.RowValue, topLevel bool
 
 // validateRowValueInFuncCall checks that no function argument is a row value.
 func validateRowValueInFuncCall(v *sql.FuncCall) error {
-	for _, arg := range v.Args {
-		if isRowValueExpr(arg) {
-			return fmt.Errorf("row value misused")
+	for i, arg := range v.Args {
+		if !isRowValueExpr(arg) {
+			continue
 		}
+		if strings.EqualFold(v.Name, "likelihood") && i == 1 {
+			return fmt.Errorf("second argument to likelihood() must be a constant between 0.0 and 1.0")
+		}
+		return fmt.Errorf("row value misused")
 	}
 	return nil
 }
@@ -343,6 +347,11 @@ func (e *SelectEngine) validateSubqueryNode(v *sql.Subquery, rowValueOK bool) er
 	if !rowValueOK {
 		if err := e.validateScalarSubqueryWidth(v.Select); err != nil {
 			return err
+		}
+	}
+	if e.hasAggregates(v.Select.Columns) {
+		if name := e.compoundFromSubqueryOuterAgg(v.Select); name != "" {
+			return fmt.Errorf("misuse of aggregate: %s()", name)
 		}
 	}
 	if err := e.validateSelectExprs(v.Select); err != nil {

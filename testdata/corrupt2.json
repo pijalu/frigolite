@@ -1,56 +1,8 @@
 {
   "file": "corrupt2.test",
   "name": "corrupt2",
+  "ordered": true,
   "tests": [
-    {
-      "name": "14.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(randomblob(3500));\n  DELETE FROM t1;"
-        }
-      ]
-    },
-    {
-      "name": "14.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "PRAGMA integrity_check;\n  PRAGMA freelist_count;",
-          "expect": "ok 3"
-        }
-      ]
-    },
-    {
-      "name": "14.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "PRAGMA integrity_check;",
-          "expect": "{*** in database main ***\nFreelist: size is 3 but should be 2}"
-        }
-      ]
-    },
-    {
-      "name": "14.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "INSERT INTO t1 VALUES(randomblob(2500));\n  PRAGMA freelist_count;",
-          "expect": "0"
-        }
-      ]
-    },
-    {
-      "name": "14.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "PRAGMA integrity_check;",
-          "expect": "{*** in database main ***\nFreelist: size is 1 but should be 0}"
-        }
-      ]
-    },
     {
       "name": "corrupt2-1.1",
       "steps": [
@@ -61,12 +13,127 @@
       ]
     },
     {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "corrupt2-1.2",
+      "steps": [
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "corrupt.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "corrupt.db",
+          "expect": "1 {file is not a database}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "corrupt2-1.3",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "corrupt2-1.3",
+      "steps": [
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "corrupt.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "corrupt.db",
+          "expect": "1 {file is not a database}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
       "name": "corrupt2-1.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "corrupt2-1.4",
+      "steps": [
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "corrupt.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "corrupt.db",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
           "sql": "PRAGMA quick_check",
-          "expect": "0 {{*** in database main ***\nTree 1 page 1: free space corruption}}"
+          "expect": "0 {{*** in database main ***\nTree 1 page 1: free space corruption}}",
+          "database": "db2"
         }
       ]
     },
@@ -74,9 +141,145 @@
       "name": "corrupt2-1.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "corrupt2-1.5",
+      "steps": [
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "corrupt.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "corrupt.db",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
           "sql": "PRAGMA quick_check",
-          "expect": "0 {{*** in database main ***\nTree 1 page 1: free space corruption}}"
+          "expect": "0 {{*** in database main ***\nTree 1 page 1: free space corruption}}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "corrupt2-2.1",
+      "steps": [
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "corrupt.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "corrupt.db",
+          "database": "db2"
+        },
+        {
+          "type": "defensive",
+          "sql": "0"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "corrupt.db",
+          "expect": "1 {malformed database schema (a3) - index a3 already exists}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "corrupt2-3.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "corrupt.db",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 {database disk image is malformed}",
+          "database": "db2"
         }
       ]
     },
@@ -84,37 +287,605 @@
       "name": "corrupt2-4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM t2;",
-          "expect": "1 {database disk image is malformed}"
+          "expect": "1 {database disk image is malformed}",
+          "database": "db2"
         }
       ]
     },
     {
-      "name": "corrupt2-13.3",
+      "name": "setup_2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE rowid < 30;",
-          "expect": "1 {database disk image is malformed}"
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     },
     {
-      "name": "14.2",
+      "name": "delete_file",
       "steps": [
         {
-          "type": "query",
-          "sql": "PRAGMA freelist_count",
-          "expect": "2"
+          "type": "delete_file",
+          "sql": "corrupt.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "corrupt2-5.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "corrupt.db",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "{*** in database main ***\nTree 2 page 2 cell 0: 2nd reference to page 10\nPage 4: never used}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "corrupt.db"
+        },
+        {
+          "type": "defensive",
+          "sql": "0"
         },
         {
           "type": "exec",
-          "sql": "PRAGMA auto_vacuum=0;\n    PRAGMA page_size=1024;\n    CREATE TABLE abc(a, b, c);"
+          "sql": ";"
         },
         {
           "type": "exec",
-          "sql": "PRAGMA freelist_count"
+          "sql": "PRAGMA auto_vacuum = incremental;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, randomblob(2500));\n    INSERT INTO t1 VALUES(2, randomblob(2500));\n    DELETE FROM t1 WHERE a = 1;"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "corrupt.db",
+          "fileData": "00000008",
+          "fileTarget": "corrupt.db",
+          "fileOffset": 5120
+        },
+        {
+          "type": "reopen_db",
+          "sql": "corrupt.db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "corrupt.db"
+        },
+        {
+          "type": "defensive",
+          "sql": "0"
+        },
+        {
+          "type": "exec",
+          "sql": ";"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = incremental;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1, randomblob(2500));\n    INSERT INTO t1 VALUES(2, randomblob(50));\n    INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n    INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n    INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n    INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n    DELETE FROM t1 WHERE a = 1;"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "corrupt.db",
+          "fileData": "00000009",
+          "fileTarget": "corrupt.db",
+          "fileOffset": 2056
+        },
+        {
+          "type": "reopen_db",
+          "sql": "corrupt.db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "corrupt.db"
+        },
+        {
+          "type": "defensive",
+          "sql": "0"
+        },
+        {
+          "type": "exec",
+          "sql": ";"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = incremental;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1, randomblob(2500));\n    INSERT INTO t1 VALUES(2, randomblob(2500));\n    INSERT INTO t1 VALUES(3, randomblob(2500));\n    DELETE FROM t1 WHERE a = 1;"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "corrupt.db"
+        },
+        {
+          "type": "defensive",
+          "sql": "0"
+        },
+        {
+          "type": "exec",
+          "sql": ";"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX i1 ON t1(b);\n  INSERT INTO t1 VALUES(1, randomblob(50));\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "corrupt.db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "corrupt.db"
+        },
+        {
+          "type": "defensive",
+          "sql": "0"
+        },
+        {
+          "type": "exec",
+          "sql": ";"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX i1 ON t1(b);\n  INSERT INTO t1 VALUES(1, randomblob(50));\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "corrupt.db"
+        },
+        {
+          "type": "defensive",
+          "sql": "0"
+        },
+        {
+          "type": "exec",
+          "sql": ";"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX i1 ON t1(b);\n  INSERT INTO t1 VALUES(1, randomblob(50));\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "corrupt.db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "corrupt.db"
+        },
+        {
+          "type": "defensive",
+          "sql": "0"
+        },
+        {
+          "type": "exec",
+          "sql": ";"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c); CREATE TABLE t8(a, b, c); CREATE TABLE tE(a, b, c);\n  CREATE TABLE t2(a, b, c); CREATE TABLE t9(a, b, c); CREATE TABLE tF(a, b, c);\n  CREATE TABLE t3(a, b, c); CREATE TABLE tA(a, b, c); CREATE TABLE tG(a, b, c);\n  CREATE TABLE t4(a, b, c); CREATE TABLE tB(a, b, c); CREATE TABLE tH(a, b, c);\n  CREATE TABLE t5(a, b, c); CREATE TABLE tC(a, b, c); CREATE TABLE tI(a, b, c);\n  CREATE TABLE t6(a, b, c); CREATE TABLE tD(a, b, c); CREATE TABLE tJ(a, b, c);\n  CREATE TABLE x1(a, b, c); CREATE TABLE x8(a, b, c); CREATE TABLE xE(a, b, c);\n  CREATE TABLE x2(a, b, c); CREATE TABLE x9(a, b, c); CREATE TABLE xF(a, b, c);\n  CREATE TABLE x3(a, b, c); CREATE TABLE xA(a, b, c); CREATE TABLE xG(a, b, c);\n  CREATE TABLE x4(a, b, c); CREATE TABLE xB(a, b, c); CREATE TABLE xH(a, b, c);\n  CREATE TABLE x5(a, b, c); CREATE TABLE xC(a, b, c); CREATE TABLE xI(a, b, c);\n  CREATE TABLE x6(a, b, c); CREATE TABLE xD(a, b, c); CREATE TABLE xJ(a, b, c);"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "corrupt.db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "corrupt.db"
+        },
+        {
+          "type": "defensive",
+          "sql": "0"
+        },
+        {
+          "type": "exec",
+          "sql": ";"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(a, b, c);\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_master SET rootpage = NULL WHERE name = 't2';"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "corrupt.db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "setup_12",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "corrupt.db"
+        },
+        {
+          "type": "defensive",
+          "sql": "0"
+        },
+        {
+          "type": "exec",
+          "sql": ";"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = incremental;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, randstr(100,100));\n  INSERT INTO t1 SELECT NULL, randstr(100,100) FROM t1;\n  INSERT INTO t1 SELECT NULL, randstr(100,100) FROM t1;\n  INSERT INTO t1 SELECT NULL, randstr(100,100) FROM t1;\n  INSERT INTO t1 SELECT NULL, randstr(100,100) FROM t1;\n  INSERT INTO t1 SELECT NULL, randstr(100,100) FROM t1;\n  INSERT INTO t2 SELECT * FROM t1;\n  DELETE FROM t1;"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "corrupt.db",
+          "fileData": "FF",
+          "fileTarget": "corrupt.db",
+          "fileOffset": -1024
+        },
+        {
+          "type": "hexio_write",
+          "sql": "corrupt.db",
+          "fileData": "12345678",
+          "fileTarget": "corrupt.db",
+          "fileOffset": 24
+        },
+        {
+          "type": "reopen_db",
+          "sql": "corrupt.db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "setup_13",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "corrupt.db"
+        },
+        {
+          "type": "defensive",
+          "sql": "0"
+        },
+        {
+          "type": "exec",
+          "sql": ";"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = incremental;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, randstr(100,100));\n  INSERT INTO t1 SELECT NULL, randstr(100,100) FROM t1;\n  INSERT INTO t1 SELECT NULL, randstr(100,100) FROM t1;\n  INSERT INTO t1 SELECT NULL, randstr(100,100) FROM t1;\n  INSERT INTO t1 SELECT NULL, randstr(100,100) FROM t1;\n  INSERT INTO t1 SELECT NULL, randstr(100,100) FROM t1;\n  INSERT INTO t2 SELECT * FROM t1;\n  DELETE FROM t1;"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "corrupt.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "setup_14",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "corrupt.db"
+        },
+        {
+          "type": "defensive",
+          "sql": "0"
+        },
+        {
+          "type": "exec",
+          "sql": ";"
         },
         {
           "type": "exec",
@@ -122,18 +893,152 @@
         },
         {
           "type": "exec",
-          "sql": "$::presql INSERT INTO t1 SELECT NULL, randstr(50,50) FROM t1"
+          "sql": "; INSERT INTO t1 SELECT NULL, randstr(50,50) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "; INSERT INTO t1 SELECT NULL, randstr(50,50) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "; INSERT INTO t1 SELECT NULL, randstr(50,50) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "; INSERT INTO t1 SELECT NULL, randstr(50,50) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "; INSERT INTO t1 SELECT NULL, randstr(50,50) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "; INSERT INTO t1 SELECT NULL, randstr(50,50) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "; INSERT INTO t1 SELECT NULL, randstr(50,50) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "; INSERT INTO t1 SELECT NULL, randstr(50,50) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "; INSERT INTO t1 SELECT NULL, randstr(50,50) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "; INSERT INTO t1 SELECT NULL, randstr(50,50) FROM t1"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "corrupt.db",
+          "fileData": "00",
+          "fileTarget": "corrupt.db",
+          "fileOffset": 1023
+        },
+        {
+          "type": "hexio_write",
+          "sql": "corrupt.db",
+          "fileData": "00000000",
+          "fileTarget": "corrupt.db",
+          "fileOffset": 28
+        },
+        {
+          "type": "reopen_db",
+          "sql": "corrupt.db"
+        }
+      ]
+    },
+    {
+      "name": "corrupt2-13.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1 WHERE rowid \u003c 30;",
+          "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "corrupt2-14.0",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(randomblob(3500));\n  DELETE FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "corrupt2-14.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;\n  PRAGMA freelist_count;",
+          "expect": "ok 3"
+        }
+      ]
+    },
+    {
+      "name": "corrupt2-14.2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileTarget": "test.db",
+          "fileOffset": 36
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA freelist_count",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "corrupt2-14.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "{*** in database main ***\nFreelist: size is 3 but should be 2}"
+        }
+      ]
+    },
+    {
+      "name": "corrupt2-14.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(randomblob(2500));\n  PRAGMA freelist_count;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "corrupt2-14.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "{*** in database main ***\nFreelist: size is 1 but should be 0}"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

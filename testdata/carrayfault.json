@@ -1,16 +1,40 @@
 {
   "file": "carrayfault.test",
   "name": "carrayfault",
+  "ordered": true,
   "tests": [
     {
-      "name": "2.0",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "carrayfault-2.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a);"
         }
       ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT value FROM carray(?)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT value FROM carray(?)",
+          "variable": "stmt_1"
+        }
+      ]
     }
-  ],
-  "source": "capi"
+  ]
 }

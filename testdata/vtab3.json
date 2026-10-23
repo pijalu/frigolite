@@ -1,6 +1,7 @@
 {
   "file": "vtab3.test",
   "name": "vtab3",
+  "ordered": true,
   "tests": [
     {
       "name": "vtab3-1.1",
@@ -15,8 +16,16 @@
       "name": "vtab3-1.2",
       "steps": [
         {
+          "type": "register_echo_module"
+        },
+        {
           "type": "exec",
           "sql": "CREATE VIRTUAL TABLE pachyderm USING echo(elephant);"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "auth_log",
+          "expect": "SQLITE_INSERT sqlite_master {} main {} SQLITE_CREATE_VTABLE pachyderm echo main {}"
         }
       ]
     },
@@ -26,6 +35,11 @@
         {
           "type": "exec",
           "sql": "DROP TABLE pachyderm;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "auth_log",
+          "expect": "SQLITE_DELETE sqlite_master {} main {} SQLITE_DROP_VTABLE pachyderm echo main {} SQLITE_DELETE pachyderm {} main {} SQLITE_DELETE sqlite_master {} main {}"
         }
       ]
     },
@@ -33,7 +47,7 @@
       "name": "vtab3-1.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE pachyderm USING echo(elephant);",
           "expect": "1 {not authorized}"
         }
@@ -43,17 +57,12 @@
       "name": "vtab3-1.5",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT name FROM sqlite_master WHERE type = 'table';",
           "expect": "elephant"
-        }
-      ]
-    },
-    {
-      "name": "vtab3-1.5",
-      "steps": [
+        },
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE pachyderm USING echo(elephant);",
           "expect": "1 {not authorized}"
         }
@@ -63,7 +72,7 @@
       "name": "vtab3-1.6",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT name FROM sqlite_master WHERE type = 'table';",
           "expect": "elephant"
         }
@@ -73,7 +82,7 @@
       "name": "vtab3-1.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE pachyderm USING echo(elephant);",
           "expect": "0 {}"
         }
@@ -83,7 +92,119 @@
       "name": "vtab3-1.6",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type = 'table';",
+          "expect": "elephant pachyderm"
+        }
+      ]
+    },
+    {
+      "name": "vtab3-1.7.1.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE pachyderm;",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "not authorized",
+          "variable": "msg",
+          "condition": "$msg eq \"authorization denied\""
+        }
+      ]
+    },
+    {
+      "name": "vtab3-1.7.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type = 'table';",
+          "expect": "elephant pachyderm"
+        }
+      ]
+    },
+    {
+      "name": "vtab3-1.7.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE pachyderm;",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "not authorized",
+          "variable": "msg",
+          "condition": "$msg eq \"authorization denied\""
+        }
+      ]
+    },
+    {
+      "name": "vtab3-1.7.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type = 'table';",
+          "expect": "elephant pachyderm"
+        }
+      ]
+    },
+    {
+      "name": "vtab3-1.7.3.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE pachyderm;",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "not authorized",
+          "variable": "msg",
+          "condition": "$msg eq \"authorization denied\""
+        }
+      ]
+    },
+    {
+      "name": "vtab3-1.7.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type = 'table';",
+          "expect": "elephant pachyderm"
+        }
+      ]
+    },
+    {
+      "name": "vtab3-1.7.4.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE pachyderm;",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "not authorized",
+          "variable": "msg",
+          "condition": "$msg eq \"authorization denied\""
+        }
+      ]
+    },
+    {
+      "name": "vtab3-1.7.4.2",
+      "steps": [
+        {
+          "type": "exec",
           "sql": "SELECT name FROM sqlite_master WHERE type = 'table';",
           "expect": "elephant pachyderm"
         }
@@ -93,7 +214,7 @@
       "name": "vtab3-1.8.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DROP TABLE pachyderm;",
           "expect": "0 {}"
         }
@@ -103,48 +224,11 @@
       "name": "vtab3-1.8.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT name FROM sqlite_master WHERE type = 'table';",
           "expect": "elephant"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE elephant(\n      name VARCHAR(32), \n      color VARCHAR(16), \n      age INTEGER, \n      UNIQUE(name, color)\n    );"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE pachyderm USING echo(elephant);"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE pachyderm;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name FROM sqlite_master WHERE type = 'table';"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name FROM sqlite_master WHERE type = 'table';"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name FROM sqlite_master WHERE type = 'table';"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE pachyderm;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name FROM sqlite_master WHERE type = 'table';"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name FROM sqlite_master WHERE type = 'table';"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

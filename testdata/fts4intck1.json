@@ -1,9 +1,37 @@
 {
   "file": "fts4intck1.test",
   "name": "fts4intck1",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "slang",
+          "callbackVars": {
+            "": "fts4intck1",
+            "::testprefix": "fts4intck1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "slang",
+          "functionArgs": [
+            "in"
+          ],
+          "functionBody": "\n  return [string map {th d e eh} $in]\n",
+          "minArgs": 1,
+          "maxArgs": -1,
+          "deterministic": true,
+          "innocuous": true
+        }
+      ]
+    },
+    {
+      "name": "fts4intck1-1.0",
       "steps": [
         {
           "type": "query",
@@ -13,7 +41,7 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "fts4intck1-1.1",
       "steps": [
         {
           "type": "query",
@@ -23,7 +51,7 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "fts4intck1-1.2",
       "steps": [
         {
           "type": "query",
@@ -33,7 +61,19 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "fts4intck1-2.1",
       "steps": [
         {
           "type": "query",
@@ -43,7 +83,34 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "slang",
+          "callbackVars": {
+            "": "fts4intck1",
+            "::testprefix": "fts4intck1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "slang",
+          "functionArgs": [
+            "in"
+          ],
+          "functionBody": "\n  return [string map {th d e eh} $in]\n",
+          "minArgs": 1,
+          "maxArgs": -1,
+          "deterministic": true,
+          "innocuous": true
+        }
+      ]
+    },
+    {
+      "name": "fts4intck1-2.2",
       "steps": [
         {
           "type": "query",
@@ -53,7 +120,7 @@
       ]
     },
     {
-      "name": "2.3",
+      "name": "fts4intck1-2.3",
       "steps": [
         {
           "type": "query",
@@ -63,7 +130,11 @@
       ]
     },
     {
-      "name": "3.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts4intck1-3.0",
       "steps": [
         {
           "type": "exec",
@@ -72,36 +143,24 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "fts4intck1-3.1",
       "steps": [
         {
           "type": "query",
           "sql": "PRAGMA integrity_check;",
           "expect": "ok"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

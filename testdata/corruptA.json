@@ -1,13 +1,28 @@
 {
   "file": "corruptA.test",
   "name": "corruptA",
+  "ordered": true,
   "tests": [
     {
       "name": "corruptA-1.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1);"
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "test.db-template"
         }
       ]
     },
@@ -15,7 +30,23 @@
       "name": "corruptA-2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "copy_file",
+          "sql": "test.db-template",
+          "fileTarget": "test.db"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileData": "03",
+          "fileTarget": "test.db",
+          "fileOffset": 19
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
           "sql": "SELECT * FROM t1",
           "expect": "1 {file is not a database}"
         }
@@ -25,7 +56,26 @@
       "name": "corruptA-2.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "close_db"
+        },
+        {
+          "type": "copy_file",
+          "sql": "test.db-template",
+          "fileTarget": "test.db"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileData": "41",
+          "fileTarget": "test.db",
+          "fileOffset": 21
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
           "sql": "SELECT * FROM t1",
           "expect": "1 {file is not a database}"
         }
@@ -35,7 +85,26 @@
       "name": "corruptA-2.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "close_db"
+        },
+        {
+          "type": "copy_file",
+          "sql": "test.db-template",
+          "fileTarget": "test.db"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileData": "1f",
+          "fileTarget": "test.db",
+          "fileOffset": 22
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
           "sql": "SELECT * FROM t1",
           "expect": "1 {file is not a database}"
         }
@@ -45,13 +114,28 @@
       "name": "corruptA-2.4",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1",
-          "expect": "1 {file is not a database}"
+          "type": "close_db"
         },
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1);"
+          "type": "copy_file",
+          "sql": "test.db-template",
+          "fileTarget": "test.db"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileData": "21",
+          "fileTarget": "test.db",
+          "fileOffset": 23
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {file is not a database}"
         }
       ]
     }

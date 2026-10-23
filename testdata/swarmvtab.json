@@ -1,18 +1,743 @@
 {
   "file": "swarmvtab.test",
   "name": "swarmvtab",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "swarmvtab-1.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t0(a INTEGER PRIMARY KEY, b TEXT);\n  WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<400) \n  INSERT INTO t0 SELECT i, hex(randomblob(50)) FROM s;\n\n  CREATE TABLE dir(f, t, imin, imax);"
+          "sql": "CREATE TABLE t0(a INTEGER PRIMARY KEY, b TEXT);\n  WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i\u003c400) \n  INSERT INTO t0 SELECT i, hex(randomblob(50)) FROM s;\n\n  CREATE TABLE dir(f, t, imin, imax);"
         }
       ]
     },
     {
-      "name": "1.2",
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db0"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db0' AS aux;\n      CREATE TABLE aux.t0 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t0 SELECT * FROM t0 WHERE a BETWEEN 1 AND 10;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db0', 't0', 1, 10);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db1"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db1' AS aux;\n      CREATE TABLE aux.t1 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t1 SELECT * FROM t0 WHERE a BETWEEN 11 AND 20;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db1', 't1', 11, 20);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n      CREATE TABLE aux.t2 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t2 SELECT * FROM t0 WHERE a BETWEEN 21 AND 30;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db2', 't2', 21, 30);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db3"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db3' AS aux;\n      CREATE TABLE aux.t3 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t3 SELECT * FROM t0 WHERE a BETWEEN 31 AND 40;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db3', 't3', 31, 40);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db4"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db4' AS aux;\n      CREATE TABLE aux.t4 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t4 SELECT * FROM t0 WHERE a BETWEEN 41 AND 50;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db4', 't4', 41, 50);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db5"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db5' AS aux;\n      CREATE TABLE aux.t5 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t5 SELECT * FROM t0 WHERE a BETWEEN 51 AND 60;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db5', 't5', 51, 60);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db6"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db6' AS aux;\n      CREATE TABLE aux.t6 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t6 SELECT * FROM t0 WHERE a BETWEEN 61 AND 70;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db6', 't6', 61, 70);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db7"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db7' AS aux;\n      CREATE TABLE aux.t7 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t7 SELECT * FROM t0 WHERE a BETWEEN 71 AND 80;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db7', 't7', 71, 80);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db8"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db8' AS aux;\n      CREATE TABLE aux.t8 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t8 SELECT * FROM t0 WHERE a BETWEEN 81 AND 90;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db8', 't8', 81, 90);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db9"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db9' AS aux;\n      CREATE TABLE aux.t9 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t9 SELECT * FROM t0 WHERE a BETWEEN 91 AND 100;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db9', 't9', 91, 100);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db10"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db10' AS aux;\n      CREATE TABLE aux.t10 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t10 SELECT * FROM t0 WHERE a BETWEEN 101 AND 110;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db10', 't10', 101, 110);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db11"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db11' AS aux;\n      CREATE TABLE aux.t11 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t11 SELECT * FROM t0 WHERE a BETWEEN 111 AND 120;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db11', 't11', 111, 120);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db12"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db12' AS aux;\n      CREATE TABLE aux.t12 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t12 SELECT * FROM t0 WHERE a BETWEEN 121 AND 130;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db12', 't12', 121, 130);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db13"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db13' AS aux;\n      CREATE TABLE aux.t13 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t13 SELECT * FROM t0 WHERE a BETWEEN 131 AND 140;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db13', 't13', 131, 140);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db14"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db14' AS aux;\n      CREATE TABLE aux.t14 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t14 SELECT * FROM t0 WHERE a BETWEEN 141 AND 150;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db14', 't14', 141, 150);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db15"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db15' AS aux;\n      CREATE TABLE aux.t15 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t15 SELECT * FROM t0 WHERE a BETWEEN 151 AND 160;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db15', 't15', 151, 160);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db16"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db16' AS aux;\n      CREATE TABLE aux.t16 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t16 SELECT * FROM t0 WHERE a BETWEEN 161 AND 170;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db16', 't16', 161, 170);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db17"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db17' AS aux;\n      CREATE TABLE aux.t17 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t17 SELECT * FROM t0 WHERE a BETWEEN 171 AND 180;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db17', 't17', 171, 180);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db18"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db18' AS aux;\n      CREATE TABLE aux.t18 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t18 SELECT * FROM t0 WHERE a BETWEEN 181 AND 190;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db18', 't18', 181, 190);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db19"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db19' AS aux;\n      CREATE TABLE aux.t19 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t19 SELECT * FROM t0 WHERE a BETWEEN 191 AND 200;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db19', 't19', 191, 200);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db20"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db20' AS aux;\n      CREATE TABLE aux.t20 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t20 SELECT * FROM t0 WHERE a BETWEEN 201 AND 210;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db20', 't20', 201, 210);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db21"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db21' AS aux;\n      CREATE TABLE aux.t21 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t21 SELECT * FROM t0 WHERE a BETWEEN 211 AND 220;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db21', 't21', 211, 220);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db22"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db22' AS aux;\n      CREATE TABLE aux.t22 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t22 SELECT * FROM t0 WHERE a BETWEEN 221 AND 230;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db22', 't22', 221, 230);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db23"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db23' AS aux;\n      CREATE TABLE aux.t23 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t23 SELECT * FROM t0 WHERE a BETWEEN 231 AND 240;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db23', 't23', 231, 240);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db24"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db24' AS aux;\n      CREATE TABLE aux.t24 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t24 SELECT * FROM t0 WHERE a BETWEEN 241 AND 250;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db24', 't24', 241, 250);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db25"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db25' AS aux;\n      CREATE TABLE aux.t25 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t25 SELECT * FROM t0 WHERE a BETWEEN 251 AND 260;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db25', 't25', 251, 260);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db26"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db26' AS aux;\n      CREATE TABLE aux.t26 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t26 SELECT * FROM t0 WHERE a BETWEEN 261 AND 270;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db26', 't26', 261, 270);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db27"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db27' AS aux;\n      CREATE TABLE aux.t27 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t27 SELECT * FROM t0 WHERE a BETWEEN 271 AND 280;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db27', 't27', 271, 280);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db28"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db28' AS aux;\n      CREATE TABLE aux.t28 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t28 SELECT * FROM t0 WHERE a BETWEEN 281 AND 290;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db28', 't28', 281, 290);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db29"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db29' AS aux;\n      CREATE TABLE aux.t29 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t29 SELECT * FROM t0 WHERE a BETWEEN 291 AND 300;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db29', 't29', 291, 300);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db30"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db30' AS aux;\n      CREATE TABLE aux.t30 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t30 SELECT * FROM t0 WHERE a BETWEEN 301 AND 310;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db30', 't30', 301, 310);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db31"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db31' AS aux;\n      CREATE TABLE aux.t31 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t31 SELECT * FROM t0 WHERE a BETWEEN 311 AND 320;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db31', 't31', 311, 320);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db32"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db32' AS aux;\n      CREATE TABLE aux.t32 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t32 SELECT * FROM t0 WHERE a BETWEEN 321 AND 330;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db32', 't32', 321, 330);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db33"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db33' AS aux;\n      CREATE TABLE aux.t33 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t33 SELECT * FROM t0 WHERE a BETWEEN 331 AND 340;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db33', 't33', 331, 340);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db34"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db34' AS aux;\n      CREATE TABLE aux.t34 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t34 SELECT * FROM t0 WHERE a BETWEEN 341 AND 350;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db34', 't34', 341, 350);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db35"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db35' AS aux;\n      CREATE TABLE aux.t35 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t35 SELECT * FROM t0 WHERE a BETWEEN 351 AND 360;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db35', 't35', 351, 360);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db36"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db36' AS aux;\n      CREATE TABLE aux.t36 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t36 SELECT * FROM t0 WHERE a BETWEEN 361 AND 370;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db36', 't36', 361, 370);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db37"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db37' AS aux;\n      CREATE TABLE aux.t37 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t37 SELECT * FROM t0 WHERE a BETWEEN 371 AND 380;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db37', 't37', 371, 380);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db38"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db38' AS aux;\n      CREATE TABLE aux.t38 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t38 SELECT * FROM t0 WHERE a BETWEEN 381 AND 390;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db38', 't38', 381, 390);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db39"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db39' AS aux;\n      CREATE TABLE aux.t39 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t39 SELECT * FROM t0 WHERE a BETWEEN 391 AND 400;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db39', 't39', 391, 400);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE temp.s1 USING swarmvtab('SELECT * FROM dir');"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.2",
       "steps": [
         {
           "type": "exec",
@@ -21,27 +746,117 @@
       ]
     },
     {
-      "name": "1.3",
+      "name": "swarmvtab-1.3",
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE VIRTUAL TABLE temp.s1 USING swarmvtab('SELECT * FROM dir');\n  SELECT count(*) FROM s1 WHERE rowid<50;",
+          "sql": "CREATE VIRTUAL TABLE temp.s1 USING swarmvtab('SELECT * FROM dir');\n  SELECT count(*) FROM s1 WHERE rowid\u003c50;",
           "expect": "49"
         }
       ]
     },
     {
-      "name": "1.5.1.(5-seconds-or-so)",
+      "name": "swarmvtab-1.4.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM s1 a, s1 b WHERE b.rowid<=200;",
+          "sql": "SELECT (SELECT group_concat(a || ',' || b, ',') FROM t0 WHERE rowid = 700) \n           IS \n           (SELECT group_concat(a || ',' || b, ',') FROM s1 WHERE rowid = 700)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT group_concat(a || ',' || b, ',') FROM t0 WHERE rowid = -1) \n           IS \n           (SELECT group_concat(a || ',' || b, ',') FROM s1 WHERE rowid = -1)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT group_concat(a || ',' || b, ',') FROM t0 WHERE rowid = 0) \n           IS \n           (SELECT group_concat(a || ',' || b, ',') FROM s1 WHERE rowid = 0)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT group_concat(a || ',' || b, ',') FROM t0 WHERE rowid = 55) \n           IS \n           (SELECT group_concat(a || ',' || b, ',') FROM s1 WHERE rowid = 55)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT group_concat(a || ',' || b, ',') FROM t0 WHERE rowid BETWEEN 20 AND 100) \n           IS \n           (SELECT group_concat(a || ',' || b, ',') FROM s1 WHERE rowid BETWEEN 20 AND 100)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT group_concat(a || ',' || b, ',') FROM t0 WHERE rowid \u003e 350) \n           IS \n           (SELECT group_concat(a || ',' || b, ',') FROM s1 WHERE rowid \u003e 350)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.4.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT group_concat(a || ',' || b, ',') FROM t0 WHERE rowid \u003e= 350) \n           IS \n           (SELECT group_concat(a || ',' || b, ',') FROM s1 WHERE rowid \u003e= 350)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.4.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT group_concat(a || ',' || b, ',') FROM t0 WHERE rowid \u003e= 200) \n           IS \n           (SELECT group_concat(a || ',' || b, ',') FROM s1 WHERE rowid \u003e= 200)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.4.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT group_concat(a || ',' || b, ',') FROM t0 WHERE 1) \n           IS \n           (SELECT group_concat(a || ',' || b, ',') FROM s1 WHERE 1)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.5.1.(5-seconds-or-so)",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM s1 a, s1 b WHERE b.rowid\u003c=200;",
           "expect": "80000"
         }
       ]
     },
     {
-      "name": "1.5.2",
+      "name": "swarmvtab-1.5.2",
       "steps": [
         {
           "type": "query",
@@ -51,77 +866,2002 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "swarmvtab-1.6.0",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db0",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t0",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db1",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db2",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db3",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db4",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t4",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db5",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t5",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db6",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db7",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t7",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db8",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t8",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db9",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t9",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db10",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t10",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db11",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t11",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db12",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t12",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db13",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t13",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db14",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t14",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db15",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t15",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db16",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t16",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db17",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t17",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db18",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t18",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db19",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t19",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t0 WHERE rowid\u003c=200"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT group_concat(a || ',' || b, ',') FROM t0 WHERE rowid = 700) \n           IS \n           (SELECT group_concat(a || ',' || b, ',') FROM s1 WHERE rowid = 700)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT group_concat(a || ',' || b, ',') FROM t0 WHERE rowid = -1) \n           IS \n           (SELECT group_concat(a || ',' || b, ',') FROM s1 WHERE rowid = -1)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT group_concat(a || ',' || b, ',') FROM t0 WHERE rowid = 0) \n           IS \n           (SELECT group_concat(a || ',' || b, ',') FROM s1 WHERE rowid = 0)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT group_concat(a || ',' || b, ',') FROM t0 WHERE rowid = 55) \n           IS \n           (SELECT group_concat(a || ',' || b, ',') FROM s1 WHERE rowid = 55)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.6.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT group_concat(a || ',' || b, ',') FROM t0 WHERE rowid BETWEEN 20 AND 100) \n           IS \n           (SELECT group_concat(a || ',' || b, ',') FROM s1 WHERE rowid BETWEEN 20 AND 100)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.6.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT group_concat(a || ',' || b, ',') FROM t0 WHERE rowid \u003e 350) \n           IS \n           (SELECT group_concat(a || ',' || b, ',') FROM s1 WHERE rowid \u003e 350)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.6.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT group_concat(a || ',' || b, ',') FROM t0 WHERE rowid \u003e= 350) \n           IS \n           (SELECT group_concat(a || ',' || b, ',') FROM s1 WHERE rowid \u003e= 350)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.6.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT group_concat(a || ',' || b, ',') FROM t0 WHERE rowid \u003e= 200) \n           IS \n           (SELECT group_concat(a || ',' || b, ',') FROM s1 WHERE rowid \u003e= 200)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.6.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT group_concat(a || ',' || b, ',') FROM t0 WHERE 1) \n           IS \n           (SELECT group_concat(a || ',' || b, ',') FROM s1 WHERE 1)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.6.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT group_concat(a || ',' || b, ',') FROM t0 WHERE rowid \u003e= 5) \n           IS \n           (SELECT group_concat(a || ',' || b, ',') FROM s1 WHERE rowid \u003e= 5)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-1.y",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db0"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db3"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db4"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db5"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db6"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db7"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db8"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db9"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db10"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db11"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db12"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db13"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db14"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db15"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db16"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db17"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db18"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db19"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db20"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db21"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db22"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db23"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db24"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db25"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db26"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db27"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db28"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db29"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db30"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db31"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db32"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db33"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db34"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db35"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db36"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db37"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db38"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db39"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "swarmvtab-2.0.1",
       "steps": [
         {
           "type": "exec",
+          "sql": "CREATE TABLE t0(a INTEGER PRIMARY KEY, b TEXT);\n    WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i\u003c400) \n      INSERT INTO t0 SELECT i, hex(randomblob(50)) FROM s;\n    CREATE TABLE dir(f, t, imin, imax);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db0"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db0' AS aux;\n      CREATE TABLE aux.t0 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t0 SELECT * FROM t0 WHERE a BETWEEN 1 AND 10;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db0', 't0', 1, 10);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db1"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db1' AS aux;\n      CREATE TABLE aux.t1 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t1 SELECT * FROM t0 WHERE a BETWEEN 11 AND 20;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db1', 't1', 11, 20);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n      CREATE TABLE aux.t2 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t2 SELECT * FROM t0 WHERE a BETWEEN 21 AND 30;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db2', 't2', 21, 30);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db3"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db3' AS aux;\n      CREATE TABLE aux.t3 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t3 SELECT * FROM t0 WHERE a BETWEEN 31 AND 40;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db3', 't3', 31, 40);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db4"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db4' AS aux;\n      CREATE TABLE aux.t4 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t4 SELECT * FROM t0 WHERE a BETWEEN 41 AND 50;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db4', 't4', 41, 50);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db5"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db5' AS aux;\n      CREATE TABLE aux.t5 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t5 SELECT * FROM t0 WHERE a BETWEEN 51 AND 60;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db5', 't5', 51, 60);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db6"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db6' AS aux;\n      CREATE TABLE aux.t6 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t6 SELECT * FROM t0 WHERE a BETWEEN 61 AND 70;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db6', 't6', 61, 70);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db7"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db7' AS aux;\n      CREATE TABLE aux.t7 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t7 SELECT * FROM t0 WHERE a BETWEEN 71 AND 80;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db7', 't7', 71, 80);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db8"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db8' AS aux;\n      CREATE TABLE aux.t8 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t8 SELECT * FROM t0 WHERE a BETWEEN 81 AND 90;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db8', 't8', 81, 90);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db9"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db9' AS aux;\n      CREATE TABLE aux.t9 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t9 SELECT * FROM t0 WHERE a BETWEEN 91 AND 100;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db9', 't9', 91, 100);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db10"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db10' AS aux;\n      CREATE TABLE aux.t10 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t10 SELECT * FROM t0 WHERE a BETWEEN 101 AND 110;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db10', 't10', 101, 110);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db11"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db11' AS aux;\n      CREATE TABLE aux.t11 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t11 SELECT * FROM t0 WHERE a BETWEEN 111 AND 120;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db11', 't11', 111, 120);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db12"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db12' AS aux;\n      CREATE TABLE aux.t12 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t12 SELECT * FROM t0 WHERE a BETWEEN 121 AND 130;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db12', 't12', 121, 130);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db13"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db13' AS aux;\n      CREATE TABLE aux.t13 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t13 SELECT * FROM t0 WHERE a BETWEEN 131 AND 140;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db13', 't13', 131, 140);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db14"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db14' AS aux;\n      CREATE TABLE aux.t14 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t14 SELECT * FROM t0 WHERE a BETWEEN 141 AND 150;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db14', 't14', 141, 150);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db15"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db15' AS aux;\n      CREATE TABLE aux.t15 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t15 SELECT * FROM t0 WHERE a BETWEEN 151 AND 160;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db15', 't15', 151, 160);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db16"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db16' AS aux;\n      CREATE TABLE aux.t16 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t16 SELECT * FROM t0 WHERE a BETWEEN 161 AND 170;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db16', 't16', 161, 170);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db17"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db17' AS aux;\n      CREATE TABLE aux.t17 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t17 SELECT * FROM t0 WHERE a BETWEEN 171 AND 180;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db17', 't17', 171, 180);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db18"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db18' AS aux;\n      CREATE TABLE aux.t18 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t18 SELECT * FROM t0 WHERE a BETWEEN 181 AND 190;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db18', 't18', 181, 190);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db19"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db19' AS aux;\n      CREATE TABLE aux.t19 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t19 SELECT * FROM t0 WHERE a BETWEEN 191 AND 200;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db19', 't19', 191, 200);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db20"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db20' AS aux;\n      CREATE TABLE aux.t20 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t20 SELECT * FROM t0 WHERE a BETWEEN 201 AND 210;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db20', 't20', 201, 210);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db21"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db21' AS aux;\n      CREATE TABLE aux.t21 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t21 SELECT * FROM t0 WHERE a BETWEEN 211 AND 220;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db21', 't21', 211, 220);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db22"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db22' AS aux;\n      CREATE TABLE aux.t22 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t22 SELECT * FROM t0 WHERE a BETWEEN 221 AND 230;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db22', 't22', 221, 230);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db23"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db23' AS aux;\n      CREATE TABLE aux.t23 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t23 SELECT * FROM t0 WHERE a BETWEEN 231 AND 240;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db23', 't23', 231, 240);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db24"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db24' AS aux;\n      CREATE TABLE aux.t24 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t24 SELECT * FROM t0 WHERE a BETWEEN 241 AND 250;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db24', 't24', 241, 250);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db25"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db25' AS aux;\n      CREATE TABLE aux.t25 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t25 SELECT * FROM t0 WHERE a BETWEEN 251 AND 260;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db25', 't25', 251, 260);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db26"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db26' AS aux;\n      CREATE TABLE aux.t26 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t26 SELECT * FROM t0 WHERE a BETWEEN 261 AND 270;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db26', 't26', 261, 270);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db27"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db27' AS aux;\n      CREATE TABLE aux.t27 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t27 SELECT * FROM t0 WHERE a BETWEEN 271 AND 280;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db27', 't27', 271, 280);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db28"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db28' AS aux;\n      CREATE TABLE aux.t28 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t28 SELECT * FROM t0 WHERE a BETWEEN 281 AND 290;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db28', 't28', 281, 290);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db29"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db29' AS aux;\n      CREATE TABLE aux.t29 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t29 SELECT * FROM t0 WHERE a BETWEEN 291 AND 300;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db29', 't29', 291, 300);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db30"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db30' AS aux;\n      CREATE TABLE aux.t30 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t30 SELECT * FROM t0 WHERE a BETWEEN 301 AND 310;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db30', 't30', 301, 310);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db31"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db31' AS aux;\n      CREATE TABLE aux.t31 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t31 SELECT * FROM t0 WHERE a BETWEEN 311 AND 320;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db31', 't31', 311, 320);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db32"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db32' AS aux;\n      CREATE TABLE aux.t32 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t32 SELECT * FROM t0 WHERE a BETWEEN 321 AND 330;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db32', 't32', 321, 330);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db33"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db33' AS aux;\n      CREATE TABLE aux.t33 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t33 SELECT * FROM t0 WHERE a BETWEEN 331 AND 340;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db33', 't33', 331, 340);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db34"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db34' AS aux;\n      CREATE TABLE aux.t34 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t34 SELECT * FROM t0 WHERE a BETWEEN 341 AND 350;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db34', 't34', 341, 350);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db35"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db35' AS aux;\n      CREATE TABLE aux.t35 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t35 SELECT * FROM t0 WHERE a BETWEEN 351 AND 360;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db35', 't35', 351, 360);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db36"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db36' AS aux;\n      CREATE TABLE aux.t36 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t36 SELECT * FROM t0 WHERE a BETWEEN 361 AND 370;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db36', 't36', 361, 370);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db37"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db37' AS aux;\n      CREATE TABLE aux.t37 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t37 SELECT * FROM t0 WHERE a BETWEEN 371 AND 380;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db37', 't37', 371, 380);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db38"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db38' AS aux;\n      CREATE TABLE aux.t38 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t38 SELECT * FROM t0 WHERE a BETWEEN 381 AND 390;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db38', 't38', 381, 390);"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db39"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db39' AS aux;\n      CREATE TABLE aux.t39 (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t39 SELECT * FROM t0 WHERE a BETWEEN 391 AND 400;\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db39', 't39', 391, 400);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE temp.s1 USING swarmvtab('SELECT * FROM dir');"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db5"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.0.2",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db15",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t15",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db25",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t25;\n    CREATE TABLE t25(x, y, z PRIMARY KEY);",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-2.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "SELECT * FROM s1 WHERE rowid BETWEEN 1 AND 100;",
           "expect": "1 {unable to open database file}"
         }
       ]
     },
     {
-      "name": "2.2",
+      "name": "swarmvtab-2.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM s1 WHERE rowid BETWEEN 101 AND 200;",
           "expect": "1 {no such rowid table: t15}"
         }
       ]
     },
     {
-      "name": "2.3",
+      "name": "swarmvtab-2.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM s1 WHERE rowid BETWEEN 201 AND 300;",
           "expect": "1 {source table schema mismatch}"
         }
       ]
     },
     {
-      "name": "2.4",
+      "name": "swarmvtab-2.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE temp.x1 USING swarmvtab('SELECT * FROMdir');",
           "expect": "1 {sql error: near \"FROMdir\": syntax error}"
         }
       ]
     },
     {
-      "name": "2.5",
+      "name": "swarmvtab-2.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE temp.x1 USING swarmvtab('SELECT * FROMdir', 'fetchdb');",
           "expect": "1 {sql error: near \"FROMdir\": syntax error}"
         }
       ]
     },
     {
-      "name": "3.1",
+      "name": "delete_file",
       "steps": [
         {
-          "type": "exec",
+          "type": "delete_file",
+          "sql": "test.db0"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db3"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db4"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db5"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db6"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db7"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db8"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db9"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db10"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db11"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db12"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db13"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db14"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db15"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db16"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db17"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db18"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db19"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db20"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db21"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db22"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db23"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db24"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db25"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db26"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db27"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db28"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db29"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db30"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db31"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db32"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db33"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db34"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db35"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db36"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db37"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db38"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db39"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "fetch_db",
+          "callbackVars": {
+            "": "40",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "i": "40",
+            "iMax": "400",
+            "iMin": "391",
+            "nFile": "",
+            "testdir": "",
+            "testprefix": "swarmvtab"
+          },
+          "functionProc": "fetch_db",
+          "functionArgs": [
+            "file"
+          ],
+          "functionBody": "\n  error \"fetch_db error!\"\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "swarmvtab-3.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE temp.xyz USING swarmvtab(\n    'VALUES\n        (''test.db1'', ''t1'', 1, 10),\n        (''test.db2'', ''t1'', 11, 20)\n    ', 'fetch_db_no_such_function'\n  );",
           "expect": "1 {sql error: no such function: fetch_db_no_such_function}"
         }
       ]
     },
     {
-      "name": "3.2",
+      "name": "swarmvtab-3.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE temp.xyz USING swarmvtab(\n    'VALUES\n        (''test.db1'', ''t1'', 1, 10),\n        (''test.db2'', ''t1'', 11, 20)\n    ', 'fetch_db'\n  );",
           "expect": "1 {fetch_db error!}"
         }
       ]
     },
     {
-      "name": "3.3.1",
+      "name": "swarmvtab-3.3.1",
       "steps": [
         {
           "type": "exec",
@@ -130,45 +2870,12 @@
       ]
     },
     {
-      "name": "3.3.2",
+      "name": "swarmvtab-3.3.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM xyz",
           "expect": "1 {fetch_db error!}"
-        }
-      ]
-    },
-    {
-      "name": "2.0.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE temp.s1 USING swarmvtab('SELECT * FROM dir');"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE temp.s1 USING swarmvtab('SELECT * FROM dir');"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE temp.s1 USING swarmvtab('SELECT * FROM dir');"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t0 WHERE rowid<=200"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t0(a INTEGER PRIMARY KEY, b TEXT);\n    WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<400) \n      INSERT INTO t0 SELECT i, hex(randomblob(50)) FROM s;\n    CREATE TABLE dir(f, t, imin, imax);"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

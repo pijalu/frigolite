@@ -1,22 +1,2335 @@
 {
   "file": "savepoint2.test",
   "name": "savepoint2",
+  "ordered": true,
   "tests": [
     {
       "name": "savepoint2-1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA cache_size=10;\n    BEGIN;\n    CREATE TABLE t3(x TEXT);\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    COMMIT;\n    SELECT count(*) FROM t3;",
           "expect": "1024"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-2.1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(one)",
+          "resultAll": true
         },
         {
           "type": "exec",
-          "sql": "PRAGMA cache_size=10;\n    BEGIN;\n    CREATE TABLE t3(x TEXT);\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    COMMIT;\n    SELECT count(*) FROM t3;"
+          "sql": "SAVEPOINT one"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
         },
         {
           "type": "exec",
-          "sql": "SELECT count(*), md5sum(x) FROM t3"
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(two)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT two"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to two"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(two)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT three"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET x = randstr(10, 400) WHERE random()%10;\n  INSERT INTO t3 SELECT x FROM t3 WHERE random()%10;\n  DELETE FROM t3 WHERE random()%10;"
+        },
+        {
+          "type": "exec",
+          "sql": "RELEASE three"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE (random()%10 == 0);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(one)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT one"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(two)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT two"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to two"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(two)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT three"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET x = randstr(10, 400) WHERE random()%10;\n  INSERT INTO t3 SELECT x FROM t3 WHERE random()%10;\n  DELETE FROM t3 WHERE random()%10;"
+        },
+        {
+          "type": "exec",
+          "sql": "RELEASE three"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-3.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE (random()%10 == 0);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-4.1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(one)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT one"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(two)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT two"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to two"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(two)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT three"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET x = randstr(10, 400) WHERE random()%10;\n  INSERT INTO t3 SELECT x FROM t3 WHERE random()%10;\n  DELETE FROM t3 WHERE random()%10;"
+        },
+        {
+          "type": "exec",
+          "sql": "RELEASE three"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-4.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE (random()%10 == 0);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(one)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT one"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(two)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT two"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to two"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(two)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-5.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT three"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET x = randstr(10, 400) WHERE random()%10;\n  INSERT INTO t3 SELECT x FROM t3 WHERE random()%10;\n  DELETE FROM t3 WHERE random()%10;"
+        },
+        {
+          "type": "exec",
+          "sql": "RELEASE three"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-5.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE (random()%10 == 0);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-6.1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(one)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT one"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(two)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT two"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-6.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to two"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(two)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-6.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT three"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET x = randstr(10, 400) WHERE random()%10;\n  INSERT INTO t3 SELECT x FROM t3 WHERE random()%10;\n  DELETE FROM t3 WHERE random()%10;"
+        },
+        {
+          "type": "exec",
+          "sql": "RELEASE three"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-6.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE (random()%10 == 0);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(one)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT one"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(two)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT two"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-7.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to two"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(two)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-7.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT three"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET x = randstr(10, 400) WHERE random()%10;\n  INSERT INTO t3 SELECT x FROM t3 WHERE random()%10;\n  DELETE FROM t3 WHERE random()%10;"
+        },
+        {
+          "type": "exec",
+          "sql": "RELEASE three"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-7.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE (random()%10 == 0);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-8.1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(one)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT one"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-8.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(two)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT two"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-8.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to two"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(two)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-8.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT three"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET x = randstr(10, 400) WHERE random()%10;\n  INSERT INTO t3 SELECT x FROM t3 WHERE random()%10;\n  DELETE FROM t3 WHERE random()%10;"
+        },
+        {
+          "type": "exec",
+          "sql": "RELEASE three"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-8.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE (random()%10 == 0);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(one)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT one"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-9.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-9.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(two)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT two"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-9.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to two"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(two)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-9.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT three"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET x = randstr(10, 400) WHERE random()%10;\n  INSERT INTO t3 SELECT x FROM t3 WHERE random()%10;\n  DELETE FROM t3 WHERE random()%10;"
+        },
+        {
+          "type": "exec",
+          "sql": "RELEASE three"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-9.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE (random()%10 == 0);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-10.1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(one)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT one"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-10.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-10.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(two)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT two"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-10.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to two"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(two)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-10.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT three"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET x = randstr(10, 400) WHERE random()%10;\n  INSERT INTO t3 SELECT x FROM t3 WHERE random()%10;\n  DELETE FROM t3 WHERE random()%10;"
+        },
+        {
+          "type": "exec",
+          "sql": "RELEASE three"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-10.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE (random()%10 == 0);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(one)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT one"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-11.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-11.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(two)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT two"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-11.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to two"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(two)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-11.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT three"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET x = randstr(10, 400) WHERE random()%10;\n  INSERT INTO t3 SELECT x FROM t3 WHERE random()%10;\n  DELETE FROM t3 WHERE random()%10;"
+        },
+        {
+          "type": "exec",
+          "sql": "RELEASE three"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-11.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE (random()%10 == 0);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-12.1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(one)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT one"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-12.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-12.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(two)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT two"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-12.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to two"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(two)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-12.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT three"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET x = randstr(10, 400) WHERE random()%10;\n  INSERT INTO t3 SELECT x FROM t3 WHERE random()%10;\n  DELETE FROM t3 WHERE random()%10;"
+        },
+        {
+          "type": "exec",
+          "sql": "RELEASE three"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-12.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE (random()%10 == 0);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-13.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(one)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT one"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-13.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-13.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(two)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT two"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-13.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to two"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(two)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-13.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT three"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET x = randstr(10, 400) WHERE random()%10;\n  INSERT INTO t3 SELECT x FROM t3 WHERE random()%10;\n  DELETE FROM t3 WHERE random()%10;"
+        },
+        {
+          "type": "exec",
+          "sql": "RELEASE three"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-13.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE (random()%10 == 0);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-14.1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(one)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT one"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-14.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-14.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(two)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT two"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-14.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to two"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(two)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-14.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT three"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET x = randstr(10, 400) WHERE random()%10;\n  INSERT INTO t3 SELECT x FROM t3 WHERE random()%10;\n  DELETE FROM t3 WHERE random()%10;"
+        },
+        {
+          "type": "exec",
+          "sql": "RELEASE three"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-14.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE (random()%10 == 0);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-15.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(one)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT one"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-15.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-15.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(two)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT two"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-15.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to two"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(two)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-15.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT three"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET x = randstr(10, 400) WHERE random()%10;\n  INSERT INTO t3 SELECT x FROM t3 WHERE random()%10;\n  DELETE FROM t3 WHERE random()%10;"
+        },
+        {
+          "type": "exec",
+          "sql": "RELEASE three"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-15.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE (random()%10 == 0);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-16.1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(one)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT one"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-16.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-16.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(two)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT two"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-16.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to two"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(two)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-16.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT three"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET x = randstr(10, 400) WHERE random()%10;\n  INSERT INTO t3 SELECT x FROM t3 WHERE random()%10;\n  DELETE FROM t3 WHERE random()%10;"
+        },
+        {
+          "type": "exec",
+          "sql": "RELEASE three"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-16.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE (random()%10 == 0);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-17.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(one)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT one"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-17.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-17.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(two)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT two"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-17.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to two"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(two)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-17.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT three"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET x = randstr(10, 400) WHERE random()%10;\n  INSERT INTO t3 SELECT x FROM t3 WHERE random()%10;\n  DELETE FROM t3 WHERE random()%10;"
+        },
+        {
+          "type": "exec",
+          "sql": "RELEASE three"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-17.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE (random()%10 == 0);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-18.1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(one)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT one"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-18.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-18.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(two)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT two"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-18.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to two"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(two)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-18.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT three"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET x = randstr(10, 400) WHERE random()%10;\n  INSERT INTO t3 SELECT x FROM t3 WHERE random()%10;\n  DELETE FROM t3 WHERE random()%10;"
+        },
+        {
+          "type": "exec",
+          "sql": "RELEASE three"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-18.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE (random()%10 == 0);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-19.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(one)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT one"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-19.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-19.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(two)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT two"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-19.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to two"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(two)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-19.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT three"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET x = randstr(10, 400) WHERE random()%10;\n  INSERT INTO t3 SELECT x FROM t3 WHERE random()%10;\n  DELETE FROM t3 WHERE random()%10;"
+        },
+        {
+          "type": "exec",
+          "sql": "RELEASE three"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-19.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE (random()%10 == 0);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-20.1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(one)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT one"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-20.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-20.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(two)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT two"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-20.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to two"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(two)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-20.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT three"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET x = randstr(10, 400) WHERE random()%10;\n  INSERT INTO t3 SELECT x FROM t3 WHERE random()%10;\n  DELETE FROM t3 WHERE random()%10;"
+        },
+        {
+          "type": "exec",
+          "sql": "RELEASE three"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-20.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE (random()%10 == 0);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-21.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(one)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT one"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-21.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-21.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "variable": "sig(two)",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT two"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-21.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to two"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(two)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-21.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT three"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET x = randstr(10, 400) WHERE random()%10;\n  INSERT INTO t3 SELECT x FROM t3 WHERE random()%10;\n  DELETE FROM t3 WHERE random()%10;"
+        },
+        {
+          "type": "exec",
+          "sql": "RELEASE three"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK to one"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT count(*), md5sum(x) FROM t3",
+          "expect": "$::sig(one)"
+        }
+      ]
+    },
+    {
+      "name": "savepoint2-21.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE (random()%10 == 0);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1"
         }
       ]
     }

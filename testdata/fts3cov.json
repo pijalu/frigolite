@@ -1,0 +1,452 @@
+{
+  "file": "fts3cov.test",
+  "name": "fts3cov",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "fts3cov-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts3(x);\n    INSERT INTO t1(t1) VALUES('nodesize=24');\n    BEGIN;\n      INSERT INTO t1 VALUES('Is the night chilly and dark?');\n      INSERT INTO t1 VALUES('The night is chilly, but not dark.');\n      INSERT INTO t1 VALUES('The thin gray cloud is spread on high,');\n      INSERT INTO t1 VALUES('It covers but not hides the sky.');\n    COMMIT;\n    SELECT count(*)\u003e0 FROM t1_segments;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) VALUES('nodesize=24');\n    BEGIN;\n      INSERT INTO t1 VALUES('The moon is behind, and at the full;');\n      INSERT INTO t1 VALUES('And yet she looks both small and dull.');\n      INSERT INTO t1 VALUES('The night is chill, the cloud is gray:');\n      INSERT INTO t1 VALUES('''T is a month before the month of May,');\n      INSERT INTO t1 VALUES('And the Spring comes slowly up this way.');\n      INSERT INTO t1 VALUES('The lovely lady, Christabel,');\n      INSERT INTO t1 VALUES('Whom her father loves so well,');\n      INSERT INTO t1 VALUES('What makes her in the wood so late,');\n      INSERT INTO t1 VALUES('A furlong from the castle gate?');\n      INSERT INTO t1 VALUES('She had dreams all yesternight');\n      INSERT INTO t1 VALUES('Of her own betrothed knight;');\n      INSERT INTO t1 VALUES('And she in the midnight wood will pray');\n      INSERT INTO t1 VALUES('For the weal of her lover that''s far away.');\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) VALUES('optimize');\n    SELECT substr(hex(root), 1, 2) FROM t1_segdir;",
+          "expect": "03"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-2.2",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT root FROM t1_segdir",
+          "variable": "root"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1_segments WHERE blockid = $left_child"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1_segments VALUES($left_child, NULL)"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t2 USING fts3(col0,col1,col2,col3,col4,col5,col6,col7,col8,col9,col10,col11,col12,col13,col14,col15,col16,col17,col18,col19,col20,col21,col22,col23,col24,col25,col26,col27,col28,col29,col30,col31,col32,col33,col34,col35,col36,col37,col38,col39,col40,col41,col42,col43,col44,col45,col46,col47,col48,col49,col50,col51,col52,col53,col54,col55,col56,col57,col58,col59,col60,col61,col62,col63,col64,col65,col66,col67,col68,col69,col70,col71,col72,col73,col74,col75,col76,col77,col78,col79,col80,col81,col82,col83,col84,col85,col86,col87,col88,col89,col90,col91,col92,col93,col94,col95,col96,col97,col98,col99,col100,col101,col102,col103,col104,col105,col106,col107,col108,col109,col110,col111,col112,col113,col114,col115,col116,col117,col118,col119)"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t3 USING fts3(x);\n    INSERT INTO t3(t3) VALUES('nodesize=24');\n    INSERT INTO t3(t3) VALUES('maxpending=100');"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t4 USING fts3(x);\n    INSERT INTO t4(t4) VALUES('nodesize=24');"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES('extra!')"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-5.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES('more extra!')"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t5 USING fts3(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term0')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term1')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term2')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term3')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term4')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term5')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term6')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term7')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term8')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term9')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term10')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term11')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term12')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term13')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term14')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term15')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t5_segdir",
+          "expect": "16"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term1')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term2')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term3')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term4')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term5')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term6')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term7')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term8')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term9')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term10')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term11')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term12')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term13')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term14')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('term15')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t5_segdir",
+          "expect": "17"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t7 USING fts3(a, b, c);\n    INSERT INTO t7 VALUES('A', 'B', 'C');\n    UPDATE t7 SET docid = 5;\n    SELECT docid, * FROM t7;",
+          "expect": "5 A B C"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t7 VALUES('D', 'E', 'F');\n    UPDATE t7 SET docid = 1 WHERE docid = 6;\n    SELECT docid, * FROM t7;",
+          "expect": "1 D E F 5 A B C"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE xx USING fts3"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-9.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO xx(xx) VALUES('optimize')"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE xx USING fts3;\n    INSERT INTO xx VALUES('one two three');\n    INSERT INTO xx VALUES('four five six');\n    DELETE FROM xx WHERE docid = 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM xx WHERE xx MATCH 'two'"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-14.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t14 USING fts4(a, b);\n  INSERT INTO t14 VALUES('one two three', 'one three four');\n  INSERT INTO t14 VALUES('a b c', 'd e a');"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-14.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t14 WHERE t14 MATCH '\"one two three\"'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-14.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t14 WHERE t14 MATCH '\"one four\"'"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-14.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t14 WHERE t14 MATCH '\"e a\"'",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-14.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t14 WHERE t14 MATCH '\"e b\"'"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-14.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT rowid FROM t14 WHERE rowid MATCH 'one'",
+          "expect": "1 {unable to use function MATCH in the requested context}"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-14.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT rowid FROM t14 WHERE docid MATCH 'one'",
+          "expect": "1 {unable to use function MATCH in the requested context}"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-15.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t15 USING fts4(a, b, c);\n  INSERT INTO t15 VALUES('abc def ghi', 'abc2 def2 ghi2', 'abc3 def3 ghi3');\n  INSERT INTO t15 VALUES('abc2 def2 ghi2', 'abc2 def2 ghi2', 'abc def3 ghi3');"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-15.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t15 WHERE t15 MATCH '\"abc* def2\"'",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-16.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t16 USING fts4;\n  INSERT INTO t16 VALUES('theoretical work to examine the relationship');\n  INSERT INTO t16 VALUES('solution of our problems on the invisible');\n  DELETE FROM t16_content WHERE rowid = 2;"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-16.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t16 WHERE t16 MATCH 'invisible'",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-17.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t17 USING fts4;\n  INSERT INTO t17(content) VALUES('one one one');\n  UPDATE t17_segdir SET root = X'00036F6E65FFFFFFFFFFFFFFFFFFFFFF02030300'"
+        }
+      ]
+    },
+    {
+      "name": "fts3cov-17.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t17 WHERE t17 MATCH 'one'",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    }
+  ]
+}

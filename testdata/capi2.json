@@ -1,6 +1,7 @@
 {
   "file": "capi2.test",
   "name": "capi2",
+  "ordered": true,
   "tests": [
     {
       "name": "capi2-1.1",
@@ -8,6 +9,284 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a,b,c)"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT name, rowid FROM sqlite_master",
+          "variable": "stmt_1"
+        }
+      ]
+    },
+    {
+      "name": "capi2-1.2",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT name, rowid FROM sqlite_master",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_1__",
+          "expect": "SQLITE_ROW"
+        }
+      ]
+    },
+    {
+      "name": "capi2-1.6",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT name, rowid FROM sqlite_master",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_1__",
+          "expect": "SQLITE_DONE"
+        }
+      ]
+    },
+    {
+      "name": "capi2-1.8",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT name, rowid FROM sqlite_master",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_1__",
+          "expect": "SQLITE_ROW"
+        }
+      ]
+    },
+    {
+      "name": "capi2-1.9",
+      "steps": [
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT name, rowid FROM sqlite_master",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "{} {} {}",
+          "expect": "2 {} {name rowid TEXT INTEGER}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-1.11",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT name, rowid FROM sqlite_master",
+          "variable": "stmt_1",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "capi2-2.1",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT name, rowid FROM sqlite_master;\n    SELECT name, rowid FROM sqlite_master WHERE 0;\n    -- A comment at the end",
+          "variable": "stmt_2",
+          "expect": "\n    SELECT name, rowid FROM sqlite_master WHERE 0;\n    -- A comment at the end\n  "
+        }
+      ]
+    },
+    {
+      "name": "capi2-2.2",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT name, rowid FROM sqlite_master;\n    SELECT name, rowid FROM sqlite_master WHERE 0;\n    -- A comment at the end",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_2__ {} {} {}",
+          "expect": "SQLITE_ROW 2 {t1 1} {name rowid TEXT INTEGER}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-2.3",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT name, rowid FROM sqlite_master;\n    SELECT name, rowid FROM sqlite_master WHERE 0;\n    -- A comment at the end",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_2__ {} {} {}",
+          "expect": "SQLITE_DONE 2 {} {name rowid TEXT INTEGER}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-2.4",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT name, rowid FROM sqlite_master;\n    SELECT name, rowid FROM sqlite_master WHERE 0;\n    -- A comment at the end",
+          "variable": "stmt_2",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "capi2-2.5",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT name, rowid FROM sqlite_master;\n    SELECT name, rowid FROM sqlite_master WHERE 0;\n    -- A comment at the end",
+          "variable": "stmt_3",
+          "expect": "\n    -- A comment at the end\n  "
+        }
+      ]
+    },
+    {
+      "name": "capi2-2.6",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT name, rowid FROM sqlite_master;\n    SELECT name, rowid FROM sqlite_master WHERE 0;\n    -- A comment at the end",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_3__ {} {} {}",
+          "expect": "SQLITE_DONE 2 {} {name rowid TEXT INTEGER}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-2.7",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT name, rowid FROM sqlite_master;\n    SELECT name, rowid FROM sqlite_master WHERE 0;\n    -- A comment at the end",
+          "variable": "stmt_3",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "capi2-2.8",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT name, rowid FROM sqlite_master;\n    SELECT name, rowid FROM sqlite_master WHERE 0;\n    -- A comment at the end",
+          "variable": "stmt_4",
+          "expect": "{} {}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-3.1",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "select bogus from sqlite_master",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "expect": "1 {(1) no such column: bogus} {}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-3.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "select bogus from",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "expect": "1 {(1) incomplete input} {}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-3.3",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": ";;;;select bogus from sqlite_master",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "expect": "1 {(1) no such column: bogus} {}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-3.4",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "select bogus from sqlite_master;x;",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "expect": "1 {(1) no such column: bogus} {x;}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-3.5",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "select bogus from sqlite_master;;;x;",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "expect": "1 {(1) no such column: bogus} {;;x;}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-3.6",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "select 5/0;",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "VM",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-3.7",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "variable": "VM"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_VM__ {} {} {}",
+          "expect": "SQLITE_ROW 1 {{}} {5/0 {}}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-3.8",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "variable": "VM",
+          "expect": "SQLITE_OK"
         }
       ]
     },
@@ -17,6 +296,135 @@
         {
           "type": "exec",
           "sql": "CREATE UNIQUE INDEX i1 ON t1(a)"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t1 VALUES(1,2,3)",
+          "variable": "stmt_11"
+        }
+      ]
+    },
+    {
+      "name": "capi2-3.10",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES(1,2,3)",
+          "variable": "stmt_11"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_11__ {} {} {}",
+          "expect": "SQLITE_DONE 0 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-3.11",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t1 VALUES(1,2,3)",
+          "variable": "stmt_11",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "capi2-3.13",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t1 VALUES(1,3,4)",
+          "variable": "stmt_12"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES(1,3,4)",
+          "variable": "stmt_12"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_12__ {} {} {}",
+          "expect": "SQLITE_ERROR 0 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-3.14",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t1 VALUES(1,3,4)",
+          "variable": "stmt_12",
+          "expect": "SQLITE_CONSTRAINT {UNIQUE constraint failed: t1.a} SQLITE_CONSTRAINT_UNIQUE"
+        }
+      ]
+    },
+    {
+      "name": "capi2-3.15",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "CREATE TABLE t2(a NOT NULL, b)",
+          "variable": "stmt_13"
+        }
+      ]
+    },
+    {
+      "name": "capi2-3.16",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "CREATE TABLE t2(a NOT NULL, b)",
+          "variable": "stmt_13"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_13__ {} {} {}",
+          "expect": "SQLITE_DONE 0 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-3.17",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "CREATE TABLE t2(a NOT NULL, b)",
+          "variable": "stmt_13",
+          "expect": "SQLITE_OK {not an error}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-3.18",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t2 VALUES(NULL,2)",
+          "variable": "stmt_14"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t2 VALUES(NULL,2)",
+          "variable": "stmt_14"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_14__ {} {} {}",
+          "expect": "SQLITE_ERROR 0 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-3.19",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t2 VALUES(NULL,2)",
+          "variable": "stmt_14",
+          "expect": "SQLITE_CONSTRAINT {NOT NULL constraint failed: t2.a} SQLITE_CONSTRAINT_NOTNULL"
         }
       ]
     },
@@ -26,6 +434,82 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE a1(message_id, name , UNIQUE(message_id, name) );\n    INSERT INTO a1 VALUES(1, 1);"
+        }
+      ]
+    },
+    {
+      "name": "capi2-3.21",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO a1 VALUES(1, 1)",
+          "variable": "stmt_15"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO a1 VALUES(1, 1)",
+          "variable": "stmt_15"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_15__",
+          "expect": "SQLITE_ERROR"
+        }
+      ]
+    },
+    {
+      "name": "capi2-3.23",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO a1 VALUES(1, 1)",
+          "variable": "stmt_15",
+          "expect": "SQLITE_CONSTRAINT"
+        }
+      ]
+    },
+    {
+      "name": "capi2-4.1",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t2 VALUES(1,2)",
+          "variable": "stmt_16"
+        }
+      ]
+    },
+    {
+      "name": "capi2-4.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t2 VALUES(2,3)",
+          "variable": "stmt_17"
+        }
+      ]
+    },
+    {
+      "name": "capi2-4.3",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t2 VALUES(3,4)",
+          "variable": "stmt_18"
+        }
+      ]
+    },
+    {
+      "name": "capi2-4.4",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t2 VALUES(2,3)",
+          "variable": "stmt_17"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_17__ {} {} {}",
+          "expect": "SQLITE_DONE 0 {} {}"
         }
       ]
     },
@@ -40,12 +524,64 @@
       ]
     },
     {
+      "name": "capi2-4.6",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t2 VALUES(2,3)",
+          "variable": "stmt_17",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "capi2-4.7",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t2 VALUES(3,4)",
+          "variable": "stmt_18"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_18__ {} {} {}",
+          "expect": "SQLITE_DONE 0 {} {}"
+        }
+      ]
+    },
+    {
       "name": "capi2-4.8",
       "steps": [
         {
           "type": "exec",
           "sql": "SELECT * FROM t2 ORDER BY a",
           "expect": "2 3 3 4"
+        }
+      ]
+    },
+    {
+      "name": "capi2-4.9",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t2 VALUES(3,4)",
+          "variable": "stmt_18",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "capi2-4.10",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t2 VALUES(1,2)",
+          "variable": "stmt_16"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_16__ {} {} {}",
+          "expect": "SQLITE_DONE 0 {} {}"
         }
       ]
     },
@@ -60,6 +596,215 @@
       ]
     },
     {
+      "name": "capi2-4.12",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t2 VALUES(1,2)",
+          "variable": "stmt_16",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "capi2-5.1",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t2",
+          "variable": "stmt_19"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t2",
+          "variable": "stmt_20"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t2",
+          "variable": "stmt_21"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t2",
+          "variable": "stmt_19"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_19__ {} {} {}",
+          "expect": "SQLITE_ROW 2 {2 3} {a b {} {}}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-5.2",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t2",
+          "variable": "stmt_20"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_20__ {} {} {}",
+          "expect": "SQLITE_ROW 2 {2 3} {a b {} {}}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-5.3",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t2",
+          "variable": "stmt_19"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_19__ {} {} {}",
+          "expect": "SQLITE_ROW 2 {3 4} {a b {} {}}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-5.4",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t2",
+          "variable": "stmt_21"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_21__ {} {} {}",
+          "expect": "SQLITE_ROW 2 {2 3} {a b {} {}}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-5.5",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t2",
+          "variable": "stmt_21"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_21__ {} {} {}",
+          "expect": "SQLITE_ROW 2 {3 4} {a b {} {}}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-5.6",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t2",
+          "variable": "stmt_21"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_21__ {} {} {}",
+          "expect": "SQLITE_ROW 2 {1 2} {a b {} {}}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-5.7",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t2",
+          "variable": "stmt_21"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_21__ {} {} {}",
+          "expect": "SQLITE_DONE 2 {} {a b {} {}}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-5.8",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t2",
+          "variable": "stmt_21",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "capi2-5.9",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t2",
+          "variable": "stmt_19"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_19__ {} {} {}",
+          "expect": "SQLITE_ROW 2 {1 2} {a b {} {}}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-5.10",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t2",
+          "variable": "stmt_19",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "capi2-5.11",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t2",
+          "variable": "stmt_20"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_20__ {} {} {}",
+          "expect": "SQLITE_ROW 2 {3 4} {a b {} {}}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-5.12",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t2",
+          "variable": "stmt_20"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_20__ {} {} {}",
+          "expect": "SQLITE_ROW 2 {1 2} {a b {} {}}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-5.11",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t2",
+          "variable": "stmt_20",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
       "name": "capi2-6.1",
       "steps": [
         {
@@ -67,8 +812,19 @@
           "sql": "BEGIN;\n    CREATE TABLE t3(x counter);\n    INSERT INTO t3 VALUES(1);\n    INSERT INTO t3 VALUES(2);\n    INSERT INTO t3 SELECT x+2 FROM t3;\n    INSERT INTO t3 SELECT x+4 FROM t3;\n    INSERT INTO t3 SELECT x+8 FROM t3;\n    COMMIT;"
         },
         {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t3",
+          "variable": "stmt_22"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
           "type": "exec",
-          "sql": "BEGIN"
+          "sql": "BEGIN",
+          "database": "db2"
         }
       ]
     },
@@ -77,7 +833,23 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT"
+          "sql": "COMMIT",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "capi2-6.4",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t3",
+          "variable": "stmt_22"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_22__ {} {} {}",
+          "expect": "SQLITE_ROW 1 1 {x counter}"
         }
       ]
     },
@@ -87,7 +859,23 @@
         {
           "type": "catch",
           "sql": "INSERT INTO t3 VALUES(10);",
-          "expect": "1 {database is locked}"
+          "expect": "1 {database is locked}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "capi2-6.6",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t3",
+          "variable": "stmt_22"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_22__ {} {} {}",
+          "expect": "SQLITE_ROW 1 2 {x counter}"
         }
       ]
     },
@@ -97,7 +885,23 @@
         {
           "type": "exec",
           "sql": "SELECT * FROM t2",
-          "expect": "2 3 3 4 1 2"
+          "expect": "2 3 3 4 1 2",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "capi2-6.8",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t3",
+          "variable": "stmt_22"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_22__ {} {} {}",
+          "expect": "SQLITE_ROW 1 3 {x counter}"
         }
       ]
     },
@@ -112,11 +916,56 @@
       ]
     },
     {
+      "name": "capi2-6.10",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t3",
+          "variable": "stmt_22"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_22__ {} {} {}",
+          "expect": "SQLITE_ROW 1 4 {x counter}"
+        }
+      ]
+    },
+    {
       "name": "capi2-6.11",
       "steps": [
         {
           "type": "exec",
           "sql": "BEGIN"
+        }
+      ]
+    },
+    {
+      "name": "capi2-6.12",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t3",
+          "variable": "stmt_22"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_22__ {} {} {}",
+          "expect": "SQLITE_ROW 1 5 {x counter}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-6.14",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t3",
+          "variable": "stmt_22"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_22__ {} {} {}",
+          "expect": "SQLITE_ROW 1 6 {x counter}"
         }
       ]
     },
@@ -131,12 +980,42 @@
       ]
     },
     {
+      "name": "capi2-6.16",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t3",
+          "variable": "stmt_22"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_22__ {} {} {}",
+          "expect": "SQLITE_ROW 1 7 {x counter}"
+        }
+      ]
+    },
+    {
       "name": "capi2-6.17",
       "steps": [
         {
           "type": "catch",
           "sql": "UPDATE t1 SET b=b+1",
           "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-6.18",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t3",
+          "variable": "stmt_22"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_22__ {} {} {}",
+          "expect": "SQLITE_ROW 1 8 {x counter}"
         }
       ]
     },
@@ -151,12 +1030,72 @@
       ]
     },
     {
+      "name": "capi2-6.20",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t3",
+          "variable": "stmt_22"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_22__ {} {} {}",
+          "expect": "SQLITE_ROW 1 9 {x counter}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-6.22",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t3",
+          "variable": "stmt_22"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_22__ {} {} {}",
+          "expect": "SQLITE_ROW 1 10 {x counter}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-6.24",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t3",
+          "variable": "stmt_22"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_22__ {} {} {}",
+          "expect": "SQLITE_ROW 1 11 {x counter}"
+        }
+      ]
+    },
+    {
       "name": "capi2-6.25",
       "steps": [
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(2,3,4);\n    SELECT * FROM t1;",
           "expect": "1 3 3 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "capi2-6.26",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t3",
+          "variable": "stmt_22"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_22__ {} {} {}",
+          "expect": "SQLITE_ROW 1 12 {x counter}"
         }
       ]
     },
@@ -171,11 +1110,127 @@
       ]
     },
     {
+      "name": "capi2-6.28",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t3",
+          "variable": "stmt_22"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_22__ {} {} {}",
+          "expect": "SQLITE_ROW 1 13 {x counter}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-6.99",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t3",
+          "variable": "stmt_22",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
       "name": "setup_0",
       "steps": [
         {
           "type": "catch",
           "sql": "ROLLBACK"
+        }
+      ]
+    },
+    {
+      "name": "capi2-7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "capi2-7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA count_changes=on",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "capi2-7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=a+10;",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "capi2-7.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+1,b+1,c+1 FROM t1;",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "capi2-7.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=a+10;",
+          "expect": "0 2"
+        }
+      ]
+    },
+    {
+      "name": "capi2-7.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;",
+          "expect": "0 21 2 3 22 3 4"
+        }
+      ]
+    },
+    {
+      "name": "capi2-7.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+2,b+2,c+2 FROM t1;",
+          "expect": "0 2"
+        }
+      ]
+    },
+    {
+      "name": "capi2-7.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;",
+          "expect": "0 21 2 3 22 3 4 23 4 5 24 5 6"
+        }
+      ]
+    },
+    {
+      "name": "capi2-7.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=a-20;\n    SELECT * FROM t1;",
+          "expect": "0 4 1 2 3 2 3 4 3 4 5 4 5 6"
         }
       ]
     },
@@ -186,6 +1241,547 @@
           "type": "exec",
           "sql": "SELECT count(*) FROM t1",
           "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "capi2-7.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT * FROM t1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "capi2-8.1",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t2",
+          "variable": "stmt_23"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t2",
+          "variable": "stmt_23",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "capi2-9.1",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t2",
+          "variable": "stmt_24"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t2",
+          "variable": "stmt_24"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t2",
+          "variable": "stmt_24"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "SQLITE_OK",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "capi2-10.1",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "variable": "0",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "capi2-10.2",
+      "steps": [
+        {
+          "type": "stmt_reset",
+          "variable": "0"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "SQLITE_OK",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "capi2-11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tab1(col1, col2);"
+        }
+      ]
+    },
+    {
+      "name": "capi2-11.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT col2, col1 FROM tab1",
+          "variable": "stmt_25"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT col2, col1 FROM tab1",
+          "variable": "stmt_25",
+          "expect": "{main tab1 col2} {main tab1 col1}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-11.3",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT col2 AS hello, col1 AS world FROM tab1",
+          "variable": "stmt_26"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT col2 AS hello, col1 AS world FROM tab1",
+          "variable": "stmt_26",
+          "expect": "{main tab1 col2} {main tab1 col1}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-11.4",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT b, a FROM (SELECT col1 AS a, col2 AS b FROM tab1)",
+          "variable": "stmt_27"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT b, a FROM (SELECT col1 AS a, col2 AS b FROM tab1)",
+          "variable": "stmt_27",
+          "expect": "{main tab1 col2} {main tab1 col1}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-11.5",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT (SELECT col2 FROM tab1), (SELECT col1 FROM tab1)",
+          "variable": "stmt_28"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT (SELECT col2 FROM tab1), (SELECT col1 FROM tab1)",
+          "variable": "stmt_28",
+          "expect": "{main tab1 col2} {main tab1 col1}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-11.6",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT (SELECT col2), (SELECT col1) FROM tab1",
+          "variable": "stmt_29"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT (SELECT col2), (SELECT col1) FROM tab1",
+          "variable": "stmt_29",
+          "expect": "{main tab1 col2} {main tab1 col1}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-11.7",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM tab1",
+          "variable": "stmt_30"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM tab1",
+          "variable": "stmt_30",
+          "expect": "{main tab1 col1} {main tab1 col2}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-11.8",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM (SELECT * FROM tab1)",
+          "variable": "stmt_31"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM (SELECT * FROM tab1)",
+          "variable": "stmt_31",
+          "expect": "{main tab1 col1} {main tab1 col2}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW view1 AS SELECT * FROM  tab1;"
+        }
+      ]
+    },
+    {
+      "name": "capi2-12.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT col2, col1 FROM view1",
+          "variable": "stmt_32"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT col2, col1 FROM view1",
+          "variable": "stmt_32",
+          "expect": "{main tab1 col2} {main tab1 col1}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-12.3",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT col2 AS hello, col1 AS world FROM view1",
+          "variable": "stmt_33"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT col2 AS hello, col1 AS world FROM view1",
+          "variable": "stmt_33",
+          "expect": "{main tab1 col2} {main tab1 col1}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-12.4",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT b, a FROM (SELECT col1 AS a, col2 AS b FROM view1)",
+          "variable": "stmt_34"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT b, a FROM (SELECT col1 AS a, col2 AS b FROM view1)",
+          "variable": "stmt_34",
+          "expect": "{main tab1 col2} {main tab1 col1}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-12.5",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT (SELECT col2 FROM view1), (SELECT col1 FROM view1)",
+          "variable": "stmt_35"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT (SELECT col2 FROM view1), (SELECT col1 FROM view1)",
+          "variable": "stmt_35",
+          "expect": "{main tab1 col2} {main tab1 col1}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-12.6",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT (SELECT col2), (SELECT col1) FROM view1",
+          "variable": "stmt_36"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT (SELECT col2), (SELECT col1) FROM view1",
+          "variable": "stmt_36",
+          "expect": "{main tab1 col2} {main tab1 col1}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-12.7",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM view1",
+          "variable": "stmt_37"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM view1",
+          "variable": "stmt_37",
+          "expect": "{main tab1 col1} {main tab1 col2}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-12.8",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "select * from (select * from view1)",
+          "variable": "stmt_38"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "select * from (select * from view1)",
+          "variable": "stmt_38",
+          "expect": "{main tab1 col1} {main tab1 col2}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-12.9",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "select * from (select * from (select * from view1))",
+          "variable": "stmt_39"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "select * from (select * from (select * from view1))",
+          "variable": "stmt_39",
+          "expect": "{main tab1 col1} {main tab1 col2}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-12.10",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "select * from (select * from (select * from view1))",
+          "variable": "stmt_40"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "select * from (select * from (select * from view1))",
+          "variable": "stmt_40",
+          "expect": "{main tab1 col1} {main tab1 col2}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-13.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW view2 AS SELECT * FROM tab1 limit 10 offset 10;"
+        }
+      ]
+    },
+    {
+      "name": "capi2-13.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT col2, col1 FROM view2",
+          "variable": "stmt_41"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT col2, col1 FROM view2",
+          "variable": "stmt_41",
+          "expect": "{main tab1 col2} {main tab1 col1}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-13.3",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT col2 AS hello, col1 AS world FROM view2",
+          "variable": "stmt_42"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT col2 AS hello, col1 AS world FROM view2",
+          "variable": "stmt_42",
+          "expect": "{main tab1 col2} {main tab1 col1}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-13.4",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT b, a FROM (SELECT col1 AS a, col2 AS b FROM view2)",
+          "variable": "stmt_43"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT b, a FROM (SELECT col1 AS a, col2 AS b FROM view2)",
+          "variable": "stmt_43",
+          "expect": "{main tab1 col2} {main tab1 col1}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-13.5",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT (SELECT col2 FROM view2), (SELECT col1 FROM view2)",
+          "variable": "stmt_44"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT (SELECT col2 FROM view2), (SELECT col1 FROM view2)",
+          "variable": "stmt_44",
+          "expect": "{main tab1 col2} {main tab1 col1}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-13.6",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT (SELECT col2), (SELECT col1) FROM view2",
+          "variable": "stmt_45"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT (SELECT col2), (SELECT col1) FROM view2",
+          "variable": "stmt_45",
+          "expect": "{main tab1 col2} {main tab1 col1}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-13.7",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM view2",
+          "variable": "stmt_46"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM view2",
+          "variable": "stmt_46",
+          "expect": "{main tab1 col1} {main tab1 col2}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-13.8",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "select * from (select * from view2)",
+          "variable": "stmt_47"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "select * from (select * from view2)",
+          "variable": "stmt_47",
+          "expect": "{main tab1 col1} {main tab1 col2}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-13.9",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "select * from (select * from (select * from view2))",
+          "variable": "stmt_48"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "select * from (select * from (select * from view2))",
+          "variable": "stmt_48",
+          "expect": "{main tab1 col1} {main tab1 col2}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-13.10",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "select * from (select * from (select * from view2))",
+          "variable": "stmt_49"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "select * from (select * from (select * from view2))",
+          "variable": "stmt_49",
+          "expect": "{main tab1 col1} {main tab1 col2}"
+        }
+      ]
+    },
+    {
+      "name": "capi2-13.11",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "select * from (select * from tab1 limit 10 offset 10)",
+          "variable": "stmt_50"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "select * from (select * from tab1 limit 10 offset 10)",
+          "variable": "stmt_50",
+          "expect": "{main tab1 col1} {main tab1 col2}"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     }

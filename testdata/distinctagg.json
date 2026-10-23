@@ -80,8 +80,10 @@
       "name": "distinctagg-3.1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN SELECT count(DISTINCT a) FROM t1",
+          "variable": "prg",
+          "resultAll": true,
           "expect": "0"
         }
       ]
@@ -100,8 +102,10 @@
       "name": "distinctagg-3.2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN SELECT count(DISTINCT b) FROM t1",
+          "variable": "prg",
+          "resultAll": true,
           "expect": "0"
         }
       ]
@@ -120,8 +124,10 @@
       "name": "distinctagg-3.3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN SELECT count(DISTINCT c) FROM t1",
+          "variable": "prg",
+          "resultAll": true,
           "expect": "1"
         }
       ]
@@ -140,8 +146,10 @@
       "name": "distinctagg-3.4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN SELECT count(DISTINCT c) FROM t1 WHERE b=3",
+          "variable": "prg",
+          "resultAll": true,
           "expect": "0"
         }
       ]
@@ -160,8 +168,10 @@
       "name": "distinctagg-3.5.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN SELECT count(DISTINCT rowid) FROM t1",
+          "variable": "prg",
+          "resultAll": true,
           "expect": "0"
         }
       ]
@@ -180,8 +190,10 @@
       "name": "distinctagg-3.6.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN SELECT count(DISTINCT a) FROM t1, t2",
+          "variable": "prg",
+          "resultAll": true,
           "expect": "0"
         }
       ]
@@ -200,8 +212,10 @@
       "name": "distinctagg-3.7.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN SELECT count(DISTINCT a) FROM t2, t1",
+          "variable": "prg",
+          "resultAll": true,
           "expect": "0"
         }
       ]
@@ -220,8 +234,10 @@
       "name": "distinctagg-3.8.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN SELECT count(DISTINCT a+b) FROM t1, t2, t2, t2",
+          "variable": "prg",
+          "resultAll": true,
           "expect": "1"
         }
       ]
@@ -240,8 +256,10 @@
       "name": "distinctagg-3.9.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN SELECT count(DISTINCT c) FROM t1 WHERE c=2",
+          "variable": "prg",
+          "resultAll": true,
           "expect": "0"
         }
       ]
@@ -260,8 +278,10 @@
       "name": "distinctagg-3.10.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN SELECT count(DISTINCT t1.rowid) FROM t1, t2",
+          "variable": "prg",
+          "resultAll": true,
           "expect": "0"
         }
       ]
@@ -303,8 +323,10 @@
       "name": "distinctagg-4.1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN SELECT count(DISTINCT c) FROM t1 GROUP BY b",
+          "variable": "prg",
+          "resultAll": true,
           "expect": "0"
         }
       ]
@@ -323,8 +345,10 @@
       "name": "distinctagg-4.2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN SELECT count(DISTINCT a) FROM t1 GROUP BY b",
+          "variable": "prg",
+          "resultAll": true,
           "expect": "1"
         }
       ]
@@ -343,8 +367,10 @@
       "name": "distinctagg-4.3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN SELECT count(DISTINCT a) FROM t1 GROUP BY b+c",
+          "variable": "prg",
+          "resultAll": true,
           "expect": "1"
         }
       ]
@@ -363,8 +389,10 @@
       "name": "distinctagg-4.4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN SELECT count(DISTINCT f) FROM t2 GROUP BY d, e",
+          "variable": "prg",
+          "resultAll": true,
           "expect": "0"
         }
       ]
@@ -383,8 +411,10 @@
       "name": "distinctagg-4.5.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN SELECT count(DISTINCT f) FROM t2 GROUP BY d",
+          "variable": "prg",
+          "resultAll": true,
           "expect": "1"
         }
       ]
@@ -403,8 +433,10 @@
       "name": "distinctagg-4.6.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN SELECT count(DISTINCT f) FROM t2 WHERE d IS 1 GROUP BY e",
+          "variable": "prg",
+          "resultAll": true,
           "expect": "0"
         }
       ]
@@ -423,8 +455,10 @@
       "name": "distinctagg-4.7.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN SELECT count(DISTINCT a) FROM t1",
+          "variable": "prg",
+          "resultAll": true,
           "expect": "0"
         }
       ]
@@ -443,8 +477,10 @@
       "name": "distinctagg-4.8.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query_assign",
           "sql": "EXPLAIN SELECT count(DISTINCT a) FROM t4",
+          "variable": "prg",
+          "resultAll": true,
           "expect": "0"
         }
       ]
@@ -456,6 +492,16 @@
           "type": "query",
           "sql": "SELECT count(DISTINCT a) FROM t4",
           "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT rootpage FROM sqlite_schema WHERE name='t3'",
+          "variable": "t3root"
         }
       ]
     },

@@ -1,6 +1,7 @@
 {
   "file": "walcrash2.test",
   "name": "walcrash2",
+  "ordered": true,
   "tests": [
     {
       "name": "walcrash2-1.1",
@@ -15,21 +16,24 @@
       "name": "walcrash2-1.3",
       "steps": [
         {
-          "type": "query",
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT count(*) FROM t1",
-          "expect": "0"
-        },
+          "expect": "0",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = off;\n    PRAGMA journal_mode = WAL;\n    PRAGMA synchronous = NORMAL;\n    BEGIN;\n      CREATE TABLE t1(x);\n      CREATE TABLE t2(x);\n      CREATE TABLE t3(x);\n      CREATE TABLE t4(x);\n      CREATE TABLE t5(x);\n      CREATE TABLE t6(x);\n      CREATE TABLE t7(x);\n    COMMIT;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA cache_size = 15;\n        BEGIN;\n          INSERT INTO t1 VALUES(randomblob(900));         --  1 row,  1  page\n          INSERT INTO t1 SELECT * FROM t1;                --  2 rows, 3  pages\n          INSERT INTO t1 SELECT * FROM t1;                --  4 rows, 5  pages\n          INSERT INTO t1 SELECT * FROM t1;                --  8 rows, 9  pages\n          INSERT INTO t1 SELECT * FROM t1;                -- 16 rows, 17 pages\n          INSERT INTO t1 SELECT * FROM t1 LIMIT 3;        -- 20 rows, 20 pages"
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     }

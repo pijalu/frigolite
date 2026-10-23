@@ -1,9 +1,316 @@
 {
   "file": "carray02.test",
   "name": "carray02",
+  "ordered": true,
   "tests": [
     {
-      "name": "3.0.0",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT value, value IS NULL FROM carray(?)",
+          "variable": "stmt_1"
+        }
+      ]
+    },
+    {
+      "name": "carray02-1.0",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT value, value IS NULL FROM carray(?)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT value, value IS NULL FROM carray(?)",
+          "variable": "stmt_1",
+          "expect": "abc 0 {} 1 def 0"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT value, value IS NULL FROM carray(?)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT value FROM carray(?)",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT value FROM carray(?)",
+          "variable": "stmt_2"
+        }
+      ]
+    },
+    {
+      "name": "carray02-2.2.1",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT value FROM carray(?) WHERE value\u003e2",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT value FROM carray(?) WHERE value\u003e2",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT value FROM carray(?) WHERE value\u003e2",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT value FROM carray(?) WHERE value\u003e2",
+          "variable": "stmt_3",
+          "expect": "3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "carray02-2.2.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "WITH s(i) AS ( VALUES(1) UNION ALL VALUES(2) )\n    SELECT i, value FROM s, carray(?) WHERE i=value;",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "WITH s(i) AS ( VALUES(1) UNION ALL VALUES(2) )\n    SELECT i, value FROM s, carray(?) WHERE i=value;",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "WITH s(i) AS ( VALUES(1) UNION ALL VALUES(2) )\n    SELECT i, value FROM s, carray(?) WHERE i=value;",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "WITH s(i) AS ( VALUES(1) UNION ALL VALUES(2) )\n    SELECT i, value FROM s, carray(?) WHERE i=value;",
+          "variable": "stmt_4",
+          "expect": "1 1 2 2"
+        }
+      ]
+    },
+    {
+      "name": "carray02-2.3.1",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT value FROM carray(?, 5)",
+          "variable": "stmt_5"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT value FROM carray(?, 5)",
+          "variable": "stmt_5"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT value FROM carray(?, 5)",
+          "variable": "stmt_5"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT value FROM carray(?, 5)",
+          "variable": "stmt_5",
+          "expect": "1 2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "carray02-2.3.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT value FROM carray(?, 3, 'int32')",
+          "variable": "stmt_6"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT value FROM carray(?, 3, 'int32')",
+          "variable": "stmt_6"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT value FROM carray(?, 3, 'int32')",
+          "variable": "stmt_6"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT value FROM carray(?, 3, 'int32')",
+          "variable": "stmt_6",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "carray02-2.3.3",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT value, pointer, count, ctype FROM carray(?, 5, 'int32')",
+          "variable": "stmt_7"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT value, pointer, count, ctype FROM carray(?, 5, 'int32')",
+          "variable": "stmt_7"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT value, pointer, count, ctype FROM carray(?, 5, 'int32')",
+          "variable": "stmt_7"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT value, pointer, count, ctype FROM carray(?, 5, 'int32')",
+          "variable": "stmt_7",
+          "expect": "1 {} 5 int32 2 {} 5 int32 3 {} 5 int32 4 {} 5 int32 5 {} 5 int32"
+        }
+      ]
+    },
+    {
+      "name": "carray02-2.3.4",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT rowid, value FROM carray(?, 5, 'int32')",
+          "variable": "stmt_8"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT rowid, value FROM carray(?, 5, 'int32')",
+          "variable": "stmt_8"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT rowid, value FROM carray(?, 5, 'int32')",
+          "variable": "stmt_8"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT rowid, value FROM carray(?, 5, 'int32')",
+          "variable": "stmt_8",
+          "expect": "1 1 2 2 3 3 4 4 5 5"
+        }
+      ]
+    },
+    {
+      "name": "carray02-2.4.1",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM carray(?1) AS a, carray(?2) AS b WHERE a.value=b.value",
+          "variable": "stmt_9"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM carray(?1) AS a, carray(?2) AS b WHERE a.value=b.value",
+          "variable": "stmt_9"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT * FROM carray(?1) AS a, carray(?2) AS b WHERE a.value=b.value",
+          "variable": "stmt_9"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM carray(?1) AS a, carray(?2) AS b WHERE a.value=b.value",
+          "variable": "stmt_9",
+          "expect": "1 1 2 2 3 3 4 4 5 5"
+        }
+      ]
+    },
+    {
+      "name": "carray02-2.4.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM carray(?1) AS a, carray(?2) AS b WHERE a.value=b.value",
+          "variable": "stmt_10"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM carray(?1) AS a, carray(?2) AS b WHERE a.value=b.value",
+          "variable": "stmt_10"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT * FROM carray(?1) AS a, carray(?2) AS b WHERE a.value=b.value",
+          "variable": "stmt_10"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM carray(?1) AS a, carray(?2) AS b WHERE a.value=b.value",
+          "variable": "stmt_10",
+          "expect": "1 1 2 2 3 3 4 4 5 5"
+        }
+      ]
+    },
+    {
+      "name": "carray02-2.4.3",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM carray(?1) AS a, carray(?2) AS b WHERE a.value=b.value",
+          "variable": "stmt_11"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM carray(?1) AS a, carray(?2) AS b WHERE a.value=b.value",
+          "variable": "stmt_11"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT * FROM carray(?1) AS a, carray(?2) AS b WHERE a.value=b.value",
+          "variable": "stmt_11"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM carray(?1) AS a, carray(?2) AS b WHERE a.value=b.value",
+          "variable": "stmt_11",
+          "expect": "1 1 2 2 3 3 4 4 5 5"
+        }
+      ]
+    },
+    {
+      "name": "carray02-2.4.4",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM carray(?1) AS a, carray(?2) AS b WHERE a.value=b.value",
+          "variable": "stmt_12"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM carray(?1) AS a, carray(?2) AS b WHERE a.value=b.value",
+          "variable": "stmt_12"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT * FROM carray(?1) AS a, carray(?2) AS b WHERE a.value=b.value",
+          "variable": "stmt_12"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM carray(?1) AS a, carray(?2) AS b WHERE a.value=b.value",
+          "variable": "stmt_12",
+          "expect": "1 1 2 2 3 3 4 4 5 5"
+        }
+      ]
+    },
+    {
+      "name": "carray02-3.0.0",
       "steps": [
         {
           "type": "query",
@@ -12,7 +319,7 @@
       ]
     },
     {
-      "name": "3.0.1",
+      "name": "carray02-3.0.1",
       "steps": [
         {
           "type": "query",
@@ -21,7 +328,7 @@
       ]
     },
     {
-      "name": "3.0.2",
+      "name": "carray02-3.0.2",
       "steps": [
         {
           "type": "query",
@@ -30,14 +337,38 @@
       ]
     },
     {
-      "name": "3.0.3",
+      "name": "carray02-3.0.3",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('0xFFFF');\n  SELECT * FROM t1, carray WHERE carray.pointer = t1.x;"
         }
       ]
+    },
+    {
+      "name": "carray02-3.1",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM carray(?, 5, 'apples')",
+          "variable": "stmt_13"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM carray(?, 5, 'apples')",
+          "variable": "stmt_13"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM carray(?, 5, 'apples')",
+          "variable": "stmt_13"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "SQLITE_OK {}",
+          "expect": "SQLITE_ERROR {unknown datatype: 'apples'}"
+        }
+      ]
     }
-  ],
-  "source": "capi"
+  ]
 }

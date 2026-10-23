@@ -1,0 +1,3109 @@
+{
+  "file": "wal2.test",
+  "name": "wal2",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "wal2-1.0",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT count(a), sum(a) FROM t1;",
+          "expect": "4 10"
+        }
+      ]
+    },
+    {
+      "name": "wal2-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "4 10",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-1.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "5 15",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-1.2.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks",
+          "expect": "{0 1 lock exclusive} {1 2 lock exclusive} {4 1 lock exclusive} {4 1 unlock exclusive} {5 1 lock exclusive} {5 1 unlock exclusive} {6 1 lock exclusive} {6 1 unlock exclusive} {7 1 lock exclusive} {7 1 unlock exclusive} {1 2 unlock exclusive} {0 1 unlock exclusive} {4 1 lock shared} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-1.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "6 21",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-1.3.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks",
+          "expect": "{0 1 lock exclusive} {1 2 lock exclusive} {4 1 lock exclusive} {4 1 unlock exclusive} {5 1 lock exclusive} {5 1 unlock exclusive} {6 1 lock exclusive} {6 1 unlock exclusive} {7 1 lock exclusive} {7 1 unlock exclusive} {1 2 unlock exclusive} {0 1 unlock exclusive} {4 1 lock shared} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-1.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(7)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "7 28",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-1.4.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks",
+          "expect": "{0 1 lock exclusive} {1 2 lock exclusive} {4 1 lock exclusive} {4 1 unlock exclusive} {5 1 lock exclusive} {5 1 unlock exclusive} {6 1 lock exclusive} {6 1 unlock exclusive} {7 1 lock exclusive} {7 1 unlock exclusive} {1 2 unlock exclusive} {0 1 unlock exclusive} {4 1 lock shared} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-1.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(8)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "8 36",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-1.5.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks",
+          "expect": "{0 1 lock exclusive} {1 2 lock exclusive} {4 1 lock exclusive} {4 1 unlock exclusive} {5 1 lock exclusive} {5 1 unlock exclusive} {6 1 lock exclusive} {6 1 unlock exclusive} {7 1 lock exclusive} {7 1 unlock exclusive} {1 2 unlock exclusive} {0 1 unlock exclusive} {4 1 lock shared} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-1.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(9)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "9 45",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-1.6.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks",
+          "expect": "{0 1 lock exclusive} {1 2 lock exclusive} {4 1 lock exclusive} {4 1 unlock exclusive} {5 1 lock exclusive} {5 1 unlock exclusive} {6 1 lock exclusive} {6 1 unlock exclusive} {7 1 lock exclusive} {7 1 unlock exclusive} {1 2 unlock exclusive} {0 1 unlock exclusive} {4 1 lock shared} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-1.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(10)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "10 55",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-1.7.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks",
+          "expect": "{0 1 lock exclusive} {1 2 lock exclusive} {4 1 lock exclusive} {4 1 unlock exclusive} {5 1 lock exclusive} {5 1 unlock exclusive} {6 1 lock exclusive} {6 1 unlock exclusive} {7 1 lock exclusive} {7 1 unlock exclusive} {1 2 unlock exclusive} {0 1 unlock exclusive} {4 1 lock shared} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-1.8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(11)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "11 66",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-1.8.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks",
+          "expect": "{0 1 lock exclusive} {1 2 lock exclusive} {4 1 lock exclusive} {4 1 unlock exclusive} {5 1 lock exclusive} {5 1 unlock exclusive} {6 1 lock exclusive} {6 1 unlock exclusive} {7 1 lock exclusive} {7 1 unlock exclusive} {1 2 unlock exclusive} {0 1 unlock exclusive} {4 1 lock shared} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-1.9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(12)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "12 78",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-1.9.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks",
+          "expect": "{0 1 lock exclusive} {1 2 lock exclusive} {4 1 lock exclusive} {4 1 unlock exclusive} {5 1 lock exclusive} {5 1 unlock exclusive} {6 1 lock exclusive} {6 1 unlock exclusive} {7 1 lock exclusive} {7 1 unlock exclusive} {1 2 unlock exclusive} {0 1 unlock exclusive} {4 1 lock shared} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-1.10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(13)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "13 91",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-1.10.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks",
+          "expect": "{0 1 lock exclusive} {1 2 lock exclusive} {4 1 lock exclusive} {4 1 unlock exclusive} {5 1 lock exclusive} {5 1 unlock exclusive} {6 1 lock exclusive} {6 1 unlock exclusive} {7 1 lock exclusive} {7 1 unlock exclusive} {1 2 unlock exclusive} {0 1 unlock exclusive} {4 1 lock shared} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-1.11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(14)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "14 105",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-1.11.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks",
+          "expect": "{0 1 lock exclusive} {1 2 lock exclusive} {4 1 lock exclusive} {4 1 unlock exclusive} {5 1 lock exclusive} {5 1 unlock exclusive} {6 1 lock exclusive} {6 1 unlock exclusive} {7 1 lock exclusive} {7 1 unlock exclusive} {1 2 unlock exclusive} {0 1 unlock exclusive} {4 1 lock shared} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-1.12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(15)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "15 120",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-1.12.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks",
+          "expect": "{4 1 lock exclusive} {4 1 unlock exclusive} {4 1 lock shared} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-wal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.0",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT count(a), sum(a) FROM t1;",
+          "expect": "4 10"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "4 10",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "5 15"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "4 10",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.2.3",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks",
+          "expect": "{0 1 lock exclusive} {0 1 unlock exclusive} {4 1 lock exclusive} {4 1 unlock exclusive} {4 1 lock shared} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "5 15",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "6 21"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "5 15",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.3.3",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks",
+          "expect": "{0 1 lock exclusive} {0 1 unlock exclusive} {4 1 lock exclusive} {4 1 unlock exclusive} {4 1 lock shared} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "6 21",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(7)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "7 28"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "6 21",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.4.3",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks",
+          "expect": "{0 1 lock exclusive} {0 1 unlock exclusive} {4 1 lock exclusive} {4 1 unlock exclusive} {4 1 lock shared} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "7 28",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(8)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "8 36"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "7 28",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.5.3",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks",
+          "expect": "{0 1 lock exclusive} {0 1 unlock exclusive} {4 1 lock exclusive} {4 1 unlock exclusive} {4 1 lock shared} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "8 36",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(9)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "9 45"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "8 36",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.6.3",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks",
+          "expect": "{0 1 lock exclusive} {0 1 unlock exclusive} {4 1 lock exclusive} {4 1 unlock exclusive} {4 1 lock shared} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.6.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "9 45",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(10)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "10 55"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "9 45",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.7.3",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks",
+          "expect": "{0 1 lock exclusive} {0 1 unlock exclusive} {4 1 lock exclusive} {4 1 unlock exclusive} {4 1 lock shared} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.7.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "10 55",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(11)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "11 66"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "10 55",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.8.3",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks",
+          "expect": "{0 1 lock exclusive} {0 1 unlock exclusive} {4 1 lock exclusive} {4 1 unlock exclusive} {4 1 lock shared} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.8.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "11 66",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(12)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "12 78"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.9.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "11 66",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.9.3",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks",
+          "expect": "{0 1 lock exclusive} {0 1 unlock exclusive} {4 1 lock exclusive} {4 1 unlock exclusive} {4 1 lock shared} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.9.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "12 78",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-wal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "wal2-4.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE data(x);\n    INSERT INTO data VALUES('need xShmOpen to see this');\n    PRAGMA wal_checkpoint;",
+          "expect": "wal 0 3 3"
+        }
+      ]
+    },
+    {
+      "name": "wal2-4.2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM data",
+          "expect": "1 {unable to open database file}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-4.3",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM data",
+          "expect": "0 {{need xShmOpen to see this}}"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "wal2-5.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE x(y);\n    INSERT INTO x VALUES(1);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "locks",
+          "expect": "{1 1 lock exclusive} {0 1 lock exclusive} {2 1 lock exclusive} {4 1 lock exclusive} {4 1 unlock exclusive} {5 1 lock exclusive} {5 1 unlock exclusive} {6 1 lock exclusive} {6 1 unlock exclusive} {7 1 lock exclusive} {7 1 unlock exclusive} {2 1 unlock exclusive} {0 1 unlock exclusive} {3 1 lock exclusive} {3 1 unlock exclusive} {1 1 unlock exclusive}"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-wal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.1.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "Pragma Journal_Mode = Wal;",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_status",
+          "expect": "main unlocked temp closed"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master;\n    Pragma Locking_Mode = Exclusive;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n    COMMIT;\n    PRAGMA lock_status;",
+          "expect": "main exclusive temp closed"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA locking_mode = normal; \n    PRAGMA lock_status;",
+          "expect": "normal main exclusive temp closed"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;\n    PRAGMA lock_status;",
+          "expect": "1 2 main shared temp closed"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3, 4);\n    PRAGMA lock_status;",
+          "expect": "main shared temp closed"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-wal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.2.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "Pragma Locking_Mode = Exclusive;\n    Pragma Journal_Mode = Wal;\n    Pragma Lock_Status;",
+          "expect": "exclusive wal main exclusive temp closed"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n    COMMIT;\n    Pragma loCK_STATus;",
+          "expect": "main exclusive temp closed"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.2.3",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA LOCKING_MODE = EXCLUSIVE",
+          "expect": "exclusive"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;\n    pragma lock_status;",
+          "expect": "1 2 main shared temp closed"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3, 4);\n    pragma lock_status;",
+          "expect": "main exclusive temp closed"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA locking_mode = NORMAL;\n    pragma lock_status;",
+          "expect": "normal main exclusive temp closed"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN IMMEDIATE; COMMIT;\n    pragma lock_status;",
+          "expect": "main shared temp closed"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.2.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA locking_mode = EXCLUSIVE;\n    BEGIN IMMEDIATE; COMMIT;\n    PRAGMA locking_mode = NORMAL;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;\n    pragma lock_status;",
+          "expect": "1 2 3 4 main shared temp closed"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.2.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5, 6);\n    SELECT * FROM t1;\n    pragma lock_status;",
+          "expect": "1 2 3 4 5 6 main shared temp closed"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-wal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.3.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    PRAGMA locking_mode = exclusive;\n    BEGIN;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES('Chico');\n      INSERT INTO t1 VALUES('Harpo');\n    COMMIT;",
+          "expect": "1 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = DELETE",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_status",
+          "expect": "main exclusive temp closed"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('Groucho');"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_status",
+          "expect": "main exclusive temp closed"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.3.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.3.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_status",
+          "expect": "main exclusive temp closed"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-wal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.4.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.4.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\nPRAGMA journal_mode = WAL;\nBEGIN;\nCREATE TABLE t1(x);\nINSERT INTO t1 VALUES('Leonard');\nINSERT INTO t1 VALUES('Arthur');\nCOMMIT;",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.4.2.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks",
+          "expect": "{0 1 lock exclusive} {1 2 lock exclusive} {4 1 lock exclusive} {4 1 unlock exclusive} {5 1 lock exclusive} {5 1 unlock exclusive} {6 1 lock exclusive} {6 1 unlock exclusive} {7 1 lock exclusive} {7 1 unlock exclusive} {1 2 unlock exclusive} {0 1 unlock exclusive} {3 1 lock shared} {0 1 lock exclusive} {3 1 unlock shared} {4 1 lock exclusive} {4 1 unlock exclusive} {4 1 lock shared} {0 1 unlock exclusive} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.4.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "Leonard Arthur"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.4.3.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks",
+          "expect": "{4 1 lock exclusive} {4 1 unlock exclusive} {4 1 lock shared} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.4.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY x",
+          "expect": "Arthur Leonard"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.4.4.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks",
+          "expect": "{4 1 lock shared} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.4.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA locking_mode = exclusive",
+          "expect": "exclusive"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.4.5.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.4.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('Julius Henry');\nSELECT * FROM t1;",
+          "expect": "Leonard Arthur {Julius Henry}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.4.6.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks",
+          "expect": "{4 1 lock shared} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.4.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('Karl');\nSELECT * FROM t1;",
+          "expect": "Leonard Arthur {Julius Henry} Karl"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.4.7.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.4.8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA locking_mode = normal",
+          "expect": "normal"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.4.8.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.4.9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY x",
+          "expect": "Arthur {Julius Henry} Karl Leonard"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.4.9.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks",
+          "expect": "{4 1 lock shared} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.4.10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.4.10.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks",
+          "expect": "{4 1 lock shared} {0 1 lock exclusive} {0 1 unlock exclusive} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.4.11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.4.11.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "locks",
+          "expect": "{4 1 lock exclusive} {4 1 unlock exclusive} {4 1 lock shared} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.5.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = wal;\n    PRAGMA locking_mode = exclusive;\n    CREATE TABLE t2(a, b);\n    PRAGMA wal_checkpoint;\n    INSERT INTO t2 VALUES('I', 'II');\n    PRAGMA journal_mode;",
+          "expect": "wal exclusive 0 2 2 wal"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA locking_mode = normal;\n    INSERT INTO t2 VALUES('III', 'IV');\n    PRAGMA locking_mode = exclusive;\n    SELECT * FROM t2;",
+          "expect": "normal exclusive I II III IV"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint",
+          "expect": "0 2 2"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.6.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA locking_mode = exclusive"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('V', 'VI')"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA locking_mode = normal"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('VII', 'VIII')"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.6.3",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2",
+          "expect": "1 {database is locked}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.6.2",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('IX', 'X')"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.6.4",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2",
+          "expect": "0 {I II III IV V VI VII VIII IX X}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-wal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "wal2-7.1.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 4096;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);",
+          "expect": "4096"
+        }
+      ]
+    },
+    {
+      "name": "wal2-7.1.2",
+      "steps": [
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "test2.db"
+        },
+        {
+          "type": "copy_file",
+          "sql": "test.db-wal",
+          "fileTarget": "test2.db-wal"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test2.db-wal",
+          "expect": "1",
+          "fileData": "FF",
+          "fileTarget": "test2.db-wal",
+          "fileOffset": 48
+        }
+      ]
+    },
+    {
+      "name": "wal2-7.1.3",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test2.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-wal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "wal2-8.1.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(zeroblob(8188*1020));\n    CREATE TABLE t2(y);\n    PRAGMA wal_checkpoint;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rootpage\u003e=8192 FROM sqlite_master WHERE tbl_name = 't2';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "wal2-8.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 10;\n    CREATE TABLE t3(z);\n    BEGIN;\n      INSERT INTO t3 VALUES(randomblob(900));\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t2 VALUES('hello');\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n      INSERT INTO t3 SELECT randomblob(900) FROM t3;\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('goodbye');\n    INSERT INTO t3 SELECT randomblob(900) FROM t3;\n    INSERT INTO t3 SELECT randomblob(900) FROM t3;"
+        }
+      ]
+    },
+    {
+      "name": "wal2-8.1.4",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2",
+          "expect": "goodbye"
+        }
+      ]
+    },
+    {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-wal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "wal2-9.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE x(y);\n    INSERT INTO x VALUES('Barton');\n    INSERT INTO x VALUES('Deakin');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x VALUES('Watson')"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x",
+          "expect": "Barton Deakin Watson",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-9.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x",
+          "expect": "Barton Deakin",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-9.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x",
+          "expect": "Barton Deakin Watson",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-9.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x",
+          "expect": "Barton Deakin Watson",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-9.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x",
+          "expect": "Barton Deakin Watson",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-9.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x",
+          "expect": "Barton Deakin",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-9.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x",
+          "expect": "Barton Deakin Watson",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_12",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "wal2-10.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);"
+        }
+      ]
+    },
+    {
+      "name": "wal2-10.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "wal2-10.1.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {unable to open database file}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-10.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "wal2-10.2.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {unable to open database file}"
+        }
+      ]
+    },
+    {
+      "name": "setup_13",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "wal2-11.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n    INSERT INTO t1 VALUES(7, 8, 9);\n    SELECT * FROM t1;",
+          "expect": "wal 1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "wal2-11.1.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master",
+          "expect": "t1",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_14",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0; PRAGMA synchronous = FULL;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA checkpoint_fullfsync = 1"
+        }
+      ]
+    },
+    {
+      "name": "wal2-14.2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size = 4096"
+        }
+      ]
+    },
+    {
+      "name": "wal2-14.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = WAL",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "wal2-14.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA wal_autocheckpoint = 10;\n    CREATE TABLE t1(a, b);                -- 2 wal syncs\n    INSERT INTO t1 VALUES(1, 2);          -- 2 wal sync\n    PRAGMA wal_checkpoint;                -- 1 wal sync, 1 db sync\n    BEGIN;\n      INSERT INTO t1 VALUES(3, 4);\n      INSERT INTO t1 VALUES(5, 6);\n    COMMIT;                               -- 2 wal sync\n    PRAGMA wal_checkpoint;                -- 1 wal sync, 1 db sync",
+          "expect": "10 0 3 3 0 1 1"
+        }
+      ]
+    },
+    {
+      "name": "wal2-14.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(7, zeroblob(12*4096))",
+          "expect": "4 3"
+        }
+      ]
+    },
+    {
+      "name": "wal2-14.2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_autocheckpoint = 1000"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(9, 10)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(11, 12)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(13, 14)"
+        },
+        {
+          "type": "close_db",
+          "expect": "6 3"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0; PRAGMA synchronous = FULL;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA checkpoint_fullfsync = 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-14.3.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size = 4096"
+        }
+      ]
+    },
+    {
+      "name": "wal2-14.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = WAL",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "wal2-14.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA wal_autocheckpoint = 10;\n    CREATE TABLE t1(a, b);                -- 2 wal syncs\n    INSERT INTO t1 VALUES(1, 2);          -- 2 wal sync\n    PRAGMA wal_checkpoint;                -- 1 wal sync, 1 db sync\n    BEGIN;\n      INSERT INTO t1 VALUES(3, 4);\n      INSERT INTO t1 VALUES(5, 6);\n    COMMIT;                               -- 2 wal sync\n    PRAGMA wal_checkpoint;                -- 1 wal sync, 1 db sync",
+          "expect": "10 0 3 3 0 1 1"
+        }
+      ]
+    },
+    {
+      "name": "wal2-14.3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(7, zeroblob(12*4096))",
+          "expect": "4 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-14.3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_autocheckpoint = 1000"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(9, 10)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(11, 12)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(13, 14)"
+        },
+        {
+          "type": "close_db",
+          "expect": "6 0"
+        }
+      ]
+    },
+    {
+      "name": "setup_17",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_18",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size = 4096;\n    CREATE TABLE t1(x);\n    PRAGMA wal_autocheckpoint = OFF;\n    PRAGMA journal_mode = WAL;\n    PRAGMA checkpoint_fullfsync = 0;\n    PRAGMA fullfsync = 0;\n    PRAGMA synchronous = off;",
+          "expect": "0 wal"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc')",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc')",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('def')",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "setup_19",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_20",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size = 4096;\n    CREATE TABLE t1(x);\n    PRAGMA wal_autocheckpoint = OFF;\n    PRAGMA journal_mode = WAL;\n    PRAGMA checkpoint_fullfsync = 0;\n    PRAGMA fullfsync = 0;\n    PRAGMA synchronous = normal;",
+          "expect": "0 wal"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc')",
+          "expect": "1 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc')",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('def')",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint",
+          "expect": "2 0"
+        }
+      ]
+    },
+    {
+      "name": "setup_21",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_22",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size = 4096;\n    CREATE TABLE t1(x);\n    PRAGMA wal_autocheckpoint = OFF;\n    PRAGMA journal_mode = WAL;\n    PRAGMA checkpoint_fullfsync = 0;\n    PRAGMA fullfsync = 0;\n    PRAGMA synchronous = full;",
+          "expect": "0 wal"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc')",
+          "expect": "2 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc')",
+          "expect": "1 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('def')",
+          "expect": "1 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint",
+          "expect": "2 0"
+        }
+      ]
+    },
+    {
+      "name": "setup_23",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_24",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size = 4096;\n    CREATE TABLE t1(x);\n    PRAGMA wal_autocheckpoint = OFF;\n    PRAGMA journal_mode = WAL;\n    PRAGMA checkpoint_fullfsync = 0;\n    PRAGMA fullfsync = 1;\n    PRAGMA synchronous = off;",
+          "expect": "0 wal"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc')",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc')",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('def')",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "setup_25",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_26",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size = 4096;\n    CREATE TABLE t1(x);\n    PRAGMA wal_autocheckpoint = OFF;\n    PRAGMA journal_mode = WAL;\n    PRAGMA checkpoint_fullfsync = 0;\n    PRAGMA fullfsync = 1;\n    PRAGMA synchronous = normal;",
+          "expect": "0 wal"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc')",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc')",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('def')",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.5.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint",
+          "expect": "0 2"
+        }
+      ]
+    },
+    {
+      "name": "setup_27",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_28",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size = 4096;\n    CREATE TABLE t1(x);\n    PRAGMA wal_autocheckpoint = OFF;\n    PRAGMA journal_mode = WAL;\n    PRAGMA checkpoint_fullfsync = 0;\n    PRAGMA fullfsync = 1;\n    PRAGMA synchronous = full;",
+          "expect": "0 wal"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc')",
+          "expect": "0 2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc')",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.6.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('def')",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.6.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint",
+          "expect": "0 2"
+        }
+      ]
+    },
+    {
+      "name": "setup_29",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_30",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size = 4096;\n    CREATE TABLE t1(x);\n    PRAGMA wal_autocheckpoint = OFF;\n    PRAGMA journal_mode = WAL;\n    PRAGMA checkpoint_fullfsync = 1;\n    PRAGMA fullfsync = 0;\n    PRAGMA synchronous = off;",
+          "expect": "0 wal"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc')",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc')",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.7.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('def')",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.7.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "setup_31",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_32",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size = 4096;\n    CREATE TABLE t1(x);\n    PRAGMA wal_autocheckpoint = OFF;\n    PRAGMA journal_mode = WAL;\n    PRAGMA checkpoint_fullfsync = 1;\n    PRAGMA fullfsync = 0;\n    PRAGMA synchronous = normal;",
+          "expect": "0 wal"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc')",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.8.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc')",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.8.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('def')",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.8.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint",
+          "expect": "0 2"
+        }
+      ]
+    },
+    {
+      "name": "setup_33",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_34",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size = 4096;\n    CREATE TABLE t1(x);\n    PRAGMA wal_autocheckpoint = OFF;\n    PRAGMA journal_mode = WAL;\n    PRAGMA checkpoint_fullfsync = 1;\n    PRAGMA fullfsync = 0;\n    PRAGMA synchronous = full;",
+          "expect": "0 wal"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.9.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc')",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.9.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc')",
+          "expect": "1 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.9.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('def')",
+          "expect": "1 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.9.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint",
+          "expect": "0 2"
+        }
+      ]
+    },
+    {
+      "name": "setup_35",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_36",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.10.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size = 4096;\n    CREATE TABLE t1(x);\n    PRAGMA wal_autocheckpoint = OFF;\n    PRAGMA journal_mode = WAL;\n    PRAGMA checkpoint_fullfsync = 1;\n    PRAGMA fullfsync = 1;\n    PRAGMA synchronous = off;",
+          "expect": "0 wal"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.10.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc')",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.10.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc')",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.10.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('def')",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.10.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "setup_37",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_38",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.11.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size = 4096;\n    CREATE TABLE t1(x);\n    PRAGMA wal_autocheckpoint = OFF;\n    PRAGMA journal_mode = WAL;\n    PRAGMA checkpoint_fullfsync = 1;\n    PRAGMA fullfsync = 1;\n    PRAGMA synchronous = normal;",
+          "expect": "0 wal"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.11.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc')",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.11.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc')",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.11.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('def')",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.11.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint",
+          "expect": "0 2"
+        }
+      ]
+    },
+    {
+      "name": "setup_39",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_40",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.12.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size = 4096;\n    CREATE TABLE t1(x);\n    PRAGMA wal_autocheckpoint = OFF;\n    PRAGMA journal_mode = WAL;\n    PRAGMA checkpoint_fullfsync = 1;\n    PRAGMA fullfsync = 1;\n    PRAGMA synchronous = full;",
+          "expect": "0 wal"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.12.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc')",
+          "expect": "0 2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.12.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc')",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.12.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('def')",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "wal2-15.12.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint",
+          "expect": "0 2"
+        }
+      ]
+    },
+    {
+      "name": "setup_41",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    }
+  ]
+}

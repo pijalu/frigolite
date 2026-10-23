@@ -3,8 +3,8 @@ package execdml
 import (
 	"fmt"
 	"github.com/pijalu/frigolite/internal/execquery"
-	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/pager"
+	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -297,26 +297,37 @@ const maxTriggerDepth = 1000
 // schema load and reports "malformed database schema". Validated triggers
 // are cached by name to avoid re-parsing on every statement.
 
-// checkLoadedTableRefCtx verifies a table reference in a loaded trigger
-// resolves in the trigger's schema context.
+// checkLoadedTableRefCtx verifies one table reference of a loaded non-temp
+// trigger against the schema the trigger itself lives in (attach.c
+// fixSelectCb): an explicit database name other than the trigger's own schema
+// is a cross-database reference and malformed — even when that database
+// exists under another name. A schema-qualified reference whose object no
+// longer resolves is malformed too. An unqualified reference to a dropped
+// same-schema table is left to fail at fire time (SQLite does not re-validate
+// those).
 func (e *DMLExecutor) checkLoadedTableRefCtx(table string, t *schema.Entry, trigCtx *DatabaseContext) error {
 	schemaName, objName := parseSchemaName(table)
 	ctx := trigCtx
-	if schemaName != "" {
-		upper := strings.ToUpper(schemaName)
-		if upper == "TEMP" || upper == "TEMPORARY" {
-			schemaName = "temp"
-		}
-		ctx = e.ctx.GetDB(schemaName)
-		if ctx == nil {
-			return fmt.Errorf("malformed database schema (%s) - trigger %s cannot reference objects in database %s", t.Name, t.Name, schemaName)
-		}
-	} else {
-		// Unqualified reference: resolve in the trigger's own schema.
+	if schemaName == "" {
+		// Unqualified reference: resolves in the trigger's own schema.
 		if ctx == nil {
 			ctx = e.ctx.MainDB()
 		}
 		objName = table
+	} else {
+		if upper := strings.ToUpper(schemaName); upper == "TEMP" || upper == "TEMPORARY" {
+			schemaName = "temp"
+		}
+		// attach.c fixSelectCb compares the explicit name's database index
+		// with the trigger's own (iDb): a mismatch is malformed regardless of
+		// whether the named database or object exists. Only the trigger's own
+		// schema (e.g. `main.link` inside a main trigger) may be named.
+		if ctx == nil || !strings.EqualFold(schemaName, ctx.Name) {
+			return fmt.Errorf("malformed database schema (%s) - trigger %s cannot reference objects in database %s", t.Name, t.Name, schemaName)
+		}
+	}
+	if ctx == nil || ctx.Schema == nil {
+		return nil
 	}
 	if _, err := ctx.Schema.FindTable(objName); err != nil {
 		if _, err2 := ctx.Schema.FindView(objName); err2 != nil {

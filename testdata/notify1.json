@@ -1,0 +1,2783 @@
+{
+  "file": "notify1.test",
+  "name": "notify1",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "notify1-1.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b)"
+        }
+      ]
+    },
+    {
+      "name": "notify1-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(1, 2);"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES(3, 4)",
+          "expect": "1 {database table is locked}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "notify1-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "notify1-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "notify1-1.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1; CREATE TABLE t1(a, b)"
+        }
+      ]
+    },
+    {
+      "name": "notify1-1.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(1, 2);"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES(3, 4)",
+          "expect": "1 {database table is locked}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "notify1-1.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "notify1-1.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "notify1-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('I', 'II');"
+        }
+      ]
+    },
+    {
+      "name": "notify1-2.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(5, 6);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    SELECT * FROM t2;",
+          "expect": "I II",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "notify1-2.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "notify1-2.2.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t2 VALUES('III', 'IV')",
+          "expect": "1 {database table is locked: t2}"
+        }
+      ]
+    },
+    {
+      "name": "notify1-2.3.1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test3.db"
+        }
+      ]
+    },
+    {
+      "name": "notify1-2.3.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux2"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test3.db' AS aux3"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux2",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test3.db' AS aux3",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db3"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux2",
+          "database": "db3"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test3.db' AS aux3",
+          "database": "db3"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE main.t1(a, b);\n    CREATE TABLE aux2.t2(a, b);\n    CREATE TABLE aux3.t3(a, b);"
+        }
+      ]
+    },
+    {
+      "name": "notify1-2.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN ; INSERT INTO t1 VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN ; INSERT INTO t2 VALUES(1, 2)",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN ; INSERT INTO t3 VALUES(1, 2)",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "notify1-2.3.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2",
+          "expect": "1 {database table is locked: t2}"
+        }
+      ]
+    },
+    {
+      "name": "notify1-2.3.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t3",
+          "expect": "1 {database table is locked: t3}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "notify1-2.3.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "notify1-2.3.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "notify1-2.3.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "db3 db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "notify1-2.3.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "db3 db db2",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db3"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "notify1-3.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('a', 'b');"
+        }
+      ]
+    },
+    {
+      "name": "notify1-3.2.1.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db1"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db1"
+        }
+      ]
+    },
+    {
+      "name": "notify1-3.2.2.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "notify1-3.2.3.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db3"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "notify1-3.2.4.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db4"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db4"
+        }
+      ]
+    },
+    {
+      "name": "notify1-3.2.5.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db5"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db5"
+        }
+      ]
+    },
+    {
+      "name": "notify1-3.2.6.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db6"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db6"
+        }
+      ]
+    },
+    {
+      "name": "notify1-3.2.7.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db7"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db7"
+        }
+      ]
+    },
+    {
+      "name": "notify1-3.2.8.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db8"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db8"
+        }
+      ]
+    },
+    {
+      "name": "notify1-3.2.9.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db9"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db9"
+        }
+      ]
+    },
+    {
+      "name": "notify1-3.2.10.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db10"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db10"
+        }
+      ]
+    },
+    {
+      "name": "notify1-3.2.11.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db11"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db11"
+        }
+      ]
+    },
+    {
+      "name": "notify1-3.2.12.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db12"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db12"
+        }
+      ]
+    },
+    {
+      "name": "notify1-3.2.13.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db13"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db13"
+        }
+      ]
+    },
+    {
+      "name": "notify1-3.2.14.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db14"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db14"
+        }
+      ]
+    },
+    {
+      "name": "notify1-3.2.15.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db15"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db15"
+        }
+      ]
+    },
+    {
+      "name": "notify1-3.2.16.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db16"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db16"
+        }
+      ]
+    },
+    {
+      "name": "notify1-3.2.17.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db17"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db17"
+        }
+      ]
+    },
+    {
+      "name": "notify1-3.2.18.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db18"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db18"
+        }
+      ]
+    },
+    {
+      "name": "notify1-3.2.19.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db19"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db19"
+        }
+      ]
+    },
+    {
+      "name": "notify1-3.2.20.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db20"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db20"
+        }
+      ]
+    },
+    {
+      "name": "notify1-3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20"
+        }
+      ]
+    },
+    {
+      "name": "notify1-3.5",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db1"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db3"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db4"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db5"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db6"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db7"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db8"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db9"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db10"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db11"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db12"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db13"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db14"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db15"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db16"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db17"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db18"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db19"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db20"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('a', 'b');"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.1.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db1"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db1"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.2.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.3.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db3"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.4.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db4"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db4"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.5.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db5"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db5"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.6.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db6"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db6"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.7.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db7"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db7"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.8.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db8"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db8"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.9.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db9"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db9"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.10.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db10"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db10"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.11.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db11"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db11"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.12.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db12"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db12"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.13.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db13"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db13"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.14.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db14"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db14"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.15.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db15"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db15"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.16.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db16"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db16"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.17.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db17"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db17"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.18.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db18"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db18"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.19.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db19"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db19"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.20.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db20"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db20"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.21.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db21"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db21"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.22.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db22"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db22"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.23.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db23"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db23"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.24.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db24"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db24"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.25.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db25"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db25"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.26.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db26"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db26"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.27.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db27"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db27"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.28.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db28"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db28"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.29.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db29"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db29"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.30.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db30"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db30"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.31.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db31"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db31"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.32.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db32"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db32"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.33.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db33"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db33"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.34.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db34"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db34"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.35.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db35"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db35"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.36.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db36"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db36"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.37.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db37"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db37"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.38.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db38"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db38"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.39.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db39"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db39"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.40.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db40"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db40"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.41.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db41"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db41"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.42.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db42"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db42"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.43.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db43"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db43"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.44.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db44"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db44"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.45.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db45"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db45"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.46.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db46"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db46"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.47.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db47"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db47"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.48.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db48"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db48"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.49.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db49"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db49"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.50.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db50"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db50"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.51.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db51"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db51"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.52.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db52"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db52"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.53.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db53"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db53"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.54.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db54"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db54"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.55.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db55"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db55"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.56.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db56"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db56"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.57.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db57"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db57"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.58.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db58"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db58"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.59.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db59"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db59"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.60.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db60"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db60"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.61.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db61"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db61"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.62.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db62"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db62"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.63.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db63"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db63"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.64.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db64"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db64"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.65.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db65"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db65"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.66.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db66"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db66"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.67.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db67"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db67"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.68.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db68"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db68"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.69.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db69"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db69"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.70.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db70"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db70"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.71.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db71"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db71"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.72.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db72"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db72"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.73.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db73"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db73"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.74.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db74"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db74"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.75.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db75"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db75"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.2.76.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db76"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db76"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76"
+        }
+      ]
+    },
+    {
+      "name": "notify1-4.5",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db1"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db3"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db4"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db5"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db6"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db7"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db8"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db9"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db10"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db11"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db12"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db13"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db14"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db15"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db16"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db17"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db18"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db19"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db20"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db21"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db22"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db23"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db24"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db25"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db26"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db27"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db28"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db29"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db30"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db31"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db32"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db33"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db34"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db35"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db36"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db37"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db38"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db39"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db40"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db41"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db42"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db43"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db44"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db45"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db46"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db47"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db48"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db49"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db50"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db51"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db52"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db53"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db54"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db55"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db56"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db57"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db58"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db59"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db60"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db61"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db62"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db63"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db64"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db65"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db66"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db67"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db68"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db69"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db70"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db71"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db72"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db73"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db74"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db75"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db76"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db"
+        }
+      ]
+    },
+    {
+      "name": "notify1-6.1.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS two"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS two",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db3"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS two",
+          "database": "db3"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    CREATE TABLE two.t2(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(1, 2);",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t2 VALUES(1, 2);",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "notify1-6.1.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2",
+          "expect": "1 {database table is locked: t2}"
+        }
+      ]
+    },
+    {
+      "name": "notify1-6.1.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}"
+        }
+      ]
+    },
+    {
+      "name": "notify1-6.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2",
+          "expect": "1 {database table is locked: t2}"
+        }
+      ]
+    },
+    {
+      "name": "notify1-6.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "notify1-6.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(3, 4);",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "notify1-6.3.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}"
+        }
+      ]
+    },
+    {
+      "name": "notify1-6.3.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2",
+          "expect": "1 {database table is locked: t2}"
+        }
+      ]
+    },
+    {
+      "name": "notify1-6.3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "0",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "notify1-6.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t2 VALUES(3, 4);",
+          "database": "db3"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2",
+          "expect": "1 {database table is locked: t2}"
+        }
+      ]
+    },
+    {
+      "name": "notify1-6.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "notify1-6.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "notify1-7.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db3"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(5, 6);"
+        }
+      ]
+    },
+    {
+      "name": "notify1-7.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "notify1-7.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "notify1-7.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "notify1-8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(7, 8);"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "notify1-8.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    BEGIN EXCLUSIVE;"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database schema is locked: main}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "notify1-8.X",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "notify1-9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b);\n    BEGIN;\n    SELECT * FROM t1;",
+          "expect": "1 2 3 4 5 6 7 8",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "notify1-9.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 4 5 6 7 8",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "notify1-9.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(9, 10);",
+          "expect": "1 {database table is locked: t1}"
+        }
+      ]
+    },
+    {
+      "name": "notify1-9.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2",
+          "expect": "1 {database table is locked}",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "notify1-9.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "notify1-9.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "notify1-9.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    SELECT * FROM t1;",
+          "expect": "1 2 3 4 5 6 7 8",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "notify1-9.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 4 5 6 7 8",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "notify1-9.9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(9, 10);",
+          "expect": "1 {database table is locked: t1}"
+        }
+      ]
+    },
+    {
+      "name": "notify1-9.10",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2",
+          "expect": "1 {database table is locked}",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "notify1-9.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "notify1-9.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db3"
+        }
+      ]
+    }
+  ]
+}

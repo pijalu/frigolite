@@ -1,9 +1,58 @@
 {
   "file": "e_resolve.test",
   "name": "e_resolve",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.1",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db3"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS at1;\n  ATTACH 'test.db3' AS at2;\n\n  CREATE TABLE   temp.n1(x, y); INSERT INTO temp.n1 VALUES('temp', 'n1');\n  CREATE TRIGGER temp.n3 AFTER INSERT ON n1 BEGIN SELECT 1; END;\n  CREATE INDEX   temp.n4 ON n1(x, y);\n\n  CREATE TABLE   main.n1(x, y); INSERT INTO main.n1 VALUES('main', 'n1');\n  CREATE TABLE   main.n2(x, y); INSERT INTO main.n2 VALUES('main', 'n2');\n  CREATE INDEX   main.n3 ON n2(y, x);\n  CREATE TRIGGER main.n4 BEFORE INSERT ON n2 BEGIN SELECT 1; END;\n\n  CREATE TABLE   at1.n1(x, y);  INSERT INTO at1.n1 VALUES('at1', 'n1');\n  CREATE TABLE   at1.n2(x, y);  INSERT INTO at1.n2 VALUES('at1', 'n2');\n  CREATE TABLE   at1.n3(x, y);  INSERT INTO at1.n3 VALUES('at1', 'n3');\n\n  CREATE TABLE   at2.n1(x, y);  INSERT INTO at2.n1 VALUES('at2', 'n1');\n  CREATE TABLE   at2.n2(x, y);  INSERT INTO at2.n2 VALUES('at2', 'n2');\n  CREATE TABLE   at2.n3(x, y);  INSERT INTO at2.n3 VALUES('at2', 'n3');\n  CREATE TABLE   at2.n4(x, y);  INSERT INTO at2.n4 VALUES('at2', 'n4');\n  CREATE TRIGGER at2.n4 BEFORE INSERT ON n4 BEGIN SELECT 1; END;"
+        }
+      ]
+    },
+    {
+      "name": "e_resolve-1.1",
       "steps": [
         {
           "type": "query",
@@ -13,7 +62,7 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "e_resolve-1.2",
       "steps": [
         {
           "type": "query",
@@ -23,7 +72,7 @@
       ]
     },
     {
-      "name": "1.3",
+      "name": "e_resolve-1.3",
       "steps": [
         {
           "type": "query",
@@ -33,7 +82,7 @@
       ]
     },
     {
-      "name": "1.4",
+      "name": "e_resolve-1.4",
       "steps": [
         {
           "type": "query",
@@ -43,7 +92,55 @@
       ]
     },
     {
-      "name": "2.1.1",
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db3"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS at1;\n  ATTACH 'test.db3' AS at2;\n\n  CREATE TABLE   temp.n1(x, y); INSERT INTO temp.n1 VALUES('temp', 'n1');\n  CREATE TRIGGER temp.n3 AFTER INSERT ON n1 BEGIN SELECT 1; END;\n  CREATE INDEX   temp.n4 ON n1(x, y);\n\n  CREATE TABLE   main.n1(x, y); INSERT INTO main.n1 VALUES('main', 'n1');\n  CREATE TABLE   main.n2(x, y); INSERT INTO main.n2 VALUES('main', 'n2');\n  CREATE INDEX   main.n3 ON n2(y, x);\n  CREATE TRIGGER main.n4 BEFORE INSERT ON n2 BEGIN SELECT 1; END;\n\n  CREATE TABLE   at1.n1(x, y);  INSERT INTO at1.n1 VALUES('at1', 'n1');\n  CREATE TABLE   at1.n2(x, y);  INSERT INTO at1.n2 VALUES('at1', 'n2');\n  CREATE TABLE   at1.n3(x, y);  INSERT INTO at1.n3 VALUES('at1', 'n3');\n\n  CREATE TABLE   at2.n1(x, y);  INSERT INTO at2.n1 VALUES('at2', 'n1');\n  CREATE TABLE   at2.n2(x, y);  INSERT INTO at2.n2 VALUES('at2', 'n2');\n  CREATE TABLE   at2.n3(x, y);  INSERT INTO at2.n3 VALUES('at2', 'n3');\n  CREATE TABLE   at2.n4(x, y);  INSERT INTO at2.n4 VALUES('at2', 'n4');\n  CREATE TRIGGER at2.n4 BEFORE INSERT ON n4 BEGIN SELECT 1; END;"
+        }
+      ]
+    },
+    {
+      "name": "e_resolve-2.1.1",
       "steps": [
         {
           "type": "query",
@@ -53,7 +150,7 @@
       ]
     },
     {
-      "name": "2.1.2",
+      "name": "e_resolve-2.1.2",
       "steps": [
         {
           "type": "query",
@@ -63,7 +160,7 @@
       ]
     },
     {
-      "name": "2.1.3",
+      "name": "e_resolve-2.1.3",
       "steps": [
         {
           "type": "query",
@@ -73,7 +170,7 @@
       ]
     },
     {
-      "name": "2.1.4",
+      "name": "e_resolve-2.1.4",
       "steps": [
         {
           "type": "query",
@@ -83,17 +180,65 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "e_resolve-2.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM xxx.n1",
           "expect": "1 {no such table: xxx.n1}"
         }
       ]
     },
     {
-      "name": "3.1",
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db3"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS at1;\n  ATTACH 'test.db3' AS at2;\n\n  CREATE TABLE   temp.n1(x, y); INSERT INTO temp.n1 VALUES('temp', 'n1');\n  CREATE TRIGGER temp.n3 AFTER INSERT ON n1 BEGIN SELECT 1; END;\n  CREATE INDEX   temp.n4 ON n1(x, y);\n\n  CREATE TABLE   main.n1(x, y); INSERT INTO main.n1 VALUES('main', 'n1');\n  CREATE TABLE   main.n2(x, y); INSERT INTO main.n2 VALUES('main', 'n2');\n  CREATE INDEX   main.n3 ON n2(y, x);\n  CREATE TRIGGER main.n4 BEFORE INSERT ON n2 BEGIN SELECT 1; END;\n\n  CREATE TABLE   at1.n1(x, y);  INSERT INTO at1.n1 VALUES('at1', 'n1');\n  CREATE TABLE   at1.n2(x, y);  INSERT INTO at1.n2 VALUES('at1', 'n2');\n  CREATE TABLE   at1.n3(x, y);  INSERT INTO at1.n3 VALUES('at1', 'n3');\n\n  CREATE TABLE   at2.n1(x, y);  INSERT INTO at2.n1 VALUES('at2', 'n1');\n  CREATE TABLE   at2.n2(x, y);  INSERT INTO at2.n2 VALUES('at2', 'n2');\n  CREATE TABLE   at2.n3(x, y);  INSERT INTO at2.n3 VALUES('at2', 'n3');\n  CREATE TABLE   at2.n4(x, y);  INSERT INTO at2.n4 VALUES('at2', 'n4');\n  CREATE TRIGGER at2.n4 BEFORE INSERT ON n4 BEGIN SELECT 1; END;"
+        }
+      ]
+    },
+    {
+      "name": "e_resolve-3.1",
       "steps": [
         {
           "type": "query",
@@ -103,7 +248,7 @@
       ]
     },
     {
-      "name": "3.2",
+      "name": "e_resolve-3.2",
       "steps": [
         {
           "type": "query",
@@ -113,7 +258,7 @@
       ]
     },
     {
-      "name": "3.3",
+      "name": "e_resolve-3.3",
       "steps": [
         {
           "type": "query",
@@ -123,7 +268,7 @@
       ]
     },
     {
-      "name": "3.4",
+      "name": "e_resolve-3.4",
       "steps": [
         {
           "type": "query",
@@ -133,47 +278,47 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "e_resolve-4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM temp.n2",
           "expect": "1 {no such table: temp.n2}"
         }
       ]
     },
     {
-      "name": "4.2",
+      "name": "e_resolve-4.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM main.n2",
           "expect": "0 {main n2}"
         }
       ]
     },
     {
-      "name": "4.3",
+      "name": "e_resolve-4.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM at1.n2",
           "expect": "0 {at1 n2}"
         }
       ]
     },
     {
-      "name": "4.4",
+      "name": "e_resolve-4.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM at2.n2",
           "expect": "0 {at2 n2}"
         }
       ]
     },
     {
-      "name": "5.1",
+      "name": "e_resolve-5.1",
       "steps": [
         {
           "type": "query",
@@ -183,7 +328,7 @@
       ]
     },
     {
-      "name": "5.2",
+      "name": "e_resolve-5.2",
       "steps": [
         {
           "type": "query",
@@ -193,7 +338,42 @@
       ]
     },
     {
-      "name": "6.1",
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "file.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "e_resolve-6.1",
       "steps": [
         {
           "type": "exec",
@@ -202,7 +382,7 @@
       ]
     },
     {
-      "name": "6.2.0",
+      "name": "e_resolve-6.2.0",
       "steps": [
         {
           "type": "exec",
@@ -211,37 +391,37 @@
       ]
     },
     {
-      "name": "6.2.1",
+      "name": "e_resolve-6.2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM temp.t1",
           "expect": "1 {no such table: temp.t1}"
         }
       ]
     },
     {
-      "name": "6.2.2",
+      "name": "e_resolve-6.2.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM main.t1",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "6.2.3",
+      "name": "e_resolve-6.2.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM aux.t1",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "6.3.0",
+      "name": "e_resolve-6.3.0",
       "steps": [
         {
           "type": "exec",
@@ -250,27 +430,27 @@
       ]
     },
     {
-      "name": "6.3.1",
+      "name": "e_resolve-6.3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM main.t1",
           "expect": "1 {no such table: main.t1}"
         }
       ]
     },
     {
-      "name": "6.3.3",
+      "name": "e_resolve-6.3.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM aux.t1",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "6.4.0",
+      "name": "e_resolve-6.4.0",
       "steps": [
         {
           "type": "exec",
@@ -279,10 +459,10 @@
       ]
     },
     {
-      "name": "6.4.1",
+      "name": "e_resolve-6.4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM aux.t1",
           "expect": "1 {no such table: aux.t1}"
         }

@@ -148,6 +148,10 @@ func (ev *Evaluator) evalUnresolvedMatch(v *sql.BinaryOp, row Row) (interface{},
 		if ferr != nil {
 			return nil, ferr
 		}
+		if v.Operator == "NOT MATCH" {
+			// SQL NOT applies to the function's result (NULL stays NULL).
+			return ev.sqlNot(out), nil
+		}
 		return boolToInt(out != nil && ToBool(out)), nil
 	}
 	switch v.Left.(type) {

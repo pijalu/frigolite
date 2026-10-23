@@ -1,9 +1,11 @@
 {
   "file": "pushdown.test",
   "name": "pushdown",
+  "nullToken": "-",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "pushdown-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +14,60 @@
       ]
     },
     {
-      "name": "1.3",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "f",
+          "callbackVars": {
+            "": "pushdown",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "pushdown"
+          },
+          "functionProc": "f",
+          "functionArgs": [
+            "val"
+          ],
+          "functionBody": "\n  lappend ::L $val\n  return 0\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "pushdown-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a=2 AND f(b) AND f(c)"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "L",
+          "expect": "c2"
+        }
+      ]
+    },
+    {
+      "name": "pushdown-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a=3 AND f(c) AND f(b)"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "L",
+          "expect": "c3"
+        }
+      ]
+    },
+    {
+      "name": "pushdown-1.3",
       "steps": [
         {
           "type": "exec",
@@ -21,7 +76,35 @@
       ]
     },
     {
-      "name": "2.0",
+      "name": "pushdown-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a=2 AND f(b) AND f(c)"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "L",
+          "expect": "b2"
+        }
+      ]
+    },
+    {
+      "name": "pushdown-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a=3 AND f(c) AND f(b)"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "L",
+          "expect": "b3"
+        }
+      ]
+    },
+    {
+      "name": "pushdown-2.0",
       "steps": [
         {
           "type": "exec",
@@ -30,17 +113,49 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "pushdown-2.1",
       "steps": [
         {
-          "type": "query",
-          "sql": "CREATE TABLE t0(c0 INT);\n  INSERT INTO t0 VALUES(0);\n  CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1_a VALUES(1,'one');\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n  INSERT INTO t1_b VALUES(2,'two');\n  CREATE VIEW v0 AS SELECT CAST(t0.c0 AS INTEGER) AS c0 FROM t0;\n  CREATE VIEW v1(a,b) AS SELECT a, b FROM t1_a UNION ALL SELECT c, 0 FROM t1_b;\n  SELECT v1.a, quote(v1.b), t0.c0 AS cd FROM t0 LEFT JOIN v0 ON v0.c0!=0,v1;",
-          "expect": "1 'one' 0\n  2 0     0"
+          "type": "exec",
+          "sql": "SELECT * FROM u1 WHERE f('one')=123 AND 123=(\n      SELECT x FROM u2 WHERE x=a AND f('two')\n    )"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "L",
+          "expect": "one"
         }
       ]
     },
     {
-      "name": "3.2",
+      "name": "pushdown-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM u1 WHERE 123=(\n      SELECT x FROM u2 WHERE x=a AND f('two')\n    ) AND f('three')=123"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "L",
+          "expect": "three"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "pushdown-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t0(c0 INT);\n  INSERT INTO t0 VALUES(0);\n  CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1_a VALUES(1,'one');\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n  INSERT INTO t1_b VALUES(2,'two');\n  CREATE VIEW v0 AS SELECT CAST(t0.c0 AS INTEGER) AS c0 FROM t0;\n  CREATE VIEW v1(a,b) AS SELECT a, b FROM t1_a UNION ALL SELECT c, 0 FROM t1_b;\n  SELECT v1.a, quote(v1.b), t0.c0 AS cd FROM t0 LEFT JOIN v0 ON v0.c0!=0,v1;",
+          "expect": "\n  1 'one' 0\n  2 0     0\n"
+        }
+      ]
+    },
+    {
+      "name": "pushdown-3.2",
       "steps": [
         {
           "type": "query",
@@ -49,7 +164,7 @@
       ]
     },
     {
-      "name": "3.3",
+      "name": "pushdown-3.3",
       "steps": [
         {
           "type": "query",
@@ -59,17 +174,17 @@
       ]
     },
     {
-      "name": "3.4",
+      "name": "pushdown-3.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT a, quote(b), cd FROM (\n    SELECT v1.a, v1.b, t0.c0 AS cd FROM t0 LEFT JOIN v0 ON v0.c0!=0, v1\n  ) WHERE a=2 AND b=0 AND cd=0;",
-          "expect": "2 0     0"
+          "expect": "\n  2 0     0\n"
         }
       ]
     },
     {
-      "name": "3.5",
+      "name": "pushdown-3.5",
       "steps": [
         {
           "type": "query",
@@ -79,16 +194,48 @@
       ]
     },
     {
-      "name": "3.7",
+      "name": "pushdown-3.6",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM v3;"
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM v3 WHERE a=2 AND b=200;"
         }
       ]
     },
     {
-      "name": "4.1",
+      "name": "pushdown-3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM v3;",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "pushdown-3.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT count(*) FROM v3;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "-"
+        }
+      ]
+    },
+    {
+      "name": "pushdown-4.1",
       "steps": [
         {
           "type": "query",
@@ -98,7 +245,7 @@
       ]
     },
     {
-      "name": "4.2",
+      "name": "pushdown-4.2",
       "steps": [
         {
           "type": "query",
@@ -108,7 +255,7 @@
       ]
     },
     {
-      "name": "4.3",
+      "name": "pushdown-4.3",
       "steps": [
         {
           "type": "query",
@@ -118,17 +265,34 @@
       ]
     },
     {
-      "name": "5.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "-"
+        }
+      ]
+    },
+    {
+      "name": "pushdown-5.0",
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE TABLE t1(a INT);  INSERT INTO t1 VALUES(1);\n  CREATE TABLE t2(b INT);  INSERT INTO t2 VALUES(2);\n  CREATE TABLE t3(c INT);  INSERT INTO t3 VALUES(3);\n  CREATE TABLE t4(d INT);  INSERT INTO t4 VALUES(4);\n  CREATE TABLE t5(e INT);  INSERT INTO t5 VALUES(5);\n  SELECT *\n    FROM t1 JOIN t2 ON null RIGHT JOIN t3 ON true\n          LEFT JOIN (t4 JOIN t5 ON d+1=e) ON d=4\n   WHERE e>0;",
+          "sql": "CREATE TABLE t1(a INT);  INSERT INTO t1 VALUES(1);\n  CREATE TABLE t2(b INT);  INSERT INTO t2 VALUES(2);\n  CREATE TABLE t3(c INT);  INSERT INTO t3 VALUES(3);\n  CREATE TABLE t4(d INT);  INSERT INTO t4 VALUES(4);\n  CREATE TABLE t5(e INT);  INSERT INTO t5 VALUES(5);\n  SELECT *\n    FROM t1 JOIN t2 ON null RIGHT JOIN t3 ON true\n          LEFT JOIN (t4 JOIN t5 ON d+1=e) ON d=4\n   WHERE e\u003e0;",
           "expect": "- - 3 4 5"
         }
       ]
     },
     {
-      "name": "6.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "pushdown-6.0",
       "steps": [
         {
           "type": "exec",
@@ -137,7 +301,38 @@
       ]
     },
     {
-      "name": "7.0",
+      "name": "pushdown-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  WITH k(n) AS (VALUES(77),(88),(99))\n  SELECT max(z) FROM t0 WHERE w=123 AND x IN k AND y BETWEEN 44 AND 55;"
+        }
+      ]
+    },
+    {
+      "name": "pushdown-6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT max(z) FROM t0 WHERE w=123 AND x IN v1 AND y BETWEEN 44 AND 55;"
+        }
+      ]
+    },
+    {
+      "name": "pushdown-6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT max(z) FROM t0 WHERE w=123 AND x IN k1 AND y BETWEEN 44 AND 55;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "pushdown-7.0",
       "steps": [
         {
           "type": "exec",
@@ -146,7 +341,7 @@
       ]
     },
     {
-      "name": "7.1",
+      "name": "pushdown-7.1",
       "steps": [
         {
           "type": "query",
@@ -156,136 +351,12 @@
       ]
     },
     {
-      "name": "7.2",
+      "name": "pushdown-7.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT t0_2.c\n    FROM (SELECT '0000' AS c0 FROM empty2 RIGHT JOIN t0_1 ON 1) AS v0 \n    LEFT JOIN empty1 ON v0.c0, t0_2 \n    RIGHT JOIN (\n           SELECT 5678 AS col0 FROM (SELECT 0)\n    ) AS sub1 ON 1 WHERE +t0_2.c;",
           "expect": "1"
-        }
-      ]
-    },
-    {
-      "name": "1.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t1 WHERE a=2 AND f(b) AND f(c)",
-          "expect": "c2"
-        }
-      ]
-    },
-    {
-      "name": "1.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t1 WHERE a=3 AND f(c) AND f(b)",
-          "expect": "c3"
-        }
-      ]
-    },
-    {
-      "name": "1.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t1 WHERE a=2 AND f(b) AND f(c)",
-          "expect": "b2"
-        }
-      ]
-    },
-    {
-      "name": "1.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t1 WHERE a=3 AND f(c) AND f(b)",
-          "expect": "b3"
-        }
-      ]
-    },
-    {
-      "name": "2.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM u1 WHERE f('one')=123 AND 123=(\n      SELECT x FROM u2 WHERE x=a AND f('two')\n    )",
-          "expect": "one"
-        }
-      ]
-    },
-    {
-      "name": "2.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM u1 WHERE 123=(\n      SELECT x FROM u2 WHERE x=a AND f('two')\n    ) AND f('three')=123",
-          "expect": "three"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE a=2 AND f(b) AND f(c)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE a=3 AND f(c) AND f(b)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE a=2 AND f(b) AND f(c)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE a=3 AND f(c) AND f(b)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM u1 WHERE f('one')=123 AND 123=(\n      SELECT x FROM u2 WHERE x=a AND f('two')\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM u1 WHERE 123=(\n      SELECT x FROM u2 WHERE x=a AND f('two')\n    ) AND f('three')=123"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

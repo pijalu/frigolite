@@ -275,7 +275,9 @@ func Test_indexexpr2(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	db.RegisterFunction("refcnt", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 	{ // "indexexpr2-4.100" — skipped: authorizer not implemented (db auth C callback harness N-A; deterministic refcnt function not implemented) (SQL + file side effects only)
-		_res = db.Exec("\n    CREATE TABLE t1(a,b,c,d,e,f);\n    CREATE INDEX t1abc ON t1(refcnt(a+b+c));\n  ")
+		_res = db.Exec("CREATE TABLE t1(a,b,c,d,e,f)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("CREATE INDEX t1abc ON t1(refcnt(a+b+c))")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "indexexpr2-4.110" — skipped: authorizer/refcnt harness not implemented (4.100 setup skipped, refcnt deterministic C func) (SQL + file side effects only)

@@ -1,0 +1,2591 @@
+{
+  "file": "rtree1.test",
+  "name": "rtree1",
+  "nullToken": "-",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "rtree-1.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(ii, x1, x2, y1, y2)"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.1.2a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master ORDER BY name",
+          "expect": "t1 t1_node t1_parent t1_rowid"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.1.2b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM pragma_table_list WHERE type='shadow' ORDER BY name;",
+          "expect": "t1_node t1_parent t1_rowid"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1; \n    SELECT name FROM sqlite_master ORDER BY name;"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "-force"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux;\n    CREATE VIRTUAL TABLE aux.'a\" \"b' USING rtree(ii, x1, x2, y1, y2);"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master ORDER BY name"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM aux.sqlite_master ORDER BY name",
+          "expect": "{a\" \"b} {a\" \"b_node} {a\" \"b_parent} {a\" \"b_rowid}"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE aux.'a\" \"b'; \n    SELECT name FROM aux.sqlite_master ORDER BY name;"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.3.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(i1);",
+          "expect": "1 {Too few columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.3.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(i1,i2);",
+          "expect": "1 {Too few columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.3.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(i1,i2,i3);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.3.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(i1,i2,i3,i4);",
+          "expect": "1 {Wrong number of columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.3.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(i1,i2,i3,i4,i5);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.3.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(i1,i2,i3,i4,i5,i6);",
+          "expect": "1 {Wrong number of columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.3.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(i1,i2,i3,i4,i5,i6,i7);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.3.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(i1,i2,i3,i4,i5,i6,i7,i8);",
+          "expect": "1 {Wrong number of columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.3.9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(i1,i2,i3,i4,i5,i6,i7,i8,i9);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.3.10",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(i1,i2,i3,i4,i5,i6,i7,i8,i9,iA);",
+          "expect": "1 {Wrong number of columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.3.11",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(i1,i2,i3,i4,i5,i6,i7,i8,i9,iA,iB);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.3.12",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(i1,i2,i3,i4,i5,i6,i7,i8,i9,iA,iB,iC);",
+          "expect": "1 {Too many columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.3.13",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(i1,i2,i3,i4,i5,i6,i7,i8,i9,iA,iB,iC,iD);",
+          "expect": "1 {Too many columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "setup_12",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.3.14",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(i1,i2,i3,i4,i5,i6,i7,i8,i9,iA,iB,iC,iD,iE);",
+          "expect": "1 {Too many columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "setup_13",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.3.15",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(i1,i2,i3,i4,i5,i6,i7,i8,i9,iA,iB,iC,iD,iE,iF);",
+          "expect": "1 {Too many columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "setup_14",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.3.16",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(i1,i2,i3,i4,i5,i6,i7,i8,i9,iA,iB,iC,iD,iE,iF,iG);",
+          "expect": "1 {Too many columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "setup_15",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.3.17",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(i1,i2,i3,i4,i5,i6,i7,i8,i9,iA,iB,iC,iD,iE,iF,iG,iH);",
+          "expect": "1 {Too many columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "setup_16",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.3.18",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(i1,i2,i3,i4,i5,i6,i7,i8,i9,iA,iB,iC,iD,iE,iF,iG,iH,iI);",
+          "expect": "1 {Too many columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "setup_17",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.3.19",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(i1,i2,i3,i4,i5,i6,i7,i8,i9,iA,iB,iC,iD,iE,iF,iG,iH,iI,iJ);",
+          "expect": "1 {Too many columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "setup_18",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.3.1000",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE t1000 USING rtree;",
+          "expect": "1 {Too few columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.4.1a",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(ii, x1, x2);\n  INSERT INTO t1 VALUES(1, 5.0, 10.0);\n  SELECT substr(hex(data),1,40) FROM t1_node;",
+          "expect": "00000001000000000000000140A0000041200000"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.4.1b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2, 15.0, 20.0);"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.4.2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY ii",
+          "expect": "1 5 10 2 15 20"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(\"the key\", \"x dim.\", \"x2'dim\");\n    INSERT INTO t1 VALUES(1, 2, 3);\n    SELECT \"the key\", \"x dim.\", \"x2'dim\" FROM t1;",
+          "expect": "1 2 3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "rtree-1.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1_rowid(a);"
+        },
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(\"the key\", \"x dim.\", \"x2'dim\");",
+          "expect": "1 {table \"t1_rowid\" already exists}"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1_rowid"
+        }
+      ]
+    },
+    {
+      "name": "rtree-2.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(ii, x1, x2, y1, y2);\n    SELECT * FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "rtree-2.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(NULL, 1, 3, 2, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 1 3 2 4"
+        }
+      ]
+    },
+    {
+      "name": "rtree-2.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(NULL, 1, 3, 2, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 ORDER BY rowid",
+          "expect": "1 2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(NULL, 1, 3, 2, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t1 ORDER BY ii",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "rtree-2.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES(2, 1, 3, 2, 4)",
+          "expect": "1 {UNIQUE constraint failed: t1.ii}"
+        }
+      ]
+    },
+    {
+      "name": "rtree-2.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES(4, 1, 3, 4, 2)",
+          "expect": "1 {rtree constraint failed: t1.(y1\u003c=y2)}"
+        }
+      ]
+    },
+    {
+      "name": "rtree-2.2.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES(4, 3, 1, 2, 4)",
+          "expect": "1 {rtree constraint failed: t1.(x1\u003c=x2)}"
+        }
+      ]
+    },
+    {
+      "name": "rtree-2.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t1 ORDER BY ii",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "rtree-2.X",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "rtree-3.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(ii, x1, x2, y1, y2);\n    SELECT * FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "rtree-3.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5, 1, 3, 2, 4);\n    SELECT * FROM t1;",
+          "expect": "5 1 3 2 4"
+        }
+      ]
+    },
+    {
+      "name": "rtree-3.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6, 2, 6, 4, 8);\n    SELECT * FROM t1;",
+          "expect": "5 1 3 2 4 6 2 6 4 8"
+        }
+      ]
+    },
+    {
+      "name": "rtree-3.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES(7, 2, 6, 4, 3)",
+          "expect": "1 {rtree constraint failed: t1.(y1\u003c=y2)}"
+        }
+      ]
+    },
+    {
+      "name": "rtree-3.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES(8, 2, 6, 3, 3)",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "rtree-5.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t2 USING rtree(ii, x1, x2)"
+        }
+      ]
+    },
+    {
+      "name": "rtree-5.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(1, 10, 20);\n    INSERT INTO t2 VALUES(2, 30, 40);\n    INSERT INTO t2 VALUES(3, 50, 60);\n    SELECT * FROM t2 ORDER BY ii;",
+          "expect": "1 10 20 2 30 40 3 50 60"
+        }
+      ]
+    },
+    {
+      "name": "rtree-5.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2 WHERE ii=2;\n    SELECT * FROM t2 ORDER BY ii;",
+          "expect": "1 10 20 3 50 60"
+        }
+      ]
+    },
+    {
+      "name": "rtree-5.1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2 WHERE ii=1;\n    SELECT * FROM t2 ORDER BY ii;",
+          "expect": "3 50 60"
+        }
+      ]
+    },
+    {
+      "name": "rtree-5.1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2 WHERE ii=3;\n    SELECT * FROM t2 ORDER BY ii;"
+        }
+      ]
+    },
+    {
+      "name": "rtree-5.1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2_rowid"
+        }
+      ]
+    },
+    {
+      "name": "rtree-6.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t3 USING rtree(ii, x1, x2, y1, y2)"
+        }
+      ]
+    },
+    {
+      "name": "rtree-6.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(1, 2, 3, 4, 5);\n    UPDATE t3 SET x2=5;\n    SELECT * FROM t3;",
+          "expect": "1 2 5 4 5"
+        }
+      ]
+    },
+    {
+      "name": "rtree-6.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET ii = 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3",
+          "expect": "2 2 5 4 5"
+        }
+      ]
+    },
+    {
+      "name": "rtree-7.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t4 USING rtree(ii, x1, x2, y1, y2, z1, z2);\n    INSERT INTO t4 VALUES(1, 2, 3, 4, 5, 6, 7);"
+        }
+      ]
+    },
+    {
+      "name": "rtree-7.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t4 RENAME TO t5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5",
+          "expect": "1 2 3 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "rtree-7.1.3",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5",
+          "expect": "1 2 3 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "rtree-7.1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t5 RENAME TO 'raisara \"one\"'''"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM \"raisara \"\"one\"\"'\"",
+          "expect": "1 2 3 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "rtree-7.1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM 'raisara \"one\"'''",
+          "expect": "1 2 3 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "rtree-7.1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE \"raisara \"\"one\"\"'\" RENAME TO \"abc 123\""
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM \"abc 123\"",
+          "expect": "1 2 3 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "rtree-7.1.7",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM \"abc 123\"",
+          "expect": "1 2 3 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "rtree-7.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4_node(a);"
+        },
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE \"abc 123\" RENAME TO t4",
+          "expect": "1 {SQL logic error}"
+        }
+      ]
+    },
+    {
+      "name": "rtree-7.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM \"abc 123\"",
+          "expect": "1 2 3 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "rtree-7.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t4_node;\n    CREATE TABLE t4_rowid(a);"
+        },
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE \"abc 123\" RENAME TO t4",
+          "expect": "1 {SQL logic error}"
+        }
+      ]
+    },
+    {
+      "name": "rtree-7.2.4",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM \"abc 123\"",
+          "expect": "1 2 3 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "rtree-7.2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t4_rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE \"abc 123\" RENAME TO t4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4",
+          "expect": "1 2 3 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t6 USING rtree(ii, x1, x2);\n    INSERT INTO t6 VALUES(1, 3, 7);\n    INSERT INTO t6 VALUES(2, 4, 6);"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003e2",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003e3",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003e4"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003e5"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003e''"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003enull"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003e'2'",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.1.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003e'3'",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003e=2",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003e=3",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003e=4",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003e=5"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003e=''"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003e=null"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.2.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003e='4'",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.2.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003e='5'"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003c2"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003c3"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003c4",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003c5",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.3.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003c''",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.3.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003cnull"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.3.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003c'3'"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.3.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003c'4'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003c=2"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003c=3",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003c=4",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003c=5",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.4.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003c=''",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.4.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1\u003c=null"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1=2"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1=3",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1=4",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.5.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1=5"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.5.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1=''"
+        }
+      ]
+    },
+    {
+      "name": "rtree-8.5.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ii FROM t6 WHERE x1=null"
+        }
+      ]
+    },
+    {
+      "name": "rtree-9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE foo (id INTEGER PRIMARY KEY);\n    CREATE VIRTUAL TABLE bar USING rtree (id, minX, maxX, minY, maxY);\n    INSERT INTO foo VALUES (null);\n    INSERT INTO foo SELECT null FROM foo;\n    INSERT INTO foo SELECT null FROM foo;\n    INSERT INTO foo SELECT null FROM foo;\n    INSERT INTO foo SELECT null FROM foo;\n    INSERT INTO foo SELECT null FROM foo;\n    INSERT INTO foo SELECT null FROM foo;\n    DELETE FROM foo WHERE id \u003e 40;\n    INSERT INTO bar SELECT NULL, 0, 0, 0, 0 FROM foo;"
+        }
+      ]
+    },
+    {
+      "name": "rtree-9.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM bar b1, bar b2, foo s1 WHERE s1.id = b1.id;",
+          "expect": "1600"
+        }
+      ]
+    },
+    {
+      "name": "rtree-9.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM bar b1, bar b2, foo s1 \n    WHERE b1.minX \u003c= b2.maxX AND s1.id = b1.id;",
+          "expect": "1600"
+        }
+      ]
+    },
+    {
+      "name": "rtree-10.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE t7 USING rtree(index, x1, y1, x2, y2)",
+          "expect": "1 {near \"index\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "rtree-11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t8 USING rtree(idx, x1, x2, y1, y2);\n    INSERT INTO t8 VALUES(1, 1.0, 1.0, 2.0, 2.0);\n    SELECT last_insert_rowid();",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rtree-11.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t8 VALUES(NULL, 1.0, 1.0, 2.0, 2.0);\n    SELECT last_insert_rowid();",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rtree1-12.0.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree_i32(idx, x1, x2, y1, y2);\n  INSERT INTO t1 VALUES(1,   1, 2, 3, 4);\n  SELECT substr(hex(data),1,56) FROM t1_node;",
+          "expect": "00000001000000000000000100000001000000020000000300000004"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.0.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,   2, 3, 4, 5);\n  INSERT INTO t1 VALUES(3,   3, 4, 5, 6);\n\n  CREATE TABLE source(idx, x1, x2, y1, y2);\n  INSERT INTO source VALUES(5, 8, 8, 8, 8);\n  INSERT INTO source VALUES(2, 7, 7, 7, 7);"
+        }
+      ]
+    },
+    {
+      "name": "setup_19",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(4,   4, 5, 6, 7);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.1.rollback.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT OR ROLLBACK INTO t1 VALUES(2, 7, 7, 7, 7)",
+          "expect": "1 {UNIQUE constraint failed: t1.idx}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.1.rollback.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY idx",
+          "expect": "1 1 2 3 4   2 2 3 4 5   3 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "setup_20",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(4,   4, 5, 6, 7);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.1.abort.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT OR ABORT INTO t1 VALUES(2, 7, 7, 7, 7)",
+          "expect": "1 {UNIQUE constraint failed: t1.idx}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.1.abort.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY idx",
+          "expect": "1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "setup_21",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(4,   4, 5, 6, 7);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.1.ignore.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT OR IGNORE INTO t1 VALUES(2, 7, 7, 7, 7)",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.1.ignore.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY idx",
+          "expect": "1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "setup_22",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(4,   4, 5, 6, 7);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.1.fail.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT OR FAIL INTO t1 VALUES(2, 7, 7, 7, 7)",
+          "expect": "1 {UNIQUE constraint failed: t1.idx}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.1.fail.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY idx",
+          "expect": "1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "setup_23",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(4,   4, 5, 6, 7);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.1.replace.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT OR REPLACE INTO t1 VALUES(2, 7, 7, 7, 7)",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.1.replace.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY idx",
+          "expect": "1 1 2 3 4   2 7 7 7 7   3 3 4 5 6   4 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "setup_24",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(4,   4, 5, 6, 7);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.2.rollback.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT OR ROLLBACK INTO t1 SELECT * FROM source",
+          "expect": "1 {UNIQUE constraint failed: t1.idx}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.2.rollback.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY idx",
+          "expect": "1 1 2 3 4   2 2 3 4 5   3 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "setup_25",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(4,   4, 5, 6, 7);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.2.abort.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT OR ABORT INTO t1 SELECT * FROM source",
+          "expect": "1 {UNIQUE constraint failed: t1.idx}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.2.abort.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY idx",
+          "expect": "1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "setup_26",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(4,   4, 5, 6, 7);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.2.ignore.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT OR IGNORE INTO t1 SELECT * FROM source",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.2.ignore.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY idx",
+          "expect": "1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7  5 8 8 8 8"
+        }
+      ]
+    },
+    {
+      "name": "setup_27",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(4,   4, 5, 6, 7);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.2.fail.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT OR FAIL INTO t1 SELECT * FROM source",
+          "expect": "1 {UNIQUE constraint failed: t1.idx}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.2.fail.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY idx",
+          "expect": "1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7  5 8 8 8 8"
+        }
+      ]
+    },
+    {
+      "name": "setup_28",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(4,   4, 5, 6, 7);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.2.replace.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT OR REPLACE INTO t1 SELECT * FROM source",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.2.replace.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY idx",
+          "expect": "1 1 2 3 4   2 7 7 7 7   3 3 4 5 6   4 4 5 6 7  5 8 8 8 8"
+        }
+      ]
+    },
+    {
+      "name": "setup_29",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(4,   4, 5, 6, 7);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.3.rollback.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE OR ROLLBACK t1 SET idx = 2 WHERE idx = 4",
+          "expect": "1 {UNIQUE constraint failed: t1.idx}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.3.rollback.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY idx",
+          "expect": "1 1 2 3 4   2 2 3 4 5   3 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "setup_30",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(4,   4, 5, 6, 7);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.3.abort.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE OR ABORT t1 SET idx = 2 WHERE idx = 4",
+          "expect": "1 {UNIQUE constraint failed: t1.idx}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.3.abort.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY idx",
+          "expect": "1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "setup_31",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(4,   4, 5, 6, 7);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.3.ignore.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE OR IGNORE t1 SET idx = 2 WHERE idx = 4",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.3.ignore.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY idx",
+          "expect": "1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "setup_32",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(4,   4, 5, 6, 7);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.3.fail.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE OR FAIL t1 SET idx = 2 WHERE idx = 4",
+          "expect": "1 {UNIQUE constraint failed: t1.idx}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.3.fail.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY idx",
+          "expect": "1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "setup_33",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(4,   4, 5, 6, 7);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.3.replace.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE OR REPLACE t1 SET idx = 2 WHERE idx = 4",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.3.replace.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY idx",
+          "expect": "1 1 2 3 4   2 4 5 6 7   3 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "setup_34",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(4,   4, 5, 6, 7);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.3.rollback.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE OR ROLLBACK t1 SET idx = ((idx+1)%5)+1 WHERE idx \u003e 2",
+          "expect": "1 {UNIQUE constraint failed: t1.idx}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.3.rollback.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY idx",
+          "expect": "1 1 2 3 4   2 2 3 4 5   3 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "setup_35",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(4,   4, 5, 6, 7);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.3.abort.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE OR ABORT t1 SET idx = ((idx+1)%5)+1 WHERE idx \u003e 2",
+          "expect": "1 {UNIQUE constraint failed: t1.idx}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.3.abort.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY idx",
+          "expect": "1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "setup_36",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(4,   4, 5, 6, 7);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.3.ignore.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE OR IGNORE t1 SET idx = ((idx+1)%5)+1 WHERE idx \u003e 2",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.3.ignore.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY idx",
+          "expect": "1 1 2 3 4   2 2 3 4 5               4 4 5 6 7   5 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "setup_37",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(4,   4, 5, 6, 7);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.3.fail.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE OR FAIL t1 SET idx = ((idx+1)%5)+1 WHERE idx \u003e 2",
+          "expect": "1 {UNIQUE constraint failed: t1.idx}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.3.fail.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY idx",
+          "expect": "1 1 2 3 4   2 2 3 4 5               4 4 5 6 7   5 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "setup_38",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(4,   4, 5, 6, 7);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.3.replace.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE OR REPLACE t1 SET idx = ((idx+1)%5)+1 WHERE idx \u003e 2",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.3.replace.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY idx",
+          "expect": "1 4 5 6 7   2 2 3 4 5                           5 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "setup_39",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(4,   4, 5, 6, 7);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.4.rollback.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT OR ROLLBACK INTO t1 VALUES(2, 7, 6, 7, 7)",
+          "expect": "1 {rtree constraint failed: t1.(x1\u003c=x2)}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.4.rollback.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY idx",
+          "expect": "1 1 2 3 4   2 2 3 4 5   3 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "setup_40",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(4,   4, 5, 6, 7);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.4.abort.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT OR ABORT INTO t1 VALUES(2, 7, 6, 7, 7)",
+          "expect": "1 {rtree constraint failed: t1.(x1\u003c=x2)}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.4.abort.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY idx",
+          "expect": "1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "setup_41",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(4,   4, 5, 6, 7);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.4.ignore.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT OR IGNORE INTO t1 VALUES(2, 7, 6, 7, 7)",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.4.ignore.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY idx",
+          "expect": "1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "setup_42",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(4,   4, 5, 6, 7);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.4.fail.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT OR FAIL INTO t1 VALUES(2, 7, 6, 7, 7)",
+          "expect": "1 {rtree constraint failed: t1.(x1\u003c=x2)}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.4.fail.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY idx",
+          "expect": "1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "setup_43",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(4,   4, 5, 6, 7);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.4.replace.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT OR REPLACE INTO t1 VALUES(2, 7, 6, 7, 7)",
+          "expect": "1 {rtree constraint failed: t1.(x1\u003c=x2)}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-12.4.replace.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY idx",
+          "expect": "1 1 2 3 4   2 2 3 4 5   3 3 4 5 6   4 4 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "setup_44",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rtree1-13.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE t9 USING rtree(id, xmin, xmax);\n  INSERT INTO t9 VALUES(1,0,0);            \n  INSERT INTO t9 VALUES(2,0,0);\n  SELECT * FROM t9 WHERE id IN (1, 2);",
+          "expect": "1 0.0 0.0 2 0.0 0.0"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-13.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH r(x) AS (\n    SELECT 1 UNION ALL\n    SELECT 2 UNION ALL\n    SELECT 3\n  )\n  SELECT * FROM r CROSS JOIN t9 WHERE id=x;",
+          "expect": "1 1 0.0 0.0 2 2 0.0 0.0"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-14.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t10 USING rtree(ii, x1, x2);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-14.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(NULL,   1, 2);\n  INSERT INTO t10 VALUES(NULL,   2, 3);\n  INSERT INTO t10 VALUES('4xxx', 3, 4);\n  INSERT INTO t10 VALUES(5.0,    4, 5);\n  INSERT INTO t10 VALUES(6.4,    5, 6);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-14.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t10;",
+          "expect": "\n  1 1.0 2.0   2 2.0 3.0   4 3.0 4.0   5 4.0 5.0   6 5.0 6.0\n"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-14.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t10;\n  INSERT INTO t10 VALUES(1, 'one', 'two');\n  INSERT INTO t10 VALUES(2, '52xyz', '81...');"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-14.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t10;",
+          "expect": "\n  1 0.0 0.0\n  2 52.0 81.0\n"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-14.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t10 VALUES(0,10,20);\n  SELECT * FROM t10 WHERE ii=NULL;"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-14.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t10 WHERE ii='xyz';"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-14.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t10 WHERE ii='0.0';",
+          "expect": "0 10.0 20.0"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-14.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t10 WHERE ii=0.0;",
+          "expect": "0 10.0 20.0"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-14.104",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t10;\n  CREATE VIRTUAL TABLE t10 USING rtree_i32(ii, x1, x2);\n  INSERT INTO t10 VALUES(1, 'one', 'two');\n  INSERT INTO t10 VALUES(2, '52xyz', '81...');\n  INSERT INTO t10 VALUES(3, 42.3, 49.9);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-14.105",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t10;",
+          "expect": "\n  1 0 0\n  2 52 81\n  3 42 49\n"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-15.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE rt USING rtree(id, x1,x2, y1,y2);\n  CREATE TEMP TABLE t13(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-15.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n  INSERT INTO rt VALUES(1,2,3,4,5);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-15.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t13;\n  COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-16.100",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE t16 USING rtree(id,x0,x1,y0,+aux1,x1);",
+          "expect": "1 {Auxiliary rtree columns must be last}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-16.110",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t16 USING rtree(\n      id, x00, x01, x10, x11, x20, x21, x30, x31, x40, x41\n  , +a12, +a13, +a14, +a15, +a16, +a17, +a18, +a19, +a20, +a21, +a22, +a23, +a24, +a25, +a26, +a27, +a28, +a29, +a30, +a31, +a32, +a33, +a34, +a35, +a36, +a37, +a38, +a39, +a40, +a41, +a42, +a43, +a44, +a45, +a46, +a47, +a48, +a49, +a50, +a51, +a52, +a53, +a54, +a55, +a56, +a57, +a58, +a59, +a60, +a61, +a62, +a63, +a64, +a65, +a66, +a67, +a68, +a69, +a70, +a71, +a72, +a73, +a74, +a75, +a76, +a77, +a78, +a79, +a80, +a81, +a82, +a83, +a84, +a85, +a86, +a87, +a88, +a89, +a90, +a91, +a92, +a93, +a94, +a95, +a96, +a97, +a98, +a99, +a100);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-16.120",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE t16b USING rtree(\n      id, x00, x01, x10, x11, x20, x21, x30, x31, x40, x41\n  , +a12, +a13, +a14, +a15, +a16, +a17, +a18, +a19, +a20, +a21, +a22, +a23, +a24, +a25, +a26, +a27, +a28, +a29, +a30, +a31, +a32, +a33, +a34, +a35, +a36, +a37, +a38, +a39, +a40, +a41, +a42, +a43, +a44, +a45, +a46, +a47, +a48, +a49, +a50, +a51, +a52, +a53, +a54, +a55, +a56, +a57, +a58, +a59, +a60, +a61, +a62, +a63, +a64, +a65, +a66, +a67, +a68, +a69, +a70, +a71, +a72, +a73, +a74, +a75, +a76, +a77, +a78, +a79, +a80, +a81, +a82, +a83, +a84, +a85, +a86, +a87, +a88, +a89, +a90, +a91, +a92, +a93, +a94, +a95, +a96, +a97, +a98, +a99, +a100, +a101);",
+          "expect": "1 {Too many columns for an rtree table}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-16.130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS rt1;\n  CREATE VIRTUAL TABLE rt1 USING rtree(id, x1, x2, +aux);\n  INSERT INTO rt1 VALUES(1, 1, 2, 'aux1');\n  INSERT INTO rt1 VALUES(2, 2, 3, 'aux2');\n  INSERT INTO rt1 VALUES(3, 3, 4, 'aux3');\n  INSERT INTO rt1 VALUES(4, 4, 5, 'aux4');\n  SELECT * FROM rt1 WHERE id IN (1, 2, 3, 4);",
+          "expect": "1 1.0 2.0 aux1 2 2.0 3.0 aux2 3 3.0 4.0 aux3 4 4.0 5.0 aux4"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rtree1-17.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(id, x1 PRIMARY KEY, x2, y1, y2);\n  CREATE VIRTUAL TABLE t2 USING rtree(id, x1, x2, y1, y2 UNIQUE);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-17.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "REINDEX t1;\n  REINDEX t2;"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-17.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "REINDEX;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rtree1-18.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE rt0 USING rtree(c0, c1, c2);\n  INSERT INTO rt0(c0,c1,c2) VALUES(9,2,3);\n  SELECT c0 FROM rt0 WHERE rt0.c1 \u003e '-1'; \n  SELECT rt0.c1 \u003e '-1' FROM rt0;",
+          "expect": "9 1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rtree1-19.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE rt0 USING rtree(a,b,c);\n  INSERT INTO rt0(a,b,c) VALUES(0,0.0,0.0);\n  CREATE VIEW v0(x) AS SELECT DISTINCT rt0.b FROM rt0;\n  SELECT v0.x FROM v0, rt0;",
+          "expect": "0.0"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-19.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT v0.x FROM v0, rt0 WHERE v0.x = rt0.b;",
+          "expect": "0.0"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rtree1-20.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE rt0 USING rtree(id, x0, x1);\n  CREATE TABLE t0(a INT);\n  CREATE TABLE t1(b INT);\n  INSERT INTO rt0 VALUES(0, 0, 0);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-20.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1 JOIN t0 ON x0\u003ea RIGHT JOIN rt0 ON true WHERE +x0 = 0;",
+          "expect": "1 {ON clause references tables to its right}"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-20.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1 JOIN t0 ON x0\u003ea RIGHT JOIN rt0 ON true WHERE x0 = 0;",
+          "expect": "1 {ON clause references tables to its right}"
+        }
+      ]
+    },
+    {
+      "name": "setup_45",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "-"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-20.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 JOIN t0 ON true RIGHT JOIN rt0 ON x0\u003ea WHERE +x0 = 0;",
+          "expect": "- - 0 0.0 0.0"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-20.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 JOIN t0 ON true RIGHT JOIN rt0 ON x0\u003ea WHERE x0 = 0;",
+          "expect": "- - 0 0.0 0.0"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rtree1-21.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(id, x0, x1);\n  INSERT INTO t1 VALUES(0, 1, 9223372036854775807);\n  SELECT count(*) FROM t1 WHERE x1=9223372036854775807;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-21.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x1=9223372036854775807 FROM t1;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rtree1-23.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);"
+        },
+        {
+          "type": "catch",
+          "sql": "CREATE TABLE t2 AS SELECT rtreecheck('t1') AS y;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rtree1-24.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE rt1 USING rtree_i32(rid, c1, c2);\n  INSERT INTO rt1(rid, c1, c2) VALUES (9223372036854775807, 10, 18);"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-24.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (rid = (CAST (9223372036854775807 AS REAL)))\n  FROM rt1 WHERE\n         (rid = (CAST (9223372036854775807 AS REAL)));"
+        }
+      ]
+    },
+    {
+      "name": "rtree1-24.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM rt1;\n  INSERT INTO rt1(rid, c1, c2) VALUES(1,2,3);\n  SELECT * FROM rt1 WHERE rid=1.005;"
+        }
+      ]
+    }
+  ]
+}

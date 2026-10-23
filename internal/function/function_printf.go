@@ -335,10 +335,10 @@ func sqliteFormatFloat(verb byte, leftJustify bool, prefix byte, alt, alt2, zero
 	if precision < 0 {
 		precision = 6
 	}
-	// SQLite's FpDecode: 16 significant digits by default, 20 with '!'.
+	// SQLite's FpDecode: 16 significant digits by default, 26 with '!'.
 	maxSig := 16
 	if alt2 {
-		maxSig = 20
+		maxSig = 26
 	}
 	s := renderSQLiteFloat(verb, r, precision, alt, alt2, maxSig)
 	// Sign prefix (sign already embedded for negatives).
@@ -545,11 +545,151 @@ func renderSQLiteFloat(verb byte, r float64, precision int, alt, alt2 bool, maxS
 // FpDecode significant digits (so e.g. %.0f of 0.9 is "1"). The '#' flag
 // keeps a trailing decimal point when precision is 0 ("0.").
 func renderFloatF(r float64, precision int, alt, alt2 bool, maxSig int) string {
+	if alt2 {
+		return renderDecodedFloatF(r, precision, maxSig)
+	}
 	s := strconv.FormatFloat(r, 'f', precision, 64)
 	if alt && !strings.Contains(s, ".") && precision == 0 {
 		s += "."
 	}
 	return s
+}
+
+// renderDecodedFloatF uses SQLite's double-double decimal decoder for %!f.
+func renderDecodedFloatF(r float64, precision, maxSig int) string {
+	d := decodeSQLiteFloat(r, -precision, maxSig)
+	var out strings.Builder
+	if d.negative {
+		out.WriteByte('-')
+	}
+	if d.decimalPoint <= 0 {
+		out.WriteByte('0')
+	} else {
+		for pos := d.decimalPoint - 1; pos >= 0; pos-- {
+			out.WriteByte(digitAt(d.digits, pos))
+		}
+	}
+	out.WriteByte('.')
+	for pos := d.decimalPoint; pos < d.decimalPoint+precision; pos++ {
+		out.WriteByte(digitAt(d.digits, pos))
+	}
+	fixed := out.String()
+	if dot := strings.IndexByte(fixed, '.'); dot >= 0 {
+		fixed = strings.TrimRight(fixed, "0")
+		if strings.HasSuffix(fixed, ".") {
+			fixed += "0"
+		}
+	}
+	return fixed
+}
+
+type sqliteFloatDigits struct {
+	digits       []byte
+	decimalPoint int
+	negative     bool
+}
+
+func digitAt(digits []byte, pos int) byte {
+	if pos < 0 || pos >= len(digits) {
+		return '0'
+	}
+	return digits[pos]
+}
+
+// decodeSQLiteFloat mirrors sqlite3FpDecode's scaling, extraction, and rounding.
+func decodeSQLiteFloat(value float64, round, maxRound int) sqliteFloatDigits {
+	negative := math.Signbit(value)
+	r := math.Abs(value)
+	if r == 0 {
+		return sqliteFloatDigits{digits: []byte{'0'}, decimalPoint: 1, negative: negative}
+	}
+	var exponent int
+	x := [2]float64{r, 0}
+	for x[0] > 9.223372036854774784e+118 {
+		exponent += 100
+		dekkerMul2(&x, 1e-100, -1.99918998026028836196e-117)
+	}
+	if x[0] > 9.223372036854774784e+18 {
+		for x[0] > 9.223372036854774784e+28 {
+			exponent += 10
+			dekkerMul2(&x, 1e-10, -3.6432197315497741579e-27)
+		}
+		for x[0] > 9.223372036854774784e+18 {
+			exponent++
+			dekkerMul2(&x, 0.1, -5.5511151231257827021e-18)
+		}
+	} else {
+		for x[0] < 9.223372036854774784e-83 {
+			exponent -= 100
+			dekkerMul2(&x, 1e100, -1.5902891109759918046e+83)
+		}
+		for x[0] < 9.223372036854774784e+07 {
+			exponent -= 10
+			dekkerMul2(&x, 1e10, 0)
+		}
+		for x[0] < 9.22337203685477478e+17 {
+			exponent--
+			dekkerMul2(&x, 10, 0)
+		}
+	}
+	var integer uint64
+	if x[1] < 0 {
+		integer = uint64(x[0]) - uint64(-x[1])
+	} else {
+		integer = uint64(x[0]) + uint64(x[1])
+	}
+	digits := []byte(strconv.FormatUint(integer, 10))
+	dp := len(digits) + exponent
+	if round <= 0 {
+		round = dp - round
+		if round == 0 && digits[0] >= '5' {
+			digits = append([]byte{'0'}, digits...)
+			dp++
+			round = 1
+		}
+	}
+	if round > 0 && (round < len(digits) || len(digits) > maxRound) {
+		if round > maxRound {
+			round = maxRound
+		}
+		if round < len(digits) && digits[round] >= '5' {
+			for j := round - 1; j >= 0; j-- {
+				if digits[j] < '9' {
+					digits[j]++
+					break
+				}
+				digits[j] = '0'
+				if j == 0 {
+					digits = append([]byte{'1'}, digits...)
+					dp++
+					break
+				}
+			}
+		}
+		if round < len(digits) {
+			digits = digits[:round]
+		}
+	}
+	for len(digits) > 1 && digits[len(digits)-1] == '0' {
+		digits = digits[:len(digits)-1]
+	}
+	return sqliteFloatDigits{digits: digits, decimalPoint: dp, negative: negative}
+}
+
+func dekkerMul2(x *[2]float64, y, yy float64) {
+	const mask uint64 = 0xfffffffffc000000
+	hx := math.Float64frombits(math.Float64bits(x[0]) & mask)
+	tx := x[0] - hx
+	hy := math.Float64frombits(math.Float64bits(y) & mask)
+	ty := y - hy
+	p := hx * hy
+	q := hx*ty + tx*hy
+	c := p + q
+	cc := p - c + q + tx*ty
+	cc = x[0]*yy + x[1]*y + cc
+	x[0] = c + cc
+	x[1] = c - x[0]
+	x[1] += cc
 }
 
 // renderFloatE renders %e: scientific with `precision` digits after the

@@ -1,9 +1,10 @@
 {
   "file": "eqp.test",
   "name": "eqp",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.1",
+      "name": "eqp-1.1",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,123 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "eqp-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t2, t1 WHERE t1.a=1 OR t1.b=2;"
+        }
+      ]
+    },
+    {
+      "name": "eqp-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a=1 OR t1.b=2;"
+        },
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT a FROM t1 ORDER BY a"
+        }
+      ]
+    },
+    {
+      "name": "eqp-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT a FROM t1 ORDER BY +a"
+        }
+      ]
+    },
+    {
+      "name": "eqp-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT a FROM t1 WHERE a=4"
+        }
+      ]
+    },
+    {
+      "name": "eqp-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT DISTINCT count(*) FROM t3 GROUP BY a;"
+        }
+      ]
+    },
+    {
+      "name": "eqp-1.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t3 JOIN (SELECT 1)"
+        }
+      ]
+    },
+    {
+      "name": "eqp-1.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t3 JOIN (SELECT 1) AS v1"
+        }
+      ]
+    },
+    {
+      "name": "eqp-1.7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t3 AS xx JOIN (SELECT 1) AS yy"
+        }
+      ]
+    },
+    {
+      "name": "eqp-1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t3 JOIN (SELECT 1 UNION SELECT 2)"
+        }
+      ]
+    },
+    {
+      "name": "eqp-1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t3 JOIN (SELECT 1 EXCEPT SELECT a FROM t3 LIMIT 17) AS abc"
+        }
+      ]
+    },
+    {
+      "name": "eqp-1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t3 JOIN (SELECT 1 INTERSECT SELECT a FROM t3 LIMIT 17) AS abc"
+        }
+      ]
+    },
+    {
+      "name": "eqp-1.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t3 JOIN (SELECT 1 UNION ALL SELECT a FROM t3 LIMIT 17) abc"
+        }
+      ]
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "eqp-2.1",
       "steps": [
         {
           "type": "exec",
@@ -21,61 +138,299 @@
       ]
     },
     {
-      "name": "5.1.0",
+      "name": "eqp-2.2.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a INT, b INT, ex TEXT)"
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT DISTINCT min(x), max(x) FROM t1 GROUP BY x ORDER BY 1"
         }
       ]
     },
     {
-      "name": "5.2.0",
+      "name": "eqp-2.2.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE INDEX i1 ON t1(a)"
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT DISTINCT min(x), max(x) FROM t2 GROUP BY x ORDER BY 1"
         }
       ]
     },
     {
-      "name": "5.3.0",
+      "name": "eqp-2.2.3",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE INDEX i2 ON t1(a, b)"
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT DISTINCT * FROM t1"
         }
       ]
     },
     {
-      "name": "5.4.0",
+      "name": "eqp-2.2.4",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(c INT, d INT, ex TEXT)"
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT DISTINCT * FROM t1, t2"
         }
       ]
     },
     {
-      "name": "5.5.0",
+      "name": "eqp-2.2.5",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE INDEX i3 ON t1(b)"
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT DISTINCT * FROM t1, t2 ORDER BY t1.x"
         }
       ]
     },
     {
-      "name": "5.8.0",
+      "name": "eqp-2.2.6",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE INDEX i4 ON t2(c)"
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT DISTINCT t2.x FROM t1, t2 ORDER BY t2.x"
         }
       ]
     },
     {
-      "name": "7.0",
+      "name": "eqp-2.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT max(x) FROM t2"
+        }
+      ]
+    },
+    {
+      "name": "eqp-2.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT min(x) FROM t2"
+        }
+      ]
+    },
+    {
+      "name": "eqp-2.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT min(x), max(x) FROM t2"
+        }
+      ]
+    },
+    {
+      "name": "eqp-2.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE rowid=?"
+        }
+      ]
+    },
+    {
+      "name": "eqp-3.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT (SELECT x FROM t1 AS sub) FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "eqp-3.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1 WHERE (SELECT x FROM t1 AS sub);"
+        }
+      ]
+    },
+    {
+      "name": "eqp-3.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1 WHERE (SELECT x FROM t1 AS sub ORDER BY y);"
+        }
+      ]
+    },
+    {
+      "name": "eqp-3.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1 WHERE (SELECT x FROM t2 ORDER BY x);"
+        }
+      ]
+    },
+    {
+      "name": "eqp-3.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM (SELECT * FROM t1 ORDER BY x LIMIT 10) ORDER BY y LIMIT 5"
+        }
+      ]
+    },
+    {
+      "name": "eqp-3.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM \n    (SELECT * FROM t1 ORDER BY x LIMIT 10) AS x1,\n    (SELECT * FROM t2 ORDER BY x LIMIT 10) AS x2\n  ORDER BY x2.y LIMIT 5"
+        }
+      ]
+    },
+    {
+      "name": "eqp-3.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM (SELECT * FROM t1 ORDER BY x LIMIT 10) ORDER BY x LIMIT 5"
+        }
+      ]
+    },
+    {
+      "name": "eqp-3.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1 WHERE y IN (SELECT y FROM t2)"
+        }
+      ]
+    },
+    {
+      "name": "eqp-3.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1 WHERE y IN (SELECT y FROM t2 WHERE t1.x!=t2.x)"
+        }
+      ]
+    },
+    {
+      "name": "eqp-3.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1 WHERE EXISTS (SELECT y FROM t2 WHERE t1.x!=t2.x)"
+        }
+      ]
+    },
+    {
+      "name": "eqp-4.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1 UNION ALL SELECT * FROM t2"
+        }
+      ]
+    },
+    {
+      "name": "eqp-4.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1 UNION ALL SELECT * FROM t2 ORDER BY 2"
+        }
+      ]
+    },
+    {
+      "name": "eqp-4.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1 UNION SELECT * FROM t2 ORDER BY 2"
+        }
+      ]
+    },
+    {
+      "name": "eqp-4.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1 INTERSECT SELECT * FROM t2 ORDER BY 2"
+        }
+      ]
+    },
+    {
+      "name": "eqp-4.1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1 EXCEPT SELECT * FROM t2 ORDER BY 2"
+        }
+      ]
+    },
+    {
+      "name": "eqp-4.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1 UNION ALL SELECT * FROM t2 ORDER BY 1"
+        }
+      ]
+    },
+    {
+      "name": "eqp-4.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1 UNION SELECT * FROM t2 ORDER BY 1"
+        }
+      ]
+    },
+    {
+      "name": "eqp-4.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1 INTERSECT SELECT * FROM t2 ORDER BY 1"
+        }
+      ]
+    },
+    {
+      "name": "eqp-4.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1 EXCEPT SELECT * FROM t2 ORDER BY 1"
+        }
+      ]
+    },
+    {
+      "name": "eqp-4.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT x FROM t1 UNION SELECT x FROM t2"
+        }
+      ]
+    },
+    {
+      "name": "eqp-4.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT x FROM t1 UNION SELECT x FROM t2 UNION SELECT x FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "eqp-4.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT x FROM t1 UNION SELECT x FROM t2 UNION SELECT x FROM t1 ORDER BY 1"
+        }
+      ]
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "eqp-7.0",
       "steps": [
         {
           "type": "exec",
@@ -84,7 +439,25 @@
       ]
     },
     {
-      "name": "7.3",
+      "name": "eqp-7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT count(*) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "eqp-7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT count(*) FROM t2"
+        }
+      ]
+    },
+    {
+      "name": "eqp-7.3",
       "steps": [
         {
           "type": "exec",
@@ -93,7 +466,41 @@
       ]
     },
     {
-      "name": "8.0",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "eqp-7.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT count(*) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "eqp-7.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT count(*) FROM t2"
+        }
+      ]
+    },
+    {
+      "name": "__DROP_ALL_TABLES__",
+      "steps": null
+    },
+    {
+      "name": "eqp-8.0",
       "steps": [
         {
           "type": "exec",
@@ -102,22 +509,94 @@
       ]
     },
     {
-      "name": "9.0",
+      "name": "eqp-8.1.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "-- Schema from Fossil 2018-08-16\n  CREATE TABLE forumpost(\n    fpid INTEGER PRIMARY KEY,\n    froot INT,\n    fprev INT,\n    firt INT,\n    fmtime REAL\n  );\n  CREATE INDEX forumthread ON forumpost(froot,fmtime);\n  CREATE TABLE blob(\n    rid INTEGER PRIMARY KEY,\n    rcvid INTEGER,\n    size INTEGER,\n    uuid TEXT UNIQUE NOT NULL,\n    content BLOB,\n    CHECK( length(uuid)>=40 AND rid>0 )\n  );\n  CREATE TABLE event(\n    type TEXT,\n    mtime DATETIME,\n    objid INTEGER PRIMARY KEY,\n    tagid INTEGER,\n    uid INTEGER REFERENCES user,\n    bgcolor TEXT,\n    euser TEXT,\n    user TEXT,\n    ecomment TEXT,\n    comment TEXT,\n    brief TEXT,\n    omtime DATETIME\n  );\n  CREATE INDEX event_i1 ON event(mtime);\n  CREATE TABLE private(rid INTEGER PRIMARY KEY);"
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t2"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "eqp-8.1.2",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t2 WHERE rowid=?"
+        }
+      ]
+    },
+    {
+      "name": "eqp-8.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT count(*) FROM t2"
+        }
+      ]
+    },
+    {
+      "name": "eqp-8.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "eqp-8.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=?"
+        }
+      ]
+    },
+    {
+      "name": "eqp-8.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=? AND c=?"
+        }
+      ]
+    },
+    {
+      "name": "eqp-8.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT count(*) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "eqp-9.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "-- Schema from Fossil 2018-08-16\n  CREATE TABLE forumpost(\n    fpid INTEGER PRIMARY KEY,\n    froot INT,\n    fprev INT,\n    firt INT,\n    fmtime REAL\n  );\n  CREATE INDEX forumthread ON forumpost(froot,fmtime);\n  CREATE TABLE blob(\n    rid INTEGER PRIMARY KEY,\n    rcvid INTEGER,\n    size INTEGER,\n    uuid TEXT UNIQUE NOT NULL,\n    content BLOB,\n    CHECK( length(uuid)\u003e=40 AND rid\u003e0 )\n  );\n  CREATE TABLE event(\n    type TEXT,\n    mtime DATETIME,\n    objid INTEGER PRIMARY KEY,\n    tagid INTEGER,\n    uid INTEGER REFERENCES user,\n    bgcolor TEXT,\n    euser TEXT,\n    user TEXT,\n    ecomment TEXT,\n    comment TEXT,\n    brief TEXT,\n    omtime DATETIME\n  );\n  CREATE INDEX event_i1 ON event(mtime);\n  CREATE TABLE private(rid INTEGER PRIMARY KEY);"
+        }
+      ]
+    },
+    {
+      "name": "eqp-9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  WITH thread(age,duration,cnt,root,last) AS (\n    SELECT\n      julianday('now') - max(fmtime) AS age,\n      max(fmtime) - min(fmtime) AS duration,\n      sum(fprev IS NULL) AS msg_count,\n      froot,\n      (SELECT fpid FROM forumpost\n        WHERE froot=x.froot\n          AND fpid NOT IN private\n        ORDER BY fmtime DESC LIMIT 1)\n    FROM forumpost AS x\n    WHERE fpid NOT IN private  --- Ensure this table mentioned in EQP output!\n    GROUP BY froot\n    ORDER BY 1 LIMIT 26 OFFSET 5\n  )\n  SELECT\n    thread.age,\n    thread.duration,\n    thread.cnt,\n    blob.uuid,\n    substr(event.comment,instr(event.comment,':')+1)\n  FROM thread, blob, event\n  WHERE blob.rid=thread.last\n    AND event.objid=thread.last\n  ORDER BY 1;"
+        }
+      ]
+    },
+    {
+      "name": "eqp-9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  WITH thread(age,duration,cnt,root,last) AS (\n    SELECT\n      julianday('now') - max(fmtime) AS age,\n      max(fmtime) - min(fmtime) AS duration,\n      sum(fprev IS NULL) AS msg_count,\n      froot,\n      (SELECT fpid FROM forumpost\n        WHERE froot=x.froot\n          AND fpid NOT IN private\n        ORDER BY fmtime DESC LIMIT 1)\n    FROM forumpost AS x\n    WHERE fpid NOT IN private  --- Ensure this table mentioned in EQP output!\n    GROUP BY froot\n    ORDER BY 1 LIMIT 26 OFFSET 5\n  )\n  SELECT\n    thread.age,\n    thread.duration,\n    thread.cnt,\n    blob.uuid,\n    substr(event.comment,instr(event.comment,':')+1)\n  FROM thread, blob, event\n  WHERE blob.rid=thread.last\n    AND event.objid=thread.last\n  ORDER BY 1;"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

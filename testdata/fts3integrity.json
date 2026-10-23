@@ -1,9 +1,10 @@
 {
   "file": "fts3integrity.test",
   "name": "fts3integrity",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "fts3integrity-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,27 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "fts3integrity-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(x, y);",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "fts3integrity-1.2",
       "steps": [
         {
           "type": "query",

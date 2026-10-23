@@ -1,9 +1,10 @@
 {
   "file": "incrcorrupt.test",
   "name": "incrcorrupt",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "incrcorrupt-1.0",
       "steps": [
         {
           "type": "query",
@@ -13,7 +14,7 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "incrcorrupt-1.1",
       "steps": [
         {
           "type": "query",
@@ -22,7 +23,106 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "incrcorrupt-1.2",
+      "steps": [
+        {
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileData": "00000019",
+          "fileTarget": "test.db",
+          "fileOffset": 36
+        },
+        {
+          "type": "catch",
+          "sql": "PRAGMA incremental_vacuum;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "incrcorrupt-1.3",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA incremental_vacuum",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "PRAGMA incremental_vacuum",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_1__",
+          "expect": "SQLITE_CORRUPT"
+        }
+      ]
+    },
+    {
+      "name": "incrcorrupt-1.6",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA incremental_vacuum",
+          "variable": "stmt_1",
+          "expect": "SQLITE_CORRUPT"
+        }
+      ]
+    },
+    {
+      "name": "incrcorrupt-1.9",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA incremental_vacuum",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "PRAGMA incremental_vacuum",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_2__",
+          "expect": "SQLITE_CORRUPT"
+        }
+      ]
+    },
+    {
+      "name": "incrcorrupt-1.12",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT 1",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT 1",
+          "variable": "stmt_3",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "incrcorrupt-1.15",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA incremental_vacuum",
+          "variable": "stmt_2",
+          "expect": "SQLITE_CORRUPT"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "incrcorrupt-2.1",
       "steps": [
         {
           "type": "query",
@@ -32,33 +132,92 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "incrcorrupt-2.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "PRAGMA incremental_vacuum;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "2.2",
+      "name": "incrcorrupt-2.3",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA incremental_vacuum;",
-          "expect": "1 {database disk image is malformed}"
+          "type": "prepare_stmt",
+          "sql": "PRAGMA auto_vacuum = INCREMENTAL",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "PRAGMA auto_vacuum = INCREMENTAL",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_4__",
+          "expect": "SQLITE_CORRUPT"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "incrcorrupt-2.6",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "stmt_finalize",
+          "sql": "PRAGMA auto_vacuum = INCREMENTAL",
+          "variable": "stmt_4",
+          "expect": "SQLITE_CORRUPT"
+        }
+      ]
+    },
+    {
+      "name": "incrcorrupt-2.9",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA auto_vacuum = INCREMENTAL",
+          "variable": "stmt_5"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "PRAGMA auto_vacuum = INCREMENTAL",
+          "variable": "stmt_5"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_5__",
+          "expect": "SQLITE_CORRUPT"
+        }
+      ]
+    },
+    {
+      "name": "incrcorrupt-2.12",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT 1",
+          "variable": "stmt_6"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT 1",
+          "variable": "stmt_6",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "incrcorrupt-2.15",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA auto_vacuum = INCREMENTAL",
+          "variable": "stmt_5",
+          "expect": "SQLITE_CORRUPT"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

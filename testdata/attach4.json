@@ -1,18 +1,620 @@
 {
   "file": "attach4.test",
   "name": "attach4",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.2.2",
+      "name": "attach4-1.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "ATTACH 'x.db' AS next;"
+          "type": "set_limit",
+          "sql": "SQLITE_LIMIT_ATTACHED:-1",
+          "expect": "10"
         }
       ]
     },
     {
-      "name": "2.0",
+      "name": "attach4-1.2.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db0"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db3"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db4"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db5"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db6"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db7"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db8"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db9"
+        }
+      ]
+    },
+    {
+      "name": "attach4-1.2.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db0' AS aux0"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db1' AS aux1"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux2"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db3' AS aux3"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db4' AS aux4"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db5' AS aux5"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db6' AS aux6"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db7' AS aux7"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db8' AS aux8"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db9' AS aux9"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA database_list",
+          "expect": "main test.db aux0 test.db0 aux1 test.db1 aux2 test.db2 aux3 test.db3 aux4 test.db4 aux5 test.db5 aux6 test.db6 aux7 test.db7 aux8 test.db8 aux9 test.db9"
+        }
+      ]
+    },
+    {
+      "name": "attach4-1.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ATTACH 'x.db' AS next;",
+          "expect": "1 {too many attached databases - max 10}"
+        }
+      ]
+    },
+    {
+      "name": "attach4-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE main.tbl(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO main.tbl VALUES('test.db')"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE aux0.tbl(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO aux0.tbl VALUES('test.db0')"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE aux1.tbl(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO aux1.tbl VALUES('test.db1')"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE aux2.tbl(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO aux2.tbl VALUES('test.db2')"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE aux3.tbl(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO aux3.tbl VALUES('test.db3')"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE aux4.tbl(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO aux4.tbl VALUES('test.db4')"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE aux5.tbl(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO aux5.tbl VALUES('test.db5')"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE aux6.tbl(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO aux6.tbl VALUES('test.db6')"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE aux7.tbl(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO aux7.tbl VALUES('test.db7')"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE aux8.tbl(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO aux8.tbl VALUES('test.db8')"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE aux9.tbl(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO aux9.tbl VALUES('test.db9')"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "attach4-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM main.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux0.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux1.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux2.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux3.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux4.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux5.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux6.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux7.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux8.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux9.tbl",
+          "expect": "main test.db aux0 test.db0 aux1 test.db1 aux2 test.db2 aux3 test.db3 aux4 test.db4 aux5 test.db5 aux6 test.db6 aux7 test.db7 aux8 test.db8 aux9 test.db9"
+        }
+      ]
+    },
+    {
+      "name": "attach4-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode = WAL;\n    UPDATE main.tbl SET x = 'main';\n  \n    PRAGMA aux0.journal_mode = WAL;\n    UPDATE aux0.tbl SET x = 'aux0';\n  \n    PRAGMA aux1.journal_mode = WAL;\n    UPDATE aux1.tbl SET x = 'aux1';\n  \n    PRAGMA aux2.journal_mode = WAL;\n    UPDATE aux2.tbl SET x = 'aux2';\n  \n    PRAGMA aux3.journal_mode = WAL;\n    UPDATE aux3.tbl SET x = 'aux3';\n  \n    PRAGMA aux4.journal_mode = WAL;\n    UPDATE aux4.tbl SET x = 'aux4';\n  \n    PRAGMA aux5.journal_mode = WAL;\n    UPDATE aux5.tbl SET x = 'aux5';\n  \n    PRAGMA aux6.journal_mode = WAL;\n    UPDATE aux6.tbl SET x = 'aux6';\n  \n    PRAGMA aux7.journal_mode = WAL;\n    UPDATE aux7.tbl SET x = 'aux7';\n  \n    PRAGMA aux8.journal_mode = WAL;\n    UPDATE aux8.tbl SET x = 'aux8';\n  \n    PRAGMA aux9.journal_mode = WAL;\n    UPDATE aux9.tbl SET x = 'aux9';",
+          "expect": "wal wal wal wal wal wal wal wal wal wal wal"
+        }
+      ]
+    },
+    {
+      "name": "attach4-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM main.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux0.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux1.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux2.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux3.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux4.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux5.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux6.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux7.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux8.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux9.tbl",
+          "expect": "main test.db aux0 test.db0 aux1 test.db1 aux2 test.db2 aux3 test.db3 aux4 test.db4 aux5 test.db5 aux6 test.db6 aux7 test.db7 aux8 test.db8 aux9 test.db9"
+        }
+      ]
+    },
+    {
+      "name": "attach4-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE main.tbl SET x = 'test.db'"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE aux0.tbl SET x = 'test.db0'"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE aux1.tbl SET x = 'test.db1'"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE aux2.tbl SET x = 'test.db2'"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE aux3.tbl SET x = 'test.db3'"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE aux4.tbl SET x = 'test.db4'"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE aux5.tbl SET x = 'test.db5'"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE aux6.tbl SET x = 'test.db6'"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE aux7.tbl SET x = 'test.db7'"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE aux8.tbl SET x = 'test.db8'"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE aux9.tbl SET x = 'test.db9'"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "attach4-1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM main.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux0.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux1.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux2.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux3.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux4.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux5.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux6.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux7.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux8.tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM aux9.tbl",
+          "expect": "main test.db aux0 test.db0 aux1 test.db1 aux2 test.db2 aux3 test.db3 aux4 test.db4 aux5 test.db5 aux6 test.db6 aux7 test.db7 aux8 test.db8 aux9 test.db9"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db0"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db3"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db4"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db5"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db6"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db7"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db8"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db9"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "attach4-2.0",
       "steps": [
         {
           "type": "exec",
@@ -21,7 +623,7 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "attach4-2.1",
       "steps": [
         {
           "type": "exec",
@@ -30,26 +632,13 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "attach4-2.2",
       "steps": [
         {
           "type": "exec",
           "sql": "DROP TRIGGER tr1;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA database_list"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

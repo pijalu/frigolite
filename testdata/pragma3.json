@@ -1,6 +1,7 @@
 {
   "file": "pragma3.test",
   "name": "pragma3",
+  "ordered": true,
   "tests": [
     {
       "name": "pragma3-100",
@@ -43,6 +44,27 @@
       ]
     },
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "pragma3-120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;\n    PRAGMA data_version;",
+          "expect": "100 200 300 1",
+          "database": "db2"
+        }
+      ]
+    },
+    {
       "name": "pragma3-130",
       "steps": [
         {
@@ -53,51 +75,253 @@
       ]
     },
     {
+      "name": "pragma3-140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;\n    PRAGMA data_version;\n    BEGIN IMMEDIATE;\n    PRAGMA data_version;\n    UPDATE t1 SET a=a+1;\n    COMMIT;\n    SELECT * FROM t1;\n    PRAGMA data_version;",
+          "expect": "100 200 300 400 500 2 2 101 201 301 401 501 2",
+          "database": "db2"
+        }
+      ]
+    },
+    {
       "name": "pragma3-150",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t1;\n  PRAGMA data_version;",
           "expect": "101 201 301 401 501 2"
-        },
+        }
+      ]
+    },
+    {
+      "name": "pragma3-160",
+      "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    PRAGMA data_version;\n    UPDATE t1 SET a=555 WHERE a=501;\n    PRAGMA data_version;\n    SELECT * FROM t1 ORDER BY a;\n    PRAGMA data_version;"
-        },
+          "sql": "BEGIN;\n    PRAGMA data_version;\n    UPDATE t1 SET a=555 WHERE a=501;\n    PRAGMA data_version;\n    SELECT * FROM t1 ORDER BY a;\n    PRAGMA data_version;",
+          "expect": "2 2 101 201 301 401 555 2"
+        }
+      ]
+    },
+    {
+      "name": "pragma3-170",
+      "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT;\n    PRAGMA data_version;"
-        },
+          "sql": "PRAGMA data_version;",
+          "expect": "2",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "pragma3-180",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    PRAGMA data_version;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "pragma3-190",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA data_version;",
+          "expect": "3",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "pragma3-195",
+      "steps": [
         {
           "type": "exec",
           "sql": "PRAGMA data_version"
         },
         {
           "type": "exec",
-          "sql": "PRAGMA data_version; SELECT * FROM t1;"
-        },
+          "sql": "PRAGMA data_version",
+          "expect": "1",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "pragma3-200",
+      "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM t1 WHERE a>300"
-        },
+          "sql": "PRAGMA data_version; SELECT * FROM t1;",
+          "expect": "2 101 201 301 401 555"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "pragma3.txt"
+        }
+      ]
+    },
+    {
+      "name": "pragma3-201",
+      "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA data_version;\n    SELECT * FROM t1;"
+          "sql": "PRAGMA data_version;\n    SELECT * FROM t1;",
+          "expect": "3 101 201"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
         },
         {
-          "type": "exec",
-          "sql": "PRAGMA journal_mode=WAL"
+          "type": "close_db"
         },
         {
-          "type": "exec",
-          "sql": "PRAGMA data_version;\n      PRAGMA journal_mode;\n      SELECT * FROM t1;"
+          "type": "reopen_db",
+          "sql": "test.db"
         },
         {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "pragma3-300",
+      "steps": [
+        {
           "type": "exec",
-          "sql": "UPDATE t1 SET a=111*(a/100); PRAGMA data_version; SELECT * FROM t1"
+          "sql": "PRAGMA data_version;\n      BEGIN;\n      CREATE TABLE t3(a,b,c);\n      CREATE TABLE t4(x,y,z);\n      INSERT INTO t4 VALUES(123,456,789);\n      PRAGMA data_version;\n      COMMIT;\n      PRAGMA data_version;",
+          "expect": "1 1 1"
+        }
+      ]
+    },
+    {
+      "name": "pragma3-310",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA data_version;\n      BEGIN;\n      INSERT INTO t3(a,b,c) VALUES('abc','def','ghi');\n      SELECT * FROM t3;\n      PRAGMA data_version;",
+          "expect": "2 abc def ghi 2",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "pragma3-320",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA data_version;\n      SELECT * FROM t4;",
+          "expect": "1 123 456 789"
+        }
+      ]
+    },
+    {
+      "name": "pragma3-330",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n      PRAGMA data_version;\n      SELECT * FROM t4;",
+          "expect": "2 123 456 789",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "pragma3-340",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA data_version;\n      SELECT * FROM t3;\n      SELECT * FROM t4;",
+          "expect": "2 abc def ghi 123 456 789"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "pragma3-510A",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA data_version;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "pragma3-520A",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN EXCLUSIVE;\n    COMMIT;\n    PRAGMA data_version;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = PERSIST;\n    PRAGMA locking_mode = EXCLUSIVE;"
+        }
+      ]
+    },
+    {
+      "name": "pragma3-510B",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA data_version;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "pragma3-520B",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN EXCLUSIVE;\n    COMMIT;\n    PRAGMA data_version;",
+          "expect": "1"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

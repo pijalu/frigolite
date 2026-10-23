@@ -1,9 +1,10 @@
 {
   "file": "fts3conf.test",
   "name": "fts3conf",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0.1",
+      "name": "fts3conf-1.0.1",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,1172 @@
       ]
     },
     {
-      "name": "2.1.1",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.1.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT OR ROLLBACK INTO t1(rowid, x) VALUES(1, 'x')",
+          "expect": "1 {constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.1.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {{a b c d} {e f g h}}"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master WHERE name = 't1'",
+          "variable": "sql"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE fts3check USING fts4term(t1);\n    CREATE VIRTUAL TABLE temp.fts3check2 USING ;\n    INSERT INTO temp.fts3check2(docid) SELECT docid, * FROM t1;\n    CREATE VIRTUAL TABLE temp.fts3check3 USING fts4term(fts3check2);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE fts3check;\n    DROP TABLE temp.fts3check2;\n    DROP TABLE temp.fts3check3;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "$sql",
+          "expect": "1 {constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {{a b c d} {e f g h} {i j k l}}"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master WHERE name = 't1'",
+          "variable": "sql"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE fts3check USING fts4term(t1);\n    CREATE VIRTUAL TABLE temp.fts3check2 USING ;\n    INSERT INTO temp.fts3check2(docid) SELECT docid, * FROM t1;\n    CREATE VIRTUAL TABLE temp.fts3check3 USING fts4term(fts3check2);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE fts3check;\n    DROP TABLE temp.fts3check2;\n    DROP TABLE temp.fts3check3;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.3.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "$sql",
+          "expect": "1 {constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.3.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {{a b c d} {e f g h} {i j k l}}"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master WHERE name = 't1'",
+          "variable": "sql"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE fts3check USING fts4term(t1);\n    CREATE VIRTUAL TABLE temp.fts3check2 USING ;\n    INSERT INTO temp.fts3check2(docid) SELECT docid, * FROM t1;\n    CREATE VIRTUAL TABLE temp.fts3check3 USING fts4term(fts3check2);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE fts3check;\n    DROP TABLE temp.fts3check2;\n    DROP TABLE temp.fts3check3;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.4.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "$sql",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.4.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {{a b c d} {e f g h} {i j k l}}"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master WHERE name = 't1'",
+          "variable": "sql"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE fts3check USING fts4term(t1);\n    CREATE VIRTUAL TABLE temp.fts3check2 USING ;\n    INSERT INTO temp.fts3check2(docid) SELECT docid, * FROM t1;\n    CREATE VIRTUAL TABLE temp.fts3check3 USING fts4term(fts3check2);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE fts3check;\n    DROP TABLE temp.fts3check2;\n    DROP TABLE temp.fts3check3;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.5.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "$sql",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.5.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {x {e f g h} {i j k l}}"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master WHERE name = 't1'",
+          "variable": "sql"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE fts3check USING fts4term(t1);\n    CREATE VIRTUAL TABLE temp.fts3check2 USING ;\n    INSERT INTO temp.fts3check2(docid) SELECT docid, * FROM t1;\n    CREATE VIRTUAL TABLE temp.fts3check3 USING fts4term(fts3check2);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE fts3check;\n    DROP TABLE temp.fts3check2;\n    DROP TABLE temp.fts3check3;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.6.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "$sql",
+          "expect": "1 {constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.6.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {{a b c d} {e f g h}}"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master WHERE name = 't1'",
+          "variable": "sql"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE fts3check USING fts4term(t1);\n    CREATE VIRTUAL TABLE temp.fts3check2 USING ;\n    INSERT INTO temp.fts3check2(docid) SELECT docid, * FROM t1;\n    CREATE VIRTUAL TABLE temp.fts3check3 USING fts4term(fts3check2);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE fts3check;\n    DROP TABLE temp.fts3check2;\n    DROP TABLE temp.fts3check3;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.7.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "$sql",
+          "expect": "1 {constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.7.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {{a b c d} {e f g h} {i j k l}}"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master WHERE name = 't1'",
+          "variable": "sql"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE fts3check USING fts4term(t1);\n    CREATE VIRTUAL TABLE temp.fts3check2 USING ;\n    INSERT INTO temp.fts3check2(docid) SELECT docid, * FROM t1;\n    CREATE VIRTUAL TABLE temp.fts3check3 USING fts4term(fts3check2);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE fts3check;\n    DROP TABLE temp.fts3check2;\n    DROP TABLE temp.fts3check3;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.8.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "$sql",
+          "expect": "1 {constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.8.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {{a b c d} {e f g h} {i j k l} z}"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master WHERE name = 't1'",
+          "variable": "sql"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE fts3check USING fts4term(t1);\n    CREATE VIRTUAL TABLE temp.fts3check2 USING ;\n    INSERT INTO temp.fts3check2(docid) SELECT docid, * FROM t1;\n    CREATE VIRTUAL TABLE temp.fts3check3 USING fts4term(fts3check2);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE fts3check;\n    DROP TABLE temp.fts3check2;\n    DROP TABLE temp.fts3check3;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.9.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "$sql",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.9.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {{a b c d} {e f g h} {i j k l} z}"
+        }
+      ]
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master WHERE name = 't1'",
+          "variable": "sql"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE fts3check USING fts4term(t1);\n    CREATE VIRTUAL TABLE temp.fts3check2 USING ;\n    INSERT INTO temp.fts3check2(docid) SELECT docid, * FROM t1;\n    CREATE VIRTUAL TABLE temp.fts3check3 USING fts4term(fts3check2);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE fts3check;\n    DROP TABLE temp.fts3check2;\n    DROP TABLE temp.fts3check3;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.10.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "$sql",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.10.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {{a b c d} y {i j k l} z}"
+        }
+      ]
+    },
+    {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master WHERE name = 't1'",
+          "variable": "sql"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE fts3check USING fts4term(t1);\n    CREATE VIRTUAL TABLE temp.fts3check2 USING ;\n    INSERT INTO temp.fts3check2(docid) SELECT docid, * FROM t1;\n    CREATE VIRTUAL TABLE temp.fts3check3 USING fts4term(fts3check2);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE fts3check;\n    DROP TABLE temp.fts3check2;\n    DROP TABLE temp.fts3check3;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.11.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "$sql",
+          "expect": "1 {constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.11.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {{a b c d} {e f g h}}"
+        }
+      ]
+    },
+    {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master WHERE name = 't1'",
+          "variable": "sql"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE fts3check USING fts4term(t1);\n    CREATE VIRTUAL TABLE temp.fts3check2 USING ;\n    INSERT INTO temp.fts3check2(docid) SELECT docid, * FROM t1;\n    CREATE VIRTUAL TABLE temp.fts3check3 USING fts4term(fts3check2);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE fts3check;\n    DROP TABLE temp.fts3check2;\n    DROP TABLE temp.fts3check3;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.12.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "$sql",
+          "expect": "1 {constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.12.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {{a b c d} {e f g h} {i j k l}}"
+        }
+      ]
+    },
+    {
+      "name": "setup_12",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master WHERE name = 't1'",
+          "variable": "sql"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE fts3check USING fts4term(t1);\n    CREATE VIRTUAL TABLE temp.fts3check2 USING ;\n    INSERT INTO temp.fts3check2(docid) SELECT docid, * FROM t1;\n    CREATE VIRTUAL TABLE temp.fts3check3 USING fts4term(fts3check2);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE fts3check;\n    DROP TABLE temp.fts3check2;\n    DROP TABLE temp.fts3check3;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.13.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "$sql",
+          "expect": "1 {constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.13.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {{a b c d} {e f g h} {i j k l}}"
+        }
+      ]
+    },
+    {
+      "name": "setup_13",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master WHERE name = 't1'",
+          "variable": "sql"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE fts3check USING fts4term(t1);\n    CREATE VIRTUAL TABLE temp.fts3check2 USING ;\n    INSERT INTO temp.fts3check2(docid) SELECT docid, * FROM t1;\n    CREATE VIRTUAL TABLE temp.fts3check3 USING fts4term(fts3check2);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE fts3check;\n    DROP TABLE temp.fts3check2;\n    DROP TABLE temp.fts3check3;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.14.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "$sql",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.14.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {{a b c d} {e f g h} {i j k l}}"
+        }
+      ]
+    },
+    {
+      "name": "setup_14",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master WHERE name = 't1'",
+          "variable": "sql"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE fts3check USING fts4term(t1);\n    CREATE VIRTUAL TABLE temp.fts3check2 USING ;\n    INSERT INTO temp.fts3check2(docid) SELECT docid, * FROM t1;\n    CREATE VIRTUAL TABLE temp.fts3check3 USING fts4term(fts3check2);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE fts3check;\n    DROP TABLE temp.fts3check2;\n    DROP TABLE temp.fts3check3;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.15.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "$sql",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.15.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {{a b c d} {i j k l}}"
+        }
+      ]
+    },
+    {
+      "name": "setup_15",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master WHERE name = 't1'",
+          "variable": "sql"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE fts3check USING fts4term(t1);\n    CREATE VIRTUAL TABLE temp.fts3check2 USING ;\n    INSERT INTO temp.fts3check2(docid) SELECT docid, * FROM t1;\n    CREATE VIRTUAL TABLE temp.fts3check3 USING fts4term(fts3check2);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE fts3check;\n    DROP TABLE temp.fts3check2;\n    DROP TABLE temp.fts3check3;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.16.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "$sql",
+          "expect": "1 {constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.16.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {{a b c d} {e f g h}}"
+        }
+      ]
+    },
+    {
+      "name": "setup_16",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master WHERE name = 't1'",
+          "variable": "sql"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE fts3check USING fts4term(t1);\n    CREATE VIRTUAL TABLE temp.fts3check2 USING ;\n    INSERT INTO temp.fts3check2(docid) SELECT docid, * FROM t1;\n    CREATE VIRTUAL TABLE temp.fts3check3 USING fts4term(fts3check2);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE fts3check;\n    DROP TABLE temp.fts3check2;\n    DROP TABLE temp.fts3check3;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.17.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "$sql",
+          "expect": "1 {constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.17.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {{a b c d} {e f g h} {i j k l}}"
+        }
+      ]
+    },
+    {
+      "name": "setup_17",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master WHERE name = 't1'",
+          "variable": "sql"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE fts3check USING fts4term(t1);\n    CREATE VIRTUAL TABLE temp.fts3check2 USING ;\n    INSERT INTO temp.fts3check2(docid) SELECT docid, * FROM t1;\n    CREATE VIRTUAL TABLE temp.fts3check3 USING fts4term(fts3check2);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE fts3check;\n    DROP TABLE temp.fts3check2;\n    DROP TABLE temp.fts3check3;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.18.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "$sql",
+          "expect": "1 {constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.18.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {{e f g h} {i j k l} {a b c d}}"
+        }
+      ]
+    },
+    {
+      "name": "setup_18",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master WHERE name = 't1'",
+          "variable": "sql"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE fts3check USING fts4term(t1);\n    CREATE VIRTUAL TABLE temp.fts3check2 USING ;\n    INSERT INTO temp.fts3check2(docid) SELECT docid, * FROM t1;\n    CREATE VIRTUAL TABLE temp.fts3check3 USING fts4term(fts3check2);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE fts3check;\n    DROP TABLE temp.fts3check2;\n    DROP TABLE temp.fts3check3;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.19.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "$sql",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.19.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {{e f g h} {i j k l} {a b c d}}"
+        }
+      ]
+    },
+    {
+      "name": "setup_19",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master WHERE name = 't1'",
+          "variable": "sql"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE fts3check USING fts4term(t1);\n    CREATE VIRTUAL TABLE temp.fts3check2 USING ;\n    INSERT INTO temp.fts3check2(docid) SELECT docid, * FROM t1;\n    CREATE VIRTUAL TABLE temp.fts3check3 USING fts4term(fts3check2);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE fts3check;\n    DROP TABLE temp.fts3check2;\n    DROP TABLE temp.fts3check3;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.20.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "$sql",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-1.20.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {{e f g h} {a b c d}}"
+        }
+      ]
+    },
+    {
+      "name": "setup_20",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master WHERE name = 't1'",
+          "variable": "sql"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE fts3check USING fts4term(t1);\n    CREATE VIRTUAL TABLE temp.fts3check2 USING ;\n    INSERT INTO temp.fts3check2(docid) SELECT docid, * FROM t1;\n    CREATE VIRTUAL TABLE temp.fts3check3 USING fts4term(fts3check2);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE fts3check;\n    DROP TABLE temp.fts3check2;\n    DROP TABLE temp.fts3check3;"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-2.1.1",
       "steps": [
         {
           "type": "exec",
@@ -21,17 +1187,47 @@
       ]
     },
     {
-      "name": "2.2.1",
+      "name": "setup_21",
       "steps": [
         {
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master WHERE name = 't1'",
+          "variable": "sql"
+        },
+        {
           "type": "exec",
+          "sql": "PRAGMA table_info(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE fts3check USING fts4term(t1);\n    CREATE VIRTUAL TABLE temp.fts3check2 USING ;\n    INSERT INTO temp.fts3check2(docid) SELECT docid, * FROM t1;\n    CREATE VIRTUAL TABLE temp.fts3check3 USING fts4term(fts3check2);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE fts3check;\n    DROP TABLE temp.fts3check2;\n    DROP TABLE temp.fts3check3;"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-2.2.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "DELETE FROM t1;\n  BEGIN;\n    INSERT INTO t1(docid, x) VALUES(0, 'a b c');\n    INSERT INTO t1(docid, x) VALUES(1, 'a b c');\n    REPLACE INTO t1(docid, x) VALUES('zero', 'd e f');",
           "expect": "1 {datatype mismatch}"
         }
       ]
     },
     {
-      "name": "2.2.2",
+      "name": "fts3conf-2.2.2",
       "steps": [
         {
           "type": "exec",
@@ -40,7 +1236,7 @@
       ]
     },
     {
-      "name": "2.2.3",
+      "name": "fts3conf-2.2.3",
       "steps": [
         {
           "type": "query",
@@ -50,97 +1246,47 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "setup_22",
       "steps": [
         {
-          "type": "query",
-          "sql": "CREATE VIRTUAL TABLE t3 USING fts4;\n    REPLACE INTO t3(docid, content) VALUES (1, 'one two');\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'one'",
-          "expect": "X'0100000002000000'"
-        }
-      ]
-    },
-    {
-      "name": "3.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "REPLACE INTO t3(docid, content) VALUES (2, 'one two three four');\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'four'",
-          "expect": "X'0200000003000000'"
-        }
-      ]
-    },
-    {
-      "name": "3.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "REPLACE INTO t3(docid, content) VALUES (1, 'one two three four five six');\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'six'",
-          "expect": "X'0200000005000000'"
-        }
-      ]
-    },
-    {
-      "name": "3.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "UPDATE OR REPLACE t3 SET docid = 2 WHERE docid=1;\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'six'",
-          "expect": "X'0100000006000000'"
-        }
-      ]
-    },
-    {
-      "name": "3.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "UPDATE OR REPLACE t3 SET docid = 3 WHERE docid=2;\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'six'",
-          "expect": "X'0100000006000000'"
-        }
-      ]
-    },
-    {
-      "name": "3.6",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "REPLACE INTO t3(docid, content) VALUES (3, 'one two');\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'one'",
-          "expect": "X'0100000002000000'"
-        }
-      ]
-    },
-    {
-      "name": "3.7",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "REPLACE INTO t3(docid, content) VALUES(NULL,'one two three four');\n    REPLACE INTO t3(docid, content) VALUES(NULL,'one two three four five six');\n    SELECT docid FROM t3;",
-          "expect": "3 4 5"
-        }
-      ]
-    },
-    {
-      "name": "3.8",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "UPDATE OR REPLACE t3 SET docid = 5, content='three four' WHERE docid = 4;\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'one'",
-          "expect": "X'0200000002000000'"
-        }
-      ]
-    },
-    {
-      "name": "4.1.1",
-      "steps": [
+          "type": "query_assign",
+          "sql": "SELECT sql FROM sqlite_master WHERE name = 't1'",
+          "variable": "sql"
+        },
         {
           "type": "exec",
+          "sql": "PRAGMA table_info(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE fts3check USING fts4term(t1);\n    CREATE VIRTUAL TABLE temp.fts3check2 USING ;\n    INSERT INTO temp.fts3check2(docid) SELECT docid, * FROM t1;\n    CREATE VIRTUAL TABLE temp.fts3check3 USING fts4term(fts3check2);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(term, docid, col, pos) FROM fts3check3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE fts3check;\n    DROP TABLE temp.fts3check2;\n    DROP TABLE temp.fts3check3;"
+        }
+      ]
+    },
+    {
+      "name": "fts3conf-4.1.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE t0 USING fts4;\n  BEGIN;\n    INSERT INTO t0(rowid, content) SELECT\n      1, 'abc' UNION ALL SELECT\n      2, 'def' UNION ALL SELECT\n      1, 'ghi';",
           "expect": "1 {constraint failed}"
         }
       ]
     },
     {
-      "name": "4.1.2",
+      "name": "fts3conf-4.1.2",
       "steps": [
         {
           "type": "exec",
@@ -149,7 +1295,7 @@
       ]
     },
     {
-      "name": "4.1.3",
+      "name": "fts3conf-4.1.3",
       "steps": [
         {
           "type": "query",
@@ -159,7 +1305,7 @@
       ]
     },
     {
-      "name": "4.2.1",
+      "name": "fts3conf-4.2.1",
       "steps": [
         {
           "type": "exec",
@@ -168,7 +1314,7 @@
       ]
     },
     {
-      "name": "4.2.2",
+      "name": "fts3conf-4.2.2",
       "steps": [
         {
           "type": "query",
@@ -178,7 +1324,7 @@
       ]
     },
     {
-      "name": "4.3.1",
+      "name": "fts3conf-4.3.1",
       "steps": [
         {
           "type": "exec",
@@ -187,7 +1333,7 @@
       ]
     },
     {
-      "name": "4.3.2",
+      "name": "fts3conf-4.3.2",
       "steps": [
         {
           "type": "exec",
@@ -196,7 +1342,7 @@
       ]
     },
     {
-      "name": "4.4.1",
+      "name": "fts3conf-4.4.1",
       "steps": [
         {
           "type": "exec",
@@ -205,19 +1351,11 @@
       ]
     },
     {
-      "name": "4.4.2",
+      "name": "fts3conf-4.4.2",
       "steps": [
         {
           "type": "exec",
           "sql": "BEGIN TRANSACTION;\n    DELETE FROM A WHERE AnotherID=1;\n    DELETE FROM B WHERE ID=1;\n  COMMIT;"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE fts3check;\n    DROP TABLE temp.fts3check2;\n    DROP TABLE temp.fts3check3;"
         }
       ]
     }

@@ -68,6 +68,9 @@ func (e *DDLExecutor) execAttach(s *sql.AttachStmt) *Result {
 	// schema's pager and schema manager (see attachSharedPager).
 	if !isMemory {
 		if attached, res := e.attachSharedPager(s, path, schemaUpper); attached {
+			if res == nil || res.Error == nil {
+				e.ctx.InvalidateTableCaches()
+			}
 			return res
 		}
 	}
@@ -91,6 +94,15 @@ func (e *DDLExecutor) execAttach(s *sql.AttachStmt) *Result {
 		IsTemp:   false,
 	}
 
+	// attach.c attachFunc runs sqlite3Init on the new database before
+	// registering it: a malformed schema (bad rows, cross-database trigger
+	// references) fails the ATTACH itself and the database is rolled back
+	// (triggerupfrom-2.4).
+	if res := e.ctx.ValidateAttachedSchema(ctx); res != nil {
+		pg.Close()
+		return res
+	}
+
 	e.ctx.Databases()[schemaUpper] = ctx
 	e.ctx.AppendDBList(ctx)
 	// Inherit MAIN's current secure_delete value for the new Btree
@@ -105,6 +117,7 @@ func (e *DDLExecutor) execAttach(s *sql.AttachStmt) *Result {
 			ctx.Pager.SetWALExclusiveMode(true)
 		}
 	}
+	e.ctx.InvalidateTableCaches()
 	return &Result{}
 }
 
@@ -269,6 +282,7 @@ func (e *DDLExecutor) execDetach(s *sql.AttachStmt) *Result {
 			break
 		}
 	}
+	e.ctx.InvalidateTableCaches()
 	return &Result{}
 }
 
@@ -297,6 +311,9 @@ func detachSchemaName(e *DDLExecutor, s *sql.AttachStmt) (string, *Result) {
 		}
 	}
 	if err := e.ctx.ValidateRowValueUse(s.SchemaExpr, false); err != nil {
+		return "", &Result{Error: err}
+	}
+	if err := validateDetachExprSources(e.ctx, s.SchemaExpr); err != nil {
 		return "", &Result{Error: err}
 	}
 	v, err := e.ctx.EvalExpr(s.SchemaExpr, RowMap{})

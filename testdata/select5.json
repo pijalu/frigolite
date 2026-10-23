@@ -206,6 +206,9 @@
         {
           "type": "catch",
           "sql": "SELECT y, count(*) FROM t1 GROUP BY z(y) ORDER BY y",
+          "variable": "v",
+          "catchResult": true,
+          "catchMessage": "msg",
           "expect": "1 {no such function: z}"
         }
       ]
@@ -216,6 +219,9 @@
         {
           "type": "catch",
           "sql": "SELECT y, count(*) FROM t1 GROUP BY y HAVING count(*)\u003c3 ORDER BY y",
+          "variable": "v",
+          "catchResult": true,
+          "catchMessage": "msg",
           "expect": "0 {8 2 9 1 10 1}"
         }
       ]
@@ -226,6 +232,9 @@
         {
           "type": "catch",
           "sql": "SELECT y, count(*) FROM t1 GROUP BY y HAVING z(y)\u003c3 ORDER BY y",
+          "variable": "v",
+          "catchResult": true,
+          "catchMessage": "msg",
           "expect": "1 {no such function: z}"
         }
       ]
@@ -236,6 +245,9 @@
         {
           "type": "catch",
           "sql": "SELECT y, count(*) FROM t1 GROUP BY y HAVING count(*)\u003cz ORDER BY y",
+          "variable": "v",
+          "catchResult": true,
+          "catchMessage": "msg",
           "expect": "1 {no such column: z}"
         }
       ]

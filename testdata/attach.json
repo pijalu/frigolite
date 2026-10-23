@@ -1,7 +1,260 @@
 {
   "file": "attach.test",
   "name": "attach",
+  "ordered": true,
   "tests": [
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test3.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test3.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test4.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test4.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test5.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test5.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test6.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test6.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test7.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test7.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test8.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test8.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test9.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test9.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test10.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test10.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test11.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test11.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test12.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test12.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test13.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test13.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test14.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test14.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test15.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test15.db-journal"
+        }
+      ]
+    },
     {
       "name": "attach-1.1",
       "steps": [
@@ -16,9 +269,15 @@
       "name": "attach-1.2",
       "steps": [
         {
+          "type": "open_named_db",
+          "sql": "test2.db",
+          "database": "db2"
+        },
+        {
           "type": "exec",
           "sql": "CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(1,'x');\n    INSERT INTO t2 VALUES(2,'y');\n    SELECT * FROM t2;",
-          "expect": "1 x 2 y"
+          "expect": "1 x 2 y",
+          "database": "db2"
         }
       ]
     },
@@ -97,7 +356,7 @@
       "steps": [
         {
           "type": "catch",
-          "sql": "DETACH DATABASE 16;",
+          "sql": "DETACH DATABASE [three];",
           "expect": "0 {}"
         }
       ]
@@ -108,6 +367,20 @@
         {
           "type": "exec",
           "sql": "ATTACH 'test.db' AS db2;\n    ATTACH 'test.db' AS db3;\n    ATTACH 'test.db' AS db4;\n    ATTACH 'test.db' AS db5;\n    ATTACH 'test.db' AS db6;\n    ATTACH 'test.db' AS db7;\n    ATTACH 'test.db' AS db8;\n    ATTACH 'test.db' AS db9;"
+        }
+      ]
+    },
+    {
+      "name": "attach-1.11b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA database_list"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA database_list",
+          "expect": "0 main 2 db2 3 db3 4 db4 5 db5 6 db6 7 db7 8 db8 9 db9"
         }
       ]
     },
@@ -152,6 +425,16 @@
       ]
     },
     {
+      "name": "attach-1.16",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ATTACH 'test.db' as temp;",
+          "expect": "1 {database temp is already in use}"
+        }
+      ]
+    },
+    {
       "name": "attach-1.17",
       "steps": [
         {
@@ -168,6 +451,1233 @@
           "type": "catch",
           "sql": "ATTACH 'test.db' as db10;\n    ATTACH 'test.db' as db11;",
           "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "attach-1.19",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ATTACH 'test.db' as db12;",
+          "expect": "1 {too many attached databases - max 10}"
+        }
+      ]
+    },
+    {
+      "name": "attach-1.20.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DETACH db5;"
+        }
+      ]
+    },
+    {
+      "name": "attach-1.20.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA database_list"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA database_list",
+          "expect": "0 main 2 db2 3 db3 4 db4 5 db6 6 db7 7 db8 8 db9 9 db10 10 db11"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select * from temp.sqlite_master"
+        }
+      ]
+    },
+    {
+      "name": "attach-1.21",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ATTACH 'test.db' as db12;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "attach-1.22",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ATTACH 'test.db' as db13;",
+          "expect": "1 {too many attached databases - max 10}"
+        }
+      ]
+    },
+    {
+      "name": "attach-1.23",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DETACH \"db14\";",
+          "expect": "1 {no such database: db14}"
+        }
+      ]
+    },
+    {
+      "name": "attach-1.24",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DETACH db12;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "attach-1.25",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DETACH db12;",
+          "expect": "1 {no such database: db12}"
+        }
+      ]
+    },
+    {
+      "name": "attach-1.26",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DETACH main;",
+          "expect": "1 {cannot detach database main}"
+        }
+      ]
+    },
+    {
+      "name": "attach-1.27",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DETACH Temp;",
+          "expect": "1 {cannot detach database Temp}"
+        }
+      ]
+    },
+    {
+      "name": "attach-1.28",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DETACH db11;\n    DETACH db10;\n    DETACH db9;\n    DETACH db8;\n    DETACH db7;\n    DETACH db6;\n    DETACH db4;\n    DETACH db3;\n    DETACH db2;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "attach-1.29",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA database_list"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA database_list",
+          "expect": "0 main 1 temp"
+        }
+      ]
+    },
+    {
+      "name": "attach-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tx(x1,x2,y1,y2);\n    CREATE TRIGGER r1 AFTER UPDATE ON t2 FOR EACH ROW BEGIN\n      INSERT INTO tx(x1,x2,y1,y2) VALUES(OLD.x,NEW.x,OLD.y,NEW.y);\n    END;\n    SELECT * FROM tx;",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "attach-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET x=x+10;\n    SELECT * FROM tx;",
+          "expect": "1 11 x x 2 12 y y",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "attach-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tx(x1,x2,y1,y2);\n    SELECT * FROM tx;"
+        }
+      ]
+    },
+    {
+      "name": "attach-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS db2;"
+        }
+      ]
+    },
+    {
+      "name": "attach-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE db2.t2 SET x=x+10;\n    SELECT * FROM db2.tx;",
+          "expect": "1 11 x x 2 12 y y 11 21 x x 12 22 y y"
+        }
+      ]
+    },
+    {
+      "name": "attach-2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM main.tx;"
+        }
+      ]
+    },
+    {
+      "name": "attach-2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT type, name, tbl_name FROM db2.sqlite_master;",
+          "expect": "table t2 t2 table tx tx trigger r1 t2"
+        }
+      ]
+    },
+    {
+      "name": "attach-2.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA database_list"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA database_list",
+          "expect": "0 main 1 temp 2 db2"
+        }
+      ]
+    },
+    {
+      "name": "attach-2.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i2 ON t2(x);\n    SELECT * FROM t2 WHERE x\u003e5;",
+          "expect": "21 x 22 y",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "attach-2.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT type, name, tbl_name FROM sqlite_master;",
+          "expect": "table t2 t2 table tx tx trigger r1 t2 index i2 t2",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "attach-2.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA database_list"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA database_list",
+          "expect": "0 main 1 temp 2 db2"
+        }
+      ]
+    },
+    {
+      "name": "attach-2.13",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2 WHERE x\u003e5;",
+          "expect": "0 {21 x 22 y}"
+        }
+      ]
+    },
+    {
+      "name": "attach-2.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT type, name, tbl_name FROM sqlite_master;",
+          "expect": "table t1 t1 table tx tx"
+        }
+      ]
+    },
+    {
+      "name": "attach-2.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT type, name, tbl_name FROM db2.sqlite_master;",
+          "expect": "table t2 t2 table tx tx trigger r1 t2 index i2 t2"
+        }
+      ]
+    },
+    {
+      "name": "attach-2.16",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS db2;\n    SELECT type, name, tbl_name FROM db2.sqlite_master;",
+          "expect": "table t2 t2 table tx tx trigger r1 t2 index i2 t2"
+        }
+      ]
+    },
+    {
+      "name": "attach-3.1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test2.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "attach-3.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2",
+          "expect": "1 {no such table: t2}"
+        }
+      ]
+    },
+    {
+      "name": "attach-3.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ATTACH DATABASE 'test2.db' AS db2;\n    SELECT * FROM t2",
+          "expect": "0 {21 x 22 y}"
+        }
+      ]
+    },
+    {
+      "name": "attach-3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2;",
+          "expect": "0 {21 x 22 y}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "attach-3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2;",
+          "expect": "0 {21 x 22 y}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "attach-3.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET x=x+1 WHERE x=50;"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2;",
+          "expect": "0 {21 x 22 y}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "attach-3.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2",
+          "expect": "21 x 22 y",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "attach-3.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET x=0 WHERE 0",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2",
+          "expect": "0 {21 x 22 y}"
+        }
+      ]
+    },
+    {
+      "name": "attach-3.9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2",
+          "expect": "0 {21 x 22 y}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "attach-3.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "attach-3.11",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE t1 SET a=a+1",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "attach-3.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "2 2 4 4"
+        }
+      ]
+    },
+    {
+      "name": "attach-3.13",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE t2 SET x=x+1 WHERE x=50",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        }
+      ]
+    },
+    {
+      "name": "attach-3.14",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {1 2 3 4}"
+        }
+      ]
+    },
+    {
+      "name": "attach-3.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "attach-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DETACH db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test2.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(x,y);\n    CREATE UNIQUE INDEX t3i1 ON t3(x);\n    INSERT INTO t3 VALUES(1,2);\n    SELECT * FROM t3;",
+          "expect": "1 2",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "attach-4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a,b);\n    CREATE UNIQUE INDEX t3i1b ON t3(a);\n    INSERT INTO t3 VALUES(9,10);\n    SELECT * FROM t3;",
+          "expect": "9 10"
+        }
+      ]
+    },
+    {
+      "name": "attach-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH DATABASE 'test2.db' AS db2;\n    SELECT * FROM db2.t3;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "attach-4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM main.t3;",
+          "expect": "9 10"
+        }
+      ]
+    },
+    {
+      "name": "attach-4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO db2.t3 VALUES(9,10);\n    SELECT * FROM db2.t3;",
+          "expect": "1 2 9 10"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DETACH db2;"
+        }
+      ]
+    },
+    {
+      "name": "attach-4.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(x);\n      CREATE TRIGGER t3r3 AFTER INSERT ON t3 BEGIN\n        INSERT INTO t4 VALUES('db2.' || NEW.x);\n      END;\n      INSERT INTO t3 VALUES(6,7);\n      SELECT * FROM t4;",
+          "expect": "db2.6",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "attach-4.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(y);\n      CREATE TRIGGER t3r3 AFTER INSERT ON t3 BEGIN\n        INSERT INTO t4 VALUES('main.' || NEW.a);\n      END;\n      INSERT INTO main.t3 VALUES(11,12);\n      SELECT * FROM main.t4;",
+          "expect": "main.11"
+        }
+      ]
+    },
+    {
+      "name": "attach-4.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH DATABASE 'test2.db' AS db2;\n    INSERT INTO db2.t3 VALUES(13,14);\n    SELECT * FROM db2.t4 UNION ALL SELECT * FROM main.t4;",
+          "expect": "db2.6 db2.13 main.11"
+        }
+      ]
+    },
+    {
+      "name": "attach-4.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO main.t3 VALUES(15,16);\n    SELECT * FROM db2.t4 UNION ALL SELECT * FROM main.t4;",
+          "expect": "db2.6 db2.13 main.11 main.15"
+        }
+      ]
+    },
+    {
+      "name": "attach-4.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DETACH DATABASE db2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v3 AS SELECT x*100+y FROM t3;\n    SELECT * FROM v3;",
+          "expect": "102 910 607 1314",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "attach-4.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v3 AS SELECT a*100+b FROM t3;\n    SELECT * FROM v3;",
+          "expect": "910 1112 1516"
+        }
+      ]
+    },
+    {
+      "name": "attach-4.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH DATABASE 'test2.db' AS db2;\n    SELECT * FROM db2.v3;",
+          "expect": "102 910 607 1314"
+        }
+      ]
+    },
+    {
+      "name": "attach-4.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM main.v3;",
+          "expect": "910 1112 1516"
+        }
+      ]
+    },
+    {
+      "name": "attach-5.1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db"
+        }
+      ]
+    },
+    {
+      "name": "attach-5.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test2.db",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH DATABASE 'test.db' AS orig;\n    CREATE TRIGGER r1 AFTER INSERT ON orig.t1 BEGIN\n      SELECT 'no-op';\n    END;",
+          "expect": "1 {trigger r1 cannot reference objects in database orig}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "attach-5.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TABLE t5(x,y);\n    CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n      SELECT 'no-op';\n    END;",
+          "expect": "0 {}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "attach-5.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TRIGGER r5;\n    CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n      SELECT 'no-op' FROM orig.t1;\n    END;",
+          "expect": "1 {trigger r5 cannot reference objects in database orig}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "attach-5.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TEMP TABLE t6(p,q,r);\n      CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' FROM temp.t6;\n      END;",
+          "expect": "1 {trigger r5 cannot reference objects in database temp}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "attach-5.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' || (SELECT * FROM temp.t6);\n      END;",
+          "expect": "1 {trigger r5 cannot reference objects in database temp}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "attach-5.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' FROM t1 WHERE x\u003c(SELECT min(x) FROM temp.t6);\n      END;",
+          "expect": "1 {trigger r5 cannot reference objects in database temp}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "attach-5.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT 'no-op' FROM t1 GROUP BY 1 HAVING x\u003c(SELECT min(x) FROM temp.t6);\n      END;",
+          "expect": "1 {trigger r5 cannot reference objects in database temp}",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        SELECT max(1,x,(SELECT min(x) FROM temp.t6)) FROM t1;\n      END;",
+          "expect": "1 {trigger r5 cannot reference objects in database temp}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "attach-5.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        INSERT INTO t1 VALUES((SELECT min(x) FROM temp.t6),5);\n      END;",
+          "expect": "1 {trigger r5 cannot reference objects in database temp}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "attach-5.9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n        DELETE FROM t1 WHERE x\u003c(SELECT min(x) FROM temp.t6);\n      END;",
+          "expect": "1 {trigger r5 cannot reference objects in database temp}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "attach-5.10",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "attach-5.10",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n      CREATE TABLE t2(a,b);\n      CREATE TRIGGER x1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t2(a,b) SELECT key, value FROM json_each(NEW.x);\n      END;\n      INSERT INTO t1(x) VALUES('{\"a\":1}');\n      SELECT * FROM t2;",
+          "expect": "a 1"
+        }
+      ]
+    },
+    {
+      "name": "attach-5.11",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": ":memory:",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(y);\n      ATTACH 'test.db' AS aux;\n      INSERT INTO aux.t1(x) VALUES('{\"b\":2}');\n      SELECT * FROM aux.t2;",
+          "expect": "a 1 b 2",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "attach-6.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ATTACH DATABASE 'no-such-file' AS nosuch;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "attach-6.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TABLE no_such_db.t1(a, b, c);",
+          "expect": "1 {unknown database no_such_db}"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db3"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db4"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db5"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db6"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db7"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db8"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db9"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db10"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db11"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db12"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db13"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db14"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db15"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "no-such-file"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "attach-7.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
+          "sql": "DETACH RAISE ( IGNORE ) IN ( SELECT \"AAAAAA\" . * ORDER BY \n      REGISTER LIMIT \"AAAAAA\" . \"AAAAAA\" OFFSET RAISE ( IGNORE ) NOT NULL )",
+          "expect": "1 {no such table: AAAAAA}"
+        }
+      ]
+    },
+    {
+      "name": "attach-8.1",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "test2.db",
+          "fileData": "This file is not a valid SQLite database\n"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'test2.db' AS t2;",
+          "expect": "1 {file is not a database}"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db"
+        }
+      ]
+    },
+    {
+      "name": "attach-8.3",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test2.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x); BEGIN EXCLUSIVE",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
+          "sql": "ATTACH 'test2.db' AS t2;",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test4.db"
+        }
+      ]
+    },
+    {
+      "name": "attach-9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test4.db' AS aux1;\n    CREATE TABLE aux1.t1(a, b);\n    INSERT INTO aux1.t1 VALUES(1, 2);\n    ATTACH 'test4.db' AS aux2;\n    SELECT * FROM aux2.t1;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "attach-9.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "BEGIN;\n      INSERT INTO aux1.t1 VALUES(3, 4);\n      INSERT INTO aux2.t1 VALUES(5, 6);",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "attach-9.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    SELECT * FROM aux2.t1;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "attach-10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH '' AS noname;\n    ATTACH ':memory:' AS inmem;\n    BEGIN;\n    CREATE TABLE noname.noname(x);\n    CREATE TABLE inmem.inmem(y);\n    CREATE TABLE main.main(z);\n    COMMIT;\n    SELECT name FROM noname.sqlite_master;\n    SELECT name FROM inmem.sqlite_master;",
+          "expect": "noname inmem"
+        }
+      ]
+    },
+    {
+      "name": "attach-10.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA database_list;",
+          "expect": "4 noname {} 5 inmem {}"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "attach-11.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ATTACH printf('file:%09000x/x.db?mode=memory\u0026cache=shared',1) AS aux1;\n  CREATE TABLE aux1.t1(x,y);\n  INSERT INTO aux1.t1(x,y) VALUES(1,2),(3,4);\n  SELECT * FROM aux1.t1;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "attach-12.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE Table1 (col TEXT NOT NULL PRIMARY KEY);\n  ATTACH ':memory:' AS db2;\n  CREATE TABLE db2.Table2(col1 INTEGER, col2 INTEGER, col3 INTEGER, col4);\n  CREATE UNIQUE INDEX db2.idx_col1_unique ON Table2 (col1);\n  CREATE UNIQUE INDEX db2.idx_col23_unique ON Table2 (col2, col3);\n  CREATE INDEX db2.idx_col2 ON Table2 (col2);\n  INSERT INTO Table2 VALUES(1,2,3,4);\n  PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "attach-13.1",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE base(x);"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH ':memory:' AS a0"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH ':memory:' AS a1"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH ':memory:' AS a2"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH ':memory:' AS a3"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH ':memory:' AS a4"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH ':memory:' AS a5"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH ':memory:' AS a6"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH ':memory:' AS a7"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH ':memory:' AS a8"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH ':memory:' AS a9"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE a9.t1(a INTEGER PRIMARY KEY, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE a9.t2(a INTEGER PRIMARY KEY, b);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE b IN (SELECT a FROM t2);"
         }
       ]
     }

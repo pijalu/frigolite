@@ -14,6 +14,7 @@ import (
 	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/util"
+	"github.com/pijalu/frigolite/internal/value"
 )
 
 // quoteOutputLen estimates QUOTE()'s output length without materializing
@@ -352,6 +353,12 @@ func (ev *Evaluator) evalFuncCall(f *sql.FuncCall, row Row) (interface{}, error)
 		return val, err
 	}
 
+	// Validate likelihood()'s compile-time probability expression before evaluating
+	// it: invalid row-value expressions must produce SQLite's constant-argument
+	// diagnostic rather than the evaluator's generic row-value error.
+	if err := validateLikelihoodArg(f); err != nil {
+		return nil, err
+	}
 	args, err := ev.evalCallArgs(fn, f, row)
 	if err != nil {
 		return nil, err
@@ -372,7 +379,7 @@ func (ev *Evaluator) evalAggWrapperCall(f *sql.FuncCall) (interface{}, bool, err
 	if len(f.Args) >= 2 && (strings.EqualFold(f.Name, "MIN") || strings.EqualFold(f.Name, "MAX")) {
 		return nil, false, nil
 	}
-	val, err := ev.ctx.EvalAggFuncCall(f, ev.ctx.AggRowMaps())
+	val, err := ev.ctx.EvalAggFuncCall(f, ev.ctx.AggRowMapsForCall(f))
 	return val, true, err
 }
 
@@ -511,7 +518,14 @@ func (ev *Evaluator) evalScalarFuncCall(fn *function.Func, f *sql.FuncCall, args
 		}
 		return out, nil
 	}
-	return fn.ScalarFn(args)
+	out, err := fn.ScalarFn(args)
+	if err != nil {
+		return nil, err
+	}
+	if err := ev.checkScalarResultLimit(out); err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 // scalarSpecialImpl evaluates one engine-routed scalar function; handled=false
@@ -558,18 +572,28 @@ func (ev *Evaluator) scalarRenameQuotefix(f *sql.FuncCall, args []interface{}) (
 }
 
 // scalarLikeFunc handles LIKE('a%', x) through the operator implementation.
+// An application-registered `like` function shadows the built-in (SQLite
+// resolves the name through the function table), so the call is handed back
+// to the registry.
 func (ev *Evaluator) scalarLikeFunc(f *sql.FuncCall, args []interface{}) (interface{}, bool, error) {
 	if len(args) != 2 && len(args) != 3 {
 		return nil, false, nil
+	}
+	if _, ok := ev.userFunction("like"); ok {
+		return nil, false, nil // fall through to the registry scalar
 	}
 	res, err := ev.evalLikeFunction(args)
 	return res, true, err
 }
 
 // scalarGlobFunc handles GLOB(pattern, x) through the operator implementation.
+// An application-registered `glob` function shadows the built-in.
 func (ev *Evaluator) scalarGlobFunc(f *sql.FuncCall, args []interface{}) (interface{}, bool, error) {
 	if len(args) != 2 {
 		return nil, false, nil
+	}
+	if _, ok := ev.userFunction("glob"); ok {
+		return nil, false, nil // fall through to the registry scalar
 	}
 	bumpLikeCallCount()
 	return boolToInt(globValues(args[0], args[1])), true, nil
@@ -577,10 +601,14 @@ func (ev *Evaluator) scalarGlobFunc(f *sql.FuncCall, args []interface{}) (interf
 
 // scalarRegexpFunc handles the FUNCTION form regexp(P,X) — X matches pattern
 // P — the reverse of the operator form X REGEXP P that evalRegexpOp
-// implements (regexp1-1.3.2: regexp('by|christ',y)).
+// implements (regexp1-1.3.2: regexp('by|christ',y)). An application-registered
+// `regexp` function shadows the built-in.
 func (ev *Evaluator) scalarRegexpFunc(f *sql.FuncCall, args []interface{}) (interface{}, bool, error) {
 	if len(args) != 2 {
 		return nil, false, nil
+	}
+	if _, ok := ev.userFunction("regexp"); ok {
+		return nil, false, nil // fall through to the registry scalar
 	}
 	res, err := ev.evalRegexpOp(args[1], args[0], false)
 	return res, true, err
@@ -639,6 +667,25 @@ func (ev *Evaluator) checkScalarOutputLimit(f *sql.FuncCall, args []interface{})
 			if qn := quoteOutputLen(fc); qn > int64(ev.ctx.LengthLimit()) {
 				return fmt.Errorf("string or blob too big")
 			}
+		}
+	}
+	return nil
+}
+
+func (ev *Evaluator) checkScalarResultLimit(out interface{}) error {
+	limit := int64(ev.ctx.LengthLimit())
+	switch v := out.(type) {
+	case string:
+		if int64(len(v)) > limit {
+			return fmt.Errorf("string or blob too big")
+		}
+	case []byte:
+		if int64(len(v)) > limit {
+			return fmt.Errorf("string or blob too big")
+		}
+	case value.ZeroBlob:
+		if int64(v.N) > limit {
+			return fmt.Errorf("string or blob too big")
 		}
 	}
 	return nil

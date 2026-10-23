@@ -240,8 +240,17 @@ func (e *SelectEngine) planJoin(tables []queryTable, s *sql.SelectStmt) []planNo
 		e.collectJoinPredicate(p, tables, constPreds, joinRefs)
 	}
 
-	// Driving table: among tables with constant predicates, the smallest.
+	// Outer joins preserve their left operand as the outer loop; the right
+	// operand may still use an automatic index driven by the ON equality.
+	// SQLite's where.c marks these terms with outer-join provenance and only
+	// permits the RHS loop after its LHS dependency.
 	driver := e.joinDriver(tables, constPreds, joinRefs)
+	for _, join := range s.Joins {
+		if strings.Contains(strings.ToUpper(join.JoinType), "LEFT") {
+			driver = 0
+			break
+		}
+	}
 
 	planned := []string{tables[driver].display}
 	remaining := make([]int, 0, len(tables)-1)
@@ -319,11 +328,14 @@ func (e *SelectEngine) maybeAddJoinRef(tables []queryTable, joinRefs [][]joinRef
 		joinRefs[ti] = append(joinRefs[ti], joinRef{table: tables[ti].display, col: colName, otherTable: tables[otherIdx].display, indexName: idx})
 		return
 	}
-	if !e.isRealTable(tables[otherIdx].real) {
-		// The other side is a subquery/derived table: SQLite creates an
-		// automatic index on its join column.
-		joinRefs[otherIdx] = append(joinRefs[otherIdx], joinRef{table: tables[otherIdx].display, col: otherCol, otherTable: tables[ti].display, indexName: ""})
+	// When the opposite operand has a usable index, its indexed lookup is
+	// the inner-loop candidate; do not add a competing automatic-index loop.
+	if e.isRealTable(tables[ti].real) && e.findIndexOnColumn(tables[otherIdx].real, otherCol) != "" {
+		return
 	}
+	// Otherwise SQLite may build an automatic covering index for this
+	// unindexed operand when selected as an inner loop.
+	joinRefs[ti] = append(joinRefs[ti], joinRef{table: tables[ti].display, col: colName, otherTable: tables[otherIdx].display, indexName: ""})
 }
 
 // resolveJoinTable maps a column reference to its table index in the join.
@@ -335,7 +347,15 @@ func (e *SelectEngine) resolveJoinTable(tables []queryTable, ref *sql.ColumnRef)
 	}
 	found := -1
 	for i := range tables {
-		if e.ctx.TableHasColumn(tables[i].real, ref.Name) {
+		hasColumn := e.ctx.TableHasColumn(tables[i].real, ref.Name)
+		if !hasColumn {
+			if view, _, err := e.ctx.FindView(tables[i].real); err == nil {
+				if names, nameErr := e.viewSelectColumnNames(view); nameErr == nil {
+					hasColumn = containsFold(names, ref.Name)
+				}
+			}
+		}
+		if hasColumn {
 			if found >= 0 {
 				return -1 // ambiguous
 			}
@@ -752,7 +772,7 @@ func (e *SelectEngine) findBestCoveringIndex(tableName, colName string) string {
 	}
 	var candidates []coveringCandidate
 	for _, entry := range entries {
-		if entry.Type == "index" && entry.TblName == tableName {
+		if entry.Type == "index" && entry.TblName == tableName && !e.indexIsUnordered(entry.Name) {
 			if cols := e.ctx.ParseIndexColumns(entry.SQL); containsFold(cols, colName) {
 				candidates = append(candidates, coveringCandidate{name: entry.Name, cols: len(cols)})
 			}

@@ -86,7 +86,15 @@ func Test_coveridxscan(t *testing.T) {
 	testprefix = "coveridxscan"
 	_ = testprefix // suppress unused warning
 	{ // "coveridxscan-1.1" — skipped: covering-index scan order not implemented (no index btrees) N-A (SQL + file side effects only)
-		_res = db.Exec("\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(5,4,3), (4,8,2), (3,2,1);\n    CREATE INDEX t1ab ON t1(a,b);\n    CREATE INDEX t1b ON t1(b);\n    SELECT a FROM t1;\n  ")
+		_res = db.Exec("CREATE TABLE t1(a,b,c)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("INSERT INTO t1 VALUES(5,4,3), (4,8,2), (3,2,1)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("CREATE INDEX t1ab ON t1(a,b)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("CREATE INDEX t1b ON t1(b)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("SELECT a FROM t1")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // do_test "1.2"

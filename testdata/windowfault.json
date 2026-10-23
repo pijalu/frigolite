@@ -1,9 +1,10 @@
 {
   "file": "windowfault.test",
   "name": "windowfault",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "windowfault-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,45 @@
       ]
     },
     {
-      "name": "10.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "windowfault-9.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size = 512;\n  PRAGMA cache_size = 2;\n  CREATE TABLE t(x INTEGER PRIMARY KEY, y TEXT);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i\u003c1900\n  )\n  INSERT INTO t(y) SELECT 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' FROM s;"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT 0.0 FROM t",
+          "variable": "L",
+          "resultAll": true
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "windowfault-10.0",
       "steps": [
         {
           "type": "exec",
@@ -21,7 +60,11 @@
       ]
     },
     {
-      "name": "11.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "windowfault-11.0",
       "steps": [
         {
           "type": "exec",
@@ -30,7 +73,11 @@
       ]
     },
     {
-      "name": "12.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "windowfault-12.0",
       "steps": [
         {
           "type": "exec",
@@ -39,7 +86,11 @@
       ]
     },
     {
-      "name": "13.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "windowfault-13.0",
       "steps": [
         {
           "type": "exec",
@@ -48,119 +99,12 @@
       ]
     },
     {
-      "name": "13.1",
+      "name": "windowfault-13.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT group_concat(a, b) OVER (\n    ORDER BY id RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT row_number() OVER win,\n           rank() OVER win,\n           dense_rank() OVER win,\n           ntile(2) OVER win,\n           first_value(d) OVER win,\n           last_value(d) OVER win,\n           nth_value(d,2) OVER win,\n           lead(d) OVER win,\n           lag(d) OVER win,\n           max(d) OVER win,\n           min(d) OVER win\n    FROM t1\n    WINDOW win AS (ORDER BY a)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT row_number() OVER win,\n           rank() OVER win,\n           dense_rank() OVER win\n    FROM t1\n    WINDOW win AS (PARTITION BY c<7 ORDER BY a)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT ntile(105) \n    OVER ( RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW ) \n    FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT round(percent_rank() OVER win, 2),\n           round(cume_dist() OVER win, 2)\n    FROM t1\n    WINDOW win AS (ORDER BY a)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT min(d) OVER win, max(d) OVER win\n    FROM t1\n    WINDOW win AS (ORDER BY a RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING)"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE VIEW aaa AS\n    SELECT min(d) OVER w, max(d) OVER w\n    FROM t1\n    WINDOW w AS (ORDER BY a RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING);\n    SELECT * FROM aaa;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT last_value(a) OVER win1,\n           last_value(a) OVER win2\n    FROM t1\n    WINDOW win1 AS (ORDER BY a ROWS BETWEEN CURRENT ROW AND 1 FOLLOWING),\n           win2 AS (ORDER BY a)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT percent_rank() OVER (), cume_dist() OVER () FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT percent_rank() OVER (), cume_dist() OVER () FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, sum(b) OVER win1 FROM t1\n      WINDOW win1 AS (PARTITION BY a ),\n             win2 AS (PARTITION BY b )\n    ORDER BY a;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT sum(y) OVER win FROM t\n    WINDOW win AS (\n      ORDER BY x ROWS BETWEEN UNBOUNDED PRECEDING AND 1800 FOLLOWING\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT row_number() OVER win\n    FROM t1\n    WINDOW win AS (\n      ORDER BY (\n        SELECT percent_rank() OVER win2 FROM t2\n        WINDOW win2 AS (ORDER BY a)\n      )\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t0 WHERE \n      (0, t0.c0) IN (SELECT DENSE_RANK() OVER(), LAG(0) OVER() FROM t0);"
-        },
-        {
-          "type": "exec",
-          "sql": "VALUES(false),(current_date collate binary) \n    intersect \n    values(count() not like group_concat(cast(cast(0e00 as text) as integer) <= NULL || 0.4e-0 || 0x8 & true ) over () collate rtrim);"
-        },
-        {
-          "type": "exec",
-          "sql": "WITH v(a, b, row_number) AS (\n      SELECT a, b, row_number() OVER (PARTITION BY a COLLATE nocase ORDER BY b) FROM t1\n    )\n    SELECT * FROM v WHERE a=2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT group_concat(a, b) OVER (\n        ORDER BY id RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING\n    ) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 0.0 FROM t"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
+          "sql": "SELECT group_concat(a, b) OVER (\n    ORDER BY id RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1",
+          "expect": "1b22 1b22c333 22c333dddd4444 333dddd4444e55555 4444e55555f666666 55555f666666gggggggggg7777777 666666gggggggggg7777777"
         }
       ]
     }

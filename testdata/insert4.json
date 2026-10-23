@@ -27,6 +27,16 @@
       ]
     },
     {
+      "name": "insert4-1.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "0"
+        }
+      ]
+    },
+    {
       "name": "insert4-1.3",
       "steps": [
         {
@@ -46,12 +56,32 @@
       ]
     },
     {
+      "name": "insert4-2.1.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "0"
+        }
+      ]
+    },
+    {
       "name": "insert4-2.2.1",
       "steps": [
         {
           "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1 SELECT * FROM v2;\n    SELECT * FROM t1;",
           "expect": "0 {1 9}"
+        }
+      ]
+    },
+    {
+      "name": "insert4-2.2.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "0"
         }
       ]
     },
@@ -66,12 +96,32 @@
       ]
     },
     {
+      "name": "insert4-2.3.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "0"
+        }
+      ]
+    },
+    {
       "name": "insert4-2.3.3",
       "steps": [
         {
           "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1 SELECT * FROM t2 LIMIT 1;\n    SELECT * FROM t1;",
           "expect": "1 {CHECK constraint failed: b\u003ea}"
+        }
+      ]
+    },
+    {
+      "name": "insert4-2.3.4",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "0"
         }
       ]
     },
@@ -86,12 +136,32 @@
       ]
     },
     {
+      "name": "insert4-2.4.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "0"
+        }
+      ]
+    },
+    {
       "name": "insert4-2.4.3",
       "steps": [
         {
           "type": "catch",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1 SELECT DISTINCT * FROM t2;",
           "expect": "1 {CHECK constraint failed: b\u003ea}"
+        }
+      ]
+    },
+    {
+      "name": "insert4-2.4.4",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "0"
         }
       ]
     },
@@ -119,6 +189,16 @@
           "type": "exec",
           "sql": "INSERT INTO dest SELECT * FROM src;\n      SELECT * FROM dest;",
           "expect": "1 9"
+        }
+      ]
+    },
+    {
+      "name": "insert4-3.1.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "1"
         }
       ]
     },
@@ -154,6 +234,16 @@
       ]
     },
     {
+      "name": "insert4-3.2.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "1"
+        }
+      ]
+    },
+    {
       "name": "setup_3",
       "steps": [
         {
@@ -181,6 +271,16 @@
           "type": "exec",
           "sql": "INSERT INTO dest SELECT * FROM src;\n      SELECT * FROM dest;",
           "expect": "1 9"
+        }
+      ]
+    },
+    {
+      "name": "insert4-3.3.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "1"
         }
       ]
     },
@@ -216,6 +316,16 @@
       ]
     },
     {
+      "name": "insert4-3.4.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "0"
+        }
+      ]
+    },
+    {
       "name": "setup_5",
       "steps": [
         {
@@ -243,6 +353,16 @@
           "type": "exec",
           "sql": "INSERT INTO dest SELECT * FROM src;\n      SELECT * FROM dest;",
           "expect": "1 9"
+        }
+      ]
+    },
+    {
+      "name": "insert4-3.5.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "0"
         }
       ]
     },
@@ -278,6 +398,16 @@
       ]
     },
     {
+      "name": "insert4-3.6.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "0"
+        }
+      ]
+    },
+    {
       "name": "setup_7",
       "steps": [
         {
@@ -305,6 +435,16 @@
           "type": "exec",
           "sql": "INSERT INTO dest SELECT * FROM src;\n      SELECT * FROM dest;",
           "expect": "1 9"
+        }
+      ]
+    },
+    {
+      "name": "insert4-3.7.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "0"
         }
       ]
     },
@@ -340,6 +480,16 @@
       ]
     },
     {
+      "name": "insert4-3.8.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "0"
+        }
+      ]
+    },
+    {
       "name": "setup_9",
       "steps": [
         {
@@ -367,6 +517,16 @@
           "type": "exec",
           "sql": "INSERT INTO dest SELECT * FROM src;\n      SELECT * FROM dest;",
           "expect": "1 9"
+        }
+      ]
+    },
+    {
+      "name": "insert4-3.9.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "1"
         }
       ]
     },
@@ -402,6 +562,16 @@
       ]
     },
     {
+      "name": "insert4-3.10.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "1"
+        }
+      ]
+    },
+    {
       "name": "setup_11",
       "steps": [
         {
@@ -429,6 +599,16 @@
           "type": "exec",
           "sql": "INSERT INTO dest SELECT * FROM src;\n      SELECT * FROM dest;",
           "expect": "1 9"
+        }
+      ]
+    },
+    {
+      "name": "insert4-3.11.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "1"
         }
       ]
     },
@@ -464,6 +644,16 @@
       ]
     },
     {
+      "name": "insert4-3.12.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "1"
+        }
+      ]
+    },
+    {
       "name": "setup_13",
       "steps": [
         {
@@ -491,6 +681,16 @@
           "type": "exec",
           "sql": "INSERT INTO dest SELECT * FROM src;\n      SELECT * FROM dest;",
           "expect": "1 9"
+        }
+      ]
+    },
+    {
+      "name": "insert4-3.20.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "0"
         }
       ]
     },
@@ -526,6 +726,16 @@
       ]
     },
     {
+      "name": "insert4-3.21.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "0"
+        }
+      ]
+    },
+    {
       "name": "setup_15",
       "steps": [
         {
@@ -553,6 +763,16 @@
           "type": "exec",
           "sql": "INSERT INTO dest SELECT * FROM src;\n      SELECT * FROM dest;",
           "expect": "1 9"
+        }
+      ]
+    },
+    {
+      "name": "insert4-3.22.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "1"
         }
       ]
     },
@@ -608,7 +828,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX t2_i2 ON t2(x, y COLLATE nocase); \n    CREATE INDEX t2_i1 ON t2(x ASC, y DESC);\n    CREATE INDEX t3_i1 ON t3(a, b);\n    INSERT INTO t2 SELECT * FROM t3;",
+          "sql": "CREATE INDEX t2_i2 ON t2(x, y COLLATE nocase); \n    CREATE INDEX t2_i1 ON t2(x ASC, y DESC);\n    CREATE INDEX t3_i1 ON t3(a, b);\n    INSERT INTO t2 SELECT * FROM t3;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
           "expect": "0"
         }
       ]
@@ -618,7 +842,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP INDEX t2_i2;\n    INSERT INTO t2 SELECT * FROM t3;",
+          "sql": "DROP INDEX t2_i2;\n    INSERT INTO t2 SELECT * FROM t3;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
           "expect": "0"
         }
       ]
@@ -628,7 +856,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP INDEX t2_i1;\n    CREATE INDEX t2_i1 ON t2(x ASC, y ASC);\n    INSERT INTO t2 SELECT * FROM t3;",
+          "sql": "DROP INDEX t2_i1;\n    CREATE INDEX t2_i1 ON t2(x ASC, y ASC);\n    INSERT INTO t2 SELECT * FROM t3;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
           "expect": "1"
         }
       ]
@@ -638,7 +870,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP INDEX t2_i1;\n    CREATE INDEX t2_i1 ON t2(x ASC, y COLLATE RTRIM);\n    INSERT INTO t2 SELECT * FROM t3;",
+          "sql": "DROP INDEX t2_i1;\n    CREATE INDEX t2_i1 ON t2(x ASC, y COLLATE RTRIM);\n    INSERT INTO t2 SELECT * FROM t3;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
           "expect": "0"
         }
       ]
@@ -692,6 +928,16 @@
       ]
     },
     {
+      "name": "insert4-7.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "1"
+        }
+      ]
+    },
+    {
       "name": "insert4-7.3",
       "steps": [
         {
@@ -715,6 +961,16 @@
       ]
     },
     {
+      "name": "insert4-7.5",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "0"
+        }
+      ]
+    },
+    {
       "name": "insert4-7.6",
       "steps": [
         {
@@ -728,9 +984,24 @@
       "name": "insert4-7.7",
       "steps": [
         {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "0"
+        },
+        {
           "type": "exec",
           "sql": "PRAGMA foreign_keys=OFF;\n      DELETE FROM t7b;\n      INSERT INTO t7b SELECT * FROM t7c;\n      SELECT * FROM t7b;",
           "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "insert4-7.8",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "1"
         }
       ]
     },

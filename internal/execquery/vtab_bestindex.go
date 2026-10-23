@@ -48,8 +48,10 @@ func BuildVtabIndexInfoWithInstance(opts *VtabScanOptions, tableName string, col
 	ii.OrderBy = vtabOrderByTerms(opts, tableName, columnNames)
 
 	cols := newVtabColumnIndex(columnNames)
-	conjuncts := vtabWhereConjuncts(opts.Where)
-	b := newVtabPlanBuilder(ii, len(conjuncts))
+	whereConjuncts := vtabWhereConjuncts(opts.Where)
+	joinConjuncts := vtabWhereConjuncts(opts.JoinOn)
+	conjuncts := append(append([]sql.Expr(nil), whereConjuncts...), joinConjuncts...)
+	b := newVtabPlanBuilder(ii, len(conjuncts), opts.OuterRow)
 	for _, conjunct := range conjuncts {
 		b.beginConjunct()
 		classifyVtabConjunct(b, conjunct, tableName, cols, overloader)
@@ -69,16 +71,18 @@ type vtabPlanBuilder struct {
 	// at least one constraint — sqlite3WhereAddLimit's condition (4) that no
 	// WHERE term will be withheld from xBestIndex.
 	allQualify bool
+	outerRow   RowMap
 	// currentQualifies tracks the conjunct being classified.
 	currentQualifies bool
 }
 
 // newVtabPlanBuilder pre-sizes the constraint and conjunct slices.
-func newVtabPlanBuilder(ii *vtab.IndexInfo, n int) *vtabPlanBuilder {
+func newVtabPlanBuilder(ii *vtab.IndexInfo, n int, outerRow RowMap) *vtabPlanBuilder {
 	ii.Constraints = make([]vtab.IndexConstraint, 0, n)
 	return &vtabPlanBuilder{
 		ii:         ii,
 		conjuncts:  make([]sql.Expr, 0, n),
+		outerRow:   outerRow,
 		allQualify: true,
 	}
 }
@@ -92,6 +96,44 @@ func (b *vtabPlanBuilder) endConjunct() {
 	if !b.currentQualifies {
 		b.allQualify = false
 	}
+}
+
+// usable reports whether a constraint's value is available at this scan.
+// Ordinary scans accept only constant RHS expressions; correlated JOIN scans
+// may also bind every RHS column from the already-materialized outer row.
+func (b *vtabPlanBuilder) usable(exprs ...sql.Expr) bool {
+	if vtabUsable(exprs...) {
+		return true
+	}
+	if b.outerRow == nil {
+		return false
+	}
+	usable := true
+	for _, expr := range exprs {
+		WalkExprFull(expr, func(node sql.Expr) {
+			ref, ok := node.(*sql.ColumnRef)
+			if !ok || !usable {
+				return
+			}
+			if !vtabOuterRowHasRef(b.outerRow, ref) {
+				usable = false
+			}
+		})
+	}
+	return usable
+}
+
+func vtabOuterRowHasRef(row RowMap, ref *sql.ColumnRef) bool {
+	key := ref.Name
+	if ref.Table != "" {
+		key = ref.Table + "." + ref.Name
+	}
+	for candidate := range row {
+		if strings.EqualFold(candidate, key) {
+			return true
+		}
+	}
+	return false
 }
 
 // add records one offered constraint. The conjunct (its value source for
@@ -168,7 +210,7 @@ func classifyVtabInList(b *vtabPlanBuilder, conjunct sql.Expr, t *sql.InList, ta
 		return
 	}
 	if col, ok := cols.resolve(t.Operand, tableName); ok {
-		b.add(conjunct, col, vtab.IndexConstraintEq, vtabUsable(t.List...), true)
+		b.add(conjunct, col, vtab.IndexConstraintEq, b.usable(t.List...), true)
 	}
 }
 
@@ -180,8 +222,8 @@ func classifyVtabBetween(b *vtabPlanBuilder, conjunct sql.Expr, t *sql.Between, 
 		return
 	}
 	if col, ok := cols.resolve(t.Operand, tableName); ok {
-		b.add(conjunct, col, vtab.IndexConstraintGe, vtabUsable(t.Low), false)
-		b.add(conjunct, col, vtab.IndexConstraintLe, vtabUsable(t.High), false)
+		b.add(conjunct, col, vtab.IndexConstraintGe, b.usable(t.Low), false)
+		b.add(conjunct, col, vtab.IndexConstraintLe, b.usable(t.High), false)
 	}
 }
 
@@ -224,11 +266,11 @@ func classifyVtabBinaryOp(b *vtabPlanBuilder, conjunct sql.Expr, bo *sql.BinaryO
 // constraint, the other operand is the value.
 func classifyVtabEitherSide(b *vtabPlanBuilder, conjunct sql.Expr, left, right sql.Expr, op vtab.IndexConstraintOp, tableName string, cols vtabColumnIndex) {
 	if col, ok := cols.resolve(left, tableName); ok {
-		b.add(conjunct, col, op, vtabUsable(right), false)
+		b.add(conjunct, col, op, b.usable(right), false)
 		return
 	}
 	if col, ok := cols.resolve(right, tableName); ok {
-		b.add(conjunct, col, op, vtabUsable(left), false)
+		b.add(conjunct, col, op, b.usable(left), false)
 	}
 }
 
@@ -237,11 +279,11 @@ func classifyVtabEitherSide(b *vtabPlanBuilder, conjunct sql.Expr, left, right s
 // exprAnalyze commutes the term so the column leads).
 func classifyVtabRange(b *vtabPlanBuilder, conjunct sql.Expr, op string, left, right sql.Expr, tableName string, cols vtabColumnIndex) {
 	if col, ok := cols.resolve(left, tableName); ok {
-		b.add(conjunct, col, vtabRangeOp(op), vtabUsable(right), false)
+		b.add(conjunct, col, vtabRangeOp(op), b.usable(right), false)
 		return
 	}
 	if col, ok := cols.resolve(right, tableName); ok {
-		b.add(conjunct, col, vtabRangeOp(vtabMirrorRangeOp(op)), vtabUsable(left), false)
+		b.add(conjunct, col, vtabRangeOp(vtabMirrorRangeOp(op)), b.usable(left), false)
 	}
 }
 
@@ -257,7 +299,7 @@ func classifyVtabFuncCall(b *vtabPlanBuilder, conjunct sql.Expr, fn *sql.FuncCal
 	}
 	if col, ok := cols.resolve(fn.Args[1], tableName); ok {
 		if aux, isAux := vtabAuxOpForName(fn.Name); isAux {
-			b.add(conjunct, col, aux, vtabUsable(fn.Args[0]), false)
+			b.add(conjunct, col, aux, b.usable(fn.Args[0]), false)
 			return
 		}
 	}
@@ -269,7 +311,7 @@ func classifyVtabFuncCall(b *vtabPlanBuilder, conjunct sql.Expr, fn *sql.FuncCal
 		return
 	}
 	if code := overloader.FindFunction(fn.Name, 2); code >= int(vtab.IndexConstraintFunction) {
-		b.add(conjunct, col, vtab.IndexConstraintOp(code), vtabUsable(fn.Args[1]), false)
+		b.add(conjunct, col, vtab.IndexConstraintOp(code), b.usable(fn.Args[1]), false)
 	}
 }
 

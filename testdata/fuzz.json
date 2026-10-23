@@ -1,12 +1,13 @@
 {
   "file": "fuzz.test",
   "name": "fuzz",
+  "ordered": true,
   "tests": [
     {
       "name": "fuzz-1.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT 'abc' LIKE X'ABCD';",
           "expect": "0"
         }
@@ -16,7 +17,7 @@
       "name": "fuzz-1.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT 'abc' LIKE zeroblob(10);",
           "expect": "0"
         }
@@ -26,7 +27,7 @@
       "name": "fuzz-1.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT zeroblob(10) LIKE 'abc';",
           "expect": "0"
         }
@@ -36,7 +37,7 @@
       "name": "fuzz-1.4",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT (- -21) % NOT (456 LIKE zeroblob(10));",
           "expect": "0"
         }
@@ -46,7 +47,7 @@
       "name": "fuzz-1.5",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT (SELECT (\n        SELECT (SELECT -2147483648) FROM (SELECT 1) ORDER BY 1\n    ))",
           "expect": "-2147483648"
         }
@@ -56,7 +57,7 @@
       "name": "fuzz-1.6",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT 'abc', zeroblob(1) FROM (SELECT 1) ORDER BY 1"
         }
       ]
@@ -65,7 +66,7 @@
       "name": "fuzz-1.7",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT ( SELECT zeroblob(1000) FROM ( \n      SELECT * FROM (SELECT 'first') ORDER BY NOT 'in') \n    )"
         }
       ]
@@ -74,7 +75,7 @@
       "name": "fuzz-1.8",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT CAST(zeroblob(1000) AS text);",
           "expect": "{}"
         }
@@ -84,7 +85,7 @@
       "name": "fuzz-1.9",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT 1 FROM (SELECT * FROM sqlite_master WHERE random())"
         }
       ]
@@ -93,7 +94,7 @@
       "name": "fuzz-1.10",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT coalesce(1, substr( 1, 2, length('in' IN (SELECT 1))))",
           "expect": "1"
         }
@@ -103,7 +104,7 @@
       "name": "fuzz-1.11",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT 'A' FROM (SELECT 'B') ORDER BY EXISTS (\n      SELECT 'C' FROM (SELECT 'D' LIMIT 0)\n    )",
           "expect": "A"
         }
@@ -115,6 +116,11 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE abc(b);\n    INSERT INTO abc VALUES('ABCDE');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1 IN ( SELECT b UNION SELECT 1 ) FROM (SELECT b FROM abc);",
+          "expect": "1"
         }
       ]
     },
@@ -131,7 +137,7 @@
       "name": "fuzz-1.13",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT 'abcd' UNION SELECT 'efgh' ORDER BY 1 ASC, 1 ASC;",
           "expect": "abcd efgh"
         }
@@ -143,6 +149,11 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(123, 456, 789);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1 FROM abc\n    GROUP BY c HAVING EXISTS (SELECT a UNION SELECT 123);",
+          "expect": "1"
         }
       ]
     },
@@ -159,7 +170,7 @@
       "name": "fuzz-1.15",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT hex(CAST(zeroblob(1000) AS integer))",
           "expect": "30"
         }
@@ -178,7 +189,7 @@
       "name": "fuzz-1.16.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT DISTINCT EXISTS(\n       SELECT 1\n       FROM (\n         SELECT C FROM (SELECT 1)\n       )\n       WHERE (SELECT c)\n    )\n    FROM abc",
           "expect": "0 {}"
         }
@@ -188,7 +199,7 @@
       "name": "fuzz-1.16.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT DISTINCT substr(-456 ISNULL,zeroblob(1000), EXISTS(\n         SELECT DISTINCT EXISTS(\n           SELECT DISTINCT b FROM abc\n           ORDER BY EXISTS (\n             SELECT DISTINCT 2147483647 UNION ALL SELECT -2147483648\n           ) ASC\n         )\n         FROM (\n           SELECT c, c FROM (\n             SELECT 456, 'injection' ORDER BY 56.1 ASC, -56.1 DESC\n           )\n         )\n         GROUP BY (SELECT ALL (SELECT DISTINCT 'hardware')) \n         HAVING (\n           SELECT DISTINCT c\n           FROM (\n             SELECT ALL -2147483648, 'experiments'\n             ORDER BY -56.1 ASC, -56.1 DESC\n           )\n           GROUP BY (SELECT DISTINCT 456) IN \n                   (SELECT DISTINCT 'injection') NOT IN (SELECT ALL -456)\n           HAVING EXISTS (\n             SELECT ALL 'injection'\n           )\n         )\n         UNION ALL\n         SELECT a IN (\n           SELECT -2147483647\n           UNION ALL\n           SELECT ALL 'injection'\n         )\n         FROM sqlite_master\n       ) -- end EXISTS\n    ) /* end SUBSTR() */, c NOTNULL ISNULL\n    FROM abc\n    ORDER BY CAST(-56.1 AS blob) ASC",
           "expect": "0 {}"
         }
@@ -207,8 +218,8 @@
       "name": "fuzz-1.17",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT 'hardware', 56.1 NOTNULL, random()&0\n    FROM (\n       SELECT ALL lower(~ EXISTS (\n           SELECT 1 NOT IN (SELECT ALL 1)\n       )), CAST(456 AS integer), -2147483647\n       FROM (\n         SELECT DISTINCT -456, CAST(1 AS integer) ISNULL\n         FROM (SELECT ALL 2147483647, typeof(2147483649))\n       )\n    )\n    GROUP BY CAST(CAST('experiments' AS blob) AS blob)\n    HAVING random()",
+          "type": "catch",
+          "sql": "SELECT 'hardware', 56.1 NOTNULL, random()\u00260\n    FROM (\n       SELECT ALL lower(~ EXISTS (\n           SELECT 1 NOT IN (SELECT ALL 1)\n       )), CAST(456 AS integer), -2147483647\n       FROM (\n         SELECT DISTINCT -456, CAST(1 AS integer) ISNULL\n         FROM (SELECT ALL 2147483647, typeof(2147483649))\n       )\n    )\n    GROUP BY CAST(CAST('experiments' AS blob) AS blob)\n    HAVING random()",
           "expect": "0 {hardware 1 0}"
         }
       ]
@@ -217,8 +228,8 @@
       "name": "fuzz-1.18",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT -2147483649 << upper('fault' NOT IN (\n        SELECT ALL (\n           SELECT ALL -1\n           ORDER BY -2147483649\n           LIMIT (\n              SELECT ALL (\n                 SELECT 0 EXCEPT SELECT DISTINCT 'experiments' ORDER BY 1 ASC\n              )\n           )\n           OFFSET EXISTS (\n              SELECT ALL \n                  (SELECT ALL -2147483648) NOT IN (\n                     SELECT ALL 123456789.1234567899\n                  ) IN (SELECT 2147483649) \n              FROM sqlite_master\n           ) NOT IN (SELECT ALL 'The')\n        )\n     ))",
+          "type": "catch",
+          "sql": "SELECT -2147483649 \u003c\u003c upper('fault' NOT IN (\n        SELECT ALL (\n           SELECT ALL -1\n           ORDER BY -2147483649\n           LIMIT (\n              SELECT ALL (\n                 SELECT 0 EXCEPT SELECT DISTINCT 'experiments' ORDER BY 1 ASC\n              )\n           )\n           OFFSET EXISTS (\n              SELECT ALL \n                  (SELECT ALL -2147483648) NOT IN (\n                     SELECT ALL 123456789.1234567899\n                  ) IN (SELECT 2147483649) \n              FROM sqlite_master\n           ) NOT IN (SELECT ALL 'The')\n        )\n     ))",
           "expect": "0 {{}}"
         }
       ]
@@ -229,6 +240,11 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a)"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES( \n      CASE WHEN NULL THEN NULL ELSE ( SELECT 0 ORDER BY 456 ) END \n    )",
+          "expect": "1 {1st ORDER BY term out of range - should be between 1 and 1}"
         }
       ]
     },
@@ -256,114 +272,42 @@
         {
           "type": "exec",
           "sql": "INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n    INSERT INTO abc VALUES(7, 8, 9);\n    INSERT INTO def VALUES(1, 2, 3);\n    INSERT INTO def VALUES(4, 5, 6);\n    INSERT INTO def VALUES(7, 8, 9);\n    INSERT INTO ghi VALUES(1, 2, 3);\n    INSERT INTO ghi VALUES(4, 5, 6);\n    INSERT INTO ghi VALUES(7, 8, 9);\n    CREATE INDEX abc_i ON abc(a, b, c);\n    CREATE INDEX def_i ON def(c, a, b);\n    CREATE INDEX ghi_i ON ghi(b, c, a);"
-        },
+        }
+      ]
+    },
+    {
+      "name": "fuzz-5.1",
+      "steps": [
         {
           "type": "exec",
-          "sql": "SELECT 'abc' LIKE X'ABCD';"
-        },
+          "sql": "BEGIN"
+        }
+      ]
+    },
+    {
+      "name": "fuzz-5.3",
+      "steps": [
         {
           "type": "exec",
-          "sql": "SELECT 'abc' LIKE zeroblob(10);"
-        },
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "fuzz-7.1",
+      "steps": [
         {
           "type": "exec",
-          "sql": "SELECT zeroblob(10) LIKE 'abc';"
-        },
+          "sql": "BEGIN"
+        }
+      ]
+    },
+    {
+      "name": "fuzz-7.4",
+      "steps": [
         {
           "type": "exec",
-          "sql": "SELECT (- -21) % NOT (456 LIKE zeroblob(10));"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT (SELECT (\n        SELECT (SELECT -2147483648) FROM (SELECT 1) ORDER BY 1\n    ))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 'abc', zeroblob(1) FROM (SELECT 1) ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 'abc', zeroblob(1)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT ( SELECT zeroblob(1000) FROM ( \n      SELECT * FROM (SELECT 'first') ORDER BY NOT 'in') \n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT zeroblob(1000)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT CAST(zeroblob(1000) AS text);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 1 FROM (SELECT * FROM sqlite_master WHERE random())"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT coalesce(1, substr( 1, 2, length('in' IN (SELECT 1))))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 'A' FROM (SELECT 'B') ORDER BY EXISTS (\n      SELECT 'C' FROM (SELECT 'D' LIMIT 0)\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE abc(b);\n    INSERT INTO abc VALUES('ABCDE');"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 1 IN ( SELECT b UNION SELECT 1 ) FROM (SELECT b FROM abc);"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE abc;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 'abcd' UNION SELECT 'efgh' ORDER BY 1 ASC, 1 ASC;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(123, 456, 789);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 1 FROM abc\n    GROUP BY c HAVING EXISTS (SELECT a UNION SELECT 123);"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE abc;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT hex(CAST(zeroblob(1000) AS integer))"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE abc(a, b, c);\n    CREATE TABLE def(a, b, c);\n    CREATE TABLE ghi(a, b, c);"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE abc; DROP TABLE def; DROP TABLE ghi;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a)"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t1"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE abc(a, b, c);\n    CREATE TABLE def(a, b, c);\n    CREATE TABLE ghi(a, b, c);"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n    INSERT INTO abc VALUES(7, 8, 9);\n    INSERT INTO def VALUES(1, 2, 3);\n    INSERT INTO def VALUES(4, 5, 6);\n    INSERT INTO def VALUES(7, 8, 9);\n    INSERT INTO ghi VALUES(1, 2, 3);\n    INSERT INTO ghi VALUES(4, 5, 6);\n    INSERT INTO ghi VALUES(7, 8, 9);\n    CREATE INDEX abc_i ON abc(a, b, c);\n    CREATE INDEX def_i ON def(c, a, b);\n    CREATE INDEX ghi_i ON ghi(b, c, a);"
+          "sql": "COMMIT"
         }
       ]
     }

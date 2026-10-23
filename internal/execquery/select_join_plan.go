@@ -2,6 +2,7 @@ package execquery
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -92,7 +93,7 @@ func (e *SelectEngine) materializeJoinRight(s *sql.SelectStmt, join sql.JoinClau
 	// FROM t600, carray(inttoptr(...),5)). Materialize via the module
 	// registry with WHERE pushdown; non-correlated args concatenate rows.
 	if _, isModule := e.ctx.VTables().Find(strings.ToLower(join.Table.Name)); isModule && !isPragmaTableFunc(join.Table.Name) {
-		return e.materializeVtabModuleJoin(s, join)
+		return e.materializeVtabModuleJoin(s, join, currentMaps)
 	}
 	return e.materializeJoinNamedOperand(s, join, currentMaps)
 }
@@ -127,7 +128,7 @@ func (e *SelectEngine) materializeJoinNamedOperand(s *sql.SelectStmt, join sql.J
 	}
 	// Real table: parse column defs and scan rows (or materialize a virtual
 	// table with RootPage == 0).
-	return e.materializeTableJoin(s, join, tableEntry)
+	return e.materializeTableJoin(s, join, tableEntry, currentMaps)
 }
 
 // materializeCorrelatedVTabFuncJoin materializes a correlated table-valued
@@ -163,25 +164,46 @@ func (e *SelectEngine) joinNotAFunctionError(join sql.JoinClause) (res *Result, 
 // columns stay out of the row map (never projected by t.*), while native
 // rowids back aa.rowid references (tabfunc01-751: ON aa.rowid=bb.rowid over
 // two carray instances).
-func (e *SelectEngine) materializeVtabModuleJoin(s *sql.SelectStmt, join sql.JoinClause) ([]RowMap, []sql.ColumnDef, string, []int, error) {
-	defs, rows, rowids, err := e.ctx.MaterializeVtabTableFunc(join.Table, e.vtabScanOptions(s))
-	if err != nil {
-		return nil, nil, "", nil, err
+func (e *SelectEngine) materializeVtabModuleJoin(s *sql.SelectStmt, join sql.JoinClause, currentMaps []RowMap) ([]RowMap, []sql.ColumnDef, string, []int, error) {
+	materialize := func(outer RowMap) ([]sql.ColumnDef, [][]interface{}, []int64, error) {
+		opts := e.vtabScanOptions(s)
+		opts.JoinOn = join.On
+		opts.TableName = joinTableName(join)
+		opts.OuterRow = outer
+		return e.ctx.MaterializeVtabTableFunc(join.Table, opts)
 	}
-	rightMaps := make([]RowMap, 0, len(rows))
-	for i, row := range rows {
-		m := make(RowMap)
-		for j, val := range row {
-			if j < len(defs) && !defs[j].Hidden {
-				m[defs[j].Name] = val
+	var rightDefs []sql.ColumnDef
+	var rightMaps []RowMap
+	var corrLeftIdx []int
+	outerRows := currentMaps
+	if join.On == nil || len(outerRows) == 0 {
+		outerRows = []RowMap{nil}
+	}
+	for leftIndex, outer := range outerRows {
+		defs, rows, rowids, err := materialize(outer)
+		if err != nil {
+			return nil, nil, "", nil, err
+		}
+		if rightDefs == nil {
+			rightDefs = defs
+		}
+		for i, row := range rows {
+			m := make(RowMap)
+			for j, val := range row {
+				if j < len(defs) && !defs[j].Hidden {
+					m[defs[j].Name] = val
+				}
+			}
+			if i < len(rowids) {
+				m["rowid"] = rowids[i]
+			}
+			rightMaps = append(rightMaps, m)
+			if join.On != nil && len(currentMaps) > 0 {
+				corrLeftIdx = append(corrLeftIdx, leftIndex)
 			}
 		}
-		if i < len(rowids) {
-			m["rowid"] = rowids[i]
-		}
-		rightMaps = append(rightMaps, m)
 	}
-	return rightMaps, defs, joinTableName(join), nil, nil
+	return rightMaps, rightDefs, joinTableName(join), corrLeftIdx, nil
 }
 
 // materializeCTEJoin materializes a CTE join operand (rejecting TVF syntax on
@@ -536,6 +558,78 @@ type joinIndexEntry struct {
 	idx int
 }
 
+func plainInnerJoin(join sql.JoinClause) bool {
+	if join.On != nil || len(join.Using) != 0 || isNaturalJoinType(join.JoinType) {
+		return false
+	}
+	return join.CommaJoin || join.JoinType == "" || strings.EqualFold(join.JoinType, "CROSS")
+}
+
+// orderJoinRightByAutomaticIndex applies single-table equality terms from
+// WHERE to an ordinary inner-loop operand, then follows SQLite's automatic
+// covering-index key order for the surviving right rows.
+func (e *SelectEngine) orderJoinRightByAutomaticIndex(where sql.Expr, rows []RowMap, defs []sql.ColumnDef, rightName string) []RowMap {
+	if where == nil || len(rows) < 2 {
+		return rows
+	}
+	var constraints []sql.Expr
+	for _, term := range splitAnd(where) {
+		bin, ok := term.(*sql.BinaryOp)
+		if !ok || bin.Operator != "=" && bin.Operator != "==" {
+			continue
+		}
+		ref, isRef := bin.Left.(*sql.ColumnRef)
+		constant := bin.Right
+		if !isRef {
+			ref, isRef = bin.Right.(*sql.ColumnRef)
+			constant = bin.Left
+		}
+		if !isRef || extractConst(constant) == nil || !rightDefHasColumn(defs, ref.Name) {
+			continue
+		}
+		if ref.Table != "" && !strings.EqualFold(ref.Table, rightName) {
+			continue
+		}
+		constraints = append(constraints, term)
+	}
+	if len(constraints) == 0 {
+		return rows
+	}
+	filtered := make([]RowMap, 0, len(rows))
+	for _, row := range rows {
+		probe := make(RowMap, len(row)*2)
+		for key, value := range row {
+			probe[key] = value
+			if !strings.Contains(key, ".") {
+				probe[rightName+"."+key] = value
+			}
+		}
+		keep := true
+		for _, constraint := range constraints {
+			if !e.evalOnCondition(constraint, probe) {
+				keep = false
+				break
+			}
+		}
+		if keep {
+			filtered = append(filtered, row)
+		}
+	}
+	if len(filtered) < 2 {
+		return filtered
+	}
+	sort.SliceStable(filtered, func(i, j int) bool {
+		for _, def := range defs {
+			cmp := util.CompareValues(filtered[i][def.Name], filtered[j][def.Name])
+			if cmp != 0 {
+				return cmp < 0
+			}
+		}
+		return false
+	})
+	return filtered
+}
+
 // joinIndexKey unwraps a row value's ColumnValue and CollatedValue wrappers
 // and normalizes it for use as an ephemeral equi-join hash key. A NOCASE
 // collation lowercases the key so 'ABC' and 'abc' match.
@@ -718,7 +812,11 @@ func (e *SelectEngine) buildCombinedRowMap(leftMap, rightMap RowMap, tableName, 
 			}
 		}
 	}
+	groupRowidAlias := rightMap["__frigolite_join_group_rowid_alias__"] != nil
 	for k, v := range rightMap {
+		if k == "__frigolite_join_group_rowid_alias__" {
+			continue
+		}
 		// Prefix unqualified keys with the right table name; keys already
 		// qualified (e.g. a view operand's dual.dummy) are copied as-is.
 		// Prefixing them again would fabricate garbage keys like
@@ -726,7 +824,7 @@ func (e *SelectEngine) buildCombinedRowMap(leftMap, rightMap RowMap, tableName, 
 		if !strings.Contains(k, ".") {
 			combined[tableName+"."+k] = v
 		}
-		if _, exists := combined[k]; !exists {
+		if _, exists := combined[k]; !exists || (groupRowidAlias && IsRowIDName(k)) {
 			combined[k] = v
 		}
 	}
@@ -783,9 +881,12 @@ func (e *SelectEngine) filterUsingColumns(rightDefs []sql.ColumnDef, on sql.Expr
 		return rightDefs
 	}
 	var filtered []sql.ColumnDef
+	merged := make(map[string]bool, len(usingCols))
 	for _, cd := range rightDefs {
-		if usingCols[cd.Name] {
-			continue // skip — this column is merged by USING
+		name := strings.ToLower(cd.Name)
+		if usingCols[name] && !merged[name] {
+			merged[name] = true
+			continue // merge the first matching right column only
 		}
 		filtered = append(filtered, cd)
 	}

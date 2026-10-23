@@ -4,6 +4,23 @@
   "ordered": true,
   "tests": [
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
       "name": "temptrigger-1.1",
       "steps": [
         {
@@ -41,7 +58,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(3, 4)"
+          "sql": "INSERT INTO t1 VALUES(3, 4)",
+          "database": "db2"
         },
         {
           "type": "exec",
@@ -65,7 +83,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN; CREATE TABLE t3(a, b); ROLLBACK;"
+          "sql": "BEGIN; CREATE TABLE t3(a, b); ROLLBACK;",
+          "database": "db2"
         }
       ]
     },
@@ -84,8 +103,24 @@
       ]
     },
     {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
       "name": "temptrigger-2.1",
       "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
         {
           "type": "exec",
           "sql": "DELETE FROM t1;\n    CREATE TEMP TABLE tt1(a, b);\n    CREATE TEMP TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO tt1 VALUES(new.a, new.b);\n    END;"
@@ -103,6 +138,20 @@
       ]
     },
     {
+      "name": "temptrigger-2.3",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
       "name": "temptrigger-2.4",
       "steps": [
         {
@@ -113,19 +162,69 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
     },
     {
       "name": "temptrigger-3.1",
       "steps": [
         {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test2.db",
+          "database": "db2"
+        },
+        {
           "type": "exec",
-          "sql": "CREATE TABLE t2(a, b)"
+          "sql": "CREATE TABLE t2(a, b)",
+          "database": "db2"
         },
         {
           "type": "exec",
@@ -158,7 +257,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t3(a, b)"
+          "sql": "CREATE TABLE t3(a, b)",
+          "database": "db2"
         },
         {
           "type": "exec",
@@ -174,6 +274,18 @@
           "type": "exec",
           "sql": "SELECT * FROM tt2",
           "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     },
@@ -216,8 +328,14 @@
       "name": "temptrigger-5.1",
       "steps": [
         {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
           "type": "exec",
-          "sql": "DROP TABLE t1"
+          "sql": "DROP TABLE t1",
+          "database": "db2"
         }
       ]
     },
@@ -232,8 +350,26 @@
       ]
     },
     {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": null
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
     },
     {
       "name": "temptrigger-6.0",
@@ -245,15 +381,17 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
       "name": "temptrigger-6.1",
       "steps": [
         {
+          "type": "open_named_db",
+          "sql": "test.db2",
+          "database": "db2"
+        },
+        {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c);"
+          "sql": "CREATE TABLE t1(a, b, c);",
+          "database": "db2"
         }
       ]
     },
@@ -278,8 +416,26 @@
       ]
     },
     {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": null
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
     },
     {
       "name": "temptrigger-7.0",
@@ -361,6 +517,15 @@
     {
       "name": "__RESET_DB__",
       "steps": null
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
     },
     {
       "name": "temptrigger-8.0",

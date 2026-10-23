@@ -1,6 +1,7 @@
 package fts
 
 import (
+	"strings"
 	"sync"
 
 	"github.com/pijalu/frigolite/internal/vtab"
@@ -34,6 +35,24 @@ func (m *FTS3Module) Create(args []string) (vtab.VirtualTable, error) {
 // Connect implements vtab.Module.Connect.
 func (m *FTS3Module) Connect(args []string) (vtab.VirtualTable, error) {
 	return &FTS3VTab{module: m}, nil
+}
+
+// ShadowName implements SQLite's xShadowName for FTS3/4.
+func (m *FTS3Module) ShadowName(tableName, name string) bool {
+	lowerName := strings.ToLower(name)
+	lowerTable := strings.ToLower(tableName)
+	if !strings.HasPrefix(lowerName, lowerTable+"_") {
+		return false
+	}
+	suffix := lowerName[len(lowerTable)+1:]
+	switch suffix {
+	case "content", "segments", "segdir":
+		return true
+	case "docsize", "stat":
+		return true
+	default:
+		return false
+	}
 }
 
 // GetOrCreateTable gets or creates an FTS3Table for the given name.

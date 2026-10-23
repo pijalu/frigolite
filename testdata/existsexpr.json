@@ -1,9 +1,10 @@
 {
   "file": "existsexpr.test",
   "name": "existsexpr",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "existsexpr-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,7 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "existsexpr-1.1",
       "steps": [
         {
           "type": "query",
@@ -22,7 +23,7 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "existsexpr-1.2",
       "steps": [
         {
           "type": "query",
@@ -32,7 +33,7 @@
       ]
     },
     {
-      "name": "1.3.1",
+      "name": "existsexpr-1.3.1",
       "steps": [
         {
           "type": "query",
@@ -42,7 +43,7 @@
       ]
     },
     {
-      "name": "1.3.2",
+      "name": "existsexpr-1.3.2",
       "steps": [
         {
           "type": "query",
@@ -52,7 +53,7 @@
       ]
     },
     {
-      "name": "1.4.1",
+      "name": "existsexpr-1.4.1",
       "steps": [
         {
           "type": "query",
@@ -62,7 +63,7 @@
       ]
     },
     {
-      "name": "1.4.2",
+      "name": "existsexpr-1.4.2",
       "steps": [
         {
           "type": "query",
@@ -72,7 +73,7 @@
       ]
     },
     {
-      "name": "1.5",
+      "name": "existsexpr-1.5",
       "steps": [
         {
           "type": "query",
@@ -82,16 +83,16 @@
       ]
     },
     {
-      "name": "2.0",
+      "name": "existsexpr-2.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a, b);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n  ) INSERT INTO t1 SELECT i, i FROM s;\n\n  CREATE TABLE t2(c, d);\n  WITH s(i) AS (\n    SELECT 10 UNION ALL SELECT i+10 FROM s WHERE i<1000\n  ) INSERT INTO t2 SELECT i, i FROM s;"
+          "type": "query",
+          "sql": "CREATE TABLE t1(a, b);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i\u003c1000\n  ) INSERT INTO t1 SELECT i, i FROM s;\n\n  CREATE TABLE t2(c, d);\n  WITH s(i) AS (\n    SELECT 10 UNION ALL SELECT i+10 FROM s WHERE i\u003c1000\n  ) INSERT INTO t2 SELECT i, i FROM s;"
         }
       ]
     },
     {
-      "name": "2.1",
+      "name": "existsexpr-2.1",
       "steps": [
         {
           "type": "query",
@@ -101,7 +102,7 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "existsexpr-2.2",
       "steps": [
         {
           "type": "query",
@@ -111,7 +112,7 @@
       ]
     },
     {
-      "name": "2.3",
+      "name": "existsexpr-2.3",
       "steps": [
         {
           "type": "query",
@@ -121,7 +122,16 @@
       ]
     },
     {
-      "name": "2.4.0",
+      "name": "existsexpr-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT count(*) FROM t1 WHERE EXISTS (SELECT 1 FROM t2 WHERE c=a)"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-2.4.0",
       "steps": [
         {
           "type": "exec",
@@ -130,7 +140,16 @@
       ]
     },
     {
-      "name": "2.4.2",
+      "name": "existsexpr-2.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT count(*) FROM t1 WHERE EXISTS (SELECT 1 FROM t2 WHERE c=a);"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-2.4.2",
       "steps": [
         {
           "type": "exec",
@@ -139,7 +158,16 @@
       ]
     },
     {
-      "name": "2.4.4",
+      "name": "existsexpr-2.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT count(*) FROM t1 WHERE EXISTS (SELECT 1 FROM t2 WHERE c=a);"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-2.4.4",
       "steps": [
         {
           "type": "query",
@@ -149,7 +177,7 @@
       ]
     },
     {
-      "name": "2.5.1",
+      "name": "existsexpr-2.5.1",
       "steps": [
         {
           "type": "query",
@@ -159,7 +187,7 @@
       ]
     },
     {
-      "name": "3.0",
+      "name": "existsexpr-3.0",
       "steps": [
         {
           "type": "exec",
@@ -168,7 +196,191 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "existsexpr-3.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "explain query plan \n  SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1 FROM y2 WHERE z=a AND y=b AND x=z\n  )",
+          "expect": "~/SUBQUERY/"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-3.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1 FROM y2 WHERE z=a AND y=b AND x=z\n  )",
+          "expect": "\n  1 1 1          3 3 3\n"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-3.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "explain query plan \n  SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1 FROM y2 WHERE z=max(a,b) AND y=min(b,a) AND x=z\n  )",
+          "expect": "~/SUBQUERY/"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-3.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1 FROM y2 WHERE z=max(a,b) AND y=min(b,a) AND x=z\n  )",
+          "expect": "\n  1 1 1          3 3 3\n"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-3.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "explain query plan \n  SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1 FROM y2 WHERE z=max(a,b) AND y=min(b,a) AND c!=3\n  )",
+          "expect": "~/SUBQUERY/"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-3.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1 FROM y2 WHERE z=max(a,b) AND y=min(b,a) AND c!=3\n  )",
+          "expect": "\n  1 1 1\n"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-3.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "explain query plan \n  SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1 FROM y2 WHERE z=max(a,b) AND b=3\n  )",
+          "expect": "~/SUBQUERY/"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-3.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1 FROM y2 WHERE z=max(a,b) AND b=3\n  )",
+          "expect": "\n  3 3 3\n"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-3.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "explain query plan \n  SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1 FROM y2 WHERE z=a-1 AND y=a-1\n  )",
+          "expect": "~/SUBQUERY/"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-3.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1 FROM y2 WHERE z=a-1 AND y=a-1\n  )",
+          "expect": "\n  2 2 2\n  4 4 4\n"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-3.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "explain query plan \n  SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1 FROM y2 WHERE z=a-1 AND y+1=a\n  )",
+          "expect": "~/SUBQUERY/"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-3.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1 FROM y2 WHERE z=a-1 AND y+1=a\n  )",
+          "expect": "\n  2 2 2\n  4 4 4\n"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-3.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "explain query plan \n  SELECT * FROM y1 WHERE EXISTS ( \n      SELECT count(*) FROM y2 WHERE z=a-1 AND y=a-1\n  )",
+          "expect": "/SUBQUERY/"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-3.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM y1 WHERE EXISTS ( \n      SELECT count(*) FROM y2 WHERE z=a-1 AND y=a-1\n  )",
+          "expect": "\n  1 1 1\n  2 2 2\n  3 3 3\n  4 4 4\n"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-3.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "explain query plan \n  SELECT * FROM y1 WHERE EXISTS ( SELECT a+1 FROM y2 )",
+          "expect": "~/SUBQUERY/"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-3.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM y1 WHERE EXISTS ( SELECT a+1 FROM y2 )",
+          "expect": "\n  1 1 1\n  2 2 2\n  3 3 3\n  4 4 4\n"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-3.9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "explain query plan \n  SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1 FROM y2 one, y2 two WHERE one.z=a-1 AND one.y=a-1\n  )",
+          "expect": "/SUBQUERY/"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-3.9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1 FROM y2 one, y2 two WHERE one.z=a-1 AND one.y=a-1\n  )",
+          "expect": "\n  2 2 2\n  4 4 4\n"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "existsexpr-4.0",
       "steps": [
         {
           "type": "exec",
@@ -177,7 +389,127 @@
       ]
     },
     {
-      "name": "4.3",
+      "name": "existsexpr-4.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "explain query plan \n  SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 FROM tx1 WHERE a=x AND b=y\n  )",
+          "expect": "~/SUBQUERY/"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-4.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 FROM tx1 WHERE a=x AND b=y\n  )",
+          "expect": "\n  A a\n  b b\n  C c\n  D d\n"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-4.1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "explain query plan \n  SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 FROM tx1 WHERE (a COLLATE nocase)=x AND b=y\n  )",
+          "expect": "~/SUBQUERY/"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-4.1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 FROM tx1 WHERE (a COLLATE nocase)=x AND b=y\n  )",
+          "expect": "\n  A a   b b   C c   D d\n"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-4.1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "explain query plan \n  SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 FROM tx1 WHERE a=x AND (b COLLATE binary)=y\n  )",
+          "expect": "~/SUBQUERY/"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-4.1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 FROM tx1 WHERE a=x AND (b COLLATE binary)=y\n  )",
+          "expect": "\n  A a   b b   C c   D d\n"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-4.1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "explain query plan \n  SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 FROM tx1 WHERE x=(a COLLATE nocase) AND b=y\n  )",
+          "expect": "~/SUBQUERY/"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-4.1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 FROM tx1 WHERE x=(a COLLATE nocase) AND b=y\n  )",
+          "expect": "\n  A a   b b   C c   D d\n"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-4.1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "explain query plan \n  SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 FROM tx1 WHERE a=x AND y=(b COLLATE binary)\n  )",
+          "expect": "~/SUBQUERY/"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-4.1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 FROM tx1 WHERE a=x AND y=(b COLLATE binary)\n  )",
+          "expect": "\n  A a   b b   C c   D d\n"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-4.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "explain query plan \n  SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 FROM tx1 WHERE a=x AND b=y COLLATE nocase\n  )",
+          "expect": "~/SUBQUERY/"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-4.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 FROM tx1 WHERE a=x AND b=y COLLATE nocase\n  )",
+          "expect": "\n  A a\n  b b\n  C c\n  D d\n"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-4.3",
       "steps": [
         {
           "type": "exec",
@@ -186,7 +518,147 @@
       ]
     },
     {
-      "name": "5.4",
+      "name": "existsexpr-4.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "explain query plan \n  SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 FROM tx1 WHERE a=x AND b=y\n  )",
+          "expect": "~/SUBQUERY/"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-4.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 FROM tx1 WHERE a=x AND b=y\n  )",
+          "expect": "\n  A a\n  b b\n  C c\n  D d\n"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-4.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "explain query plan \n  SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 FROM tx1 WHERE a=x COLLATE binary AND b=y\n  )",
+          "expect": "~/SUBQUERY/"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-4.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 FROM tx1 WHERE a=x COLLATE binary AND b=y\n  )",
+          "expect": "\n  D d\n"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-4.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "explain query plan \n  SELECT EXISTS ( SELECT x FROM tx1 ) FROM tx2",
+          "expect": "/SUBQUERY/"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-4.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT EXISTS ( SELECT x FROM tx1 ) FROM tx2",
+          "expect": "\n  1 1 1 1\n"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-4.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "explain query plan \n  SELECT (SELECT EXISTS ( SELECT x FROM tx1 ) WHERE 1) FROM tx2",
+          "expect": "/SUBQUERY/"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-4.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT EXISTS ( SELECT x FROM tx1 ) WHERE 1) FROM tx2",
+          "expect": "\n  1 1 1 1\n"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE a1( c00, c01, c02, c03, c04, c05, c06, c07, c08, c09, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42, c43, c44, c45, c46, c47, c48, c49, c50, c51, c52, c53, c54, c55, c56, c57, c58, c59, c60, c61, c62, c63, c64, c65, c66, c67, c68, c69, c70, c71, c72, c73, c74, c75, c76, c77, c78, c79, c80, c81, c82, c83, c84, c85, c86, c87, c88, c89, c90, c91, c92, c93, c94, c95, c96, c97, c98, c99 );"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "-- 63 column index\n  CREATE UNIQUE INDEX a1idx1 ON a1( c00, c01, c02, c03, c04, c05, c06, c07, c08, c09, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42, c43, c44, c45, c46, c47, c48, c49, c50, c51, c52, c53, c54, c55, c56, c57, c58, c59, c60, c61, c62 );"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "-- 64 column index\n  CREATE UNIQUE INDEX a1idx2 ON a1( c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42, c43, c44, c45, c46, c47, c48, c49, c50, c51, c52, c53, c54, c55, c56, c57, c58, c59, c60, c61, c62, c63, c64, c65, c66, c67, c68, c69, c70, c71, c72, c73 );"
+        },
+        {
+          "type": "exec",
+          "sql": "-- 65 column index\n  CREATE UNIQUE INDEX a1idx3 ON a1( c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42, c43, c44, c45, c46, c47, c48, c49, c50, c51, c52, c53, c54, c55, c56, c57, c58, c59, c60, c61, c62, c63, c64, c65, c66, c67, c68, c69, c70, c71, c72, c73, c74, c75, c76, c77, c78, c79, c80, c81, c82, c83, c84 );"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a1 VALUES( 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a1 VALUES( 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a1 VALUES( 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a1 VALUES( 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a1 VALUES( 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 )"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a1 VALUES( 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6 )"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-5.4",
       "steps": [
         {
           "type": "exec",
@@ -195,7 +667,71 @@
       ]
     },
     {
-      "name": "6.0",
+      "name": "existsexpr-5.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "explain query plan \n  SELECT o FROM a2 WHERE EXISTS (\n    SELECT 1 FROM a1 WHERE c00 = o AND c01 = o AND c02 = o AND c03 = o AND c04 = o AND c05 = o AND c06 = o AND c07 = o AND c08 = o AND c09 = o AND c10 = o AND c11 = o AND c12 = o AND c13 = o AND c14 = o AND c15 = o AND c16 = o AND c17 = o AND c18 = o AND c19 = o AND c20 = o AND c21 = o AND c22 = o AND c23 = o AND c24 = o AND c25 = o AND c26 = o AND c27 = o AND c28 = o AND c29 = o AND c30 = o AND c31 = o AND c32 = o AND c33 = o AND c34 = o AND c35 = o AND c36 = o AND c37 = o AND c38 = o AND c39 = o AND c40 = o AND c41 = o AND c42 = o AND c43 = o AND c44 = o AND c45 = o AND c46 = o AND c47 = o AND c48 = o AND c49 = o AND c50 = o AND c51 = o AND c52 = o AND c53 = o AND c54 = o AND c55 = o AND c56 = o AND c57 = o AND c58 = o AND c59 = o AND c60 = o AND c61 = o AND c62 = o\n  )",
+          "expect": "~/SUBQUERY/"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-5.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT o FROM a2 WHERE EXISTS (\n    SELECT 1 FROM a1 WHERE c00 = o AND c01 = o AND c02 = o AND c03 = o AND c04 = o AND c05 = o AND c06 = o AND c07 = o AND c08 = o AND c09 = o AND c10 = o AND c11 = o AND c12 = o AND c13 = o AND c14 = o AND c15 = o AND c16 = o AND c17 = o AND c18 = o AND c19 = o AND c20 = o AND c21 = o AND c22 = o AND c23 = o AND c24 = o AND c25 = o AND c26 = o AND c27 = o AND c28 = o AND c29 = o AND c30 = o AND c31 = o AND c32 = o AND c33 = o AND c34 = o AND c35 = o AND c36 = o AND c37 = o AND c38 = o AND c39 = o AND c40 = o AND c41 = o AND c42 = o AND c43 = o AND c44 = o AND c45 = o AND c46 = o AND c47 = o AND c48 = o AND c49 = o AND c50 = o AND c51 = o AND c52 = o AND c53 = o AND c54 = o AND c55 = o AND c56 = o AND c57 = o AND c58 = o AND c59 = o AND c60 = o AND c61 = o AND c62 = o\n  )",
+          "expect": "\n  2 5\n"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-5.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "explain query plan \n  SELECT o FROM a2 WHERE EXISTS (\n    SELECT 1 FROM a1 WHERE c10 = o AND c11 = o AND c12 = o AND c13 = o AND c14 = o AND c15 = o AND c16 = o AND c17 = o AND c18 = o AND c19 = o AND c20 = o AND c21 = o AND c22 = o AND c23 = o AND c24 = o AND c25 = o AND c26 = o AND c27 = o AND c28 = o AND c29 = o AND c30 = o AND c31 = o AND c32 = o AND c33 = o AND c34 = o AND c35 = o AND c36 = o AND c37 = o AND c38 = o AND c39 = o AND c40 = o AND c41 = o AND c42 = o AND c43 = o AND c44 = o AND c45 = o AND c46 = o AND c47 = o AND c48 = o AND c49 = o AND c50 = o AND c51 = o AND c52 = o AND c53 = o AND c54 = o AND c55 = o AND c56 = o AND c57 = o AND c58 = o AND c59 = o AND c60 = o AND c61 = o AND c62 = o AND c63 = o AND c64 = o AND c65 = o AND c66 = o AND c67 = o AND c68 = o AND c69 = o AND c70 = o AND c71 = o AND c72 = o AND c73 = o\n  )",
+          "expect": "~/SUBQUERY/"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-5.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT o FROM a2 WHERE EXISTS (\n    SELECT 1 FROM a1 WHERE c10 = o AND c11 = o AND c12 = o AND c13 = o AND c14 = o AND c15 = o AND c16 = o AND c17 = o AND c18 = o AND c19 = o AND c20 = o AND c21 = o AND c22 = o AND c23 = o AND c24 = o AND c25 = o AND c26 = o AND c27 = o AND c28 = o AND c29 = o AND c30 = o AND c31 = o AND c32 = o AND c33 = o AND c34 = o AND c35 = o AND c36 = o AND c37 = o AND c38 = o AND c39 = o AND c40 = o AND c41 = o AND c42 = o AND c43 = o AND c44 = o AND c45 = o AND c46 = o AND c47 = o AND c48 = o AND c49 = o AND c50 = o AND c51 = o AND c52 = o AND c53 = o AND c54 = o AND c55 = o AND c56 = o AND c57 = o AND c58 = o AND c59 = o AND c60 = o AND c61 = o AND c62 = o AND c63 = o AND c64 = o AND c65 = o AND c66 = o AND c67 = o AND c68 = o AND c69 = o AND c70 = o AND c71 = o AND c72 = o AND c73 = o\n  )",
+          "expect": "\n  2 5\n"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-5.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "explain query plan \n  SELECT o FROM a2 WHERE EXISTS (\n    SELECT 1 FROM a1 WHERE c20 = o AND c21 = o AND c22 = o AND c23 = o AND c24 = o AND c25 = o AND c26 = o AND c27 = o AND c28 = o AND c29 = o AND c30 = o AND c31 = o AND c32 = o AND c33 = o AND c34 = o AND c35 = o AND c36 = o AND c37 = o AND c38 = o AND c39 = o AND c40 = o AND c41 = o AND c42 = o AND c43 = o AND c44 = o AND c45 = o AND c46 = o AND c47 = o AND c48 = o AND c49 = o AND c50 = o AND c51 = o AND c52 = o AND c53 = o AND c54 = o AND c55 = o AND c56 = o AND c57 = o AND c58 = o AND c59 = o AND c60 = o AND c61 = o AND c62 = o AND c63 = o AND c64 = o AND c65 = o AND c66 = o AND c67 = o AND c68 = o AND c69 = o AND c70 = o AND c71 = o AND c72 = o AND c73 = o AND c74 = o AND c75 = o AND c76 = o AND c77 = o AND c78 = o AND c79 = o AND c80 = o AND c81 = o AND c82 = o AND c83 = o AND c84 = o\n  )",
+          "expect": "~/SUBQUERY/"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-5.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT o FROM a2 WHERE EXISTS (\n    SELECT 1 FROM a1 WHERE c20 = o AND c21 = o AND c22 = o AND c23 = o AND c24 = o AND c25 = o AND c26 = o AND c27 = o AND c28 = o AND c29 = o AND c30 = o AND c31 = o AND c32 = o AND c33 = o AND c34 = o AND c35 = o AND c36 = o AND c37 = o AND c38 = o AND c39 = o AND c40 = o AND c41 = o AND c42 = o AND c43 = o AND c44 = o AND c45 = o AND c46 = o AND c47 = o AND c48 = o AND c49 = o AND c50 = o AND c51 = o AND c52 = o AND c53 = o AND c54 = o AND c55 = o AND c56 = o AND c57 = o AND c58 = o AND c59 = o AND c60 = o AND c61 = o AND c62 = o AND c63 = o AND c64 = o AND c65 = o AND c66 = o AND c67 = o AND c68 = o AND c69 = o AND c70 = o AND c71 = o AND c72 = o AND c73 = o AND c74 = o AND c75 = o AND c76 = o AND c77 = o AND c78 = o AND c79 = o AND c80 = o AND c81 = o AND c82 = o AND c83 = o AND c84 = o\n  )",
+          "expect": "\n  2 5\n"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "existsexpr-6.0",
       "steps": [
         {
           "type": "exec",
@@ -204,27 +740,35 @@
       ]
     },
     {
-      "name": "6.1",
+      "name": "existsexpr-6.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT a FROM t1 WHERE EXISTS (SELECT 1 FROM t2 WHERE c COLLATE f = a)",
           "expect": "1 {no such collation sequence: f}"
         }
       ]
     },
     {
-      "name": "7.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "existsexpr-7.0",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t1(x);\n  CREATE TABLE t2(y UNIQUE);\n\n  INSERT INTO t1 VALUES(1), (2);\n  INSERT INTO t2 VALUES(1), (3);\n\n  SELECT * FROM t1 one LEFT JOIN t1 two ON (one.x=two.x AND EXISTS (\n    SELECT 1 FROM t2 WHERE y=one.x\n  ));",
-          "expect": "1 1\n  2 {}"
+          "expect": "\n  1 1\n  2 {}\n"
         }
       ]
     },
     {
-      "name": "8.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "existsexpr-8.0",
       "steps": [
         {
           "type": "query",
@@ -233,7 +777,11 @@
       ]
     },
     {
-      "name": "9.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "existsexpr-9.0",
       "steps": [
         {
           "type": "exec",
@@ -242,7 +790,7 @@
       ]
     },
     {
-      "name": "9.1",
+      "name": "existsexpr-9.1",
       "steps": [
         {
           "type": "exec",
@@ -251,7 +799,7 @@
       ]
     },
     {
-      "name": "9.2",
+      "name": "existsexpr-9.2",
       "steps": [
         {
           "type": "exec",
@@ -260,7 +808,7 @@
       ]
     },
     {
-      "name": "9.3",
+      "name": "existsexpr-9.3",
       "steps": [
         {
           "type": "query",
@@ -270,7 +818,7 @@
       ]
     },
     {
-      "name": "9.4",
+      "name": "existsexpr-9.4",
       "steps": [
         {
           "type": "query",
@@ -280,17 +828,32 @@
       ]
     },
     {
-      "name": "9.5",
+      "name": "existsexpr-9.5",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT 1234 WHERE EXISTS (\n    SELECT 1 FROM t2 WHERE EXISTS ( SELECT 1 FROM t3 WHERE yy==t2.ii )\n  )",
           "expect": "1234"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE \n    EXISTS (\n      SELECT 1 FROM t2 WHERE EXISTS ( SELECT 1 FROM t3 WHERE yy==t2.ii ) \n    )",
+          "expect": "{big string value}"
         }
       ]
     },
     {
-      "name": "9.7.1",
+      "name": "existsexpr-9.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE \n    EXISTS (\n      SELECT 1 FROM t2 WHERE EXISTS ( SELECT 1 FROM t3 WHERE yy==t2.ii ) \n    )",
+          "expect": "{big string value}"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-9.7.1",
       "steps": [
         {
           "type": "exec",
@@ -299,7 +862,31 @@
       ]
     },
     {
-      "name": "10.0",
+      "name": "existsexpr-9.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t3\n   WHERE EXISTS(SELECT 1 FROM t4 WHERE z\u003ey)\n   LIMIT 1 OFFSET 1",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "existsexpr-9.7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t3\n   WHERE EXISTS(SELECT 1 FROM t4 WHERE z\u003ey)\n   LIMIT 1 OFFSET 1",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "existsexpr-10.0",
       "steps": [
         {
           "type": "exec",
@@ -308,7 +895,7 @@
       ]
     },
     {
-      "name": "10.1",
+      "name": "existsexpr-10.1",
       "steps": [
         {
           "type": "query",
@@ -317,7 +904,7 @@
       ]
     },
     {
-      "name": "10.2",
+      "name": "existsexpr-10.2",
       "steps": [
         {
           "type": "query",
@@ -326,7 +913,7 @@
       ]
     },
     {
-      "name": "11.0",
+      "name": "existsexpr-11.0",
       "steps": [
         {
           "type": "exec",
@@ -335,7 +922,7 @@
       ]
     },
     {
-      "name": "11.1",
+      "name": "existsexpr-11.1",
       "steps": [
         {
           "type": "query",
@@ -345,7 +932,11 @@
       ]
     },
     {
-      "name": "12.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "existsexpr-12.0",
       "steps": [
         {
           "type": "exec",
@@ -354,26 +945,30 @@
       ]
     },
     {
-      "name": "12.1",
+      "name": "existsexpr-12.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t2\n    WHERE EXISTS (SELECT 1 FROM t3 WHERE t3.amount > t2.data)",
-          "expect": "1 0\n  2 0"
+          "sql": "SELECT * FROM t2\n    WHERE EXISTS (SELECT 1 FROM t3 WHERE t3.amount \u003e t2.data)",
+          "expect": "\n  1 0\n  2 0\n"
         }
       ]
     },
     {
-      "name": "12.2",
+      "name": "existsexpr-12.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t2\n    WHERE EXISTS (SELECT 1 FROM t3 WHERE t3.amount > t2.data)\n  LIMIT 2 OFFSET 3"
+          "sql": "SELECT * FROM t2\n    WHERE EXISTS (SELECT 1 FROM t3 WHERE t3.amount \u003e t2.data)\n  LIMIT 2 OFFSET 3"
         }
       ]
     },
     {
-      "name": "13.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "existsexpr-13.0",
       "steps": [
         {
           "type": "query",
@@ -382,7 +977,7 @@
       ]
     },
     {
-      "name": "13.1",
+      "name": "existsexpr-13.1",
       "steps": [
         {
           "type": "query",
@@ -392,7 +987,11 @@
       ]
     },
     {
-      "name": "14.1.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "existsexpr-14.1.0",
       "steps": [
         {
           "type": "exec",
@@ -401,26 +1000,27 @@
       ]
     },
     {
-      "name": "14.1.1",
+      "name": "existsexpr-14.1.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM t b\n    WHERE (b.parent IS NULL OR b.parent = 99)\n    AND 5 <= +b.n"
+          "sql": "SELECT count(*) FROM t b\n    WHERE (b.parent IS NULL OR b.parent = 99)\n    AND 5 \u003c= +b.n",
+          "expect": "1"
         }
       ]
     },
     {
-      "name": "14.1.2",
+      "name": "existsexpr-14.1.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT 'match' WHERE EXISTS (\n      SELECT 1 FROM t b\n      WHERE (b.parent IS NULL OR b.parent = 99)\n      AND 5 <= +b.n\n  )",
+          "sql": "SELECT 'match' WHERE EXISTS (\n      SELECT 1 FROM t b\n      WHERE (b.parent IS NULL OR b.parent = 99)\n      AND 5 \u003c= +b.n\n  )",
           "expect": "match"
         }
       ]
     },
     {
-      "name": "14.2.1",
+      "name": "existsexpr-14.2.1",
       "steps": [
         {
           "type": "exec",
@@ -429,84 +1029,12 @@
       ]
     },
     {
-      "name": "14.2.2",
+      "name": "existsexpr-14.2.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE EXISTS (\n    SELECT 1 FROM t2 WHERE (c=a OR d=a) AND (d+1)>0\n  )",
+          "sql": "SELECT * FROM t1 WHERE EXISTS (\n    SELECT 1 FROM t2 WHERE (c=a OR d=a) AND (d+1)\u003e0\n  )",
           "expect": "20 20"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

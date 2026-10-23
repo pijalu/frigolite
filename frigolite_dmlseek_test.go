@@ -312,6 +312,13 @@ func TestDMLSeek_Fallbacks(t *testing.T) {
 		if got := dmlSeekRowsString(t, db, "SELECT b FROM w WHERE a=5"); got != "HIT" {
 			t.Fatalf("wr update = %q", got)
 		}
+		dmlSeekExec(t, db, "CREATE TABLE partial(a, b PRIMARY KEY) WITHOUT ROWID")
+		dmlSeekExec(t, db, "WITH RECURSIVE nums(value) AS (VALUES(0) UNION ALL SELECT value+1 FROM nums WHERE value<999) INSERT INTO partial SELECT value, value FROM nums")
+		dmlSeekExec(t, db, "CREATE INDEX partial_a ON partial(a) WHERE a IS NOT NULL")
+		dmlSeekExec(t, db, "UPDATE partial SET a=NULL WHERE b%5=0")
+		if got := dmlSeekRowsString(t, db, "SELECT count(*) FROM partial WHERE a IS NOT NULL"); got != "800" {
+			t.Fatalf("WR partial-index update left %s non-NULL rows; want 800", got)
+		}
 		dmlSeekExec(t, db, "DELETE FROM w WHERE a IN (3, 4)")
 		if got := dmlSeekRowsString(t, db, "SELECT count(*) FROM w"); got != "8" {
 			t.Fatalf("wr delete count = %q, want 8", got)

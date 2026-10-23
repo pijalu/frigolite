@@ -1,6 +1,7 @@
 {
   "file": "date2.test",
   "name": "date2",
+  "ordered": true,
   "tests": [
     {
       "name": "date2-100",
@@ -15,7 +16,7 @@
       "name": "date2-110",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1(x,y) VALUES('now','two');",
           "expect": "1 {non-deterministic use of date() in a CHECK constraint}"
         }
@@ -35,7 +36,7 @@
       "name": "date2-130",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1(x,y) VALUES('2017-08-01','two');",
           "expect": "1 {CHECK constraint failed: date(x) BETWEEN '2017-07-01' AND '2017-07-31'}"
         }
@@ -45,7 +46,7 @@
       "name": "date2-140",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DROP TABLE t1;\n  CREATE TABLE t1(x, y, z AS (date()));\n  INSERT INTO t1(x,y) VALUES(1,2);",
           "expect": "1 {non-deterministic use of date() in a generated column}"
         }
@@ -64,7 +65,7 @@
       "name": "date2-210",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t2(x,y) VALUES(3, 'now');",
           "expect": "1 {non-deterministic use of date() in an index}"
         }
@@ -85,7 +86,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t3(a INTEGER PRIMARY KEY,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t3(a,b) SELECT x, julianday('2017-07-01')+x FROM c;\n  UPDATE t3 SET b='now' WHERE a=500;"
+          "sql": "CREATE TABLE t3(a INTEGER PRIMARY KEY,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c1000)\n    INSERT INTO t3(a,b) SELECT x, julianday('2017-07-01')+x FROM c;\n  UPDATE t3 SET b='now' WHERE a=500;"
         }
       ]
     },
@@ -93,7 +94,7 @@
       "name": "date2-310",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE INDEX t3b1 ON t3(datetime(b));",
           "expect": "1 {non-deterministic use of datetime() in an index}"
         }
@@ -103,7 +104,7 @@
       "name": "date2-320",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE INDEX t3b1 ON t3(datetime(b)) WHERE typeof(b)='real';",
           "expect": "0 {}"
         }
@@ -134,7 +135,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t4(a INTEGER PRIMARY KEY,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t4(a,b) SELECT x, julianday('2017-07-01')+x FROM c;\n  UPDATE t4 SET b='now' WHERE a=500;"
+          "sql": "CREATE TABLE t4(a INTEGER PRIMARY KEY,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c1000)\n    INSERT INTO t4(a,b) SELECT x, julianday('2017-07-01')+x FROM c;\n  UPDATE t4 SET b='now' WHERE a=500;"
         }
       ]
     },
@@ -142,7 +143,7 @@
       "name": "date2-410",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE INDEX t4b1 ON t4(b)\n    WHERE date(b) BETWEEN '2017-06-01' AND '2017-08-31';",
           "expect": "1 {non-deterministic use of date() in an index}"
         }
@@ -161,7 +162,7 @@
       "name": "date2-430",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t4(a,b) VALUES(9999,'now');",
           "expect": "1 {non-deterministic use of date() in an index}"
         }
@@ -172,7 +173,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE mods(x);\n  INSERT INTO mods(x) VALUES\n    ('+10 days'),\n    ('-10 days'),\n    ('+10 hours'),\n    ('-10 hours'),\n    ('+10 minutes'),\n    ('-10 minutes'),\n    ('+10 seconds'),\n    ('-10 seconds'),\n    ('+10 months'),\n    ('-10 months'),\n    ('+10 years'),\n    ('-10 years'),\n    ('start of month'),\n    ('start of year'),\n    ('start of day'),\n    ('weekday 1'),\n    ('unixepoch');\n  CREATE TABLE t5(y,m);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n    INSERT INTO t5(y,m) SELECT julianday('2017-07-01')+c.x, mods.x FROM c, mods;\n  CREATE INDEX t5x1 on t5(y) WHERE datetime(y,m) IS NOT NULL;"
+          "sql": "CREATE TABLE mods(x);\n  INSERT INTO mods(x) VALUES\n    ('+10 days'),\n    ('-10 days'),\n    ('+10 hours'),\n    ('-10 hours'),\n    ('+10 minutes'),\n    ('-10 minutes'),\n    ('+10 seconds'),\n    ('-10 seconds'),\n    ('+10 months'),\n    ('-10 months'),\n    ('+10 years'),\n    ('-10 years'),\n    ('start of month'),\n    ('start of year'),\n    ('start of day'),\n    ('weekday 1'),\n    ('unixepoch');\n  CREATE TABLE t5(y,m);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c5)\n    INSERT INTO t5(y,m) SELECT julianday('2017-07-01')+c.x, mods.x FROM c, mods;\n  CREATE INDEX t5x1 on t5(y) WHERE datetime(y,m) IS NOT NULL;"
         }
       ]
     },
@@ -180,7 +181,7 @@
       "name": "date2-510",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t5(y,m) VALUES('2017-07-20','localtime');",
           "expect": "1 {non-deterministic use of datetime() in an index}"
         }
@@ -190,7 +191,7 @@
       "name": "date2-520",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t5(y,m) VALUES('2017-07-20','utc');",
           "expect": "1 {non-deterministic use of datetime() in an index}"
         }
@@ -200,8 +201,8 @@
       "name": "date2-600",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t600(a REAL CHECK( a<julianday('now') ));\n  INSERT INTO t600(a) VALUES(1.0);",
+          "type": "catch",
+          "sql": "CREATE TABLE t600(a REAL CHECK( a\u003cjulianday('now') ));\n  INSERT INTO t600(a) VALUES(1.0);",
           "expect": "1 {non-deterministic use of julianday() in a CHECK constraint}"
         }
       ]
@@ -210,8 +211,8 @@
       "name": "date2-601",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t601(a REAL, b TEXT, CHECK( a<julianday(b) ));\n  INSERT INTO t601(a,b) VALUES(1.0, '1970-01-01');",
+          "type": "catch",
+          "sql": "CREATE TABLE t601(a REAL, b TEXT, CHECK( a\u003cjulianday(b) ));\n  INSERT INTO t601(a,b) VALUES(1.0, '1970-01-01');",
           "expect": "0 {}"
         }
       ]
@@ -220,9 +221,9 @@
       "name": "date2-602",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t601(a,b) VALUES(1e100, '1970-01-01');",
-          "expect": "1 {CHECK constraint failed: a<julianday(b)}"
+          "expect": "1 {CHECK constraint failed: a\u003cjulianday(b)}"
         }
       ]
     },
@@ -230,7 +231,7 @@
       "name": "date2-603",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t601(a,b) VALUES(10, 'now');",
           "expect": "1 {non-deterministic use of julianday() in a CHECK constraint}"
         }
@@ -240,7 +241,7 @@
       "name": "date2-604",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t600(a) VALUES(julianday('now')+10);",
           "expect": "1 {non-deterministic use of julianday() in a CHECK constraint}"
         }
@@ -250,7 +251,7 @@
       "name": "date2-610",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t610(a,b);\n  CREATE INDEX t610x1 ON t610(julianday('now')+b);\n  INSERT INTO t610(a,b) VALUES(123,456);",
           "expect": "1 {non-deterministic use of julianday() in an index}"
         }
@@ -260,7 +261,7 @@
       "name": "date2-611",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t611(a,b);\n  CREATE INDEX t611x1 ON t611(julianday(a)+b);\n  INSERT INTO t611(a,b) VALUES('1970-01-01',10.0);",
           "expect": "0 {}"
         }
@@ -270,7 +271,7 @@
       "name": "date2-612",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t611(a,b) VALUES('now',10.0);",
           "expect": "1 {non-deterministic use of julianday() in an index}"
         }
@@ -280,7 +281,7 @@
       "name": "date3-620",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t620(a, b AS (a+julianday('now')));\n  INSERT INTO t620 VALUES(10);",
           "expect": "1 {non-deterministic use of julianday() in a generated column}"
         }

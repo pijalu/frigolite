@@ -309,7 +309,7 @@
       ]
     },
     {
-      "name": "setup_0",
+      "name": "subquery-3.1",
       "steps": [
         {
           "type": "catch",
@@ -321,7 +321,18 @@
         },
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE t2(p,q);\n    INSERT INTO t2 VALUES(2,9);"
+          "sql": "CREATE TABLE t1(a,b);\n      INSERT INTO t1 VALUES(1,2);\n      CREATE VIEW v1 AS SELECT b FROM t1 WHERE a\u003e0;\n      CREATE TABLE t2(p,q);\n      INSERT INTO t2 VALUES(2,9);\n      SELECT * FROM v1 WHERE EXISTS(SELECT * FROM t2 WHERE p=v1.b);",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "subquery-3.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM v1 WHERE EXISTS(SELECT 1);",
+          "expect": "2"
         }
       ]
     },
@@ -539,9 +550,39 @@
       "name": "subquery-5.1",
       "steps": [
         {
+          "type": "register_function",
+          "functionName": "callcnt",
+          "callbackVars": {
+            "": "0",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "callcnt": "0",
+            "testdir": ""
+          },
+          "functionProc": "callcntproc",
+          "functionArgs": [
+            "n"
+          ],
+          "functionBody": "\n    incr ::callcnt\n    return $n\n  ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
           "type": "exec",
           "sql": "CREATE TABLE t4(x,y);\n    INSERT INTO t4 VALUES('one',1);\n    INSERT INTO t4 VALUES('two',2);\n    INSERT INTO t4 VALUES('three',3);\n    INSERT INTO t4 VALUES('four',4);\n    CREATE TABLE t5(a,b);\n    INSERT INTO t5 VALUES(1,11);\n    INSERT INTO t5 VALUES(2,22);\n    INSERT INTO t5 VALUES(3,33);\n    INSERT INTO t5 VALUES(4,44);\n    SELECT b FROM t5 WHERE a IN \n       (SELECT callcnt(y)+0 FROM t4 WHERE x='two')",
           "expect": "22"
+        }
+      ]
+    },
+    {
+      "name": "subquery-5.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "callcnt",
+          "expect": "1"
         }
       ]
     },
@@ -556,12 +597,32 @@
       ]
     },
     {
+      "name": "subquery-6.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "callcnt",
+          "expect": "4"
+        }
+      ]
+    },
+    {
       "name": "subquery-6.3",
       "steps": [
         {
           "type": "exec",
           "sql": "SELECT x FROM t4 WHERE 1 IN (SELECT callcnt(count(*)) FROM t5 WHERE a=1)",
           "expect": "one two three four"
+        }
+      ]
+    },
+    {
+      "name": "subquery-6.4",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "callcnt",
+          "expect": "1"
         }
       ]
     },
@@ -661,6 +722,16 @@
     {
       "name": "__RESET_DB__",
       "steps": null
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "internal_functions",
+          "sql": "enable",
+          "internalFunctions": true
+        }
+      ]
     },
     {
       "name": "subquery-11.1",

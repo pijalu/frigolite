@@ -2,6 +2,7 @@ package frigolite
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -30,8 +31,14 @@ func TestWindowCGroupConcatBlobUTF16(t *testing.T) {
 		{"UTF16be", "NULL 1 喅킐ፅ典촑칊 1"},
 	}
 	for _, tc := range cases {
-		f := "windowcpin.db"
-		os.Remove(f)
+		f := filepath.Join(t.TempDir(), "windowcpin.db")
+		seed, err := os.Create(f)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := seed.Close(); err != nil {
+			t.Fatal(err)
+		}
 		db, err := Open(f)
 		if err != nil {
 			t.Fatal(err)

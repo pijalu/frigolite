@@ -1,6 +1,7 @@
 {
   "file": "shared6.test",
   "name": "shared6",
+  "ordered": true,
   "tests": [
     {
       "name": "shared6-1.1.1",
@@ -8,6 +9,24 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b);\n    CREATE TABLE t2(c, d);\n    CREATE TABLE t3(e, f);"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "shared6-1.1.3",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db1"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
         }
       ]
     },
@@ -15,9 +34,20 @@
       "name": "shared6-1.2.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM t1",
-          "expect": "1 {database table is locked}"
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE",
+          "database": "db1"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked}",
+          "database": "db2"
         }
       ]
     },
@@ -25,8 +55,9 @@
       "name": "shared6-1.2.2",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT * FROM t1"
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "database": "db1"
         }
       ]
     },
@@ -35,7 +66,13 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT;\n    BEGIN;\n    INSERT INTO t2 VALUES(3, 4);"
+          "sql": "COMMIT;\n    BEGIN;\n    INSERT INTO t2 VALUES(3, 4);",
+          "database": "db1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "database": "db2"
         }
       ]
     },
@@ -44,7 +81,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT"
+          "sql": "COMMIT",
+          "database": "db1"
         }
       ]
     },
@@ -53,7 +91,14 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(1, 2);"
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(1, 2);",
+          "database": "db1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2",
+          "database": "db1"
         }
       ]
     },
@@ -61,9 +106,10 @@
       "name": "shared6-1.3.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM t2",
-          "expect": "3 4"
+          "expect": "3 4",
+          "database": "db2"
         }
       ]
     },
@@ -71,9 +117,10 @@
       "name": "shared6-1.3.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM t1",
-          "expect": "1 {database table is locked: t1}"
+          "expect": "1 {database table is locked: t1}",
+          "database": "db2"
         }
       ]
     },
@@ -81,19 +128,10 @@
       "name": "shared6-1.3.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t2 VALUES(1, 2)",
-          "expect": "1 {database table is locked}"
-        }
-      ]
-    },
-    {
-      "name": "shared6-1.3.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "COMMIT;\n    BEGIN;\n    SELECT * FROM t1;",
-          "expect": "1 2"
+          "expect": "1 {database table is locked}",
+          "database": "db2"
         }
       ]
     },
@@ -102,8 +140,20 @@
       "steps": [
         {
           "type": "exec",
+          "sql": "COMMIT;\n    BEGIN;\n    SELECT * FROM t1;",
+          "database": "db1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2",
+          "database": "db2"
+        },
+        {
+          "type": "catch",
           "sql": "INSERT INTO t1 VALUES(5, 6)",
-          "expect": "1 {database table is locked: t1}"
+          "expect": "1 {database table is locked: t1}",
+          "database": "db2"
         }
       ]
     },
@@ -112,7 +162,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT"
+          "sql": "COMMIT",
+          "database": "db1"
         }
       ]
     },
@@ -120,9 +171,20 @@
       "name": "shared6-1.4.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA read_uncommitted = 1",
-          "expect": "1 2 5 6"
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(5, 6);",
+          "database": "db1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 5 6",
+          "database": "db2"
         }
       ]
     },
@@ -131,7 +193,14 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t4(a, b)"
+          "sql": "CREATE TABLE t4(a, b)",
+          "database": "db1"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database table is locked}",
+          "database": "db2"
         }
       ]
     },
@@ -139,75 +208,58 @@
       "name": "shared6-1.4.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "COMMIT;\n    BEGIN;\n    SELECT * FROM t1;",
-          "expect": "1 {database table is locked: t1}"
+          "database": "db1"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES(7, 8)",
+          "expect": "1 {database table is locked: t1}",
+          "database": "db2"
         }
       ]
     },
     {
-      "name": "shared6-2.2",
+      "name": "shared6-1.X",
       "steps": [
         {
-          "type": "exec",
-          "sql": "BEGIN; INSERT INTO t1 VALUES(9, 10);"
+          "type": "close_named_db",
+          "database": "db1"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     },
     {
-      "name": "shared6-2.3",
+      "name": "shared6-3.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db1"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t1",
-          "expect": "1 2 5 6"
-        }
-      ]
-    },
-    {
-      "name": "shared6-2.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "COMMIT"
-        }
-      ]
-    },
-    {
-      "name": "shared6-2.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t1",
-          "expect": "1 2 5 6 9 10"
-        }
-      ]
-    },
-    {
-      "name": "shared6-2.5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "COMMIT"
-        }
-      ]
-    },
-    {
-      "name": "shared6-3.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(1, 2)",
-          "expect": "1 {database table is locked: t1}"
-        }
-      ]
-    },
-    {
-      "name": "shared6-3.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN EXCLUSIVE"
+          "database": "db1"
         }
       ]
     },
@@ -215,19 +267,30 @@
       "name": "shared6-3.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM t1",
-          "expect": "1 {database schema is locked: main}"
+          "expect": "1 {database schema is locked: main}",
+          "database": "db2"
         }
       ]
     },
     {
-      "name": "shared6-3.6",
+      "name": "shared6-3.5",
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN EXCLUSIVE",
-          "expect": "1 {database table is locked}"
+          "sql": "COMMIT",
+          "database": "db1"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "database": "db2"
         }
       ]
     },
@@ -236,17 +299,23 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN"
+          "sql": "BEGIN",
+          "database": "db1"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN",
+          "database": "db2"
         }
       ]
     },
     {
-      "name": "shared6-3.8",
+      "name": "setup_2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(1, 2)",
-          "expect": "1 {database table is locked: t1}"
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "database": "db2"
         }
       ]
     },
@@ -255,7 +324,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN ; ROLLBACK"
+          "sql": "BEGIN ; ROLLBACK",
+          "database": "db3"
         }
       ]
     },
@@ -263,9 +333,27 @@
       "name": "shared6-3.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM t1",
-          "expect": "1 {database table is locked}"
+          "expect": "1 {database table is locked}",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "shared6-3.X",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db1"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db3"
         }
       ]
     },
@@ -273,127 +361,51 @@
       "name": "shared6-4.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t5(a, b)"
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db1"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_1",
+          "database": "db1"
         },
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b);\n    CREATE TABLE t2(c, d);\n    CREATE TABLE t3(e, f);"
+          "sql": "CREATE TABLE t5(a, b)",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "shared6-4.2",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1",
+          "variable": "stmt_1",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "shared6-4.X",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db1"
         },
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN EXCLUSIVE"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT;\n    BEGIN;\n    INSERT INTO t2 VALUES(3, 4);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(1, 2);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT;\n    BEGIN;\n    SELECT * FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA read_uncommitted = 1"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(5, 6);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t4(a, b)"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT;\n    BEGIN;\n    SELECT * FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN; INSERT INTO t1 VALUES(9, 10);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN; INSERT INTO t1 VALUES(11, 12);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN EXCLUSIVE"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN ; ROLLBACK"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t5(a, b)"
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

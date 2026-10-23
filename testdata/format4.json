@@ -1,13 +1,24 @@
 {
   "file": "format4.test",
   "name": "format4",
+  "ordered": true,
   "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum"
+        }
+      ]
+    },
     {
       "name": "format4-1.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x0,x1,x2,x3,x4,x5,x6,x7,x8,x9);\n    INSERT INTO t1 VALUES(0,0,0,0,0,0,0,0,0,0);\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;"
+          "sql": "CREATE TABLE t1(x0,x1,x2,x3,x4,x5,x6,x7,x8,x9);\n    INSERT INTO t1 VALUES(0,0,0,0,0,0,0,0,0,0);\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;",
+          "expect": "2048"
         }
       ]
     },
@@ -16,7 +27,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE t1 SET x0=1, x1=1, x2=1, x3=1, x4=1, x5=1, x6=1, x7=1, x8=1, x9=1"
+          "sql": "UPDATE t1 SET x0=1, x1=1, x2=1, x3=1, x4=1, x5=1, x6=1, x7=1, x8=1, x9=1",
+          "expect": "2048"
         }
       ]
     },
@@ -25,26 +37,10 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE t1 SET x0=2, x1=2, x2=2, x3=2, x4=2, x5=2, x6=2, x7=2, x8=2, x9=2"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x0,x1,x2,x3,x4,x5,x6,x7,x8,x9);\n    INSERT INTO t1 VALUES(0,0,0,0,0,0,0,0,0,0);\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET x0=1, x1=1, x2=1, x3=1, x4=1, x5=1, x6=1, x7=1, x8=1, x9=1"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET x0=2, x1=2, x2=2, x3=2, x4=2, x5=2, x6=2, x7=2, x8=2, x9=2"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA legacy_file_format=OFF"
+          "sql": "UPDATE t1 SET x0=2, x1=2, x2=2, x3=2, x4=2, x5=2, x6=2, x7=2, x8=2, x9=2",
+          "expect": "4096"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

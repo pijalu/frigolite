@@ -1,9 +1,10 @@
 {
   "file": "vtabK.test",
   "name": "vtabK",
+  "ordered": true,
   "tests": [
     {
-      "name": "100",
+      "name": "vtabK-100",
       "steps": [
         {
           "type": "exec",
@@ -12,17 +13,17 @@
       ]
     },
     {
-      "name": "110",
+      "name": "vtabK-110",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE t2 USING rtree(id,x,y);",
           "expect": "1 {no such column: stat}"
         }
       ]
     },
     {
-      "name": "120",
+      "name": "vtabK-120",
       "steps": [
         {
           "type": "query",
@@ -32,7 +33,7 @@
       ]
     },
     {
-      "name": "130",
+      "name": "vtabK-130",
       "steps": [
         {
           "type": "query",
@@ -42,7 +43,7 @@
       ]
     },
     {
-      "name": "140",
+      "name": "vtabK-140",
       "steps": [
         {
           "type": "query",
@@ -52,7 +53,7 @@
       ]
     },
     {
-      "name": "150",
+      "name": "vtabK-150",
       "steps": [
         {
           "type": "query",
@@ -62,17 +63,17 @@
       ]
     },
     {
-      "name": "160",
+      "name": "vtabK-160",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "ANALYZE;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "170",
+      "name": "vtabK-170",
       "steps": [
         {
           "type": "query",
@@ -82,7 +83,11 @@
       ]
     },
     {
-      "name": "200",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "vtabK-200",
       "steps": [
         {
           "type": "exec",
@@ -91,17 +96,17 @@
       ]
     },
     {
-      "name": "210",
+      "name": "vtabK-210",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE t2 USING rtree(id,x,y);",
           "expect": "1 {no such column: stat}"
         }
       ]
     },
     {
-      "name": "220",
+      "name": "vtabK-220",
       "steps": [
         {
           "type": "query",
@@ -111,28 +116,16 @@
       ]
     },
     {
-      "name": "300",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "vtabK-300",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE t1 USING rtree(a,b,c);\n  CREATE TABLE t2(x);\n  ALTER TABLE t2 ADD d GENERATED ALWAYS AS (c IN (SELECT 1 FROM t1)) VIRTUAL;",
           "expect": "1 {error in table t2 after add column: subqueries prohibited in generated columns}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

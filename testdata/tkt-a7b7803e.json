@@ -1,0 +1,87 @@
+{
+  "file": "tkt-a7b7803e.test",
+  "name": "tkt-a7b7803e",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "tkt-a7b7803e.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(0,'first'),(99,'fuzzy');\n    SELECT (t1.a==0) AS x, b\n      FROM t1\n     WHERE a=0 OR x;",
+          "expect": "1 first"
+        }
+      ]
+    },
+    {
+      "name": "tkt-a7b7803e.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, (t1.b='fuzzy') AS x\n      FROM t1\n     WHERE x",
+          "expect": "99 1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-a7b7803e.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (a=99) AS x, (t1.b='fuzzy') AS y, *\n      FROM t1\n     WHERE x AND y",
+          "expect": "1 1 99 fuzzy"
+        }
+      ]
+    },
+    {
+      "name": "tkt-a7b7803e.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (a=99) AS x, (t1.b='first') AS y, *\n      FROM t1\n     WHERE x OR y\n     ORDER BY a",
+          "expect": "0 1 0 first 1 0 99 fuzzy"
+        }
+      ]
+    },
+    {
+      "name": "tkt-a7b7803e.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (M.a=99) AS x, M.b, (N.b='first') AS y, N.b\n      FROM t1 M, t1 N\n     WHERE x OR y\n     ORDER BY M.a, N.a",
+          "expect": "0 first 1 first 1 fuzzy 1 first 1 fuzzy 0 fuzzy"
+        }
+      ]
+    },
+    {
+      "name": "tkt-a7b7803e.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (M.a=99) AS x, M.b, (N.b='first') AS y, N.b\n      FROM t1 M, t1 N\n     WHERE x AND y\n     ORDER BY M.a, N.a",
+          "expect": "1 fuzzy 1 first"
+        }
+      ]
+    },
+    {
+      "name": "tkt-a7b7803e.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (M.a=99) AS x, M.b, (N.b='first') AS y, N.b\n      FROM t1 M JOIN t1 N ON x AND y\n     ORDER BY M.a, N.a",
+          "expect": "1 fuzzy 1 first"
+        }
+      ]
+    },
+    {
+      "name": "tkt-a7b7803e.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (M.a=99) AS x, M.b, (N.b='first') AS y, N.b\n      FROM t1 M JOIN t1 N ON x\n     ORDER BY M.a, N.a",
+          "expect": "1 fuzzy 1 first 1 fuzzy 0 fuzzy"
+        }
+      ]
+    }
+  ]
+}

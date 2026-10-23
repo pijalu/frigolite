@@ -1,12 +1,13 @@
 {
   "file": "lock2.test",
   "name": "lock2",
+  "ordered": true,
   "tests": [
     {
       "name": "lock2-1.1.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "pragma lock_status",
           "expect": "main unlocked temp closed"
         }
@@ -25,7 +26,7 @@
       "name": "lock2-1.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "COMMIT;",
           "expect": "1 {database is locked}"
         }
@@ -35,57 +36,11 @@
       "name": "lock2-1.8",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "COMMIT;",
           "expect": "0 {}"
         }
       ]
-    },
-    {
-      "name": "lock2-1.9",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM sqlite_master;"
-        },
-        {
-          "type": "exec",
-          "sql": "pragma lock_status"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    CREATE TABLE abc(a, b, c);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM sqlite_master;"
-        },
-        {
-          "type": "exec",
-          "sql": "select * from sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n      SELECT * FROM sqlite_master;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE def(d, e, f)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM sqlite_master;\n      COMMIT;"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n      SELECT * FROM sqlite_master;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM sqlite_master;"
-        }
-      ]
     }
-  ],
-  "source": "capi"
+  ]
 }

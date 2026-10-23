@@ -1,0 +1,33 @@
+{
+  "file": "rtreedoc3.test",
+  "name": "rtreedoc3",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "rtreedoc3-1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE rt USING rtree_i32(id,  x1,x2,  y1,y2);\n  WITH s(i) AS (\n    SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i\u003c64\n  )\n  INSERT INTO rt SELECT NULL, a.i, a.i+1, b.i, b.i+1 FROM s a, s b;"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT data FROM rt_node WHERE nodeno=1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT data FROM rt_node WHERE nodeno=1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT id, x1,x2, y1,y2 FROM rt WHERE id MATCH qbox()"
+        }
+      ]
+    }
+  ]
+}

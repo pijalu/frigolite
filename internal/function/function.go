@@ -45,6 +45,9 @@ type Func struct {
 	// SQL (SQLITE_DIRECTONLY): it is never allowed in schema objects,
 	// regardless of trusted_schema.
 	DirectOnly bool
+	// Deterministic reports SQLITE_DETERMINISTIC for application functions; STAT4 may evaluate these while constructing index probes.
+	Deterministic bool
+	InternalOnly  bool
 	// ClassicAggregate marks an application-registered aggregate (SQLite's
 	// sqlite3_create_aggregate): it has no xValue window callback, so using
 	// it with OVER raises "X() may not be used as a window function"
@@ -74,7 +77,8 @@ type Registry struct {
 	// database encoding (vdbe.c OP_Column: pDest->enc = encoding, including
 	// blobs), so a BLOB rendered as text decodes those bytes per the database
 	// encoding (vdbemem.c valueToText -> sqlite3VdbeChangeEncoding).
-	encoding string
+	encoding          string
+	internalFunctions bool
 }
 
 // NewRegistry creates a new function registry with default functions.
@@ -130,10 +134,24 @@ func textOfEncoding(v interface{}, enc string) string {
 	return toString(v)
 }
 
-// Find looks up a function by name.
+// Find looks up a function by name, respecting test-only internal function visibility.
 func (r *Registry) Find(name string) (*Func, bool) {
 	f, ok := r.funcs[strings.ToUpper(name)]
+	if ok && f.InternalOnly && !r.internalFunctions {
+		return nil, false
+	}
 	return f, ok
+}
+
+// ToggleInternalFunctions enables or disables SQLite test-only internal SQL functions.
+func (r *Registry) ToggleInternalFunctions() bool {
+	r.internalFunctions = !r.internalFunctions
+	return r.internalFunctions
+}
+
+// RegisterInternal adds a SQL function available only while internal functions are enabled.
+func (r *Registry) RegisterInternal(name string, fn func(args []interface{}) (interface{}, error), minArgs, maxArgs int) {
+	r.register(&Func{Name: name, Type: TypeScalar, MinArgs: minArgs, MaxArgs: maxArgs, ScalarFn: fn, InternalOnly: true})
 }
 
 // List returns all registered functions (for pragma_function_list).
@@ -155,6 +173,12 @@ func (r *Registry) register(f *Func) {
 func (r *Registry) Register(name string, fn func(args []interface{}) (interface{}, error), minArgs, maxArgs int) {
 	r.noteUser(name)
 	r.register(&Func{Name: name, Type: TypeScalar, MinArgs: minArgs, MaxArgs: maxArgs, ScalarFn: fn})
+}
+
+// RegisterDeterministic adds an application scalar function with SQLite's deterministic flag.
+func (r *Registry) RegisterDeterministic(name string, fn func(args []interface{}) (interface{}, error), minArgs, maxArgs int, deterministic, innocuous, directOnly bool) {
+	r.noteUser(name)
+	r.register(&Func{Name: name, Type: TypeScalar, MinArgs: minArgs, MaxArgs: maxArgs, ScalarFn: fn, Deterministic: deterministic, Innocuous: innocuous, DirectOnly: directOnly})
 }
 
 // noteUser records name as application-registered (userSet).
@@ -245,7 +269,7 @@ func (r *Registry) registerDefaults() {
 	// ("wrong number of arguments to function match()", func-4.x).
 	r.register(&Func{Name: "MATCH", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnMATCH})
 
-	// Scalar functions
+	r.register(&Func{Name: "SQLITE_VERSION", Type: TypeScalar, MinArgs: 0, MaxArgs: 0, Builtin: true, ScalarFn: func([]interface{}) (interface{}, error) { return "3.51.0", nil }})
 	r.register(&Func{Name: "ABS", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnABS})
 	r.register(&Func{Name: "UPPER", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnUPPER})
 	r.register(&Func{Name: "LOWER", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnLOWER})
@@ -266,11 +290,11 @@ func (r *Registry) registerDefaults() {
 	// covers contexts without statement scope.
 	r.register(&Func{Name: "STMTRAND", Type: TypeScalar, MinArgs: 0, MaxArgs: 1, ScalarFn: fnSTMTRAND})
 	r.register(&Func{Name: "RANDSTR", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnRANDSTR})
-	r.register(&Func{Name: "ZEROBLOB", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnZEROBLOB})
+	r.register(&Func{Name: "ZEROBLOB", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnZEROBLOB, Deterministic: true})
 	// test_zeroblob: the TCL test-harness variant of zeroblob() that skips
 	// the SQLITE_MAX_LENGTH check (test1.c test_zeroblob). Negative lengths
 	// produce the empty blob.
-	r.register(&Func{Name: "TEST_ZEROBLOB", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnTestZeroblob})
+	r.register(&Func{Name: "TEST_ZEROBLOB", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnTestZeroblob, Deterministic: true})
 	r.register(&Func{Name: "LIKELIHOOD", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnLIKELIHOOD})
 	r.register(&Func{Name: "LIKELY", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnLIKELY})
 	r.register(&Func{Name: "UNLIKELY", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnUNLIKELY})
@@ -283,6 +307,7 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "QUOTE", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnQUOTE})
 	r.register(&Func{Name: "UNICODE", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnUNICODE})
 	r.register(&Func{Name: "CHAR", Type: TypeScalar, MinArgs: 0, MaxArgs: -1, ScalarFn: fnCHAR})
+	r.register(&Func{Name: "SOUNDEX", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnSOUNDEX})
 	r.register(&Func{Name: "NULLIF", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnNULLIF})
 	r.register(&Func{Name: "PRINTF", Type: TypeScalar, MinArgs: 0, MaxArgs: -1, ScalarFn: fnPRINTF})
 	r.register(&Func{Name: "GLOB", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnGLOB})

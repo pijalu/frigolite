@@ -1,28 +1,2469 @@
 {
   "file": "corruptF.test",
   "name": "corruptF",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.6",
+      "name": "corruptF-1.1",
       "steps": [
         {
-          "type": "query",
-          "sql": "CREATE TABLE t4(x);\n  SELECT * FROM sqlite_master;",
-          "expect": "table t1 t1 2 {CREATE TABLE t1(x)} \n  table t4 t4 6 {CREATE TABLE t4(x)}"
+          "type": "close_db"
         }
       ]
     },
     {
-      "name": "2.6",
+      "name": "delete_file",
       "steps": [
         {
-          "type": "query",
-          "sql": "CREATE TABLE t4(x);\n  SELECT * FROM sqlite_master;",
-          "expect": "table t1 t1 2 {CREATE TABLE t1(x)} \n  table t4 t4 5 {CREATE TABLE t4(x)}"
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "str",
+          "callbackVars": {
+            "": "$__catch_result",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "corruptF"
+          },
+          "functionProc": "str",
+          "functionArgs": [
+            "i"
+          ],
+          "functionBody": " format %08d $i ",
+          "minArgs": 1,
+          "maxArgs": -1
         },
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x);         /* root page = 2 */\n    CREATE TABLE t2(x);         /* root page = 3 */\n    CREATE TABLE t3(x);         /* root page = 4 */\n\n    INSERT INTO t1 VALUES(str(1));\n    INSERT INTO t1 SELECT str(rowid+1) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+2) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+4) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+8) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+16) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+32) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+64) FROM t1;\n    DROP TABLE t2;\n    DROP TABLE t3;"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.5",
+      "steps": [
+        {
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileData": "00000006",
+          "fileTarget": "test.db",
+          "fileOffset": 2056
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t4(x);\n  SELECT * FROM sqlite_master;",
+          "expect": "\n  table t1 t1 2 {CREATE TABLE t1(x)} \n  table t4 t4 6 {CREATE TABLE t4(x)}\n"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.0",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e0"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e1"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e2"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e3"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e4"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e5"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e6"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e7"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e8"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e9"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.10",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e10"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.11",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e11"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.12",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e12"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.13",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e13"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.14",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e14"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.15",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e15"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.16",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e16"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.17",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e17"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.18",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e18"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.19",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e19"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.20",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e20"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.21",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e21"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.22",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e22"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.23",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e23"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.24",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e24"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.25",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e25"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.26",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e26"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.27",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e27"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.28",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e28"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.29",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e29"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.30",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e30"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.31",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e31"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.32",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e32"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.33",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e33"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.34",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e34"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.35",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e35"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.36",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e36"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.37",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e37"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.38",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e38"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.39",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e39"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.40",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e40"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.41",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e41"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.42",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e42"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.43",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e43"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.44",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e44"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.45",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e45"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.46",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e46"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.47",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e47"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.48",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e48"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.49",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e49"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.50",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e50"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.51",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e51"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.52",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e52"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.53",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e53"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.54",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e54"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.55",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e55"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.56",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e56"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.57",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e57"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.58",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e58"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.59",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e59"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.60",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e60"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.61",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e61"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.62",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e62"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.63",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e63"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.64",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e64"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.65",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e65"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.66",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e66"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.67",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e67"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.68",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e68"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.69",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e69"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.70",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e70"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.71",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e71"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.72",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e72"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.73",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e73"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.74",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e74"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.75",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e75"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.76",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e76"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.77",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e77"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.78",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e78"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.79",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e79"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.80",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e80"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.81",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e81"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.82",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e82"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.83",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e83"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.84",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e84"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.85",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e85"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.86",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e86"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.87",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e87"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.88",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e88"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.89",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e89"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.90",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e90"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.91",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e91"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.92",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e92"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.93",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e93"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.94",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e94"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.95",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e95"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.96",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e96"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.97",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e97"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.98",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e98"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.99",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e99"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.100",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e100"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.101",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e101"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.102",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e102"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.103",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e103"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.104",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e104"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.105",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e105"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.106",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e106"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.107",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e107"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.108",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e108"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.109",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e109"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.110",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e110"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.111",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e111"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.112",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e112"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.113",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e113"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.114",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e114"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.115",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e115"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.116",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e116"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.117",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e117"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.118",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e118"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.119",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e119"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.120",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e120"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.121",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e121"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.122",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e122"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.123",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e123"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.124",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e124"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.125",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e125"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.126",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e126"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-1.7.127",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003e127"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "str",
+          "callbackVars": {
+            "": "$__catch_result",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "i": "128",
+            "res": "",
+            "testdir": "",
+            "testprefix": "corruptF"
+          },
+          "functionProc": "str",
+          "functionArgs": [
+            "i"
+          ],
+          "functionBody": " format %08d $i ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x);         /* root page = 2 */\n    CREATE TABLE t2(x);         /* root page = 3 */\n    CREATE TABLE t3(x);         /* root page = 4 */\n\n    INSERT INTO t1 VALUES(str(1));\n    INSERT INTO t1 SELECT str(rowid+1) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+2) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+4) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+8) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+16) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+32) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+64) FROM t1;\n    DROP TABLE t2;\n    DROP TABLE t3;"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.5",
+      "steps": [
+        {
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileData": "00000005",
+          "fileTarget": "test.db",
+          "fileOffset": 2056
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t4(x);\n  SELECT * FROM sqlite_master;",
+          "expect": "\n  table t1 t1 2 {CREATE TABLE t1(x)} \n  table t4 t4 5 {CREATE TABLE t4(x)}\n"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.127",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c127 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.126",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c126 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.125",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c125 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.124",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c124 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.123",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c123 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.122",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c122 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.121",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c121 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.120",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c120 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.119",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c119 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.118",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c118 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.117",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c117 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.116",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c116 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.115",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c115 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.114",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c114 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.113",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c113 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.112",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c112 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.111",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c111 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.110",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c110 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.109",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c109 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.108",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c108 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.107",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c107 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.106",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c106 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.105",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c105 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.104",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c104 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.103",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c103 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.102",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c102 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.101",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c101 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.100",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c100 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.99",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c99 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.98",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c98 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.97",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c97 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.96",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c96 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.95",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c95 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.94",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c94 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.93",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c93 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.92",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c92 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.91",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c91 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.90",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c90 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.89",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c89 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.88",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c88 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.87",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c87 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.86",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c86 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.85",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c85 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.84",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c84 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.83",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c83 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.82",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c82 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.81",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c81 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.80",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c80 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.79",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c79 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.78",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c78 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.77",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c77 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.76",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c76 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.75",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c75 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.74",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c74 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.73",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c73 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.72",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c72 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.71",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c71 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.70",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c70 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.69",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c69 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.68",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c68 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.67",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c67 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.66",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c66 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.65",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c65 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.64",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c64 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.63",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c63 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.62",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c62 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.61",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c61 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.60",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c60 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.59",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c59 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.58",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c58 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.57",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c57 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.56",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c56 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.55",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c55 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.54",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c54 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.53",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c53 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.52",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c52 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.51",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c51 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.50",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c50 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.49",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c49 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.48",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c48 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.47",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c47 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.46",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c46 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.45",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c45 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.44",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c44 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.43",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c43 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.42",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c42 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.41",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c41 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.40",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c40 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.39",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c39 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.38",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c38 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.37",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c37 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.36",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c36 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.35",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c35 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.34",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c34 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.33",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c33 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.32",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c32 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.31",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c31 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.30",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c30 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.29",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c29 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.28",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c28 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.27",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c27 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.26",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c26 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.25",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c25 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.24",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c24 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.23",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c23 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.22",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c22 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.21",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c21 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.20",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c20 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.19",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c19 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.18",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c18 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.17",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c17 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.16",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c16 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.15",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c15 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.14",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c14 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.13",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c13 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.12",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c12 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.11",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c11 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.10",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c10 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c9 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c8 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c7 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c6 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c5 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c4 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c3 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c2 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c1 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "corruptF-2.7.0",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t4 SELECT x FROM t1 WHERE rowid\u003c0 ORDER BY rowid DESC"
         }
       ]
     }

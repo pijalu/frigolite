@@ -1,6 +1,7 @@
 {
   "file": "stmt.test",
   "name": "stmt",
+  "ordered": true,
   "tests": [
     {
       "name": "stmt-1.1",
@@ -16,7 +17,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA temp_store = file;\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 1);"
+          "sql": "PRAGMA temp_store = file;\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 1);",
+          "expect": "2"
         }
       ]
     },
@@ -25,7 +27,18 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 SELECT a+1, b+1 FROM t1;"
+          "sql": "INSERT INTO t1 SELECT a+1, b+1 FROM t1;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "stmt-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1"
         }
       ]
     },
@@ -34,7 +47,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n      INSERT INTO t1 SELECT a+2, b+2 FROM t1;"
+          "sql": "BEGIN;\n      INSERT INTO t1 SELECT a+2, b+2 FROM t1;",
+          "expect": "2"
         }
       ]
     },
@@ -43,7 +57,90 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 SELECT a+4, b+4 FROM t1"
+          "sql": "INSERT INTO t1 SELECT a+4, b+4 FROM t1",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "stmt-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "stmt-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(9, 9)"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "stmt-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "REPLACE INTO t1 VALUES(9, 9)"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "stmt-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT 9, 9"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "stmt-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT 9, 9;\n    INSERT INTO t1 SELECT 10, 10;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK",
+          "expect": "2"
         }
       ]
     },
@@ -53,30 +150,24 @@
         {
           "type": "exec",
           "sql": "CREATE INDEX i1 ON t1(b)"
+        }
+      ]
+    },
+    {
+      "name": "stmt-2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
         },
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a integer primary key, b INTEGER NOT NULL)"
+          "sql": "REPLACE INTO t1 VALUES(5, 5);\n  REPLACE INTO t1 VALUES(5, 5);"
         },
         {
           "type": "exec",
-          "sql": "PRAGMA temp_store = file;\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 1);"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 SELECT a+1, b+1 FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n      INSERT INTO t1 SELECT a+2, b+2 FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 SELECT a+4, b+4 FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX i1 ON t1(b)"
+          "sql": "ROLLBACK",
+          "expect": "2"
         }
       ]
     }

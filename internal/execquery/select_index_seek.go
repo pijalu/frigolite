@@ -63,15 +63,18 @@ type indexSeekPlan struct {
 // table, no join, no ORDER BY / GROUP BY / DISTINCT / compound member, and a
 // WHERE without a top-level OR (an OR is a union of index ranges, served by
 // execSelectWithOrPlan).
-func (e *SelectEngine) selectIndexSeekPlanFor(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) *indexSeekPlan {
-	if !indexSeekShapeApplies(s, tableEntry) || e.ctx.TableIsWithoutRowidEntry(tableEntry) {
-		return nil
+func (e *SelectEngine) selectIndexSeekPlanFor(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) (*indexSeekPlan, error) {
+	if !indexSeekShapeApplies(s, tableEntry) || e.ctx.TableIsWithoutRowidEntry(tableEntry) || whereHasLikeOrCompleteGlob(s.Where) {
+		return nil, nil
 	}
-	loop := e.scanLoopForRowCount(queryTableFromRef(s.From), s, indexSeekPlanRowCount, false)
+	loop, err := e.scanLoopForRowCount(queryTableFromRef(s.From), s, indexSeekPlanRowCount, false)
+	if err != nil {
+		return nil, err
+	}
 	if loop.kind != loopIndex || !loop.seek || loop.token == "PRIMARY KEY" {
-		return nil
+		return nil, nil
 	}
-	return e.buildIndexSeekPlan(s, tableEntry, colDefs, loop.token)
+	return e.buildIndexSeekPlan(s, tableEntry, colDefs, loop.token), nil
 }
 
 // indexSeekShapeApplies reports whether the statement is a single-table scan
@@ -87,6 +90,29 @@ func indexSeekShapeApplies(s *sql.SelectStmt, tableEntry *schema.Entry) bool {
 		return false
 	}
 	return !IsSchemaTable(tableEntry.Name) && !whereHasOrConjunct(s.Where)
+}
+
+// whereHasLikeOrCompleteGlob keeps LIKE and complete GLOB terms on the
+// scan-local optimizer, which performs exact matcher-call elision. Partial
+// GLOB prefixes use the generic index seek only when both range bounds exist.
+func whereHasLikeOrCompleteGlob(where sql.Expr) bool {
+	for _, term := range likeOptConjuncts(where, nil) {
+		op, ok := term.(*sql.BinaryOp)
+		if !ok {
+			continue
+		}
+		if op.Operator == "LIKE" {
+			return true
+		}
+		if op.Operator != "GLOB" {
+			continue
+		}
+		pattern, valid := likePatternConst(op.Right)
+		if _, complete, usable := likePrefixRange(pattern, op.Escape, op.HasEscape, '*', '?', '['); valid && usable && complete {
+			return true
+		}
+	}
+	return false
 }
 
 // indexSeekPlainScanShape reports whether the statement is a plain
@@ -250,6 +276,9 @@ func (e *SelectEngine) indexSeekBoundFor(t indexSeekTerm, colDefs []sql.ColumnDe
 		if util.Affinity(e.indexSeekColumnType(colDefs, col)) != 'T' {
 			return nil, nil
 		}
+		if t.op == "GLOB" && t.val2 != nil {
+			return &indexSeekBound{op: ">=", val: t.val}, &indexSeekBound{op: "<", val: t.val2}
+		}
 		return &indexSeekBound{op: ">=", val: t.val}, nil
 	}
 	return nil, nil
@@ -363,7 +392,11 @@ func (e *SelectEngine) indexSeekLikeTerm(v *sql.BinaryOp, tableEntry *schema.Ent
 	if !ok || prefix == "" {
 		return indexSeekTerm{}, false
 	}
-	return indexSeekTerm{col: col, op: v.Operator, val: prefix}, true
+	term := indexSeekTerm{col: col, op: v.Operator, val: prefix}
+	if v.Operator == "GLOB" {
+		_, term.val2, _ = likeRangeBounds(prefix, false, false)
+	}
+	return term, true
 }
 
 // globLiteralPrefix returns the literal leading characters of a GLOB pattern

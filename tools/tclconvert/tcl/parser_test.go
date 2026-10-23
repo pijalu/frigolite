@@ -52,3 +52,35 @@ func TestParseCommandsTrailingBackslashWord(t *testing.T) {
 		}
 	}
 }
+
+// TestParseCommandsMarksArgumentExpansion verifies TCL {*} argument-expansion
+// words are recognized as a single raw word with the prefix stripped: the
+// remainder is parsed as a bare, braced, or quoted word and evaluated by the
+// caller into list elements.
+func TestParseCommandsMarksArgumentExpansion(t *testing.T) {
+	cmds := ParseCommands("list {*}$data {*}{a b c} {*}\"x y\"")
+	if len(cmds) != 1 || len(cmds[0]) != 4 {
+		t.Fatalf("commands = %#v, want one command with four words", cmds)
+	}
+	words := cmds[0]
+	if words[1].Expand != true || words[1].Braced || words[1].Text != "$data" {
+		t.Errorf("bare expansion word = %+v, want Expand with text $data", words[1])
+	}
+	if words[2].Expand != true || !words[2].Braced || words[2].Text != "a b c" {
+		t.Errorf("braced expansion word = %+v, want Expand with braced text a b c", words[2])
+	}
+	if words[3].Expand != true || !words[3].Quoted || words[3].Text != "x y" {
+		t.Errorf("quoted expansion word = %+v, want Expand with quoted text x y", words[3])
+	}
+}
+
+// TestParseCommandsBareExpansionPrefixIsLiteral verifies a word consisting of
+// exactly {*} stays an ordinary braced word with the value "*" (TCL expands
+// only when the prefix is followed by more word characters).
+func TestParseCommandsBareExpansionPrefixIsLiteral(t *testing.T) {
+	cmds := ParseCommands("list {*} {*}")
+	words := cmds[0]
+	if len(words) != 3 || words[1].Expand || !words[1].Braced || words[1].Text != "*" || words[2].Expand {
+		t.Fatalf("words = %#v, want literal braced * values", words)
+	}
+}

@@ -1,9 +1,10 @@
 {
   "file": "cacheflush.test",
   "name": "cacheflush",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.1.0",
+      "name": "cacheflush-1.1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,64 @@
       ]
     },
     {
-      "name": "1.2.0",
+      "name": "cacheflush-1.1.1",
+      "steps": [
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "dq.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "dq.db",
+          "database": "dq"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1",
+          "variable": "res",
+          "resultAll": true,
+          "database": "dq"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 2",
+          "database": "dq"
+        }
+      ]
+    },
+    {
+      "name": "cacheflush-1.1.2",
+      "steps": [
+        {
+          "type": "cacheflush"
+        },
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "dq.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "dq.db",
+          "database": "dq"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1",
+          "variable": "res",
+          "resultAll": true,
+          "database": "dq"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 2 3 4",
+          "database": "dq"
+        }
+      ]
+    },
+    {
+      "name": "cacheflush-1.2.0",
       "steps": [
         {
           "type": "exec",
@@ -21,7 +79,64 @@
       ]
     },
     {
-      "name": "1.3.0",
+      "name": "cacheflush-1.2.1",
+      "steps": [
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "dq.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "dq.db",
+          "database": "dq"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1;\n    SELECT * FROM t2;",
+          "variable": "res",
+          "resultAll": true,
+          "database": "dq"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 2 3 4",
+          "database": "dq"
+        }
+      ]
+    },
+    {
+      "name": "cacheflush-1.2.2",
+      "steps": [
+        {
+          "type": "cacheflush"
+        },
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "dq.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "dq.db",
+          "database": "dq"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1;\n    SELECT * FROM t2;",
+          "variable": "res",
+          "resultAll": true,
+          "database": "dq"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 2 3 4 5 6 a b",
+          "database": "dq"
+        }
+      ]
+    },
+    {
+      "name": "cacheflush-1.3.0",
       "steps": [
         {
           "type": "exec",
@@ -30,17 +145,90 @@
       ]
     },
     {
-      "name": "1.3.2",
+      "name": "cacheflush-1.3.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT a FROM t1",
-          "expect": "1 2 3 4 5 6 a b c d i ii"
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "dq.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "dq.db",
+          "database": "dq"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1;\n    SELECT * FROM t2;\n    SELECT * FROM t3;",
+          "variable": "res",
+          "resultAll": true,
+          "database": "dq"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 2 3 4 5 6 a b",
+          "database": "dq"
         }
       ]
     },
     {
-      "name": "1.4.0",
+      "name": "cacheflush-1.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1"
+        },
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "dq.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "dq.db",
+          "database": "dq"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1;\n    SELECT * FROM t2;\n    SELECT * FROM t3;",
+          "variable": "res",
+          "resultAll": true,
+          "database": "dq"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 2 3 4 5 6 a b c d i ii",
+          "database": "dq"
+        },
+        {
+          "type": "cacheflush"
+        },
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "dq.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "dq.db",
+          "database": "dq"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1;\n    SELECT * FROM t2;\n    SELECT * FROM t3;",
+          "variable": "res",
+          "resultAll": true,
+          "database": "dq"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 2 3 4 5 6 7 8 a b c d i ii",
+          "database": "dq"
+        }
+      ]
+    },
+    {
+      "name": "cacheflush-1.4.0",
       "steps": [
         {
           "type": "exec",
@@ -49,7 +237,114 @@
       ]
     },
     {
-      "name": "1.4.5",
+      "name": "cacheflush-1.4.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      SELECT * FROM t1;",
+          "database": "db2"
+        },
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "dq.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "dq.db",
+          "database": "dq"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1;",
+          "variable": "res",
+          "resultAll": true,
+          "database": "dq"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 2 3 4 5 6 7 8",
+          "database": "dq"
+        }
+      ]
+    },
+    {
+      "name": "cacheflush-1.4.2",
+      "steps": [
+        {
+          "type": "cacheflush",
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "cacheflush-1.4.3",
+      "steps": [
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "dq.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "dq.db",
+          "database": "dq"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1;",
+          "variable": "res",
+          "resultAll": true,
+          "database": "dq"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 2 3 4 5 6 7 8",
+          "database": "dq"
+        }
+      ]
+    },
+    {
+      "name": "cacheflush-1.4.4",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "cacheflush"
+        },
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "dq.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "dq.db",
+          "database": "dq"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1;",
+          "variable": "res",
+          "resultAll": true,
+          "database": "dq"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 2 3 4 5 6 7 8 9 10",
+          "database": "dq"
+        }
+      ]
+    },
+    {
+      "name": "cacheflush-1.4.5",
       "steps": [
         {
           "type": "exec",
@@ -58,7 +353,16 @@
       ]
     },
     {
-      "name": "2.1.0",
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "cacheflush-2.1.0",
       "steps": [
         {
           "type": "exec",
@@ -67,7 +371,121 @@
       ]
     },
     {
-      "name": "2.1.5",
+      "name": "cacheflush-2.1.1",
+      "steps": [
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "dq.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "dq.db",
+          "database": "dq"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1;",
+          "variable": "res",
+          "resultAll": true,
+          "database": "dq"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 2 3 4 5 6 7 8 9 10",
+          "database": "dq"
+        }
+      ]
+    },
+    {
+      "name": "cacheflush-2.1.2",
+      "steps": [
+        {
+          "type": "copy_file",
+          "sql": "test.db2",
+          "fileTarget": "dq.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "dq.db",
+          "database": "dq"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t4;",
+          "variable": "res",
+          "resultAll": true,
+          "database": "dq"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "A B",
+          "database": "dq"
+        }
+      ]
+    },
+    {
+      "name": "cacheflush-2.1.3",
+      "steps": [
+        {
+          "type": "cacheflush"
+        },
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "dq.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "dq.db",
+          "database": "dq"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1;",
+          "variable": "res",
+          "resultAll": true,
+          "database": "dq"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 2 3 4 5 6 7 8 9 10 11 12",
+          "database": "dq"
+        }
+      ]
+    },
+    {
+      "name": "cacheflush-2.1.4",
+      "steps": [
+        {
+          "type": "cacheflush"
+        },
+        {
+          "type": "copy_file",
+          "sql": "test.db2",
+          "fileTarget": "dq.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "dq.db",
+          "database": "dq"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t4;",
+          "variable": "res",
+          "resultAll": true,
+          "database": "dq"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "A B C D",
+          "database": "dq"
+        }
+      ]
+    },
+    {
+      "name": "cacheflush-2.1.5",
       "steps": [
         {
           "type": "exec",
@@ -76,7 +494,7 @@
       ]
     },
     {
-      "name": "2.2.0",
+      "name": "cacheflush-2.2.0",
       "steps": [
         {
           "type": "exec",
@@ -85,17 +503,168 @@
       ]
     },
     {
-      "name": "2.2.3",
+      "name": "cacheflush-2.2.1",
       "steps": [
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "dq.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "dq.db",
+          "database": "dq"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1;",
+          "variable": "res",
+          "resultAll": true,
+          "database": "dq"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 2 3 4 5 6 7 8 9 10 11 12",
+          "database": "dq"
+        }
+      ]
+    },
+    {
+      "name": "cacheflush-2.2.2",
+      "steps": [
+        {
+          "type": "copy_file",
+          "sql": "test.db2",
+          "fileTarget": "dq.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "dq.db",
+          "database": "dq"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t4;",
+          "variable": "res",
+          "resultAll": true,
+          "database": "dq"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "A B C D",
+          "database": "dq"
+        }
+      ]
+    },
+    {
+      "name": "cacheflush-2.2.3",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
         {
           "type": "exec",
           "sql": "BEGIN;\n      SELECT * FROM t1;",
-          "expect": "1 {database is locked}"
+          "database": "db2"
+        },
+        {
+          "type": "cacheflush",
+          "catchMessage": "msg"
         }
       ]
     },
     {
-      "name": "2.2.7",
+      "name": "cacheflush-2.2.4",
+      "steps": [
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "dq.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "dq.db",
+          "database": "dq"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1;",
+          "variable": "res",
+          "resultAll": true,
+          "database": "dq"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 2 3 4 5 6 7 8 9 10 11 12",
+          "database": "dq"
+        }
+      ]
+    },
+    {
+      "name": "cacheflush-2.2.5",
+      "steps": [
+        {
+          "type": "copy_file",
+          "sql": "test.db2",
+          "fileTarget": "dq.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "dq.db",
+          "database": "dq"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t4;",
+          "variable": "res",
+          "resultAll": true,
+          "database": "dq"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "A B C D E F",
+          "database": "dq"
+        }
+      ]
+    },
+    {
+      "name": "cacheflush-2.2.6",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "cacheflush"
+        },
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "dq.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "dq.db",
+          "database": "dq"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t1;",
+          "variable": "res",
+          "resultAll": true,
+          "database": "dq"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "1 2 3 4 5 6 7 8 9 10 11 12 13 14",
+          "database": "dq"
+        }
+      ]
+    },
+    {
+      "name": "cacheflush-2.2.7",
       "steps": [
         {
           "type": "exec",
@@ -104,16 +673,25 @@
       ]
     },
     {
-      "name": "3.0",
+      "name": "cacheflush-3.0",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(x PRIMARY KEY);\n    CREATE TABLE t2(y PRIMARY KEY);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(100));\n      INSERT INTO t2 VALUES(randomblob(100));\n      INSERT INTO t1 VALUES(randomblob(100));\n      INSERT INTO t2 VALUES(randomblob(100));"
+        },
+        {
+          "type": "cacheflush"
         }
       ]
     },
     {
-      "name": "3.1",
+      "name": "cacheflush-3.1",
       "steps": [
         {
           "type": "query",
@@ -123,7 +701,7 @@
       ]
     },
     {
-      "name": "3.2",
+      "name": "cacheflush-3.2",
       "steps": [
         {
           "type": "exec",
@@ -132,7 +710,7 @@
       ]
     },
     {
-      "name": "3.3",
+      "name": "cacheflush-3.3",
       "steps": [
         {
           "type": "query",
@@ -142,7 +720,7 @@
       ]
     },
     {
-      "name": "3.4",
+      "name": "cacheflush-3.4",
       "steps": [
         {
           "type": "query",
@@ -152,62 +730,210 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "cacheflush-4.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE ta(a, aa);\n    CREATE TABLE tb(b, bb);\n    INSERT INTO ta VALUES('a', randomblob(500));\n    INSERT INTO tb VALUES('b', randomblob(500));\n    BEGIN;\n      UPDATE ta SET a = 'A';\n      SAVEPOINT one;\n        UPDATE tb SET b = 'B';",
-          "expect": "A B"
+          "sql": "CREATE TABLE ta(a, aa);\n    CREATE TABLE tb(b, bb);\n    INSERT INTO ta VALUES('a', randomblob(500));\n    INSERT INTO tb VALUES('b', randomblob(500));\n    BEGIN;\n      UPDATE ta SET a = 'A';\n      SAVEPOINT one;\n        UPDATE tb SET b = 'B';"
+        },
+        {
+          "type": "cacheflush"
+        },
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "dq.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "dq.db",
+          "database": "dq"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM ta;\n    SELECT b FROM tb;",
+          "variable": "res",
+          "resultAll": true,
+          "database": "dq"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "A B",
+          "database": "dq"
         }
       ]
     },
     {
-      "name": "4.1",
+      "name": "cacheflush-4.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "ROLLBACK TO one;",
-          "expect": "A b"
+          "sql": "ROLLBACK TO one;"
+        },
+        {
+          "type": "cacheflush"
+        },
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "dq.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "dq.db",
+          "database": "dq"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM ta;\n    SELECT b FROM tb;",
+          "variable": "res",
+          "resultAll": true,
+          "database": "dq"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "A b",
+          "database": "dq"
         }
       ]
     },
     {
-      "name": "4.2",
+      "name": "cacheflush-4.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO tb VALUES('c', randomblob(10));\n    INSERT INTO tb VALUES('d', randomblob(10));\n    INSERT INTO tb VALUES('e', randomblob(10));",
-          "expect": "A b c d e"
+          "sql": "INSERT INTO tb VALUES('c', randomblob(10));\n    INSERT INTO tb VALUES('d', randomblob(10));\n    INSERT INTO tb VALUES('e', randomblob(10));"
+        },
+        {
+          "type": "cacheflush"
+        },
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "dq.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "dq.db",
+          "database": "dq"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM ta;\n    SELECT b FROM tb;",
+          "variable": "res",
+          "resultAll": true,
+          "database": "dq"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "A b c d e",
+          "database": "dq"
         }
       ]
     },
     {
-      "name": "4.3",
+      "name": "cacheflush-4.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "SAVEPOINT two;\n    UPDATE tb SET b = upper(b);",
-          "expect": "A B C D E"
+          "sql": "SAVEPOINT two;\n    UPDATE tb SET b = upper(b);"
+        },
+        {
+          "type": "cacheflush"
+        },
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "dq.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "dq.db",
+          "database": "dq"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM ta;\n    SELECT b FROM tb;",
+          "variable": "res",
+          "resultAll": true,
+          "database": "dq"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "A B C D E",
+          "database": "dq"
         }
       ]
     },
     {
-      "name": "4.4",
+      "name": "cacheflush-4.4",
       "steps": [
         {
           "type": "exec",
-          "sql": "ROLLBACK TO two;",
-          "expect": "A b c d e"
+          "sql": "ROLLBACK TO two;"
+        },
+        {
+          "type": "cacheflush"
+        },
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "dq.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "dq.db",
+          "database": "dq"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM ta;\n    SELECT b FROM tb;",
+          "variable": "res",
+          "resultAll": true,
+          "database": "dq"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "A b c d e",
+          "database": "dq"
         },
         {
           "type": "exec",
-          "sql": "ROLLBACK TO one;",
-          "expect": "A b"
+          "sql": "ROLLBACK TO one;"
+        },
+        {
+          "type": "cacheflush"
+        },
+        {
+          "type": "copy_file",
+          "sql": "test.db",
+          "fileTarget": "dq.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "dq.db",
+          "database": "dq"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM ta;\n    SELECT b FROM tb;",
+          "variable": "res",
+          "resultAll": true,
+          "database": "dq"
+        },
+        {
+          "type": "close_named_db",
+          "expect": "A b",
+          "database": "dq"
         }
       ]
     },
     {
-      "name": "4.5",
+      "name": "cacheflush-4.5",
       "steps": [
         {
           "type": "exec",

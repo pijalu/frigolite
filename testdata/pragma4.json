@@ -1,9 +1,920 @@
 {
   "file": "pragma4.test",
   "name": "pragma4",
+  "ordered": true,
   "tests": [
     {
-      "name": "4.1.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA application_id",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA application_id",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA application_id = 10",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA application_id = 10",
+          "variable": "stmt_2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA automatic_index",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA automatic_index",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA automatic_index = 1",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA automatic_index = 1",
+          "variable": "stmt_4"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA auto_vacuum",
+          "variable": "stmt_5"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA auto_vacuum",
+          "variable": "stmt_5"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA auto_vacuum = 1",
+          "variable": "stmt_6"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA auto_vacuum = 1",
+          "variable": "stmt_6"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA cache_size",
+          "variable": "stmt_7"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA cache_size",
+          "variable": "stmt_7"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA cache_size = -100",
+          "variable": "stmt_8"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA cache_size = -100",
+          "variable": "stmt_8"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA cache_spill",
+          "variable": "stmt_9"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA cache_spill",
+          "variable": "stmt_9"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA cache_spill = 1",
+          "variable": "stmt_10"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA cache_spill = 1",
+          "variable": "stmt_10"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA cell_size_check",
+          "variable": "stmt_11"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA cell_size_check",
+          "variable": "stmt_11"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA cell_size_check = 1",
+          "variable": "stmt_12"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA cell_size_check = 1",
+          "variable": "stmt_12"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA checkpoint_fullfsync",
+          "variable": "stmt_13"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA checkpoint_fullfsync",
+          "variable": "stmt_13"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA checkpoint_fullfsync = 1",
+          "variable": "stmt_14"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA checkpoint_fullfsync = 1",
+          "variable": "stmt_14"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA count_changes",
+          "variable": "stmt_15"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA count_changes",
+          "variable": "stmt_15"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA count_changes = 1",
+          "variable": "stmt_16"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA count_changes = 1",
+          "variable": "stmt_16"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA default_cache_size",
+          "variable": "stmt_17"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA default_cache_size",
+          "variable": "stmt_17"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA default_cache_size = 100",
+          "variable": "stmt_18"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA default_cache_size = 100",
+          "variable": "stmt_18"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA defer_foreign_keys",
+          "variable": "stmt_19"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA defer_foreign_keys",
+          "variable": "stmt_19"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA defer_foreign_keys = 1",
+          "variable": "stmt_20"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA defer_foreign_keys = 1",
+          "variable": "stmt_20"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA empty_result_callbacks",
+          "variable": "stmt_21"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA empty_result_callbacks",
+          "variable": "stmt_21"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA empty_result_callbacks = 1",
+          "variable": "stmt_22"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA empty_result_callbacks = 1",
+          "variable": "stmt_22"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA encoding",
+          "variable": "stmt_23"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA encoding",
+          "variable": "stmt_23"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA encoding = 'utf-8'",
+          "variable": "stmt_24"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA encoding = 'utf-8'",
+          "variable": "stmt_24"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_12",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA foreign_keys",
+          "variable": "stmt_25"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA foreign_keys",
+          "variable": "stmt_25"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA foreign_keys = 1",
+          "variable": "stmt_26"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA foreign_keys = 1",
+          "variable": "stmt_26"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_13",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA full_column_names",
+          "variable": "stmt_27"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA full_column_names",
+          "variable": "stmt_27"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA full_column_names = 1",
+          "variable": "stmt_28"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA full_column_names = 1",
+          "variable": "stmt_28"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_14",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA fullfsync",
+          "variable": "stmt_29"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA fullfsync",
+          "variable": "stmt_29"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA fullfsync = 1",
+          "variable": "stmt_30"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA fullfsync = 1",
+          "variable": "stmt_30"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_15",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA ignore_check_constraints",
+          "variable": "stmt_31"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA ignore_check_constraints",
+          "variable": "stmt_31"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA ignore_check_constraints = 1",
+          "variable": "stmt_32"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA ignore_check_constraints = 1",
+          "variable": "stmt_32"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_16",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA page_size",
+          "variable": "stmt_33"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA page_size",
+          "variable": "stmt_33"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA page_size = 511",
+          "variable": "stmt_34"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA page_size = 511",
+          "variable": "stmt_34"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_17",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA page_size",
+          "variable": "stmt_35"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA page_size",
+          "variable": "stmt_35"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA page_size = 512",
+          "variable": "stmt_36"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA page_size = 512",
+          "variable": "stmt_36"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_18",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA query_only",
+          "variable": "stmt_37"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA query_only",
+          "variable": "stmt_37"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA query_only = false",
+          "variable": "stmt_38"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA query_only = false",
+          "variable": "stmt_38"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_19",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA read_uncommitted",
+          "variable": "stmt_39"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA read_uncommitted",
+          "variable": "stmt_39"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA read_uncommitted = true",
+          "variable": "stmt_40"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA read_uncommitted = true",
+          "variable": "stmt_40"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_20",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA recursive_triggers",
+          "variable": "stmt_41"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA recursive_triggers",
+          "variable": "stmt_41"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA recursive_triggers = false",
+          "variable": "stmt_42"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA recursive_triggers = false",
+          "variable": "stmt_42"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_21",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA reverse_unordered_selects",
+          "variable": "stmt_43"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA reverse_unordered_selects",
+          "variable": "stmt_43"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA reverse_unordered_selects = false",
+          "variable": "stmt_44"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA reverse_unordered_selects = false",
+          "variable": "stmt_44"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_22",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA schema_version",
+          "variable": "stmt_45"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA schema_version",
+          "variable": "stmt_45"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA schema_version = 211",
+          "variable": "stmt_46"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA schema_version = 211",
+          "variable": "stmt_46"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_23",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA short_column_names",
+          "variable": "stmt_47"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA short_column_names",
+          "variable": "stmt_47"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA short_column_names = 1",
+          "variable": "stmt_48"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA short_column_names = 1",
+          "variable": "stmt_48"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_24",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA synchronous",
+          "variable": "stmt_49"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA synchronous",
+          "variable": "stmt_49"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA synchronous = full",
+          "variable": "stmt_50"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA synchronous = full",
+          "variable": "stmt_50"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_25",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA temp_store",
+          "variable": "stmt_51"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA temp_store",
+          "variable": "stmt_51"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA temp_store = memory",
+          "variable": "stmt_52"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA temp_store = memory",
+          "variable": "stmt_52"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_26",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA user_version",
+          "variable": "stmt_53"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA user_version",
+          "variable": "stmt_53"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA user_version = 405",
+          "variable": "stmt_54"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA user_version = 405",
+          "variable": "stmt_54"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_27",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA writable_schema",
+          "variable": "stmt_55"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA writable_schema",
+          "variable": "stmt_55"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA writable_schema = 1",
+          "variable": "stmt_56"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA writable_schema = 1",
+          "variable": "stmt_56"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA shrink_memory",
+          "variable": "stmt_57"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA shrink_memory",
+          "variable": "stmt_57"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA shrink_memory = 10",
+          "variable": "stmt_58"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA shrink_memory = 10",
+          "variable": "stmt_58"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA case_sensitive_like = 0",
+          "variable": "stmt_59"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA case_sensitive_like = 0",
+          "variable": "stmt_59"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA case_sensitive_like = 1",
+          "variable": "stmt_60"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA case_sensitive_like = 1",
+          "variable": "stmt_60"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "PRAGMA case_sensitive_like",
+          "variable": "stmt_61"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "PRAGMA case_sensitive_like",
+          "variable": "stmt_61"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_28",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "pragma4-2.100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=512;\n    CREATE TABLE t1(x);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c10000)\n    INSERT INTO t1(x) SELECT zeroblob(300) FROM c;\n    CREATE TABLE t2(y);\n    DROP TABLE t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN PRAGMA integrity_check",
+          "expect": "/ IntegrityCk 1 2 8 x[0-9]+,1x /"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "pragma4-4.1.1",
       "steps": [
         {
           "type": "exec",
@@ -12,37 +923,52 @@
       ]
     },
     {
-      "name": "4.1.2",
+      "name": "pragma4-4.1.2",
       "steps": [
         {
           "type": "query",
           "sql": "PRAGMA table_info = t1",
-          "expect": "0 a {} 0 {} 0 1 b {} 0 {} 0 2 c {} 0 {} 0"
+          "expect": "\n  0 a {} 0 {} 0 1 b {} 0 {} 0 2 c {} 0 {} 0\n"
         }
       ]
     },
     {
-      "name": "4.1.3",
+      "name": "pragma4-4.1.3",
       "steps": [
         {
           "type": "query",
           "sql": "PRAGMA table_info = t2",
-          "expect": "0 d {} 0 {} 0 1 e {} 0 {} 0 2 f {} 0 {} 0"
+          "expect": "\n  0 d {} 0 {} 0 1 e {} 0 {} 0 2 f {} 0 {} 0\n"
         }
       ]
     },
     {
-      "name": "4.1.5a",
+      "name": "pragma4-4.1.4",
       "steps": [
         {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db3"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db2",
+          "database": "db2"
+        },
+        {
           "type": "exec",
-          "sql": "PRAGMA table_info(t1)",
-          "expect": "1 {database schema has changed}"
+          "sql": "DROP TABLE t1",
+          "database": "db3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2",
+          "database": "db2"
         }
       ]
     },
     {
-      "name": "4.1.5",
+      "name": "pragma4-4.1.5",
       "steps": [
         {
           "type": "query",
@@ -51,7 +977,7 @@
       ]
     },
     {
-      "name": "4.1.6",
+      "name": "pragma4-4.1.6",
       "steps": [
         {
           "type": "query",
@@ -60,7 +986,33 @@
       ]
     },
     {
-      "name": "4.2.1",
+      "name": "setup_29",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "pragma4-4.2.1",
       "steps": [
         {
           "type": "exec",
@@ -69,27 +1021,52 @@
       ]
     },
     {
-      "name": "4.2.2",
+      "name": "pragma4-4.2.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM pragma_table_info('t1')",
-          "expect": "0 a {} 0 {} 0 1 b {} 0 {} 0 2 c {} 0 {} 0"
+          "expect": "\n    0 a {} 0 {} 0 1 b {} 0 {} 0 2 c {} 0 {} 0\n  "
         }
       ]
     },
     {
-      "name": "4.2.3",
+      "name": "pragma4-4.2.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM pragma_table_info('t2')",
-          "expect": "0 d {} 0 {} 0 1 e {} 0 {} 0 2 f {} 0 {} 0"
+          "expect": "\n    0 d {} 0 {} 0 1 e {} 0 {} 0 2 f {} 0 {} 0\n  "
         }
       ]
     },
     {
-      "name": "4.2.5",
+      "name": "pragma4-4.2.4",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db3"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db2",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1",
+          "database": "db3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "pragma4-4.2.5",
       "steps": [
         {
           "type": "query",
@@ -98,7 +1075,7 @@
       ]
     },
     {
-      "name": "4.2.6",
+      "name": "pragma4-4.2.6",
       "steps": [
         {
           "type": "query",
@@ -107,7 +1084,33 @@
       ]
     },
     {
-      "name": "4.3.1",
+      "name": "setup_30",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "pragma4-4.3.1",
       "steps": [
         {
           "type": "exec",
@@ -116,7 +1119,7 @@
       ]
     },
     {
-      "name": "4.3.2",
+      "name": "pragma4-4.3.2",
       "steps": [
         {
           "type": "query",
@@ -126,7 +1129,7 @@
       ]
     },
     {
-      "name": "4.3.3",
+      "name": "pragma4-4.3.3",
       "steps": [
         {
           "type": "query",
@@ -136,7 +1139,32 @@
       ]
     },
     {
-      "name": "4.3.5",
+      "name": "pragma4-4.3.4",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db3"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db2",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i1",
+          "database": "db3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i2",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "pragma4-4.3.5",
       "steps": [
         {
           "type": "query",
@@ -145,7 +1173,7 @@
       ]
     },
     {
-      "name": "4.3.6",
+      "name": "pragma4-4.3.6",
       "steps": [
         {
           "type": "query",
@@ -154,7 +1182,16 @@
       ]
     },
     {
-      "name": "4.4.0",
+      "name": "setup_31",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM main.sqlite_master, aux.sqlite_master"
+        }
+      ]
+    },
+    {
+      "name": "pragma4-4.4.0",
       "steps": [
         {
           "type": "exec",
@@ -163,7 +1200,7 @@
       ]
     },
     {
-      "name": "4.4.1",
+      "name": "pragma4-4.4.1",
       "steps": [
         {
           "type": "query",
@@ -173,7 +1210,7 @@
       ]
     },
     {
-      "name": "4.4.2",
+      "name": "pragma4-4.4.2",
       "steps": [
         {
           "type": "query",
@@ -183,7 +1220,22 @@
       ]
     },
     {
-      "name": "4.4.5",
+      "name": "pragma4-4.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i1",
+          "database": "db3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i2",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "pragma4-4.4.5",
       "steps": [
         {
           "type": "query",
@@ -192,7 +1244,7 @@
       ]
     },
     {
-      "name": "4.4.6",
+      "name": "pragma4-4.4.6",
       "steps": [
         {
           "type": "query",
@@ -201,7 +1253,16 @@
       ]
     },
     {
-      "name": "4.5.0",
+      "name": "setup_32",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM main.sqlite_master, aux.sqlite_master"
+        }
+      ]
+    },
+    {
+      "name": "pragma4-4.5.0",
       "steps": [
         {
           "type": "exec",
@@ -210,27 +1271,42 @@
       ]
     },
     {
-      "name": "4.5.1",
+      "name": "pragma4-4.5.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM pragma_foreign_key_list('c1')",
-          "expect": "0 0 t1 c a {NO ACTION} {NO ACTION} NONE"
+          "expect": "\n    0 0 t1 c a {NO ACTION} {NO ACTION} NONE\n  "
         }
       ]
     },
     {
-      "name": "4.5.2",
+      "name": "pragma4-4.5.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM pragma_foreign_key_list('c2')",
-          "expect": "0 0 t2 r d {NO ACTION} {NO ACTION} NONE"
+          "expect": "\n    0 0 t2 r d {NO ACTION} {NO ACTION} NONE\n  "
         }
       ]
     },
     {
-      "name": "4.5.4",
+      "name": "pragma4-4.5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE c1",
+          "database": "db3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE c2",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "pragma4-4.5.4",
       "steps": [
         {
           "type": "query",
@@ -239,7 +1315,7 @@
       ]
     },
     {
-      "name": "4.5.5",
+      "name": "pragma4-4.5.5",
       "steps": [
         {
           "type": "query",
@@ -248,7 +1324,16 @@
       ]
     },
     {
-      "name": "4.6.0",
+      "name": "setup_33",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM main.sqlite_master, aux.sqlite_master"
+        }
+      ]
+    },
+    {
+      "name": "pragma4-4.6.0",
       "steps": [
         {
           "type": "exec",
@@ -257,27 +1342,37 @@
       ]
     },
     {
-      "name": "4.6.1",
+      "name": "pragma4-4.6.1",
       "steps": [
         {
           "type": "query",
           "sql": "pragma foreign_key_check('c1')",
-          "expect": "c1 1 t1 0"
+          "expect": "\n  c1 1 t1 0\n"
         }
       ]
     },
     {
-      "name": "4.6.2",
+      "name": "pragma4-4.6.2",
       "steps": [
         {
           "type": "query",
           "sql": "pragma foreign_key_check('c2')",
-          "expect": "c2 1 t2 0"
+          "expect": "\n  c2 1 t2 0\n"
         }
       ]
     },
     {
-      "name": "4.6.4",
+      "name": "pragma4-4.6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE c2",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "pragma4-4.6.4",
       "steps": [
         {
           "type": "query",
@@ -287,27 +1382,44 @@
       ]
     },
     {
-      "name": "4.6.5",
+      "name": "pragma4-4.6.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "pragma foreign_key_check('c2')",
           "expect": "1 {no such table: c2}"
         }
       ]
     },
     {
-      "name": "5.0",
+      "name": "pragma4-5.0",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t4(a DEFAULT 'abc' /* comment */, b DEFAULT -1 -- comment\n     , c DEFAULT +4.0 /* another comment */\n  );\n  PRAGMA table_info = t4;",
-          "expect": "0 a {} 0 'abc' 0 1 b {} 0 -1 0 2 c {} 0 +4.0 0"
+          "expect": "\n  0 a {} 0 'abc' 0 1 b {} 0 -1 0 2 c {} 0 +4.0 0\n"
         }
       ]
     },
     {
-      "name": "6.0",
+      "name": "setup_34",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "pragma4-6.0",
       "steps": [
         {
           "type": "query",
@@ -317,7 +1429,7 @@
       ]
     },
     {
-      "name": "6.1",
+      "name": "pragma4-6.1",
       "steps": [
         {
           "type": "query",
@@ -326,7 +1438,7 @@
       ]
     },
     {
-      "name": "6.2",
+      "name": "pragma4-6.2",
       "steps": [
         {
           "type": "query",
@@ -336,7 +1448,16 @@
       ]
     },
     {
-      "name": "7.0",
+      "name": "pragma4-6.3",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "log"
+        }
+      ]
+    },
+    {
+      "name": "pragma4-7.0",
       "steps": [
         {
           "type": "exec",
@@ -345,7 +1466,7 @@
       ]
     },
     {
-      "name": "7.1",
+      "name": "pragma4-7.1",
       "steps": [
         {
           "type": "exec",
@@ -354,7 +1475,7 @@
       ]
     },
     {
-      "name": "7.2",
+      "name": "pragma4-7.2",
       "steps": [
         {
           "type": "query",
@@ -364,7 +1485,7 @@
       ]
     },
     {
-      "name": "7.3",
+      "name": "pragma4-7.3",
       "steps": [
         {
           "type": "query",
@@ -372,149 +1493,6 @@
           "expect": "a a b b"
         }
       ]
-    },
-    {
-      "name": "4.1.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t1"
-        }
-      ]
-    },
-    {
-      "name": "4.2.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t1"
-        }
-      ]
-    },
-    {
-      "name": "4.3.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DROP INDEX i1"
-        }
-      ]
-    },
-    {
-      "name": "4.4.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DROP INDEX i1"
-        }
-      ]
-    },
-    {
-      "name": "4.5.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DROP TABLE c1"
-        }
-      ]
-    },
-    {
-      "name": "4.6.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DROP TABLE c2"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t2"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t2"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX i1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX i2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM main.sqlite_master, aux.sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX i1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX i2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM main.sqlite_master, aux.sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE c1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE c2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM main.sqlite_master, aux.sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE c2"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size=512;\n    CREATE TABLE t1(x);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<10000)\n    INSERT INTO t1(x) SELECT zeroblob(300) FROM c;\n    CREATE TABLE t2(y);\n    DROP TABLE t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "EXPLAIN PRAGMA integrity_check"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
     }
-  ],
-  "source": "capi"
+  ]
 }

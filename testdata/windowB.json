@@ -1,9 +1,10 @@
 {
   "file": "windowB.test",
   "name": "windowB",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "windowB-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,87 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "windowB-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(b) OVER win FROM t1\n    WINDOW win AS (  ORDER BY a RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING  )",
+          "expect": "6 6 6"
+        }
+      ]
+    },
+    {
+      "name": "windowB-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(b) OVER win FROM t1\n    WINDOW win AS (  ORDER BY a NULLS LAST RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING  )",
+          "expect": "6 6 6"
+        }
+      ]
+    },
+    {
+      "name": "windowB-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(b) OVER win FROM t1\n    WINDOW win AS (  ORDER BY a DESC RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING  )",
+          "expect": "6 6 6"
+        }
+      ]
+    },
+    {
+      "name": "windowB-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(b) OVER win FROM t1\n    WINDOW win AS (  ORDER BY a DESC NULLS FIRST RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING  )",
+          "expect": "6 6 6"
+        }
+      ]
+    },
+    {
+      "name": "windowB-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(b) OVER win FROM t1\n    WINDOW win AS (  ORDER BY a      NULLS LAST  RANGE BETWEEN 1 FOLLOWING AND 2 FOLLOWING  )",
+          "expect": "6 6 6"
+        }
+      ]
+    },
+    {
+      "name": "windowB-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(b) OVER win FROM t1\n    WINDOW win AS (  ORDER BY a DESC NULLS FIRST RANGE BETWEEN 1 FOLLOWING AND 2 FOLLOWING  )",
+          "expect": "6 6 6"
+        }
+      ]
+    },
+    {
+      "name": "windowB-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(b) OVER win FROM t1\n    WINDOW win AS (  ORDER BY a      NULLS LAST  RANGE BETWEEN 2 PRECEDING AND 1 PRECEDING  )",
+          "expect": "6 6 6"
+        }
+      ]
+    },
+    {
+      "name": "windowB-1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(b) OVER win FROM t1\n    WINDOW win AS (  ORDER BY a DESC NULLS FIRST RANGE BETWEEN 2 PRECEDING AND 1 PRECEDING  )",
+          "expect": "6 6 6"
+        }
+      ]
+    },
+    {
+      "name": "windowB-1.2",
       "steps": [
         {
           "type": "query",
@@ -22,7 +103,11 @@
       ]
     },
     {
-      "name": "2.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "windowB-2.0",
       "steps": [
         {
           "type": "exec",
@@ -31,7 +116,273 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "windowB-2.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, sum(a) OVER win FROM t1\n    WINDOW win AS ( ORDER BY b RANGE BETWEEN 1 PRECEDING AND 2 PRECEDING )\n    ORDER BY 1",
+          "expect": "1 9   2 {}  3 {}  4 9  5 9  6 13  7 13  8 9"
+        }
+      ]
+    },
+    {
+      "name": "windowB-2.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, sum(a) OVER win FROM t1\n    WINDOW win AS ( ORDER BY b RANGE BETWEEN 2 FOLLOWING AND 2 FOLLOWING )\n    ORDER BY 1",
+          "expect": "1 9   2 {}  3 {}  4 9  5 9  6 13  7 13  8 9"
+        }
+      ]
+    },
+    {
+      "name": "windowB-2.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, sum(a) OVER win FROM t1\n    WINDOW win AS ( ORDER BY b NULLS LAST RANGE BETWEEN 1 PRECEDING AND 2 PRECEDING )\n    ORDER BY 1",
+          "expect": "1 9   2 {}  3 {}  4 9  5 9  6 13  7 13  8 9"
+        }
+      ]
+    },
+    {
+      "name": "windowB-2.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, sum(a) OVER win FROM t1\n    WINDOW win AS ( ORDER BY b NULLS LAST RANGE BETWEEN 2 FOLLOWING AND 2 FOLLOWING )\n    ORDER BY 1",
+          "expect": "1 9   2 {}  3 {}  4 9  5 9  6 13  7 13  8 9"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "windowB-3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE testjson(id INTEGER PRIMARY KEY, j TEXT, x TEXT);\n    INSERT INTO testjson VALUES(1, '{\"a\":1}', 'a');\n    INSERT INTO testjson VALUES(2, '{\"b\":2}', 'b');\n    INSERT INTO testjson VALUES(3, '{\"c\":3}', 'c');\n    INSERT INTO testjson VALUES(4, '{\"d\":4}', 'd');"
+        }
+      ]
+    },
+    {
+      "name": "windowB-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_group_array(json(j)) FROM testjson;",
+          "expect": "\n    {[{\"a\":1},{\"b\":2},{\"c\":3},{\"d\":4}]}\n  "
+        }
+      ]
+    },
+    {
+      "name": "windowB-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_group_array(json(j)) OVER (ORDER BY id) FROM testjson;",
+          "expect": "\n    {[{\"a\":1}]}\n    {[{\"a\":1},{\"b\":2}]}\n    {[{\"a\":1},{\"b\":2},{\"c\":3}]}\n    {[{\"a\":1},{\"b\":2},{\"c\":3},{\"d\":4}]}\n  "
+        }
+      ]
+    },
+    {
+      "name": "windowB-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_group_array(json(j)) OVER (\n      ORDER BY id RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW\n      EXCLUDE TIES\n    ) FROM testjson;",
+          "expect": "\n    {[{\"a\":1}]}\n    {[{\"a\":1},{\"b\":2}]}\n    {[{\"a\":1},{\"b\":2},{\"c\":3}]}\n    {[{\"a\":1},{\"b\":2},{\"c\":3},{\"d\":4}]}\n  "
+        }
+      ]
+    },
+    {
+      "name": "windowB-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_group_array(json(j)) OVER (\n      ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING\n    ) FROM testjson;",
+          "expect": "\n    {[{\"a\":1},{\"b\":2}]}\n    {[{\"a\":1},{\"b\":2},{\"c\":3}]}\n    {[{\"b\":2},{\"c\":3},{\"d\":4}]}\n    {[{\"c\":3},{\"d\":4}]}\n  "
+        }
+      ]
+    },
+    {
+      "name": "windowB-3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_group_array(json(j)) OVER (\n      ORDER BY id ROWS BETWEEN 2 PRECEDING AND 1 PRECEDING\n    ) FROM testjson;",
+          "expect": "\n    {[]}\n    {[{\"a\":1}]}\n    {[{\"a\":1},{\"b\":2}]}\n    {[{\"b\":2},{\"c\":3}]}\n  "
+        }
+      ]
+    },
+    {
+      "name": "windowB-3.5a",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE testjson SET j = replace(j,char(125),',\"e\":9'||char(125));\n    SELECT j FROM testjson;",
+          "expect": "\n    {{\"a\":1,\"e\":9}}\n    {{\"b\":2,\"e\":9}}\n    {{\"c\":3,\"e\":9}}\n    {{\"d\":4,\"e\":9}}\n  "
+        }
+      ]
+    },
+    {
+      "name": "windowB-3.5b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat(x,'') OVER (\n      ORDER BY id ROWS BETWEEN 1 FOLLOWING AND 2 FOLLOWING\n    ) FROM testjson ORDER BY id;",
+          "expect": "bc cd d {}"
+        }
+      ]
+    },
+    {
+      "name": "windowB-3.5c",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_group_array(json(j)) OVER (\n      ORDER BY id ROWS BETWEEN 1 FOLLOWING AND 2 FOLLOWING\n    ) FROM testjson;",
+          "expect": "\n    {[{\"b\":2,\"e\":9},{\"c\":3,\"e\":9}]}\n    {[{\"c\":3,\"e\":9},{\"d\":4,\"e\":9}]}\n    {[{\"d\":4,\"e\":9}]}\n    {[]}\n  "
+        }
+      ]
+    },
+    {
+      "name": "windowB-3.5d",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_group_object(x,json(j)) OVER (\n      ORDER BY id ROWS BETWEEN 1 FOLLOWING AND 2 FOLLOWING\n    ) FROM testjson;",
+          "expect": "\n    {{\"b\":{\"b\":2,\"e\":9},\"c\":{\"c\":3,\"e\":9}}}\n    {{\"c\":{\"c\":3,\"e\":9},\"d\":{\"d\":4,\"e\":9}}}\n    {{\"d\":{\"d\":4,\"e\":9}}}\n    {{}}\n  "
+        }
+      ]
+    },
+    {
+      "name": "windowB-3.7b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat(x,'') FILTER (WHERE id!=2) OVER (\n      ORDER BY id ROWS BETWEEN 2 PRECEDING AND 1 PRECEDING\n    ) FROM testjson;",
+          "expect": "{} a a c"
+        }
+      ]
+    },
+    {
+      "name": "windowB-3.7c",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_group_array(json(j)) FILTER (WHERE id!=2) OVER (\n      ORDER BY id ROWS BETWEEN 2 PRECEDING AND 1 PRECEDING\n    ) FROM testjson",
+          "expect": "\n    {[]}\n    {[{\"a\":1,\"e\":9}]}\n    {[{\"a\":1,\"e\":9}]}\n    {[{\"c\":3,\"e\":9}]}\n  "
+        }
+      ]
+    },
+    {
+      "name": "windowB-3.7d",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_group_object(x,json(j)) FILTER (WHERE id!=2) OVER (\n      ORDER BY id ROWS BETWEEN 2 PRECEDING AND 1 PRECEDING\n    ) FROM testjson",
+          "expect": "\n    {{}}\n    {{\"a\":{\"a\":1,\"e\":9}}}\n    {{\"a\":{\"a\":1,\"e\":9}}}\n    {{\"c\":{\"c\":3,\"e\":9}}}\n  "
+        }
+      ]
+    },
+    {
+      "name": "windowB-3.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(id INT, k TEXT, v INT);\n    INSERT INTO t1 VALUES\n      (1, 'a', 1),\n      (2, 'b', 2),\n      (3, 'c', 3),\n      (4, 'd', 4),\n      (5, 'f', 5),\n      (6, 'g', 6),\n      (7, 'h', 7);"
+        }
+      ]
+    },
+    {
+      "name": "windowB-3.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, json_group_object(if(id\u003c\u003e1,k),v) OVER \n                 (ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) AS jx\n       FROM t1;",
+          "expect": "\n    1  {{\"b\":2}}\n    2  {{\"b\":2,\"c\":3}}\n    3  {{\"b\":2,\"c\":3,\"d\":4}}\n    4  {{\"c\":3,\"d\":4,\"f\":5}}\n    5  {{\"d\":4,\"f\":5,\"g\":6}}\n    6  {{\"f\":5,\"g\":6,\"h\":7}}\n    7  {{\"g\":6,\"h\":7}}\n  "
+        }
+      ]
+    },
+    {
+      "name": "windowB-3.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, json_group_object(if(id\u003e4,k),v) OVER \n                 (ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) AS jx\n       FROM t1;",
+          "expect": "\n    1  {{}}\n    2  {{}}\n    3  {{}}\n    4  {{\"f\":5}}\n    5  {{\"f\":5,\"g\":6}}\n    6  {{\"f\":5,\"g\":6,\"h\":7}}\n    7  {{\"g\":6,\"h\":7}}\n  "
+        }
+      ]
+    },
+    {
+      "name": "windowB-3.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, json_group_object(if(id\u003e4,k||'@'),v) OVER \n                 (ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) AS jx\n       FROM t1;",
+          "expect": "\n    1  {{}}\n    2  {{}}\n    3  {{}}\n    4  {{\"f@\":5}}\n    5  {{\"f@\":5,\"g@\":6}}\n    6  {{\"f@\":5,\"g@\":6,\"h@\":7}}\n    7  {{\"g@\":6,\"h@\":7}}\n  "
+        }
+      ]
+    },
+    {
+      "name": "windowB-3.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, json_group_object(k,v) OVER \n                 (ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) AS jx\n       FROM t1;",
+          "expect": "\n    1  {{\"a\":1,\"b\":2}}\n    2  {{\"a\":1,\"b\":2,\"c\":3}}\n    3  {{\"b\":2,\"c\":3,\"d\":4}}\n    4  {{\"c\":3,\"d\":4,\"f\":5}}\n    5  {{\"d\":4,\"f\":5,\"g\":6}}\n    6  {{\"f\":5,\"g\":6,\"h\":7}}\n    7  {{\"g\":6,\"h\":7}}\n  "
+        }
+      ]
+    },
+    {
+      "name": "windowB-3.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, json_group_object(if(id\u003e1 AND id\u003c7,k),v) OVER \n                 (ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) AS jx\n       FROM t1;",
+          "expect": "\n    1  {{\"b\":2}}\n    2  {{\"b\":2,\"c\":3}}\n    3  {{\"b\":2,\"c\":3,\"d\":4}}\n    4  {{\"c\":3,\"d\":4,\"f\":5}}\n    5  {{\"d\":4,\"f\":5,\"g\":6}}\n    6  {{\"f\":5,\"g\":6}}\n    7  {{\"g\":6}}\n  "
+        }
+      ]
+    },
+    {
+      "name": "windowB-3.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, json_group_object(if(id\u003e2 AND id\u003c6,k),v) OVER \n                 (ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) AS jx\n       FROM t1;",
+          "expect": "\n    1  {{}}\n    2  {{\"c\":3}}\n    3  {{\"c\":3,\"d\":4}}\n    4  {{\"c\":3,\"d\":4,\"f\":5}}\n    5  {{\"d\":4,\"f\":5}}\n    6  {{\"f\":5}}\n    7  {{}}\n  "
+        }
+      ]
+    },
+    {
+      "name": "windowB-3.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, json_group_object(if(id\u003c2 OR id\u003e6,k),v) OVER \n                 (ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) AS jx\n       FROM t1;",
+          "expect": "\n    1  {{\"a\":1}}\n    2  {{\"a\":1}}\n    3  {{}}\n    4  {{}}\n    5  {{}}\n    6  {{\"h\":7}}\n    7  {{\"h\":7}}\n  "
+        }
+      ]
+    },
+    {
+      "name": "windowB-3.16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, json_group_object(if(id\u003c3 OR id\u003e5,k),v) OVER \n                 (ORDER BY id ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) AS jx\n       FROM t1;",
+          "expect": "\n    1  {{\"a\":1,\"b\":2}}\n    2  {{\"a\":1,\"b\":2}}\n    3  {{\"b\":2}}\n    4  {{}}\n    5  {{\"g\":6}}\n    6  {{\"g\":6,\"h\":7}}\n    7  {{\"g\":6,\"h\":7}}\n  "
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "windowB-4.0",
       "steps": [
         {
           "type": "exec",
@@ -40,36 +391,41 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "windowB-4.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH y AS (\n      SELECT Row_Number() OVER (win) FROM x WINDOW win AS (PARTITION BY a)\n  )\n  SELECT * FROM y;"
+          "type": "query",
+          "sql": "WITH y AS (\n      SELECT Row_Number() OVER (win) FROM x WINDOW win AS (PARTITION BY a)\n  )\n  SELECT * FROM y;",
+          "expect": "\n  1 1\n"
         }
       ]
     },
     {
-      "name": "4.2",
+      "name": "windowB-4.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "WITH y AS (\n    SELECT Row_Number() OVER (win) FROM x WINDOW win AS (PARTITION\n  BY fake_column))\n  SELECT * FROM y;",
           "expect": "1 {no such column: fake_column}"
         }
       ]
     },
     {
-      "name": "4.3",
+      "name": "windowB-4.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT 1 WINDOW win AS (PARTITION BY fake_column);",
           "expect": "0 1"
         }
       ]
     },
     {
-      "name": "5.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "windowB-5.0",
       "steps": [
         {
           "type": "exec",
@@ -78,7 +434,7 @@
       ]
     },
     {
-      "name": "5.1",
+      "name": "windowB-5.1",
       "steps": [
         {
           "type": "query",
@@ -88,7 +444,7 @@
       ]
     },
     {
-      "name": "5.2",
+      "name": "windowB-5.2",
       "steps": [
         {
           "type": "query",
@@ -98,7 +454,7 @@
       ]
     },
     {
-      "name": "5.3",
+      "name": "windowB-5.3",
       "steps": [
         {
           "type": "query",
@@ -108,7 +464,7 @@
       ]
     },
     {
-      "name": "5.4",
+      "name": "windowB-5.4",
       "steps": [
         {
           "type": "query",
@@ -118,7 +474,7 @@
       ]
     },
     {
-      "name": "5.5",
+      "name": "windowB-5.5",
       "steps": [
         {
           "type": "query",
@@ -128,7 +484,11 @@
       ]
     },
     {
-      "name": "6.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "windowB-6.0",
       "steps": [
         {
           "type": "exec",
@@ -137,7 +497,7 @@
       ]
     },
     {
-      "name": "6.1",
+      "name": "windowB-6.1",
       "steps": [
         {
           "type": "query",
@@ -147,7 +507,7 @@
       ]
     },
     {
-      "name": "6.2",
+      "name": "windowB-6.2",
       "steps": [
         {
           "type": "query",
@@ -157,7 +517,11 @@
       ]
     },
     {
-      "name": "7.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "windowB-7.0",
       "steps": [
         {
           "type": "exec",
@@ -166,7 +530,7 @@
       ]
     },
     {
-      "name": "7.1",
+      "name": "windowB-7.1",
       "steps": [
         {
           "type": "query",
@@ -176,7 +540,7 @@
       ]
     },
     {
-      "name": "7.2",
+      "name": "windowB-7.2",
       "steps": [
         {
           "type": "query",
@@ -186,7 +550,7 @@
       ]
     },
     {
-      "name": "7.3",
+      "name": "windowB-7.3",
       "steps": [
         {
           "type": "query",
@@ -196,7 +560,7 @@
       ]
     },
     {
-      "name": "7.4",
+      "name": "windowB-7.4",
       "steps": [
         {
           "type": "query",
@@ -206,7 +570,11 @@
       ]
     },
     {
-      "name": "8.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "windowB-8.0",
       "steps": [
         {
           "type": "exec",
@@ -215,7 +583,7 @@
       ]
     },
     {
-      "name": "8.1",
+      "name": "windowB-8.1",
       "steps": [
         {
           "type": "query",
@@ -225,7 +593,7 @@
       ]
     },
     {
-      "name": "9.0",
+      "name": "windowB-9.0",
       "steps": [
         {
           "type": "query",
@@ -235,7 +603,11 @@
       ]
     },
     {
-      "name": "10.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "windowB-10.1",
       "steps": [
         {
           "type": "exec",
@@ -244,27 +616,27 @@
       ]
     },
     {
-      "name": "10.2",
+      "name": "windowB-10.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT \n    json_group_array( v ) OVER w,\n    json_group_array( v ) OVER w\n  FROM t1\n  window w as ( \n    range between unbounded preceding and unbounded following \n  )",
-          "expect": "{[\"one\",\"two\"]} \n  {[\"one\",\"two\"]} \n  {[\"one\",\"two\"]} \n  {[\"one\",\"two\"]}"
+          "expect": "\n  {[\"one\",\"two\"]} \n  {[\"one\",\"two\"]} \n  {[\"one\",\"two\"]} \n  {[\"one\",\"two\"]} \n"
         }
       ]
     },
     {
-      "name": "10.3",
+      "name": "windowB-10.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT \n    group_concat( v ) OVER w,\n    json_group_array( v ) OVER w,\n    json_group_array( v ) OVER w,\n    group_concat( v ) OVER w\n  FROM t1\n  window w as ( \n    range between unbounded preceding and unbounded following \n  )",
-          "expect": "one,two\n  {[\"one\",\"two\"]} \n  {[\"one\",\"two\"]} \n  one,two\n\n  one,two\n  {[\"one\",\"two\"]} \n  {[\"one\",\"two\"]} \n  one,two"
+          "expect": "\n  one,two\n  {[\"one\",\"two\"]} \n  {[\"one\",\"two\"]} \n  one,two\n\n  one,two\n  {[\"one\",\"two\"]} \n  {[\"one\",\"two\"]} \n  one,two\n"
         }
       ]
     },
     {
-      "name": "11.0",
+      "name": "windowB-11.0",
       "steps": [
         {
           "type": "query",
@@ -274,7 +646,7 @@
       ]
     },
     {
-      "name": "11.1",
+      "name": "windowB-11.1",
       "steps": [
         {
           "type": "query",
@@ -284,7 +656,7 @@
       ]
     },
     {
-      "name": "11.2",
+      "name": "windowB-11.2",
       "steps": [
         {
           "type": "query",
@@ -294,7 +666,7 @@
       ]
     },
     {
-      "name": "11.3",
+      "name": "windowB-11.3",
       "steps": [
         {
           "type": "query",
@@ -304,7 +676,7 @@
       ]
     },
     {
-      "name": "11.4",
+      "name": "windowB-11.4",
       "steps": [
         {
           "type": "query",
@@ -314,7 +686,34 @@
       ]
     },
     {
-      "name": "11.9",
+      "name": "windowB-11.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT sum(value) OVER (\n        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW\n    ) FROM json_each('[1,2,3,4,5]')"
+        }
+      ]
+    },
+    {
+      "name": "windowB-11.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT sum(value) OVER (ORDER BY rowid) FROM json_each('[1,2,3,4,5]')"
+        }
+      ]
+    },
+    {
+      "name": "windowB-11.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT sum(value) OVER (ORDER BY rowid DESC) FROM json_each('[1,2,3,4,5]')"
+        }
+      ]
+    },
+    {
+      "name": "windowB-11.9",
       "steps": [
         {
           "type": "query",
@@ -324,7 +723,7 @@
       ]
     },
     {
-      "name": "11.10",
+      "name": "windowB-11.10",
       "steps": [
         {
           "type": "query",
@@ -334,58 +733,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "windowB-11.11",
       "steps": [
         {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT sum(value) OVER (ORDER BY value ASC) FROM json_each('[2,1,4,3,5]')"
         }
       ]
     }

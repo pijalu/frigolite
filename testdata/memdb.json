@@ -1,0 +1,5002 @@
+{
+  "file": "memdb.test",
+  "name": "memdb",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "memdb-1.1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t3(x TEXT);\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    COMMIT;\n    SELECT count(*) FROM t3;",
+          "expect": "1024"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "rx",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous=FULL"
+        }
+      ]
+    },
+    {
+      "name": "memdb-1.2.1-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "rx",
+          "resultAll": true,
+          "expect": "3 $rx"
+        }
+      ]
+    },
+    {
+      "name": "memdb-1.2.2-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "rx",
+          "resultAll": true,
+          "expect": "3 $rx"
+        }
+      ]
+    },
+    {
+      "name": "memdb-1.2.9-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "rx",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous=NORMAL"
+        }
+      ]
+    },
+    {
+      "name": "memdb-1.3.1-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "rx",
+          "resultAll": true,
+          "expect": "3 $rx"
+        }
+      ]
+    },
+    {
+      "name": "memdb-1.3.2-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "rx",
+          "resultAll": true,
+          "expect": "3 $rx"
+        }
+      ]
+    },
+    {
+      "name": "memdb-1.3.9-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "rx",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous=FULL"
+        }
+      ]
+    },
+    {
+      "name": "memdb-1.4.1-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "rx",
+          "resultAll": true,
+          "expect": "3 $rx"
+        }
+      ]
+    },
+    {
+      "name": "memdb-1.4.2-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "rx",
+          "resultAll": true,
+          "expect": "3 $rx"
+        }
+      ]
+    },
+    {
+      "name": "memdb-1.4.9-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "rx",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous=NORMAL"
+        }
+      ]
+    },
+    {
+      "name": "memdb-1.5.1-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "rx",
+          "resultAll": true,
+          "expect": "3 $rx"
+        }
+      ]
+    },
+    {
+      "name": "memdb-1.5.2-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "rx",
+          "resultAll": true,
+          "expect": "3 $rx"
+        }
+      ]
+    },
+    {
+      "name": "memdb-1.5.9-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "rx",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous=FULL"
+        }
+      ]
+    },
+    {
+      "name": "memdb-1.6.1-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "rx",
+          "resultAll": true,
+          "expect": "3 $rx"
+        }
+      ]
+    },
+    {
+      "name": "memdb-1.6.2-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "rx",
+          "resultAll": true,
+          "expect": "3 $rx"
+        }
+      ]
+    },
+    {
+      "name": "memdb-1.6.9-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "rx",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous=NORMAL"
+        }
+      ]
+    },
+    {
+      "name": "memdb-1.7.1-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "rx",
+          "resultAll": true,
+          "expect": "3 $rx"
+        }
+      ]
+    },
+    {
+      "name": "memdb-1.7.2-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "rx",
+          "resultAll": true,
+          "expect": "3 $rx"
+        }
+      ]
+    },
+    {
+      "name": "memdb-1.7.9-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "rx",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous=FULL"
+        }
+      ]
+    },
+    {
+      "name": "memdb-1.8.1-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "rx",
+          "resultAll": true,
+          "expect": "3 $rx"
+        }
+      ]
+    },
+    {
+      "name": "memdb-1.8.2-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "rx",
+          "resultAll": true,
+          "expect": "3 $rx"
+        }
+      ]
+    },
+    {
+      "name": "memdb-1.8.9-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "rx",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous=NORMAL"
+        }
+      ]
+    },
+    {
+      "name": "memdb-1.9.1-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "rx",
+          "resultAll": true,
+          "expect": "3 $rx"
+        }
+      ]
+    },
+    {
+      "name": "memdb-1.9.2-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "rx",
+          "resultAll": true,
+          "expect": "3 $rx"
+        }
+      ]
+    },
+    {
+      "name": "memdb-1.9.9-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "rx",
+          "resultAll": true
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous=FULL"
+        }
+      ]
+    },
+    {
+      "name": "memdb-1.10.1-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "rx",
+          "resultAll": true,
+          "expect": "3 $rx"
+        }
+      ]
+    },
+    {
+      "name": "memdb-1.10.2-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "rx",
+          "resultAll": true,
+          "expect": "3 $rx"
+        }
+      ]
+    },
+    {
+      "name": "memdb-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a,b,c,d);\n    BEGIN;\n    INSERT INTO t4 VALUES(1,2,3,4);\n    SELECT * FROM t4;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "memdb-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type='table';",
+          "expect": "t3 t4"
+        }
+      ]
+    },
+    {
+      "name": "memdb-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t4;\n    SELECT name FROM sqlite_master WHERE type='table';",
+          "expect": "t3"
+        }
+      ]
+    },
+    {
+      "name": "memdb-3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;\n    SELECT name FROM sqlite_master WHERE type='table';",
+          "expect": "t3 t4"
+        }
+      ]
+    },
+    {
+      "name": "memdb-4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c, UNIQUE(a,b));\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;"
+        }
+      ]
+    },
+    {
+      "name": "memdb-4.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1;\n      DELETE FROM t2;\n      INSERT INTO t1 VALUES(1,2,3);\n      BEGIN ;\n      INSERT INTO t2 VALUES(1); \n      INSERT INTO t1 VALUES(1,2,4);",
+          "variable": "r0",
+          "catchResult": true,
+          "catchMessage": "r1"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t2",
+          "variable": "r2",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "memdb-4.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1;\n      DELETE FROM t2;\n      INSERT INTO t1 VALUES(1,2,3);\n      BEGIN ;\n      INSERT INTO t2 VALUES(1); \n      INSERT OR IGNORE INTO t1 VALUES(1,2,4);",
+          "variable": "r0",
+          "catchResult": true,
+          "catchMessage": "r1"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t2",
+          "variable": "r2",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "memdb-4.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1;\n      DELETE FROM t2;\n      INSERT INTO t1 VALUES(1,2,3);\n      BEGIN ;\n      INSERT INTO t2 VALUES(1); \n      INSERT OR REPLACE INTO t1 VALUES(1,2,4);",
+          "variable": "r0",
+          "catchResult": true,
+          "catchMessage": "r1"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t2",
+          "variable": "r2",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "memdb-4.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1;\n      DELETE FROM t2;\n      INSERT INTO t1 VALUES(1,2,3);\n      BEGIN ;\n      INSERT INTO t2 VALUES(1); \n      REPLACE INTO t1 VALUES(1,2,4);",
+          "variable": "r0",
+          "catchResult": true,
+          "catchMessage": "r1"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t2",
+          "variable": "r2",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "memdb-4.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1;\n      DELETE FROM t2;\n      INSERT INTO t1 VALUES(1,2,3);\n      BEGIN ;\n      INSERT INTO t2 VALUES(1); \n      INSERT OR FAIL INTO t1 VALUES(1,2,4);",
+          "variable": "r0",
+          "catchResult": true,
+          "catchMessage": "r1"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t2",
+          "variable": "r2",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "memdb-4.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1;\n      DELETE FROM t2;\n      INSERT INTO t1 VALUES(1,2,3);\n      BEGIN ;\n      INSERT INTO t2 VALUES(1); \n      INSERT OR ABORT INTO t1 VALUES(1,2,4);",
+          "variable": "r0",
+          "catchResult": true,
+          "catchMessage": "r1"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t2",
+          "variable": "r2",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "memdb-4.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DELETE FROM t1;\n      DELETE FROM t2;\n      INSERT INTO t1 VALUES(1,2,3);\n      BEGIN ;\n      INSERT INTO t2 VALUES(1); \n      INSERT OR ROLLBACK INTO t1 VALUES(1,2,4);",
+          "variable": "r0",
+          "catchResult": true,
+          "catchMessage": "r1"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t2",
+          "variable": "r2",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "memdb-5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2;\n    DROP TABLE t3;\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(1,2,1);\n    INSERT INTO t2 VALUES(2,3,2);\n    INSERT INTO t2 VALUES(3,4,1);\n    INSERT INTO t2 VALUES(4,5,4);\n    SELECT c FROM t2 ORDER BY b;\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);",
+          "expect": "1 2 1 4"
+        }
+      ]
+    },
+    {
+      "name": "memdb-5.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1;\n      CREATE TABLE t1(a,b,c, UNIQUE(a) );\n      INSERT INTO t1 SELECT * FROM t2;\n      UPDATE t3 SET x=0;\n      BEGIN ;\n      UPDATE t3 SET x=1;\n      UPDATE t1 SET b=b*2;\n      UPDATE t1 SET a=c+5;",
+          "variable": "r0",
+          "catchResult": true,
+          "catchMessage": "r1"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM t1 ORDER BY b",
+          "variable": "r1",
+          "resultAll": true,
+          "condition": "!$r0"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "r2",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "memdb-5.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1;\n      CREATE TABLE t1(a,b,c, UNIQUE(a) ON CONFLICT REPLACE);\n      INSERT INTO t1 SELECT * FROM t2;\n      UPDATE t3 SET x=0;\n      BEGIN ;\n      UPDATE t3 SET x=1;\n      UPDATE t1 SET b=b*2;\n      UPDATE t1 SET a=c+5;",
+          "variable": "r0",
+          "catchResult": true,
+          "catchMessage": "r1"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM t1 ORDER BY b",
+          "variable": "r1",
+          "resultAll": true,
+          "condition": "!$r0"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "r2",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "memdb-5.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1;\n      CREATE TABLE t1(a,b,c, UNIQUE(a) ON CONFLICT IGNORE);\n      INSERT INTO t1 SELECT * FROM t2;\n      UPDATE t3 SET x=0;\n      BEGIN ;\n      UPDATE t3 SET x=1;\n      UPDATE t1 SET b=b*2;\n      UPDATE t1 SET a=c+5;",
+          "variable": "r0",
+          "catchResult": true,
+          "catchMessage": "r1"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM t1 ORDER BY b",
+          "variable": "r1",
+          "resultAll": true,
+          "condition": "!$r0"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "r2",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "memdb-5.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1;\n      CREATE TABLE t1(a,b,c, UNIQUE(a) ON CONFLICT FAIL);\n      INSERT INTO t1 SELECT * FROM t2;\n      UPDATE t3 SET x=0;\n      BEGIN ;\n      UPDATE t3 SET x=1;\n      UPDATE t1 SET b=b*2;\n      UPDATE t1 SET a=c+5;",
+          "variable": "r0",
+          "catchResult": true,
+          "catchMessage": "r1"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM t1 ORDER BY b",
+          "variable": "r1",
+          "resultAll": true,
+          "condition": "!$r0"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "r2",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "memdb-5.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1;\n      CREATE TABLE t1(a,b,c, UNIQUE(a) ON CONFLICT ABORT);\n      INSERT INTO t1 SELECT * FROM t2;\n      UPDATE t3 SET x=0;\n      BEGIN ;\n      UPDATE t3 SET x=1;\n      UPDATE t1 SET b=b*2;\n      UPDATE t1 SET a=c+5;",
+          "variable": "r0",
+          "catchResult": true,
+          "catchMessage": "r1"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM t1 ORDER BY b",
+          "variable": "r1",
+          "resultAll": true,
+          "condition": "!$r0"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "r2",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "memdb-5.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1;\n      CREATE TABLE t1(a,b,c, UNIQUE(a) ON CONFLICT ROLLBACK);\n      INSERT INTO t1 SELECT * FROM t2;\n      UPDATE t3 SET x=0;\n      BEGIN ;\n      UPDATE t3 SET x=1;\n      UPDATE t1 SET b=b*2;\n      UPDATE t1 SET a=c+5;",
+          "variable": "r0",
+          "catchResult": true,
+          "catchMessage": "r1"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM t1 ORDER BY b",
+          "variable": "r1",
+          "resultAll": true,
+          "condition": "!$r0"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "r2",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "memdb-5.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1;\n      CREATE TABLE t1(a,b,c, UNIQUE(a) ON CONFLICT REPLACE);\n      INSERT INTO t1 SELECT * FROM t2;\n      UPDATE t3 SET x=0;\n      BEGIN ;\n      UPDATE OR IGNORE t3 SET x=1;\n      UPDATE OR IGNORE t1 SET b=b*2;\n      UPDATE OR IGNORE t1 SET a=c+5;",
+          "variable": "r0",
+          "catchResult": true,
+          "catchMessage": "r1"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM t1 ORDER BY b",
+          "variable": "r1",
+          "resultAll": true,
+          "condition": "!$r0"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "r2",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "memdb-5.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1;\n      CREATE TABLE t1(a,b,c, UNIQUE(a) ON CONFLICT IGNORE);\n      INSERT INTO t1 SELECT * FROM t2;\n      UPDATE t3 SET x=0;\n      BEGIN ;\n      UPDATE OR REPLACE t3 SET x=1;\n      UPDATE OR REPLACE t1 SET b=b*2;\n      UPDATE OR REPLACE t1 SET a=c+5;",
+          "variable": "r0",
+          "catchResult": true,
+          "catchMessage": "r1"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM t1 ORDER BY b",
+          "variable": "r1",
+          "resultAll": true,
+          "condition": "!$r0"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "r2",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "memdb-5.9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1;\n      CREATE TABLE t1(a,b,c, UNIQUE(a) ON CONFLICT FAIL);\n      INSERT INTO t1 SELECT * FROM t2;\n      UPDATE t3 SET x=0;\n      BEGIN ;\n      UPDATE OR IGNORE t3 SET x=1;\n      UPDATE OR IGNORE t1 SET b=b*2;\n      UPDATE OR IGNORE t1 SET a=c+5;",
+          "variable": "r0",
+          "catchResult": true,
+          "catchMessage": "r1"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM t1 ORDER BY b",
+          "variable": "r1",
+          "resultAll": true,
+          "condition": "!$r0"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "r2",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "memdb-5.10",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1;\n      CREATE TABLE t1(a,b,c, UNIQUE(a) ON CONFLICT ABORT);\n      INSERT INTO t1 SELECT * FROM t2;\n      UPDATE t3 SET x=0;\n      BEGIN ;\n      UPDATE OR REPLACE t3 SET x=1;\n      UPDATE OR REPLACE t1 SET b=b*2;\n      UPDATE OR REPLACE t1 SET a=c+5;",
+          "variable": "r0",
+          "catchResult": true,
+          "catchMessage": "r1"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM t1 ORDER BY b",
+          "variable": "r1",
+          "resultAll": true,
+          "condition": "!$r0"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "r2",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "memdb-5.11",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1;\n      CREATE TABLE t1(a,b,c, UNIQUE(a) ON CONFLICT ROLLBACK);\n      INSERT INTO t1 SELECT * FROM t2;\n      UPDATE t3 SET x=0;\n      BEGIN ;\n      UPDATE OR IGNORE t3 SET x=1;\n      UPDATE OR IGNORE t1 SET b=b*2;\n      UPDATE OR IGNORE t1 SET a=c+5;",
+          "variable": "r0",
+          "catchResult": true,
+          "catchMessage": "r1"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM t1 ORDER BY b",
+          "variable": "r1",
+          "resultAll": true,
+          "condition": "!$r0"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "r2",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "memdb-5.12",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1;\n      CREATE TABLE t1(a,b,c, UNIQUE(a) );\n      INSERT INTO t1 SELECT * FROM t2;\n      UPDATE t3 SET x=0;\n      BEGIN ;\n      UPDATE OR IGNORE t3 SET x=1;\n      UPDATE OR IGNORE t1 SET b=b*2;\n      UPDATE OR IGNORE t1 SET a=c+5;",
+          "variable": "r0",
+          "catchResult": true,
+          "catchMessage": "r1"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM t1 ORDER BY b",
+          "variable": "r1",
+          "resultAll": true,
+          "condition": "!$r0"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "r2",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "memdb-5.13",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1;\n      CREATE TABLE t1(a,b,c, UNIQUE(a) );\n      INSERT INTO t1 SELECT * FROM t2;\n      UPDATE t3 SET x=0;\n      BEGIN ;\n      UPDATE OR REPLACE t3 SET x=1;\n      UPDATE OR REPLACE t1 SET b=b*2;\n      UPDATE OR REPLACE t1 SET a=c+5;",
+          "variable": "r0",
+          "catchResult": true,
+          "catchMessage": "r1"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM t1 ORDER BY b",
+          "variable": "r1",
+          "resultAll": true,
+          "condition": "!$r0"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "r2",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "memdb-5.14",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1;\n      CREATE TABLE t1(a,b,c, UNIQUE(a) );\n      INSERT INTO t1 SELECT * FROM t2;\n      UPDATE t3 SET x=0;\n      BEGIN ;\n      UPDATE OR FAIL t3 SET x=1;\n      UPDATE OR FAIL t1 SET b=b*2;\n      UPDATE OR FAIL t1 SET a=c+5;",
+          "variable": "r0",
+          "catchResult": true,
+          "catchMessage": "r1"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM t1 ORDER BY b",
+          "variable": "r1",
+          "resultAll": true,
+          "condition": "!$r0"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "r2",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "memdb-5.15",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1;\n      CREATE TABLE t1(a,b,c, UNIQUE(a) );\n      INSERT INTO t1 SELECT * FROM t2;\n      UPDATE t3 SET x=0;\n      BEGIN ;\n      UPDATE OR ABORT t3 SET x=1;\n      UPDATE OR ABORT t1 SET b=b*2;\n      UPDATE OR ABORT t1 SET a=c+5;",
+          "variable": "r0",
+          "catchResult": true,
+          "catchMessage": "r1"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM t1 ORDER BY b",
+          "variable": "r1",
+          "resultAll": true,
+          "condition": "!$r0"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "r2",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "memdb-5.16",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DROP TABLE t1;\n      CREATE TABLE t1(a,b,c, UNIQUE(a) );\n      INSERT INTO t1 SELECT * FROM t2;\n      UPDATE t3 SET x=0;\n      BEGIN ;\n      UPDATE OR ROLLBACK t3 SET x=1;\n      UPDATE OR ROLLBACK t1 SET b=b*2;\n      UPDATE OR ROLLBACK t1 SET a=c+5;",
+          "variable": "r0",
+          "catchResult": true,
+          "catchMessage": "r1"
+        },
+        {
+          "type": "catch",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT a FROM t1 ORDER BY b",
+          "variable": "r1",
+          "resultAll": true,
+          "condition": "!$r0"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x FROM t3",
+          "variable": "r2",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "memdb-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2;",
+          "expect": "1 2 1 2 3 2 3 4 1 4 5 4"
+        }
+      ]
+    },
+    {
+      "name": "memdb-6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    DROP TABLE t2;\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;",
+          "expect": "t1 t3 t4"
+        }
+      ]
+    },
+    {
+      "name": "memdb-6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;",
+          "expect": "t1 t2 t3 t4"
+        }
+      ]
+    },
+    {
+      "name": "memdb-6.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2;",
+          "expect": "1 2 1 2 3 2 3 4 1 4 5 4"
+        }
+      ]
+    },
+    {
+      "name": "memdb-6.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t2 UNION SELECT b FROM t2 ORDER BY 1;",
+          "expect": "1 2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "memdb-6.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i2 ON t2(c);\n    SELECT a FROM t2 ORDER BY c;",
+          "expect": "1 3 2 4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t2 ORDER BY c DESC;",
+          "expect": "4 2 3 1"
+        }
+      ]
+    },
+    {
+      "name": "memdb-6.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t5(x,y);\n    INSERT INTO t5 VALUES(1,2);\n    SELECT * FROM t5;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "memdb-6.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;",
+          "expect": "t1 t2 t3 t4 t5"
+        }
+      ]
+    },
+    {
+      "name": "memdb-6.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;",
+          "expect": "t1 t2 t3 t4"
+        }
+      ]
+    },
+    {
+      "name": "memdb-6.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(x PRIMARY KEY, y UNIQUE);\n    SELECT * FROM t5;"
+        }
+      ]
+    },
+    {
+      "name": "memdb-6.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5 ORDER BY y DESC;"
+        }
+      ]
+    },
+    {
+      "name": "memdb-6.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES(1,2);\n      INSERT INTO t5 VALUES(3,4);\n      REPLACE INTO t5 VALUES(1,4);\n      SELECT rowid,* FROM t5;",
+          "expect": "3 1 4"
+        }
+      ]
+    },
+    {
+      "name": "memdb-6.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t5 WHERE x\u003e5;\n      SELECT * FROM t5;",
+          "expect": "1 4"
+        }
+      ]
+    },
+    {
+      "name": "memdb-6.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t5 WHERE y\u003c3;\n      SELECT * FROM t5;",
+          "expect": "1 4"
+        }
+      ]
+    },
+    {
+      "name": "memdb-6.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t5 WHERE x\u003e0;\n    SELECT * FROM t5;"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(x);\n      CREATE VIRTUAL TABLE nums USING wholenumber;\n      INSERT INTO t6 SELECT value FROM nums WHERE value BETWEEN 1 AND 256;\n      SELECT count(*) FROM (SELECT DISTINCT x FROM t6);",
+          "expect": "256"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "255"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "254"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "253"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "252"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "251"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "250"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "249"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "248"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "247"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "246"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "245"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "244"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "243"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "242"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "241"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "240"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.17",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "239"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.18",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "238"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.19",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "237"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "236"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.21",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "235"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.22",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "234"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.23",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "233"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.24",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "232"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.25",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "231"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.26",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "230"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.27",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "229"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.28",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "228"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.29",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "227"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.30",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "226"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.31",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "225"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.32",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "224"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.33",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "223"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.34",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "222"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.35",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "221"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.36",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "220"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.37",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "219"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.38",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "218"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.39",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "217"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.40",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "216"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.41",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "215"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.42",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "214"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.43",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "213"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.44",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "212"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.45",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "211"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.46",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "210"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.47",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "209"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.48",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "208"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.49",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "207"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.50",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "206"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.51",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "205"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.52",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "204"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.53",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "203"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.54",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "202"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.55",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "201"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.56",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "200"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.57",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "199"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.58",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "198"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.59",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "197"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.60",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "196"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.61",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "195"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.62",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "194"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.63",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "193"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.64",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "192"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.65",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "191"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.66",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "190"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.67",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "189"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.68",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "188"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.69",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "187"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.70",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "186"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.71",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "185"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.72",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "184"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.73",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "183"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.74",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "182"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.75",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "181"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.76",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "180"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.77",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "179"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.78",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "178"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.79",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "177"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.80",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "176"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.81",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "175"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.82",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "174"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.83",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "173"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.84",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "172"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.85",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "171"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.86",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "170"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.87",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "169"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.88",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "168"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.89",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "167"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.90",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "166"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.91",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "165"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.92",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "164"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.93",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "163"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.94",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "162"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.95",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "161"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.96",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "160"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.97",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "159"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.98",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "158"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.99",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "157"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "156"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.101",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "155"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.102",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "154"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.103",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "153"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.104",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "152"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.105",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "151"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.106",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "150"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.107",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "149"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.108",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "148"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.109",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "147"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.110",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "146"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.111",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "145"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.112",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "144"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.113",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "143"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.114",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "142"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.115",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "141"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.116",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "140"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.117",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "139"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.118",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "138"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.119",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "137"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.120",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "136"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.121",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "135"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.122",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "134"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.123",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "133"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.124",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "132"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.125",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "131"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.126",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "130"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.127",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "129"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.128",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "128"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.129",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "127"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.130",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "126"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.131",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "125"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.132",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "124"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.133",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.134",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "122"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.135",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "121"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.136",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "120"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.137",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "119"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.138",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "118"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.139",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "117"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.140",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "116"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.141",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "115"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.142",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "114"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.143",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "113"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.144",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "112"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.145",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "111"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.146",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "110"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.147",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "109"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.148",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "108"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.149",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "107"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.150",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "106"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.151",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "105"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.152",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "104"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.153",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "103"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.154",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "102"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.155",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "101"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.156",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "100"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.157",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "99"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.158",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "98"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.159",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "97"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.160",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "96"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.161",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "95"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.162",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "94"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.163",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "93"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.164",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "92"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.165",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "91"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.166",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "90"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.167",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "89"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.168",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "88"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.169",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "87"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.170",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "86"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.171",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "85"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.172",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "84"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.173",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "83"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.174",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "82"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.175",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "81"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.176",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "80"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.177",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "79"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.178",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "78"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.179",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "77"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.180",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "76"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.181",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "75"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.182",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "74"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.183",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "73"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.184",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "72"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.185",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "71"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.186",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "70"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.187",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "69"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.188",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "68"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.189",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "67"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.190",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "66"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.191",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "65"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.192",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "64"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.193",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "63"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.194",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "62"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.195",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "61"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.196",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "60"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.197",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "59"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.198",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "58"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.199",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "57"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.200",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "56"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.201",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "55"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.202",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "54"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.203",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "53"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.204",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "52"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.205",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "51"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.206",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "50"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.207",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "49"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.208",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "48"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.209",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "47"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.210",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "46"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.211",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "45"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.212",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "44"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.213",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "43"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.214",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "42"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.215",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "41"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.216",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "40"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.217",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "39"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.218",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "38"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.219",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "37"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.220",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "36"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.221",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "35"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.222",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "34"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.223",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "33"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.224",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "32"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.225",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "31"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.226",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "30"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.227",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "29"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.228",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "28"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.229",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "27"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.230",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "26"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.231",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "25"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.232",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "24"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.233",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "23"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.234",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "22"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.235",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "21"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.236",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "20"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.237",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "19"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.238",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "18"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.239",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "17"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.240",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "16"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.241",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "15"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.242",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "14"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.243",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "13"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.244",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "12"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.245",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "11"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.246",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.247",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "9"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.248",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "8"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.249",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "7"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.250",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.251",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.252",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.253",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.254",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.255",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "memdb-7.2.256",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x=\n                (SELECT x FROM t6 ORDER BY random() LIMIT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "memdb-8.1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=TRUE;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    SELECT count(*) FROM t1;",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "memdb-8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    SELECT count(*) FROM t1;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "memdb-9.1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = full;\n      CREATE TABLE t1(a);\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n      INSERT INTO t1 VALUES(randstr(1000,1000));"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_count",
+          "variable": "before"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_count",
+          "variable": "after"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "$before\u003e$after",
+          "expect": "1"
+        }
+      ]
+    }
+  ]
+}

@@ -1,10 +1,28 @@
 {
   "file": "tkt3793.test",
   "name": "tkt3793",
+  "ordered": true,
   "tests": [
     {
       "name": "tkt3793-1.1",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "file:test.db?cache=private",
+          "database": "db1"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "file:test.db?cache=shared",
+          "database": "db2"
+        },
         {
           "type": "exec",
           "sql": "BEGIN;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(randstr(50,50), randstr(50,50));\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t2 SELECT * FROM t1;\n    COMMIT;"
@@ -15,7 +33,7 @@
       "name": "tkt3793-1.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "BEGIN;\n    SELECT count(*) FROM t1;",
           "expect": "1024"
         }
@@ -26,30 +44,33 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA cache_size = 10;\n    BEGIN;\n    UPDATE t1 SET b = randstr(50,50);"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(randstr(50,50), randstr(50,50));\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t2 SELECT * FROM t1;\n    COMMIT;"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    SELECT count(*) FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA cache_size = 10;\n    BEGIN;\n    UPDATE t1 SET b = randstr(50,50);"
+          "sql": "PRAGMA cache_size = 10;\n    BEGIN;\n    UPDATE t1 SET b = randstr(50,50);",
+          "database": "db1"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "setup_0",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "query",
+          "sql": "SELECT * FROM t2 ORDER BY a LIMIT 20",
+          "database": "db1"
+        }
+      ]
+    },
+    {
+      "name": "tkt3793-3",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db1"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

@@ -117,6 +117,13 @@ func buildMaterializedRowMaps(s *sql.SelectStmt, colDefs []sql.ColumnDef, allRow
 				rowMap[q+"."+colDefs[j].Name] = rowMap[colDefs[j].Name]
 			}
 		}
+		visibleRow := make([]interface{}, 0, len(colDefs))
+		for columnIndex, def := range colDefs {
+			if !def.Dropped && !IsHiddenColumnDef(def) && columnIndex < len(row) {
+				visibleRow = append(visibleRow, row[columnIndex])
+			}
+		}
+		rowMap[positionalRowKey] = visibleRow
 		addMaterializedRowID(rowMap, alias, i, rowids)
 		allRowMaps[i] = rowMap
 	}

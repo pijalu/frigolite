@@ -102,17 +102,27 @@ func ruleCmdUpdate(ruleNo int, p *Parser) interface{} {
 // Rule 160: setlist ::= setlist COMMA nm EQ expr
 func ruleSetlistSetlistCommaNmEqExpr(ruleNo int, p *Parser) interface{} {
 	acc := getAssignments(getRHS(p, ruleNo, 1))
-	col := getString(getRHS(p, ruleNo, 3))
+	colToken := getRHS(p, ruleNo, 3)
+	col := getString(colToken)
 	val := getExpr(getRHS(p, ruleNo, 5))
-	return append(acc, sql.Assignment{Column: col, Value: val})
+	assignment := sql.Assignment{Column: col, Value: val}
+	if tok, ok := colToken.(sql.Token); ok {
+		assignment.ColumnTok = sql.TokenInfo{Start: tok.Pos, End: tok.End}
+	}
+	return append(acc, assignment)
 
 }
 
 // Rule 162: setlist ::= nm EQ expr
 func ruleSetlistNmEqExpr(ruleNo int, p *Parser) interface{} {
-	col := getString(getRHS(p, ruleNo, 1))
+	colToken := getRHS(p, ruleNo, 1)
+	col := getString(colToken)
 	val := getExpr(getRHS(p, ruleNo, 3))
-	return []sql.Assignment{{Column: col, Value: val}}
+	assignment := sql.Assignment{Column: col, Value: val}
+	if tok, ok := colToken.(sql.Token); ok {
+		assignment.ColumnTok = sql.TokenInfo{Start: tok.Pos, End: tok.End}
+	}
+	return []sql.Assignment{assignment}
 
 }
 

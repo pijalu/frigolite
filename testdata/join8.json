@@ -1,7 +1,18 @@
 {
   "file": "join8.test",
   "name": "join8",
+  "nullToken": "-",
+  "ordered": true,
   "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
+        }
+      ]
+    },
     {
       "name": "join8-10",
       "steps": [
@@ -11,6 +22,10 @@
           "expect": "NULL"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "join8-1000",
@@ -25,11 +40,15 @@
       "name": "join8-1010",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT a\n    FROM (\n          SELECT a\n            FROM (\n                  SELECT a\n                    FROM (\n                          SELECT a FROM t1 NATURAL LEFT JOIN t1\n                           WHERE (b, 2 ) IS ( SELECT 2 IN(2,2),2)\n                         )\n                    NATURAL LEFT FULL JOIN t1\n                   WHERE ( rowid , 1 )<=(CASE 5 WHEN 619 THEN 841 ELSE 3374391096 END,0)\n                   ORDER BY a ASC\n                 )\n            NATURAL LEFT JOIN t1\n           WHERE (b, 2 ) IS ( SELECT 3 IN(3,3),3)\n         )\n    NATURAL LEFT FULL JOIN t1\n   WHERE ( rowid , 1 )<=(CASE 5 WHEN 619 THEN 841 ELSE 3374391096 END,0)\n   ORDER BY a ASC;",
+          "type": "catch",
+          "sql": "SELECT a\n    FROM (\n          SELECT a\n            FROM (\n                  SELECT a\n                    FROM (\n                          SELECT a FROM t1 NATURAL LEFT JOIN t1\n                           WHERE (b, 2 ) IS ( SELECT 2 IN(2,2),2)\n                         )\n                    NATURAL LEFT FULL JOIN t1\n                   WHERE ( rowid , 1 )\u003c=(CASE 5 WHEN 619 THEN 841 ELSE 3374391096 END,0)\n                   ORDER BY a ASC\n                 )\n            NATURAL LEFT JOIN t1\n           WHERE (b, 2 ) IS ( SELECT 3 IN(3,3),3)\n         )\n    NATURAL LEFT FULL JOIN t1\n   WHERE ( rowid , 1 )\u003c=(CASE 5 WHEN 619 THEN 841 ELSE 3374391096 END,0)\n   ORDER BY a ASC;",
           "expect": "0 1"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "join8-2000",
@@ -44,18 +63,22 @@
       "name": "join8-2010",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM t1 RIGHT JOIN t2 ON c=d JOIN t3 ON f=e;",
           "expect": "0 {}"
         }
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
       "name": "join8-3000",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(id INTEGER PRIMARY KEY, a INT);\n  CREATE TABLE t2(id INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t3(id INTEGER PRIMARY KEY, c INT);\n  CREATE TABLE t4(id INTEGER PRIMARY KEY, d INT);\n  CREATE TABLE t5(id INTEGER PRIMARY KEY, e INT);\n  CREATE TABLE t6(id INTEGER PRIMARY KEY, f INT);\n  CREATE TABLE t7(id INTEGER PRIMARY KEY, g INT);\n  CREATE TABLE t8(id INTEGER PRIMARY KEY, h INT);\n  INSERT INTO t1 SELECT value, 1 FROM generate_series(1,256) WHERE value & 1;\n  INSERT INTO t2 SELECT value, 1 FROM generate_series(1,256) WHERE value & 2;\n  INSERT INTO t3 SELECT value, 1 FROM generate_series(1,256) WHERE value & 4;\n  INSERT INTO t4 SELECT value, 1 FROM generate_series(1,256) WHERE value & 8;\n  INSERT INTO t5 SELECT value, 1 FROM generate_series(1,256) WHERE value & 16;\n  INSERT INTO t6 SELECT value, 1 FROM generate_series(1,256) WHERE value & 32;\n  INSERT INTO t7 SELECT value, 1 FROM generate_series(1,256) WHERE value & 64;\n  INSERT INTO t8 SELECT value, 1 FROM generate_series(1,256) WHERE value & 128;\n  CREATE TABLE t9 AS\n    SELECT id, h, g, f, e, d, c, b, a\n      FROM t1\n      NATURAL FULL JOIN t2\n      NATURAL FULL JOIN t3\n      NATURAL FULL JOIN t4\n      NATURAL FULL JOIN t5\n      NATURAL FULL JOIN t6\n      NATURAL FULL JOIN t7\n      NATURAL FULL JOIN t8;"
+          "sql": "CREATE TABLE t1(id INTEGER PRIMARY KEY, a INT);\n  CREATE TABLE t2(id INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t3(id INTEGER PRIMARY KEY, c INT);\n  CREATE TABLE t4(id INTEGER PRIMARY KEY, d INT);\n  CREATE TABLE t5(id INTEGER PRIMARY KEY, e INT);\n  CREATE TABLE t6(id INTEGER PRIMARY KEY, f INT);\n  CREATE TABLE t7(id INTEGER PRIMARY KEY, g INT);\n  CREATE TABLE t8(id INTEGER PRIMARY KEY, h INT);\n  INSERT INTO t1 SELECT value, 1 FROM generate_series(1,256) WHERE value \u0026 1;\n  INSERT INTO t2 SELECT value, 1 FROM generate_series(1,256) WHERE value \u0026 2;\n  INSERT INTO t3 SELECT value, 1 FROM generate_series(1,256) WHERE value \u0026 4;\n  INSERT INTO t4 SELECT value, 1 FROM generate_series(1,256) WHERE value \u0026 8;\n  INSERT INTO t5 SELECT value, 1 FROM generate_series(1,256) WHERE value \u0026 16;\n  INSERT INTO t6 SELECT value, 1 FROM generate_series(1,256) WHERE value \u0026 32;\n  INSERT INTO t7 SELECT value, 1 FROM generate_series(1,256) WHERE value \u0026 64;\n  INSERT INTO t8 SELECT value, 1 FROM generate_series(1,256) WHERE value \u0026 128;\n  CREATE TABLE t9 AS\n    SELECT id, h, g, f, e, d, c, b, a\n      FROM t1\n      NATURAL FULL JOIN t2\n      NATURAL FULL JOIN t3\n      NATURAL FULL JOIN t4\n      NATURAL FULL JOIN t5\n      NATURAL FULL JOIN t6\n      NATURAL FULL JOIN t7\n      NATURAL FULL JOIN t8;"
         }
       ]
     },
@@ -93,9 +116,13 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t9 WHERE id<>128*h+64*g+32*f+16*e+8*d+4*c+2*b+a;"
+          "sql": "SELECT * FROM t9 WHERE id\u003c\u003e128*h+64*g+32*f+16*e+8*d+4*c+2*b+a;"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "join8-4000",
@@ -108,14 +135,31 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "-"
+        }
+      ]
+    },
+    {
       "name": "join8-5000",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1(x) VALUES(NULL),(NULL);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t2(c,d) SELECT x, x FROM t1;\n  CREATE INDEX t2dc ON t2(d, c);\n  SELECT (SELECT c FROM sqlite_temp_schema FULL JOIN t2 ON d IN (1,2,3) ORDER BY d) AS x FROM t1;",
           "expect": "0 {- -}"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "join8-6000",
@@ -168,11 +212,24 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
       "name": "join8-7000",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a INT, b INT, c INT, d INT);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<10)\n    INSERT INTO t1(a,b,c,d) SELECT x, x+100, x+200, x+300 FROM c;\n  CREATE TABLE t2(b INT, x INT);\n  INSERT INTO t2(b,x) SELECT b, a FROM t1 WHERE a%2=0;\n  CREATE INDEX t2b ON t2(b);\n  CREATE TABLE t3(c INT, y INT);\n  INSERT INTO t3(c,y) SELECT c, a FROM t1 WHERE a%3=0;\n  CREATE INDEX t3c ON t3(c);\n  CREATE TABLE t4(d INT, z INT);\n  INSERT INTO t4(d,z) SELECT d, a FROM t1 WHERE a%5=0;\n  CREATE INDEX t4d ON t4(d);\n  INSERT INTO t1(a,b,c,d) VALUES\n    (96,NULL,296,396),\n    (97,197,NULL,397),\n    (98,198,298,NULL),\n    (99,NULL,NULL,NULL);\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t4','t4d','20 1');\n  INSERT INTO sqlite_stat1 VALUES('t3','t3c','32 1');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2b','48 1');\n  INSERT INTO sqlite_stat1 VALUES('t1',NULL,'100');\n  ANALYZE sqlite_schema;"
+          "sql": "CREATE TABLE t1(a INT, b INT, c INT, d INT);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x\u003c10)\n    INSERT INTO t1(a,b,c,d) SELECT x, x+100, x+200, x+300 FROM c;\n  CREATE TABLE t2(b INT, x INT);\n  INSERT INTO t2(b,x) SELECT b, a FROM t1 WHERE a%2=0;\n  CREATE INDEX t2b ON t2(b);\n  CREATE TABLE t3(c INT, y INT);\n  INSERT INTO t3(c,y) SELECT c, a FROM t1 WHERE a%3=0;\n  CREATE INDEX t3c ON t3(c);\n  CREATE TABLE t4(d INT, z INT);\n  INSERT INTO t4(d,z) SELECT d, a FROM t1 WHERE a%5=0;\n  CREATE INDEX t4d ON t4(d);\n  INSERT INTO t1(a,b,c,d) VALUES\n    (96,NULL,296,396),\n    (97,197,NULL,397),\n    (98,198,298,NULL),\n    (99,NULL,NULL,NULL);\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t4','t4d','20 1');\n  INSERT INTO sqlite_stat1 VALUES('t3','t3c','32 1');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2b','48 1');\n  INSERT INTO sqlite_stat1 VALUES('t1',NULL,'100');\n  ANALYZE sqlite_schema;"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "-"
         }
       ]
     },
@@ -180,8 +237,9 @@
       "name": "join8-7010",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH t0 AS MATERIALIZED (\n    SELECT t1.*, t2.*, t3.*\n      FROM t1 INNER JOIN t2 ON t1.b=t2.b AND t2.x>0\n        RIGHT JOIN t3 ON t1.c=t3.c AND t3.y>0\n  )\n  SELECT * FROM t0 FULL JOIN t4 ON t0.a=t4.d AND t4.z>0\n   ORDER BY coalesce(t0.a, t0.y+200, t4.d);"
+          "type": "query",
+          "sql": "WITH t0 AS MATERIALIZED (\n    SELECT t1.*, t2.*, t3.*\n      FROM t1 INNER JOIN t2 ON t1.b=t2.b AND t2.x\u003e0\n        RIGHT JOIN t3 ON t1.c=t3.c AND t3.y\u003e0\n  )\n  SELECT * FROM t0 FULL JOIN t4 ON t0.a=t4.d AND t4.z\u003e0\n   ORDER BY coalesce(t0.a, t0.y+200, t4.d);",
+          "expect": "\n  6  106  206  306  106  6  206  6    -   -\n  -    -    -    -    -  -  200  0    -   -\n  -    -    -    -    -  -  203  3    -   -\n  -    -    -    -    -  -  209  9    -   -\n  -    -    -    -    -  -    -  -  300   0\n  -    -    -    -    -  -    -  -  305   5\n  -    -    -    -    -  -    -  -  310  10\n"
         }
       ]
     },
@@ -189,8 +247,9 @@
       "name": "join8-7011",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH t0 AS MATERIALIZED (\n    SELECT t1.*, t2.*, t3.*\n      FROM t1 INNER JOIN t2 ON t1.b=t2.b AND t2.x>0\n        RIGHT JOIN t3 ON t1.c=t3.c AND t3.y>0\n  )\n  SELECT * FROM t0 LEFT RIGHT JOIN t4 ON t0.a=t4.d AND t4.z>0\n   ORDER BY coalesce(t0.a, t0.y+200, t4.d);"
+          "type": "query",
+          "sql": "WITH t0 AS MATERIALIZED (\n    SELECT t1.*, t2.*, t3.*\n      FROM t1 INNER JOIN t2 ON t1.b=t2.b AND t2.x\u003e0\n        RIGHT JOIN t3 ON t1.c=t3.c AND t3.y\u003e0\n  )\n  SELECT * FROM t0 LEFT RIGHT JOIN t4 ON t0.a=t4.d AND t4.z\u003e0\n   ORDER BY coalesce(t0.a, t0.y+200, t4.d);",
+          "expect": "\n  6  106  206  306  106  6  206  6    -   -\n  -    -    -    -    -  -  200  0    -   -\n  -    -    -    -    -  -  203  3    -   -\n  -    -    -    -    -  -  209  9    -   -\n  -    -    -    -    -  -    -  -  300   0\n  -    -    -    -    -  -    -  -  305   5\n  -    -    -    -    -  -    -  -  310  10\n"
         }
       ]
     },
@@ -199,10 +258,14 @@
       "steps": [
         {
           "type": "query",
-          "sql": "EXPLAIN QUERY PLAN\n  WITH t0 AS MATERIALIZED (\n    SELECT t1.*, t2.*, t3.*\n      FROM t1 INNER JOIN t2 ON t1.b=t2.b AND t2.x>0\n        RIGHT JOIN t3 ON t1.c=t3.c AND t3.y>0\n  )\n  SELECT * FROM t0 FULL JOIN t4 ON t0.a=t4.d AND t4.z>0\n   ORDER BY coalesce(t0.a, t0.y+200, t4.d);",
+          "sql": "EXPLAIN QUERY PLAN\n  WITH t0 AS MATERIALIZED (\n    SELECT t1.*, t2.*, t3.*\n      FROM t1 INNER JOIN t2 ON t1.b=t2.b AND t2.x\u003e0\n        RIGHT JOIN t3 ON t1.c=t3.c AND t3.y\u003e0\n  )\n  SELECT * FROM t0 FULL JOIN t4 ON t0.a=t4.d AND t4.z\u003e0\n   ORDER BY coalesce(t0.a, t0.y+200, t4.d);",
           "expect": "/.*BLOOM FILTER ON t2.*BLOOM FILTER ON t3.*/"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "join8-8000",
@@ -232,12 +295,38 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "-"
+        }
+      ]
+    },
+    {
       "name": "join8-9000",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT, c TEXT, d REAL);\n  INSERT INTO t1 VALUES(1,'E','bb',NULL),(2,NULL,NULL,NULL);\n  SELECT * FROM t1 NATURAL RIGHT JOIN t1 AS t2 WHERE (a,b) IN (SELECT a+0, b FROM t1);",
           "expect": "1 E bb -"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "-"
         }
       ]
     },
@@ -325,8 +414,21 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT DISTINCT t1.c0, t3.c0\n    FROM t2 NATURAL JOIN t1 RIGHT JOIN t3 ON t1.c0<>0;",
+          "sql": "SELECT DISTINCT t1.c0, t3.c0\n    FROM t2 NATURAL JOIN t1 RIGHT JOIN t3 ON t1.c0\u003c\u003e0;",
           "expect": "- 3"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "-"
         }
       ]
     },
@@ -381,6 +483,19 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "-"
+        }
+      ]
+    },
+    {
       "name": "join8-12000",
       "steps": [
         {
@@ -393,8 +508,8 @@
       "name": "join8-12010",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 RIGHT JOIN t2 ON t2.a<>0 NATURAL RIGHT JOIN t3;",
+          "type": "catch",
+          "sql": "SELECT * FROM t1 RIGHT JOIN t2 ON t2.a\u003c\u003e0 NATURAL RIGHT JOIN t3;",
           "expect": "1 {ambiguous reference to a in USING()}"
         }
       ]
@@ -403,8 +518,8 @@
       "name": "join8-12020",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 RIGHT JOIN t2 ON t2.a<>0 NATURAL LEFT JOIN t3;",
+          "type": "catch",
+          "sql": "SELECT * FROM t1 RIGHT JOIN t2 ON t2.a\u003c\u003e0 NATURAL LEFT JOIN t3;",
           "expect": "1 {ambiguous reference to a in USING()}"
         }
       ]
@@ -413,8 +528,8 @@
       "name": "join8-12030",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 LEFT JOIN t2 ON t2.a<>0 NATURAL RIGHT JOIN t3;",
+          "type": "catch",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 ON t2.a\u003c\u003e0 NATURAL RIGHT JOIN t3;",
           "expect": "1 {ambiguous reference to a in USING()}"
         }
       ]
@@ -423,11 +538,15 @@
       "name": "join8-12040",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 LEFT JOIN t2 ON t2.a<>0 NATURAL LEFT JOIN t3;",
+          "type": "catch",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 ON t2.a\u003c\u003e0 NATURAL LEFT JOIN t3;",
           "expect": "0 {0 2 1 2}"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "join8-13000",
@@ -439,11 +558,15 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
       "name": "join8-14000",
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE TABLE t0(a TEXT, b TEXT, c TEXT);\n  CREATE TABLE t1(a TEXT);\n  INSERT INTO t1 VALUES('1');\n  CREATE VIEW v0 AS SELECT 'xyz' AS d;\n  SELECT * FROM v0 RIGHT JOIN t1 ON t1.a<>'' INNER JOIN t0 ON t0.c<>'';\n  SELECT * FROM v0 RIGHT JOIN t1 ON t1.a<>'' INNER JOIN t0 ON t0.c<>'' WHERE b ISNULL;"
+          "sql": "CREATE TABLE t0(a TEXT, b TEXT, c TEXT);\n  CREATE TABLE t1(a TEXT);\n  INSERT INTO t1 VALUES('1');\n  CREATE VIEW v0 AS SELECT 'xyz' AS d;\n  SELECT * FROM v0 RIGHT JOIN t1 ON t1.a\u003c\u003e'' INNER JOIN t0 ON t0.c\u003c\u003e'';\n  SELECT * FROM v0 RIGHT JOIN t1 ON t1.a\u003c\u003e'' INNER JOIN t0 ON t0.c\u003c\u003e'' WHERE b ISNULL;"
         }
       ]
     },
@@ -457,14 +580,27 @@
       ]
     },
     {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "-"
+        }
+      ]
+    },
+    {
       "name": "join8-14020",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM y0 RIGHT JOIN y1 ON true INNER JOIN y2 ON true WHERE y2.c!=99 AND y2.c!=98;",
-          "expect": "- 1 3\n  - 1 4\n  - 2 3\n  - 2 4"
+          "expect": "\n  - 1 3\n  - 1 4\n  - 2 3\n  - 2 4\n"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "join8-15000",
@@ -503,6 +639,15 @@
       ]
     },
     {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "-"
+        }
+      ]
+    },
+    {
       "name": "join8-15110",
       "steps": [
         {
@@ -523,6 +668,10 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
       "name": "join8-16000",
       "steps": [
         {
@@ -532,11 +681,20 @@
       ]
     },
     {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "-"
+        }
+      ]
+    },
+    {
       "name": "join8-16010",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 RIGHT JOIN t2 ON true LEFT JOIN t3 ON a<>'';",
+          "sql": "SELECT * FROM t1 RIGHT JOIN t2 ON true LEFT JOIN t3 ON a\u003c\u003e'';",
           "expect": "- x -"
         }
       ]
@@ -546,17 +704,12 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 RIGHT JOIN t2 ON true LEFT JOIN t3 ON a<>'' WHERE c IS NULL;",
+          "sql": "SELECT * FROM t1 RIGHT JOIN t2 ON true LEFT JOIN t3 ON a\u003c\u003e'' WHERE c IS NULL;",
           "expect": "- x -"
-        }
-      ]
-    },
-    {
-      "name": "join8-16020",
-      "steps": [
+        },
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 RIGHT JOIN t2 ON true JOIN t3 ON a<>'' WHERE c IS NULL;"
+          "sql": "SELECT * FROM t1 RIGHT JOIN t2 ON true JOIN t3 ON a\u003c\u003e'' WHERE c IS NULL;"
         }
       ]
     },
@@ -565,7 +718,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 RIGHT JOIN t2 ON true JOIN t3 ON a<>'';"
+          "sql": "SELECT * FROM t1 RIGHT JOIN t2 ON true JOIN t3 ON a\u003c\u003e'';"
         }
       ]
     },
@@ -574,7 +727,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 RIGHT JOIN t2 ON true LEFT JOIN t3 ON a<>'' WHERE c<>'';"
+          "sql": "SELECT * FROM t1 RIGHT JOIN t2 ON true LEFT JOIN t3 ON a\u003c\u003e'' WHERE c\u003c\u003e'';"
         }
       ]
     },
@@ -583,7 +736,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 RIGHT JOIN t2 ON true LEFT JOIN t3 ON a<>'' WHERE c IS NOT NULL;"
+          "sql": "SELECT * FROM t1 RIGHT JOIN t2 ON true LEFT JOIN t3 ON a\u003c\u003e'' WHERE c IS NOT NULL;"
         }
       ]
     },
@@ -592,7 +745,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 RIGHT JOIN t2 ON true JOIN t3 ON a<>'' WHERE c<>'';"
+          "sql": "SELECT * FROM t1 RIGHT JOIN t2 ON true JOIN t3 ON a\u003c\u003e'' WHERE c\u003c\u003e'';"
         }
       ]
     },
@@ -601,9 +754,13 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 RIGHT JOIN t2 ON true JOIN t3 ON a<>'' WHERE c IS NOT NULL;"
+          "sql": "SELECT * FROM t1 RIGHT JOIN t2 ON true JOIN t3 ON a\u003c\u003e'' WHERE c IS NOT NULL;"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "join8-17000",
@@ -611,6 +768,15 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(id INTEGER PRIMARY KEY, x INT, y INT);\n  CREATE TABLE t2(z INT);\n  INSERT INTO t1(id,x,y) VALUES(1, 0, 0);"
+        }
+      ]
+    },
+    {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
         }
       ]
     },
@@ -750,6 +916,10 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
       "name": "join8-18000",
       "steps": [
         {
@@ -777,6 +947,37 @@
       ]
     },
     {
+      "name": "join8-18030",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE rtree1 USING rtree(a, x1, x2);\n    INSERT INTO rtree1 VALUES(0, 0, 0);"
+        }
+      ]
+    },
+    {
+      "name": "join8-18040",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, x NOTNULL, (x NOTNULL)=a FROM t2 \n      RIGHT JOIN rtree1 ON true INNER JOIN t3 ON (x NOTNULL)=+a;"
+        }
+      ]
+    },
+    {
+      "name": "join8-18050",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, x NOTNULL, (x NOTNULL)=a FROM t2 \n      RIGHT JOIN rtree1 ON true INNER JOIN t3 ON (x NOTNULL)=a;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
       "name": "join8-19000",
       "steps": [
         {
@@ -795,6 +996,10 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
       "name": "join8-20000",
       "steps": [
         {
@@ -804,11 +1009,20 @@
       ]
     },
     {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "-"
+        }
+      ]
+    },
+    {
       "name": "join8-20010",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t2 JOIN v0 ON z<>'bbb' RIGHT JOIN t1 ON z<>'ccc';",
+          "sql": "SELECT * FROM t2 JOIN v0 ON z\u003c\u003e'bbb' RIGHT JOIN t1 ON z\u003c\u003e'ccc';",
           "expect": "- - aaa"
         }
       ]
@@ -818,7 +1032,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t2 JOIN v0 ON z<>'bbb' RIGHT JOIN t1 ON z<>'ccc' ORDER BY z;",
+          "sql": "SELECT * FROM t2 JOIN v0 ON z\u003c\u003e'bbb' RIGHT JOIN t1 ON z\u003c\u003e'ccc' ORDER BY z;",
           "expect": "- - aaa"
         }
       ]
@@ -828,7 +1042,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT 99 as \"m\" FROM t2 JOIN v0 ON z<>'bbb' RIGHT JOIN t1 ON z<>'ccc';",
+          "sql": "SELECT 99 as \"m\" FROM t2 JOIN v0 ON z\u003c\u003e'bbb' RIGHT JOIN t1 ON z\u003c\u003e'ccc';",
           "expect": "99"
         }
       ]
@@ -838,7 +1052,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT 99 as \"m\" FROM t2 JOIN v0 ON z<>'bbb' RIGHT JOIN t1 ON z<>'ccc' ORDER BY z;",
+          "sql": "SELECT 99 as \"m\" FROM t2 JOIN v0 ON z\u003c\u003e'bbb' RIGHT JOIN t1 ON z\u003c\u003e'ccc' ORDER BY z;",
           "expect": "99"
         }
       ]
@@ -848,7 +1062,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*)\n    FROM (SELECT 99 as \"m\" FROM t2 JOIN v0 ON z<>'' RIGHT JOIN t1 ON z<>'') AS \"t3\";",
+          "sql": "SELECT count(*)\n    FROM (SELECT 99 as \"m\" FROM t2 JOIN v0 ON z\u003c\u003e'' RIGHT JOIN t1 ON z\u003c\u003e'') AS \"t3\";",
           "expect": "1"
         }
       ]
@@ -858,10 +1072,14 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) \n    FROM (SELECT 99 as \"m\" FROM t2 JOIN v0 ON z<>'' RIGHT JOIN t1 ON z<>'' ORDER BY z) AS \"t3\";",
+          "sql": "SELECT count(*) \n    FROM (SELECT 99 as \"m\" FROM t2 JOIN v0 ON z\u003c\u003e'' RIGHT JOIN t1 ON z\u003c\u003e'' ORDER BY z) AS \"t3\";",
           "expect": "1"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "join8-21000",
@@ -904,8 +1122,8 @@
       "name": "join8-22031",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 JOIN t2 ON d>b RIGHT JOIN t3 ON true WHERE +d = 0;",
+          "type": "catch",
+          "sql": "SELECT * FROM t1 JOIN t2 ON d\u003eb RIGHT JOIN t3 ON true WHERE +d = 0;",
           "expect": "1 {ON clause references tables to its right}"
         }
       ]
@@ -914,11 +1132,15 @@
       "name": "join8-22040",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 JOIN t2 ON d>b RIGHT JOIN t3 ON true WHERE d = 0;",
+          "type": "catch",
+          "sql": "SELECT * FROM t1 JOIN t2 ON d\u003eb RIGHT JOIN t3 ON true WHERE d = 0;",
           "expect": "1 {ON clause references tables to its right}"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "join8-22000",
@@ -926,6 +1148,19 @@
         {
           "type": "query",
           "sql": "CREATE TABLE t1(a INT);\n  CREATE TABLE t2(b INT);\n  CREATE TABLE t3(c TEXT);  INSERT INTO t3 VALUES('x');\n  CREATE TABLE t4(d TEXT);  INSERT INTO t4 VALUES('y');\n  SELECT 99\n    FROM t1\n         LEFT JOIN t2 ON true\n         RIGHT JOIN t3 ON true\n         RIGHT JOIN t4 ON true\n   WHERE a=b;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_12",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "-"
         }
       ]
     },
@@ -959,13 +1194,31 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_13",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "-"
+        }
+      ]
+    },
+    {
       "name": "join8-24000",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t4(b INT, c INT);\n  CREATE TABLE t5(a INT, f INT);\n  INSERT INTO t5 VALUES(1,2);\n  WITH t7(x, y) AS (SELECT 100, 200 FROM t5)\n    SELECT * FROM t4 JOIN t7 ON true RIGHT JOIN (SELECT y AS z FROM t7) AS t6 ON (x=z);"
+          "type": "query",
+          "sql": "CREATE TABLE t4(b INT, c INT);\n  CREATE TABLE t5(a INT, f INT);\n  INSERT INTO t5 VALUES(1,2);\n  WITH t7(x, y) AS (SELECT 100, 200 FROM t5)\n    SELECT * FROM t4 JOIN t7 ON true RIGHT JOIN (SELECT y AS z FROM t7) AS t6 ON (x=z);",
+          "expect": "- - - - 200"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "join8-25000",
@@ -973,6 +1226,15 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a1 INT);\n  CREATE TABLE t2(b2 INT);\n  CREATE TABLE t3(c3 INT, d3 INT UNIQUE);\n  CREATE TABLE t4(e4 INT, f4 TEXT);\n  INSERT INTO t3(c3, d3) VALUES (2, 1);\n  INSERT INTO t4(f4) VALUES ('x');\n  CREATE INDEX i0 ON t3(c3) WHERE d3 ISNULL;\n  ANALYZE main;"
+        }
+      ]
+    },
+    {
+      "name": "setup_14",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "-"
         }
       ]
     },
@@ -997,220 +1259,25 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_15",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "-"
+        }
+      ]
+    },
+    {
       "name": "join8-26000",
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE TABLE t1(a INT);\n  CREATE TABLE t2(b INT, c INT);\n  CREATE VIEW t3(d) AS SELECT NULL FROM t2 FULL OUTER JOIN t1 ON c=a UNION ALL SELECT b FROM t2;\n  INSERT INTO t1(a) VALUES (NULL);\n  INSERT INTO t2(b, c) VALUES (99, NULL);\n  SELECT DISTINCT b, c, d FROM t2, t3 WHERE b<>0\n   UNION SELECT DISTINCT b, c, d FROM t2, t3 WHERE b ISNULL;",
+          "sql": "CREATE TABLE t1(a INT);\n  CREATE TABLE t2(b INT, c INT);\n  CREATE VIEW t3(d) AS SELECT NULL FROM t2 FULL OUTER JOIN t1 ON c=a UNION ALL SELECT b FROM t2;\n  INSERT INTO t1(a) VALUES (NULL);\n  INSERT INTO t2(b, c) VALUES (99, NULL);\n  SELECT DISTINCT b, c, d FROM t2, t3 WHERE b\u003c\u003e0\n   UNION SELECT DISTINCT b, c, d FROM t2, t3 WHERE b ISNULL;",
           "expect": "99 - - 99 - 99"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

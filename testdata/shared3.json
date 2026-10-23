@@ -1,22 +1,90 @@
 {
   "file": "shared3.test",
   "name": "shared3",
+  "ordered": true,
   "tests": [
     {
-      "name": "3.1",
+      "name": "setup_0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA auto_vacuum = 2;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(randomblob(500), randomblob(500));\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;"
+          "type": "close_db"
         }
       ]
     },
     {
-      "name": "3.3",
+      "name": "delete_file",
       "steps": [
         {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "shared3-1.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding=UTF16;\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES('abc','This is a test string');",
+          "database": "db1"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db1"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db1"
+        },
+        {
           "type": "query",
-          "sql": "BEGIN;\n    DELETE FROM t1 WHERE 1;\n    PRAGMA incremental_vacuum;"
+          "sql": "SELECT * FROM t1",
+          "expect": "abc {This is a test string}",
+          "database": "db1"
+        }
+      ]
+    },
+    {
+      "name": "shared3-1.2",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT y FROM t1 WHERE x='abc'",
+          "expect": "{This is a test string}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db1"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     },
@@ -24,8 +92,14 @@
       "name": "shared3-2.1",
       "steps": [
         {
-          "type": "query",
-          "sql": "PRAGMA main.cache_size = 10;"
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.cache_size = 10;",
+          "database": "db1"
         }
       ]
     },
@@ -33,9 +107,10 @@
       "name": "shared3-2.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA main.cache_size",
-          "expect": "10"
+          "expect": "10",
+          "database": "db1"
         }
       ]
     },
@@ -43,9 +118,15 @@
       "name": "shared3-2.3",
       "steps": [
         {
-          "type": "query",
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
           "sql": "PRAGMA main.cache_size",
-          "expect": "10"
+          "expect": "10",
+          "database": "db1"
         }
       ]
     },
@@ -53,9 +134,10 @@
       "name": "shared3-2.4",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA main.cache_size",
-          "expect": "10"
+          "expect": "10",
+          "database": "db2"
         }
       ]
     },
@@ -63,9 +145,10 @@
       "name": "shared3-2.5",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA main.cache_size",
-          "expect": "10"
+          "expect": "10",
+          "database": "db1"
         }
       ]
     },
@@ -73,9 +156,15 @@
       "name": "shared3-2.6",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_named_db",
+          "sql": "file:./test.db?cache=private",
+          "database": "db3"
+        },
+        {
+          "type": "catch",
           "sql": "select count(*) from sqlite_master",
-          "expect": "0 1"
+          "expect": "0 1",
+          "database": "db3"
         }
       ]
     },
@@ -84,7 +173,14 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(10, randomblob(5000))"
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(10, randomblob(5000))",
+          "database": "db1"
+        },
+        {
+          "type": "catch",
+          "sql": "select count(*) from sqlite_master",
+          "expect": "0 1",
+          "database": "db3"
         }
       ]
     },
@@ -92,80 +188,115 @@
       "name": "shared3-2.8",
       "steps": [
         {
+          "type": "close_named_db",
+          "database": "db3"
+        },
+        {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(10, randomblob(10000))"
+          "sql": "INSERT INTO t1 VALUES(10, randomblob(10000))",
+          "database": "db1"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "file:./test.db?cache=private",
+          "database": "db3"
+        },
+        {
+          "type": "catch",
+          "sql": "select count(*) from sqlite_master",
+          "expect": "1 {database is locked}",
+          "database": "db3"
         }
       ]
     },
     {
-      "name": "3.2",
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db1"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db3"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "shared3-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 2;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(randomblob(500), randomblob(500));\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "shared3-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM sqlite_master",
+          "expect": "1",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "shared3-3.3",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM sqlite_master",
-          "expect": "1"
+          "sql": "BEGIN;\n    DELETE FROM t1 WHERE 1;\n    PRAGMA incremental_vacuum;"
         }
       ]
     },
     {
-      "name": "3.4",
+      "name": "shared3-3.4",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT count(*) FROM sqlite_master",
-          "expect": "1"
+          "expect": "1",
+          "database": "db2"
         }
       ]
     },
     {
-      "name": "3.5",
+      "name": "shared3-3.5",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "COMMIT"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA main.cache_size = 10;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA main.cache_size"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA main.cache_size"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA main.cache_size"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA main.cache_size"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(10, randomblob(5000))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(10, randomblob(10000))"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM sqlite_master"
-        },
         {
           "type": "exec",
           "sql": "COMMIT"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

@@ -1,49 +1,197 @@
 {
   "file": "thread002.test",
   "name": "thread002",
+  "ordered": true,
   "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test0.db"
+        }
+      ]
+    },
     {
       "name": "thread002.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(k, v);\n      CREATE INDEX t1_i ON t1(v);\n      INSERT INTO t1(v) VALUES(1.0);"
+          "type": "reopen_db",
+          "sql": "test0.db"
         },
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(k, v);\n      CREATE INDEX t1_i ON t1(v);\n      INSERT INTO t1(v) VALUES(1.0);"
         },
         {
-          "type": "exec",
-          "sql": "SELECT * FROM aux1.t1"
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test1.db"
+        }
+      ]
+    },
+    {
+      "name": "thread002.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test1.db"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO aux1.t1(v) SELECT sum(v) FROM aux2.t1"
+          "sql": "CREATE TABLE t1(k, v);\n      CREATE INDEX t1_i ON t1(v);\n      INSERT INTO t1(v) VALUES(1.0);"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db"
+        }
+      ]
+    },
+    {
+      "name": "thread002.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test2.db"
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM aux2.t1"
+          "sql": "CREATE TABLE t1(k, v);\n      CREATE INDEX t1_i ON t1(v);\n      INSERT INTO t1(v) VALUES(1.0);"
         },
         {
-          "type": "exec",
-          "sql": "INSERT INTO aux2.t1(v) SELECT sum(v) FROM aux3.t1"
-        },
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "thread002.2.0",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM aux3.t1"
-        },
+          "type": "runtime_var",
+          "variable": "finished($i)",
+          "expect": "OK"
+        }
+      ]
+    },
+    {
+      "name": "thread002.2.1",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "INSERT INTO aux3.t1(v) SELECT sum(v) FROM aux1.t1"
-        },
+          "type": "runtime_var",
+          "variable": "finished($i)",
+          "expect": "OK"
+        }
+      ]
+    },
+    {
+      "name": "thread002.2.2",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE IF NOT EXISTS aux1.t2(a,b)"
-        },
+          "type": "runtime_var",
+          "variable": "finished($i)",
+          "expect": "OK"
+        }
+      ]
+    },
+    {
+      "name": "thread002.2.3",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "DROP TABLE IF EXISTS aux1.t2"
+          "type": "runtime_var",
+          "variable": "finished($i)",
+          "expect": "OK"
+        }
+      ]
+    },
+    {
+      "name": "thread002.2.4",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "finished($i)",
+          "expect": "OK"
+        }
+      ]
+    },
+    {
+      "name": "thread002.2.5",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "finished($i)",
+          "expect": "OK"
+        }
+      ]
+    },
+    {
+      "name": "thread002.2.6",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "finished($i)",
+          "expect": "OK"
+        }
+      ]
+    },
+    {
+      "name": "thread002.2.7",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "finished($i)",
+          "expect": "OK"
+        }
+      ]
+    },
+    {
+      "name": "thread002.2.8",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "finished($i)",
+          "expect": "OK"
+        }
+      ]
+    },
+    {
+      "name": "thread002.2.9",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "finished($i)",
+          "expect": "OK"
+        }
+      ]
+    },
+    {
+      "name": "thread002.3.0",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test0.db"
         },
         {
           "type": "exec",
@@ -52,9 +200,54 @@
         {
           "type": "exec",
           "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "close_db",
+          "expect": "1001 ok"
+        }
+      ]
+    },
+    {
+      "name": "thread002.3.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test1.db"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "close_db",
+          "expect": "1001 ok"
+        }
+      ]
+    },
+    {
+      "name": "thread002.3.2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test2.db"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "close_db",
+          "expect": "1001 ok"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

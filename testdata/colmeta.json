@@ -1,14 +1,11 @@
 {
   "file": "colmeta.test",
   "name": "colmeta",
+  "ordered": true,
   "tests": [
     {
       "name": "colmeta-0",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE abc(a, b, c);\n    CREATE TABLE abc2(a PRIMARY KEY COLLATE NOCASE, b VARCHAR(32), c);\n    CREATE TABLE abc3(a NOT NULL, b INTEGER PRIMARY KEY, c);\n    CREATE TABLE abc5(w,x,y,z,PRIMARY KEY(x,z)) WITHOUT ROWID;\n    CREATE TABLE abc6(rowid TEXT COLLATE rtrim, oid REAL, _rowid_ BLOB);"
-        },
         {
           "type": "exec",
           "sql": "CREATE TABLE abc(a, b, c);\n    CREATE TABLE abc2(a PRIMARY KEY COLLATE NOCASE, b VARCHAR(32), c);\n    CREATE TABLE abc3(a NOT NULL, b INTEGER PRIMARY KEY, c);\n    CREATE TABLE abc5(w,x,y,z,PRIMARY KEY(x,z)) WITHOUT ROWID;\n    CREATE TABLE abc6(rowid TEXT COLLATE rtrim, oid REAL, _rowid_ BLOB);"
@@ -24,13 +21,177 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "setup_0",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

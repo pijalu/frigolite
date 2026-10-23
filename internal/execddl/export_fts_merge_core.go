@@ -39,9 +39,6 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) error {
 	if blob := e.readFTSStatRow(tableName, 1); blob != nil {
 		r.hintList = ftsParseHintList(blob)
 	}
-	for _, h := range r.hintList {
-		println("  hint level:", h.level, "nseg:", h.nSeg)
-	}
 	// Loop over levels: consume a level, then move up (SQLite's outer while
 	// loop in sqlite3Fts3Incrmerge). nMerge is the leaf-page quota; the quota
 	// (nRem) decreases by (1 + leaf pages written) each iteration and the

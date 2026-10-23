@@ -4,6 +4,46 @@
   "ordered": true,
   "tests": [
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "bestindexC",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "bestindexC"
+          },
+          "callbackProcs": [
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "lVal",
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE t1(a)\"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set clist [$hdl constraints]\n      set orderby [$hdl orderby]\n\n      set idxstr [list]\n      set res [list]\n\n      set idx 0\n      foreach c $clist {\n        array set a $c\n        if {$a(usable)==0} continue\n        if {$a(op)==\"limit\" \u0026\u0026 ![info exists ::do_not_use_limit]} { \n          lappend idxstr limit\n          lappend res omit $idx\n        }\n        if {$a(op)==\"offset\" \u0026\u0026 ![info exists ::do_not_use_offset]} { \n          lappend idxstr offset\n          lappend res omit $idx\n        }\n        incr idx\n      }\n\n      return \"cost 1000000 rows 1000000 idxnum 0 idxstr {$idxstr} $res\"\n    }\n\n    xFilter {\n      set idxstr [lindex $args 1]\n      set LIMIT \"\"\n      foreach a $idxstr b [lindex $args 2] {\n        set x($a) $b\n      }\n\n      if {![info exists x(limit)]} { set x(limit) -1 }\n      if {![info exists x(offset)]} { set x(offset) -1 }\n      set LIMIT \" LIMIT $x(limit) OFFSET $x(offset)\"\n\n      set idx 1\n      foreach v $lVal {\n        lappend lRow \"($idx, '$v')\"\n        incr idx\n      }\n\n      return [list sql \"\n        SELECT * FROM ( VALUES [join $lRow ,]) $LIMIT\n      \"]\n    }\n  }\n\n  return {}\n",
+              "Defaults": null
+            },
+            {
+              "Name": "quote",
+              "Args": [
+                "str"
+              ],
+              "Body": "\n  return \"'[string map {' ''} $str]'\"\n",
+              "Defaults": null
+            }
+          ],
+          "moduleArgs": [
+            "db"
+          ]
+        }
+      ]
+    },
+    {
       "name": "bestindexC-1.0",
       "steps": [
         {
@@ -18,10 +58,17 @@
         {
           "type": "exec",
           "sql": "CREATE TEMP TABLE t_unionall AS \n    SELECT * FROM x1 UNION ALL SELECT * FROM x2;\n\n  CREATE TEMP TABLE t_intersect AS \n    SELECT * FROM x1 INTERSECT SELECT * FROM x2;\n\n  CREATE TEMP TABLE t_union AS \n    SELECT * FROM x1 UNION SELECT * FROM x2;\n\n  CREATE TEMP TABLE t_except AS \n    SELECT * FROM x1 EXCEPT SELECT * FROM x2;"
-        },
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t_unionall LIMIT 8"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t_unionall LIMIT 8",
+          "variable": "expect",
+          "resultAll": true
         }
       ]
     },
@@ -31,11 +78,18 @@
         {
           "type": "query",
           "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION ALL SELECT * FROM x2\n    ) LIMIT 8",
-          "expect": "bestindexC"
-        },
+          "expectedExpr": "$expect"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t_union LIMIT 8"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t_union LIMIT 8",
+          "variable": "expect",
+          "resultAll": true
         }
       ]
     },
@@ -45,11 +99,18 @@
         {
           "type": "query",
           "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION SELECT * FROM x2\n    ) LIMIT 8",
-          "expect": "bestindexC"
-        },
+          "expectedExpr": "$expect"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t_intersect LIMIT 8"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t_intersect LIMIT 8",
+          "variable": "expect",
+          "resultAll": true
         }
       ]
     },
@@ -59,11 +120,18 @@
         {
           "type": "query",
           "sql": "SELECT * FROM (\n      SELECT * FROM x1 INTERSECT SELECT * FROM x2\n    ) LIMIT 8",
-          "expect": "bestindexC"
-        },
+          "expectedExpr": "$expect"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t_except LIMIT 8"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t_except LIMIT 8",
+          "variable": "expect",
+          "resultAll": true
         }
       ]
     },
@@ -73,11 +141,18 @@
         {
           "type": "query",
           "sql": "SELECT * FROM (\n      SELECT * FROM x1 EXCEPT SELECT * FROM x2\n    ) LIMIT 8",
-          "expect": "bestindexC"
-        },
+          "expectedExpr": "$expect"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t_unionall LIMIT 4"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t_unionall LIMIT 4",
+          "variable": "expect",
+          "resultAll": true
         }
       ]
     },
@@ -87,11 +162,18 @@
         {
           "type": "query",
           "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION ALL SELECT * FROM x2\n    ) LIMIT 4",
-          "expect": "bestindexC"
-        },
+          "expectedExpr": "$expect"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t_union LIMIT 4"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t_union LIMIT 4",
+          "variable": "expect",
+          "resultAll": true
         }
       ]
     },
@@ -101,11 +183,18 @@
         {
           "type": "query",
           "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION SELECT * FROM x2\n    ) LIMIT 4",
-          "expect": "bestindexC"
-        },
+          "expectedExpr": "$expect"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t_intersect LIMIT 4"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t_intersect LIMIT 4",
+          "variable": "expect",
+          "resultAll": true
         }
       ]
     },
@@ -115,11 +204,18 @@
         {
           "type": "query",
           "sql": "SELECT * FROM (\n      SELECT * FROM x1 INTERSECT SELECT * FROM x2\n    ) LIMIT 4",
-          "expect": "bestindexC"
-        },
+          "expectedExpr": "$expect"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t_except LIMIT 4"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t_except LIMIT 4",
+          "variable": "expect",
+          "resultAll": true
         }
       ]
     },
@@ -129,11 +225,18 @@
         {
           "type": "query",
           "sql": "SELECT * FROM (\n      SELECT * FROM x1 EXCEPT SELECT * FROM x2\n    ) LIMIT 4",
-          "expect": "bestindexC"
-        },
+          "expectedExpr": "$expect"
+        }
+      ]
+    },
+    {
+      "name": "setup_9",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t_unionall LIMIT 4 OFFSET 2"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t_unionall LIMIT 4 OFFSET 2",
+          "variable": "expect",
+          "resultAll": true
         }
       ]
     },
@@ -143,11 +246,18 @@
         {
           "type": "query",
           "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION ALL SELECT * FROM x2\n    ) LIMIT 4 OFFSET 2",
-          "expect": "bestindexC"
-        },
+          "expectedExpr": "$expect"
+        }
+      ]
+    },
+    {
+      "name": "setup_10",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t_union LIMIT 4 OFFSET 2"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t_union LIMIT 4 OFFSET 2",
+          "variable": "expect",
+          "resultAll": true
         }
       ]
     },
@@ -157,11 +267,18 @@
         {
           "type": "query",
           "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION SELECT * FROM x2\n    ) LIMIT 4 OFFSET 2",
-          "expect": "bestindexC"
-        },
+          "expectedExpr": "$expect"
+        }
+      ]
+    },
+    {
+      "name": "setup_11",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t_intersect LIMIT 4 OFFSET 2"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t_intersect LIMIT 4 OFFSET 2",
+          "variable": "expect",
+          "resultAll": true
         }
       ]
     },
@@ -171,11 +288,18 @@
         {
           "type": "query",
           "sql": "SELECT * FROM (\n      SELECT * FROM x1 INTERSECT SELECT * FROM x2\n    ) LIMIT 4 OFFSET 2",
-          "expect": "bestindexC"
-        },
+          "expectedExpr": "$expect"
+        }
+      ]
+    },
+    {
+      "name": "setup_12",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t_except LIMIT 4 OFFSET 2"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t_except LIMIT 4 OFFSET 2",
+          "variable": "expect",
+          "resultAll": true
         }
       ]
     },
@@ -185,11 +309,18 @@
         {
           "type": "query",
           "sql": "SELECT * FROM (\n      SELECT * FROM x1 EXCEPT SELECT * FROM x2\n    ) LIMIT 4 OFFSET 2",
-          "expect": "bestindexC"
-        },
+          "expectedExpr": "$expect"
+        }
+      ]
+    },
+    {
+      "name": "setup_13",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t_unionall LIMIT 8 OFFSET 4"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t_unionall LIMIT 8 OFFSET 4",
+          "variable": "expect",
+          "resultAll": true
         }
       ]
     },
@@ -199,11 +330,18 @@
         {
           "type": "query",
           "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION ALL SELECT * FROM x2\n    ) LIMIT 8 OFFSET 4",
-          "expect": "bestindexC"
-        },
+          "expectedExpr": "$expect"
+        }
+      ]
+    },
+    {
+      "name": "setup_14",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t_union LIMIT 8 OFFSET 4"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t_union LIMIT 8 OFFSET 4",
+          "variable": "expect",
+          "resultAll": true
         }
       ]
     },
@@ -213,11 +351,18 @@
         {
           "type": "query",
           "sql": "SELECT * FROM (\n      SELECT * FROM x1 UNION SELECT * FROM x2\n    ) LIMIT 8 OFFSET 4",
-          "expect": "bestindexC"
-        },
+          "expectedExpr": "$expect"
+        }
+      ]
+    },
+    {
+      "name": "setup_15",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t_intersect LIMIT 8 OFFSET 4"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t_intersect LIMIT 8 OFFSET 4",
+          "variable": "expect",
+          "resultAll": true
         }
       ]
     },
@@ -227,11 +372,18 @@
         {
           "type": "query",
           "sql": "SELECT * FROM (\n      SELECT * FROM x1 INTERSECT SELECT * FROM x2\n    ) LIMIT 8 OFFSET 4",
-          "expect": "bestindexC"
-        },
+          "expectedExpr": "$expect"
+        }
+      ]
+    },
+    {
+      "name": "setup_16",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t_except LIMIT 8 OFFSET 4"
+          "type": "query_assign",
+          "sql": "SELECT * FROM t_except LIMIT 8 OFFSET 4",
+          "variable": "expect",
+          "resultAll": true
         }
       ]
     },
@@ -241,13 +393,58 @@
         {
           "type": "query",
           "sql": "SELECT * FROM (\n      SELECT * FROM x1 EXCEPT SELECT * FROM x2\n    ) LIMIT 8 OFFSET 4",
-          "expect": "bestindexC"
+          "expectedExpr": "$expect"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
       "steps": null
+    },
+    {
+      "name": "setup_17",
+      "steps": [
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "$expect",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "expect": "$expect",
+            "limit": "LIMIT 8 OFFSET 4",
+            "op": "EXCEPT",
+            "tbl": "t_except",
+            "testdir": "",
+            "testprefix": "bestindexC",
+            "tn": "4"
+          },
+          "callbackProcs": [
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "lVal",
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE t1(a)\"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set clist [$hdl constraints]\n      set orderby [$hdl orderby]\n\n      set idxstr [list]\n      set res [list]\n\n      set idx 0\n      foreach c $clist {\n        array set a $c\n        if {$a(usable)==0} continue\n        if {$a(op)==\"limit\" \u0026\u0026 ![info exists ::do_not_use_limit]} { \n          lappend idxstr limit\n          lappend res omit $idx\n        }\n        if {$a(op)==\"offset\" \u0026\u0026 ![info exists ::do_not_use_offset]} { \n          lappend idxstr offset\n          lappend res omit $idx\n        }\n        incr idx\n      }\n\n      return \"cost 1000000 rows 1000000 idxnum 0 idxstr {$idxstr} $res\"\n    }\n\n    xFilter {\n      set idxstr [lindex $args 1]\n      set LIMIT \"\"\n      foreach a $idxstr b [lindex $args 2] {\n        set x($a) $b\n      }\n\n      if {![info exists x(limit)]} { set x(limit) -1 }\n      if {![info exists x(offset)]} { set x(offset) -1 }\n      set LIMIT \" LIMIT $x(limit) OFFSET $x(offset)\"\n\n      set idx 1\n      foreach v $lVal {\n        lappend lRow \"($idx, '$v')\"\n        incr idx\n      }\n\n      return [list sql \"\n        SELECT * FROM ( VALUES [join $lRow ,]) $LIMIT\n      \"]\n    }\n  }\n\n  return {}\n",
+              "Defaults": null
+            },
+            {
+              "Name": "quote",
+              "Args": [
+                "str"
+              ],
+              "Body": "\n  return \"'[string map {' ''} $str]'\"\n",
+              "Defaults": null
+            }
+          ],
+          "moduleArgs": [
+            "db"
+          ]
+        }
+      ]
     },
     {
       "name": "bestindexC-2.0",
@@ -271,6 +468,51 @@
     {
       "name": "__RESET_DB__",
       "steps": null
+    },
+    {
+      "name": "setup_18",
+      "steps": [
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "$expect",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "expect": "$expect",
+            "limit": "LIMIT 8 OFFSET 4",
+            "op": "EXCEPT",
+            "tbl": "t_except",
+            "testdir": "",
+            "testprefix": "bestindexC",
+            "tn": "4"
+          },
+          "callbackProcs": [
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "lVal",
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE t1(a)\"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set clist [$hdl constraints]\n      set orderby [$hdl orderby]\n\n      set idxstr [list]\n      set res [list]\n\n      set idx 0\n      foreach c $clist {\n        array set a $c\n        if {$a(usable)==0} continue\n        if {$a(op)==\"limit\" \u0026\u0026 ![info exists ::do_not_use_limit]} { \n          lappend idxstr limit\n          lappend res omit $idx\n        }\n        if {$a(op)==\"offset\" \u0026\u0026 ![info exists ::do_not_use_offset]} { \n          lappend idxstr offset\n          lappend res omit $idx\n        }\n        incr idx\n      }\n\n      return \"cost 1000000 rows 1000000 idxnum 0 idxstr {$idxstr} $res\"\n    }\n\n    xFilter {\n      set idxstr [lindex $args 1]\n      set LIMIT \"\"\n      foreach a $idxstr b [lindex $args 2] {\n        set x($a) $b\n      }\n\n      if {![info exists x(limit)]} { set x(limit) -1 }\n      if {![info exists x(offset)]} { set x(offset) -1 }\n      set LIMIT \" LIMIT $x(limit) OFFSET $x(offset)\"\n\n      set idx 1\n      foreach v $lVal {\n        lappend lRow \"($idx, '$v')\"\n        incr idx\n      }\n\n      return [list sql \"\n        SELECT * FROM ( VALUES [join $lRow ,]) $LIMIT\n      \"]\n    }\n  }\n\n  return {}\n",
+              "Defaults": null
+            },
+            {
+              "Name": "quote",
+              "Args": [
+                "str"
+              ],
+              "Body": "\n  return \"'[string map {' ''} $str]'\"\n",
+              "Defaults": null
+            }
+          ],
+          "moduleArgs": [
+            "db"
+          ]
+        }
+      ]
     },
     {
       "name": "bestindexC-3.0",
@@ -346,6 +588,51 @@
       "steps": null
     },
     {
+      "name": "setup_19",
+      "steps": [
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "expect": "$expect",
+            "limit": "LIMIT 8 OFFSET 4",
+            "op": "EXCEPT",
+            "tbl": "t_except",
+            "testdir": "",
+            "testprefix": "bestindexC",
+            "tn": "4"
+          },
+          "callbackProcs": [
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "lVal",
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect { error \"not happy!\" }\n  }\n\n  return {}\n",
+              "Defaults": null
+            },
+            {
+              "Name": "quote",
+              "Args": [
+                "str"
+              ],
+              "Body": "\n  return \"'[string map {' ''} $str]'\"\n",
+              "Defaults": null
+            }
+          ],
+          "moduleArgs": [
+            "db"
+          ]
+        }
+      ]
+    },
+    {
       "name": "bestindexC-4.0",
       "steps": [
         {
@@ -390,6 +677,51 @@
       "steps": null
     },
     {
+      "name": "setup_20",
+      "steps": [
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "expect": "$expect",
+            "limit": "LIMIT 8 OFFSET 4",
+            "op": "EXCEPT",
+            "tbl": "t_except",
+            "testdir": "",
+            "testprefix": "bestindexC",
+            "tn": "4"
+          },
+          "callbackProcs": [
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "lVal",
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return $lVal\n    }\n  }\n  return {}\n",
+              "Defaults": null
+            },
+            {
+              "Name": "quote",
+              "Args": [
+                "str"
+              ],
+              "Body": "\n  return \"'[string map {' ''} $str]'\"\n",
+              "Defaults": null
+            }
+          ],
+          "moduleArgs": [
+            "db"
+          ]
+        }
+      ]
+    },
+    {
       "name": "bestindexC-5.1",
       "steps": [
         {
@@ -404,6 +736,7 @@
         {
           "type": "catch",
           "sql": "SELECT * FROM x1 WHERE a=? AND b=? AND c=? AND c=?",
+          "catchMessage": "msg",
           "expect": "0"
         }
       ]
@@ -414,6 +747,7 @@
         {
           "type": "catch",
           "sql": "SELECT * FROM x1 WHERE a=? AND b=? AND c=?",
+          "catchMessage": "msg",
           "expect": "0"
         }
       ]
@@ -424,6 +758,7 @@
         {
           "type": "catch",
           "sql": "SELECT * FROM x1 WHERE a=? AND b=? AND (c=? OR c=?)",
+          "catchMessage": "msg",
           "expect": "0"
         }
       ]
@@ -434,6 +769,7 @@
         {
           "type": "catch",
           "sql": "SELECT * FROM x1 WHERE a=? AND b=? AND (c=? OR c=? OR c=?)",
+          "catchMessage": "msg",
           "expect": "0"
         }
       ]
@@ -444,6 +780,7 @@
         {
           "type": "catch",
           "sql": "SELECT * FROM x1 WHERE a=? AND b=? AND (c IS ? OR c IS ?)",
+          "catchMessage": "msg",
           "expect": "0"
         }
       ]
@@ -454,6 +791,7 @@
         {
           "type": "catch",
           "sql": "SELECT * FROM x1 WHERE a=? AND ((b=? AND c=?) OR (c=? AND b=?))",
+          "catchMessage": "msg",
           "expect": "0"
         }
       ]
@@ -464,6 +802,7 @@
         {
           "type": "catch",
           "sql": "SELECT * FROM x1 WHERE a=? AND ((b=? AND c=?) OR (c=?))",
+          "catchMessage": "msg",
           "expect": "1"
         }
       ]
@@ -539,6 +878,54 @@
     {
       "name": "__RESET_DB__",
       "steps": null
+    },
+    {
+      "name": "setup_21",
+      "steps": [
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "$__catch_result",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "expect": "$expect",
+            "limit": "LIMIT 8 OFFSET 4",
+            "msg": "$msg",
+            "ok": "0",
+            "op": "EXCEPT",
+            "tbl": "t_except",
+            "testdir": "",
+            "testprefix": "bestindexC",
+            "tn": "6",
+            "where": "WHERE a=? AND ((b=? AND c=?) OR (c=?))"
+          },
+          "callbackProcs": [
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "lVal",
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE t1(a, b, c, d)\"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set clist [$hdl constraints]\n\n      set res [list]\n      set idx 0\n      set idxnum 0\n\n      set cols(0) a\n      set cols(1) b\n      set cols(2) c\n\n      set lCons [list]\n\n      foreach c $clist {\n        array set a $c\n        if {$a(usable)==0} continue\n\n        if {($a(op)==\"eq\" || $a(op)==\"is\") \u0026\u0026 [info exists cols($a(column))]} {\n          lappend res omit $idx\n          set coll [$hdl collation $idx]\n          lappend lCons \"$cols($a(column)) = %[llength $lCons]% COLLATE $coll\"\n\n          set idxnum [expr {$idx + (1 \u003c\u003c $a(column))}]\n          catch { unset cols($a(column)) }\n        }\n\n        incr idx\n      }\n\n      if {[llength [array names cols]]\u003e0} {\n        set missing [list]\n        for {set i 0} {$i \u003c 3} {incr i} {\n          catch { lappend missing $cols($i) }\n        }\n        set msg \"missing required constraints: [join $missing ,]\"\n        return [list constraint $msg]\n      }\n\n      set idxstr [join $lCons \" AND \"]\n      return \"cost 1000 rows 1000 idxnum $idxnum $res idxstr {$idxstr}\"\n    }\n\n    xFilter {\n      foreach {idxnum idxstr lArg} $args {}\n      set i 0\n      set where $idxstr\n      foreach a $lArg {\n        set where [string map [list %$i% [quote $a]] $where]\n        incr i\n      }\n   #   puts $where\n      return [list sql \"SELECT rowid, * FROM $lVal WHERE $where\"]\n    }\n  }\n\n  return {}\n",
+              "Defaults": null
+            },
+            {
+              "Name": "quote",
+              "Args": [
+                "str"
+              ],
+              "Body": "\n  return \"'[string map {' ''} $str]'\"\n",
+              "Defaults": null
+            }
+          ],
+          "moduleArgs": [
+            "db"
+          ]
+        }
+      ]
     },
     {
       "name": "bestindexC-6.0",

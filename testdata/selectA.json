@@ -1,173 +1,13 @@
 {
   "file": "selectA.test",
   "name": "selectA",
+  "ordered": true,
   "tests": [
-    {
-      "name": "selectA-3.98",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "WITH RECURSIVE\n    xyz(n) AS (\n      SELECT upper((SELECT x FROM (\n        SELECT x,y,z FROM t2\n        INTERSECT SELECT a,b,c FROM t3\n        EXCEPT SELECT c,b,a FROM t1\n        UNION SELECT a,b,c FROM t3\n        INTERSECT SELECT a,b,c FROM t3\n        EXCEPT SELECT c,b,a FROM t1\n        UNION SELECT a,b,c FROM t3\n        ORDER BY y COLLATE NOCASE DESC,x,z)))\n      UNION ALL\n      SELECT n || '+' FROM xyz WHERE length(n)<5\n    )\n  SELECT n FROM xyz ORDER BY +n;"
-        }
-      ]
-    },
-    {
-      "name": "4.1.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t4(a, b);\n  CREATE TABLE t5(c, d);\n\n  INSERT INTO t5 VALUES(1, 'x');\n  INSERT INTO t5 VALUES(2, 'x');\n  INSERT INTO t4 VALUES(3, 'x');\n  INSERT INTO t4 VALUES(4, 'x');\n\n  CREATE INDEX i1 ON t4(a);\n  CREATE INDEX i2 ON t5(c);"
-        }
-      ]
-    },
-    {
-      "name": "4.1.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT c, d FROM t5 \n  UNION ALL\n  SELECT a, b FROM t4 WHERE f()==f()\n  ORDER BY 1,2",
-          "expect": "1 x 2 x 3 x 4 x"
-        }
-      ]
-    },
-    {
-      "name": "4.2.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t6(a, b);\n  CREATE TABLE t7(c, d);\n\n  INSERT INTO t7 VALUES(2, 9);\n  INSERT INTO t6 VALUES(3, 0);\n  INSERT INTO t6 VALUES(4, 1);\n  INSERT INTO t7 VALUES(5, 6);\n  INSERT INTO t6 VALUES(6, 0);\n  INSERT INTO t7 VALUES(7, 6);\n\n  CREATE INDEX i6 ON t6(a);\n  CREATE INDEX i7 ON t7(c);"
-        }
-      ]
-    },
-    {
-      "name": "4.2.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT c, f(d,c,d,c,d) FROM t7\n  UNION ALL\n  SELECT a, b FROM t6 \n  ORDER BY 1,2",
-          "expect": "/2 . 3 . 4 . 5 . 6 . 7 ./"
-        }
-      ]
-    },
-    {
-      "name": "5.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t8(a, b);\n  CREATE TABLE t9(c, d);"
-        }
-      ]
-    },
-    {
-      "name": "5.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t8 UNION SELECT * FROM t9 ORDER BY a+b COLLATE NOCASE",
-          "expect": "1 {1st ORDER BY term does not match any column in the result set}"
-        }
-      ]
-    },
-    {
-      "name": "6.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a INTEGER);\n  CREATE TABLE t2(b TEXT);\n  INSERT INTO t2(b) VALUES('12345');\n  SELECT * FROM (SELECT a FROM t1 UNION SELECT b FROM t2) WHERE a=a;",
-          "expect": "12345"
-        }
-      ]
-    },
-    {
-      "name": "7.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(c1);     INSERT INTO t1 VALUES(12),(123),(1234),(NULL),('abc');\n  CREATE TABLE t2(c2);     INSERT INTO t2 VALUES(44),(55),(123);\n  CREATE TABLE t3(c3,c4);  INSERT INTO t3 VALUES(66,1),(123,2),(77,3);\n  CREATE VIEW t4 AS SELECT c3 FROM t3;\n  CREATE VIEW t5 AS SELECT c3 FROM t3 ORDER BY c4;"
-        }
-      ]
-    },
-    {
-      "name": "7.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t1, t2 WHERE c1=(SELECT 123 INTERSECT SELECT c2 FROM t4) AND c1=123;",
-          "expect": "123 123"
-        }
-      ]
-    },
-    {
-      "name": "7.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t1, t2 WHERE c1=(SELECT 123 INTERSECT SELECT c2 FROM t5) AND c1=123;",
-          "expect": "123 123"
-        }
-      ]
-    },
-    {
-      "name": "7.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE a(b);\n  CREATE VIEW c(d) AS SELECT b FROM a ORDER BY b;\n  SELECT sum(d) OVER( PARTITION BY(SELECT 0 FROM c JOIN a WHERE b =(SELECT b INTERSECT SELECT d FROM c) AND b = 123)) FROM c;"
-        }
-      ]
-    },
-    {
-      "name": "8.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE x1(x);\n  CREATE TABLE t1(a, b, c, d);\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b);"
-        }
-      ]
-    },
-    {
-      "name": "8.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT 'ABCD' FROM t1 \n      WHERE (a=? OR b=?) \n      AND (0 OR (SELECT 'xyz' INTERSECT SELECT a ORDER BY 1))"
-        }
-      ]
-    },
-    {
-      "name": "9.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a COLLATE nocase);\n  CREATE TABLE t2(b COLLATE nocase);\n\n  INSERT INTO t1 VALUES('ABC');\n  INSERT INTO t2 VALUES('abc');"
-        }
-      ]
-    },
-    {
-      "name": "9.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM t1 INTERSECT SELECT b FROM t2;",
-          "expect": "ABC"
-        }
-      ]
-    },
-    {
-      "name": "9.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM (\n      SELECT a FROM t1 INTERSECT SELECT b FROM t2\n  ) WHERE a||'' = 'ABC';",
-          "expect": "ABC"
-        }
-      ]
-    },
     {
       "name": "selectA-1.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "CREATE TABLE t1(a,b,c COLLATE NOCASE);\n    INSERT INTO t1 VALUES(1,'a','a');\n    INSERT INTO t1 VALUES(9.9, 'b', 'B');\n    INSERT INTO t1 VALUES(NULL, 'C', 'c');\n    INSERT INTO t1 VALUES('hello', 'd', 'D');\n    INSERT INTO t1 VALUES(x'616263', 'e', 'e');\n    SELECT * FROM t1;",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e"
         }
@@ -177,7 +17,7 @@
       "name": "selectA-1.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "CREATE TABLE t2(x,y,z COLLATE NOCASE);\n    INSERT INTO t2 VALUES(NULL,'U','u');\n    INSERT INTO t2 VALUES('mad', 'Z', 'z');\n    INSERT INTO t2 VALUES(x'68617265', 'm', 'M');\n    INSERT INTO t2 VALUES(5.2e6, 'X', 'x');\n    INSERT INTO t2 VALUES(-23, 'Y', 'y');\n    SELECT * FROM t2;",
           "expect": "{} U u mad Z z hare m M 5200000.0 X x -23 Y y"
         }
@@ -187,7 +27,7 @@
       "name": "selectA-1.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "CREATE TABLE t3(a,b,c COLLATE NOCASE);\n    INSERT INTO t3 SELECT * FROM t1;\n    INSERT INTO t3 SELECT * FROM t2;\n    INSERT INTO t3 SELECT * FROM t1;\n    INSERT INTO t3 SELECT * FROM t2;\n    INSERT INTO t3 SELECT * FROM t1;\n    INSERT INTO t3 SELECT * FROM t2;\n    SELECT count(*) FROM t3;",
           "expect": "30"
         }
@@ -197,7 +37,7 @@
       "name": "selectA-2.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a,b,c",
           "expect": "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
         }
@@ -207,7 +47,7 @@
       "name": "selectA-2.1.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT t1.a, t1.b, t1.c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a,b,c",
           "expect": "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
         }
@@ -217,7 +57,7 @@
       "name": "selectA-2.1.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY t1.a, t1.b, t1.c",
           "expect": "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
         }
@@ -227,7 +67,7 @@
       "name": "selectA-2.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a DESC,b,c",
           "expect": "hare m M abc e e mad Z z hello d D 5200000.0 X x 9.9 b B 1 a a -23 Y y {} C c {} U u"
         }
@@ -237,7 +77,7 @@
       "name": "selectA-2.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a,c,b",
           "expect": "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
         }
@@ -247,7 +87,7 @@
       "name": "selectA-2.4",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY b,a,c",
           "expect": "{} C c {} U u 5200000.0 X x -23 Y y mad Z z 1 a a 9.9 b B hello d D abc e e hare m M"
         }
@@ -257,7 +97,7 @@
       "name": "selectA-2.5",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE,a,c",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -267,7 +107,7 @@
       "name": "selectA-2.6",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE DESC,a,c",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
         }
@@ -277,7 +117,7 @@
       "name": "selectA-2.7",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c,b,a",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -287,7 +127,7 @@
       "name": "selectA-2.8",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c,a,b",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -297,7 +137,7 @@
       "name": "selectA-2.9",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c DESC,a,b",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
         }
@@ -307,7 +147,7 @@
       "name": "selectA-2.10",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c COLLATE BINARY DESC,a,b",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u abc e e {} C c 1 a a hare m M hello d D 9.9 b B"
         }
@@ -317,7 +157,7 @@
       "name": "selectA-2.11",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY a,b,c",
           "expect": "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
         }
@@ -327,7 +167,7 @@
       "name": "selectA-2.12",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY a DESC,b,c",
           "expect": "hare m M abc e e mad Z z hello d D 5200000.0 X x 9.9 b B 1 a a -23 Y y {} C c {} U u"
         }
@@ -337,7 +177,7 @@
       "name": "selectA-2.13",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY a,c,b",
           "expect": "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
         }
@@ -347,7 +187,7 @@
       "name": "selectA-2.14",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY b,a,c",
           "expect": "{} C c {} U u 5200000.0 X x -23 Y y mad Z z 1 a a 9.9 b B hello d D abc e e hare m M"
         }
@@ -357,7 +197,7 @@
       "name": "selectA-2.15",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY b COLLATE NOCASE,a,c",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -367,7 +207,7 @@
       "name": "selectA-2.16",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY b COLLATE NOCASE DESC,a,c",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
         }
@@ -377,7 +217,7 @@
       "name": "selectA-2.17",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c,b,a",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -387,7 +227,7 @@
       "name": "selectA-2.18",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c,a,b",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -397,7 +237,7 @@
       "name": "selectA-2.19",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c DESC,a,b",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
         }
@@ -407,7 +247,7 @@
       "name": "selectA-2.20",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c COLLATE BINARY DESC,a,b",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u abc e e {} C c 1 a a hare m M hello d D 9.9 b B"
         }
@@ -417,7 +257,7 @@
       "name": "selectA-2.21",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY a,b,c",
           "expect": "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
         }
@@ -427,7 +267,7 @@
       "name": "selectA-2.22",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY a DESC,b,c",
           "expect": "hare m M abc e e mad Z z hello d D 5200000.0 X x 9.9 b B 1 a a -23 Y y {} C c {} U u"
         }
@@ -437,7 +277,7 @@
       "name": "selectA-2.23",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY a,c,b",
           "expect": "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
         }
@@ -447,7 +287,7 @@
       "name": "selectA-2.24",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY b,a,c",
           "expect": "{} C c {} U u 5200000.0 X x -23 Y y mad Z z 1 a a 9.9 b B hello d D abc e e hare m M"
         }
@@ -457,7 +297,7 @@
       "name": "selectA-2.25",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE,a,c",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -467,7 +307,7 @@
       "name": "selectA-2.26",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE DESC,a,c",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
         }
@@ -477,7 +317,7 @@
       "name": "selectA-2.27",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c,b,a",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -487,7 +327,7 @@
       "name": "selectA-2.28",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c,a,b",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -497,7 +337,7 @@
       "name": "selectA-2.29",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c DESC,a,b",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
         }
@@ -507,7 +347,7 @@
       "name": "selectA-2.30",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c COLLATE BINARY DESC,a,b",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u abc e e {} C c 1 a a hare m M hello d D 9.9 b B"
         }
@@ -517,7 +357,7 @@
       "name": "selectA-2.31",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY a,b,c",
           "expect": "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
         }
@@ -527,7 +367,7 @@
       "name": "selectA-2.32",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY a DESC,b,c",
           "expect": "hare m M abc e e mad Z z hello d D 5200000.0 X x 9.9 b B 1 a a -23 Y y {} C c {} U u"
         }
@@ -537,7 +377,7 @@
       "name": "selectA-2.33",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY a,c,b",
           "expect": "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
         }
@@ -547,7 +387,7 @@
       "name": "selectA-2.34",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY b,a,c",
           "expect": "{} C c {} U u 5200000.0 X x -23 Y y mad Z z 1 a a 9.9 b B hello d D abc e e hare m M"
         }
@@ -557,7 +397,7 @@
       "name": "selectA-2.35",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY y COLLATE NOCASE,x,z",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -567,7 +407,7 @@
       "name": "selectA-2.36",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY y COLLATE NOCASE DESC,x,z",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
         }
@@ -577,7 +417,7 @@
       "name": "selectA-2.37",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY c,b,a",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -587,7 +427,7 @@
       "name": "selectA-2.38",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY c,a,b",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -597,7 +437,7 @@
       "name": "selectA-2.39",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY c DESC,a,b",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
         }
@@ -607,7 +447,7 @@
       "name": "selectA-2.40",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY z COLLATE BINARY DESC,x,y",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u abc e e {} C c 1 a a hare m M hello d D 9.9 b B"
         }
@@ -617,8 +457,8 @@
       "name": "selectA-2.41",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a,b,c",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b\u003e='d'\n    ORDER BY a,b,c",
           "expect": "{} C c 1 a a 9.9 b B"
         }
       ]
@@ -627,8 +467,8 @@
       "name": "selectA-2.42",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a,b,c",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b\u003e='d'\n    ORDER BY a,b,c",
           "expect": "hello d D abc e e"
         }
       ]
@@ -637,8 +477,8 @@
       "name": "selectA-2.43",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a,b,c",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 WHERE b\u003e='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a,b,c",
           "expect": "hello d D abc e e"
         }
       ]
@@ -647,8 +487,8 @@
       "name": "selectA-2.44",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a,b,c",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b\u003c'd'\n    ORDER BY a,b,c",
           "expect": "hello d D abc e e"
         }
       ]
@@ -657,8 +497,8 @@
       "name": "selectA-2.45",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a,b,c",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b\u003c'd'\n    ORDER BY a,b,c",
           "expect": "{} C c 1 a a 9.9 b B"
         }
       ]
@@ -667,8 +507,8 @@
       "name": "selectA-2.46",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a,b,c",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 WHERE b\u003c'd' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a,b,c",
           "expect": "{} C c 1 a a 9.9 b B"
         }
       ]
@@ -677,8 +517,8 @@
       "name": "selectA-2.47",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a DESC",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b\u003e='d'\n    ORDER BY a DESC",
           "expect": "9.9 b B 1 a a {} C c"
         }
       ]
@@ -687,8 +527,8 @@
       "name": "selectA-2.48",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a DESC",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b\u003e='d'\n    ORDER BY a DESC",
           "expect": "abc e e hello d D"
         }
       ]
@@ -697,8 +537,8 @@
       "name": "selectA-2.49",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a DESC",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 WHERE b\u003e='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a DESC",
           "expect": "abc e e hello d D"
         }
       ]
@@ -707,8 +547,8 @@
       "name": "selectA-2.50",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a DESC",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b\u003c'd'\n    ORDER BY a DESC",
           "expect": "abc e e hello d D"
         }
       ]
@@ -717,8 +557,8 @@
       "name": "selectA-2.51",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a DESC",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b\u003c'd'\n    ORDER BY a DESC",
           "expect": "9.9 b B 1 a a {} C c"
         }
       ]
@@ -727,8 +567,8 @@
       "name": "selectA-2.52",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a DESC",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 WHERE b\u003c'd' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a DESC",
           "expect": "9.9 b B 1 a a {} C c"
         }
       ]
@@ -737,8 +577,8 @@
       "name": "selectA-2.53",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY b, a DESC",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b\u003e='d'\n    ORDER BY b, a DESC",
           "expect": "{} C c 1 a a 9.9 b B"
         }
       ]
@@ -747,8 +587,8 @@
       "name": "selectA-2.54",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY b",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b\u003e='d'\n    ORDER BY b",
           "expect": "hello d D abc e e"
         }
       ]
@@ -757,8 +597,8 @@
       "name": "selectA-2.55",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY b DESC, c",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 WHERE b\u003e='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY b DESC, c",
           "expect": "abc e e hello d D"
         }
       ]
@@ -767,8 +607,8 @@
       "name": "selectA-2.56",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY b, c DESC, a",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b\u003c'd'\n    ORDER BY b, c DESC, a",
           "expect": "hello d D abc e e"
         }
       ]
@@ -777,8 +617,8 @@
       "name": "selectA-2.57",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY b COLLATE NOCASE",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b\u003c'd'\n    ORDER BY b COLLATE NOCASE",
           "expect": "1 a a 9.9 b B {} C c"
         }
       ]
@@ -787,8 +627,8 @@
       "name": "selectA-2.58",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY b",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 WHERE b\u003c'd' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY b",
           "expect": "{} C c 1 a a 9.9 b B"
         }
       ]
@@ -797,8 +637,8 @@
       "name": "selectA-2.59",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY c, a DESC",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b\u003e='d'\n    ORDER BY c, a DESC",
           "expect": "1 a a 9.9 b B {} C c"
         }
       ]
@@ -807,8 +647,8 @@
       "name": "selectA-2.60",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY c",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b\u003e='d'\n    ORDER BY c",
           "expect": "hello d D abc e e"
         }
       ]
@@ -817,8 +657,8 @@
       "name": "selectA-2.61",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY c COLLATE BINARY, b DESC, c, a, b, c, a, b, c",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 WHERE b\u003e='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY c COLLATE BINARY, b DESC, c, a, b, c, a, b, c",
           "expect": "hello d D abc e e"
         }
       ]
@@ -827,8 +667,8 @@
       "name": "selectA-2.62",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY c DESC, a",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b\u003c'd'\n    ORDER BY c DESC, a",
           "expect": "abc e e hello d D"
         }
       ]
@@ -837,8 +677,8 @@
       "name": "selectA-2.63",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY c COLLATE NOCASE",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b\u003c'd'\n    ORDER BY c COLLATE NOCASE",
           "expect": "1 a a 9.9 b B {} C c"
         }
       ]
@@ -847,8 +687,8 @@
       "name": "selectA-2.64",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY c",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 WHERE b\u003c'd' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY c",
           "expect": "1 a a 9.9 b B {} C c"
         }
       ]
@@ -857,8 +697,8 @@
       "name": "selectA-2.65",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t3 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY c COLLATE NOCASE",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t3 INTERSECT SELECT a,b,c FROM t1 WHERE b\u003c'd'\n    ORDER BY c COLLATE NOCASE",
           "expect": "1 a a 9.9 b B {} C c"
         }
       ]
@@ -867,8 +707,8 @@
       "name": "selectA-2.66",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t3\n    ORDER BY c",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 WHERE b\u003c'd' INTERSECT SELECT a,b,c FROM t3\n    ORDER BY c",
           "expect": "1 a a 9.9 b B {} C c"
         }
       ]
@@ -877,8 +717,8 @@
       "name": "selectA-2.67",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t3 WHERE b<'d'\n    ORDER BY c DESC, a",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t3 WHERE b\u003c'd'\n    ORDER BY c DESC, a",
           "expect": "abc e e hello d D"
         }
       ]
@@ -887,8 +727,8 @@
       "name": "selectA-2.68",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c DESC, a",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b\u003c'd'\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c DESC, a",
           "expect": "abc e e hello d D"
         }
       ]
@@ -897,8 +737,8 @@
       "name": "selectA-2.69",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c COLLATE NOCASE",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b\u003c'd'\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c COLLATE NOCASE",
           "expect": "1 a a 9.9 b B {} C c"
         }
       ]
@@ -907,8 +747,8 @@
       "name": "selectA-2.70",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 WHERE b\u003c'd' INTERSECT SELECT a,b,c FROM t1\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c",
           "expect": "1 a a 9.9 b B {} C c"
         }
       ]
@@ -917,8 +757,8 @@
       "name": "selectA-2.71",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d'\n    INTERSECT SELECT a,b,c FROM t1\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    INTERSECT SELECT a,b,c FROM t1\n    EXCEPT SELECT x,y,z FROM t2\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT y,x,z FROM t2\n    INTERSECT SELECT a,b,c FROM t1\n    EXCEPT SELECT c,b,a FROM t3\n    ORDER BY c",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 WHERE b\u003c'd'\n    INTERSECT SELECT a,b,c FROM t1\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    INTERSECT SELECT a,b,c FROM t1\n    EXCEPT SELECT x,y,z FROM t2\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT y,x,z FROM t2\n    INTERSECT SELECT a,b,c FROM t1\n    EXCEPT SELECT c,b,a FROM t3\n    ORDER BY c",
           "expect": "1 a a 9.9 b B {} C c"
         }
       ]
@@ -927,7 +767,7 @@
       "name": "selectA-2.72",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY a,b,c",
           "expect": "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
         }
@@ -937,7 +777,7 @@
       "name": "selectA-2.73",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY a DESC,b,c",
           "expect": "hare m M abc e e mad Z z hello d D 5200000.0 X x 9.9 b B 1 a a -23 Y y {} C c {} U u"
         }
@@ -947,7 +787,7 @@
       "name": "selectA-2.74",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY a,c,b",
           "expect": "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
         }
@@ -957,7 +797,7 @@
       "name": "selectA-2.75",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY b,a,c",
           "expect": "{} C c {} U u 5200000.0 X x -23 Y y mad Z z 1 a a 9.9 b B hello d D abc e e hare m M"
         }
@@ -967,7 +807,7 @@
       "name": "selectA-2.76",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE,a,c",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -977,7 +817,7 @@
       "name": "selectA-2.77",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE DESC,a,c",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
         }
@@ -987,7 +827,7 @@
       "name": "selectA-2.78",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c,b,a",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -997,7 +837,7 @@
       "name": "selectA-2.79",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c,a,b",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -1007,7 +847,7 @@
       "name": "selectA-2.80",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c DESC,a,b",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
         }
@@ -1017,7 +857,7 @@
       "name": "selectA-2.81",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c COLLATE BINARY DESC,a,b",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u abc e e {} C c 1 a a hare m M hello d D 9.9 b B"
         }
@@ -1027,7 +867,7 @@
       "name": "selectA-2.82",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY a,b,c",
           "expect": "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
         }
@@ -1037,7 +877,7 @@
       "name": "selectA-2.83",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY a DESC,b,c",
           "expect": "hare m M abc e e mad Z z hello d D 5200000.0 X x 9.9 b B 1 a a -23 Y y {} C c {} U u"
         }
@@ -1047,7 +887,7 @@
       "name": "selectA-2.84",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY a,c,b",
           "expect": "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
         }
@@ -1057,7 +897,7 @@
       "name": "selectA-2.85",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY b,a,c",
           "expect": "{} C c {} U u 5200000.0 X x -23 Y y mad Z z 1 a a 9.9 b B hello d D abc e e hare m M"
         }
@@ -1067,7 +907,7 @@
       "name": "selectA-2.86",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY y COLLATE NOCASE,x,z",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -1077,7 +917,7 @@
       "name": "selectA-2.87",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY y COLLATE NOCASE DESC,x,z",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
         }
@@ -1087,7 +927,7 @@
       "name": "selectA-2.88",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY c,b,a",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -1097,7 +937,7 @@
       "name": "selectA-2.89",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY c,a,b",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -1107,7 +947,7 @@
       "name": "selectA-2.90",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY c DESC,a,b",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
         }
@@ -1117,7 +957,7 @@
       "name": "selectA-2.91",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY z COLLATE BINARY DESC,x,y",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u abc e e {} C c 1 a a hare m M hello d D 9.9 b B"
         }
@@ -1127,7 +967,7 @@
       "name": "selectA-2.92",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT c,b,a FROM t1\n    UNION SELECT a,b,c FROM t3\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT c,b,a FROM t1\n    UNION SELECT a,b,c FROM t3\n    ORDER BY y COLLATE NOCASE DESC,x,z",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
         }
@@ -1137,7 +977,7 @@
       "name": "selectA-2.93",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT upper((SELECT c FROM t1 UNION SELECT z FROM t2 ORDER BY 1));",
           "expect": "A"
         }
@@ -1147,7 +987,7 @@
       "name": "selectA-2.94",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT lower((SELECT c FROM t1 UNION ALL SELECT z FROM t2 ORDER BY 1));",
           "expect": "a"
         }
@@ -1157,7 +997,7 @@
       "name": "selectA-2.95",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT lower((SELECT c FROM t1 INTERSECT SELECT z FROM t2 ORDER BY 1));",
           "expect": "{}"
         }
@@ -1167,7 +1007,7 @@
       "name": "selectA-2.96",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT lower((SELECT z FROM t2 EXCEPT SELECT c FROM t1 ORDER BY 1));",
           "expect": "m"
         }
@@ -1177,7 +1017,7 @@
       "name": "selectA-3.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "CREATE UNIQUE INDEX t1a ON t1(a);\n    CREATE UNIQUE INDEX t1b ON t1(b);\n    CREATE UNIQUE INDEX t1c ON t1(c);\n    CREATE UNIQUE INDEX t2x ON t2(x);\n    CREATE UNIQUE INDEX t2y ON t2(y);\n    CREATE UNIQUE INDEX t2z ON t2(z);\n    SELECT name FROM sqlite_master WHERE type='index'",
           "expect": "t1a t1b t1c t2x t2y t2z"
         }
@@ -1187,7 +1027,7 @@
       "name": "selectA-3.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a,b,c",
           "expect": "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
         }
@@ -1197,7 +1037,7 @@
       "name": "selectA-3.1.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT t1.a,b,t1.c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a,t1.b,t1.c",
           "expect": "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
         }
@@ -1207,7 +1047,7 @@
       "name": "selectA-3.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a DESC,b,c",
           "expect": "hare m M abc e e mad Z z hello d D 5200000.0 X x 9.9 b B 1 a a -23 Y y {} C c {} U u"
         }
@@ -1217,7 +1057,7 @@
       "name": "selectA-3.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a,c,b",
           "expect": "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
         }
@@ -1227,7 +1067,7 @@
       "name": "selectA-3.4",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY b,a,c",
           "expect": "{} C c {} U u 5200000.0 X x -23 Y y mad Z z 1 a a 9.9 b B hello d D abc e e hare m M"
         }
@@ -1237,7 +1077,7 @@
       "name": "selectA-3.5",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE,a,c",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -1247,7 +1087,7 @@
       "name": "selectA-3.6",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE DESC,a,c",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
         }
@@ -1257,7 +1097,7 @@
       "name": "selectA-3.7",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c,b,a",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -1267,7 +1107,7 @@
       "name": "selectA-3.8",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c,a,b",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -1277,7 +1117,7 @@
       "name": "selectA-3.9",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c DESC,a,b",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
         }
@@ -1287,7 +1127,7 @@
       "name": "selectA-3.10",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c COLLATE BINARY DESC,a,b",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u abc e e {} C c 1 a a hare m M hello d D 9.9 b B"
         }
@@ -1297,7 +1137,7 @@
       "name": "selectA-3.11",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY a,b,c",
           "expect": "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
         }
@@ -1307,7 +1147,7 @@
       "name": "selectA-3.12",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY a DESC,b,c",
           "expect": "hare m M abc e e mad Z z hello d D 5200000.0 X x 9.9 b B 1 a a -23 Y y {} C c {} U u"
         }
@@ -1317,7 +1157,7 @@
       "name": "selectA-3.13",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY a,c,b",
           "expect": "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
         }
@@ -1327,7 +1167,7 @@
       "name": "selectA-3.14",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY b,a,c",
           "expect": "{} C c {} U u 5200000.0 X x -23 Y y mad Z z 1 a a 9.9 b B hello d D abc e e hare m M"
         }
@@ -1337,7 +1177,7 @@
       "name": "selectA-3.15",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY b COLLATE NOCASE,a,c",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -1347,7 +1187,7 @@
       "name": "selectA-3.16",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY b COLLATE NOCASE DESC,a,c",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
         }
@@ -1357,7 +1197,7 @@
       "name": "selectA-3.17",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c,b,a",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -1367,7 +1207,7 @@
       "name": "selectA-3.18",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c,a,b",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -1377,7 +1217,7 @@
       "name": "selectA-3.19",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c DESC,a,b",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
         }
@@ -1387,7 +1227,7 @@
       "name": "selectA-3.20",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c COLLATE BINARY DESC,a,b",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u abc e e {} C c 1 a a hare m M hello d D 9.9 b B"
         }
@@ -1397,7 +1237,7 @@
       "name": "selectA-3.21",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY a,b,c",
           "expect": "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
         }
@@ -1407,7 +1247,7 @@
       "name": "selectA-3.22",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY a DESC,b,c",
           "expect": "hare m M abc e e mad Z z hello d D 5200000.0 X x 9.9 b B 1 a a -23 Y y {} C c {} U u"
         }
@@ -1417,7 +1257,7 @@
       "name": "selectA-3.23",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY a,c,b",
           "expect": "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
         }
@@ -1427,7 +1267,7 @@
       "name": "selectA-3.24",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY b,a,c",
           "expect": "{} C c {} U u 5200000.0 X x -23 Y y mad Z z 1 a a 9.9 b B hello d D abc e e hare m M"
         }
@@ -1437,7 +1277,7 @@
       "name": "selectA-3.25",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE,a,c",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -1447,7 +1287,7 @@
       "name": "selectA-3.26",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE DESC,a,c",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
         }
@@ -1457,7 +1297,7 @@
       "name": "selectA-3.27",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c,b,a",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -1467,7 +1307,7 @@
       "name": "selectA-3.28",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c,a,b",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -1477,7 +1317,7 @@
       "name": "selectA-3.29",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c DESC,a,b",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
         }
@@ -1487,7 +1327,7 @@
       "name": "selectA-3.30",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c COLLATE BINARY DESC,a,b",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u abc e e {} C c 1 a a hare m M hello d D 9.9 b B"
         }
@@ -1497,7 +1337,7 @@
       "name": "selectA-3.31",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY a,b,c",
           "expect": "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
         }
@@ -1507,7 +1347,7 @@
       "name": "selectA-3.32",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY a DESC,b,c",
           "expect": "hare m M abc e e mad Z z hello d D 5200000.0 X x 9.9 b B 1 a a -23 Y y {} C c {} U u"
         }
@@ -1517,7 +1357,7 @@
       "name": "selectA-3.33",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY a,c,b",
           "expect": "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
         }
@@ -1527,7 +1367,7 @@
       "name": "selectA-3.34",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY b,a,c",
           "expect": "{} C c {} U u 5200000.0 X x -23 Y y mad Z z 1 a a 9.9 b B hello d D abc e e hare m M"
         }
@@ -1537,7 +1377,7 @@
       "name": "selectA-3.35",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY y COLLATE NOCASE,x,z",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -1547,7 +1387,7 @@
       "name": "selectA-3.36",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY y COLLATE NOCASE DESC,x,z",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
         }
@@ -1557,7 +1397,7 @@
       "name": "selectA-3.37",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY c,b,a",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -1567,7 +1407,7 @@
       "name": "selectA-3.38",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY c,a,b",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -1577,7 +1417,7 @@
       "name": "selectA-3.39",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY c DESC,a,b",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
         }
@@ -1587,7 +1427,7 @@
       "name": "selectA-3.40",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY z COLLATE BINARY DESC,x,y",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u abc e e {} C c 1 a a hare m M hello d D 9.9 b B"
         }
@@ -1597,8 +1437,8 @@
       "name": "selectA-3.41",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a,b,c",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b\u003e='d'\n    ORDER BY a,b,c",
           "expect": "{} C c 1 a a 9.9 b B"
         }
       ]
@@ -1607,8 +1447,8 @@
       "name": "selectA-3.42",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a,b,c",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b\u003e='d'\n    ORDER BY a,b,c",
           "expect": "hello d D abc e e"
         }
       ]
@@ -1617,8 +1457,8 @@
       "name": "selectA-3.43",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a,b,c",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 WHERE b\u003e='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a,b,c",
           "expect": "hello d D abc e e"
         }
       ]
@@ -1627,8 +1467,8 @@
       "name": "selectA-3.44",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a,b,c",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b\u003c'd'\n    ORDER BY a,b,c",
           "expect": "hello d D abc e e"
         }
       ]
@@ -1637,8 +1477,8 @@
       "name": "selectA-3.45",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a,b,c",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b\u003c'd'\n    ORDER BY a,b,c",
           "expect": "{} C c 1 a a 9.9 b B"
         }
       ]
@@ -1647,8 +1487,8 @@
       "name": "selectA-3.46",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a,b,c",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 WHERE b\u003c'd' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a,b,c",
           "expect": "{} C c 1 a a 9.9 b B"
         }
       ]
@@ -1657,8 +1497,8 @@
       "name": "selectA-3.47",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a DESC",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b\u003e='d'\n    ORDER BY a DESC",
           "expect": "9.9 b B 1 a a {} C c"
         }
       ]
@@ -1667,8 +1507,8 @@
       "name": "selectA-3.48",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a DESC",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b\u003e='d'\n    ORDER BY a DESC",
           "expect": "abc e e hello d D"
         }
       ]
@@ -1677,8 +1517,8 @@
       "name": "selectA-3.49",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a DESC",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 WHERE b\u003e='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a DESC",
           "expect": "abc e e hello d D"
         }
       ]
@@ -1687,8 +1527,8 @@
       "name": "selectA-3.50",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a DESC",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b\u003c'd'\n    ORDER BY a DESC",
           "expect": "abc e e hello d D"
         }
       ]
@@ -1697,8 +1537,8 @@
       "name": "selectA-3.51",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a DESC",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b\u003c'd'\n    ORDER BY a DESC",
           "expect": "9.9 b B 1 a a {} C c"
         }
       ]
@@ -1707,8 +1547,8 @@
       "name": "selectA-3.52",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a DESC",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 WHERE b\u003c'd' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a DESC",
           "expect": "9.9 b B 1 a a {} C c"
         }
       ]
@@ -1717,8 +1557,8 @@
       "name": "selectA-3.53",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY b, a DESC",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b\u003e='d'\n    ORDER BY b, a DESC",
           "expect": "{} C c 1 a a 9.9 b B"
         }
       ]
@@ -1727,8 +1567,8 @@
       "name": "selectA-3.54",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY b",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b\u003e='d'\n    ORDER BY b",
           "expect": "hello d D abc e e"
         }
       ]
@@ -1737,8 +1577,8 @@
       "name": "selectA-3.55",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY b DESC, c",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 WHERE b\u003e='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY b DESC, c",
           "expect": "abc e e hello d D"
         }
       ]
@@ -1747,8 +1587,8 @@
       "name": "selectA-3.56",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY b, c DESC, a",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b\u003c'd'\n    ORDER BY b, c DESC, a",
           "expect": "hello d D abc e e"
         }
       ]
@@ -1757,8 +1597,8 @@
       "name": "selectA-3.57",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY b COLLATE NOCASE",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b\u003c'd'\n    ORDER BY b COLLATE NOCASE",
           "expect": "1 a a 9.9 b B {} C c"
         }
       ]
@@ -1767,8 +1607,8 @@
       "name": "selectA-3.58",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY b",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 WHERE b\u003c'd' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY b",
           "expect": "{} C c 1 a a 9.9 b B"
         }
       ]
@@ -1777,8 +1617,8 @@
       "name": "selectA-3.59",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY c, a DESC",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b\u003e='d'\n    ORDER BY c, a DESC",
           "expect": "1 a a 9.9 b B {} C c"
         }
       ]
@@ -1787,8 +1627,8 @@
       "name": "selectA-3.60",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY c",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b\u003e='d'\n    ORDER BY c",
           "expect": "hello d D abc e e"
         }
       ]
@@ -1797,8 +1637,8 @@
       "name": "selectA-3.61",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY c COLLATE BINARY, b DESC, c, a, b, c, a, b, c",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 WHERE b\u003e='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY c COLLATE BINARY, b DESC, c, a, b, c, a, b, c",
           "expect": "hello d D abc e e"
         }
       ]
@@ -1807,8 +1647,8 @@
       "name": "selectA-3.62",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY c DESC, a",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b\u003c'd'\n    ORDER BY c DESC, a",
           "expect": "abc e e hello d D"
         }
       ]
@@ -1817,8 +1657,8 @@
       "name": "selectA-3.63",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY c COLLATE NOCASE",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b\u003c'd'\n    ORDER BY c COLLATE NOCASE",
           "expect": "1 a a 9.9 b B {} C c"
         }
       ]
@@ -1827,8 +1667,8 @@
       "name": "selectA-3.64",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY c",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 WHERE b\u003c'd' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY c",
           "expect": "1 a a 9.9 b B {} C c"
         }
       ]
@@ -1837,8 +1677,8 @@
       "name": "selectA-3.65",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t3 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY c COLLATE NOCASE",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t3 INTERSECT SELECT a,b,c FROM t1 WHERE b\u003c'd'\n    ORDER BY c COLLATE NOCASE",
           "expect": "1 a a 9.9 b B {} C c"
         }
       ]
@@ -1847,8 +1687,8 @@
       "name": "selectA-3.66",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t3\n    ORDER BY c",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 WHERE b\u003c'd' INTERSECT SELECT a,b,c FROM t3\n    ORDER BY c",
           "expect": "1 a a 9.9 b B {} C c"
         }
       ]
@@ -1857,8 +1697,8 @@
       "name": "selectA-3.67",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t3 WHERE b<'d'\n    ORDER BY c DESC, a",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t3 WHERE b\u003c'd'\n    ORDER BY c DESC, a",
           "expect": "abc e e hello d D"
         }
       ]
@@ -1867,8 +1707,8 @@
       "name": "selectA-3.68",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c DESC, a",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b\u003c'd'\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c DESC, a",
           "expect": "abc e e hello d D"
         }
       ]
@@ -1877,8 +1717,8 @@
       "name": "selectA-3.69",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c COLLATE NOCASE",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b\u003c'd'\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c COLLATE NOCASE",
           "expect": "1 a a 9.9 b B {} C c"
         }
       ]
@@ -1887,8 +1727,8 @@
       "name": "selectA-3.70",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 WHERE b\u003c'd' INTERSECT SELECT a,b,c FROM t1\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c",
           "expect": "1 a a 9.9 b B {} C c"
         }
       ]
@@ -1897,8 +1737,8 @@
       "name": "selectA-3.71",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d'\n    INTERSECT SELECT a,b,c FROM t1\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    INTERSECT SELECT a,b,c FROM t1\n    EXCEPT SELECT x,y,z FROM t2\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT y,x,z FROM t2\n    INTERSECT SELECT a,b,c FROM t1\n    EXCEPT SELECT c,b,a FROM t3\n    ORDER BY c",
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM t1 WHERE b\u003c'd'\n    INTERSECT SELECT a,b,c FROM t1\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    INTERSECT SELECT a,b,c FROM t1\n    EXCEPT SELECT x,y,z FROM t2\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT y,x,z FROM t2\n    INTERSECT SELECT a,b,c FROM t1\n    EXCEPT SELECT c,b,a FROM t3\n    ORDER BY c",
           "expect": "1 a a 9.9 b B {} C c"
         }
       ]
@@ -1907,7 +1747,7 @@
       "name": "selectA-3.72",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY a,b,c",
           "expect": "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
         }
@@ -1917,7 +1757,7 @@
       "name": "selectA-3.73",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY a DESC,b,c",
           "expect": "hare m M abc e e mad Z z hello d D 5200000.0 X x 9.9 b B 1 a a -23 Y y {} C c {} U u"
         }
@@ -1927,7 +1767,7 @@
       "name": "selectA-3.74",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY a,c,b",
           "expect": "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
         }
@@ -1937,7 +1777,7 @@
       "name": "selectA-3.75",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY b,a,c",
           "expect": "{} C c {} U u 5200000.0 X x -23 Y y mad Z z 1 a a 9.9 b B hello d D abc e e hare m M"
         }
@@ -1947,7 +1787,7 @@
       "name": "selectA-3.76",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE,a,c",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -1957,7 +1797,7 @@
       "name": "selectA-3.77",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE DESC,a,c",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
         }
@@ -1967,7 +1807,7 @@
       "name": "selectA-3.78",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c,b,a",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -1977,7 +1817,7 @@
       "name": "selectA-3.79",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c,a,b",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -1987,7 +1827,7 @@
       "name": "selectA-3.80",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c DESC,a,b",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
         }
@@ -1997,7 +1837,7 @@
       "name": "selectA-3.81",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c COLLATE BINARY DESC,a,b",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u abc e e {} C c 1 a a hare m M hello d D 9.9 b B"
         }
@@ -2007,7 +1847,7 @@
       "name": "selectA-3.82",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY a,b,c",
           "expect": "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
         }
@@ -2017,7 +1857,7 @@
       "name": "selectA-3.83",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY a DESC,b,c",
           "expect": "hare m M abc e e mad Z z hello d D 5200000.0 X x 9.9 b B 1 a a -23 Y y {} C c {} U u"
         }
@@ -2027,7 +1867,7 @@
       "name": "selectA-3.84",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY a,c,b",
           "expect": "{} C c {} U u -23 Y y 1 a a 9.9 b B 5200000.0 X x hello d D mad Z z abc e e hare m M"
         }
@@ -2037,7 +1877,7 @@
       "name": "selectA-3.85",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY b,a,c",
           "expect": "{} C c {} U u 5200000.0 X x -23 Y y mad Z z 1 a a 9.9 b B hello d D abc e e hare m M"
         }
@@ -2047,7 +1887,7 @@
       "name": "selectA-3.86",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY y COLLATE NOCASE,x,z",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -2057,7 +1897,7 @@
       "name": "selectA-3.87",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY y COLLATE NOCASE DESC,x,z",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
         }
@@ -2067,7 +1907,7 @@
       "name": "selectA-3.88",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY c,b,a",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -2077,7 +1917,7 @@
       "name": "selectA-3.89",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY c,a,b",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e hare m M {} U u 5200000.0 X x -23 Y y mad Z z"
         }
@@ -2087,7 +1927,7 @@
       "name": "selectA-3.90",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY c DESC,a,b",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
         }
@@ -2097,7 +1937,7 @@
       "name": "selectA-3.91",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY z COLLATE BINARY DESC,x,y",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u abc e e {} C c 1 a a hare m M hello d D 9.9 b B"
         }
@@ -2107,7 +1947,7 @@
       "name": "selectA-3.92",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT x,y,z FROM t2\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT c,b,a FROM t1\n    UNION SELECT a,b,c FROM t3\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT c,b,a FROM t1\n    UNION SELECT a,b,c FROM t3\n    ORDER BY y COLLATE NOCASE DESC,x,z",
           "expect": "mad Z z -23 Y y 5200000.0 X x {} U u hare m M abc e e hello d D {} C c 9.9 b B 1 a a"
         }
@@ -2117,7 +1957,7 @@
       "name": "selectA-3.93",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT upper((SELECT c FROM t1 UNION SELECT z FROM t2 ORDER BY 1));",
           "expect": "A"
         }
@@ -2127,7 +1967,7 @@
       "name": "selectA-3.94",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT lower((SELECT c FROM t1 UNION ALL SELECT z FROM t2 ORDER BY 1));",
           "expect": "a"
         }
@@ -2137,7 +1977,7 @@
       "name": "selectA-3.95",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT lower((SELECT c FROM t1 INTERSECT SELECT z FROM t2 ORDER BY 1));",
           "expect": "{}"
         }
@@ -2147,7 +1987,7 @@
       "name": "selectA-3.96",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT lower((SELECT z FROM t2 EXCEPT SELECT c FROM t1 ORDER BY 1));",
           "expect": "m"
         }
@@ -2157,833 +1997,363 @@
       "name": "selectA-3.97",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT upper((SELECT x FROM (\n      SELECT x,y,z FROM t2\n      INTERSECT SELECT a,b,c FROM t3\n      EXCEPT SELECT c,b,a FROM t1\n      UNION SELECT a,b,c FROM t3\n      INTERSECT SELECT a,b,c FROM t3\n      EXCEPT SELECT c,b,a FROM t1\n      UNION SELECT a,b,c FROM t3\n      ORDER BY y COLLATE NOCASE DESC,x,z)))",
           "expect": "MAD"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a,b,c COLLATE NOCASE);\n    INSERT INTO t1 VALUES(1,'a','a');\n    INSERT INTO t1 VALUES(9.9, 'b', 'B');\n    INSERT INTO t1 VALUES(NULL, 'C', 'c');\n    INSERT INTO t1 VALUES('hello', 'd', 'D');\n    INSERT INTO t1 VALUES(x'616263', 'e', 'e');\n    SELECT * FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(x,y,z COLLATE NOCASE);\n    INSERT INTO t2 VALUES(NULL,'U','u');\n    INSERT INTO t2 VALUES('mad', 'Z', 'z');\n    INSERT INTO t2 VALUES(x'68617265', 'm', 'M');\n    INSERT INTO t2 VALUES(5.2e6, 'X', 'x');\n    INSERT INTO t2 VALUES(-23, 'Y', 'y');\n    SELECT * FROM t2;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t3(a,b,c COLLATE NOCASE);\n    INSERT INTO t3 SELECT * FROM t1;\n    INSERT INTO t3 SELECT * FROM t2;\n    INSERT INTO t3 SELECT * FROM t1;\n    INSERT INTO t3 SELECT * FROM t2;\n    INSERT INTO t3 SELECT * FROM t1;\n    INSERT INTO t3 SELECT * FROM t2;\n    SELECT count(*) FROM t3;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT t1.a, t1.b, t1.c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY t1.a, t1.b, t1.c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a DESC,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a,c,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY b,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE DESC,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c,b,a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c DESC,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c COLLATE BINARY DESC,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY a,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY a DESC,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY a,c,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY b,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY b COLLATE NOCASE,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY b COLLATE NOCASE DESC,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c,b,a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c DESC,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c COLLATE BINARY DESC,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY a,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY a DESC,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY a,c,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY b,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE DESC,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c,b,a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c DESC,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c COLLATE BINARY DESC,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY a,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY a DESC,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY a,c,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY b,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY y COLLATE NOCASE,x,z"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY y COLLATE NOCASE DESC,x,z"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY c,b,a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY c,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY c DESC,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY z COLLATE BINARY DESC,x,y"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a DESC"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a DESC"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a DESC"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a DESC"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a DESC"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a DESC"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY b, a DESC"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY b DESC, c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY b, c DESC, a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY b COLLATE NOCASE"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY c, a DESC"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY c COLLATE BINARY, b DESC, c, a, b, c, a, b, c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY c DESC, a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY c COLLATE NOCASE"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t3 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY c COLLATE NOCASE"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t3\n    ORDER BY c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t3 WHERE b<'d'\n    ORDER BY c DESC, a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c DESC, a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c COLLATE NOCASE"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d'\n    INTERSECT SELECT a,b,c FROM t1\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    INTERSECT SELECT a,b,c FROM t1\n    EXCEPT SELECT x,y,z FROM t2\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT y,x,z FROM t2\n    INTERSECT SELECT a,b,c FROM t1\n    EXCEPT SELECT c,b,a FROM t3\n    ORDER BY c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY a,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY a DESC,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY a,c,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY b,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE DESC,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c,b,a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c DESC,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c COLLATE BINARY DESC,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY a,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY a DESC,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY a,c,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY b,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY y COLLATE NOCASE,x,z"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY y COLLATE NOCASE DESC,x,z"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY c,b,a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY c,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY c DESC,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY z COLLATE BINARY DESC,x,y"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT c,b,a FROM t1\n    UNION SELECT a,b,c FROM t3\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT c,b,a FROM t1\n    UNION SELECT a,b,c FROM t3\n    ORDER BY y COLLATE NOCASE DESC,x,z"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT upper((SELECT c FROM t1 UNION SELECT z FROM t2 ORDER BY 1));"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT lower((SELECT c FROM t1 UNION ALL SELECT z FROM t2 ORDER BY 1));"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT lower((SELECT c FROM t1 INTERSECT SELECT z FROM t2 ORDER BY 1));"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT lower((SELECT z FROM t2 EXCEPT SELECT c FROM t1 ORDER BY 1));"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE UNIQUE INDEX t1a ON t1(a);\n    CREATE UNIQUE INDEX t1b ON t1(b);\n    CREATE UNIQUE INDEX t1c ON t1(c);\n    CREATE UNIQUE INDEX t2x ON t2(x);\n    CREATE UNIQUE INDEX t2y ON t2(y);\n    CREATE UNIQUE INDEX t2z ON t2(z);\n    SELECT name FROM sqlite_master WHERE type='index'"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT t1.a,b,t1.c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a,t1.b,t1.c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a DESC,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY a,c,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY b,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE DESC,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c,b,a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c DESC,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION ALL SELECT x,y,z FROM t2\n    ORDER BY c COLLATE BINARY DESC,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY a,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY a DESC,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY a,c,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY b,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY b COLLATE NOCASE,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY b COLLATE NOCASE DESC,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c,b,a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c DESC,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION ALL SELECT a,b,c FROM t1\n    ORDER BY c COLLATE BINARY DESC,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY a,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY a DESC,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY a,c,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY b,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE DESC,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c,b,a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c DESC,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 UNION SELECT x,y,z FROM t2\n    ORDER BY c COLLATE BINARY DESC,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY a,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY a DESC,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY a,c,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY b,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY y COLLATE NOCASE,x,z"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY y COLLATE NOCASE DESC,x,z"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY c,b,a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY c,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY c DESC,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t1\n    ORDER BY z COLLATE BINARY DESC,x,y"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a DESC"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY a DESC"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a DESC"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a DESC"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY a DESC"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY a DESC"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY b, a DESC"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY b DESC, c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY b, c DESC, a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY b COLLATE NOCASE"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY c, a DESC"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b>='d'\n    ORDER BY c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 WHERE b>='d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY c COLLATE BINARY, b DESC, c, a, b, c, a, b, c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY c DESC, a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY c COLLATE NOCASE"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    ORDER BY c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t3 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    ORDER BY c COLLATE NOCASE"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t3\n    ORDER BY c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t3 WHERE b<'d'\n    ORDER BY c DESC, a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 EXCEPT SELECT a,b,c FROM t1 WHERE b<'d'\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c DESC, a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 INTERSECT SELECT a,b,c FROM t1 WHERE b<'d'\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c COLLATE NOCASE"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d' INTERSECT SELECT a,b,c FROM t1\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    ORDER BY c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t1 WHERE b<'d'\n    INTERSECT SELECT a,b,c FROM t1\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT b,c,a FROM t3\n    INTERSECT SELECT a,b,c FROM t1\n    EXCEPT SELECT x,y,z FROM t2\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT y,x,z FROM t2\n    INTERSECT SELECT a,b,c FROM t1\n    EXCEPT SELECT c,b,a FROM t3\n    ORDER BY c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY a,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY a DESC,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY a,c,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY b,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY b COLLATE NOCASE DESC,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c,b,a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c DESC,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b,c FROM t3 UNION SELECT x,y,z FROM t2\n    ORDER BY c COLLATE BINARY DESC,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY a,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY a DESC,b,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY a,c,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY b,a,c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY y COLLATE NOCASE,x,z"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY y COLLATE NOCASE DESC,x,z"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY c,b,a"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY c,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY c DESC,a,b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2 UNION SELECT a,b,c FROM t3\n    ORDER BY z COLLATE BINARY DESC,x,y"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x,y,z FROM t2\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT c,b,a FROM t1\n    UNION SELECT a,b,c FROM t3\n    INTERSECT SELECT a,b,c FROM t3\n    EXCEPT SELECT c,b,a FROM t1\n    UNION SELECT a,b,c FROM t3\n    ORDER BY y COLLATE NOCASE DESC,x,z"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT upper((SELECT c FROM t1 UNION SELECT z FROM t2 ORDER BY 1));"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT lower((SELECT c FROM t1 UNION ALL SELECT z FROM t2 ORDER BY 1));"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT lower((SELECT c FROM t1 INTERSECT SELECT z FROM t2 ORDER BY 1));"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT lower((SELECT z FROM t2 EXCEPT SELECT c FROM t1 ORDER BY 1));"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT upper((SELECT x FROM (\n      SELECT x,y,z FROM t2\n      INTERSECT SELECT a,b,c FROM t3\n      EXCEPT SELECT c,b,a FROM t1\n      UNION SELECT a,b,c FROM t3\n      INTERSECT SELECT a,b,c FROM t3\n      EXCEPT SELECT c,b,a FROM t1\n      UNION SELECT a,b,c FROM t3\n      ORDER BY y COLLATE NOCASE DESC,x,z)))"
+        }
+      ]
+    },
+    {
+      "name": "selectA-3.98",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "WITH RECURSIVE\n    xyz(n) AS (\n      SELECT upper((SELECT x FROM (\n        SELECT x,y,z FROM t2\n        INTERSECT SELECT a,b,c FROM t3\n        EXCEPT SELECT c,b,a FROM t1\n        UNION SELECT a,b,c FROM t3\n        INTERSECT SELECT a,b,c FROM t3\n        EXCEPT SELECT c,b,a FROM t1\n        UNION SELECT a,b,c FROM t3\n        ORDER BY y COLLATE NOCASE DESC,x,z)))\n      UNION ALL\n      SELECT n || '+' FROM xyz WHERE length(n)\u003c5\n    )\n  SELECT n FROM xyz ORDER BY +n;",
+          "expect": "MAD MAD+ MAD++"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "f",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "selectA"
+          },
+          "functionProc": "f",
+          "functionArgs": [
+            "args"
+          ],
+          "functionBody": " return 1 ",
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "selectA-4.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a, b);\n  CREATE TABLE t5(c, d);\n\n  INSERT INTO t5 VALUES(1, 'x');\n  INSERT INTO t5 VALUES(2, 'x');\n  INSERT INTO t4 VALUES(3, 'x');\n  INSERT INTO t4 VALUES(4, 'x');\n\n  CREATE INDEX i1 ON t4(a);\n  CREATE INDEX i2 ON t5(c);"
+        }
+      ]
+    },
+    {
+      "name": "selectA-4.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT c, d FROM t5 \n  UNION ALL\n  SELECT a, b FROM t4 WHERE f()==f()\n  ORDER BY 1,2"
+        }
+      ]
+    },
+    {
+      "name": "selectA-4.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c, d FROM t5 \n  UNION ALL\n  SELECT a, b FROM t4 WHERE f()==f()\n  ORDER BY 1,2",
+          "expect": "\n  1 x 2 x 3 x 4 x\n"
+        }
+      ]
+    },
+    {
+      "name": "selectA-4.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(a, b);\n  CREATE TABLE t7(c, d);\n\n  INSERT INTO t7 VALUES(2, 9);\n  INSERT INTO t6 VALUES(3, 0);\n  INSERT INTO t6 VALUES(4, 1);\n  INSERT INTO t7 VALUES(5, 6);\n  INSERT INTO t6 VALUES(6, 0);\n  INSERT INTO t7 VALUES(7, 6);\n\n  CREATE INDEX i6 ON t6(a);\n  CREATE INDEX i7 ON t7(c);"
+        }
+      ]
+    },
+    {
+      "name": "selectA-4.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c, f(d,c,d,c,d) FROM t7\n  UNION ALL\n  SELECT a, b FROM t6 \n  ORDER BY 1,2",
+          "expect": "/2 . 3 . 4 . 5 . 6 . 7 ./"
+        }
+      ]
+    },
+    {
+      "name": "selectA-5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t8(a, b);\n  CREATE TABLE t9(c, d);"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n  SELECT a, b FROM t8 INTERSECT SELECT c, d FROM t9 ORDER BY a;"
+        }
+      ]
+    },
+    {
+      "name": "selectA-5.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n  SELECT a, b FROM t8 INTERSECT SELECT c, d FROM t9 ORDER BY t8.a;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "selectA-5.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n  SELECT a, b FROM t8 INTERSECT SELECT c, d FROM t9 ORDER BY 1;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "selectA-5.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n  SELECT a, b FROM t8 INTERSECT SELECT c, d FROM t9 ORDER BY c;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "selectA-5.1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n  SELECT a, b FROM t8 INTERSECT SELECT c, d FROM t9 ORDER BY t9.c;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n  SELECT a, b FROM t8 UNION SELECT c, d FROM t9 ORDER BY a COLLATE NOCASE"
+        }
+      ]
+    },
+    {
+      "name": "selectA-5.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n  SELECT a, b FROM t8 UNION SELECT c, d FROM t9 ORDER BY t8.a COLLATE NOCASE",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "selectA-5.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n  SELECT a, b FROM t8 UNION SELECT c, d FROM t9 ORDER BY 1 COLLATE NOCASE",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "selectA-5.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n  SELECT a, b FROM t8 UNION SELECT c, d FROM t9 ORDER BY c COLLATE NOCASE",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "selectA-5.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n  SELECT a, b FROM t8 UNION SELECT c, d FROM t9 ORDER BY t9.c COLLATE NOCASE",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n  SELECT a, b FROM t8 EXCEPT SELECT c, d FROM t9 ORDER BY b, c COLLATE NOCASE"
+        }
+      ]
+    },
+    {
+      "name": "selectA-5.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n  SELECT a, b FROM t8 EXCEPT SELECT c, d FROM t9 ORDER BY 2, 1 COLLATE NOCASE",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "selectA-5.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n  SELECT a, b FROM t8 EXCEPT SELECT c, d FROM t9 ORDER BY d, a COLLATE NOCASE",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "selectA-5.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n  SELECT a, b FROM t8 EXCEPT SELECT * FROM t9 ORDER BY t9.d, c COLLATE NOCASE",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "selectA-5.3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n  SELECT * FROM t8 EXCEPT SELECT c, d FROM t9 ORDER BY d, t8.a COLLATE NOCASE",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "selectA-5.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t8 UNION SELECT * FROM t9 ORDER BY a+b COLLATE NOCASE",
+          "expect": "1 {1st ORDER BY term does not match any column in the result set}"
+        }
+      ]
+    },
+    {
+      "name": "selectA-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a INTEGER);\n  CREATE TABLE t2(b TEXT);\n  INSERT INTO t2(b) VALUES('12345');\n  SELECT * FROM (SELECT a FROM t1 UNION SELECT b FROM t2) WHERE a=a;",
+          "expect": "12345"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "selectA-7.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE TABLE t1(c1);     INSERT INTO t1 VALUES(12),(123),(1234),(NULL),('abc');\n  CREATE TABLE t2(c2);     INSERT INTO t2 VALUES(44),(55),(123);\n  CREATE TABLE t3(c3,c4);  INSERT INTO t3 VALUES(66,1),(123,2),(77,3);\n  CREATE VIEW t4 AS SELECT c3 FROM t3;\n  CREATE VIEW t5 AS SELECT c3 FROM t3 ORDER BY c4;"
+        }
+      ]
+    },
+    {
+      "name": "selectA-7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1, t2 WHERE c1=(SELECT 123 INTERSECT SELECT c2 FROM t4) AND c1=123;",
+          "expect": "123 123"
+        }
+      ]
+    },
+    {
+      "name": "selectA-7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1, t2 WHERE c1=(SELECT 123 INTERSECT SELECT c2 FROM t5) AND c1=123;",
+          "expect": "123 123"
+        }
+      ]
+    },
+    {
+      "name": "selectA-7.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE a(b);\n  CREATE VIEW c(d) AS SELECT b FROM a ORDER BY b;\n  SELECT sum(d) OVER( PARTITION BY(SELECT 0 FROM c JOIN a WHERE b =(SELECT b INTERSECT SELECT d FROM c) AND b = 123)) FROM c;"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "selectA-8.0",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE TABLE x1(x);\n  CREATE TABLE t1(a, b, c, d);\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b);"
+        }
+      ]
+    },
+    {
+      "name": "selectA-8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'ABCD' FROM t1 \n      WHERE (a=? OR b=?) \n      AND (0 OR (SELECT 'xyz' INTERSECT SELECT a ORDER BY 1))"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "selectA-9.0",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a COLLATE nocase);\n  CREATE TABLE t2(b COLLATE nocase);\n\n  INSERT INTO t1 VALUES('ABC');\n  INSERT INTO t2 VALUES('abc');"
+        }
+      ]
+    },
+    {
+      "name": "selectA-9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 INTERSECT SELECT b FROM t2;",
+          "expect": "ABC"
+        }
+      ]
+    },
+    {
+      "name": "selectA-9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (\n      SELECT a FROM t1 INTERSECT SELECT b FROM t2\n  ) WHERE a||'' = 'ABC';",
+          "expect": "ABC"
         }
       ]
     }

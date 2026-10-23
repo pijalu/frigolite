@@ -143,6 +143,9 @@ func (e *DDLExecutor) execCreateTable(s *sql.CreateTableStmt) *Result {
 		return e.execCreateTableAsSelect(s, ctx, tableName, ctasResult)
 	}
 
+	// Keep validated parsed column definitions available if writable_schema later
+	// corrupts this table's stored CREATE text on the same connection.
+	e.ctx.ColCache()[tableName] = s.Columns
 	return &Result{Changes: 0}
 }
 

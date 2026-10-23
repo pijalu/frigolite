@@ -1,9 +1,10 @@
 {
   "file": "fts3tok1.test",
   "name": "fts3tok1",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "fts3tok1-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,67 @@
       ]
     },
     {
-      "name": "1.4",
+      "name": "fts3tok1-1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE input = 'one two three'",
+          "expect": "\n    {one two three} one   0  3 0 \n    {one two three} two   4  7 1 \n    {one two three} three 8 13 2\n  "
+        }
+      ]
+    },
+    {
+      "name": "fts3tok1-1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT token FROM t1 WHERE input = 'OnE tWo tHrEe'",
+          "expect": "\n    one two three\n  "
+        }
+      ]
+    },
+    {
+      "name": "fts3tok1-1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2 WHERE input = 'one two three'",
+          "expect": "\n    {one two three} one   0  3 0 \n    {one two three} two   4  7 1 \n    {one two three} three 8 13 2\n  "
+        }
+      ]
+    },
+    {
+      "name": "fts3tok1-1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT token FROM t2 WHERE input = 'OnE tWo tHrEe'",
+          "expect": "\n    one two three\n  "
+        }
+      ]
+    },
+    {
+      "name": "fts3tok1-1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 WHERE input = 'one two three'",
+          "expect": "\n    {one two three} one   0  3 0 \n    {one two three} two   4  7 1 \n    {one two three} three 8 13 2\n  "
+        }
+      ]
+    },
+    {
+      "name": "fts3tok1-1.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT token FROM t3 WHERE input = 'OnE tWo tHrEe'",
+          "expect": "\n    one two three\n  "
+        }
+      ]
+    },
+    {
+      "name": "fts3tok1-1.4",
       "steps": [
         {
           "type": "query",
@@ -22,7 +83,7 @@
       ]
     },
     {
-      "name": "1.5",
+      "name": "fts3tok1-1.5",
       "steps": [
         {
           "type": "query",
@@ -32,7 +93,7 @@
       ]
     },
     {
-      "name": "1.6",
+      "name": "fts3tok1-1.6",
       "steps": [
         {
           "type": "query",
@@ -42,7 +103,7 @@
       ]
     },
     {
-      "name": "1.7",
+      "name": "fts3tok1-1.7",
       "steps": [
         {
           "type": "query",
@@ -51,7 +112,7 @@
       ]
     },
     {
-      "name": "1.8",
+      "name": "fts3tok1-1.8",
       "steps": [
         {
           "type": "query",
@@ -60,7 +121,7 @@
       ]
     },
     {
-      "name": "1.9",
+      "name": "fts3tok1-1.9",
       "steps": [
         {
           "type": "query",
@@ -70,37 +131,37 @@
       ]
     },
     {
-      "name": "1.10",
+      "name": "fts3tok1-1.10",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE input = 'a b c' AND token = 'b';",
-          "expect": "{a b c} b 2 3 1"
+          "expect": "\n  {a b c} b 2 3 1\n"
         }
       ]
     },
     {
-      "name": "1.11",
+      "name": "fts3tok1-1.11",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE token = 'b' AND input = 'a b c';",
-          "expect": "{a b c} b 2 3 1"
+          "expect": "\n  {a b c} b 2 3 1\n"
         }
       ]
     },
     {
-      "name": "1.12",
+      "name": "fts3tok1-1.12",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE input < 'b' AND input = 'a b c';",
-          "expect": "{a b c} a 0 1 0 \n  {a b c} b 2 3 1 \n  {a b c} c 4 5 2"
+          "sql": "SELECT * FROM t1 WHERE input \u003c 'b' AND input = 'a b c';",
+          "expect": "\n  {a b c} a 0 1 0 \n  {a b c} b 2 3 1 \n  {a b c} c 4 5 2\n"
         }
       ]
     },
     {
-      "name": "1.13.1",
+      "name": "fts3tok1-1.13.1",
       "steps": [
         {
           "type": "exec",
@@ -109,50 +170,50 @@
       ]
     },
     {
-      "name": "1.13.2",
+      "name": "fts3tok1-1.13.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM c1, t1 WHERE input = x AND c1.rowid=t1.rowid;",
-          "expect": "{a b c} {a b c} a 0 1 0 \n  {d e f} {d e f} e 2 3 1"
+          "expect": "\n  {a b c} {a b c} a 0 1 0 \n  {d e f} {d e f} e 2 3 1 \n"
         }
       ]
     },
     {
-      "name": "2.0",
+      "name": "fts3tok1-2.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE tX USING fts3tokenize(nosuchtokenizer);",
           "expect": "1 {unknown tokenizer: nosuchtokenizer}"
         }
       ]
     },
     {
-      "name": "2.1",
+      "name": "fts3tok1-2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE t4 USING fts3tokenize;\n  SELECT * FROM t4;",
           "expect": "1 {SQL logic error}"
         }
       ]
     },
     {
-      "name": "2.2",
+      "name": "fts3tok1-2.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE t USING fts4(tokenize=simple\"\");",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "2.3",
+      "name": "fts3tok1-2.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE u USING fts4(tokenize=unicode61\"\");",
           "expect": "1 {unknown tokenizer}"
         }

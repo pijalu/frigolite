@@ -1,0 +1,311 @@
+{
+  "file": "tkt-bdc6bbbb38.test",
+  "name": "tkt-bdc6bbbb38",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-1.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t2 USING fts4(x, order=ASC)"
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-1.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('a b c')"
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-1.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offsets(t2) FROM t2 WHERE t2 MATCH 'a AND d OR b' ORDER BY docid ASC",
+          "expect": "\n    {0 0 0 1 0 2 2 1}\n  "
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-1.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT snippet(t2,'[',']') FROM t2 WHERE t2 MATCH 'a AND d OR b' \n    ORDER BY docid ASC",
+          "expect": "\n    {[a] [b] c}\n  "
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-1.1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('a c d')"
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-1.1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offsets(t2) FROM t2 WHERE t2 MATCH 'a AND d OR b' ORDER BY docid ASC",
+          "expect": "\n    {0 0 0 1 0 2 2 1}\n    {0 0 0 1 0 1 4 1}\n  "
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-1.1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT snippet(t2,'[',']') FROM t2 WHERE t2 MATCH 'a AND d OR b'\n    ORDER BY docid ASC",
+          "expect": "\n    {[a] [b] c}\n    {[a] c [d]}\n  "
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t3"
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-1.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t3 USING fts4(x, order=ASC)"
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-1.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES('a c d')"
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-1.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offsets(t3) FROM t3 WHERE t3 MATCH 'a AND d OR b' ORDER BY docid DESC",
+          "expect": "\n    {0 0 0 1 0 1 4 1}\n  "
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-1.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT snippet(t3,'[',']') FROM t3 WHERE t3 MATCH 'a AND d OR b'\n      ORDER BY docid DESC",
+          "expect": "\n    {[a] c [d]}\n  "
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-1.2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES('a b c');"
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-1.2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offsets(t3) FROM t3 WHERE t3 MATCH 'a AND d OR b' ORDER BY docid DESC",
+          "expect": "\n    {0 0 0 1 0 2 2 1}\n    {0 0 0 1 0 1 4 1}\n  "
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-1.2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT snippet(t3,'[',']') FROM t3 WHERE t3 MATCH 'a AND d OR b'\n      ORDER BY docid DESC",
+          "expect": "\n    {[a] [b] c}\n    {[a] c [d]}\n  "
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t2"
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-2.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t2 USING fts4(x, order=DESC)"
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-2.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('a b c')"
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-2.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offsets(t2) FROM t2 WHERE t2 MATCH 'a AND d OR b' ORDER BY docid ASC",
+          "expect": "\n    {0 0 0 1 0 2 2 1}\n  "
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-2.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT snippet(t2,'[',']') FROM t2 WHERE t2 MATCH 'a AND d OR b' \n    ORDER BY docid ASC",
+          "expect": "\n    {[a] [b] c}\n  "
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-2.1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('a c d')"
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-2.1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offsets(t2) FROM t2 WHERE t2 MATCH 'a AND d OR b' ORDER BY docid ASC",
+          "expect": "\n    {0 0 0 1 0 2 2 1}\n    {0 0 0 1 0 1 4 1}\n  "
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-2.1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT snippet(t2,'[',']') FROM t2 WHERE t2 MATCH 'a AND d OR b'\n    ORDER BY docid ASC",
+          "expect": "\n    {[a] [b] c}\n    {[a] c [d]}\n  "
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t3"
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-2.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t3 USING fts4(x, order=DESC)"
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-2.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES('a c d')"
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-2.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offsets(t3) FROM t3 WHERE t3 MATCH 'a AND d OR b' ORDER BY docid DESC",
+          "expect": "\n    {0 0 0 1 0 1 4 1}\n  "
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-2.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT snippet(t3,'[',']') FROM t3 WHERE t3 MATCH 'a AND d OR b'\n      ORDER BY docid DESC",
+          "expect": "\n    {[a] c [d]}\n  "
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-2.2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES('a b c');"
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-2.2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offsets(t3) FROM t3 WHERE t3 MATCH 'a AND d OR b' ORDER BY docid DESC",
+          "expect": "\n    {0 0 0 1 0 2 2 1}\n    {0 0 0 1 0 1 4 1}\n  "
+        }
+      ]
+    },
+    {
+      "name": "tkt-bdc6bbbb38-2.2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT snippet(t3,'[',']') FROM t3 WHERE t3 MATCH 'a AND d OR b'\n      ORDER BY docid DESC",
+          "expect": "\n    {[a] [b] c}\n    {[a] c [d]}\n  "
+        }
+      ]
+    }
+  ]
+}

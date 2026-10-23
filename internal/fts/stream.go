@@ -527,6 +527,7 @@ type mergePosEntry struct {
 type mergeDocEntry struct {
 	docID     int64
 	positions []mergePosEntry
+	seen      map[mergePosEntry]struct{}
 	deleted   bool
 	// hasMarker records that some input doclist carried an explicit
 	// delete entry ([docid][0]) for this document. SQLite's merge writes
@@ -560,6 +561,43 @@ func MergeDoclists(doclists ...[]byte) []byte {
 // mergeDoclistHits folds one source doclist into the merge maps: postings
 // accumulate per (docid, col, pos); a delete marker clears the positions and
 // marks the tombstone.
+
+func (e *mergeDocEntry) addPosting(col, pos int, isDelete bool) {
+	if isDelete {
+		e.deleted = true
+		e.positions = nil
+		e.seen = nil
+		e.hasMarker = true
+		return
+	}
+	if e.deleted {
+		e.deleted = false
+	}
+	// Multi-generation segments can repeat identical hits. Preserve source
+	// order while avoiding quadratic duplicate checks for long position lists.
+	hit := mergePosEntry{col: col, pos: pos}
+	if e.seen == nil {
+		for _, existing := range e.positions {
+			if existing == hit {
+				return
+			}
+		}
+		if len(e.positions) < 8 {
+			e.positions = append(e.positions, hit)
+			return
+		}
+		e.seen = make(map[mergePosEntry]struct{}, len(e.positions)+1)
+		for _, existing := range e.positions {
+			e.seen[existing] = struct{}{}
+		}
+	}
+	if _, duplicate := e.seen[hit]; duplicate {
+		return
+	}
+	e.seen[hit] = struct{}{}
+	e.positions = append(e.positions, hit)
+}
+
 func mergeDoclistHits(entries map[int64]*mergeDocEntry, order *[]int64, dl []byte) error {
 	return parseDoclistHits(dl, func(docID int64, col, pos int, isDelete bool) {
 		e, ok := entries[docID]
@@ -568,25 +606,7 @@ func mergeDoclistHits(entries map[int64]*mergeDocEntry, order *[]int64, dl []byt
 			entries[docID] = e
 			*order = append(*order, docID)
 		}
-		if isDelete {
-			e.deleted = true
-			e.positions = nil
-			e.hasMarker = true
-			return
-		}
-		if e.deleted {
-			e.deleted = false
-		}
-		// Multi-generation segments legitimately carry IDENTICAL
-		// postings for the same (docid, col, pos) — an n-way merge of
-		// sorted lists yields each hit once (fts3SegReaderStep merges
-		// duplicate docids across readers into one position list).
-		for _, ex := range e.positions {
-			if ex.col == col && ex.pos == pos {
-				return
-			}
-		}
-		e.positions = append(e.positions, mergePosEntry{col: col, pos: pos})
+		e.addPosting(col, pos, isDelete)
 	})
 }
 

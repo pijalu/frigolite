@@ -209,6 +209,11 @@ func (e *SelectEngine) execSelectFrom(s *sql.SelectStmt) (*Result, bool) {
 	if res, handled := e.execVTabTableFuncForm(s); handled {
 		return res, true
 	}
+	if !s.From.IsTabFunc && len(s.Joins) == 0 {
+		if res, handled := e.execCreatedVTabOrBranches(s, s.From.Name, nil); handled {
+			return res, true
+		}
+	}
 	if res, handled := e.execEponymousVTabForm(s); handled {
 		return res, true
 	}
@@ -379,6 +384,11 @@ func (e *SelectEngine) execCreatedVTabForm(s *sql.SelectStmt) (*Result, bool) {
 	// the speculative reference collection entirely.
 	if !e.ctx.MayScanCreatedVTab(s.From.Name) {
 		return nil, false
+	}
+	if len(s.Joins) == 0 {
+		if result, handled := e.execCreatedVTabOrBranches(s, s.From.Name, nil); handled {
+			return result, true
+		}
 	}
 	opts := e.vtabScanOptions(s)
 	createdResidual := opts.Where
@@ -765,6 +775,11 @@ func (e *SelectEngine) execFTSVtabSelect(s *sql.SelectStmt, tableEntry *schema.E
 // column names (e.g. wholenumber's "value") provides the column definitions
 // even when the CREATE VIRTUAL TABLE has no explicit column list.
 func (e *SelectEngine) execGenericVtabSelect(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) *Result {
+	if len(s.Joins) == 0 {
+		if result, handled := e.execCreatedVTabOrBranches(s, tableEntry.Name, colDefs); handled {
+			return result
+		}
+	}
 	if len(colDefs) == 0 {
 		colDefs = e.vtabModuleColDefs(tableEntry, colDefs)
 	}
@@ -773,6 +788,18 @@ func (e *SelectEngine) execGenericVtabSelect(s *sql.SelectStmt, tableEntry *sche
 		bound = b
 	}
 	input, hasInput := vtabInputConstraint(s.Where)
+	if len(s.Joins) > 0 {
+		opts := e.vtabScanOptions(s)
+		residual := opts.Where
+		opts.Residual = &residual
+		defs, rows, rowids, err, ok := e.ctx.MaterializeCreatedVTab(tableEntry.Name, opts)
+		if ok {
+			if err != nil {
+				return &Result{Error: err}
+			}
+			return e.execSelectOverMaterializedRowids(e.withVtabResidualWhere(s, &opts), defs, rows, rowids)
+		}
+	}
 	rows, err := e.ctx.VirtualTableRows(tableEntry, bound, input, hasInput)
 	if err != nil {
 		return &Result{Error: err}

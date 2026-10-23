@@ -1,6 +1,7 @@
 {
   "file": "aggerror.test",
   "name": "aggerror",
+  "ordered": true,
   "tests": [
     {
       "name": "aggerror-1.1",
@@ -37,7 +38,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT x_count(*) FROM t1"
+          "sql": "SELECT x_count(*) FROM t1",
+          "expect": "40"
         }
       ]
     },

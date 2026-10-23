@@ -1,83 +1,113 @@
 {
   "file": "shmlock.test",
   "name": "shmlock",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "setup_0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);"
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db3"
         }
       ]
     },
     {
-      "name": "1.1",
+      "name": "shmlock-1.0",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT * FROM t1",
-          "expect": "1 2"
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);",
+          "expect": "wal"
         }
       ]
     },
     {
-      "name": "1.2",
+      "name": "shmlock-1.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM t1",
-          "expect": "1 2"
+          "expect": "1 2",
+          "database": "db2"
         }
       ]
     },
     {
-      "name": "2.0",
+      "name": "shmlock-1.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM t1",
-          "expect": "SQLITE_BUSY"
+          "expect": "1 2",
+          "database": "db3"
         }
       ]
     },
     {
-      "name": "3.1",
+      "name": "setup_1",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT * FROM t1",
-          "expect": "1 2"
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db3"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db0"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db1"
         }
       ]
     },
     {
-      "name": "3.2",
+      "name": "shmlock-3.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM t1",
-          "expect": "1 2"
-        },
+          "expect": "1 2",
+          "database": "db0"
+        }
+      ]
+    },
+    {
+      "name": "shmlock-3.2",
+      "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM t1"
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2",
+          "database": "db1"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db0"
         },
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
+          "type": "close_named_db",
+          "database": "db1"
         }
       ]
     }

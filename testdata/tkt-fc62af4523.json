@@ -1,0 +1,41 @@
+{
+  "file": "tkt-fc62af4523.test",
+  "name": "tkt-fc62af4523",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "tkt-fc62af4523.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 10;\n    PRAGMA journal_mode = persist;\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 SELECT randomblob(200), randomblob(300);\n    INSERT INTO t1 SELECT randomblob(200), randomblob(300) FROM t1; --  2\n    INSERT INTO t1 SELECT randomblob(200), randomblob(300) FROM t1; --  4\n    INSERT INTO t1 SELECT randomblob(200), randomblob(300) FROM t1; --  8\n    INSERT INTO t1 SELECT randomblob(200), randomblob(300) FROM t1; -- 16\n    INSERT INTO t1 SELECT randomblob(200), randomblob(300) FROM t1; -- 32\n    INSERT INTO t1 SELECT randomblob(200), randomblob(300) FROM t1; -- 64"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check;\n    SELECT count(*) FROM t1;",
+          "expect": "ok 64"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc62af4523.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = DELETE",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc62af4523.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check;\n    SELECT count(*) FROM t1;",
+          "expect": "ok 64"
+        }
+      ]
+    }
+  ]
+}

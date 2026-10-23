@@ -1,9 +1,10 @@
 {
   "file": "fts4opt.test",
   "name": "fts4opt",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "fts4opt-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,17 +13,38 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "fts4opt-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t2 USING fts4(words, prefix=\"1,2,3\")"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2(docid, words) VALUES('', '')"
+        }
+      ]
+    },
+    {
+      "name": "fts4opt-1.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT level, count(*) FROM t2_segdir GROUP BY level",
-          "expect": "0    13    1 15    2 5 \n  1024 13 1025 15 1026 5 \n  2048 13 2049 15 2050 5 \n  3072 13 3073 15 3074 5"
+          "expect": "\n  0    13    1 15    2 5 \n  1024 13 1025 15 1026 5 \n  2048 13 2049 15 2050 5 \n  3072 13 3073 15 3074 5\n"
         }
       ]
     },
     {
-      "name": "1.3",
+      "name": "fts4opt-1.3",
       "steps": [
         {
           "type": "exec",
@@ -31,7 +53,20 @@
       ]
     },
     {
-      "name": "1.4",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "0"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TEMP TABLE tmp_segdir(\n        level, idx, start_block, leaves_end_block, end_block, root\n      );\n\n      INSERT INTO temp.tmp_segdir \n        SELECT \n        1024*(o.level / 1024) + 32,                                -- level\n        sum(o.level\u003ci.level OR (o.level=i.level AND o.idx\u003ei.idx)), -- idx\n        o.start_block, o.leaves_end_block, o.end_block, o.root     -- other\n        FROM t2_segdir o, t2_segdir i \n        WHERE (o.level / 1024) = (i.level / 1024)\n        GROUP BY o.level, o.idx;\n  \n      DELETE FROM t2_segdir;\n      INSERT INTO t2_segdir SELECT * FROM temp.tmp_segdir;\n      DROP TABLE temp.tmp_segdir;\n  \n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "fts4opt-1.4",
       "steps": [
         {
           "type": "exec",
@@ -40,17 +75,31 @@
       ]
     },
     {
-      "name": "1.5",
+      "name": "fts4opt-1.5",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT level, count(*) FROM t2_segdir GROUP BY level",
-          "expect": "32   33 \n  1056 33 \n  2080 33 \n  3104 33"
+          "expect": "\n  32   33 \n  1056 33 \n  2080 33 \n  3104 33\n"
         }
       ]
     },
     {
-      "name": "1.7",
+      "name": "fts4opt-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2(t2) VALUES('merge=5,2')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT level, count(*) FROM t2_segdir GROUP BY level",
+          "expect": "33 1 1057 1 2081 1 3105 1"
+        }
+      ]
+    },
+    {
+      "name": "fts4opt-1.7",
       "steps": [
         {
           "type": "exec",
@@ -59,7 +108,7 @@
       ]
     },
     {
-      "name": "1.8",
+      "name": "fts4opt-1.8",
       "steps": [
         {
           "type": "query",
@@ -69,7 +118,7 @@
       ]
     },
     {
-      "name": "2.0",
+      "name": "fts4opt-2.0",
       "steps": [
         {
           "type": "exec",
@@ -78,17 +127,58 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "fts4opt-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2(docid, words) VALUES('', '')"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2 WHERE docid = ''"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE INTO t2(docid, words) VALUES('', '')"
+        }
+      ]
+    },
+    {
+      "name": "fts4opt-2.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT level, count(*) FROM t2_segdir GROUP BY level",
-          "expect": "0    10    1 15    2 12 \n  1024 10 1025 15 1026 12 \n  2048 10 2049 15 2050 12 \n  3072 10 3073 15 3074 12"
+          "expect": "\n  0    10    1 15    2 12 \n  1024 10 1025 15 1026 12 \n  2048 10 2049 15 2050 12 \n  3072 10 3073 15 3074 12\n"
         }
       ]
     },
     {
-      "name": "2.3",
+      "name": "fts4opt-2.3",
       "steps": [
         {
           "type": "exec",
@@ -97,7 +187,20 @@
       ]
     },
     {
-      "name": "2.4",
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "0"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TEMP TABLE tmp_segdir(\n        level, idx, start_block, leaves_end_block, end_block, root\n      );\n\n      INSERT INTO temp.tmp_segdir \n        SELECT \n        1024*(o.level / 1024) + 32,                                -- level\n        sum(o.level\u003ci.level OR (o.level=i.level AND o.idx\u003ei.idx)), -- idx\n        o.start_block, o.leaves_end_block, o.end_block, o.root     -- other\n        FROM t2_segdir o, t2_segdir i \n        WHERE (o.level / 1024) = (i.level / 1024)\n        GROUP BY o.level, o.idx;\n  \n      DELETE FROM t2_segdir;\n      INSERT INTO t2_segdir SELECT * FROM temp.tmp_segdir;\n      DROP TABLE temp.tmp_segdir;\n  \n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "fts4opt-2.4",
       "steps": [
         {
           "type": "exec",
@@ -106,17 +209,31 @@
       ]
     },
     {
-      "name": "2.5",
+      "name": "fts4opt-2.5",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT level, count(*) FROM t2_segdir GROUP BY level",
-          "expect": "32 37 \n  1056 37 \n  2080 37 \n  3104 37"
+          "expect": "\n    32 37 \n  1056 37 \n  2080 37 \n  3104 37\n"
         }
       ]
     },
     {
-      "name": "2.7",
+      "name": "fts4opt-2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2(t2) VALUES('merge=5,2')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT level, count(*) FROM t2_segdir GROUP BY level",
+          "expect": "33 1 1057 1 2081 1 3105 1"
+        }
+      ]
+    },
+    {
+      "name": "fts4opt-2.7",
       "steps": [
         {
           "type": "exec",
@@ -125,7 +242,7 @@
       ]
     },
     {
-      "name": "2.8",
+      "name": "fts4opt-2.8",
       "steps": [
         {
           "type": "query",
@@ -135,7 +252,7 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "fts4opt-3.1",
       "steps": [
         {
           "type": "exec",
@@ -144,7 +261,7 @@
       ]
     },
     {
-      "name": "3.2",
+      "name": "fts4opt-3.2",
       "steps": [
         {
           "type": "query",
@@ -154,7 +271,7 @@
       ]
     },
     {
-      "name": "3.3",
+      "name": "fts4opt-3.3",
       "steps": [
         {
           "type": "query",
@@ -164,7 +281,7 @@
       ]
     },
     {
-      "name": "3.4",
+      "name": "fts4opt-3.4",
       "steps": [
         {
           "type": "query",
@@ -174,7 +291,7 @@
       ]
     },
     {
-      "name": "3.5",
+      "name": "fts4opt-3.5",
       "steps": [
         {
           "type": "exec",
@@ -183,111 +300,38 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "fts4opt-3.6",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE t2 USING fts4(words, prefix=\"1,2,3\")"
+          "sql": "INSERT INTO fts (fts) VALUES ('optimize')",
+          "expect": "1"
         }
       ]
     },
     {
-      "name": "1.6",
+      "name": "fts4opt-3.7",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2(t2) VALUES('merge=5,2')"
-        }
-      ]
-    },
-    {
-      "name": "2.6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2(t2) VALUES('merge=5,2')"
-        }
-      ]
-    },
-    {
-      "name": "3.6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO fts (fts) VALUES ('optimize')"
-        }
-      ]
-    },
-    {
-      "name": "3.7",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO fts (rowid, t) VALUES (3, 'xyz')"
-        }
-      ]
-    },
-    {
-      "name": "3.8",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO fts (fts) VALUES ('optimize')"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE t2 USING fts4(words, prefix=\"1,2,3\")"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2(t2) VALUES('merge=5,2')"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT level, count(*) FROM t2_segdir GROUP BY level"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2(t2) VALUES('merge=5,2')"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT level, count(*) FROM t2_segdir GROUP BY level"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO fts (fts) VALUES ('optimize')"
-        },
         {
           "type": "exec",
           "sql": "INSERT INTO fts (rowid, t) VALUES (3, 'xyz')"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO fts (fts) VALUES ('optimize')"
-        },
+          "sql": "INSERT INTO fts (fts) VALUES ('optimize')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts4opt-3.8",
+      "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO fts (fts) VALUES ('optimize')"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
+          "sql": "INSERT INTO fts (fts) VALUES ('optimize')",
+          "expect": "1"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

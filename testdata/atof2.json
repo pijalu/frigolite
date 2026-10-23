@@ -1,6 +1,7 @@
 {
   "file": "atof2.test",
   "name": "atof2",
+  "ordered": true,
   "tests": [
     {
       "name": "atof2-1.0",

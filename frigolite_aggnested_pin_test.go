@@ -25,8 +25,9 @@ func TestAggnestedPin(t *testing.T) {
 		q    string
 		want string
 	}{
-		{"SELECT (SELECT string_agg(a1,'x') FROM t2) FROM t1", "1x2x3"},      // 1.1
-		{"SELECT (SELECT string_agg(b1,a1) FROM t2) FROM t1", "415 425 435"}, // 1.3
+		{"SELECT (SELECT string_agg(a1,'x') FROM t2) FROM t1", "1x2x3"},                                  // 1.1
+		{"SELECT (SELECT string_agg(a1,'x') || '-' || string_agg(b1,'y') FROM t2) FROM t1", "1x2x3-4y5"}, // 1.2
+		{"SELECT (SELECT string_agg(b1,a1) FROM t2) FROM t1", "415 425 435"},                             // 1.3
 	} {
 		r := db.Query(tc.q)
 		if r.Error != nil {

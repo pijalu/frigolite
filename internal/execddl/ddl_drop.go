@@ -179,10 +179,9 @@ func isPlainIdentifier(name string) bool {
 	return true
 }
 
-// validateTriggerSchemaRefs enforces SQLite's schema-scoping rules for
-// non-temp trigger bodies: they may not reference objects in an attached
-// database, and their DML statements may not use qualified table names.
-// checkQualifiedDMLTable rejects qualified table names in trigger DML.
+// checkQualifiedDMLTable rejects qualified table names in the INSERT, UPDATE,
+// or DELETE target of a non-temp trigger body. TEMP triggers may target other
+// databases fully qualified, so callers must skip this check for them.
 func checkQualifiedDMLTable(table string) error {
 	schemaName, _ := execdml.ParseSchemaName(table)
 	if schemaName != "" {

@@ -1,12 +1,963 @@
 {
   "file": "literal.test",
   "name": "literal",
+  "ordered": true,
   "tests": [
     {
-      "name": "5.1",
+      "name": "literal-1.0.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
+          "sql": "SELECT typeof( 45 ), 45",
+          "expect": "integer 45"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.0.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n      CREATE TABLE x1(a);\n      INSERT INTO x1 VALUES(123);\n      ALTER TABLE x1 ADD COLUMN b DEFAULT 45 ;\n      SELECT typeof(b), b FROM x1;",
+          "expect": "integer 45"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.0.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a DEFAULT 45);\n    INSERT INTO x1 DEFAULT VALUES;\n    SELECT typeof(a), a FROM x1;",
+          "expect": "integer 45"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( 0xFF ), 0xFF",
+          "expect": "integer 255"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n      CREATE TABLE x1(a);\n      INSERT INTO x1 VALUES(123);\n      ALTER TABLE x1 ADD COLUMN b DEFAULT 0xFF ;\n      SELECT typeof(b), b FROM x1;",
+          "expect": "integer 255"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a DEFAULT 0xFF);\n    INSERT INTO x1 DEFAULT VALUES;\n    SELECT typeof(a), a FROM x1;",
+          "expect": "integer 255"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( 0xFFFFFFFF ), 0xFFFFFFFF",
+          "expect": "integer 4294967295"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n      CREATE TABLE x1(a);\n      INSERT INTO x1 VALUES(123);\n      ALTER TABLE x1 ADD COLUMN b DEFAULT 0xFFFFFFFF ;\n      SELECT typeof(b), b FROM x1;",
+          "expect": "integer 4294967295"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a DEFAULT 0xFFFFFFFF);\n    INSERT INTO x1 DEFAULT VALUES;\n    SELECT typeof(a), a FROM x1;",
+          "expect": "integer 4294967295"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( 0x123FFFFFFFF ), 0x123FFFFFFFF",
+          "expect": "integer 1254130450431"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n      CREATE TABLE x1(a);\n      INSERT INTO x1 VALUES(123);\n      ALTER TABLE x1 ADD COLUMN b DEFAULT 0x123FFFFFFFF ;\n      SELECT typeof(b), b FROM x1;",
+          "expect": "integer 1254130450431"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a DEFAULT 0x123FFFFFFFF);\n    INSERT INTO x1 DEFAULT VALUES;\n    SELECT typeof(a), a FROM x1;",
+          "expect": "integer 1254130450431"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( -0x123FFFFFFFF ), -0x123FFFFFFFF",
+          "expect": "integer -1254130450431"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n      CREATE TABLE x1(a);\n      INSERT INTO x1 VALUES(123);\n      ALTER TABLE x1 ADD COLUMN b DEFAULT -0x123FFFFFFFF ;\n      SELECT typeof(b), b FROM x1;",
+          "expect": "integer -1254130450431"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a DEFAULT -0x123FFFFFFFF);\n    INSERT INTO x1 DEFAULT VALUES;\n    SELECT typeof(a), a FROM x1;",
+          "expect": "integer -1254130450431"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( 0xFFFFFFFFFFFFFFFF ), 0xFFFFFFFFFFFFFFFF",
+          "expect": "integer -1"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n      CREATE TABLE x1(a);\n      INSERT INTO x1 VALUES(123);\n      ALTER TABLE x1 ADD COLUMN b DEFAULT 0xFFFFFFFFFFFFFFFF ;\n      SELECT typeof(b), b FROM x1;",
+          "expect": "integer -1"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a DEFAULT 0xFFFFFFFFFFFFFFFF);\n    INSERT INTO x1 DEFAULT VALUES;\n    SELECT typeof(a), a FROM x1;",
+          "expect": "integer -1"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( 0x7FFFFFFFFFFFFFFF ), 0x7FFFFFFFFFFFFFFF",
+          "expect": "integer 9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n      CREATE TABLE x1(a);\n      INSERT INTO x1 VALUES(123);\n      ALTER TABLE x1 ADD COLUMN b DEFAULT 0x7FFFFFFFFFFFFFFF ;\n      SELECT typeof(b), b FROM x1;",
+          "expect": "integer 9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a DEFAULT 0x7FFFFFFFFFFFFFFF);\n    INSERT INTO x1 DEFAULT VALUES;\n    SELECT typeof(a), a FROM x1;",
+          "expect": "integer 9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( -0x7FFFFFFFFFFFFFFF ), -0x7FFFFFFFFFFFFFFF",
+          "expect": "integer -9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n      CREATE TABLE x1(a);\n      INSERT INTO x1 VALUES(123);\n      ALTER TABLE x1 ADD COLUMN b DEFAULT -0x7FFFFFFFFFFFFFFF ;\n      SELECT typeof(b), b FROM x1;",
+          "expect": "integer -9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a DEFAULT -0x7FFFFFFFFFFFFFFF);\n    INSERT INTO x1 DEFAULT VALUES;\n    SELECT typeof(a), a FROM x1;",
+          "expect": "integer -9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( +0x7FFFFFFFFFFFFFFF ), +0x7FFFFFFFFFFFFFFF",
+          "expect": "integer 9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n      CREATE TABLE x1(a);\n      INSERT INTO x1 VALUES(123);\n      ALTER TABLE x1 ADD COLUMN b DEFAULT +0x7FFFFFFFFFFFFFFF ;\n      SELECT typeof(b), b FROM x1;",
+          "expect": "integer 9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.9.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a DEFAULT +0x7FFFFFFFFFFFFFFF);\n    INSERT INTO x1 DEFAULT VALUES;\n    SELECT typeof(a), a FROM x1;",
+          "expect": "integer 9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.10.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( -45 ), -45",
+          "expect": "integer -45"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n      CREATE TABLE x1(a);\n      INSERT INTO x1 VALUES(123);\n      ALTER TABLE x1 ADD COLUMN b DEFAULT -45 ;\n      SELECT typeof(b), b FROM x1;",
+          "expect": "integer -45"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.10.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a DEFAULT -45);\n    INSERT INTO x1 DEFAULT VALUES;\n    SELECT typeof(a), a FROM x1;",
+          "expect": "integer -45"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.11.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( '0xFF' ), '0xFF'",
+          "expect": "text 0xFF"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.11.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n      CREATE TABLE x1(a);\n      INSERT INTO x1 VALUES(123);\n      ALTER TABLE x1 ADD COLUMN b DEFAULT '0xFF' ;\n      SELECT typeof(b), b FROM x1;",
+          "expect": "text 0xFF"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.11.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a DEFAULT '0xFF');\n    INSERT INTO x1 DEFAULT VALUES;\n    SELECT typeof(a), a FROM x1;",
+          "expect": "text 0xFF"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.12.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( '-0xFF' ), '-0xFF'",
+          "expect": "text -0xFF"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.12.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n      CREATE TABLE x1(a);\n      INSERT INTO x1 VALUES(123);\n      ALTER TABLE x1 ADD COLUMN b DEFAULT '-0xFF' ;\n      SELECT typeof(b), b FROM x1;",
+          "expect": "text -0xFF"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.12.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a DEFAULT '-0xFF');\n    INSERT INTO x1 DEFAULT VALUES;\n    SELECT typeof(a), a FROM x1;",
+          "expect": "text -0xFF"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.13.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( -'0xFF' ), -'0xFF'",
+          "expect": "integer 0"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.13.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n      CREATE TABLE x1(a);\n      INSERT INTO x1 VALUES(123);\n      ALTER TABLE x1 ADD COLUMN b DEFAULT -'0xFF' ;\n      SELECT typeof(b), b FROM x1;",
+          "expect": "integer 0"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.13.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a DEFAULT -'0xFF');\n    INSERT INTO x1 DEFAULT VALUES;\n    SELECT typeof(a), a FROM x1;",
+          "expect": "integer 0"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.14.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( -9223372036854775808 ), -9223372036854775808",
+          "expect": "integer -9223372036854775808"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.14.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n      CREATE TABLE x1(a);\n      INSERT INTO x1 VALUES(123);\n      ALTER TABLE x1 ADD COLUMN b DEFAULT -9223372036854775808 ;\n      SELECT typeof(b), b FROM x1;",
+          "expect": "integer -9223372036854775808"
+        }
+      ]
+    },
+    {
+      "name": "literal-1.14.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a DEFAULT -9223372036854775808);\n    INSERT INTO x1 DEFAULT VALUES;\n    SELECT typeof(a), a FROM x1;",
+          "expect": "integer -9223372036854775808"
+        }
+      ]
+    },
+    {
+      "name": "literal-2.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( 1e12 ), 1e12",
+          "expect": "real 1000000000000.0"
+        }
+      ]
+    },
+    {
+      "name": "literal-2.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n      CREATE TABLE x1(a);\n      INSERT INTO x1 VALUES(123);\n      ALTER TABLE x1 ADD COLUMN b DEFAULT 1e12 ;\n      SELECT typeof(b), b FROM x1;",
+          "expect": "real 1000000000000.0"
+        }
+      ]
+    },
+    {
+      "name": "literal-2.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a DEFAULT 1e12);\n    INSERT INTO x1 DEFAULT VALUES;\n    SELECT typeof(a), a FROM x1;",
+          "expect": "real 1000000000000.0"
+        }
+      ]
+    },
+    {
+      "name": "literal-2.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( 1.0 ), 1.0",
+          "expect": "real 1.0"
+        }
+      ]
+    },
+    {
+      "name": "literal-2.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n      CREATE TABLE x1(a);\n      INSERT INTO x1 VALUES(123);\n      ALTER TABLE x1 ADD COLUMN b DEFAULT 1.0 ;\n      SELECT typeof(b), b FROM x1;",
+          "expect": "real 1.0"
+        }
+      ]
+    },
+    {
+      "name": "literal-2.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a DEFAULT 1.0);\n    INSERT INTO x1 DEFAULT VALUES;\n    SELECT typeof(a), a FROM x1;",
+          "expect": "real 1.0"
+        }
+      ]
+    },
+    {
+      "name": "literal-2.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( 1e1000 ), 1e1000",
+          "expect": "real Inf"
+        }
+      ]
+    },
+    {
+      "name": "literal-2.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n      CREATE TABLE x1(a);\n      INSERT INTO x1 VALUES(123);\n      ALTER TABLE x1 ADD COLUMN b DEFAULT 1e1000 ;\n      SELECT typeof(b), b FROM x1;",
+          "expect": "real Inf"
+        }
+      ]
+    },
+    {
+      "name": "literal-2.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a DEFAULT 1e1000);\n    INSERT INTO x1 DEFAULT VALUES;\n    SELECT typeof(a), a FROM x1;",
+          "expect": "real Inf"
+        }
+      ]
+    },
+    {
+      "name": "literal-2.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( -1e1000 ), -1e1000",
+          "expect": "real -Inf"
+        }
+      ]
+    },
+    {
+      "name": "literal-2.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n      CREATE TABLE x1(a);\n      INSERT INTO x1 VALUES(123);\n      ALTER TABLE x1 ADD COLUMN b DEFAULT -1e1000 ;\n      SELECT typeof(b), b FROM x1;",
+          "expect": "real -Inf"
+        }
+      ]
+    },
+    {
+      "name": "literal-2.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a DEFAULT -1e1000);\n    INSERT INTO x1 DEFAULT VALUES;\n    SELECT typeof(a), a FROM x1;",
+          "expect": "real -Inf"
+        }
+      ]
+    },
+    {
+      "name": "literal-3.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( 1_000 ), 1_000",
+          "expect": "integer 1000"
+        }
+      ]
+    },
+    {
+      "name": "literal-3.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n      CREATE TABLE x1(a);\n      INSERT INTO x1 VALUES(123);\n      ALTER TABLE x1 ADD COLUMN b DEFAULT 1_000 ;\n      SELECT typeof(b), b FROM x1;",
+          "expect": "integer 1000"
+        }
+      ]
+    },
+    {
+      "name": "literal-3.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a DEFAULT 1_000);\n    INSERT INTO x1 DEFAULT VALUES;\n    SELECT typeof(a), a FROM x1;",
+          "expect": "integer 1000"
+        }
+      ]
+    },
+    {
+      "name": "literal-3.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( 1.1_1 ), 1.1_1",
+          "expect": "real 1.11"
+        }
+      ]
+    },
+    {
+      "name": "literal-3.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n      CREATE TABLE x1(a);\n      INSERT INTO x1 VALUES(123);\n      ALTER TABLE x1 ADD COLUMN b DEFAULT 1.1_1 ;\n      SELECT typeof(b), b FROM x1;",
+          "expect": "real 1.11"
+        }
+      ]
+    },
+    {
+      "name": "literal-3.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a DEFAULT 1.1_1);\n    INSERT INTO x1 DEFAULT VALUES;\n    SELECT typeof(a), a FROM x1;",
+          "expect": "real 1.11"
+        }
+      ]
+    },
+    {
+      "name": "literal-3.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( 1_0.1_1 ), 1_0.1_1",
+          "expect": "real 10.11"
+        }
+      ]
+    },
+    {
+      "name": "literal-3.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n      CREATE TABLE x1(a);\n      INSERT INTO x1 VALUES(123);\n      ALTER TABLE x1 ADD COLUMN b DEFAULT 1_0.1_1 ;\n      SELECT typeof(b), b FROM x1;",
+          "expect": "real 10.11"
+        }
+      ]
+    },
+    {
+      "name": "literal-3.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a DEFAULT 1_0.1_1);\n    INSERT INTO x1 DEFAULT VALUES;\n    SELECT typeof(a), a FROM x1;",
+          "expect": "real 10.11"
+        }
+      ]
+    },
+    {
+      "name": "literal-3.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( 1e1_000 ), 1e1_000",
+          "expect": "real Inf"
+        }
+      ]
+    },
+    {
+      "name": "literal-3.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n      CREATE TABLE x1(a);\n      INSERT INTO x1 VALUES(123);\n      ALTER TABLE x1 ADD COLUMN b DEFAULT 1e1_000 ;\n      SELECT typeof(b), b FROM x1;",
+          "expect": "real Inf"
+        }
+      ]
+    },
+    {
+      "name": "literal-3.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a DEFAULT 1e1_000);\n    INSERT INTO x1 DEFAULT VALUES;\n    SELECT typeof(a), a FROM x1;",
+          "expect": "real Inf"
+        }
+      ]
+    },
+    {
+      "name": "literal-3.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( 12_3_456.7_8_9 ), 12_3_456.7_8_9",
+          "expect": "real 123456.789"
+        }
+      ]
+    },
+    {
+      "name": "literal-3.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n      CREATE TABLE x1(a);\n      INSERT INTO x1 VALUES(123);\n      ALTER TABLE x1 ADD COLUMN b DEFAULT 12_3_456.7_8_9 ;\n      SELECT typeof(b), b FROM x1;",
+          "expect": "real 123456.789"
+        }
+      ]
+    },
+    {
+      "name": "literal-3.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a DEFAULT 12_3_456.7_8_9);\n    INSERT INTO x1 DEFAULT VALUES;\n    SELECT typeof(a), a FROM x1;",
+          "expect": "real 123456.789"
+        }
+      ]
+    },
+    {
+      "name": "literal-3.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( 9_223_372_036_854_775_807 ), 9_223_372_036_854_775_807",
+          "expect": "integer 9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "literal-3.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n      CREATE TABLE x1(a);\n      INSERT INTO x1 VALUES(123);\n      ALTER TABLE x1 ADD COLUMN b DEFAULT 9_223_372_036_854_775_807 ;\n      SELECT typeof(b), b FROM x1;",
+          "expect": "integer 9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "literal-3.6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a DEFAULT 9_223_372_036_854_775_807);\n    INSERT INTO x1 DEFAULT VALUES;\n    SELECT typeof(a), a FROM x1;",
+          "expect": "integer 9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "literal-3.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( 9_223_372_036_854_775_808 ), 9_223_372_036_854_775_808",
+          "expect": "real 9.22337203685478e+18"
+        }
+      ]
+    },
+    {
+      "name": "literal-3.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n      CREATE TABLE x1(a);\n      INSERT INTO x1 VALUES(123);\n      ALTER TABLE x1 ADD COLUMN b DEFAULT 9_223_372_036_854_775_808 ;\n      SELECT typeof(b), b FROM x1;",
+          "expect": "real 9.22337203685478e+18"
+        }
+      ]
+    },
+    {
+      "name": "literal-3.7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a DEFAULT 9_223_372_036_854_775_808);\n    INSERT INTO x1 DEFAULT VALUES;\n    SELECT typeof(a), a FROM x1;",
+          "expect": "real 9.22337203685478e+18"
+        }
+      ]
+    },
+    {
+      "name": "literal-3.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( -9_223_372_036_854_775_808 ), -9_223_372_036_854_775_808",
+          "expect": "integer -9223372036854775808"
+        }
+      ]
+    },
+    {
+      "name": "literal-3.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n      CREATE TABLE x1(a);\n      INSERT INTO x1 VALUES(123);\n      ALTER TABLE x1 ADD COLUMN b DEFAULT -9_223_372_036_854_775_808 ;\n      SELECT typeof(b), b FROM x1;",
+          "expect": "integer -9223372036854775808"
+        }
+      ]
+    },
+    {
+      "name": "literal-3.8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a DEFAULT -9_223_372_036_854_775_808);\n    INSERT INTO x1 DEFAULT VALUES;\n    SELECT typeof(a), a FROM x1;",
+          "expect": "integer -9223372036854775808"
+        }
+      ]
+    },
+    {
+      "name": "literal-4.0",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 123a456",
+          "expect": "1 {unrecognized token: \"123a456\"}"
+        }
+      ]
+    },
+    {
+      "name": "literal-4.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1_",
+          "expect": "1 {unrecognized token: \"1_\"}"
+        }
+      ]
+    },
+    {
+      "name": "literal-4.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1_.4",
+          "expect": "1 {unrecognized token: \"1_.4\"}"
+        }
+      ]
+    },
+    {
+      "name": "literal-4.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1e_4",
+          "expect": "1 {unrecognized token: \"1e_4\"}"
+        }
+      ]
+    },
+    {
+      "name": "literal-4.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1_e4",
+          "expect": "1 {unrecognized token: \"1_e4\"}"
+        }
+      ]
+    },
+    {
+      "name": "literal-4.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1.4_e4",
+          "expect": "1 {unrecognized token: \"1.4_e4\"}"
+        }
+      ]
+    },
+    {
+      "name": "literal-4.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1.4e+_4",
+          "expect": "1 {unrecognized token: \"1.4e\"}"
+        }
+      ]
+    },
+    {
+      "name": "literal-4.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1.4e-_4",
+          "expect": "1 {unrecognized token: \"1.4e\"}"
+        }
+      ]
+    },
+    {
+      "name": "literal-4.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1.4e4_",
+          "expect": "1 {unrecognized token: \"1.4e4_\"}"
+        }
+      ]
+    },
+    {
+      "name": "literal-4.9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1.4_e4",
+          "expect": "1 {unrecognized token: \"1.4_e4\"}"
+        }
+      ]
+    },
+    {
+      "name": "literal-4.10",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1.4e_4",
+          "expect": "1 {unrecognized token: \"1.4e_4\"}"
+        }
+      ]
+    },
+    {
+      "name": "literal-4.11",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 12__34",
+          "expect": "1 {unrecognized token: \"12__34\"}"
+        }
+      ]
+    },
+    {
+      "name": "literal-4.12",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1234_",
+          "expect": "1 {unrecognized token: \"1234_\"}"
+        }
+      ]
+    },
+    {
+      "name": "literal-4.13",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 12._34",
+          "expect": "1 {unrecognized token: \"12._34\"}"
+        }
+      ]
+    },
+    {
+      "name": "literal-4.14",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 12_.34",
+          "expect": "1 {unrecognized token: \"12_.34\"}"
+        }
+      ]
+    },
+    {
+      "name": "literal-4.15",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 12.34_",
+          "expect": "1 {unrecognized token: \"12.34_\"}"
+        }
+      ]
+    },
+    {
+      "name": "literal-4.16",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1.0e1_______2",
+          "expect": "1 {unrecognized token: \"1.0e1_______2\"}"
+        }
+      ]
+    },
+    {
+      "name": "literal-5.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "SELECT 1 ORDER BY 2_3;",
           "expect": "1 {1st ORDER BY term out of range - should be between 1 and 1}"
         }

@@ -150,6 +150,8 @@ After **every** completed micro-task (not just at goal end):
 
 This ensures any interruption resumes from committed state only. No work is lost.
 
+**Session closeout:** Never end a considered working session without either committing all completed changes or documenting them clearly in a durable handover/task note. Record changed files, intent, verification run and result, and any remaining work; do not leave unexplained workspace changes. If the user requests a commit, commit all requested workspace changes after reviewing their scope and validating them.
+
 ## 4a. Handover-Goal Protocol (budget exhaustion / large goal)
 
 > When a goal is large, hits its hard budget (turn/token limit), or the agent

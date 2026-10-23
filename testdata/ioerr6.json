@@ -1,0 +1,43 @@
+{
+  "file": "ioerr6.test",
+  "name": "ioerr6",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "ioerr6-1.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(2, 4);\n    INSERT INTO t1 VALUES(3, 6);\n    INSERT INTO t1 VALUES(4, 8);"
+        },
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES(5, 10)",
+          "expect": "1 {database or disk is full}"
+        }
+      ]
+    },
+    {
+      "name": "ioerr6-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    }
+  ]
+}

@@ -2,6 +2,7 @@
   "file": "json102.test",
   "name": "json102",
   "nullToken": "NULL",
+  "ordered": true,
   "tests": [
     {
       "name": "json102-100",
@@ -367,7 +368,7 @@
       "name": "json102-240",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT json_array_length('{\"one\":[1,2,3]}', '$.two');",
           "expect": "{}"
         }
@@ -377,7 +378,7 @@
       "name": "json102-240b",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT json_array_length(jsonb('{\"one\":[1,2,3]}'), '$.two');",
           "expect": "{}"
         }
@@ -567,7 +568,7 @@
       "name": "json102-300",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT json_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.x');",
           "expect": "{}"
         }
@@ -577,7 +578,7 @@
       "name": "json102-300b",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT jsonb_extract('{\"a\":2,\"c\":[4,5,{\"f\":7}]}', '$.x');",
           "expect": "{}"
         }
@@ -1457,7 +1458,7 @@
       "name": "json102-500",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT json_remove('{\"x\":25,\"y\":42}','$');",
           "expect": "{}"
         }
@@ -1467,7 +1468,7 @@
       "name": "json102-500-2",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT json_remove(jsonb('{\"x\":25,\"y\":42}'),'$');",
           "expect": "{}"
         }
@@ -1477,7 +1478,7 @@
       "name": "json102-500-3",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT json(jsonb_remove('{\"x\":25,\"y\":42}','$'));",
           "expect": "{}"
         }
@@ -1487,7 +1488,7 @@
       "name": "json102-500-4",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT json(jsonb_remove(jsonb('{\"x\":25,\"y\":42}'),'$'));",
           "expect": "{}"
         }
@@ -1677,7 +1678,7 @@
       "name": "json102-600",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT json_type('{\"a\":[2,3.5,true,false,null,\"x\"]}','$.a[6]');",
           "expect": "{}"
         }
@@ -1687,7 +1688,7 @@
       "name": "json102-600b",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[6]');",
           "expect": "{}"
         }
@@ -1710,6 +1711,115 @@
           "type": "query",
           "sql": "SELECT json_valid(char(123)||'\"x\":35');",
           "expect": "{0}"
+        }
+      ]
+    },
+    {
+      "name": "json102-1000",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE user(name,phone,phoneb);\n  INSERT INTO user(name,phone) VALUES\n     ('Alice','[\"919-555-2345\",\"804-555-3621\"]'),\n     ('Bob','[\"201-555-8872\"]'),\n     ('Cindy','[\"704-555-9983\"]'),\n     ('Dave','[\"336-555-8421\",\"704-555-4321\",\"803-911-4421\"]');\n  UPDATE user SET phoneb=jsonb(phone);\n  SELECT DISTINCT user.name\n    FROM user, json_each(user.phone)\n   WHERE json_each.value LIKE '704-%'\n   ORDER BY 1;",
+          "expect": "Cindy Dave"
+        }
+      ]
+    },
+    {
+      "name": "json102-1000b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT user.name\n    FROM user, json_each(user.phoneb)\n   WHERE json_each.value LIKE '704-%'\n   ORDER BY 1;",
+          "expect": "Cindy Dave"
+        }
+      ]
+    },
+    {
+      "name": "json102-1010",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE user\n     SET phone=json_extract(phone,'$[0]')\n   WHERE json_array_length(phone)\u003c2;\n  SELECT name, substr(phone,1,5) FROM user ORDER BY name;",
+          "expect": "Alice {[\"919} Bob 201-5 Cindy 704-5 Dave {[\"336}"
+        }
+      ]
+    },
+    {
+      "name": "json102-1011",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM user WHERE phone LIKE '704-%'\n  UNION\n  SELECT user.name\n    FROM user, json_each(user.phone)\n   WHERE json_valid(user.phone)\n     AND json_each.value LIKE '704-%';",
+          "expect": "Cindy Dave"
+        }
+      ]
+    },
+    {
+      "name": "json102-1100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE big(json JSON);\n  INSERT INTO big(json) VALUES('{\n    \"id\":123,\n    \"stuff\":[1,2,3,4],\n    \"partlist\":[\n       {\"uuid\":\"bb108722-572e-11e5-9320-7f3b63a4ca74\"},\n       {\"uuid\":\"c690dc14-572e-11e5-95f9-dfc8861fd535\"},\n       {\"subassembly\":[\n          {\"uuid\":\"6fa5181e-5721-11e5-a04e-57f3d7b32808\"}\n       ]}\n    ]\n  }');\n  INSERT INTO big(json) VALUES('{\n    \"id\":456,\n    \"stuff\":[\"hello\",\"world\",\"xyzzy\"],\n    \"partlist\":[\n       {\"uuid\":false},\n       {\"uuid\":\"c690dc14-572e-11e5-95f9-dfc8861fd535\"}\n    ]\n  }');"
+        }
+      ]
+    },
+    {
+      "name": "json102-1110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT big.rowid, fullkey, value\n    FROM big, json_tree(big.json)\n   WHERE json_tree.type NOT IN ('object','array')\n   ORDER BY +big.rowid, +json_tree.id",
+          "expect": "1 $.id 123 1 $.stuff[0] 1 1 $.stuff[1] 2 1 $.stuff[2] 3 1 $.stuff[3] 4 1 $.partlist[0].uuid bb108722-572e-11e5-9320-7f3b63a4ca74 1 $.partlist[1].uuid c690dc14-572e-11e5-95f9-dfc8861fd535 1 $.partlist[2].subassembly[0].uuid 6fa5181e-5721-11e5-a04e-57f3d7b32808 2 $.id 456 2 $.stuff[0] hello 2 $.stuff[1] world 2 $.stuff[2] xyzzy 2 $.partlist[0].uuid 0 2 $.partlist[1].uuid c690dc14-572e-11e5-95f9-dfc8861fd535"
+        }
+      ]
+    },
+    {
+      "name": "json102-1110b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT big.rowid, fullkey, value\n    FROM big, json_tree(jsonb(big.json))\n   WHERE json_tree.type NOT IN ('object','array')\n   ORDER BY +big.rowid, +json_tree.id",
+          "expect": "1 $.id 123 1 $.stuff[0] 1 1 $.stuff[1] 2 1 $.stuff[2] 3 1 $.stuff[3] 4 1 $.partlist[0].uuid bb108722-572e-11e5-9320-7f3b63a4ca74 1 $.partlist[1].uuid c690dc14-572e-11e5-95f9-dfc8861fd535 1 $.partlist[2].subassembly[0].uuid 6fa5181e-5721-11e5-a04e-57f3d7b32808 2 $.id 456 2 $.stuff[0] hello 2 $.stuff[1] world 2 $.stuff[2] xyzzy 2 $.partlist[0].uuid 0 2 $.partlist[1].uuid c690dc14-572e-11e5-95f9-dfc8861fd535"
+        }
+      ]
+    },
+    {
+      "name": "json102-1120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT big.rowid, fullkey, atom\n    FROM big, json_tree(big.json)\n   WHERE atom IS NOT NULL\n   ORDER BY +big.rowid, +json_tree.id",
+          "expect": "1 $.id 123 1 $.stuff[0] 1 1 $.stuff[1] 2 1 $.stuff[2] 3 1 $.stuff[3] 4 1 $.partlist[0].uuid bb108722-572e-11e5-9320-7f3b63a4ca74 1 $.partlist[1].uuid c690dc14-572e-11e5-95f9-dfc8861fd535 1 $.partlist[2].subassembly[0].uuid 6fa5181e-5721-11e5-a04e-57f3d7b32808 2 $.id 456 2 $.stuff[0] hello 2 $.stuff[1] world 2 $.stuff[2] xyzzy 2 $.partlist[0].uuid 0 2 $.partlist[1].uuid c690dc14-572e-11e5-95f9-dfc8861fd535"
+        }
+      ]
+    },
+    {
+      "name": "json102-1130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT json_extract(big.json,'$.id')\n    FROM big, json_tree(big.json,'$.partlist')\n   WHERE json_tree.key='uuid'\n     AND json_tree.value='6fa5181e-5721-11e5-a04e-57f3d7b32808';",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "json102-1131",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT json_extract(big.json,'$.id')\n    FROM big, json_tree(big.json,'$')\n   WHERE json_tree.key='uuid'\n     AND json_tree.value='6fa5181e-5721-11e5-a04e-57f3d7b32808';",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "json102-1132",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT json_extract(big.json,'$.id')\n    FROM big, json_tree(big.json)\n   WHERE json_tree.key='uuid'\n     AND json_tree.value='6fa5181e-5721-11e5-a04e-57f3d7b32808';",
+          "expect": "123"
         }
       ]
     },
@@ -2977,6 +3087,15 @@
           "type": "query",
           "sql": "SELECT '{\"1\":\"one\",\"2\":\"two\",\"3\":\"three\"}'-\u003e\u003e'2';",
           "expect": "two"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "nullvalue",
+          "sql": "NULL"
         }
       ]
     },

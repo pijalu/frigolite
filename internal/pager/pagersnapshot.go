@@ -54,6 +54,10 @@ func (p *Pager) Snapshot() *PagerState {
 		}
 	}
 	s.fileSize = p.fileSize
+	if p.wal != nil {
+		s.walNFrame = p.wal.nFrame
+		s.walCksum1, s.walCksum2 = p.wal.cksum1, p.wal.cksum2
+	}
 	return s
 }
 
@@ -74,6 +78,15 @@ func (p *Pager) Restore(s *PagerState) {
 		cur.done = true
 	}
 	p.stmtTop = nil
+	// Rewind cache-spilled, uncommitted WAL frames before releasing WRITER;
+	// published mxFrame is unchanged, so truncating to the snapshot frame is safe.
+	if p.wal != nil && p.wal.nFrame > s.walNFrame {
+		frameSize := int64(p.pageSize) + WalFrameHdrSize
+		if err := p.wal.file.Truncate(WalHdrSize + int64(s.walNFrame)*frameSize); err == nil {
+			p.wal.nFrame = s.walNFrame
+			p.wal.cksum1, p.wal.cksum2 = s.walCksum1, s.walCksum2
+		}
+	}
 	// ROLLBACK ends the write transaction: drop the WRITER shm lock
 	// (sqlite3WalEndWriteTransaction parity; a savepoint rollback that still
 	// leaves dirty pages re-acquires it at the next write).

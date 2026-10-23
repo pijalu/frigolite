@@ -44,6 +44,14 @@ func (e *Engine) Pager() *pager.Pager { return e.pager }
 
 func (e *Engine) MainDB() *execquery.DatabaseContext { return e.mainDB }
 
+// MarkStatsUsed records that a chosen non-unique index plan depended on statistics.
+func (e *Engine) MarkStatsUsed(table string) {
+	if e.statsUsed == nil {
+		e.statsUsed = make(map[string]bool)
+	}
+	e.statsUsed[strings.ToLower(table)] = true
+}
+
 func (e *Engine) VTables() *vtab.Registry { return e.vtabs }
 
 func (e *Engine) Expr() *execexpr.Evaluator { return e.expr }

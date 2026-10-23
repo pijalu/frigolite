@@ -394,8 +394,12 @@ func (p *jsonParser) parseString() (string, error) {
 			continue
 		}
 		if c < 0x20 {
-			// Raw control characters inside strings are silently dropped
-			// by sqlite's lenient parser (json501 14.x).
+			// A raw control character inside a string is kept by SQLite's
+			// lenient parser and re-escaped by the serializer:
+			// json('{label:"abc' || char(1) || 'xyz"}') renders
+			// {"label":"abc\u0001xyz"} (json501 14.x) — the character is
+			// NOT dropped.
+			sb.WriteByte(c)
 			p.pos++
 			continue
 		}

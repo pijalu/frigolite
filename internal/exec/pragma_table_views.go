@@ -2,13 +2,14 @@ package exec
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/util"
 	"github.com/pijalu/frigolite/internal/value"
-	"strings"
 
 	"github.com/pijalu/frigolite/internal/execdml"
 )
@@ -332,7 +333,37 @@ func (e *Engine) viewColumnDefsFromSelectGuard(sel *sql.SelectStmt, resolving ma
 			Collate: viewColumnCollation(col, sel, i, srcDefs),
 		})
 	}
+	uniquifyViewColumnNames(defs)
 	return defs
+}
+
+// uniquifyViewColumnNames matches SQLite's view result-name collision rule.
+func uniquifyViewColumnNames(defs []sql.ColumnDef) {
+	used := make(map[string]bool, len(defs))
+	for i := range defs {
+		name := defs[i].Name
+		if name == "" {
+			continue
+		}
+		base := name
+		if used[name] {
+			if colon := strings.LastIndexByte(base, ':'); colon > 0 {
+				suffix := base[colon+1:]
+				if suffix != "" && strings.Trim(suffix, "0123456789") == "" {
+					base = base[:colon]
+				}
+			}
+			for n := 1; ; n++ {
+				candidate := fmt.Sprintf("%s:%d", base, n)
+				if !used[candidate] {
+					name = candidate
+					break
+				}
+			}
+			defs[i].Name = name
+		}
+		used[name] = true
+	}
 }
 
 // viewSourceDefs collects the column definitions of every FROM source (the
@@ -359,8 +390,8 @@ func (e *Engine) viewStarDefs(col sql.SelectColumn, sel *sql.SelectStmt, srcDefs
 	var expand []sql.ColumnDef
 	if ref.Table == "" {
 		// A bare * expands to every column of the FROM sources (a single
-		// table, or a joined result).
-		expand = srcDefs
+		// table, or a joined result) with USING/NATURAL merges applied.
+		expand = e.viewStarSourceDefs(sel, resolving)
 	} else {
 		// A qualified star (t.* / alias.*) expands to the referenced source's
 		// columns in order (SQLite: SELECT episode.*, files.f ...).
@@ -379,6 +410,57 @@ func (e *Engine) viewStarDefs(col sql.SelectColumn, sel *sql.SelectStmt, srcDefs
 			}
 		}
 		defs = append(defs, def)
+	}
+	return defs
+}
+
+// viewStarSourceDefs returns the FROM sources' column definitions in star
+// order with USING/NATURAL merges applied: for every join, the first
+// right-side column naming a USING column — or a NATURAL-join common name —
+// is dropped, leaving the left copy as the merged result column. This mirrors
+// the executor's run-time merge (select_join.go filterUsingColumns /
+// filteredUsingColumnIndices; naturalJoinCommonCols compares exact names and
+// skips HIDDEN columns) so a view's declared result columns match the rows
+// its body produces. Without it, `SELECT * FROM t1 NATURAL JOIN t1` presents
+// duplicate columns (x, x:1) whose phantom copy is always NULL.
+func (e *Engine) viewStarSourceDefs(sel *sql.SelectStmt, resolving map[string]bool) []sql.ColumnDef {
+	if sel == nil {
+		return nil
+	}
+	defs := e.fromSourceColumnDefsGuard(sel.From, resolving)
+	for _, j := range sel.Joins {
+		right := e.fromSourceColumnDefsGuard(j.Table, resolving)
+		using := make(map[string]bool, len(j.Using))
+		for _, name := range j.Using {
+			using[strings.ToLower(name)] = true
+		}
+		if strings.Contains(j.JoinType, "NATURAL") {
+			rightNames := make(map[string]bool, len(right))
+			for _, cd := range right {
+				if !cd.Hidden {
+					rightNames[cd.Name] = true
+				}
+			}
+			for _, cd := range defs {
+				if !cd.Hidden && rightNames[cd.Name] {
+					using[strings.ToLower(cd.Name)] = true
+				}
+			}
+		}
+		if len(using) > 0 {
+			merged := make(map[string]bool, len(using))
+			filtered := make([]sql.ColumnDef, 0, len(right))
+			for _, cd := range right {
+				name := strings.ToLower(cd.Name)
+				if using[name] && !merged[name] {
+					merged[name] = true
+					continue
+				}
+				filtered = append(filtered, cd)
+			}
+			right = filtered
+		}
+		defs = append(defs, right...)
 	}
 	return defs
 }

@@ -1,18 +1,54 @@
 {
   "file": "mmap1.test",
   "name": "mmap1",
+  "ordered": true,
   "tests": [
     {
-      "name": "2.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA auto_vacuum = 1;\n    PRAGMA mmap_size = 67108864;\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(a, b, UNIQUE(a, b));\n    INSERT INTO t1 VALUES(rblob(500), rblob(500));\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    2\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    4\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    8\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --   16\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --   32\n    PRAGMA wal_checkpoint;"
+          "type": "register_function",
+          "functionName": "rblob",
+          "callbackVars": {
+            "": "0",
+            "::rcnt": "0",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "c2init": "PRAGMA mmap_size = 67108864 ",
+            "mmap_size": " PRAGMA mmap_size =        0 ",
+            "nRead": "344",
+            "t": "1.6",
+            "testdir": "",
+            "testprefix": "mmap1"
+          },
+          "functionProc": "rblob",
+          "functionArgs": [
+            "n"
+          ],
+          "functionBody": "\n  set ::rcnt [expr (($::rcnt \u003c\u003c 3) + $::rcnt + 456) \u0026 0xFFFFFFFF]\n  set str [format %.8x [expr $::rcnt ^ 0xbdf20da3]]\n  string range [string repeat $str [expr $n/4]] 1 $n\n",
+          "minArgs": 1,
+          "maxArgs": -1
         }
       ]
     },
     {
-      "name": "2.2",
+      "name": "mmap1-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum = 1;\n    PRAGMA mmap_size = 67108864;\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(a, b, UNIQUE(a, b));\n    INSERT INTO t1 VALUES(rblob(500), rblob(500));\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    2\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    4\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    8\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --   16\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --   32\n    PRAGMA wal_checkpoint;",
+          "expect": "67108864 wal 0 103 103"
+        }
+      ]
+    },
+    {
+      "name": "mmap1-2.2",
       "steps": [
         {
           "type": "query",
@@ -22,7 +58,54 @@
       ]
     },
     {
-      "name": "2.4",
+      "name": "mmap1-2.3",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "register_function",
+          "functionName": "rblob",
+          "callbackVars": {
+            "": "",
+            "::rcnt": "0",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "c2init": "PRAGMA mmap_size = 67108864 ",
+            "mmap_size": " PRAGMA mmap_size =        0 ",
+            "nRead": "344",
+            "t": "1.6",
+            "testdir": "",
+            "testprefix": "mmap1"
+          },
+          "functionProc": "rblob",
+          "functionArgs": [
+            "n"
+          ],
+          "functionBody": "\n  set ::rcnt [expr (($::rcnt \u003c\u003c 3) + $::rcnt + 456) \u0026 0xFFFFFFFF]\n  set str [format %.8x [expr $::rcnt ^ 0xbdf20da3]]\n  string range [string repeat $str [expr $n/4]] 1 $n\n",
+          "minArgs": 1,
+          "maxArgs": -1,
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE (rowid%4);\n          PRAGMA wal_checkpoint;",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    16\n        SELECT count(*) FROM t1;",
+          "expect": "16",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "mmap1-2.4",
       "steps": [
         {
           "type": "query",
@@ -32,7 +115,54 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA mmap_size = 67108864;"
+        },
+        {
+          "type": "register_function",
+          "functionName": "rblob",
+          "callbackVars": {
+            "": "",
+            "::rcnt": "0",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "c2init": "PRAGMA mmap_size = 67108864 ",
+            "mmap_size": " PRAGMA mmap_size =        0 ",
+            "nRead": "344",
+            "t": "1.6",
+            "testdir": "",
+            "testprefix": "mmap1"
+          },
+          "functionProc": "rblob",
+          "functionArgs": [
+            "n"
+          ],
+          "functionBody": "\n  set ::rcnt [expr (($::rcnt \u003c\u003c 3) + $::rcnt + 456) \u0026 0xFFFFFFFF]\n  set str [format %.8x [expr $::rcnt ^ 0xbdf20da3]]\n  string range [string repeat $str [expr $n/4]] 1 $n\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "mmap1-3.1",
       "steps": [
         {
           "type": "exec",
@@ -41,7 +171,85 @@
       ]
     },
     {
-      "name": "4.5",
+      "name": "mmap1-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2 ORDER BY a, b",
+          "expect": "8"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA mmap_size = 67108864;"
+        }
+      ]
+    },
+    {
+      "name": "mmap1-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');\n  INSERT INTO t1 VALUES('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb');\n  INSERT INTO t1 VALUES('cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc');\n  INSERT INTO t1 VALUES('dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd');\n  SELECT * FROM t1;\n  BEGIN;",
+          "expect": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        }
+      ]
+    },
+    {
+      "name": "mmap1-4.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1 ORDER BY rowid",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t1 ORDER BY rowid",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_1__",
+          "expect": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ]
+    },
+    {
+      "name": "mmap1-4.3",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t1 ORDER BY rowid",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "expect": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        }
+      ]
+    },
+    {
+      "name": "mmap1-4.4",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1 ORDER BY rowid",
+          "variable": "stmt_1",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "mmap1-4.5",
       "steps": [
         {
           "type": "exec",
@@ -50,66 +258,161 @@
       ]
     },
     {
-      "name": "5.3",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA mmap_size = 67108864;"
+        }
+      ]
+    },
+    {
+      "name": "mmap1-5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum = 2;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa');\n  INSERT INTO t1 VALUES('bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb');\n  INSERT INTO t1 VALUES('cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc');\n  INSERT INTO t1 VALUES('dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd');\n\n  PRAGMA auto_vacuum;\n  SELECT * FROM t1;",
+          "expect": "2 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        }
+      ]
+    },
+    {
+      "name": "mmap1-5.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM t1 ORDER BY rowid",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t1 ORDER BY rowid",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_2__",
+          "expect": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ]
+    },
+    {
+      "name": "mmap1-5.3",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('tricked you!');\n  INSERT INTO t2 VALUES('tricked you!');"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA mmap_size = 67108864;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA mmap_size = 67108864;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA mmap_size = 67108864;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2 ORDER BY a, b"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "mmap1-5.4",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "stmt_step",
+          "sql": "SELECT * FROM t1 ORDER BY rowid",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_2__",
+          "expect": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "mmap1-5.5",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM t1 ORDER BY rowid",
+          "variable": "stmt_2",
+          "expect": "SQLITE_OK"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "delete_file",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "delete_file",
+          "sql": "test2.db"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "setup_5",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "open_named_db",
+          "sql": "test2.db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "mmap1-6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 4096;",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "mmap1-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(randomblob(1000000));",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "mmap1-6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA mmap_size = 1048576;",
+          "expect": "1048576",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "mmap1-6.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "mmap1-6.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VACUUM;",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

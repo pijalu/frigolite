@@ -1,13 +1,33 @@
 {
   "file": "sync.test",
   "name": "sync",
+  "ordered": true,
   "tests": [
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db-journal"
+        }
+      ]
+    },
     {
       "name": "sync-1.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA fullfsync=OFF;\n    CREATE TABLE t1(a,b);\n    ATTACH DATABASE 'test2.db' AS db2;\n    CREATE TABLE db2.t2(x,y);"
+          "sql": "PRAGMA fullfsync=OFF;\n    CREATE TABLE t1(a,b);\n    ATTACH DATABASE 'test2.db' AS db2;\n    CREATE TABLE db2.t2(x,y);",
+          "expect": "8"
         }
       ]
     },
@@ -16,7 +36,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA main.synchronous=on;\n      PRAGMA db2.synchronous=on;\n      BEGIN;\n      INSERT INTO t1 VALUES(1,2);\n      INSERT INTO t2 VALUES(3,4);\n      COMMIT;"
+          "sql": "PRAGMA main.synchronous=on;\n      PRAGMA db2.synchronous=on;\n      BEGIN;\n      INSERT INTO t1 VALUES(1,2);\n      INSERT INTO t2 VALUES(3,4);\n      COMMIT;",
+          "expect": "9"
         }
       ]
     },
@@ -25,7 +46,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA main.synchronous=full;\n    PRAGMA db2.synchronous=full;\n    BEGIN;\n    INSERT INTO t1 VALUES(3,4);\n    INSERT INTO t2 VALUES(5,6);\n    COMMIT;"
+          "sql": "PRAGMA main.synchronous=full;\n    PRAGMA db2.synchronous=full;\n    BEGIN;\n    INSERT INTO t1 VALUES(3,4);\n    INSERT INTO t2 VALUES(5,6);\n    COMMIT;",
+          "expect": "11"
         }
       ]
     },
@@ -34,23 +56,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA main.synchronous=off;\n      PRAGMA db2.synchronous=off;\n      BEGIN;\n      INSERT INTO t1 VALUES(5,6);\n      INSERT INTO t2 VALUES(7,8);\n      COMMIT;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA fullfsync=OFF;\n    CREATE TABLE t1(a,b);\n    ATTACH DATABASE 'test2.db' AS db2;\n    CREATE TABLE db2.t2(x,y);"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA main.synchronous=on;\n      PRAGMA db2.synchronous=on;\n      BEGIN;\n      INSERT INTO t1 VALUES(1,2);\n      INSERT INTO t2 VALUES(3,4);\n      COMMIT;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA main.synchronous=full;\n    PRAGMA db2.synchronous=full;\n    BEGIN;\n    INSERT INTO t1 VALUES(3,4);\n    INSERT INTO t2 VALUES(5,6);\n    COMMIT;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA main.synchronous=off;\n      PRAGMA db2.synchronous=off;\n      BEGIN;\n      INSERT INTO t1 VALUES(5,6);\n      INSERT INTO t2 VALUES(7,8);\n      COMMIT;"
+          "sql": "PRAGMA main.synchronous=off;\n      PRAGMA db2.synchronous=off;\n      BEGIN;\n      INSERT INTO t1 VALUES(5,6);\n      INSERT INTO t2 VALUES(7,8);\n      COMMIT;",
+          "expect": "0"
         }
       ]
     }

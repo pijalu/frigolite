@@ -52,7 +52,10 @@ func (e *Engine) IncrementalVacuum(schema string, limit int64) *execpragma.Resul
 	if ctx.Pager.FreelistCount() == 0 {
 		return &execpragma.Result{}
 	}
-	rows := e.runIncrVacuumLoop(ctx, nFin, limit)
+	rows, err := e.runIncrVacuumLoop(ctx, nFin, limit)
+	if err != nil {
+		return &execpragma.Result{Error: err}
+	}
 	if len(rows) == 0 {
 		return &execpragma.Result{}
 	}
@@ -90,7 +93,7 @@ func incrVacuumPrecheck(ctx *DatabaseContext) (nFin uint32, ok bool) {
 // header's dbOrigSize (pager.c's nTrunc playback) — so ROLLBACK undoes
 // the drain exactly like any other write. The former in-transaction
 // no-op (P8.INCRVACUUM.phase7 divergence) is retired.
-func (e *Engine) runIncrVacuumLoop(ctx *DatabaseContext, nFin uint32, limit int64) [][]interface{} {
+func (e *Engine) runIncrVacuumLoop(ctx *DatabaseContext, nFin uint32, limit int64) ([][]interface{}, error) {
 	// lockBtree (btree.c:3401) runs on every statement start in SQLite and
 	// rejects a header page count above the file's page count before
 	// sqlite3BtreeIncrVacuum ever runs. The pragma path here can be the
@@ -101,7 +104,7 @@ func (e *Engine) runIncrVacuumLoop(ctx *DatabaseContext, nFin uint32, limit int6
 	// misreport every in-transaction vacuum as corrupt (C has no such
 	// check; it trusts the in-memory btree state).
 	if !e.tx.inTransaction && !e.settings.writableSchema && ctx.Pager.HeaderBeyondFile() {
-		return nil
+		return nil, nil
 	}
 	total := int64(0)
 	var rows [][]interface{}
@@ -112,12 +115,7 @@ func (e *Engine) runIncrVacuumLoop(ctx *DatabaseContext, nFin uint32, limit int6
 		}
 		steps, err := e.runIncrVacuumStep(ctx, false, nFin, iLastPg)
 		if err != nil {
-			// A failed step (e.g. the relocation orphan branch)
-			// ends the loop; whatever steps already completed are
-			// reported. The `db eval {PRAGMA incremental_vacuum}`
-			// callback chain terminates on the last row.
-			_ = err
-			break
+			return rows, err
 		}
 		if steps == 0 {
 			break // SQLITE_DONE — no more work
@@ -125,7 +123,7 @@ func (e *Engine) runIncrVacuumLoop(ctx *DatabaseContext, nFin uint32, limit int6
 		total += int64(steps)
 		rows = append(rows, []interface{}{})
 	}
-	return rows
+	return rows, nil
 }
 
 // runIncrVacuumStep performs a single btree.c incrVacuumStep: the last

@@ -1,9 +1,77 @@
 {
   "file": "errmsg.test",
   "name": "errmsg",
+  "ordered": true,
   "tests": [
     {
-      "name": "2.1",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "sql_error",
+          "callbackVars": {
+            "": "errmsg",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "errmsg"
+          },
+          "functionProc": "sql_error",
+          "functionArgs": [
+            "msg"
+          ],
+          "functionBody": " error $msg ",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "errmsg-1.1",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT sql_error('custom message')",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT sql_error('custom message')",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT sql_error('custom message')",
+          "variable": "stmt_1",
+          "expect": "SQLITE_ERROR {SQL logic error} SQLITE_ERROR {custom message}"
+        }
+      ]
+    },
+    {
+      "name": "errmsg-1.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT sql_error('custom message')",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT sql_error('custom message')",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT sql_error('custom message')",
+          "variable": "stmt_2",
+          "expect": "SQLITE_ERROR {custom message} SQLITE_ERROR {custom message}"
+        }
+      ]
+    },
+    {
+      "name": "errmsg-2.1",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +80,49 @@
       ]
     },
     {
-      "name": "3.1.1",
+      "name": "errmsg-2.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t1 VALUES('ghi', 'def')",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES('ghi', 'def')",
+          "variable": "stmt_3"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t1 VALUES('ghi', 'def')",
+          "variable": "stmt_3",
+          "expect": "SQLITE_ERROR {SQL logic error} SQLITE_CONSTRAINT {UNIQUE constraint failed: t1.b}"
+        }
+      ]
+    },
+    {
+      "name": "errmsg-2.3",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t1 VALUES('ghi', 'def')",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES('ghi', 'def')",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t1 VALUES('ghi', 'def')",
+          "variable": "stmt_4",
+          "expect": "SQLITE_CONSTRAINT {UNIQUE constraint failed: t1.b} SQLITE_CONSTRAINT {UNIQUE constraint failed: t1.b}"
+        }
+      ]
+    },
+    {
+      "name": "errmsg-3.1.1",
       "steps": [
         {
           "type": "exec",
@@ -21,14 +131,63 @@
       ]
     },
     {
-      "name": "3.2.1",
+      "name": "errmsg-3.1.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT a FROM t2",
+          "variable": "stmt_5"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT a FROM t2",
+          "variable": "stmt_5"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT a FROM t2",
+          "variable": "stmt_5",
+          "expect": "SQLITE_ERROR {SQL logic error} SQLITE_SCHEMA {database schema has changed}"
+        }
+      ]
+    },
+    {
+      "name": "errmsg-3.2.1",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t2(a PRIMARY KEY, b UNIQUE);\n  INSERT INTO t2 VALUES('abc', 'def');"
         }
       ]
+    },
+    {
+      "name": "errmsg-3.2.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT a FROM t2",
+          "variable": "stmt_6"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT a FROM t2",
+          "variable": "stmt_6"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT a FROM t2",
+          "variable": "stmt_6",
+          "expect": "SQLITE_ERROR {no such table: t2} SQLITE_ERROR {no such table: t2}"
+        }
+      ]
     }
-  ],
-  "source": "capi"
+  ]
 }

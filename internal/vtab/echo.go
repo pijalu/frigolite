@@ -10,6 +10,11 @@ import (
 // connection (test8.c resolves them through the same connection). The engine
 // supplies the implementation; this package stays layer-clean by depending on
 // plain strings only.
+// EchoLogTable reports optional xCreate log-table argument from test8.c.
+type EchoLogTable interface {
+	EchoLogTableName() string
+}
+
 type EchoSource interface {
 	// EchoColumnDefs returns the source table's declared column names and
 	// their type strings in declaration order. ok is false when the table
@@ -84,6 +89,7 @@ func (m *EchoModule) SetCreateName(name string) { m.createName = name }
 // echoVTab is one echo virtual-table instance (test8.c echo_vtab).
 type echoVTab struct {
 	src       EchoSource // the connection's source resolver
+	zLogName  string     // optional xCreate log table name
 	zSrc      string     // the source ("real") table name, dequoted
 	srcSuffix string     // pattern form: the text after the leading '*'
 	isPattern bool       // source name began with '*' (echoConstructor)
@@ -136,6 +142,9 @@ func (m *EchoModule) Connect(args []string) (VirtualTable, error) { return m.con
 // pattern source form) arrives via BindSchema after Create.
 func (m *EchoModule) construct(args []string) (VirtualTable, error) {
 	v := &echoVTab{src: m.Src}
+	if len(args) > 1 {
+		v.zLogName = echoDequote(args[1])
+	}
 	if len(args) > 0 {
 		src := echoDequote(args[0])
 		// A leading '*' marks a pattern source: the real table is
@@ -226,6 +235,9 @@ func (v *echoVTab) Columns() []string { return v.cols }
 
 // ColumnTypes implements ColumnTypeInfo: the source table's declared types.
 func (v *echoVTab) ColumnTypes() []string { return v.types }
+
+// EchoLogTableName returns optional second module argument consumed by xCreate.
+func (v *echoVTab) EchoLogTableName() string { return v.zLogName }
 
 // BestIndex implements the legacy byte contract (superseded for planning by
 // BestIndexPlan).

@@ -1,9 +1,41 @@
 {
   "file": "bestindexG.test",
   "name": "bestindexG",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "bestindexF",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "bestindexF"
+          },
+          "callbackProcs": [
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE tt(id, k)\"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set conslist [$hdl constraints]\n\n      set ret [list]\n      set idxnum 0\n      set iCons 0\n      foreach cons $conslist {\n        array set c $cons\n        if {$c(usable) \u0026\u0026 $c(op)==\"eq\" \u0026\u0026 $c(column)==0} {\n          lappend ret use $iCons\n          set idxnum 1\n          break\n        }\n        incr iCons\n      }\n\n      return [concat idxnum $idxnum $ret]\n    }\n\n    xFilter {\n      set idxnum [lindex $args 0]\n      if {$idxnum==0} {\n        return [list sql \"SELECT * FROM t1\"]\n      }\n\n      return [list sql \"SELECT * FROM t1 WHERE id=[lindex $args 2 0]\"]\n    }\n  }\n\n  return {}\n",
+              "Defaults": null
+            }
+          ],
+          "moduleArgs": [
+            "db"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bestindexF-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +44,7 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "bestindexF-1.1",
       "steps": [
         {
           "type": "exec",
@@ -21,7 +53,7 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "bestindexF-1.2",
       "steps": [
         {
           "type": "query",

@@ -713,6 +713,9 @@ type orConstraint = execquery.OrConstraint
 // orBranchPlan aliases one OR term of an OR-index plan.
 type orBranchPlan = execquery.OrBranchPlan
 
+// orRange aliases a range constraint of an OR branch.
+type orRange = execquery.OrRange
+
 // collatedValue aliases the collation-wrapping value type.
 type collatedValue = execquery.CollatedValue
 

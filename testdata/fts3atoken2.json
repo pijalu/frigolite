@@ -1,9 +1,14 @@
 {
   "file": "fts3atoken2.test",
   "name": "fts3atoken2",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.1.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3atoken2-1.1.1",
       "steps": [
         {
           "type": "query",
@@ -13,26 +18,7 @@
       ]
     },
     {
-      "name": "1.2.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE x1 USING fts3(col, tokenize=mytok);",
-          "expect": "1 {unknown tokenizer: mytok}"
-        }
-      ]
-    },
-    {
-      "name": "1.2.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE x1 USING fts3(col, tokenize=mytok);"
-        }
-      ]
-    },
-    {
-      "name": "1.3.1",
+      "name": "fts3atoken2-1.1.2",
       "steps": [
         {
           "type": "query",
@@ -42,7 +28,106 @@
       ]
     },
     {
-      "name": "1.4.2",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT quote( fts3_tokenizer('simple') )",
+          "variable": "literal"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT fts3_tokenizer('simple')",
+          "variable": "blob"
+        }
+      ]
+    },
+    {
+      "name": "fts3atoken2-1.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT fts3_tokenizer('mytok', $literal)",
+          "expect": "1 {fts3tokenize disabled}"
+        }
+      ]
+    },
+    {
+      "name": "fts3atoken2-1.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE x1 USING fts3(col, tokenize=mytok);",
+          "expect": "1 {unknown tokenizer: mytok}"
+        }
+      ]
+    },
+    {
+      "name": "fts3atoken2-1.2.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT fts3_tokenizer('mytok', $blob)",
+          "expect": "0 {{}}"
+        }
+      ]
+    },
+    {
+      "name": "fts3atoken2-1.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE x1 USING fts3(col, tokenize=mytok);"
+        }
+      ]
+    },
+    {
+      "name": "fts3atoken2-1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( fts3_tokenizer('simple') );",
+          "expect": "blob"
+        }
+      ]
+    },
+    {
+      "name": "fts3atoken2-1.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( fts3_tokenizer('simple') );",
+          "expect": "blob"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT quote( fts3_tokenizer('simple') )",
+          "variable": "literal"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT fts3_tokenizer('simple')",
+          "variable": "blob"
+        }
+      ]
+    },
+    {
+      "name": "fts3atoken2-1.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( fts3_tokenizer('mytok2', $literal) );",
+          "expect": "blob"
+        }
+      ]
+    },
+    {
+      "name": "fts3atoken2-1.4.2",
       "steps": [
         {
           "type": "exec",
@@ -51,22 +136,23 @@
       ]
     },
     {
-      "name": "1.4.4",
+      "name": "fts3atoken2-1.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( fts3_tokenizer('mytok3', $blob) );",
+          "expect": "blob"
+        }
+      ]
+    },
+    {
+      "name": "fts3atoken2-1.4.4",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE VIRTUAL TABLE x3 USING fts3(col, tokenize=mytok3);"
         }
       ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
     }
-  ],
-  "source": "capi"
+  ]
 }

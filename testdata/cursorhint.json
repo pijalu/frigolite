@@ -1,9 +1,10 @@
 {
   "file": "cursorhint.test",
   "name": "cursorhint",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "cursorhint-1.0",
       "steps": [
         {
           "type": "query",
@@ -12,58 +13,209 @@
       ]
     },
     {
-      "name": "5.0",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t1(x TEXT PRIMARY KEY) WITHOUT ROWID;\n  CREATE VIEW t2 AS SELECT 0 FROM t1 WHERE x>='a' OR x='1';\n  SELECT * FROM t2 RIGHT JOIN t1 ON true;"
-        }
-      ]
-    },
-    {
-      "name": "5.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE  v1 (c1, PRIMARY KEY( c1 )) WITHOUT ROWID;\n  CREATE VIEW   v2 AS SELECT 0 FROM v1 WHERE c1 IS '' OR c1 > '';\n  CREATE VIEW   v3 AS SELECT 0 FROM v2 JOIN (v2 RIGHT JOIN v1);\n  CREATE VIEW   v4 AS SELECT 0 FROM v3, v3;\n  SELECT * FROM v3 JOIN v3 AS a0, v4 AS a1, v4 AS a2, v3 AS a3,\n                v3 AS a4, v4 AS a5\n    ORDER BY 1;"
-        }
-      ]
-    },
-    {
-      "name": "6.0",
+      "name": "cursorhint-1.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t6(a TEXT UNIQUE, b TEXT);\n  INSERT INTO t6(a,b) VALUES('uvw','xyz'),('abc','def');\n  WITH v1(a) AS (SELECT a COLLATE NOCASE FROM t6)\n  SELECT v1.a, count(*) FROM t6 LEFT JOIN v1 ON true\n   GROUP BY 1\n  HAVING (SELECT true FROM t6 AS aa LEFT JOIN t6 AS bb ON length(v1.a)>5);"
+          "sql": "EXPLAIN \n     SELECT * FROM t1 CROSS JOIN t2 WHERE a=x",
+          "expect": "{EQ(r[1],c0)}"
         }
       ]
     },
     {
-      "name": "7.1",
+      "name": "cursorhint-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n     SELECT * FROM t1 CROSS JOIN t2 WHERE a=x",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "cursorhint-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n     SELECT * FROM t2 CROSS JOIN t1 WHERE a=x",
+          "expect": "{EQ(c0,r[1])}"
+        }
+      ]
+    },
+    {
+      "name": "cursorhint-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n     SELECT * FROM t2 CROSS JOIN t1 WHERE a=x",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "cursorhint-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n    SELECT * FROM t1 WHERE a=15 AND c=22 AND rowid!=98",
+          "expect": "AND(AND(EQ(c0,15),EQ(c2,22)),NE(rowid,98))"
+        }
+      ]
+    },
+    {
+      "name": "cursorhint-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n    SELECT * FROM t3 WHERE a\u003c15 AND b\u003e22 AND id!=98",
+          "expect": "AND(AND(LT(c1,15),GT(c2,22)),NE(c0,98))"
+        }
+      ]
+    },
+    {
+      "name": "cursorhint-4.1asc",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t1bc ON t1(b,c);\n    CREATE INDEX t2yz ON t2(y,z);"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n    SELECT * FROM t1 WHERE b\u003e11 ORDER BY b ASC;"
+        }
+      ]
+    },
+    {
+      "name": "cursorhint-4.1desc",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n    SELECT * FROM t1 WHERE b\u003e11 ORDER BY b DESC;",
+          "expect": "GT(c0,11)"
+        }
+      ]
+    },
+    {
+      "name": "cursorhint-4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n    SELECT * FROM t1 WHERE b\u003e11;",
+          "expect": "2 0"
+        }
+      ]
+    },
+    {
+      "name": "cursorhint-4.3asc",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n    SELECT c FROM t1 WHERE b\u003c11 ORDER BY b ASC;",
+          "expect": "LT(c0,11)"
+        }
+      ]
+    },
+    {
+      "name": "cursorhint-4.3desc",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n    SELECT c FROM t1 WHERE b\u003c11 ORDER BY b DESC;"
+        }
+      ]
+    },
+    {
+      "name": "cursorhint-4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n    SELECT c FROM t1 WHERE b\u003c11;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "cursorhint-4.5asc",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n    SELECT c FROM t1 WHERE b\u003e=10 AND b\u003c=20 ORDER BY b ASC;",
+          "expect": "LE(c0,20)"
+        }
+      ]
+    },
+    {
+      "name": "cursorhint-4.5desc",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n    SELECT c FROM t1 WHERE b\u003e=10 AND b\u003c=20 ORDER BY b DESC;",
+          "expect": "GE(c0,10)"
+        }
+      ]
+    },
+    {
+      "name": "cursorhint-4.6asc",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n    SELECT rowid FROM t1 WHERE b=22 AND c\u003e=10 AND c\u003c=20 ORDER BY b,c ASC;",
+          "expect": "AND(AND(EQ(c0,22),GE(c1,10)),LE(c1,20))"
+        }
+      ]
+    },
+    {
+      "name": "cursorhint-4.6desc",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n    SELECT rowid FROM t1 WHERE b=22 AND c\u003e=10 AND c\u003c=20 ORDER BY b,c DESC;",
+          "expect": "AND(AND(EQ(c0,22),GE(c1,10)),LE(c1,20))"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "cursorhint-5.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(x TEXT PRIMARY KEY) WITHOUT ROWID;\n  CREATE VIEW t2 AS SELECT 0 FROM t1 WHERE x\u003e='a' OR x='1';\n  SELECT * FROM t2 RIGHT JOIN t1 ON true;"
+        }
+      ]
+    },
+    {
+      "name": "cursorhint-5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE  v1 (c1, PRIMARY KEY( c1 )) WITHOUT ROWID;\n  CREATE VIEW   v2 AS SELECT 0 FROM v1 WHERE c1 IS '' OR c1 \u003e '';\n  CREATE VIEW   v3 AS SELECT 0 FROM v2 JOIN (v2 RIGHT JOIN v1);\n  CREATE VIEW   v4 AS SELECT 0 FROM v3, v3;\n  SELECT * FROM v3 JOIN v3 AS a0, v4 AS a1, v4 AS a2, v3 AS a3,\n                v3 AS a4, v4 AS a5\n    ORDER BY 1;"
+        }
+      ]
+    },
+    {
+      "name": "cursorhint-6.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t6(a TEXT UNIQUE, b TEXT);\n  INSERT INTO t6(a,b) VALUES('uvw','xyz'),('abc','def');\n  WITH v1(a) AS (SELECT a COLLATE NOCASE FROM t6)\n  SELECT v1.a, count(*) FROM t6 LEFT JOIN v1 ON true\n   GROUP BY 1\n  HAVING (SELECT true FROM t6 AS aa LEFT JOIN t6 AS bb ON length(v1.a)\u003e5);",
+          "expect": "abc 2 uvw 2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "cursorhint-7.1",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t1(a INT PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE t2(b INT PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE t3(c INT PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t1(a) VALUES(1),(2);\n  INSERT INTO t2(b) VALUES(4),(8);\n  INSERT INTO t3(c) VALUES(16),(32);\n  CREATE VIEW v4(d) AS SELECT c FROM t3;\n  SELECT * FROM t1 RIGHT JOIN t2 ON true JOIN v4 ON (d IS NULL);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX t1bc ON t1(b,c);\n    CREATE INDEX t2yz ON t2(y,z);"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

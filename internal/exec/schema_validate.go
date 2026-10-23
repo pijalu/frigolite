@@ -56,6 +56,12 @@ func (e *Engine) validateLoadedSchema(stmt sql.Stmt) error {
 		// in-memory schema). Gate on the (schema cookie, page count) state
 		// so an unchanged schema skips re-validation on this connection.
 		stamp := e.schemaStateStamp(ctx)
+		if e.settings.writableSchema && e.schemaValidated[ctx] != 0 {
+			// writable_schema edits do not reload the current connection's parsed
+			// schema (SQLite init.c schema-cookie contract); keep prior validation
+			// until a fresh connection loads the edited rows.
+			continue
+		}
 		if e.schemaValidated == nil {
 			e.schemaValidated = map[*DatabaseContext]uint64{}
 		}
@@ -70,6 +76,33 @@ func (e *Engine) validateLoadedSchema(stmt sql.Stmt) error {
 		// needs the schema until the schema becomes readable again).
 		e.schemaValidated[ctx] = stamp
 	}
+	return nil
+}
+
+// ValidateAttachedSchema implements execddl.DDLContext: it runs the
+// sqlite3InitCallback row checks (validateLoadedSchemaCtx) and the trigger
+// load validation over a newly opened attached schema BEFORE the database is
+// registered. attach.c attachFunc runs sqlite3Init synchronously, so a
+// malformed attached schema aborts the ATTACH itself (and the attachment is
+// rolled back) instead of surfacing on the next statement. On success the
+// context is marked schema-validated so the next statement's preflight does
+// not repeat the walk.
+func (e *Engine) ValidateAttachedSchema(ctx *DatabaseContext) *Result {
+	if ctx == nil {
+		return nil
+	}
+	e.schemaParseMu.Lock()
+	defer e.schemaParseMu.Unlock()
+	if err := e.validateLoadedSchemaCtx(ctx); err != nil {
+		return &Result{Error: err}
+	}
+	if err := e.dml.ValidateAttachedSchemaTriggers(ctx); err != nil {
+		return &Result{Error: err}
+	}
+	if e.schemaValidated == nil {
+		e.schemaValidated = map[*DatabaseContext]uint64{}
+	}
+	e.schemaValidated[ctx] = e.schemaStateStamp(ctx)
 	return nil
 }
 
@@ -88,6 +121,16 @@ func (e *Engine) schemaStateStamp(ctx *DatabaseContext) uint64 {
 
 // validateLoadedSchemaCtx validates one database context's schema rows.
 func (e *Engine) validateLoadedSchemaCtx(ctx *DatabaseContext) error {
+	// sqlite3InitOne (SQLite src/prepare.c) maps header file-format 0 to 1,
+	// then rejects versions above SQLITE_MAX_FILE_FORMAT (4) before reading
+	// sqlite_schema rows.
+	hdr := ctx.Pager.Header()
+	if len(hdr) >= 48 {
+		format := binary.BigEndian.Uint32(hdr[44:48])
+		if format > 4 {
+			return fmt.Errorf("unsupported file format")
+		}
+	}
 	entries, err := ctx.Schema.GetEntries("")
 	if err != nil {
 		// The schema btree itself is unreadable: GetEntries already
@@ -159,21 +202,18 @@ func (e *Engine) validateSchemaEntryRow(ent *schema.Entry, mxPage uint32, idxRoo
 	if mxPage > 0 && ent.RootPage > mxPage && !e.settings.writableSchema {
 		return e.schemaCorrupt(ent.Name, "invalid rootpage")
 	}
-	trimmed := strings.TrimLeft(ent.SQL, " \t\r\n\f")
-	kind := ""
-	if len(trimmed) >= 2 {
-		up := strings.ToUpper(trimmed[:2])
-		if up == "CR" {
-			kind = "create"
+	if ent.SQL != "" && (ent.Type == schema.TypeTable || ent.Type == schema.TypeIndex) {
+		// sqlite3InitCallback (prepare.c:114-165) only invokes sqlite3Prepare
+		// when stored SQL begins with CREATE; otherwise non-empty SQL is
+		// corrupt without parser detail. This engine may retain leading SQL
+		// comments in otherwise-valid CREATE text, so parse those too.
+		trimmed := strings.TrimSpace(ent.SQL)
+		if strings.HasPrefix(strings.ToLower(trimmed), "cr") || strings.HasPrefix(trimmed, "--") || strings.HasPrefix(trimmed, "/*") {
+			return e.validateCreateSchemaRow(ent, idxRoots)
 		}
+		return e.schemaCorrupt(ent.Name, "")
 	}
 	switch {
-	case kind == "create":
-		// The stored CREATE text must parse (src/prepare.c:144-158:
-		// sqlite3Prepare on argv[4]; a parse error corrupts the
-		// schema with the parser's message). Parse results are
-		// memoized per SQL text.
-		return e.validateCreateSchemaRow(ent, idxRoots)
 	case ent.SQL == "" && ent.Type == schema.TypeIndex:
 		// Autoindex row (SQL column blank): src/prepare.c:177-184 —
 		// tnum < 2 or duplicate rootpage is corrupt. (> mxPage was

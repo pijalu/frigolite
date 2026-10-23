@@ -1,0 +1,256 @@
+{
+  "file": "rtree7.test",
+  "name": "rtree7",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "rtree7-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n    CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2, y1, y2);\n    INSERT INTO rt VALUES(1, 1, 2, 3, 4);"
+        }
+      ]
+    },
+    {
+      "name": "rtree7-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM rt",
+          "expect": "1 1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "rtree7-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 2048;\n    VACUUM;\n    SELECT * FROM rt;",
+          "expect": "1 1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "rtree7-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(2, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(3, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(4, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(5, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(6, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(7, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(8, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(9, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(10, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(11, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(12, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(13, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(14, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(15, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(16, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(17, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(18, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(19, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(20, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(21, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(22, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(23, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(24, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(25, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(26, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(27, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(28, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(29, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(30, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(31, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(32, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(33, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(34, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(35, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(36, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(37, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(38, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(39, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(40, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(41, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(42, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(43, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(44, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(45, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(46, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(47, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(48, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(49, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(50, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO rt VALUES(51, 1, 2, 3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(x1), sum(x2), sum(y1), sum(y2) FROM rt",
+          "expect": "51 102 153 204"
+        }
+      ]
+    },
+    {
+      "name": "rtree7-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 512;\n    VACUUM;\n    SELECT sum(x1), sum(x2), sum(y1), sum(y2) FROM rt",
+          "expect": "51 102 153 204"
+        }
+      ]
+    }
+  ]
+}

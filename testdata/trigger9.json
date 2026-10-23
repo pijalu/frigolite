@@ -250,11 +250,49 @@
       "steps": null
     },
     {
-      "name": "4.1",
+      "name": "trigger9-4.1",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b);\n  CREATE TABLE log(x);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  CREATE VIEW v1 AS SELECT a, b FROM t1;\n\n  CREATE TRIGGER tr1 INSTEAD OF DELETE ON v1 BEGIN\n    INSERT INTO log VALUES('delete');\n  END;\n\n  CREATE TRIGGER tr2 INSTEAD OF UPDATE ON v1 BEGIN\n    INSERT INTO log VALUES('update');\n  END;\n\n  CREATE TRIGGER tr3 INSTEAD OF INSERT ON v1 BEGIN\n    INSERT INTO log VALUES('insert');\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "trigger9-4.2a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM log;"
+        }
+      ]
+    },
+    {
+      "name": "trigger9-4.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DELETE FROM v1 WHERE rowid=1;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "trigger9-4.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE v1 SET a=b WHERE rowid=2;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "trigger9-4.3b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM log;"
         }
       ]
     }

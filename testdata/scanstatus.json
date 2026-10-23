@@ -1,9 +1,10 @@
 {
   "file": "scanstatus.test",
   "name": "scanstatus",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "scanstatus-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,34 +13,37 @@
       ]
     },
     {
-      "name": "1.1a",
+      "name": "scanstatus-1.1a",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM t1, t2;"
+          "sql": "SELECT count(*) FROM t1, t2;",
+          "expect": "6"
         }
       ]
     },
     {
-      "name": "1.2a",
+      "name": "scanstatus-1.2a",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM t1, t2;"
+          "sql": "SELECT count(*) FROM t1, t2;",
+          "expect": "6"
         }
       ]
     },
     {
-      "name": "1.3",
+      "name": "scanstatus-1.3",
       "steps": [
         {
           "type": "query",
-          "sql": "ANALYZE;\n  SELECT count(*) FROM t1, t2;"
+          "sql": "ANALYZE;\n  SELECT count(*) FROM t1, t2;",
+          "expect": "6"
         }
       ]
     },
     {
-      "name": "1.5",
+      "name": "scanstatus-1.5",
       "steps": [
         {
           "type": "exec",
@@ -48,25 +52,31 @@
       ]
     },
     {
-      "name": "1.6",
+      "name": "scanstatus-1.6",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM t1, t2 WHERE t2.rowid>1;"
+          "sql": "SELECT count(*) FROM t1, t2 WHERE t2.rowid\u003e1;",
+          "expect": "4"
         }
       ]
     },
     {
-      "name": "1.8",
+      "name": "scanstatus-1.8",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM t1, t2 WHERE t2.rowid>1;"
+          "sql": "SELECT count(*) FROM t1, t2 WHERE t2.rowid\u003e1;",
+          "expect": "4"
         }
       ]
     },
     {
-      "name": "2.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "scanstatus-2.1",
       "steps": [
         {
           "type": "query",
@@ -76,7 +86,7 @@
       ]
     },
     {
-      "name": "2.3.1",
+      "name": "scanstatus-2.3.1",
       "steps": [
         {
           "type": "query",
@@ -86,27 +96,27 @@
       ]
     },
     {
-      "name": "2.4.1",
+      "name": "scanstatus-2.4.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM x1 WHERE j<'two'",
+          "sql": "SELECT * FROM x1 WHERE j\u003c'two'",
           "expect": "4 four 1 one 3 three"
         }
       ]
     },
     {
-      "name": "2.5.1",
+      "name": "scanstatus-2.5.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM x1 WHERE j>='two'",
+          "sql": "SELECT * FROM x1 WHERE j\u003e='two'",
           "expect": "2 two"
         }
       ]
     },
     {
-      "name": "2.6.1",
+      "name": "scanstatus-2.6.1",
       "steps": [
         {
           "type": "query",
@@ -116,7 +126,7 @@
       ]
     },
     {
-      "name": "2.7.1",
+      "name": "scanstatus-2.7.1",
       "steps": [
         {
           "type": "query",
@@ -126,7 +136,7 @@
       ]
     },
     {
-      "name": "2.8.1",
+      "name": "scanstatus-2.8.1",
       "steps": [
         {
           "type": "query",
@@ -135,7 +145,7 @@
       ]
     },
     {
-      "name": "2.9.1",
+      "name": "scanstatus-2.9.1",
       "steps": [
         {
           "type": "query",
@@ -144,7 +154,7 @@
       ]
     },
     {
-      "name": "2.10.1",
+      "name": "scanstatus-2.10.1",
       "steps": [
         {
           "type": "query",
@@ -154,27 +164,22 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "scanstatus-3.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE a1(a, b, c, d);\n  CREATE INDEX a1a ON a1(a);\n  CREATE INDEX a1bc ON a1(b, c);\n\n  WITH d(x) AS (SELECT 1 UNION ALL SELECT x+1 AS n FROM d WHERE n<=100)\n  INSERT INTO a1 SELECT x, x, x, x FROM d;"
+          "type": "query",
+          "sql": "CREATE TABLE a1(a, b, c, d);\n  CREATE INDEX a1a ON a1(a);\n  CREATE INDEX a1bc ON a1(b, c);\n\n  WITH d(x) AS (SELECT 1 UNION ALL SELECT x+1 AS n FROM d WHERE n\u003c=100)\n  INSERT INTO a1 SELECT x, x, x, x FROM d;"
         }
       ]
     },
     {
-      "name": "3.2.1",
+      "name": "scanstatus-3.2.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT d FROM a1 WHERE (a=4 OR b=13)",
           "expect": "4 13"
-        }
-      ]
-    },
-    {
-      "name": "3.2.1",
-      "steps": [
+        },
         {
           "type": "query",
           "sql": "SELECT count(*) FROM a1 WHERE (a BETWEEN 4 AND 12) OR (b BETWEEN 40 AND 60)",
@@ -183,7 +188,7 @@
       ]
     },
     {
-      "name": "3.3.1",
+      "name": "scanstatus-3.3.1",
       "steps": [
         {
           "type": "query",
@@ -193,18 +198,13 @@
       ]
     },
     {
-      "name": "3.4.1",
+      "name": "scanstatus-3.4.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT count(*) FROM a1 WHERE a IN (1, 5, 10, 15);",
           "expect": "4"
-        }
-      ]
-    },
-    {
-      "name": "3.4.1",
-      "steps": [
+        },
         {
           "type": "query",
           "sql": "SELECT count(*) FROM a1 WHERE rowid IN (1, 5, 10, 15);",
@@ -213,16 +213,16 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "scanstatus-4.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(x PRIMARY KEY, y, z);\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT * FROM t2 WHERE x BETWEEN 20 AND 40;\n  END;\n  WITH d(x) AS (SELECT 1 UNION ALL SELECT x+1 AS n FROM d WHERE n<=100)\n  INSERT INTO t2 SELECT x, x*2, x*3 FROM d;"
+          "type": "query",
+          "sql": "CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(x PRIMARY KEY, y, z);\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT * FROM t2 WHERE x BETWEEN 20 AND 40;\n  END;\n  WITH d(x) AS (SELECT 1 UNION ALL SELECT x+1 AS n FROM d WHERE n\u003c=100)\n  INSERT INTO t2 SELECT x, x*2, x*3 FROM d;"
         }
       ]
     },
     {
-      "name": "4.1.1",
+      "name": "scanstatus-4.1.1",
       "steps": [
         {
           "type": "exec",
@@ -231,7 +231,7 @@
       ]
     },
     {
-      "name": "4.2",
+      "name": "scanstatus-4.2",
       "steps": [
         {
           "type": "query",
@@ -240,7 +240,7 @@
       ]
     },
     {
-      "name": "4.2.1",
+      "name": "scanstatus-4.2.1",
       "steps": [
         {
           "type": "exec",
@@ -249,16 +249,45 @@
       ]
     },
     {
-      "name": "5.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(0, 1, 'a');\n  INSERT INTO t1 VALUES(1, 0, 'b');\n  INSERT INTO t1 VALUES(2, 1, 'c');\n  INSERT INTO t1 VALUES(3, 0, 'd');\n  INSERT INTO t1 VALUES(4, 1, 'e');\n  INSERT INTO t1 VALUES(5, 0, 'a');\n  INSERT INTO t1 VALUES(6, 1, 'b');\n  INSERT INTO t1 VALUES(7, 0, 'c');\n  INSERT INTO t1 VALUES(8, 1, 'd');\n  INSERT INTO t1 VALUES(9, 0, 'e');\n  CREATE INDEX t1bc ON t1(b, c);\n\n  CREATE TABLE t2(x, y);\n  CREATE INDEX t2xy ON t2(x, y);\n  WITH data(i, x, y) AS (\n    SELECT 0, 0, tochar(0) \n    UNION ALL\n    SELECT i+1, (i+1)%2, tochar(i+1) FROM data WHERE i<500\n  ) INSERT INTO t2 SELECT x, y FROM data;\n\n  CREATE TABLE t3(x, y);\n  INSERT INTO t3 SELECT * FROM t2;\n\n  ANALYZE;"
+          "type": "register_function",
+          "functionName": "tochar",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "scanstatus"
+          },
+          "functionProc": "tochar",
+          "functionArgs": [
+            "i"
+          ],
+          "functionBody": "\n  set alphabet {a b c d e f g h i j k l m n o p q r s t u v w x y z}\n  return [lindex $alphabet [expr $i % [llength $alphabet]]]\n",
+          "minArgs": 1,
+          "maxArgs": -1
         }
       ]
     },
     {
-      "name": "5.1.1",
+      "name": "scanstatus-5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(0, 1, 'a');\n  INSERT INTO t1 VALUES(1, 0, 'b');\n  INSERT INTO t1 VALUES(2, 1, 'c');\n  INSERT INTO t1 VALUES(3, 0, 'd');\n  INSERT INTO t1 VALUES(4, 1, 'e');\n  INSERT INTO t1 VALUES(5, 0, 'a');\n  INSERT INTO t1 VALUES(6, 1, 'b');\n  INSERT INTO t1 VALUES(7, 0, 'c');\n  INSERT INTO t1 VALUES(8, 1, 'd');\n  INSERT INTO t1 VALUES(9, 0, 'e');\n  CREATE INDEX t1bc ON t1(b, c);\n\n  CREATE TABLE t2(x, y);\n  CREATE INDEX t2xy ON t2(x, y);\n  WITH data(i, x, y) AS (\n    SELECT 0, 0, tochar(0) \n    UNION ALL\n    SELECT i+1, (i+1)%2, tochar(i+1) FROM data WHERE i\u003c500\n  ) INSERT INTO t2 SELECT x, y FROM data;\n\n  CREATE TABLE t3(x, y);\n  INSERT INTO t3 SELECT * FROM t2;\n\n  ANALYZE;"
+        }
+      ]
+    },
+    {
+      "name": "scanstatus-5.1.1",
       "steps": [
         {
           "type": "query",
@@ -268,7 +297,7 @@
       ]
     },
     {
-      "name": "5.2.1",
+      "name": "scanstatus-5.2.1",
       "steps": [
         {
           "type": "query",
@@ -278,7 +307,16 @@
       ]
     },
     {
-      "name": "5.3.2",
+      "name": "scanstatus-5.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT count(*) FROM t2 WHERE y = 'j';"
+        }
+      ]
+    },
+    {
+      "name": "scanstatus-5.3.2",
       "steps": [
         {
           "type": "query",
@@ -288,7 +326,16 @@
       ]
     },
     {
-      "name": "5.4.2",
+      "name": "scanstatus-5.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT count(*) FROM t1, t2 WHERE y = c;"
+        }
+      ]
+    },
+    {
+      "name": "scanstatus-5.4.2",
       "steps": [
         {
           "type": "query",
@@ -298,7 +345,16 @@
       ]
     },
     {
-      "name": "5.5.2",
+      "name": "scanstatus-5.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT count(*) FROM t1, t3 WHERE y = c;"
+        }
+      ]
+    },
+    {
+      "name": "scanstatus-5.5.2",
       "steps": [
         {
           "type": "query",
@@ -308,21 +364,23 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "scanstatus-6.0",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE ft1 USING fts4;\n    INSERT INTO ft1 VALUES('a d c f g h e i f c');\n    INSERT INTO ft1 VALUES('g c h b g b f f f g');\n    INSERT INTO ft1 VALUES('h h c c h f a e d d');\n    INSERT INTO ft1 VALUES('e j i j i e b c f g');\n    INSERT INTO ft1 VALUES('g f b g j c h a d f');\n    INSERT INTO ft1 VALUES('j i a e g f a i a c');\n    INSERT INTO ft1 VALUES('f d g g j j c a h g');\n    INSERT INTO ft1 VALUES('b d h a d j j j b i');\n    INSERT INTO ft1 VALUES('j e a b j e c b c i');\n    INSERT INTO ft1 VALUES('a d e f b j j c g d');"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "scanstatus-6.1.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "query",
+          "sql": "SELECT count(*) FROM ft1 WHERE ft1 MATCH 'd'",
+          "expect": "6"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

@@ -1,13 +1,213 @@
 {
   "file": "bestindexA.test",
   "name": "bestindexA",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "bestindexA",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "bestindexA"
+          },
+          "callbackProcs": [
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE x(a, b, c)\"\n    }\n\n    xBestIndex {\n      set hdl [lindex $args 0]\n      set clist [$hdl constraints]\n      foreach c $clist {\n        array set C $c\n        lappend ::vtab_constraints [list $C(op) $C(column)]\n      }\n      return [list]\n    }\n\n    xFilter {\n      return \"\"\n    }\n\n    xFindFunction {\n      foreach {nArg name} $args {}\n      if {$nArg==2 \u0026\u0026 $name==\"even\"} { \n        return 152 \n      }\n      return 0\n    }\n\n  }\n\n  return {}\n",
+              "Defaults": null
+            },
+            {
+              "Name": "do_xbestindex_test",
+              "Args": [
+                "tn",
+                "sql",
+                "res"
+              ],
+              "Body": "\n  set script [subst {\n    execsql \"$sql\"\n    set ::vtab_constraints\n  }]\n\n  uplevel [list do_test $tn $script [list {*}$res]]\n  set ::vtab_constraints [list]\n",
+              "Defaults": null
+            },
+            {
+              "Name": "error_function",
+              "Args": [
+                "args"
+              ],
+              "Body": " error \"not a function!\" ",
+              "Defaults": null
+            }
+          ],
+          "moduleArgs": [
+            "db"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "bestindexA-1.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE VIRTUAL TABLE t1 USING tcl(vtab_command);"
+        }
+      ]
+    },
+    {
+      "name": "bestindexA-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a=?"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "vtab_constraints",
+          "expect": "{eq 0}"
+        }
+      ]
+    },
+    {
+      "name": "bestindexA-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a=? LIMIT 10"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "vtab_constraints",
+          "expect": "{eq 0} {limit 0}"
+        }
+      ]
+    },
+    {
+      "name": "bestindexA-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a=? AND (b+1)=? LIMIT 10"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "vtab_constraints",
+          "expect": "{eq 0}"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "even",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "bestindexA"
+          },
+          "functionProc": "error_function",
+          "functionArgs": [
+            "args"
+          ],
+          "functionBody": " error \"not a function!\" ",
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "bestindexA-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE even(a, ?)"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "vtab_constraints",
+          "expect": "{152 0}"
+        }
+      ]
+    },
+    {
+      "name": "bestindexA-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE b=10 AND even(a, ?)"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "vtab_constraints",
+          "expect": "{eq 1} {152 0}"
+        }
+      ]
+    },
+    {
+      "name": "bestindexA-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE b=10 LIMIT 10"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "vtab_constraints",
+          "expect": "{eq 1} {limit 0}"
+        }
+      ]
+    },
+    {
+      "name": "bestindexA-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE even(b,?) LIMIT 10"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "vtab_constraints",
+          "expect": "{152 1} {limit 0}"
+        }
+      ]
+    },
+    {
+      "name": "bestindexA-1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE b!=? LIMIT 10"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "vtab_constraints",
+          "expect": "{ne 1} {limit 0}"
+        }
+      ]
+    },
+    {
+      "name": "bestindexA-1.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE ?=a LIMIT 10"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "vtab_constraints",
+          "expect": "{eq 0} {limit 0}"
         }
       ]
     }

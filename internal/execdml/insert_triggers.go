@@ -229,6 +229,9 @@ func (e *DMLExecutor) validateSequenceTable(dbCtx *DatabaseContext) *Result {
 		if !isSequenceEntry(ent) {
 			continue
 		}
+		if ent.RootPage < 2 {
+			return &Result{Error: fmt.Errorf("database disk image is malformed")}
+		}
 		if up := strings.ToUpper(ent.SQL); strings.Contains(up, "WITHOUT ROWID") || strings.Contains(up, "VIRTUAL TABLE") {
 			return &Result{Error: fmt.Errorf("database disk image is malformed")}
 		}

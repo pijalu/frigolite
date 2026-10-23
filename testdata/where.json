@@ -1,7 +1,3156 @@
 {
   "file": "where.test",
   "name": "where",
+  "ordered": true,
   "tests": [
+    {
+      "name": "where-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(w int, x int, y int);\n    CREATE TABLE t2(p int, q int, r int, s int);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,0,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,1,9)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,1,16)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,2,25)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,2,36)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,2,49)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(7,2,64)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(8,3,81)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(9,3,100)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(10,3,121)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(11,3,144)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(12,3,169)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(13,3,196)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(14,3,225)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(15,3,256)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(16,4,289)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(17,4,324)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(18,4,361)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(19,4,400)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(20,4,441)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(21,4,484)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(22,4,529)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(23,4,576)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(24,4,625)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(25,4,676)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(26,4,729)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(27,4,784)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(28,4,841)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(29,4,900)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(30,4,961)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(31,4,1024)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(32,5,1089)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(33,5,1156)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(34,5,1225)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(35,5,1296)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(36,5,1369)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(37,5,1444)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(38,5,1521)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(39,5,1600)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(40,5,1681)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(41,5,1764)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(42,5,1849)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(43,5,1936)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(44,5,2025)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(45,5,2116)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(46,5,2209)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(47,5,2304)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(48,5,2401)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(49,5,2500)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(50,5,2601)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(51,5,2704)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(52,5,2809)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(53,5,2916)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(54,5,3025)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(55,5,3136)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(56,5,3249)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(57,5,3364)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(58,5,3481)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(59,5,3600)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(60,5,3721)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(61,5,3844)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(62,5,3969)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(63,5,4096)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(64,6,4225)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(65,6,4356)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(66,6,4489)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(67,6,4624)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(68,6,4761)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(69,6,4900)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(70,6,5041)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(71,6,5184)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(72,6,5329)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(73,6,5476)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(74,6,5625)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(75,6,5776)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(76,6,5929)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(77,6,6084)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(78,6,6241)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(79,6,6400)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(80,6,6561)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(81,6,6724)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(82,6,6889)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(83,6,7056)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(84,6,7225)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(85,6,7396)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(86,6,7569)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(87,6,7744)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(88,6,7921)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(89,6,8100)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(90,6,8281)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(91,6,8464)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(92,6,8649)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(93,6,8836)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(94,6,9025)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(95,6,9216)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(96,6,9409)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(97,6,9604)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(98,6,9801)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(99,6,10000)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(100,6,10201)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT 101-w, x, (SELECT max(y) FROM t1)+1-y, y FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1w ON t1(\"w\");  -- Verify quoted identifier names\n    CREATE INDEX i1xy ON t1(`x`,'y' ASC); -- Old MySQL compatibility\n    CREATE INDEX i2p ON t2(p);\n    CREATE INDEX i2r ON t2(r);\n    CREATE INDEX i2qs ON t2(q, s);"
+        }
+      ]
+    },
+    {
+      "name": "where-1.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x, y, w FROM t1 WHERE w=10",
+          "expect": "3 121 10 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.1.1b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x, y, w FROM t1 WHERE w IS 10",
+          "expect": "3 121 10 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT x, y, w FROM t1 WHERE w=10"
+        }
+      ]
+    },
+    {
+      "name": "where-1.1.2b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT x, y, w FROM t1 WHERE w IS 10",
+          "stmtStatus": true
+        }
+      ]
+    },
+    {
+      "name": "where-1.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y, w FROM t1 WHERE +w=10",
+          "stmtStatus": true,
+          "expect": "3 121 10"
+        }
+      ]
+    },
+    {
+      "name": "where-1.1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT x, y, w FROM t1 WHERE +w=10"
+        }
+      ]
+    },
+    {
+      "name": "where-1.1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x, y, w AS abc FROM t1 WHERE abc=10",
+          "expect": "3 121 10 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT x, y, w AS abc FROM t1 WHERE abc=10",
+          "stmtStatus": true
+        }
+      ]
+    },
+    {
+      "name": "where-1.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x, y, w FROM t1 WHERE w=11",
+          "expect": "3 144 11 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x, y, w AS abc FROM t1 WHERE abc=11",
+          "expect": "3 144 11 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x, y, w AS abc FROM t1 WHERE 11=w",
+          "expect": "3 144 11 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x, y, w AS abc FROM t1 WHERE 11=abc",
+          "expect": "3 144 11 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x, y, w AS abc FROM t1 WHERE 11 IS abc",
+          "expect": "3 144 11 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w, x, y FROM t1 WHERE 11=w AND x\u003e2",
+          "expect": "11 3 144 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.4.1b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w, x, y FROM t1 WHERE 11 IS w AND x\u003e2",
+          "expect": "11 3 144 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT w, x, y FROM t1 WHERE 11=w AND x\u003e2"
+        }
+      ]
+    },
+    {
+      "name": "where-1.4.2b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT w, x, y FROM t1 WHERE 11 IS w AND x\u003e2"
+        }
+      ]
+    },
+    {
+      "name": "where-1.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w AS a, x AS b, y FROM t1 WHERE 11=a AND b\u003e2",
+          "expect": "11 3 144 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT w AS a, x AS b, y FROM t1 WHERE 11=a AND b\u003e2"
+        }
+      ]
+    },
+    {
+      "name": "where-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM t1 WHERE y\u003c200 AND w=11 AND x\u003e2",
+          "expect": "3 144 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT x, y FROM t1 WHERE y\u003c200 AND w=11 AND x\u003e2"
+        }
+      ]
+    },
+    {
+      "name": "where-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM t1 WHERE y\u003c200 AND x\u003e2 AND w=11",
+          "expect": "3 144 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM t1 WHERE w=11 AND y\u003c200 AND x\u003e2",
+          "expect": "3 144 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM t1 WHERE w\u003e10 AND y=144 AND x=3",
+          "expect": "3 144 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT x, y FROM t1 WHERE w\u003e10 AND y=144 AND x=3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT x, y FROM t1 WHERE y=144 AND x=3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM t1 WHERE y=144 AND w\u003e10 AND x=3",
+          "expect": "3 144 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM t1 WHERE x=3 AND w\u003e=10 AND y=121",
+          "expect": "3 121 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM t1 WHERE x=3 AND y=100 AND w\u003c10",
+          "expect": "3 100 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.11b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM t1 WHERE x IS 3 AND y IS 100 AND w\u003c10",
+          "expect": "3 100 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND y\u003c100",
+          "expect": "8 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.12b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE x IS 3 AND y\u003c100",
+          "expect": "8 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND 100\u003ey",
+          "expect": "8 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE 3=x AND y\u003c100",
+          "expect": "8 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.14b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE 3 IS x AND y\u003c100",
+          "expect": "8 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE 3=x AND 100\u003ey",
+          "expect": "8 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND y\u003c=100",
+          "expect": "8 9 5"
+        }
+      ]
+    },
+    {
+      "name": "where-1.17",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND 100\u003e=y",
+          "expect": "8 9 5"
+        }
+      ]
+    },
+    {
+      "name": "where-1.18",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND y\u003e225",
+          "expect": "15 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.18b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE x IS 3 AND y\u003e225",
+          "expect": "15 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.19",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND 225\u003cy",
+          "expect": "15 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND y\u003e=225",
+          "expect": "14 15 5"
+        }
+      ]
+    },
+    {
+      "name": "where-1.21",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND 225\u003c=y",
+          "expect": "14 15 5"
+        }
+      ]
+    },
+    {
+      "name": "where-1.22",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND y\u003e121 AND y\u003c196",
+          "expect": "11 12 5"
+        }
+      ]
+    },
+    {
+      "name": "where-1.22b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE x IS 3 AND y\u003e121 AND y\u003c196",
+          "expect": "11 12 5"
+        }
+      ]
+    },
+    {
+      "name": "where-1.23",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND y\u003e=121 AND y\u003c=196",
+          "expect": "10 11 12 13 9"
+        }
+      ]
+    },
+    {
+      "name": "where-1.24",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND 121\u003cy AND 196\u003ey",
+          "expect": "11 12 5"
+        }
+      ]
+    },
+    {
+      "name": "where-1.25",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND 121\u003c=y AND 196\u003e=y",
+          "expect": "10 11 12 13 9"
+        }
+      ]
+    },
+    {
+      "name": "where-1.27",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND y+1==122",
+          "expect": "10 10"
+        }
+      ]
+    },
+    {
+      "name": "where-1.28",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE x+1=4 AND y+1==122",
+          "expect": "10 99"
+        }
+      ]
+    },
+    {
+      "name": "where-1.29",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE y==121",
+          "expect": "10 99"
+        }
+      ]
+    },
+    {
+      "name": "where-1.30",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE w\u003e97",
+          "expect": "98 99 100 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.31",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE w\u003e=97",
+          "expect": "97 98 99 100 4"
+        }
+      ]
+    },
+    {
+      "name": "where-1.33",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE w==97",
+          "expect": "97 2"
+        }
+      ]
+    },
+    {
+      "name": "where-1.33.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE w\u003c=97 AND w==97",
+          "expect": "97 2"
+        }
+      ]
+    },
+    {
+      "name": "where-1.33.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE w\u003c98 AND w==97",
+          "expect": "97 2"
+        }
+      ]
+    },
+    {
+      "name": "where-1.33.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE w\u003e=97 AND w==97",
+          "expect": "97 2"
+        }
+      ]
+    },
+    {
+      "name": "where-1.33.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE w\u003e96 AND w==97",
+          "expect": "97 2"
+        }
+      ]
+    },
+    {
+      "name": "where-1.33.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE w==97 AND w==97",
+          "expect": "97 2"
+        }
+      ]
+    },
+    {
+      "name": "where-1.34",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE w+1==98",
+          "expect": "97 99"
+        }
+      ]
+    },
+    {
+      "name": "where-1.35",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE w\u003c3",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.36",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE w\u003c=3",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "where-1.37",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1 WHERE w+1\u003c=4 ORDER BY w",
+          "expect": "1 2 3 99"
+        }
+      ]
+    },
+    {
+      "name": "where-1.38",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT (w) FROM t1 WHERE (w)\u003e(97)",
+          "expect": "98 99 100 3"
+        }
+      ]
+    },
+    {
+      "name": "where-1.39",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT (w) FROM t1 WHERE (w)\u003e=(97)",
+          "expect": "97 98 99 100 4"
+        }
+      ]
+    },
+    {
+      "name": "where-1.40",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT (w) FROM t1 WHERE (w)==(97)",
+          "expect": "97 2"
+        }
+      ]
+    },
+    {
+      "name": "where-1.41",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT (w) FROM t1 WHERE ((w)+(1))==(98)",
+          "expect": "97 99"
+        }
+      ]
+    },
+    {
+      "name": "where-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w, p FROM t2, t1\n    WHERE x=q AND y=s AND r=8977",
+          "expect": "34 67 6"
+        }
+      ]
+    },
+    {
+      "name": "where-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w, p FROM t2, t1\n    WHERE x=q AND s=y AND r=8977",
+          "expect": "34 67 6"
+        }
+      ]
+    },
+    {
+      "name": "where-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w, p FROM t2, t1\n    WHERE x=q AND s=y AND r=8977 AND w\u003e10",
+          "expect": "34 67 6"
+        }
+      ]
+    },
+    {
+      "name": "where-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w, p FROM t2, t1\n    WHERE p\u003c80 AND x=q AND s=y AND r=8977 AND w\u003e10",
+          "expect": "34 67 6"
+        }
+      ]
+    },
+    {
+      "name": "where-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w, p FROM t2, t1\n    WHERE p\u003c80 AND x=q AND 8977=r AND s=y AND w\u003e10",
+          "expect": "34 67 6"
+        }
+      ]
+    },
+    {
+      "name": "where-2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w, p FROM t2, t1\n    WHERE x=q AND p=77 AND s=y AND w\u003e5",
+          "expect": "24 77 6"
+        }
+      ]
+    },
+    {
+      "name": "where-2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w, p FROM t1, t2\n    WHERE x=q AND p\u003e77 AND s=y AND w=5",
+          "expect": "5 96 6"
+        }
+      ]
+    },
+    {
+      "name": "where-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT A.w, B.p, C.w FROM t1 as A, t2 as B, t1 as C\n    WHERE C.w=101-B.p AND B.r=10202-A.y AND A.w=11",
+          "expect": "11 90 11 8"
+        }
+      ]
+    },
+    {
+      "name": "where-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT A.w, B.p, C.w FROM t1 as A, t2 as B, t1 as C\n    WHERE C.w=101-B.p AND B.r=10202-A.y AND A.w=12",
+          "expect": "12 89 12 8"
+        }
+      ]
+    },
+    {
+      "name": "where-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT A.w, B.p, C.w FROM t1 as A, t2 as B, t1 as C\n    WHERE A.w=15 AND B.p=C.w AND B.r=10202-A.y",
+          "expect": "15 86 86 8"
+        }
+      ]
+    },
+    {
+      "name": "where-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE 0",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "where-4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE 1 LIMIT 1",
+          "expect": "1 0 4 0"
+        }
+      ]
+    },
+    {
+      "name": "where-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 99 WHERE 0"
+        }
+      ]
+    },
+    {
+      "name": "where-4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 99 WHERE 1",
+          "expect": "99"
+        }
+      ]
+    },
+    {
+      "name": "where-4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 99 WHERE 0.1",
+          "expect": "99"
+        }
+      ]
+    },
+    {
+      "name": "where-4.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 99 WHERE 0.0"
+        }
+      ]
+    },
+    {
+      "name": "where-4.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE t1.w",
+          "expect": "100"
+        }
+      ]
+    },
+    {
+      "name": "where-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1,2,3,1234) order by 1;",
+          "expect": "1 0 4 2 1 9 3 1 16 4"
+        }
+      ]
+    },
+    {
+      "name": "where-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE rowid+0 IN (1,2,3,1234) order by 1;",
+          "expect": "1 0 4 2 1 9 3 1 16 102"
+        }
+      ]
+    },
+    {
+      "name": "where-5.3a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE w IN (-1,1,2,3) order by 1;",
+          "expect": "1 0 4 2 1 9 3 1 16 12"
+        }
+      ]
+    },
+    {
+      "name": "where-5.3b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE w IN (3,-1,1,2) order by 1;",
+          "expect": "1 0 4 2 1 9 3 1 16 12"
+        }
+      ]
+    },
+    {
+      "name": "where-5.3c",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE w IN (3,2,-1,1,2) order by 1;",
+          "expect": "1 0 4 2 1 9 3 1 16 12"
+        }
+      ]
+    },
+    {
+      "name": "where-5.3d",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE w IN (-1,1,2,3) order by 1 DESC;",
+          "expect": "3 1 16 2 1 9 1 0 4 11"
+        }
+      ]
+    },
+    {
+      "name": "where-5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE w+0 IN (-1,1,2,3) order by 1;",
+          "expect": "1 0 4 2 1 9 3 1 16 102"
+        }
+      ]
+    },
+    {
+      "name": "where-5.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE rowid IN \n         (select rowid from t1 where rowid IN (-1,2,4))\n      ORDER BY 1;",
+          "expect": "2 1 9 4 2 25 3"
+        }
+      ]
+    },
+    {
+      "name": "where-5.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE rowid+0 IN \n         (select rowid from t1 where rowid IN (-1,2,4))\n      ORDER BY 1;",
+          "expect": "2 1 9 4 2 25 103"
+        }
+      ]
+    },
+    {
+      "name": "where-5.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE w IN \n         (select rowid from t1 where rowid IN (-1,2,4))\n      ORDER BY 1;",
+          "expect": "2 1 9 4 2 25 9"
+        }
+      ]
+    },
+    {
+      "name": "where-5.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE w+0 IN \n         (select rowid from t1 where rowid IN (-1,2,4))\n      ORDER BY 1;",
+          "expect": "2 1 9 4 2 25 103"
+        }
+      ]
+    },
+    {
+      "name": "where-5.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x IN (1,7) ORDER BY 1;",
+          "expect": "2 1 9 3 1 16 6"
+        }
+      ]
+    },
+    {
+      "name": "where-5.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x+0 IN (1,7) ORDER BY 1;",
+          "expect": "2 1 9 3 1 16 199"
+        }
+      ]
+    },
+    {
+      "name": "where-5.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE y IN (6400,8100) ORDER BY 1;",
+          "expect": "79 6 6400 89 6 8100 199"
+        }
+      ]
+    },
+    {
+      "name": "where-5.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x=6 AND y IN (6400,8100) ORDER BY 1;",
+          "expect": "79 6 6400 89 6 8100 7"
+        }
+      ]
+    },
+    {
+      "name": "where-5.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x IN (1,7) AND y NOT IN (6400,8100) ORDER BY 1;",
+          "expect": "2 1 9 3 1 16 6"
+        }
+      ]
+    },
+    {
+      "name": "where-5.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x IN (1,7) AND y IN (9,10) ORDER BY 1;",
+          "expect": "2 1 9 5"
+        }
+      ]
+    },
+    {
+      "name": "where-5.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x IN (1,7) AND y IN (9,16) ORDER BY 1;",
+          "expect": "2 1 9 3 1 16 9"
+        }
+      ]
+    },
+    {
+      "name": "where-5.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x, y",
+          "expect": "2 1 9 54 5 3025 62 5 3969"
+        }
+      ]
+    },
+    {
+      "name": "where-5.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x DESC, y DESC",
+          "expect": "62 5 3969 54 5 3025 2 1 9"
+        }
+      ]
+    },
+    {
+      "name": "where-5.102",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x DESC, y",
+          "expect": "54 5 3025 62 5 3969 2 1 9"
+        }
+      ]
+    },
+    {
+      "name": "where-5.103",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x, y DESC",
+          "expect": "2 1 9 62 5 3969 54 5 3025"
+        }
+      ]
+    },
+    {
+      "name": "where-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a,b,c);\n    CREATE INDEX t3a ON t3(a);\n    CREATE INDEX t3bc ON t3(b,c);\n    CREATE INDEX t3acb ON t3(a,c,b);\n    INSERT INTO t3 SELECT w, 101-w, y FROM t1;\n    SELECT count(*), sum(a), sum(b), sum(c) FROM t3;\n    ANALYZE;",
+          "expect": "100 5050 5050 348550"
+        }
+      ]
+    },
+    {
+      "name": "where-6.2",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t3 ORDER BY a LIMIT 3",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 100 4 2 99 9 3 98 16 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.3",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t3 ORDER BY a+1 LIMIT 3",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 100 4 2 99 9 3 98 16 sort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.4",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t3 WHERE a\u003c10 ORDER BY a LIMIT 3",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 100 4 2 99 9 3 98 16 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.5",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t3 WHERE a\u003e0 AND a\u003c10 ORDER BY a LIMIT 3",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 100 4 2 99 9 3 98 16 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.6",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t3 WHERE a\u003e0 ORDER BY a LIMIT 3",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 100 4 2 99 9 3 98 16 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.7.1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t3 WHERE b\u003e0 ORDER BY a LIMIT 10",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "/1 100 4 2 99 9 3 98 16 .* nosort/"
+        }
+      ]
+    },
+    {
+      "name": "where-6.7.2",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t3 WHERE b\u003e0 ORDER BY a LIMIT 1",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 100 4 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.8a",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t3 WHERE a IN (3,5,7,1,9,4,2) ORDER BY a LIMIT 3",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 100 4 2 99 9 3 98 16 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.8b",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t3 WHERE a IN (3,5,7,1,9,4,2) ORDER BY a DESC LIMIT 3",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "9 92 100 7 94 64 5 96 36 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.9.1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t3 WHERE a=1 AND c\u003e0 ORDER BY a LIMIT 3",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 100 4 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.9.1.1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t3 WHERE a\u003e=1 AND a=1 AND c\u003e0 ORDER BY a LIMIT 3",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 100 4 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.9.1.2",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t3 WHERE a\u003c2 AND a=1 AND c\u003e0 ORDER BY a LIMIT 3",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 100 4 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.9.2",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t3 WHERE a=1 AND c\u003e0 ORDER BY a,c LIMIT 3",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 100 4 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.9.3",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t3 WHERE a=1 AND c\u003e0 ORDER BY c LIMIT 3",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 100 4 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.9.4",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t3 WHERE a=1 AND c\u003e0 ORDER BY a DESC LIMIT 3",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 100 4 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.9.5",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t3 WHERE a=1 AND c\u003e0 ORDER BY a DESC, c DESC LIMIT 3",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 100 4 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.9.6",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t3 WHERE a=1 AND c\u003e0 ORDER BY c DESC LIMIT 3",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 100 4 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.9.7",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t3 WHERE a=1 AND c\u003e0 ORDER BY c,a LIMIT 3",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 100 4 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.9.8",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t3 WHERE a=1 AND c\u003e0 ORDER BY a DESC, c ASC LIMIT 3",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 100 4 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.9.9",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t3 WHERE a=1 AND c\u003e0 ORDER BY a ASC, c DESC LIMIT 3",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 100 4 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.10",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t3 WHERE a=1 AND c\u003e0 ORDER BY a LIMIT 3",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 100 4 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.11",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t3 WHERE a=1 AND c\u003e0 ORDER BY a,c LIMIT 3",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 100 4 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.12",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t3 WHERE a=1 AND c\u003e0 ORDER BY a,c,b LIMIT 3",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 100 4 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.13",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t3 WHERE a\u003e0 ORDER BY a DESC LIMIT 3",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "100 1 10201 99 2 10000 98 3 9801 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.13.1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t3 WHERE a\u003e0 ORDER BY -a LIMIT 3",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "100 1 10201 99 2 10000 98 3 9801 sort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.14",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t3 ORDER BY b LIMIT 3",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "100 1 10201 99 2 10000 98 3 9801 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.15",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT t3.a, t1.x FROM t3, t1 WHERE t3.a=t1.w ORDER BY t3.a LIMIT 3",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 0 2 1 3 1 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.16",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT t3.a, t1.x FROM t3, t1 WHERE t3.a=t1.w ORDER BY t1.x, t3.a LIMIT 3",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 0 2 1 3 1 sort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.19",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT y FROM t1 ORDER BY w LIMIT 3;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "4 9 16 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.20",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT y FROM t1 ORDER BY rowid LIMIT 3;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "4 9 16 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.21",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT y FROM t1 ORDER BY rowid, y LIMIT 3;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "4 9 16 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.22",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT y FROM t1 ORDER BY rowid, y DESC LIMIT 3;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "4 9 16 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.23",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT y FROM t1 WHERE y\u003e4 ORDER BY rowid, w, x LIMIT 3;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "9 16 25 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.24",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT y FROM t1 WHERE y\u003e=9 ORDER BY rowid, x DESC, w LIMIT 3;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "9 16 25 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.25",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT y FROM t1 WHERE y\u003e4 AND y\u003c25 ORDER BY rowid;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "9 16 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.26",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT y FROM t1 WHERE y\u003e=4 AND y\u003c=25 ORDER BY oid;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "4 9 16 25 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-6.27",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT y FROM t1 WHERE y\u003c=25 ORDER BY _rowid_, w+y;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "4 9 16 25 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=3 ORDER BY y;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "8 9 10 11 12 13 14 15 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.2",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=3 ORDER BY y DESC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "15 14 13 12 11 10 9 8 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.3",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND y\u003e100 ORDER BY y LIMIT 3;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "10 11 12 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.4",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND y\u003e100 ORDER BY y DESC LIMIT 3;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "15 14 13 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.5",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND y\u003e121 ORDER BY y DESC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "15 14 13 12 11 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.6",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND y\u003e=121 ORDER BY y DESC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "15 14 13 12 11 10 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.7",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND y\u003e=121 AND y\u003c196 ORDER BY y DESC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "12 11 10 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.8",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND y\u003e=121 AND y\u003c=196 ORDER BY y DESC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "13 12 11 10 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.9",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND y\u003e121 AND y\u003c=196 ORDER BY y DESC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "13 12 11 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.10",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND y\u003e100 AND y\u003c196 ORDER BY y DESC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "12 11 10 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.11",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND y\u003e=121 AND y\u003c196 ORDER BY y;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "10 11 12 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.12",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND y\u003e=121 AND y\u003c=196 ORDER BY y;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "10 11 12 13 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.13",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND y\u003e121 AND y\u003c=196 ORDER BY y;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "11 12 13 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.14",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND y\u003e100 AND y\u003c196 ORDER BY y;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "10 11 12 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.15",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND y\u003c81 ORDER BY y;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.16",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND y\u003c=81 ORDER BY y;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "8 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.17",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND y\u003e256 ORDER BY y;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.18",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND y\u003e=256 ORDER BY y;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "15 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.19",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND y\u003c81 ORDER BY y DESC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.20",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND y\u003c=81 ORDER BY y DESC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "8 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.21",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND y\u003e256 ORDER BY y DESC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.22",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=3 AND y\u003e=256 ORDER BY y DESC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "15 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.23",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=0 AND y\u003c4 ORDER BY y;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.24",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=0 AND y\u003c=4 ORDER BY y;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.25",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=6 AND y\u003e10201 ORDER BY y;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.26",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=6 AND y\u003e=10201 ORDER BY y;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "100 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.27",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=0 AND y\u003c4 ORDER BY y DESC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.28",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=0 AND y\u003c=4 ORDER BY y DESC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.29",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=6 AND y\u003e10201 ORDER BY y DESC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.30",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t1 WHERE x=6 AND y\u003e=10201 ORDER BY y DESC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "100 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.31",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT y FROM t1 ORDER BY rowid DESC LIMIT 3",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "10201 10000 9801 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.32",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT y FROM t1 WHERE y\u003c25 ORDER BY rowid DESC",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "16 9 4 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.33",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT y FROM t1 WHERE y\u003c=25 ORDER BY rowid DESC",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "25 16 9 4 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.34",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT y FROM t1 WHERE y\u003c25 AND y\u003e4 ORDER BY rowid DESC, y DESC",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "16 9 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-7.35",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT y FROM t1 WHERE y\u003c25 AND y\u003e=4 ORDER BY rowid DESC",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "16 9 4 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4 AS SELECT * FROM t1;\n    CREATE INDEX i4xy ON t4(x,y);"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t4 WHERE x=4 and y\u003c1000 ORDER BY y DESC limit 3;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "30 29 28 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t4;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT w FROM t4 WHERE x=4 and y\u003c1000 ORDER BY y DESC limit 3;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(x PRIMARY KEY);\n    SELECT * FROM t5 WHERE x\u003c10;"
+        }
+      ]
+    },
+    {
+      "name": "where-9.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5 WHERE x\u003c10 ORDER BY x DESC;"
+        }
+      ]
+    },
+    {
+      "name": "where-9.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5 WHERE x=10;"
+        }
+      ]
+    },
+    {
+      "name": "where-10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 1 WHERE abs(random())\u003c0"
+        }
+      ]
+    },
+    {
+      "name": "where-10.2",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "tclvar",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "i": "101",
+            "testdir": "",
+            "w": "100",
+            "x": "6",
+            "y": "10201"
+          },
+          "functionProc": "tclvar_func",
+          "functionArgs": [
+            "vname"
+          ],
+          "functionBody": "return [set ::$vname]",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE tclvar('v1');",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "where-10.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE tclvar('v1');",
+          "expect": "100"
+        }
+      ]
+    },
+    {
+      "name": "where-10.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE tclvar('v1');",
+          "expect": "50"
+        }
+      ]
+    },
+    {
+      "name": "where-11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t99(Dte INT, X INT);\n   DELETE FROM t99 WHERE (Dte = 2451337) OR (Dte = 2451339) OR\n     (Dte BETWEEN 2451345 AND 2451347) OR (Dte = 2451351) OR \n     (Dte BETWEEN 2451355 AND 2451356) OR (Dte = 2451358) OR\n     (Dte = 2451362) OR (Dte = 2451365) OR (Dte = 2451367) OR\n     (Dte BETWEEN 2451372 AND 2451376) OR (Dte BETWEEN 2451382 AND 2451384) OR\n     (Dte = 2451387) OR (Dte BETWEEN 2451389 AND 2451391) OR \n     (Dte BETWEEN 2451393 AND 2451395) OR (Dte = 2451400) OR \n     (Dte = 2451402) OR (Dte = 2451404) OR (Dte BETWEEN 2451416 AND 2451418) OR \n     (Dte = 2451422) OR (Dte = 2451426) OR (Dte BETWEEN 2451445 AND 2451446) OR\n     (Dte = 2451456) OR (Dte = 2451458) OR (Dte BETWEEN 2451465 AND 2451467) OR\n     (Dte BETWEEN 2451469 AND 2451471) OR (Dte = 2451474) OR\n     (Dte BETWEEN 2451477 AND 2451501) OR (Dte BETWEEN 2451503 AND 2451509) OR\n     (Dte BETWEEN 2451511 AND 2451514) OR (Dte BETWEEN 2451518 AND 2451521) OR\n     (Dte BETWEEN 2451523 AND 2451531) OR (Dte BETWEEN 2451533 AND 2451537) OR\n     (Dte BETWEEN 2451539 AND 2451544) OR (Dte BETWEEN 2451546 AND 2451551) OR\n     (Dte BETWEEN 2451553 AND 2451555) OR (Dte = 2451557) OR\n     (Dte BETWEEN 2451559 AND 2451561) OR (Dte = 2451563) OR\n     (Dte BETWEEN 2451565 AND 2451566) OR (Dte BETWEEN 2451569 AND 2451571) OR \n     (Dte = 2451573) OR (Dte = 2451575) OR (Dte = 2451577) OR (Dte = 2451581) OR\n     (Dte BETWEEN 2451583 AND 2451586) OR (Dte BETWEEN 2451588 AND 2451592) OR \n     (Dte BETWEEN 2451596 AND 2451598) OR (Dte = 2451600) OR\n     (Dte BETWEEN 2451602 AND 2451603) OR (Dte = 2451606) OR (Dte = 2451611);"
+        }
+      ]
+    },
+    {
+      "name": "where-12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t6 VALUES(1,'one');\n    INSERT INTO t6 VALUES(4,'four');\n    CREATE INDEX t6i1 ON t6(b);"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t6 ORDER BY b;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "4 four 1 one nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-12.2",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t6 ORDER BY b, a;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "4 four 1 one nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-12.3",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t6 ORDER BY a;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 one 4 four nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-12.4",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t6 ORDER BY a, b;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 one 4 four nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-12.5",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t6 ORDER BY b DESC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 one 4 four nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-12.6",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t6 ORDER BY b DESC, a DESC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 one 4 four nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-12.7",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t6 ORDER BY b DESC, a ASC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 one 4 four sort"
+        }
+      ]
+    },
+    {
+      "name": "where-12.8",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t6 ORDER BY b ASC, a DESC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "4 four 1 one sort"
+        }
+      ]
+    },
+    {
+      "name": "where-12.9",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t6 ORDER BY a DESC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "4 four 1 one nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-12.10",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t6 ORDER BY a DESC, b DESC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "4 four 1 one nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-12.11",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t6 ORDER BY a DESC, b ASC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "4 four 1 one nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-12.12",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t6 ORDER BY a ASC, b DESC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 one 4 four nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-13.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t7(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t7 VALUES(1,'one');\n    INSERT INTO t7 VALUES(4,'four');\n    CREATE INDEX t7i1 ON t7(b);"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t7 ORDER BY b;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "4 four 1 one nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-13.2",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t7 ORDER BY b, a;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "4 four 1 one nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-13.3",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t7 ORDER BY a;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 one 4 four nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-13.4",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t7 ORDER BY a, b;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 one 4 four nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-13.5",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t7 ORDER BY b DESC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 one 4 four nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-13.6",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t7 ORDER BY b DESC, a DESC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 one 4 four nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-13.7",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t7 ORDER BY b DESC, a ASC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 one 4 four sort"
+        }
+      ]
+    },
+    {
+      "name": "where-13.8",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t7 ORDER BY b ASC, a DESC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "4 four 1 one sort"
+        }
+      ]
+    },
+    {
+      "name": "where-13.9",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t7 ORDER BY a DESC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "4 four 1 one nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-13.10",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t7 ORDER BY a DESC, b DESC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "4 four 1 one nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-13.11",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t7 ORDER BY a DESC, b ASC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "4 four 1 one nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-13.12",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT * FROM t7 ORDER BY a ASC, b DESC;",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1 one 4 four nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-14.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t8(a INTEGER PRIMARY KEY, b TEXT UNIQUE, c CHAR(100));\n    INSERT INTO t8(a,b) VALUES(1,'one');\n    INSERT INTO t8(a,b) VALUES(4,'four');"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.a, y.b",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1/4 1/1 4/4 4/1 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-14.2",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.a, y.b DESC",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1/1 1/4 4/1 4/4 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-14.3",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.a, x.b",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1/4 1/1 4/4 4/1 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-14.4",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.a, x.b DESC",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "1/4 1/1 4/4 4/1 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-14.5",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.b, x.a||x.b",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "/4/[14] 4/[14] 1/[14] 1/[14] sort/"
+        }
+      ]
+    },
+    {
+      "name": "where-14.6",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.b, x.a||x.b DESC",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "/4/[14] 4/[14] 1/[14] 1/[14] sort/"
+        }
+      ]
+    },
+    {
+      "name": "where-14.7",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.b, y.a||y.b",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "4/1 4/4 1/1 1/4 sort"
+        }
+      ]
+    },
+    {
+      "name": "where-14.7.1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.b, x.a, y.a||y.b",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "4/1 4/4 1/1 1/4 sort"
+        }
+      ]
+    },
+    {
+      "name": "where-14.7.2",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.b, x.a, x.a||x.b",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "4/4 4/1 1/4 1/1 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where-14.8",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.b, y.a||y.b DESC",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "4/4 4/1 1/4 1/1 sort"
+        }
+      ]
+    },
+    {
+      "name": "where-14.9",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.b, x.a||y.b",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "4/4 4/1 1/4 1/1 sort"
+        }
+      ]
+    },
+    {
+      "name": "where-14.10",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.b, x.a||y.b DESC",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "4/1 4/4 1/1 1/4 sort"
+        }
+      ]
+    },
+    {
+      "name": "where-14.11",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.b, y.a||x.b",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "4/1 4/4 1/1 1/4 sort"
+        }
+      ]
+    },
+    {
+      "name": "where-14.12",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.b, y.a||x.b DESC",
+          "variable": "data",
+          "resultAll": true,
+          "stmtStatus": true,
+          "expect": "4/4 4/1 1/4 1/1 sort"
+        }
+      ]
+    },
+    {
+      "name": "where-15.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t1 (a, b, c, d, e);\n    CREATE TEMP TABLE t2 (f);\n    SELECT t1.e AS alias FROM t2, t1 WHERE alias = 1 ;"
+        }
+      ]
+    },
+    {
+      "name": "where-16.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE a1(id INTEGER PRIMARY KEY, v);\n    CREATE TABLE a2(id INTEGER PRIMARY KEY, v);\n    INSERT INTO a1 VALUES(1, 'one');\n    INSERT INTO a1 VALUES(2, 'two');\n    INSERT INTO a2 VALUES(1, 'one');\n    INSERT INTO a2 VALUES(2, 'two');"
+        }
+      ]
+    },
+    {
+      "name": "where-16.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM a2 CROSS JOIN a1 WHERE a1.id=1 AND a1.v='one';",
+          "expect": "1 one 1 one 2 two 1 one"
+        }
+      ]
+    },
+    {
+      "name": "where-16.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE foo(idx INTEGER);\n    INSERT INTO foo VALUES(1);\n    INSERT INTO foo VALUES(1);\n    INSERT INTO foo VALUES(1);\n    INSERT INTO foo VALUES(2);\n    INSERT INTO foo VALUES(2);\n    CREATE TEMP TABLE bar(stuff INTEGER);\n    INSERT INTO bar VALUES(100);\n    INSERT INTO bar VALUES(200);\n    INSERT INTO bar VALUES(300);"
+        }
+      ]
+    },
+    {
+      "name": "where-16.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT bar.RowID id FROM foo, bar WHERE foo.idx = bar.RowID AND id = 2;",
+          "expect": "2 2"
+        }
+      ]
+    },
+    {
+      "name": "where-17.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tbooking (\n      id INTEGER PRIMARY KEY,\n      eventtype INTEGER NOT NULL\n    );\n    INSERT INTO tbooking VALUES(42, 3);\n    INSERT INTO tbooking VALUES(43, 4);"
+        }
+      ]
+    },
+    {
+      "name": "where-17.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a.id\n    FROM tbooking AS a\n    WHERE a.eventtype=3;",
+          "expect": "42"
+        }
+      ]
+    },
+    {
+      "name": "where-17.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a.id, (SELECT b.id FROM tbooking AS b WHERE b.id\u003ea.id)\n    FROM tbooking AS a\n    WHERE a.eventtype=3;",
+          "expect": "42 43"
+        }
+      ]
+    },
+    {
+      "name": "where-17.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a.id, (SELECT b.id FROM tbooking AS b WHERE b.id\u003ea.id)\n    FROM (SELECT 1.5 AS id) AS a",
+          "expect": "1.5 42"
+        }
+      ]
+    },
+    {
+      "name": "where-17.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tother(a, b);\n    INSERT INTO tother VALUES(1, 3.7);\n    SELECT id, a FROM tbooking, tother WHERE id\u003ea;",
+          "expect": "42 1 43 1"
+        }
+      ]
+    },
     {
       "name": "where-18.1",
       "steps": [
@@ -107,7 +3256,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE TABLE t201(x);\n  CREATE TABLE t202(y, z);\n  INSERT INTO t201 VALUES('key');\n  INSERT INTO t202 VALUES('key', -1);\n  CREATE INDEX t202i ON t202(y, ifnull(z, 0));\n  SELECT count(*) FROM t201 LEFT JOIN t202 ON (x=y) WHERE ifnull(z, 0) >=0;",
+          "sql": "CREATE TABLE t201(x);\n  CREATE TABLE t202(y, z);\n  INSERT INTO t201 VALUES('key');\n  INSERT INTO t202 VALUES('key', -1);\n  CREATE INDEX t202i ON t202(y, ifnull(z, 0));\n  SELECT count(*) FROM t201 LEFT JOIN t202 ON (x=y) WHERE ifnull(z, 0) \u003e=0;",
           "expect": "0"
         }
       ]
@@ -127,7 +3276,15 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t12 WHERE \n  a = (SELECT * FROM (SELECT count(*) FROM t13 LIMIT 5) ORDER BY 1 LIMIT 10) \n  AND (b=1 OR c=1);",
-          "expect": "4 1 0\n  4 0 1"
+          "expect": "\n  4 1 0\n  4 0 1\n"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "open_empty_db"
         }
       ]
     },
@@ -152,6 +3309,10 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
       "name": "where-24.0",
       "steps": [
         {
@@ -159,6 +3320,382 @@
           "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(3, 'three');\n  INSERT INTO t1 VALUES(4, 'four');"
         }
       ]
+    },
+    {
+      "name": "where-24.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1",
+          "expect": "one two three four"
+        }
+      ]
+    },
+    {
+      "name": "where-24.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 ORDER BY rowid",
+          "expect": "one two three four"
+        }
+      ]
+    },
+    {
+      "name": "where-24.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 ORDER BY rowid DESC",
+          "expect": "four three two one "
+        }
+      ]
+    },
+    {
+      "name": "where-24-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DELETE FROM t1;\n      SELECT b FROM t1;\n      SELECT b FROM t1 ORDER BY rowid;\n      SELECT b FROM t1 ORDER BY rowid DESC;\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "where-24.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a\u003c4",
+          "expect": "one two three"
+        }
+      ]
+    },
+    {
+      "name": "where-24.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a\u003c4 ORDER BY rowid",
+          "expect": "one two three"
+        }
+      ]
+    },
+    {
+      "name": "where-24.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a\u003c4 ORDER BY rowid DESC",
+          "expect": "three two one "
+        }
+      ]
+    },
+    {
+      "name": "where-24-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DELETE FROM t1;\n      SELECT b FROM t1 WHERE a\u003c4;\n      SELECT b FROM t1 WHERE a\u003c4 ORDER BY rowid;\n      SELECT b FROM t1 WHERE a\u003c4 ORDER BY rowid DESC;\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "where-24.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a\u003e1",
+          "expect": "two three four"
+        }
+      ]
+    },
+    {
+      "name": "where-24.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a\u003e1 ORDER BY rowid",
+          "expect": "two three four"
+        }
+      ]
+    },
+    {
+      "name": "where-24.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a\u003e1 ORDER BY rowid DESC",
+          "expect": "four three two "
+        }
+      ]
+    },
+    {
+      "name": "where-24-3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DELETE FROM t1;\n      SELECT b FROM t1 WHERE a\u003e1;\n      SELECT b FROM t1 WHERE a\u003e1 ORDER BY rowid;\n      SELECT b FROM t1 WHERE a\u003e1 ORDER BY rowid DESC;\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "where-24.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a\u003e1 AND a\u003c4",
+          "expect": "two three"
+        }
+      ]
+    },
+    {
+      "name": "where-24.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a\u003e1 AND a\u003c4 ORDER BY rowid",
+          "expect": "two three"
+        }
+      ]
+    },
+    {
+      "name": "where-24.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a\u003e1 AND a\u003c4 ORDER BY rowid DESC",
+          "expect": "three two "
+        }
+      ]
+    },
+    {
+      "name": "where-24-4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DELETE FROM t1;\n      SELECT b FROM t1 WHERE a\u003e1 AND a\u003c4;\n      SELECT b FROM t1 WHERE a\u003e1 AND a\u003c4 ORDER BY rowid;\n      SELECT b FROM t1 WHERE a\u003e1 AND a\u003c4 ORDER BY rowid DESC;\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "where-24.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a\u003e? AND a\u003c4"
+        }
+      ]
+    },
+    {
+      "name": "where-24.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a\u003e? AND a\u003c4 ORDER BY rowid"
+        }
+      ]
+    },
+    {
+      "name": "where-24.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a\u003e? AND a\u003c4 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "where-24-5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DELETE FROM t1;\n      SELECT b FROM t1 WHERE a\u003e? AND a\u003c4;\n      SELECT b FROM t1 WHERE a\u003e? AND a\u003c4 ORDER BY rowid;\n      SELECT b FROM t1 WHERE a\u003e? AND a\u003c4 ORDER BY rowid DESC;\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "where-24.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a\u003e1 AND a\u003c?"
+        }
+      ]
+    },
+    {
+      "name": "where-24.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a\u003e1 AND a\u003c? ORDER BY rowid"
+        }
+      ]
+    },
+    {
+      "name": "where-24.6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a\u003e1 AND a\u003c? ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "where-24-6.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DELETE FROM t1;\n      SELECT b FROM t1 WHERE a\u003e1 AND a\u003c?;\n      SELECT b FROM t1 WHERE a\u003e1 AND a\u003c? ORDER BY rowid;\n      SELECT b FROM t1 WHERE a\u003e1 AND a\u003c? ORDER BY rowid DESC;\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "where-24.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a\u003e? AND a\u003c?"
+        }
+      ]
+    },
+    {
+      "name": "where-24.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a\u003e? AND a\u003c? ORDER BY rowid"
+        }
+      ]
+    },
+    {
+      "name": "where-24.7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a\u003e? AND a\u003c? ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "where-24-7.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DELETE FROM t1;\n      SELECT b FROM t1 WHERE a\u003e? AND a\u003c?;\n      SELECT b FROM t1 WHERE a\u003e? AND a\u003c? ORDER BY rowid;\n      SELECT b FROM t1 WHERE a\u003e? AND a\u003c? ORDER BY rowid DESC;\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "where-24.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a\u003e=? AND a\u003c=4"
+        }
+      ]
+    },
+    {
+      "name": "where-24.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a\u003e=? AND a\u003c=4 ORDER BY rowid"
+        }
+      ]
+    },
+    {
+      "name": "where-24.7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a\u003e=? AND a\u003c=4 ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "where-24-7.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DELETE FROM t1;\n      SELECT b FROM t1 WHERE a\u003e=? AND a\u003c=4;\n      SELECT b FROM t1 WHERE a\u003e=? AND a\u003c=4 ORDER BY rowid;\n      SELECT b FROM t1 WHERE a\u003e=? AND a\u003c=4 ORDER BY rowid DESC;\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "where-24.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a\u003e=1 AND a\u003c=?"
+        }
+      ]
+    },
+    {
+      "name": "where-24.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a\u003e=1 AND a\u003c=? ORDER BY rowid"
+        }
+      ]
+    },
+    {
+      "name": "where-24.8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a\u003e=1 AND a\u003c=? ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "where-24-8.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DELETE FROM t1;\n      SELECT b FROM t1 WHERE a\u003e=1 AND a\u003c=?;\n      SELECT b FROM t1 WHERE a\u003e=1 AND a\u003c=? ORDER BY rowid;\n      SELECT b FROM t1 WHERE a\u003e=1 AND a\u003c=? ORDER BY rowid DESC;\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "where-24.9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a\u003e=? AND a\u003c=?"
+        }
+      ]
+    },
+    {
+      "name": "where-24.9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a\u003e=? AND a\u003c=? ORDER BY rowid"
+        }
+      ]
+    },
+    {
+      "name": "where-24.9.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a\u003e=? AND a\u003c=? ORDER BY rowid DESC"
+        }
+      ]
+    },
+    {
+      "name": "where-24-9.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DELETE FROM t1;\n      SELECT b FROM t1 WHERE a\u003e=? AND a\u003c=?;\n      SELECT b FROM t1 WHERE a\u003e=? AND a\u003c=? ORDER BY rowid;\n      SELECT b FROM t1 WHERE a\u003e=? AND a\u003c=? ORDER BY rowid DESC;\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "where-25.0",
@@ -170,10 +3707,22 @@
       ]
     },
     {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
       "name": "where-25.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DELETE FROM t1 WHERE c='iii'",
           "expect": "1 {database disk image is malformed}"
         }
@@ -183,11 +3732,15 @@
       "name": "where-25.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1 VALUES(4, 'four', 'iii') \n    ON CONFLICT(c) DO UPDATE SET b=NULL",
           "expect": "1 {database disk image is malformed}"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "where-25.3",
@@ -199,10 +3752,22 @@
       ]
     },
     {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
       "name": "where-25.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM t1 WHERE c='iii'",
           "expect": "0 {}"
         }
@@ -212,9 +3777,20 @@
       "name": "where-25.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1 VALUES(4, 'four', 'iii') \n    ON CONFLICT(c) DO UPDATE SET b=NULL",
           "expect": "1 {corrupt database}"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
         }
       ]
     },
@@ -243,7 +3819,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t0 WHERE '-1'>=0 AND '-1'<=t0.c0;",
+          "sql": "SELECT * FROM t0 WHERE '-1'\u003e=0 AND '-1'\u003c=t0.c0;",
           "expect": "1 a"
         }
       ]
@@ -253,7 +3829,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE '-1'>=0 AND '-1'<=t1.c0;",
+          "sql": "SELECT * FROM t1 WHERE '-1'\u003e=0 AND '-1'\u003c=t1.c0;",
           "expect": "1 a"
         }
       ]
@@ -283,7 +3859,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT '-1'>=0 AND '-1'<=t0.c0 FROM t0;",
+          "sql": "SELECT '-1'\u003e=0 AND '-1'\u003c=t0.c0 FROM t0;",
           "expect": "1"
         }
       ]
@@ -293,17 +3869,21 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT '-1'>=0 AND '-1'<=t1.c0 FROM t1;",
+          "sql": "SELECT '-1'\u003e=0 AND '-1'\u003c=t1.c0 FROM t1;",
           "expect": "1"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "where-27.1",
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY);\n    INSERT INTO t1(a) VALUES(9223372036854775807);\n    SELECT 1 FROM t1 WHERE a>=(9223372036854775807+1);"
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY);\n    INSERT INTO t1(a) VALUES(9223372036854775807);\n    SELECT 1 FROM t1 WHERE a\u003e=(9223372036854775807+1);"
         }
       ]
     },
@@ -312,10 +3892,14 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a>=9223372036854775807+1 FROM t1;",
+          "sql": "SELECT a\u003e=9223372036854775807+1 FROM t1;",
           "expect": "0"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "where-28.1",
@@ -323,7 +3907,7 @@
         {
           "type": "query",
           "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  CREATE INDEX t1b ON t1(b,b,b,b,b,b,b,b,b,b,b,b,b);\n  INSERT INTO t1(a,b) VALUES(1,1),(15,2),(19,5);\n  UPDATE t1 SET b=999 WHERE a IN (SELECT 15) AND b IN (1,2);\n  SELECT * FROM t1;",
-          "expect": "1  1\n 15 999\n 19 5"
+          "expect": "\n 1  1\n 15 999\n 19 5\n"
         }
       ]
     },
@@ -338,500 +3922,16 @@
       ]
     },
     {
-      "name": "where-1.0",
+      "name": "where-30.1",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(w int, x int, y int);\n    CREATE TABLE t2(p int, q int, r int, s int);"
-        }
-      ]
-    },
-    {
-      "name": "where-4.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT 99 WHERE 0"
-        }
-      ]
-    },
-    {
-      "name": "where-4.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT 99 WHERE 1",
-          "expect": "99"
-        }
-      ]
-    },
-    {
-      "name": "where-4.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT 99 WHERE 0.1",
-          "expect": "99"
-        }
-      ]
-    },
-    {
-      "name": "where-4.6",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT 99 WHERE 0.0"
-        }
-      ]
-    },
-    {
-      "name": "where-4.7",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM t1 WHERE t1.w",
-          "expect": "100"
-        }
-      ]
-    },
-    {
-      "name": "where-6.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t3(a,b,c);\n    CREATE INDEX t3a ON t3(a);\n    CREATE INDEX t3bc ON t3(b,c);\n    CREATE INDEX t3acb ON t3(a,c,b);\n    INSERT INTO t3 SELECT w, 101-w, y FROM t1;\n    SELECT count(*), sum(a), sum(b), sum(c) FROM t3;\n    ANALYZE;"
-        }
-      ]
-    },
-    {
-      "name": "where-8.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t4 AS SELECT * FROM t1;\n    CREATE INDEX i4xy ON t4(x,y);"
-        }
-      ]
-    },
-    {
-      "name": "where-8.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t4;"
-        }
-      ]
-    },
-    {
-      "name": "where-9.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t5(x PRIMARY KEY);\n    SELECT * FROM t5 WHERE x<10;"
-        }
-      ]
-    },
-    {
-      "name": "where-9.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t5 WHERE x<10 ORDER BY x DESC;"
-        }
-      ]
-    },
-    {
-      "name": "where-9.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t5 WHERE x=10;"
-        }
-      ]
-    },
-    {
-      "name": "where-10.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT 1 WHERE abs(random())<0"
-        }
-      ]
-    },
-    {
-      "name": "where-10.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM t1 WHERE tclvar('v1');",
-          "expect": "0"
-        }
-      ]
-    },
-    {
-      "name": "where-10.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM t1 WHERE tclvar('v1');",
-          "expect": "100"
-        }
-      ]
-    },
-    {
-      "name": "where-10.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM t1 WHERE tclvar('v1');",
-          "expect": "50"
-        }
-      ]
-    },
-    {
-      "name": "where-11.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t99(Dte INT, X INT);\n   DELETE FROM t99 WHERE (Dte = 2451337) OR (Dte = 2451339) OR\n     (Dte BETWEEN 2451345 AND 2451347) OR (Dte = 2451351) OR \n     (Dte BETWEEN 2451355 AND 2451356) OR (Dte = 2451358) OR\n     (Dte = 2451362) OR (Dte = 2451365) OR (Dte = 2451367) OR\n     (Dte BETWEEN 2451372 AND 2451376) OR (Dte BETWEEN 2451382 AND 2451384) OR\n     (Dte = 2451387) OR (Dte BETWEEN 2451389 AND 2451391) OR \n     (Dte BETWEEN 2451393 AND 2451395) OR (Dte = 2451400) OR \n     (Dte = 2451402) OR (Dte = 2451404) OR (Dte BETWEEN 2451416 AND 2451418) OR \n     (Dte = 2451422) OR (Dte = 2451426) OR (Dte BETWEEN 2451445 AND 2451446) OR\n     (Dte = 2451456) OR (Dte = 2451458) OR (Dte BETWEEN 2451465 AND 2451467) OR\n     (Dte BETWEEN 2451469 AND 2451471) OR (Dte = 2451474) OR\n     (Dte BETWEEN 2451477 AND 2451501) OR (Dte BETWEEN 2451503 AND 2451509) OR\n     (Dte BETWEEN 2451511 AND 2451514) OR (Dte BETWEEN 2451518 AND 2451521) OR\n     (Dte BETWEEN 2451523 AND 2451531) OR (Dte BETWEEN 2451533 AND 2451537) OR\n     (Dte BETWEEN 2451539 AND 2451544) OR (Dte BETWEEN 2451546 AND 2451551) OR\n     (Dte BETWEEN 2451553 AND 2451555) OR (Dte = 2451557) OR\n     (Dte BETWEEN 2451559 AND 2451561) OR (Dte = 2451563) OR\n     (Dte BETWEEN 2451565 AND 2451566) OR (Dte BETWEEN 2451569 AND 2451571) OR \n     (Dte = 2451573) OR (Dte = 2451575) OR (Dte = 2451577) OR (Dte = 2451581) OR\n     (Dte BETWEEN 2451583 AND 2451586) OR (Dte BETWEEN 2451588 AND 2451592) OR \n     (Dte BETWEEN 2451596 AND 2451598) OR (Dte = 2451600) OR\n     (Dte BETWEEN 2451602 AND 2451603) OR (Dte = 2451606) OR (Dte = 2451611);"
-        }
-      ]
-    },
-    {
-      "name": "where-12.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t6(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t6 VALUES(1,'one');\n    INSERT INTO t6 VALUES(4,'four');\n    CREATE INDEX t6i1 ON t6(b);"
-        }
-      ]
-    },
-    {
-      "name": "where-13.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t7(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t7 VALUES(1,'one');\n    INSERT INTO t7 VALUES(4,'four');\n    CREATE INDEX t7i1 ON t7(b);"
-        }
-      ]
-    },
-    {
-      "name": "where-14.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t8(a INTEGER PRIMARY KEY, b TEXT UNIQUE, c CHAR(100));\n    INSERT INTO t8(a,b) VALUES(1,'one');\n    INSERT INTO t8(a,b) VALUES(4,'four');"
-        }
-      ]
-    },
-    {
-      "name": "where-15.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TEMP TABLE t1 (a, b, c, d, e);\n    CREATE TEMP TABLE t2 (f);\n    SELECT t1.e AS alias FROM t2, t1 WHERE alias = 1 ;"
-        }
-      ]
-    },
-    {
-      "name": "where-16.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE a1(id INTEGER PRIMARY KEY, v);\n    CREATE TABLE a2(id INTEGER PRIMARY KEY, v);\n    INSERT INTO a1 VALUES(1, 'one');\n    INSERT INTO a1 VALUES(2, 'two');\n    INSERT INTO a2 VALUES(1, 'one');\n    INSERT INTO a2 VALUES(2, 'two');"
-        }
-      ]
-    },
-    {
-      "name": "where-16.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM a2 CROSS JOIN a1 WHERE a1.id=1 AND a1.v='one';",
-          "expect": "1 one 1 one 2 two 1 one"
-        }
-      ]
-    },
-    {
-      "name": "where-16.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TEMP TABLE foo(idx INTEGER);\n    INSERT INTO foo VALUES(1);\n    INSERT INTO foo VALUES(1);\n    INSERT INTO foo VALUES(1);\n    INSERT INTO foo VALUES(2);\n    INSERT INTO foo VALUES(2);\n    CREATE TEMP TABLE bar(stuff INTEGER);\n    INSERT INTO bar VALUES(100);\n    INSERT INTO bar VALUES(200);\n    INSERT INTO bar VALUES(300);"
-        }
-      ]
-    },
-    {
-      "name": "where-16.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT bar.RowID id FROM foo, bar WHERE foo.idx = bar.RowID AND id = 2;",
-          "expect": "2 2"
-        }
-      ]
-    },
-    {
-      "name": "where-17.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE tbooking (\n      id INTEGER PRIMARY KEY,\n      eventtype INTEGER NOT NULL\n    );\n    INSERT INTO tbooking VALUES(42, 3);\n    INSERT INTO tbooking VALUES(43, 4);"
-        }
-      ]
-    },
-    {
-      "name": "where-17.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a.id\n    FROM tbooking AS a\n    WHERE a.eventtype=3;",
-          "expect": "42"
-        }
-      ]
-    },
-    {
-      "name": "where-17.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a.id, (SELECT b.id FROM tbooking AS b WHERE b.id>a.id)\n    FROM tbooking AS a\n    WHERE a.eventtype=3;",
-          "expect": "42 43"
-        }
-      ]
-    },
-    {
-      "name": "where-17.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a.id, (SELECT b.id FROM tbooking AS b WHERE b.id>a.id)\n    FROM (SELECT 1.5 AS id) AS a",
-          "expect": "1.5 42"
-        }
-      ]
-    },
-    {
-      "name": "where-17.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE tother(a, b);\n    INSERT INTO tother VALUES(1, 3.7);\n    SELECT id, a FROM tbooking, tother WHERE id>a;",
-          "expect": "42 1 43 1"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(w int, x int, y int);\n    CREATE TABLE t2(p int, q int, r int, s int);"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 SELECT 101-w, x, (SELECT max(y) FROM t1)+1-y, y FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "select max(y) from t1"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX i1w ON t1(\"w\");  -- Verify quoted identifier names\n    CREATE INDEX i1xy ON t1(`x`,'y' ASC); -- Old MySQL compatibility\n    CREATE INDEX i2p ON t2(p);\n    CREATE INDEX i2r ON t2(r);\n    CREATE INDEX i2qs ON t2(q, s);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 99 WHERE 0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 99 WHERE 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 99 WHERE 0.1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 99 WHERE 0.0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE t1.w"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t3(a,b,c);\n    CREATE INDEX t3a ON t3(a);\n    CREATE INDEX t3bc ON t3(b,c);\n    CREATE INDEX t3acb ON t3(a,c,b);\n    INSERT INTO t3 SELECT w, 101-w, y FROM t1;\n    SELECT count(*), sum(a), sum(b), sum(c) FROM t3;\n    ANALYZE;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t4 AS SELECT * FROM t1;\n    CREATE INDEX i4xy ON t4(x,y);"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t4;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t5(x PRIMARY KEY);\n    SELECT * FROM t5 WHERE x<10;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t5 WHERE x<10 ORDER BY x DESC;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t5 WHERE x=10;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 1 WHERE abs(random())<0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE tclvar('v1');"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE tclvar('v1');"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE tclvar('v1');"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t99(Dte INT, X INT);\n   DELETE FROM t99 WHERE (Dte = 2451337) OR (Dte = 2451339) OR\n     (Dte BETWEEN 2451345 AND 2451347) OR (Dte = 2451351) OR \n     (Dte BETWEEN 2451355 AND 2451356) OR (Dte = 2451358) OR\n     (Dte = 2451362) OR (Dte = 2451365) OR (Dte = 2451367) OR\n     (Dte BETWEEN 2451372 AND 2451376) OR (Dte BETWEEN 2451382 AND 2451384) OR\n     (Dte = 2451387) OR (Dte BETWEEN 2451389 AND 2451391) OR \n     (Dte BETWEEN 2451393 AND 2451395) OR (Dte = 2451400) OR \n     (Dte = 2451402) OR (Dte = 2451404) OR (Dte BETWEEN 2451416 AND 2451418) OR \n     (Dte = 2451422) OR (Dte = 2451426) OR (Dte BETWEEN 2451445 AND 2451446) OR\n     (Dte = 2451456) OR (Dte = 2451458) OR (Dte BETWEEN 2451465 AND 2451467) OR\n     (Dte BETWEEN 2451469 AND 2451471) OR (Dte = 2451474) OR\n     (Dte BETWEEN 2451477 AND 2451501) OR (Dte BETWEEN 2451503 AND 2451509) OR\n     (Dte BETWEEN 2451511 AND 2451514) OR (Dte BETWEEN 2451518 AND 2451521) OR\n     (Dte BETWEEN 2451523 AND 2451531) OR (Dte BETWEEN 2451533 AND 2451537) OR\n     (Dte BETWEEN 2451539 AND 2451544) OR (Dte BETWEEN 2451546 AND 2451551) OR\n     (Dte BETWEEN 2451553 AND 2451555) OR (Dte = 2451557) OR\n     (Dte BETWEEN 2451559 AND 2451561) OR (Dte = 2451563) OR\n     (Dte BETWEEN 2451565 AND 2451566) OR (Dte BETWEEN 2451569 AND 2451571) OR \n     (Dte = 2451573) OR (Dte = 2451575) OR (Dte = 2451577) OR (Dte = 2451581) OR\n     (Dte BETWEEN 2451583 AND 2451586) OR (Dte BETWEEN 2451588 AND 2451592) OR \n     (Dte BETWEEN 2451596 AND 2451598) OR (Dte = 2451600) OR\n     (Dte BETWEEN 2451602 AND 2451603) OR (Dte = 2451606) OR (Dte = 2451611);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t6(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t6 VALUES(1,'one');\n    INSERT INTO t6 VALUES(4,'four');\n    CREATE INDEX t6i1 ON t6(b);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t7(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t7 VALUES(1,'one');\n    INSERT INTO t7 VALUES(4,'four');\n    CREATE INDEX t7i1 ON t7(b);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t8(a INTEGER PRIMARY KEY, b TEXT UNIQUE, c CHAR(100));\n    INSERT INTO t8(a,b) VALUES(1,'one');\n    INSERT INTO t8(a,b) VALUES(4,'four');"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TEMP TABLE t1 (a, b, c, d, e);\n    CREATE TEMP TABLE t2 (f);\n    SELECT t1.e AS alias FROM t2, t1 WHERE alias = 1 ;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE a1(id INTEGER PRIMARY KEY, v);\n    CREATE TABLE a2(id INTEGER PRIMARY KEY, v);\n    INSERT INTO a1 VALUES(1, 'one');\n    INSERT INTO a1 VALUES(2, 'two');\n    INSERT INTO a2 VALUES(1, 'one');\n    INSERT INTO a2 VALUES(2, 'two');"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM a2 CROSS JOIN a1 WHERE a1.id=1 AND a1.v='one';"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TEMP TABLE foo(idx INTEGER);\n    INSERT INTO foo VALUES(1);\n    INSERT INTO foo VALUES(1);\n    INSERT INTO foo VALUES(1);\n    INSERT INTO foo VALUES(2);\n    INSERT INTO foo VALUES(2);\n    CREATE TEMP TABLE bar(stuff INTEGER);\n    INSERT INTO bar VALUES(100);\n    INSERT INTO bar VALUES(200);\n    INSERT INTO bar VALUES(300);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT bar.RowID id FROM foo, bar WHERE foo.idx = bar.RowID AND id = 2;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE tbooking (\n      id INTEGER PRIMARY KEY,\n      eventtype INTEGER NOT NULL\n    );\n    INSERT INTO tbooking VALUES(42, 3);\n    INSERT INTO tbooking VALUES(43, 4);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a.id\n    FROM tbooking AS a\n    WHERE a.eventtype=3;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a.id, (SELECT b.id FROM tbooking AS b WHERE b.id>a.id)\n    FROM tbooking AS a\n    WHERE a.eventtype=3;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a.id, (SELECT b.id FROM tbooking AS b WHERE b.id>a.id)\n    FROM (SELECT 1.5 AS id) AS a"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE tother(a, b);\n    INSERT INTO tother VALUES(1, 3.7);\n    SELECT id, a FROM tbooking, tother WHERE id>a;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x, y, w FROM t1 WHERE +w=10"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x, y"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x DESC, y DESC"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x DESC, y"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x, y DESC"
-        },
         {
           "type": "exec",
           "sql": "CREATE TABLE raw(country,date,total,delta, UNIQUE(country,date));"
         },
         {
           "type": "exec",
-          "sql": "EXPLAIN QUERY PLAN\n    WITH\n      -- Find the country and min/max date\n      init(country, date, fin) AS (SELECT country, min(date), max(date)\n         FROM raw WHERE total > 0 GROUP BY country),\n    \n      -- Generate the date stream for each country\n      src(country, date) AS (SELECT raw.country, raw.date\n          FROM raw JOIN init i on raw.country = i.country AND raw.date > i.date\n          ORDER BY raw.country, raw.date),\n    \n      -- Generate the x & y for each entry in the country/date stream\n      vals(country, date, x, y) AS (SELECT src.country, src.date,\n                julianday(raw.date) - julianday(src.date), log(delta+1)\n          FROM src JOIN raw on raw.country = src.country\n                        AND raw.date > date(src.date,'-7 days')\n                        AND raw.date <= src.date AND delta >= 0),\n    \n      -- Accumulate the data we need\n      sums(country, date, x2, x, n, xy, y) AS (SELECT country, date,\n              sum(x*x*1.0), sum(x*1.0), sum(1.0), sum(x*y*1.0), sum(y*1.0)\n         FROM vals GROUP BY 1, 2),\n    \n      -- use these to calculate to divisor for the inverse matrix\n      mult(country, date, m) AS (SELECT country, date, 1.0/(x2 * n - x * x)\n         FROM sums),\n    \n      -- Build the inverse matrix\n      inv(country, date, a,b,c,d) AS (SELECT mult.country, mult.date, n * m,\n                -x * m, -x * m, x2 * m\n          FROM mult JOIN sums on sums.country=mult.country\n                         AND mult.date=sums.date),\n    \n      -- Calculate the coefficients for the least squares fit\n      fit(country, date, a, b) AS (SELECT inv.country, inv.date,\n               a * xy + b * y, c * xy + d * y\n          FROM inv\n          JOIN mult on mult.country = inv.country AND mult.date = inv.date\n          JOIN sums on sums.country = mult.country AND sums.date = mult.date\n    )\n    SELECT *, nFin/nPrev - 1 AS growth, log(2)/log(nFin/nPrev) AS doubling\n      FROM (SELECT f.*, exp(b) - 1 AS nFin, exp(a* (-1) + b) - 1 AS nPrev\n              FROM fit f JOIN init i on i.country = f.country\n                          AND f.date <= date(i.fin,'-3 days'))\n     WHERE nPrev > 0 AND nFin > 0;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
+          "sql": "EXPLAIN QUERY PLAN\n    WITH\n      -- Find the country and min/max date\n      init(country, date, fin) AS (SELECT country, min(date), max(date)\n         FROM raw WHERE total \u003e 0 GROUP BY country),\n    \n      -- Generate the date stream for each country\n      src(country, date) AS (SELECT raw.country, raw.date\n          FROM raw JOIN init i on raw.country = i.country AND raw.date \u003e i.date\n          ORDER BY raw.country, raw.date),\n    \n      -- Generate the x \u0026 y for each entry in the country/date stream\n      vals(country, date, x, y) AS (SELECT src.country, src.date,\n                julianday(raw.date) - julianday(src.date), log(delta+1)\n          FROM src JOIN raw on raw.country = src.country\n                        AND raw.date \u003e date(src.date,'-7 days')\n                        AND raw.date \u003c= src.date AND delta \u003e= 0),\n    \n      -- Accumulate the data we need\n      sums(country, date, x2, x, n, xy, y) AS (SELECT country, date,\n              sum(x*x*1.0), sum(x*1.0), sum(1.0), sum(x*y*1.0), sum(y*1.0)\n         FROM vals GROUP BY 1, 2),\n    \n      -- use these to calculate to divisor for the inverse matrix\n      mult(country, date, m) AS (SELECT country, date, 1.0/(x2 * n - x * x)\n         FROM sums),\n    \n      -- Build the inverse matrix\n      inv(country, date, a,b,c,d) AS (SELECT mult.country, mult.date, n * m,\n                -x * m, -x * m, x2 * m\n          FROM mult JOIN sums on sums.country=mult.country\n                         AND mult.date=sums.date),\n    \n      -- Calculate the coefficients for the least squares fit\n      fit(country, date, a, b) AS (SELECT inv.country, inv.date,\n               a * xy + b * y, c * xy + d * y\n          FROM inv\n          JOIN mult on mult.country = inv.country AND mult.date = inv.date\n          JOIN sums on sums.country = mult.country AND sums.date = mult.date\n    )\n    SELECT *, nFin/nPrev - 1 AS growth, log(2)/log(nFin/nPrev) AS doubling\n      FROM (SELECT f.*, exp(b) - 1 AS nFin, exp(a* (-1) + b) - 1 AS nPrev\n              FROM fit f JOIN init i on i.country = f.country\n                          AND f.date \u003c= date(i.fin,'-3 days'))\n     WHERE nPrev \u003e 0 AND nFin \u003e 0;",
+          "expect": "SCAN"
         }
       ]
     }

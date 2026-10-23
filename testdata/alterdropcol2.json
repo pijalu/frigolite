@@ -1,9 +1,10 @@
 {
   "file": "alterdropcol2.test",
   "name": "alterdropcol2",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "alterdropcol2-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,7 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "alterdropcol2-1.1",
       "steps": [
         {
           "type": "exec",
@@ -21,7 +22,7 @@
       ]
     },
     {
-      "name": "1.2.1",
+      "name": "alterdropcol2-1.2.1",
       "steps": [
         {
           "type": "query",
@@ -31,7 +32,7 @@
       ]
     },
     {
-      "name": "1.2.2",
+      "name": "alterdropcol2-1.2.2",
       "steps": [
         {
           "type": "query",
@@ -41,7 +42,329 @@
       ]
     },
     {
-      "name": "3.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a PRIMARY KEY, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "alterdropcol2-2.1.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE x1 DROP COLUMN a",
+          "expect": "1 {cannot drop PRIMARY KEY column: \"a\"}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a,b,c,d,e, PRIMARY KEY(b,c,d));"
+        }
+      ]
+    },
+    {
+      "name": "alterdropcol2-2.1.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE x1 DROP COLUMN c",
+          "expect": "1 {cannot drop PRIMARY KEY column: \"c\"}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a PRIMARY KEY, b, c UNIQUE);"
+        }
+      ]
+    },
+    {
+      "name": "alterdropcol2-2.2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE x1 DROP COLUMN c",
+          "expect": "1 {cannot drop UNIQUE column: \"c\"}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a PRIMARY KEY, b, c, UNIQUE(b, c));"
+        }
+      ]
+    },
+    {
+      "name": "alterdropcol2-2.2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE x1 DROP COLUMN c",
+          "expect": "1 {error in table x1 after drop column: no such column: c}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE 'one two'('x y', 'z 1', 'a b');\n  CREATE INDEX idx ON 'one two'('z 1');"
+        }
+      ]
+    },
+    {
+      "name": "alterdropcol2-2.3.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE 'one two' DROP COLUMN 'z 1'",
+          "expect": "1 {error in index idx after drop column: no such column: z 1}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a, b, c);\n  CREATE INDEX idx ON x1(a);"
+        }
+      ]
+    },
+    {
+      "name": "alterdropcol2-2.3.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE x1 DROP COLUMN a;",
+          "expect": "1 {error in index idx after drop column: no such column: a}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1234(a, b, c PRIMARY KEY) WITHOUT ROWID;\n  CREATE INDEX i1 ON x1234(b) WHERE ((a+5) % 10)==0;"
+        }
+      ]
+    },
+    {
+      "name": "alterdropcol2-2.4.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE x1234 DROP a",
+          "expect": "1 {error in index i1 after drop column: no such column: a}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1234(a, b, c PRIMARY KEY, CHECK(((a+5)%10)!=0)) WITHOUT ROWID;"
+        }
+      ]
+    },
+    {
+      "name": "alterdropcol2-2.5.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE x1234 DROP a",
+          "expect": "1 {error in table x1234 after drop column: no such column: a}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p1(x, y UNIQUE);\n  CREATE TABLE c1(u, v, FOREIGN KEY (v) REFERENCES p1(y))"
+        }
+      ]
+    },
+    {
+      "name": "alterdropcol2-2.6.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE c1 DROP v",
+          "expect": "1 {error in table c1 after drop column: unknown column \"v\" in foreign key definition}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE c1(u, v, w AS (u+v));"
+        }
+      ]
+    },
+    {
+      "name": "alterdropcol2-2.7.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE c1 DROP v",
+          "expect": "1 {error in table c1 after drop column: no such column: v}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE c1(u, v, w AS (u+v) STORED);"
+        }
+      ]
+    },
+    {
+      "name": "alterdropcol2-2.7.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE c1 DROP u",
+          "expect": "1 {error in table c1 after drop column: no such column: u}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE log(l);\n  CREATE TABLE c1(u, v, w);\n  CREATE TRIGGER tr1 AFTER INSERT ON c1 BEGIN\n    INSERT INTO log VALUES(new.w);\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "alterdropcol2-2.8.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE c1 DROP w",
+          "expect": "1 {error in trigger tr1 after drop column: no such column: new.w}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE c1(u, v, w);\n  CREATE VIEW v1 AS SELECT u, v, w FROM c1;"
+        }
+      ]
+    },
+    {
+      "name": "alterdropcol2-2.8.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE c1 DROP w",
+          "expect": "1 {error in view v1 after drop column: no such column: w}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE c1(u, v, w);\n  CREATE VIEW v1 AS SELECT * FROM c1 WHERE w IS NOT NULL;"
+        }
+      ]
+    },
+    {
+      "name": "alterdropcol2-2.8.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ALTER TABLE c1 DROP w",
+          "expect": "1 {error in view v1 after drop column: no such column: w}"
+        }
+      ]
+    },
+    {
+      "name": "alterdropcol2-3.0",
       "steps": [
         {
           "type": "exec",
@@ -50,7 +373,7 @@
       ]
     },
     {
-      "name": "3.1.1",
+      "name": "alterdropcol2-3.1.1",
       "steps": [
         {
           "type": "catch",
@@ -60,7 +383,7 @@
       ]
     },
     {
-      "name": "3.1.2",
+      "name": "alterdropcol2-3.1.2",
       "steps": [
         {
           "type": "catch",
@@ -70,7 +393,7 @@
       ]
     },
     {
-      "name": "3.2.1",
+      "name": "alterdropcol2-3.2.1",
       "steps": [
         {
           "type": "exec",
@@ -79,7 +402,7 @@
       ]
     },
     {
-      "name": "3.2.2",
+      "name": "alterdropcol2-3.2.2",
       "steps": [
         {
           "type": "catch",

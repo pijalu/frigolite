@@ -1,0 +1,123 @@
+{
+  "file": "malloc.test",
+  "name": "malloc",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "malloc-1.X",
+      "steps": [
+        {
+          "type": "close_db",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "malloc-2.X",
+      "steps": [
+        {
+          "type": "close_db",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "malloc-3.X",
+      "steps": [
+        {
+          "type": "close_db",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "malloc-4.X",
+      "steps": [
+        {
+          "type": "close_db",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "malloc-5.X",
+      "steps": [
+        {
+          "type": "close_db",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA locking_mode"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "malloc-40.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES('fghij');\n  INSERT INTO t1 VALUES('pqrst');\n  INSERT INTO t1 VALUES('abcde');\n  INSERT INTO t1 VALUES('uvwxy');\n  INSERT INTO t1 VALUES('klmno');"
+        }
+      ]
+    },
+    {
+      "name": "malloc-40.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY 1 COLLATE utf16bin;",
+          "expect": "abcde fghij klmno pqrst uvwxy"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "malloc-41.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a COLLATE utf16bin);\n  INSERT INTO t1 VALUES('fghij' || 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');\n  INSERT INTO t1 VALUES('pqrst' || 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');\n  INSERT INTO t1 VALUES('abcde' || 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');\n  INSERT INTO t1 VALUES('uvwxy' || 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');\n  INSERT INTO t1 VALUES('klmno' || 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');\n  CREATE INDEX i1 ON t1(a);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "malloc-42.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TABLE t2(a, b);\n  CREATE VIEW a002 AS SELECT *, sum(b) AS m FROM t2 GROUP BY a;"
+        }
+      ]
+    },
+    {
+      "name": "malloc-99.X",
+      "steps": [
+        {
+          "type": "close_db",
+          "expect": "0"
+        }
+      ]
+    }
+  ]
+}

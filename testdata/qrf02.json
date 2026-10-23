@@ -1,9 +1,10 @@
 {
   "file": "qrf02.test",
   "name": "qrf02",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "qrf02-1.0",
       "steps": [
         {
           "type": "exec",

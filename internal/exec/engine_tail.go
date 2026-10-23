@@ -17,9 +17,11 @@ import (
 	"github.com/pijalu/frigolite/internal/fts"
 	"github.com/pijalu/frigolite/internal/fts5"
 	"github.com/pijalu/frigolite/internal/pager"
+	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/util"
+	"github.com/pijalu/frigolite/internal/vtab"
 )
 
 func (e *Engine) getDB(name string) *DatabaseContext {
@@ -531,20 +533,87 @@ func (e *Engine) stmtFTSShadowOwner(stmt sql.Stmt) string {
 		return ""
 	}
 	for name := range e.ftsTables {
-		for _, suffix := range []string{"_segdir", "_segments", "_content", "_docsize", "_stat"} {
-			if strings.EqualFold(target, name+suffix) {
-				return name
-			}
+		if e.vtabs.IsShadowName(name, target) {
+			return name
 		}
 	}
 	for name := range e.fts5Tables {
-		for _, suffix := range []string{"_data", "_idx", "_content", "_docsize", "_config"} {
-			if strings.EqualFold(target, name+suffix) {
-				return name
-			}
+		if e.vtabs.IsShadowName(name, target) {
+			return name
 		}
 	}
 	return ""
+}
+
+func (e *Engine) isVirtualTableShadowName(name string) bool {
+	for _, db := range e.dbList {
+		entries, err := db.Schema.GetEntries(schema.TypeTable)
+		if err != nil {
+			continue
+		}
+		for _, entry := range entries {
+			if e.isEntryShadowName(entry, name) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (e *Engine) isEntryShadowName(entry *schema.Entry, name string) bool {
+	stmts, err := parse.ParseSQL(entry.SQL)
+	if err != nil || len(stmts) == 0 {
+		return false
+	}
+	create, ok := stmts[0].(*sql.CreateVirtualTableStmt)
+	if !ok {
+		return false
+	}
+	module, ok := e.vtabs.Find(create.Module)
+	if !ok {
+		return false
+	}
+	shadow, ok := module.(vtab.ShadowNamer)
+	return ok && shadow.ShadowName(entry.Name, name)
+}
+
+func defensiveShadowError(name, verb string) *Result {
+	if verb == "reserved" {
+		return &Result{Error: fmt.Errorf("object name reserved for internal use: %s", name)}
+	}
+	return &Result{Error: fmt.Errorf("table %s may not be %s", name, verb)}
+}
+
+func (e *Engine) defensiveShadowGuard(stmt sql.Stmt) *Result {
+	target, verb := "", "modified"
+	switch s := stmt.(type) {
+	case *sql.InsertStmt:
+		target = s.Table
+	case *sql.UpdateStmt:
+		target = s.Table
+	case *sql.DeleteStmt:
+		target = s.Table
+	case *sql.DropTableStmt:
+		target, verb = s.Name, "dropped"
+	case *sql.AlterTableStmt:
+		target, verb = s.Table, "altered"
+	case *sql.CreateTableStmt:
+		target, verb = s.Name, "reserved"
+	case *sql.CreateViewStmt:
+		target, verb = s.Name, "reserved"
+	case *sql.CreateVirtualTableStmt:
+		target, verb = s.Name, "reserved"
+	}
+	if target == "" {
+		return nil
+	}
+	if dot := strings.LastIndexByte(target, '.'); dot >= 0 {
+		target = target[dot+1:]
+	}
+	if e.isVirtualTableShadowName(target) {
+		return defensiveShadowError(target, verb)
+	}
+	return nil
 }
 
 // snapshotAllPagers opens a statement journal scope on every database pager
@@ -690,8 +759,15 @@ func (e *Engine) execOtherDDL(stmt sql.Stmt) *Result {
 	if err := e.ddlWriteRefused(stmt); err != nil {
 		return &Result{Error: err}
 	}
-	// Invalidate table cache on any DDL operation to ensure consistency
-	e.invalidateTableCache()
+	// Only schema-changing statements invalidate parsed table caches. PRAGMA
+	// writable_schema changes how schema rows are written but must not discard
+	// the current connection's parsed table definitions.
+	switch stmt.(type) {
+	case *sql.CreateTableStmt, *sql.CreateIndexStmt, *sql.CreateViewStmt, *sql.CreateTriggerStmt,
+		*sql.CreateVirtualTableStmt, *sql.DropTableStmt, *sql.DropIndexStmt, *sql.DropViewStmt,
+		*sql.DropTriggerStmt:
+		e.invalidateTableCache()
+	}
 
 	switch s := stmt.(type) {
 	case *sql.CreateTableStmt, *sql.CreateIndexStmt, *sql.CreateViewStmt, *sql.CreateTriggerStmt, *sql.CreateVirtualTableStmt:

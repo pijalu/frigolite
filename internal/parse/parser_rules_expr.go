@@ -28,35 +28,35 @@ func ruleExprLpExprRp(ruleNo int, p *Parser) interface{} {
 // Rule 180: expr ::= ID|INDEXED|JOIN_KW (column reference)
 func ruleExprIdIndexedJoinKwColumnReference(ruleNo int, p *Parser) interface{} {
 	if tok, ok := getRHS(p, ruleNo, 1).(sql.Token); ok {
-		// Keep the Quoted flag on all double-quoted identifiers (including
-		// the empty "") so resolution can apply SQLite's DQS rules: with
-		// DQS enabled an unmatched double-quoted identifier becomes a
-		// string literal; with DQS disabled it is a "no such column"
-		// error hinting at single-quoted strings.
-		return &sql.ColumnRef{Name: tok.Value, Quoted: tok.QuotedIdent}
+		return &sql.ColumnRef{
+			Name: tok.Value, NameTok: sql.TokenInfo{Start: tok.Pos, End: tok.End}, Quoted: tok.QuotedIdent,
+		}
 	}
 	if s, ok := getRHS(p, ruleNo, 1).(string); ok {
 		return &sql.ColumnRef{Name: s}
 	}
 	return &sql.ColumnRef{Name: fmt.Sprintf("%v", getRHS(p, ruleNo, 1))}
-
 }
 
 // Rule 181: expr ::= nm DOT nm (schema.table)
 func ruleExprNmDotNmSchemaTable(ruleNo int, p *Parser) interface{} {
 	schema := getString(getRHS(p, ruleNo, 1))
-	col := getString(getRHS(p, ruleNo, 3))
-	return &sql.ColumnRef{Table: schema, Name: col}
-
+	column := getRHS(p, ruleNo, 3)
+	if token, ok := column.(sql.Token); ok {
+		return &sql.ColumnRef{Table: schema, Name: token.Value, NameTok: sql.TokenInfo{Start: token.Pos, End: token.End}, Quoted: token.QuotedIdent}
+	}
+	return &sql.ColumnRef{Table: schema, Name: getString(column)}
 }
 
 // Rule 182: expr ::= nm DOT nm DOT nm (schema.table.column)
 func ruleExprNmDotNmDotNmSchemaTableColumn(ruleNo int, p *Parser) interface{} {
 	schema := getString(getRHS(p, ruleNo, 1))
 	table := getString(getRHS(p, ruleNo, 3))
-	col := getString(getRHS(p, ruleNo, 5))
-	return &sql.ColumnRef{Table: schema + "." + table, Name: col}
-
+	column := getRHS(p, ruleNo, 5)
+	if token, ok := column.(sql.Token); ok {
+		return &sql.ColumnRef{Table: schema + "." + table, Name: token.Value, NameTok: sql.TokenInfo{Start: token.Pos, End: token.End}, Quoted: token.QuotedIdent}
+	}
+	return &sql.ColumnRef{Table: schema + "." + table, Name: getString(column)}
 }
 
 // Rule 183: term ::= NULL|FLOAT|BLOB

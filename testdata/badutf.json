@@ -1,14 +1,277 @@
 {
   "file": "badutf.test",
   "name": "badutf",
+  "ordered": true,
   "tests": [
     {
       "name": "badutf-1.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA encoding=UTF8",
+          "sql": "PRAGMA encoding=UTF8"
+        },
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT hex('%80') AS x",
           "expect": "0 {x 80}"
+        }
+      ]
+    },
+    {
+      "name": "badutf-1.2",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT hex('%81') AS x",
+          "expect": "0 {x 81}"
+        }
+      ]
+    },
+    {
+      "name": "badutf-1.3",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT hex('%bf') AS x",
+          "expect": "0 {x BF}"
+        }
+      ]
+    },
+    {
+      "name": "badutf-1.4",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT hex('%c0') AS x",
+          "expect": "0 {x C0}"
+        }
+      ]
+    },
+    {
+      "name": "badutf-1.5",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT hex('%e0') AS x",
+          "expect": "0 {x E0}"
+        }
+      ]
+    },
+    {
+      "name": "badutf-1.6",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT hex('%f0') AS x",
+          "expect": "0 {x F0}"
+        }
+      ]
+    },
+    {
+      "name": "badutf-1.7",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT hex('%ff') AS x",
+          "expect": "0 {x FF}"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "badutf-2.1",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT '%80'=CAST(x'80' AS text) AS x",
+          "expect": "0 {x 1}"
+        }
+      ]
+    },
+    {
+      "name": "badutf-2.2",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT CAST('%80' AS blob)=x'80' AS x",
+          "expect": "0 {x 1}"
+        }
+      ]
+    },
+    {
+      "name": "badutf-3.1",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT length('%80') AS x",
+          "expect": "0 {x 1}"
+        }
+      ]
+    },
+    {
+      "name": "badutf-3.2",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT length('%61%62%63') AS x",
+          "expect": "0 {x 3}"
+        }
+      ]
+    },
+    {
+      "name": "badutf-3.3",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT length('%7f%80%81') AS x",
+          "expect": "0 {x 2}"
+        }
+      ]
+    },
+    {
+      "name": "badutf-3.4",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT length('%61%c0') AS x",
+          "expect": "0 {x 2}"
+        }
+      ]
+    },
+    {
+      "name": "badutf-3.5",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT length('%61%c0%80%80%80%80%80%80%80%80%80%80') AS x",
+          "expect": "0 {x 2}"
+        }
+      ]
+    },
+    {
+      "name": "badutf-3.6",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT length('%c0%80%80%80%80%80%80%80%80%80%80') AS x",
+          "expect": "0 {x 1}"
+        }
+      ]
+    },
+    {
+      "name": "badutf-3.7",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT length('%80%80%80%80%80%80%80%80%80%80') AS x",
+          "expect": "0 {x 1}"
+        }
+      ]
+    },
+    {
+      "name": "badutf-3.8",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT length('%80%80%80%80%80%f0%80%80%80%80') AS x",
+          "expect": "0 {x 2}"
+        }
+      ]
+    },
+    {
+      "name": "badutf-3.9",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT length('%80%80%80%80%80%f0%80%80%80%ff') AS x",
+          "expect": "0 {x 3}"
+        }
+      ]
+    },
+    {
+      "name": "badutf-4.1",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT hex(trim('%80%80%80%f0%80%80%80%ff','%80%ff')) AS x",
+          "expect": "0 {x F0}"
+        }
+      ]
+    },
+    {
+      "name": "badutf-4.2",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT hex(ltrim('%80%80%80%f0%80%80%80%ff','%80%ff')) AS x",
+          "expect": "0 {x F0808080FF}"
+        }
+      ]
+    },
+    {
+      "name": "badutf-4.3",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT hex(rtrim('%80%80%80%f0%80%80%80%ff','%80%ff')) AS x",
+          "expect": "0 {x 808080F0}"
+        }
+      ]
+    },
+    {
+      "name": "badutf-4.4",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT hex(trim('%80%80%80%f0%80%80%80%ff','%ff%80')) AS x",
+          "expect": "0 {x 808080F0808080FF}"
+        }
+      ]
+    },
+    {
+      "name": "badutf-4.5",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT hex(trim('%ff%80%80%f0%80%80%80%ff','%ff%80')) AS x",
+          "expect": "0 {x 80F0808080FF}"
+        }
+      ]
+    },
+    {
+      "name": "badutf-4.6",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT hex(trim('%ff%80%f0%80%80%80%ff','%ff%80')) AS x",
+          "expect": "0 {x F0808080FF}"
+        }
+      ]
+    },
+    {
+      "name": "badutf-4.7",
+      "steps": [
+        {
+          "type": "sqlite3_exec",
+          "sql": "SELECT hex(trim('%ff%80%f0%80%80%80%ff','%ff%80%80')) AS x",
+          "expect": "0 {x FF80F0808080FF}"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     }

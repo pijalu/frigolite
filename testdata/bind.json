@@ -1,6 +1,7 @@
 {
   "file": "bind.test",
   "name": "bind",
+  "ordered": true,
   "tests": [
     {
       "name": "bind-1.1",
@@ -8,6 +9,22 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a,b,c);"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t1 VALUES(:1,?,:abc)",
+          "variable": "stmt_1"
+        }
+      ]
+    },
+    {
+      "name": "bind-1.2",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES(:1,?,:abc)",
+          "variable": "stmt_1",
+          "expect": "SQLITE_DONE"
         }
       ]
     },
@@ -22,12 +39,52 @@
       ]
     },
     {
+      "name": "bind-1.4",
+      "steps": [
+        {
+          "type": "stmt_reset",
+          "sql": "INSERT INTO t1 VALUES(:1,?,:abc)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES(:1,?,:abc)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_1__",
+          "expect": "SQLITE_DONE"
+        }
+      ]
+    },
+    {
       "name": "bind-1.5",
       "steps": [
         {
           "type": "exec",
           "sql": "SELECT rowid, * FROM t1",
           "expect": "1 {} {} {} 2 {test value 1} {} {}"
+        }
+      ]
+    },
+    {
+      "name": "bind-1.6",
+      "steps": [
+        {
+          "type": "stmt_reset",
+          "sql": "INSERT INTO t1 VALUES(:1,?,:abc)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES(:1,?,:abc)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_1__",
+          "expect": "SQLITE_DONE"
         }
       ]
     },
@@ -45,12 +102,25 @@
       "name": "bind-1.8",
       "steps": [
         {
+          "type": "stmt_reset",
+          "sql": "INSERT INTO t1 VALUES(:1,?,:abc)",
+          "variable": "stmt_1"
+        },
+        {
           "type": "exec",
           "sql": "DELETE FROM t1"
         },
         {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES(:1,?,:abc)",
+          "variable": "stmt_1"
+        },
+        {
           "type": "exec",
-          "sql": "SELECT rowid, * FROM t1",
+          "sql": "SELECT rowid, * FROM t1"
+        },
+        {
+          "type": "runtime_assert",
           "expect": "1 123 abcdefg {}"
         }
       ]
@@ -59,9 +129,73 @@
       "name": "bind-1.9",
       "steps": [
         {
+          "type": "stmt_reset",
+          "sql": "INSERT INTO t1 VALUES(:1,?,:abc)",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES(:1,?,:abc)",
+          "variable": "stmt_1"
+        },
+        {
           "type": "exec",
-          "sql": "SELECT rowid, * FROM t1",
+          "sql": "SELECT rowid, * FROM t1"
+        },
+        {
+          "type": "runtime_assert",
           "expect": "1 123 abcdefg {} 2 456 abcdefg {}"
+        }
+      ]
+    },
+    {
+      "name": "bind-1.10",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t1 VALUES($abc:123,?,:abc)",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "expect": "1 {(1) near \":123\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "bind-1.11",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t1 VALUES(@abc:xyz,?,:abc)",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "expect": "1 {(1) near \":xyz\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "bind-1.99",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t1 VALUES(:1,?,:abc)",
+          "variable": "stmt_1",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "bind-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t1 VALUES($one,$::two,$x(-z-))",
+          "variable": "stmt_4"
         }
       ]
     },
@@ -69,8 +203,21 @@
       "name": "bind-2.2",
       "steps": [
         {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES($one,$::two,$x(-z-))",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "INSERT INTO t1 VALUES($one,$::two,$x(-z-))",
+          "variable": "stmt_4"
+        },
+        {
           "type": "exec",
-          "sql": "SELECT rowid, * FROM t1",
+          "sql": "SELECT rowid, * FROM t1"
+        },
+        {
+          "type": "runtime_assert",
           "expect": "1 123 456 789"
         }
       ]
@@ -79,8 +226,21 @@
       "name": "bind-2.3",
       "steps": [
         {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES($one,$::two,$x(-z-))",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "INSERT INTO t1 VALUES($one,$::two,$x(-z-))",
+          "variable": "stmt_4"
+        },
+        {
           "type": "exec",
-          "sql": "SELECT rowid, * FROM t1",
+          "sql": "SELECT rowid, * FROM t1"
+        },
+        {
+          "type": "runtime_assert",
           "expect": "1 123 456 789 2 123 -2000000000 2000000000"
         }
       ]
@@ -108,8 +268,21 @@
       "name": "bind-3.1",
       "steps": [
         {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES($one,$::two,$x(-z-))",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "INSERT INTO t1 VALUES($one,$::two,$x(-z-))",
+          "variable": "stmt_4"
+        },
+        {
           "type": "exec",
-          "sql": "SELECT rowid, * FROM t1",
+          "sql": "SELECT rowid, * FROM t1"
+        },
+        {
+          "type": "runtime_assert",
           "expect": "1 32 -2000000000000 2000000000000"
         }
       ]
@@ -137,8 +310,24 @@
       "name": "bind-4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES($one,$::two,$x(-z-))",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "INSERT INTO t1 VALUES($one,$::two,$x(-z-))",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "query_assign",
           "sql": "SELECT rowid, * FROM t1",
+          "variable": "x",
+          "resultAll": true
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "$x",
           "expect": "1 1234.1234 1e-05 123456789.0"
         }
       ]
@@ -166,8 +355,24 @@
       "name": "bind-4.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES($one,$::two,$x(-z-))",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "INSERT INTO t1 VALUES($one,$::two,$x(-z-))",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "query_assign",
           "sql": "SELECT rowid, * FROM t1",
+          "variable": "x",
+          "resultAll": true
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "$x",
           "expect": "1 {} 1e+300 -1e-300"
         }
       ]
@@ -195,8 +400,21 @@
       "name": "bind-5.1",
       "steps": [
         {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES($one,$::two,$x(-z-))",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "INSERT INTO t1 VALUES($one,$::two,$x(-z-))",
+          "variable": "stmt_4"
+        },
+        {
           "type": "exec",
-          "sql": "SELECT rowid, * FROM t1",
+          "sql": "SELECT rowid, * FROM t1"
+        },
+        {
+          "type": "runtime_assert",
           "expect": "1 {} {} {}"
         }
       ]
@@ -224,8 +442,21 @@
       "name": "bind-6.1",
       "steps": [
         {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES($one,$::two,$x(-z-))",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "INSERT INTO t1 VALUES($one,$::two,$x(-z-))",
+          "variable": "stmt_4"
+        },
+        {
           "type": "exec",
-          "sql": "SELECT rowid, * FROM t1",
+          "sql": "SELECT rowid, * FROM t1"
+        },
+        {
+          "type": "runtime_assert",
           "expect": "1 hello . world"
         }
       ]
@@ -257,8 +488,21 @@
           "sql": "DELETE FROM t1"
         },
         {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t1 VALUES($one,$::two,$x(-z-))",
+          "variable": "stmt_4"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "INSERT INTO t1 VALUES($one,$::two,$x(-z-))",
+          "variable": "stmt_4"
+        },
+        {
           "type": "exec",
-          "sql": "SELECT * FROM t1",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "runtime_assert",
           "expect": "hello hello hello"
         }
       ]
@@ -267,8 +511,560 @@
       "name": "setup_0",
       "steps": [
         {
+          "type": "query_assign",
+          "sql": "PRAGMA encoding",
+          "variable": "enc",
+          "resultAll": true
+        }
+      ]
+    },
+    {
+      "name": "bind-6.5",
+      "steps": [
+        {
           "type": "exec",
-          "sql": "PRAGMA encoding"
+          "sql": "SELECT  hex(a), hex(b), hex(c) FROM t1",
+          "condition": "$enc==\"UTF-8\" || $enc==\"\"",
+          "expect": "68656C6C6F00746865726500 68656C6C6F007468657265 68656C6C6F"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT  hex(a), hex(b), hex(c) FROM t1",
+          "condition": "!($enc==\"UTF-8\" || $enc==\"\") \u0026\u0026 ($enc==\"UTF-16le\")",
+          "expect": "680065006C006C006F000000740068006500720065000000 680065006C006C006F00000074006800650072006500 680065006C006C006F00"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT  hex(a), hex(b), hex(c) FROM t1",
+          "condition": "!($enc==\"UTF-8\" || $enc==\"\") \u0026\u0026 !($enc==\"UTF-16le\") \u0026\u0026 ($enc==\"UTF-16be\")",
+          "expect": "00680065006C006C006F0000007400680065007200650000 00680065006C006C006F000000740068006500720065 00680065006C006C006F"
+        }
+      ]
+    },
+    {
+      "name": "bind-6.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(a), typeof(b), typeof(c) FROM t1",
+          "expect": "text text text"
+        }
+      ]
+    },
+    {
+      "name": "bind-6.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "bind-7.99",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "bind-8.99",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t1 VALUES($one,$::two,$x(-z-))",
+          "variable": "stmt_4",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "bind-9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a,b,c,d,e,f);"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t2(a) VALUES(?0)",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "expect": "1 {(1) variable number must be between ?1 and ?32766}"
+        }
+      ]
+    },
+    {
+      "name": "bind-9.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t2(a) VALUES(?32767)",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "expect": "1 {(1) variable number must be between ?1 and ?32766}"
+        }
+      ]
+    },
+    {
+      "name": "bind-9.3.1",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t2(a,b) VALUES(?1,?32766)",
+          "variable": "stmt_7",
+          "expect": "32766"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t2(a,b) VALUES(?1,?32766)",
+          "variable": "stmt_7"
+        }
+      ]
+    },
+    {
+      "name": "bind-9.3.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t2(a,b) VALUES(?2,?32765)",
+          "variable": "stmt_8",
+          "expect": "32765"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t2(a,b) VALUES(?2,?32765)",
+          "variable": "stmt_8"
+        }
+      ]
+    },
+    {
+      "name": "bind-9.4",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t2(a,b,c,d) VALUES(?1,?32764,?,?)",
+          "variable": "stmt_9",
+          "expect": "32766"
+        }
+      ]
+    },
+    {
+      "name": "bind-9.5",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t2(a,b,c,d) VALUES(?1,?32764,?,?)",
+          "variable": "stmt_9"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_9__",
+          "expect": "SQLITE_DONE"
+        }
+      ]
+    },
+    {
+      "name": "bind-9.6",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t2(a,b,c,d) VALUES(?1,?32764,?,?)",
+          "variable": "stmt_9",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "bind-9.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2",
+          "expect": "1 999 1000 1001 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "bind-10.1",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t2(a,b,c,d,e,f) VALUES(:abc,$abc,:abc,$ab,$abc,:abc)",
+          "variable": "stmt_10",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "bind-10.8",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t2(a,b,c,d,e,f) VALUES(:abc,$abc,:abc,$ab,$abc,:abc)",
+          "variable": "stmt_10"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_10__",
+          "expect": "SQLITE_DONE"
+        }
+      ]
+    },
+    {
+      "name": "bind-10.9",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t2(a,b,c,d,e,f) VALUES(:abc,$abc,:abc,$ab,$abc,:abc)",
+          "variable": "stmt_10",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "bind-10.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2",
+          "expect": "1 999 1000 1001 {} {} 1 2 1 3 2 1"
+        }
+      ]
+    },
+    {
+      "name": "bind-10.11",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t2(a,b,c,d,e,f) VALUES(:abc,?,?4,:pqr,:abc,?4)",
+          "variable": "stmt_11",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t2(a,b,c,d,e,f) VALUES(:abc,?,?4,:pqr,:abc,?4)",
+          "variable": "stmt_11"
+        }
+      ]
+    },
+    {
+      "name": "bind-11.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM sqlite_master WHERE name=$abc(123 and sql NOT NULL;",
+          "expect": "1 {unrecognized token: \"$abc(123\"}"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "pragma encoding"
+        }
+      ]
+    },
+    {
+      "name": "bind-13.1",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT ?,?,?",
+          "variable": "stmt_12"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT ?,?,?",
+          "variable": "stmt_12"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "{} {} {}",
+          "expect": "NULL NULL NULL"
+        }
+      ]
+    },
+    {
+      "name": "bind-13.2",
+      "steps": [
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT ?,?,?",
+          "variable": "stmt_12"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT ?,?,?",
+          "variable": "stmt_12"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "{} {} {}",
+          "expect": "INTEGER INTEGER INTEGER"
+        }
+      ]
+    },
+    {
+      "name": "bind-13.3",
+      "steps": [
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT ?,?,?",
+          "variable": "stmt_12"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT ?,?,?",
+          "variable": "stmt_12"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "{} {} {}",
+          "expect": "INTEGER INTEGER INTEGER"
+        }
+      ]
+    },
+    {
+      "name": "bind-13.4",
+      "steps": [
+        {
+          "type": "stmt_reset",
+          "sql": "SELECT ?,?,?",
+          "variable": "stmt_12"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "SELECT ?,?,?",
+          "variable": "stmt_12"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "{} {} {}",
+          "expect": "NULL NULL NULL"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT ?,?,?",
+          "variable": "stmt_12"
+        }
+      ]
+    },
+    {
+      "name": "bind-14.1",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT @a, @b",
+          "variable": "stmt_13"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT @a, @b",
+          "variable": "stmt_13",
+          "expect": "@a @b"
+        }
+      ]
+    },
+    {
+      "name": "bind-14.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT NULL FROM (SELECT NULL) WHERE @a = @b",
+          "variable": "stmt_14"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT NULL FROM (SELECT NULL) WHERE @a = @b",
+          "variable": "stmt_14",
+          "expect": "@a @b"
+        }
+      ]
+    },
+    {
+      "name": "bind-14.3",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT @a FROM (SELECT NULL) WHERE 1 = @b",
+          "variable": "stmt_15"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT @a FROM (SELECT NULL) WHERE 1 = @b",
+          "variable": "stmt_15",
+          "expect": "@a @b"
+        }
+      ]
+    },
+    {
+      "name": "bind-14.4",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT @a, @b FROM (SELECT NULL)",
+          "variable": "stmt_16"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT @a, @b FROM (SELECT NULL)",
+          "variable": "stmt_16",
+          "expect": "@a @b"
+        }
+      ]
+    },
+    {
+      "name": "bind-15.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a,b,c,d,e,f,g,h);"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t4(a,b,c,d,f,g,h,e) VALUES(?,?,?,?,?,?,?,?)",
+          "variable": "stmt_17"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t4(a,b,c,d,f,g,h,e) VALUES(?,?,?,?,?,?,?,?)",
+          "variable": "stmt_17"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t4(a,b,c,d,f,g,h,e) VALUES(?,?,?,?,?,?,?,?)",
+          "variable": "stmt_17"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t4"
+        },
+        {
+          "type": "runtime_assert",
+          "expect": "1 2 3 4 8 5 6 7"
+        }
+      ]
+    },
+    {
+      "name": "bind-15.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t4"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t4(a,b,c,d,e,f,g,h) VALUES(?,?,?,?,?,?,?,?)",
+          "variable": "stmt_18"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t4(a,b,c,d,e,f,g,h) VALUES(?,?,?,?,?,?,?,?)",
+          "variable": "stmt_18"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t4(a,b,c,d,e,f,g,h) VALUES(?,?,?,?,?,?,?,?)",
+          "variable": "stmt_18"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t4"
+        },
+        {
+          "type": "runtime_assert",
+          "expect": "1 2 3 4 5 6 7 8"
+        }
+      ]
+    },
+    {
+      "name": "bind-15.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t4"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t4(h,g,f,e,d,c,b,a) VALUES(?,?,?,?,?,?,?,?)",
+          "variable": "stmt_19"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t4(h,g,f,e,d,c,b,a) VALUES(?,?,?,?,?,?,?,?)",
+          "variable": "stmt_19"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t4(h,g,f,e,d,c,b,a) VALUES(?,?,?,?,?,?,?,?)",
+          "variable": "stmt_19"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t4"
+        },
+        {
+          "type": "runtime_assert",
+          "expect": "8 7 6 5 4 3 2 1"
+        }
+      ]
+    },
+    {
+      "name": "bind-15.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t4"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO t4(a,b,c,d,e,f,g,h) VALUES(?,?,?,?4,?,?6,?,?)",
+          "variable": "stmt_20"
+        },
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO t4(a,b,c,d,e,f,g,h) VALUES(?,?,?,?4,?,?6,?,?)",
+          "variable": "stmt_20"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO t4(a,b,c,d,e,f,g,h) VALUES(?,?,?,?4,?,?6,?,?)",
+          "variable": "stmt_20"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t4"
+        },
+        {
+          "type": "runtime_assert",
+          "expect": "1 2 3 4 5 6 7 8"
         }
       ]
     }

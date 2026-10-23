@@ -1,9 +1,10 @@
 {
   "file": "having.test",
   "name": "having",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "having-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,134 @@
       ]
     },
     {
-      "name": "2.4a",
+      "name": "having-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, sum(b) FROM t1 GROUP BY a HAVING a=2",
+          "expect": "2 12"
+        }
+      ]
+    },
+    {
+      "name": "having-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, sum(b) FROM t1 GROUP BY a HAVING a=2 AND sum(b)\u003e10",
+          "expect": "2 12"
+        }
+      ]
+    },
+    {
+      "name": "having-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, sum(b) FROM t1 GROUP BY a HAVING sum(b)\u003e12"
+        }
+      ]
+    },
+    {
+      "name": "having-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "explain SELECT a, sum(b) FROM t1 GROUP BY a HAVING a=2"
+        },
+        {
+          "type": "exec",
+          "sql": "explain SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "having-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "explain SELECT a, sum(b) FROM t1 GROUP BY a HAVING sum(b)\u003e5 AND a=2"
+        },
+        {
+          "type": "exec",
+          "sql": "explain SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a HAVING sum(b)\u003e5",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "having-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "explain SELECT a, sum(b) FROM t1 GROUP BY a COLLATE binary HAVING a=2"
+        },
+        {
+          "type": "exec",
+          "sql": "explain SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a COLLATE binary",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "having-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "explain SELECT a, sum(b) FROM t1 GROUP BY a COLLATE binary HAVING 1"
+        },
+        {
+          "type": "exec",
+          "sql": "explain SELECT a, sum(b) FROM t1 WHERE 1 GROUP BY a COLLATE binary",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "having-2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "explain SELECT count(*) FROM t1,t2 WHERE a=c GROUP BY b, d HAVING b=d"
+        },
+        {
+          "type": "exec",
+          "sql": "explain SELECT count(*) FROM t1,t2 WHERE a=c AND b=d GROUP BY b, d",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "having-2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "explain \n      SELECT count(*) FROM t1,t2 WHERE a=c GROUP BY b, d \n      HAVING b=d COLLATE nocase"
+        },
+        {
+          "type": "exec",
+          "sql": "explain \n      SELECT count(*) FROM t1,t2 WHERE a=c AND b=d COLLATE nocase \n      GROUP BY b, d",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "having-2.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "explain SELECT a, sum(b) FROM t1 GROUP BY a||b HAVING substr(a||b, 1, 1)='a'"
+        },
+        {
+          "type": "exec",
+          "sql": "explain SELECT a, sum(b) FROM t1 WHERE substr(a||b, 1, 1)='a' GROUP BY a||b",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "having-2.4a",
       "steps": [
         {
           "type": "query",
@@ -22,7 +150,7 @@
       ]
     },
     {
-      "name": "2.4b",
+      "name": "having-2.4b",
       "steps": [
         {
           "type": "query",
@@ -32,7 +160,35 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "having-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "explain SELECT a, sum(b) FROM t1 GROUP BY a COLLATE nocase HAVING a=2"
+        },
+        {
+          "type": "exec",
+          "sql": "explain SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a COLLATE nocase",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "having-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "explain SELECT a, sum(b) FROM t1 GROUP BY a HAVING randomblob(a)\u003cX'88'"
+        },
+        {
+          "type": "exec",
+          "sql": "explain SELECT a, sum(b) FROM t1 WHERE randomblob(a)\u003cX'88' GROUP BY a",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "having-4.1",
       "steps": [
         {
           "type": "exec",
@@ -41,7 +197,36 @@
       ]
     },
     {
-      "name": "4.2",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "nondeter",
+          "callbackVars": {
+            "": "1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "res": "",
+            "sql": "SELECT a, sum(b) FROM t1 GROUP BY a HAVING sum(b)\u003e12",
+            "sql1": "SELECT a, sum(b) FROM t1 GROUP BY a HAVING randomblob(a)\u003cX'88'",
+            "sql2": "SELECT a, sum(b) FROM t1 WHERE randomblob(a)\u003cX'88' GROUP BY a",
+            "testdir": "",
+            "testprefix": "having",
+            "tn": "2"
+          },
+          "functionProc": "nondeter",
+          "functionArgs": [
+            "args"
+          ],
+          "functionBody": "\n  incr ::nondeter_ret\n  expr {$::nondeter_ret % 2}\n",
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "having-4.2",
       "steps": [
         {
           "type": "query",
@@ -51,7 +236,7 @@
       ]
     },
     {
-      "name": "4.3",
+      "name": "having-4.3",
       "steps": [
         {
           "type": "query",
@@ -61,7 +246,11 @@
       ]
     },
     {
-      "name": "5.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "having-5.0",
       "steps": [
         {
           "type": "exec",
@@ -70,7 +259,7 @@
       ]
     },
     {
-      "name": "5.1",
+      "name": "having-5.1",
       "steps": [
         {
           "type": "query",
@@ -80,20 +269,12 @@
       ]
     },
     {
-      "name": "5.2",
+      "name": "having-5.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT EXISTS (\n    SELECT * FROM (\n      SELECT * FROM (\n        SELECT 1\n      ) WHERE Col0 = 1   GROUP BY 1\n    )   WHERE 0\n  )\n  FROM (SELECT 1 Col0)   GROUP BY 1",
           "expect": "0"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

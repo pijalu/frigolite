@@ -1,12 +1,13 @@
 {
   "file": "tkt1473.test",
   "name": "tkt1473",
+  "ordered": true,
   "tests": [
     {
       "name": "tkt1473-1.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    SELECT * FROM t1",
           "expect": "1 2 3 4"
         }
@@ -16,7 +17,7 @@
       "name": "tkt1473-1.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT 1 FROM t1 WHERE a=1 UNION ALL SELECT 2 FROM t1 WHERE b=0",
           "expect": "1"
         }
@@ -26,7 +27,7 @@
       "name": "tkt1473-1.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT 1 FROM t1 WHERE a=1 UNION SELECT 2 FROM t1 WHERE b=0",
           "expect": "1"
         }
@@ -36,7 +37,7 @@
       "name": "tkt1473-1.4",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT 1 FROM t1 WHERE a=1 UNION ALL SELECT 2 FROM t1 WHERE b=4",
           "expect": "1 2"
         }
@@ -46,7 +47,7 @@
       "name": "tkt1473-1.5",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT 1 FROM t1 WHERE a=1 UNION SELECT 2 FROM t1 WHERE b=4",
           "expect": "1 2"
         }
@@ -56,7 +57,7 @@
       "name": "tkt1473-1.6",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT 1 FROM t1 WHERE a=0 UNION ALL SELECT 2 FROM t1 WHERE b=4",
           "expect": "2"
         }
@@ -66,7 +67,7 @@
       "name": "tkt1473-1.7",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT 1 FROM t1 WHERE a=0 UNION SELECT 2 FROM t1 WHERE b=4",
           "expect": "2"
         }
@@ -76,7 +77,7 @@
       "name": "tkt1473-1.8",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT 1 FROM t1 WHERE a=0 UNION ALL SELECT 2 FROM t1 WHERE b=0"
         }
       ]
@@ -85,7 +86,7 @@
       "name": "tkt1473-1.9",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT 1 FROM t1 WHERE a=0 UNION SELECT 2 FROM t1 WHERE b=0"
         }
       ]
@@ -94,7 +95,7 @@
       "name": "tkt1473-2.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT (SELECT 1 FROM t1 WHERE a=1 UNION ALL SELECT 2 FROM t1 WHERE b=0)",
           "expect": "1"
         }
@@ -104,7 +105,7 @@
       "name": "tkt1473-2.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT (SELECT 1 FROM t1 WHERE a=1 UNION SELECT 2 FROM t1 WHERE b=0)",
           "expect": "1"
         }
@@ -114,7 +115,7 @@
       "name": "tkt1473-2.4",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT (SELECT 1 FROM t1 WHERE a=1 UNION ALL SELECT 2 FROM t1 WHERE b=4)",
           "expect": "1"
         }
@@ -124,7 +125,7 @@
       "name": "tkt1473-2.5",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT (SELECT 1 FROM t1 WHERE a=1 UNION SELECT 2 FROM t1 WHERE b=4)",
           "expect": "1"
         }
@@ -134,7 +135,7 @@
       "name": "tkt1473-2.6",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT (SELECT 1 FROM t1 WHERE a=0 UNION ALL SELECT 2 FROM t1 WHERE b=4)",
           "expect": "2"
         }
@@ -144,7 +145,7 @@
       "name": "tkt1473-2.7",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT (SELECT 1 FROM t1 WHERE a=0 UNION SELECT 2 FROM t1 WHERE b=4)",
           "expect": "2"
         }
@@ -154,7 +155,7 @@
       "name": "tkt1473-2.8",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT (SELECT 1 FROM t1 WHERE a=0 UNION ALL SELECT 2 FROM t1 WHERE b=0)",
           "expect": "{}"
         }
@@ -164,7 +165,7 @@
       "name": "tkt1473-2.9",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT (SELECT 1 FROM t1 WHERE a=0 UNION SELECT 2 FROM t1 WHERE b=0)",
           "expect": "{}"
         }
@@ -174,7 +175,7 @@
       "name": "tkt1473-3.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT EXISTS\n      (SELECT 1 FROM t1 WHERE a=1 UNION ALL SELECT 2 FROM t1 WHERE b=0)",
           "expect": "1"
         }
@@ -184,7 +185,7 @@
       "name": "tkt1473-3.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT EXISTS\n      (SELECT 1 FROM t1 WHERE a=1 UNION SELECT 2 FROM t1 WHERE b=0)",
           "expect": "1"
         }
@@ -194,7 +195,7 @@
       "name": "tkt1473-3.4",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT EXISTS\n      (SELECT 1 FROM t1 WHERE a=1 UNION ALL SELECT 2 FROM t1 WHERE b=4)",
           "expect": "1"
         }
@@ -204,7 +205,7 @@
       "name": "tkt1473-3.5",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT EXISTS\n      (SELECT 1 FROM t1 WHERE a=1 UNION SELECT 2 FROM t1 WHERE b=4)",
           "expect": "1"
         }
@@ -214,7 +215,7 @@
       "name": "tkt1473-3.6",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT EXISTS\n      (SELECT 1 FROM t1 WHERE a=0 UNION ALL SELECT 2 FROM t1 WHERE b=4)",
           "expect": "1"
         }
@@ -224,7 +225,7 @@
       "name": "tkt1473-3.7",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT EXISTS\n      (SELECT 1 FROM t1 WHERE a=0 UNION SELECT 2 FROM t1 WHERE b=4)",
           "expect": "1"
         }
@@ -234,7 +235,7 @@
       "name": "tkt1473-3.8",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT EXISTS\n      (SELECT 1 FROM t1 WHERE a=0 UNION ALL SELECT 2 FROM t1 WHERE b=0)",
           "expect": "0"
         }
@@ -244,7 +245,7 @@
       "name": "tkt1473-3.9",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT EXISTS\n      (SELECT 1 FROM t1 WHERE a=0 UNION SELECT 2 FROM t1 WHERE b=0)",
           "expect": "0"
         }
@@ -254,7 +255,7 @@
       "name": "tkt1473-4.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(1,2);\n    INSERT INTO t2 SELECT x+2, y+2 FROM t2;\n    INSERT INTO t2 SELECT x+4, y+4 FROM t2;\n    INSERT INTO t2 SELECT x+8, y+8 FROM t2;\n    INSERT INTO t2 SELECT x+16, y+16 FROM t2;\n    INSERT INTO t2 SELECT x+32, y+32 FROM t2;\n    INSERT INTO t2 SELECT x+64, y+64 FROM t2;\n    SELECT count(*), sum(x), sum(y) FROM t2;",
           "expect": "64 4096 4160"
         }
@@ -264,7 +265,7 @@
       "name": "tkt1473-4.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT 1 FROM t2 WHERE x=0\n    UNION ALL\n    SELECT 2 FROM t2 WHERE x=1\n    UNION ALL\n    SELECT 3 FROM t2 WHERE x=2\n    UNION ALL\n    SELECT 4 FROM t2 WHERE x=3\n    UNION ALL\n    SELECT 5 FROM t2 WHERE x=4\n    UNION ALL\n    SELECT 6 FROM t2 WHERE y=0\n    UNION ALL\n    SELECT 7 FROM t2 WHERE y=1\n    UNION ALL\n    SELECT 8 FROM t2 WHERE y=2\n    UNION ALL\n    SELECT 9 FROM t2 WHERE y=3\n    UNION ALL\n    SELECT 10 FROM t2 WHERE y=4",
           "expect": "2 4 8 10"
         }
@@ -274,7 +275,7 @@
       "name": "tkt1473-4.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION ALL\n      SELECT 2 FROM t2 WHERE x=1\n      UNION ALL\n      SELECT 3 FROM t2 WHERE x=2\n      UNION ALL\n      SELECT 4 FROM t2 WHERE x=3\n      UNION ALL\n      SELECT 5 FROM t2 WHERE x=4\n      UNION ALL\n      SELECT 6 FROM t2 WHERE y=0\n      UNION ALL\n      SELECT 7 FROM t2 WHERE y=1\n      UNION ALL\n      SELECT 8 FROM t2 WHERE y=2\n      UNION ALL\n      SELECT 9 FROM t2 WHERE y=3\n      UNION ALL\n      SELECT 10 FROM t2 WHERE y=4\n    )",
           "expect": "2"
         }
@@ -284,7 +285,7 @@
       "name": "tkt1473-4.4",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION ALL\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION ALL\n      SELECT 3 FROM t2 WHERE x=2\n      UNION ALL\n      SELECT 4 FROM t2 WHERE x=3\n      UNION ALL\n      SELECT 5 FROM t2 WHERE x=4\n      UNION ALL\n      SELECT 6 FROM t2 WHERE y=0\n      UNION ALL\n      SELECT 7 FROM t2 WHERE y=1\n      UNION ALL\n      SELECT 8 FROM t2 WHERE y=2\n      UNION ALL\n      SELECT 9 FROM t2 WHERE y=3\n      UNION ALL\n      SELECT 10 FROM t2 WHERE y=4\n    )",
           "expect": "4"
         }
@@ -294,7 +295,7 @@
       "name": "tkt1473-4.5",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION ALL\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION ALL\n      SELECT 3 FROM t2 WHERE x=2\n      UNION ALL\n      SELECT 4 FROM t2 WHERE x=-1\n      UNION ALL\n      SELECT 5 FROM t2 WHERE x=4\n      UNION ALL\n      SELECT 6 FROM t2 WHERE y=0\n      UNION ALL\n      SELECT 7 FROM t2 WHERE y=1\n      UNION ALL\n      SELECT 8 FROM t2 WHERE y=2\n      UNION ALL\n      SELECT 9 FROM t2 WHERE y=3\n      UNION ALL\n      SELECT 10 FROM t2 WHERE y=-4\n    )",
           "expect": "8"
         }
@@ -304,7 +305,7 @@
       "name": "tkt1473-4.6",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION ALL\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION ALL\n      SELECT 3 FROM t2 WHERE x=2\n      UNION ALL\n      SELECT 4 FROM t2 WHERE x=-2\n      UNION ALL\n      SELECT 5 FROM t2 WHERE x=4\n      UNION ALL\n      SELECT 6 FROM t2 WHERE y=0\n      UNION ALL\n      SELECT 7 FROM t2 WHERE y=1\n      UNION ALL\n      SELECT 8 FROM t2 WHERE y=-3\n      UNION ALL\n      SELECT 9 FROM t2 WHERE y=3\n      UNION ALL\n      SELECT 10 FROM t2 WHERE y=4\n    )",
           "expect": "10"
         }
@@ -314,7 +315,7 @@
       "name": "tkt1473-4.7",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION ALL\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION ALL\n      SELECT 3 FROM t2 WHERE x=2\n      UNION ALL\n      SELECT 4 FROM t2 WHERE x=-2\n      UNION ALL\n      SELECT 5 FROM t2 WHERE x=4\n      UNION ALL\n      SELECT 6 FROM t2 WHERE y=0\n      UNION ALL\n      SELECT 7 FROM t2 WHERE y=1\n      UNION ALL\n      SELECT 8 FROM t2 WHERE y=-3\n      UNION ALL\n      SELECT 9 FROM t2 WHERE y=3\n      UNION ALL\n      SELECT 10 FROM t2 WHERE y=-4\n    )",
           "expect": "{}"
         }
@@ -324,7 +325,7 @@
       "name": "tkt1473-5.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION ALL\n      SELECT 2 FROM t2 WHERE x=1\n      UNION ALL\n      SELECT 3 FROM t2 WHERE x=2\n      UNION ALL\n      SELECT 4 FROM t2 WHERE x=3\n      UNION ALL\n      SELECT 5 FROM t2 WHERE x=4\n      UNION ALL\n      SELECT 6 FROM t2 WHERE y=0\n      UNION ALL\n      SELECT 7 FROM t2 WHERE y=1\n      UNION ALL\n      SELECT 8 FROM t2 WHERE y=2\n      UNION ALL\n      SELECT 9 FROM t2 WHERE y=3\n      UNION ALL\n      SELECT 10 FROM t2 WHERE y=4\n    )",
           "expect": "1"
         }
@@ -334,7 +335,7 @@
       "name": "tkt1473-5.4",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION ALL\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION ALL\n      SELECT 3 FROM t2 WHERE x=2\n      UNION ALL\n      SELECT 4 FROM t2 WHERE x=3\n      UNION ALL\n      SELECT 5 FROM t2 WHERE x=4\n      UNION ALL\n      SELECT 6 FROM t2 WHERE y=0\n      UNION ALL\n      SELECT 7 FROM t2 WHERE y=1\n      UNION ALL\n      SELECT 8 FROM t2 WHERE y=2\n      UNION ALL\n      SELECT 9 FROM t2 WHERE y=3\n      UNION ALL\n      SELECT 10 FROM t2 WHERE y=4\n    )",
           "expect": "1"
         }
@@ -344,7 +345,7 @@
       "name": "tkt1473-5.5",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION ALL\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION ALL\n      SELECT 3 FROM t2 WHERE x=2\n      UNION ALL\n      SELECT 4 FROM t2 WHERE x=-1\n      UNION ALL\n      SELECT 5 FROM t2 WHERE x=4\n      UNION ALL\n      SELECT 6 FROM t2 WHERE y=0\n      UNION ALL\n      SELECT 7 FROM t2 WHERE y=1\n      UNION ALL\n      SELECT 8 FROM t2 WHERE y=2\n      UNION ALL\n      SELECT 9 FROM t2 WHERE y=3\n      UNION ALL\n      SELECT 10 FROM t2 WHERE y=-4\n    )",
           "expect": "1"
         }
@@ -354,7 +355,7 @@
       "name": "tkt1473-5.6",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION ALL\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION ALL\n      SELECT 3 FROM t2 WHERE x=2\n      UNION ALL\n      SELECT 4 FROM t2 WHERE x=-2\n      UNION ALL\n      SELECT 5 FROM t2 WHERE x=4\n      UNION ALL\n      SELECT 6 FROM t2 WHERE y=0\n      UNION ALL\n      SELECT 7 FROM t2 WHERE y=1\n      UNION ALL\n      SELECT 8 FROM t2 WHERE y=-3\n      UNION ALL\n      SELECT 9 FROM t2 WHERE y=3\n      UNION ALL\n      SELECT 10 FROM t2 WHERE y=4\n    )",
           "expect": "1"
         }
@@ -364,7 +365,7 @@
       "name": "tkt1473-5.7",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION ALL\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION ALL\n      SELECT 3 FROM t2 WHERE x=2\n      UNION ALL\n      SELECT 4 FROM t2 WHERE x=-2\n      UNION ALL\n      SELECT 5 FROM t2 WHERE x=4\n      UNION ALL\n      SELECT 6 FROM t2 WHERE y=0\n      UNION ALL\n      SELECT 7 FROM t2 WHERE y=1\n      UNION ALL\n      SELECT 8 FROM t2 WHERE y=-3\n      UNION ALL\n      SELECT 9 FROM t2 WHERE y=3\n      UNION ALL\n      SELECT 10 FROM t2 WHERE y=-4\n    )",
           "expect": "0"
         }
@@ -374,7 +375,7 @@
       "name": "tkt1473-6.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION\n      SELECT 2 FROM t2 WHERE x=1\n      UNION\n      SELECT 3 FROM t2 WHERE x=2\n      UNION\n      SELECT 4 FROM t2 WHERE x=3\n      UNION\n      SELECT 5 FROM t2 WHERE x=4\n      UNION\n      SELECT 6 FROM t2 WHERE y=0\n      UNION\n      SELECT 7 FROM t2 WHERE y=1\n      UNION\n      SELECT 8 FROM t2 WHERE y=2\n      UNION\n      SELECT 9 FROM t2 WHERE y=3\n      UNION\n      SELECT 10 FROM t2 WHERE y=4\n    )",
           "expect": "1"
         }
@@ -384,7 +385,7 @@
       "name": "tkt1473-6.4",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION\n      SELECT 3 FROM t2 WHERE x=2\n      UNION\n      SELECT 4 FROM t2 WHERE x=3\n      UNION\n      SELECT 5 FROM t2 WHERE x=4\n      UNION\n      SELECT 6 FROM t2 WHERE y=0\n      UNION\n      SELECT 7 FROM t2 WHERE y=1\n      UNION\n      SELECT 8 FROM t2 WHERE y=2\n      UNION\n      SELECT 9 FROM t2 WHERE y=3\n      UNION\n      SELECT 10 FROM t2 WHERE y=4\n    )",
           "expect": "1"
         }
@@ -394,7 +395,7 @@
       "name": "tkt1473-6.5",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION\n      SELECT 3 FROM t2 WHERE x=2\n      UNION\n      SELECT 4 FROM t2 WHERE x=-1\n      UNION\n      SELECT 5 FROM t2 WHERE x=4\n      UNION\n      SELECT 6 FROM t2 WHERE y=0\n      UNION\n      SELECT 7 FROM t2 WHERE y=1\n      UNION\n      SELECT 8 FROM t2 WHERE y=2\n      UNION\n      SELECT 9 FROM t2 WHERE y=3\n      UNION\n      SELECT 10 FROM t2 WHERE y=-4\n    )",
           "expect": "1"
         }
@@ -404,7 +405,7 @@
       "name": "tkt1473-6.6",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION\n      SELECT 3 FROM t2 WHERE x=2\n      UNION\n      SELECT 4 FROM t2 WHERE x=-2\n      UNION\n      SELECT 5 FROM t2 WHERE x=4\n      UNION\n      SELECT 6 FROM t2 WHERE y=0\n      UNION\n      SELECT 7 FROM t2 WHERE y=1\n      UNION\n      SELECT 8 FROM t2 WHERE y=-3\n      UNION\n      SELECT 9 FROM t2 WHERE y=3\n      UNION\n      SELECT 10 FROM t2 WHERE y=4\n    )",
           "expect": "1"
         }
@@ -414,7 +415,7 @@
       "name": "tkt1473-6.7",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION\n      SELECT 3 FROM t2 WHERE x=2\n      UNION\n      SELECT 4 FROM t2 WHERE x=-2\n      UNION\n      SELECT 5 FROM t2 WHERE x=4\n      UNION\n      SELECT 6 FROM t2 WHERE y=0\n      UNION\n      SELECT 7 FROM t2 WHERE y=1\n      UNION\n      SELECT 8 FROM t2 WHERE y=-3\n      UNION\n      SELECT 9 FROM t2 WHERE y=3\n      UNION\n      SELECT 10 FROM t2 WHERE y=-4\n    )",
           "expect": "0"
         }
@@ -424,7 +425,7 @@
       "name": "tkt1473-6.8",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION\n      SELECT 3 FROM t2 WHERE x=2\n      UNION\n      SELECT 4 FROM t2 WHERE x=-2\n      UNION\n      SELECT 5 FROM t2 WHERE x=4\n      UNION ALL\n      SELECT 6 FROM t2 WHERE y=0\n      UNION\n      SELECT 7 FROM t2 WHERE y=1\n      UNION\n      SELECT 8 FROM t2 WHERE y=-3\n      UNION\n      SELECT 9 FROM t2 WHERE y=3\n      UNION\n      SELECT 10 FROM t2 WHERE y=4\n    )",
           "expect": "1"
         }
@@ -434,7 +435,7 @@
       "name": "tkt1473-6.9",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION\n      SELECT 3 FROM t2 WHERE x=2\n      UNION\n      SELECT 4 FROM t2 WHERE x=-2\n      UNION\n      SELECT 5 FROM t2 WHERE x=4\n      UNION ALL\n      SELECT 6 FROM t2 WHERE y=0\n      UNION\n      SELECT 7 FROM t2 WHERE y=1\n      UNION\n      SELECT 8 FROM t2 WHERE y=-3\n      UNION\n      SELECT 9 FROM t2 WHERE y=3\n      UNION\n      SELECT 10 FROM t2 WHERE y=-4\n    )",
           "expect": "0"
         }
@@ -444,7 +445,7 @@
       "name": "tkt1473-7.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT 1 FROM t2 WHERE x=1 EXCEPT SELECT 2 FROM t2 WHERE y=2",
           "expect": "1"
         }
@@ -454,7 +455,7 @@
       "name": "tkt1473-7.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT (\n      SELECT 1 FROM t2 WHERE x=1 EXCEPT SELECT 2 FROM t2 WHERE y=2\n    )",
           "expect": "1"
         }
@@ -464,7 +465,7 @@
       "name": "tkt1473-7.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=1 EXCEPT SELECT 2 FROM t2 WHERE y=2\n    )",
           "expect": "1"
         }
@@ -474,7 +475,7 @@
       "name": "tkt1473-7.4",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT (\n      SELECT 1 FROM t2 WHERE x=0 EXCEPT SELECT 2 FROM t2 WHERE y=2\n    )",
           "expect": "{}"
         }
@@ -484,7 +485,7 @@
       "name": "tkt1473-7.5",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=0 EXCEPT SELECT 2 FROM t2 WHERE y=2\n    )",
           "expect": "0"
         }
@@ -494,16 +495,11 @@
       "name": "tkt1473-8.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT 1 FROM t2 WHERE x=1 INTERSECT SELECT 2 FROM t2 WHERE y=2"
-        }
-      ]
-    },
-    {
-      "name": "tkt1473-8.1",
-      "steps": [
+        },
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT 1 FROM t2 WHERE x=1 INTERSECT SELECT 1 FROM t2 WHERE y=2",
           "expect": "1"
         }
@@ -513,7 +509,7 @@
       "name": "tkt1473-8.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT (\n      SELECT 1 FROM t2 WHERE x=1 INTERSECT SELECT 2 FROM t2 WHERE y=2\n    )",
           "expect": "{}"
         }
@@ -523,7 +519,7 @@
       "name": "tkt1473-8.4",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT (\n      SELECT 1 FROM t2 WHERE x=1 INTERSECT SELECT 1 FROM t2 WHERE y=2\n    )",
           "expect": "1"
         }
@@ -533,7 +529,7 @@
       "name": "tkt1473-8.5",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=1 INTERSECT SELECT 2 FROM t2 WHERE y=2\n    )",
           "expect": "0"
         }
@@ -543,7 +539,7 @@
       "name": "tkt1473-8.6",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=1 INTERSECT SELECT 1 FROM t2 WHERE y=2\n    )",
           "expect": "1"
         }
@@ -553,7 +549,7 @@
       "name": "tkt1473-8.7",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT (\n      SELECT 1 FROM t2 WHERE x=0 INTERSECT SELECT 1 FROM t2 WHERE y=2\n    )",
           "expect": "{}"
         }
@@ -563,237 +559,9 @@
       "name": "tkt1473-8.8",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=1 INTERSECT SELECT 1 FROM t2 WHERE y=0\n    )",
           "expect": "0"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 1 FROM t1 WHERE a=1 UNION ALL SELECT 2 FROM t1 WHERE b=0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 1 FROM t1 WHERE a=1 UNION SELECT 2 FROM t1 WHERE b=0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 1 FROM t1 WHERE a=1 UNION ALL SELECT 2 FROM t1 WHERE b=4"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 1 FROM t1 WHERE a=1 UNION SELECT 2 FROM t1 WHERE b=4"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 1 FROM t1 WHERE a=0 UNION ALL SELECT 2 FROM t1 WHERE b=4"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 1 FROM t1 WHERE a=0 UNION SELECT 2 FROM t1 WHERE b=4"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 1 FROM t1 WHERE a=0 UNION ALL SELECT 2 FROM t1 WHERE b=0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 1 FROM t1 WHERE a=0 UNION SELECT 2 FROM t1 WHERE b=0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT (SELECT 1 FROM t1 WHERE a=1 UNION ALL SELECT 2 FROM t1 WHERE b=0)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT (SELECT 1 FROM t1 WHERE a=1 UNION SELECT 2 FROM t1 WHERE b=0)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT (SELECT 1 FROM t1 WHERE a=1 UNION ALL SELECT 2 FROM t1 WHERE b=4)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT (SELECT 1 FROM t1 WHERE a=1 UNION SELECT 2 FROM t1 WHERE b=4)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT (SELECT 1 FROM t1 WHERE a=0 UNION ALL SELECT 2 FROM t1 WHERE b=4)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT (SELECT 1 FROM t1 WHERE a=0 UNION SELECT 2 FROM t1 WHERE b=4)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT (SELECT 1 FROM t1 WHERE a=0 UNION ALL SELECT 2 FROM t1 WHERE b=0)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT (SELECT 1 FROM t1 WHERE a=0 UNION SELECT 2 FROM t1 WHERE b=0)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT EXISTS\n      (SELECT 1 FROM t1 WHERE a=1 UNION ALL SELECT 2 FROM t1 WHERE b=0)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT EXISTS\n      (SELECT 1 FROM t1 WHERE a=1 UNION SELECT 2 FROM t1 WHERE b=0)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT EXISTS\n      (SELECT 1 FROM t1 WHERE a=1 UNION ALL SELECT 2 FROM t1 WHERE b=4)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT EXISTS\n      (SELECT 1 FROM t1 WHERE a=1 UNION SELECT 2 FROM t1 WHERE b=4)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT EXISTS\n      (SELECT 1 FROM t1 WHERE a=0 UNION ALL SELECT 2 FROM t1 WHERE b=4)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT EXISTS\n      (SELECT 1 FROM t1 WHERE a=0 UNION SELECT 2 FROM t1 WHERE b=4)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT EXISTS\n      (SELECT 1 FROM t1 WHERE a=0 UNION ALL SELECT 2 FROM t1 WHERE b=0)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT EXISTS\n      (SELECT 1 FROM t1 WHERE a=0 UNION SELECT 2 FROM t1 WHERE b=0)"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(1,2);\n    INSERT INTO t2 SELECT x+2, y+2 FROM t2;\n    INSERT INTO t2 SELECT x+4, y+4 FROM t2;\n    INSERT INTO t2 SELECT x+8, y+8 FROM t2;\n    INSERT INTO t2 SELECT x+16, y+16 FROM t2;\n    INSERT INTO t2 SELECT x+32, y+32 FROM t2;\n    INSERT INTO t2 SELECT x+64, y+64 FROM t2;\n    SELECT count(*), sum(x), sum(y) FROM t2;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 1 FROM t2 WHERE x=0\n    UNION ALL\n    SELECT 2 FROM t2 WHERE x=1\n    UNION ALL\n    SELECT 3 FROM t2 WHERE x=2\n    UNION ALL\n    SELECT 4 FROM t2 WHERE x=3\n    UNION ALL\n    SELECT 5 FROM t2 WHERE x=4\n    UNION ALL\n    SELECT 6 FROM t2 WHERE y=0\n    UNION ALL\n    SELECT 7 FROM t2 WHERE y=1\n    UNION ALL\n    SELECT 8 FROM t2 WHERE y=2\n    UNION ALL\n    SELECT 9 FROM t2 WHERE y=3\n    UNION ALL\n    SELECT 10 FROM t2 WHERE y=4"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION ALL\n      SELECT 2 FROM t2 WHERE x=1\n      UNION ALL\n      SELECT 3 FROM t2 WHERE x=2\n      UNION ALL\n      SELECT 4 FROM t2 WHERE x=3\n      UNION ALL\n      SELECT 5 FROM t2 WHERE x=4\n      UNION ALL\n      SELECT 6 FROM t2 WHERE y=0\n      UNION ALL\n      SELECT 7 FROM t2 WHERE y=1\n      UNION ALL\n      SELECT 8 FROM t2 WHERE y=2\n      UNION ALL\n      SELECT 9 FROM t2 WHERE y=3\n      UNION ALL\n      SELECT 10 FROM t2 WHERE y=4\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION ALL\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION ALL\n      SELECT 3 FROM t2 WHERE x=2\n      UNION ALL\n      SELECT 4 FROM t2 WHERE x=3\n      UNION ALL\n      SELECT 5 FROM t2 WHERE x=4\n      UNION ALL\n      SELECT 6 FROM t2 WHERE y=0\n      UNION ALL\n      SELECT 7 FROM t2 WHERE y=1\n      UNION ALL\n      SELECT 8 FROM t2 WHERE y=2\n      UNION ALL\n      SELECT 9 FROM t2 WHERE y=3\n      UNION ALL\n      SELECT 10 FROM t2 WHERE y=4\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION ALL\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION ALL\n      SELECT 3 FROM t2 WHERE x=2\n      UNION ALL\n      SELECT 4 FROM t2 WHERE x=-1\n      UNION ALL\n      SELECT 5 FROM t2 WHERE x=4\n      UNION ALL\n      SELECT 6 FROM t2 WHERE y=0\n      UNION ALL\n      SELECT 7 FROM t2 WHERE y=1\n      UNION ALL\n      SELECT 8 FROM t2 WHERE y=2\n      UNION ALL\n      SELECT 9 FROM t2 WHERE y=3\n      UNION ALL\n      SELECT 10 FROM t2 WHERE y=-4\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION ALL\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION ALL\n      SELECT 3 FROM t2 WHERE x=2\n      UNION ALL\n      SELECT 4 FROM t2 WHERE x=-2\n      UNION ALL\n      SELECT 5 FROM t2 WHERE x=4\n      UNION ALL\n      SELECT 6 FROM t2 WHERE y=0\n      UNION ALL\n      SELECT 7 FROM t2 WHERE y=1\n      UNION ALL\n      SELECT 8 FROM t2 WHERE y=-3\n      UNION ALL\n      SELECT 9 FROM t2 WHERE y=3\n      UNION ALL\n      SELECT 10 FROM t2 WHERE y=4\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION ALL\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION ALL\n      SELECT 3 FROM t2 WHERE x=2\n      UNION ALL\n      SELECT 4 FROM t2 WHERE x=-2\n      UNION ALL\n      SELECT 5 FROM t2 WHERE x=4\n      UNION ALL\n      SELECT 6 FROM t2 WHERE y=0\n      UNION ALL\n      SELECT 7 FROM t2 WHERE y=1\n      UNION ALL\n      SELECT 8 FROM t2 WHERE y=-3\n      UNION ALL\n      SELECT 9 FROM t2 WHERE y=3\n      UNION ALL\n      SELECT 10 FROM t2 WHERE y=-4\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION ALL\n      SELECT 2 FROM t2 WHERE x=1\n      UNION ALL\n      SELECT 3 FROM t2 WHERE x=2\n      UNION ALL\n      SELECT 4 FROM t2 WHERE x=3\n      UNION ALL\n      SELECT 5 FROM t2 WHERE x=4\n      UNION ALL\n      SELECT 6 FROM t2 WHERE y=0\n      UNION ALL\n      SELECT 7 FROM t2 WHERE y=1\n      UNION ALL\n      SELECT 8 FROM t2 WHERE y=2\n      UNION ALL\n      SELECT 9 FROM t2 WHERE y=3\n      UNION ALL\n      SELECT 10 FROM t2 WHERE y=4\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION ALL\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION ALL\n      SELECT 3 FROM t2 WHERE x=2\n      UNION ALL\n      SELECT 4 FROM t2 WHERE x=3\n      UNION ALL\n      SELECT 5 FROM t2 WHERE x=4\n      UNION ALL\n      SELECT 6 FROM t2 WHERE y=0\n      UNION ALL\n      SELECT 7 FROM t2 WHERE y=1\n      UNION ALL\n      SELECT 8 FROM t2 WHERE y=2\n      UNION ALL\n      SELECT 9 FROM t2 WHERE y=3\n      UNION ALL\n      SELECT 10 FROM t2 WHERE y=4\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION ALL\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION ALL\n      SELECT 3 FROM t2 WHERE x=2\n      UNION ALL\n      SELECT 4 FROM t2 WHERE x=-1\n      UNION ALL\n      SELECT 5 FROM t2 WHERE x=4\n      UNION ALL\n      SELECT 6 FROM t2 WHERE y=0\n      UNION ALL\n      SELECT 7 FROM t2 WHERE y=1\n      UNION ALL\n      SELECT 8 FROM t2 WHERE y=2\n      UNION ALL\n      SELECT 9 FROM t2 WHERE y=3\n      UNION ALL\n      SELECT 10 FROM t2 WHERE y=-4\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION ALL\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION ALL\n      SELECT 3 FROM t2 WHERE x=2\n      UNION ALL\n      SELECT 4 FROM t2 WHERE x=-2\n      UNION ALL\n      SELECT 5 FROM t2 WHERE x=4\n      UNION ALL\n      SELECT 6 FROM t2 WHERE y=0\n      UNION ALL\n      SELECT 7 FROM t2 WHERE y=1\n      UNION ALL\n      SELECT 8 FROM t2 WHERE y=-3\n      UNION ALL\n      SELECT 9 FROM t2 WHERE y=3\n      UNION ALL\n      SELECT 10 FROM t2 WHERE y=4\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION ALL\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION ALL\n      SELECT 3 FROM t2 WHERE x=2\n      UNION ALL\n      SELECT 4 FROM t2 WHERE x=-2\n      UNION ALL\n      SELECT 5 FROM t2 WHERE x=4\n      UNION ALL\n      SELECT 6 FROM t2 WHERE y=0\n      UNION ALL\n      SELECT 7 FROM t2 WHERE y=1\n      UNION ALL\n      SELECT 8 FROM t2 WHERE y=-3\n      UNION ALL\n      SELECT 9 FROM t2 WHERE y=3\n      UNION ALL\n      SELECT 10 FROM t2 WHERE y=-4\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION\n      SELECT 2 FROM t2 WHERE x=1\n      UNION\n      SELECT 3 FROM t2 WHERE x=2\n      UNION\n      SELECT 4 FROM t2 WHERE x=3\n      UNION\n      SELECT 5 FROM t2 WHERE x=4\n      UNION\n      SELECT 6 FROM t2 WHERE y=0\n      UNION\n      SELECT 7 FROM t2 WHERE y=1\n      UNION\n      SELECT 8 FROM t2 WHERE y=2\n      UNION\n      SELECT 9 FROM t2 WHERE y=3\n      UNION\n      SELECT 10 FROM t2 WHERE y=4\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION\n      SELECT 3 FROM t2 WHERE x=2\n      UNION\n      SELECT 4 FROM t2 WHERE x=3\n      UNION\n      SELECT 5 FROM t2 WHERE x=4\n      UNION\n      SELECT 6 FROM t2 WHERE y=0\n      UNION\n      SELECT 7 FROM t2 WHERE y=1\n      UNION\n      SELECT 8 FROM t2 WHERE y=2\n      UNION\n      SELECT 9 FROM t2 WHERE y=3\n      UNION\n      SELECT 10 FROM t2 WHERE y=4\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION\n      SELECT 3 FROM t2 WHERE x=2\n      UNION\n      SELECT 4 FROM t2 WHERE x=-1\n      UNION\n      SELECT 5 FROM t2 WHERE x=4\n      UNION\n      SELECT 6 FROM t2 WHERE y=0\n      UNION\n      SELECT 7 FROM t2 WHERE y=1\n      UNION\n      SELECT 8 FROM t2 WHERE y=2\n      UNION\n      SELECT 9 FROM t2 WHERE y=3\n      UNION\n      SELECT 10 FROM t2 WHERE y=-4\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION\n      SELECT 3 FROM t2 WHERE x=2\n      UNION\n      SELECT 4 FROM t2 WHERE x=-2\n      UNION\n      SELECT 5 FROM t2 WHERE x=4\n      UNION\n      SELECT 6 FROM t2 WHERE y=0\n      UNION\n      SELECT 7 FROM t2 WHERE y=1\n      UNION\n      SELECT 8 FROM t2 WHERE y=-3\n      UNION\n      SELECT 9 FROM t2 WHERE y=3\n      UNION\n      SELECT 10 FROM t2 WHERE y=4\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION\n      SELECT 3 FROM t2 WHERE x=2\n      UNION\n      SELECT 4 FROM t2 WHERE x=-2\n      UNION\n      SELECT 5 FROM t2 WHERE x=4\n      UNION\n      SELECT 6 FROM t2 WHERE y=0\n      UNION\n      SELECT 7 FROM t2 WHERE y=1\n      UNION\n      SELECT 8 FROM t2 WHERE y=-3\n      UNION\n      SELECT 9 FROM t2 WHERE y=3\n      UNION\n      SELECT 10 FROM t2 WHERE y=-4\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION\n      SELECT 3 FROM t2 WHERE x=2\n      UNION\n      SELECT 4 FROM t2 WHERE x=-2\n      UNION\n      SELECT 5 FROM t2 WHERE x=4\n      UNION ALL\n      SELECT 6 FROM t2 WHERE y=0\n      UNION\n      SELECT 7 FROM t2 WHERE y=1\n      UNION\n      SELECT 8 FROM t2 WHERE y=-3\n      UNION\n      SELECT 9 FROM t2 WHERE y=3\n      UNION\n      SELECT 10 FROM t2 WHERE y=4\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=0\n      UNION\n      SELECT 2 FROM t2 WHERE x=-1\n      UNION\n      SELECT 3 FROM t2 WHERE x=2\n      UNION\n      SELECT 4 FROM t2 WHERE x=-2\n      UNION\n      SELECT 5 FROM t2 WHERE x=4\n      UNION ALL\n      SELECT 6 FROM t2 WHERE y=0\n      UNION\n      SELECT 7 FROM t2 WHERE y=1\n      UNION\n      SELECT 8 FROM t2 WHERE y=-3\n      UNION\n      SELECT 9 FROM t2 WHERE y=3\n      UNION\n      SELECT 10 FROM t2 WHERE y=-4\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 1 FROM t2 WHERE x=1 EXCEPT SELECT 2 FROM t2 WHERE y=2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT (\n      SELECT 1 FROM t2 WHERE x=1 EXCEPT SELECT 2 FROM t2 WHERE y=2\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=1 EXCEPT SELECT 2 FROM t2 WHERE y=2\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT (\n      SELECT 1 FROM t2 WHERE x=0 EXCEPT SELECT 2 FROM t2 WHERE y=2\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=0 EXCEPT SELECT 2 FROM t2 WHERE y=2\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 1 FROM t2 WHERE x=1 INTERSECT SELECT 2 FROM t2 WHERE y=2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 1 FROM t2 WHERE x=1 INTERSECT SELECT 1 FROM t2 WHERE y=2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT (\n      SELECT 1 FROM t2 WHERE x=1 INTERSECT SELECT 2 FROM t2 WHERE y=2\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT (\n      SELECT 1 FROM t2 WHERE x=1 INTERSECT SELECT 1 FROM t2 WHERE y=2\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=1 INTERSECT SELECT 2 FROM t2 WHERE y=2\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=1 INTERSECT SELECT 1 FROM t2 WHERE y=2\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT (\n      SELECT 1 FROM t2 WHERE x=0 INTERSECT SELECT 1 FROM t2 WHERE y=2\n    )"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT EXISTS (\n      SELECT 1 FROM t2 WHERE x=1 INTERSECT SELECT 1 FROM t2 WHERE y=0\n    )"
         }
       ]
     }

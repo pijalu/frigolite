@@ -106,6 +106,34 @@ func TestSQLiteEchoVtabConstructorPin(t *testing.T) {
 // offered constraints, and the left (outer-loop) operand plans first, so
 // FROM ab NATURAL JOIN bc reports ab and the reverse reports bc
 // (vtab6-11.4.1/11.4.2).
+func TestSQLiteEchoVtabUsingMergedColumnNames(t *testing.T) {
+	db := echoContractDB(t)
+	for _, setup := range []string{
+		"CREATE TABLE r1(a,b,c); CREATE TABLE r2(b,c,d);",
+		"CREATE VIRTUAL TABLE t1 USING echo(r1); CREATE VIRTUAL TABLE t2 USING echo(r2);",
+		"INSERT INTO t1 VALUES(1,2,3); INSERT INTO t2 VALUES(2,3,4);",
+	} {
+		if res := db.Exec(setup); res.Error != nil {
+			t.Fatal(res.Error)
+		}
+	}
+	for _, tc := range []struct {
+		query string
+		want  []string
+	}{
+		{"SELECT * FROM t1 INNER JOIN t2 USING(b)", []string{"a", "b", "c", "c", "d"}},
+		{"SELECT * FROM t1 INNER JOIN t2 USING(c)", []string{"a", "b", "c", "b", "d"}},
+	} {
+		res := db.Query(tc.query)
+		if res.Error != nil {
+			t.Fatalf("%s: %v", tc.query, res.Error)
+		}
+		if strings.Join(res.Columns, " ") != strings.Join(tc.want, " ") {
+			t.Errorf("%s column names = %v, want %v", tc.query, res.Columns, tc.want)
+		}
+	}
+}
+
 func TestSQLiteEchoVtabBestIndexMalfunctionPin(t *testing.T) {
 	db := echoContractDB(t)
 	mustExec := func(sql string) {

@@ -1,12 +1,263 @@
 {
   "file": "fuzz2.test",
   "name": "fuzz2",
+  "ordered": true,
   "tests": [
+    {
+      "name": "fuzz2-1.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT ALL \"AAAAAA\" . * GROUP BY LIMIT round(1), #12",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-2.0",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT + #100",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-2.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1 WHERE ( #61 NOT MATCH ROUND( 1 ) )",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-2.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1 LIMIT NOT #59 COLLATE AAAAAA NOT IN \n    ( \"AAAAAA\" NOTNULL \u003c= x'414141414141' IS NULL , ( ROUND ( 1.0 ) ) )",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-2.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT OR REPLACE INTO AAAAAA . \"AAAAAA\" ( \"AAAAAA\" ) SELECT DISTINCT * , ( SELECT #252 IN ( SELECT DISTINCT AAAAAA . * ) )",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-2.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1 LIMIT NOT #59 COLLATE AAAAAA NOT IN round(1.0)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-2.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT( #239 )",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-2.6",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DELETE FROM AAAAAA WHERE #65 NOT NULL",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-2.7",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ATTACH ROUND( 1.0 ) in  AAAAAA . \"AAAAAA\" AS #122 ISNULL",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-2.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1 LIMIT  #122 ISNULL",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-2.9",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE VIEW AAAAAA . \"AAAAAA\" AS SELECT DISTINCT #162 IS NULL \"AAAAAA\"",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-2.10",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DELETE FROM AAAAAA WHERE #202 IS NOT NULL ISNULL",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-2.11",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE OR IGNORE \"AAAAAA\" . \"AAAAAA\" SET \"AAAAAA\" = NOT #96",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-2.12",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT - #196",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-3.0",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TRIGGER \"AAAAAA\" . \"AAAAAA\" AFTER UPDATE OF \"AAAAAA\" , \"AAAAAA\" ON \"AAAAAA\" . \"AAAAAA\" FOR EACH ROW BEGIN UPDATE AAAAAA SET \"AAAAAA\" = #162;  END",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-3.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TRIGGER IF NOT EXISTS \"AAAAAA\" UPDATE ON \"AAAAAA\" . AAAAAA FOR EACH ROW BEGIN DELETE FROM \"AAAAAA\" ; INSERT INTO AAAAAA ( \"AAAAAA\" ) SELECT DISTINCT \"AAAAAA\" \"AAAAAA\" , #167 AAAAAA , \"AAAAAA\" . * ORDER BY \"AAAAAA\" ASC , x'414141414141' BETWEEN RAISE ( FAIL , \"AAAAAA\" ) AND AAAAAA ( * ) NOT NULL DESC LIMIT AAAAAA ; REPLACE INTO AAAAAA ( AAAAAA ) VALUES ( AAAAAA ( * ) ) ; END",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-3.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "CREATE TEMP TRIGGER IF NOT EXISTS AAAAAA . \"AAAAAA\" BEFORE UPDATE OF \"AAAAAA\" ON AAAAAA . \"AAAAAA\" BEGIN SELECT ALL * , #175 \"AAAAAA\" FROM \"AAAAAA\" . AAAAAA;  END",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-4.0",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "ATTACH DATABASE #168 AS whatever",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-4.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DETACH #133",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-5.0",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1 LIMIT ( SELECT DISTINCT * , AAAAAA , * , AAAAAA , \"AAAAAA\" . * FROM \"AAAAAA\" ON ROUND( 1 ) COLLATE AAAAAA OR \"AAAAAA\" USING ( AAAAAA , \"AAAAAA\" ) WHERE ROUND( 1 ) GROUP BY ORDER BY #84 ASC , #44 DESC , ( SELECT \"AAAAAA\" . * , \"AAAAAA\" . * FROM , ( ) \"AAAAAA\" USING ( )",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-5.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1 WHERE 1 == AAAAAA ( * ) BETWEEN + - ~ + \"AAAAAA\" . AAAAAA | RAISE ( IGNORE ) COLLATE AAAAAA NOT IN ( SELECT DISTINCT \"AAAAAA\" . * , * , * WHERE ( SELECT ALL AAAAAA AS \"AAAAAA\" HAVING CAST ( \"AAAAAA\" . \"AAAAAA\" . \"AAAAAA\" AS AAAAAA ) ORDER BY , , IS NULL ASC , ~ AND DESC LIMIT ( ( \"AAAAAA\" ) NOT BETWEEN ( ) NOT IN ( ) AND AAAAAA ( ) IS NOT NULL ) OFFSET AAAAAA ( ALL , , ) ) GROUP BY ORDER BY \"AAAAAA\" . AAAAAA ASC , NULL IN ( SELECT UNION ALL SELECT ALL WHERE HAVING ORDER BY LIMIT UNION SELECT DISTINCT FROM ( ) WHERE + HAVING \u003e\u003e ORDER BY LIMIT . . , \"AAAAAA\" ) , CAST ( ~ \"AAAAAA\" . AAAAAA AS \"AAAAAA\" AAAAAA \"AAAAAA\" ( + 4294967295 , - 4294967296.0 ) ) ASC LIMIT AAAAAA INTERSECT SELECT ALL * GROUP BY , AAAAAA ( DISTINCT , ) != #241 NOT IN ( , , ) , , CTIME_KW HAVING AAAAAA ORDER BY #103 DESC , #81 ASC LIMIT AAAAAA OFFSET ~ AAAAAA ( ALL AAAAAA . AAAAAA \u003e= AAAAAA . \"AAAAAA\" . \"AAAAAA\" ) ) NOTNULL NOT NULL",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-5.2",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT 1 WHERE 1 == AAAAAA ( * ) BETWEEN + - ~ + \"AAAAAA\" . AAAAAA | RAISE ( IGNORE ) COLLATE AAAAAA NOT IN ( SELECT DISTINCT \"AAAAAA\" . * , * , * WHERE ( SELECT ALL AAAAAA AS \"AAAAAA\" HAVING CAST ( \"AAAAAA\" . \"AAAAAA\" . \"AAAAAA\" AS AAAAAA ) ORDER BY , , IS NULL ASC , ~ AND DESC LIMIT ( ( \"AAAAAA\" ) NOT BETWEEN ( ) NOT IN ( ) AND AAAAAA ( ) IS NOT NULL ) OFFSET AAAAAA ( ALL , , ) ) GROUP BY ORDER BY \"AAAAAA\" . AAAAAA ASC , NULL IN ( SELECT UNION ALL SELECT ALL WHERE HAVING ORDER BY LIMIT UNION SELECT DISTINCT FROM ( ) WHERE + HAVING \u003e\u003e ORDER BY LIMIT . . , \"AAAAAA\" ) , CAST ( ~ \"AAAAAA\" . AAAAAA AS \"AAAAAA\" AAAAAA \"AAAAAA\" ( + 4294967295 , - 4294967296.0 ) ) ASC LIMIT AAAAAA INTERSECT SELECT ALL * GROUP BY , AAAAAA ( DISTINCT , ) != #241 NOT IN ( , , ) , , CTIME_KW HAVING AAAAAA ORDER BY #103 DESC , #81 ASC LIMIT AAAAAA OFFSET ~ AAAAAA ( ALL AAAAAA . AAAAAA \u003e= AAAAAA . \"AAAAAA\" . \"AAAAAA\" ) ) NOTNULL NOT NULL",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-5.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "UPDATE \"AAAAAA\" SET \"AAAAAA\" = - EXISTS ( SELECT DISTINCT * , * ORDER BY #202 ASC , #147 , ~ AAAAAA . \"AAAAAA\" ASC LIMIT AAAAAA . \"AAAAAA\" , RAISE ( ABORT , AAAAAA ) UNION ALL SELECT DISTINCT AAAAAA . * , * FROM ( SELECT DISTINCT",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-5.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "REPLACE INTO AAAAAA SELECT DISTINCT \"AAAAAA\" . * WHERE AAAAAA ( AAAAAA ( ) ) GROUP BY AAAAAA . AAAAAA . \"AAAAAA\" IN \"AAAAAA\" | AAAAAA ( ALL , ) ORDER BY #238, #92 DESC LIMIT 0 OFFSET - RAISE ( IGNORE ) NOT NULL \u003e RAISE ( IGNORE ) IS NULL",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-5.5",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT ALL * GROUP BY EXISTS ( SELECT \"AAAAAA\" . * , AAAAAA ( * ) AS AAAAAA FROM \"AAAAAA\" . \"AAAAAA\" AS \"AAAAAA\" USING ( AAAAAA , \"AAAAAA\" , \"AAAAAA\" ) WHERE AAAAAA ( DISTINCT ) - RAISE ( FAIL , \"AAAAAA\" ) HAVING \"AAAAAA\" . \"AAAAAA\" . AAAAAA ORDER BY #182 , #55 ) BETWEEN EXISTS ( SELECT ALL * FROM ( (",
+          "expect": "1"
+        }
+      ]
+    },
     {
       "name": "fuzz2-6.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT n()AND+#0;",
           "expect": "1 {near \"#0\": syntax error}"
         }
@@ -16,7 +267,7 @@
       "name": "fuzz2-6.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT strftime()",
           "expect": "0 {{}}"
         }
@@ -26,7 +277,7 @@
       "name": "fuzz2-6.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DETACH(SELECT group_concat(q));",
           "expect": "1 {no such column: q}"
         }
@@ -37,8 +288,22 @@
       "steps": [
         {
           "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t0; CREATE TABLE t0(t);"
+        },
+        {
+          "type": "catch",
           "sql": "INSERT INTO t0 SELECT strftime();",
           "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "fuzz2-6.4b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(t) FROM t0",
+          "expect": "NULL"
         }
       ]
     },
@@ -46,7 +311,7 @@
       "name": "fuzz2-7.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "select e.*,0 from(s,(L))e;",
           "expect": "1 {no such table: s}"
         }
@@ -56,17 +321,9 @@
       "name": "fuzz2-7.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT c.* FROM (a,b) AS c",
           "expect": "1 {no such table: a}"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE IF EXISTS t0; CREATE TABLE t0(t);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT quote(t) FROM t0"
         }
       ]
     }

@@ -67,6 +67,20 @@ func (m *RtreeModule[T]) Connect(args []string) (VirtualTable, error) {
 	return m.connect(args, false)
 }
 
+// ShadowName implements SQLite's xShadowName for rtree and geopoly modules.
+func (m *RtreeModule[T]) ShadowName(tableName, name string) bool {
+	lowerName, lowerTable := strings.ToLower(name), strings.ToLower(tableName)
+	if !strings.HasPrefix(lowerName, lowerTable+"_") {
+		return false
+	}
+	switch lowerName[len(lowerTable)+1:] {
+	case "node", "parent", "rowid":
+		return true
+	default:
+		return false
+	}
+}
+
 // ColumnTypes implements ColumnTypeInfo: the declared types SQLite's
 // declare_vtab receives from rtreeInit — `%.*s INT` for the id column, then
 // `,%.*s REAL` (module rtree) or `,%.*s INT` (rtree_i32) per coordinate and

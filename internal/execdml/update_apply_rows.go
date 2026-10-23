@@ -1,6 +1,8 @@
 package execdml
 
 import (
+	"fmt"
+
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -35,10 +37,22 @@ func rowidsToUpdate(changes []updateChange) map[int64]bool {
 // generic sweep — anomalous files only, so the fast path stays sweep-free.
 func (e *DMLExecutor) deleteUpdatedTableRows(tree *btree.BTree, toUpdate, inPlace map[int64]bool, changes []updateChange, wrEntry *schema.Entry, wrOldKeys [][]interface{}) *Result {
 	if wrEntry != nil {
-		if _, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
-			return wrCellMatchesOldKey(cell, wrOldKeys, wrEntry, e.ctx)
-		}); err != nil {
+		colDefs := e.ctx.ParseColumnDefs(wrEntry.Name, wrEntry.SQL)
+		order := WithoutRowidStorageOrder(wrEntry.SQL, colDefs)
+		targets := make([][]byte, 0, len(changes))
+		for _, change := range changes {
+			payload, err := storage.EncodeRecord(ReorderToStorage(change.oldValues, order))
+			if err != nil {
+				return &Result{Error: err}
+			}
+			targets = append(targets, payload)
+		}
+		deleted, err := tree.DeleteIndexEntries(targets)
+		if err != nil {
 			return &Result{Error: err}
+		}
+		if deleted != len(targets) {
+			return &Result{Error: fmt.Errorf("exec: WITHOUT ROWID UPDATE deleted %d old rows, expected %d", deleted, len(targets))}
 		}
 		return nil
 	}

@@ -483,9 +483,36 @@ func (e *DMLExecutor) deleteRowsByIdentity(tableEntry *schema.Entry, colDefs []s
 			keys = append(keys, wrPkKeyFromDeclared(vals, pkIdx))
 		}
 		keys = dropNilKeys(keys)
-		return tree.DeleteCellsWhere(func(c *storage.Cell) bool {
-			return WRCellMatchesPKKeys(c, keys, order, pkIdx, colDefs)
-		})
+		// WITHOUT ROWID entries may be promoted from leaves into interior index
+		// pages. DeleteCellsWhere sweeps leaves only; collect exact payloads from
+		// the full cursor traversal, then use DeleteIndexEntries, whose interior
+		// deletion path replaces each divider with its predecessor (btree.c
+		// sqlite3BtreeDelete).
+		cursor, err := tree.OpenCursor()
+		if err != nil {
+			return 0, err
+		}
+		var targets [][]byte
+		for {
+			cell, readErr := cursor.ReadCell()
+			if readErr != nil {
+				break
+			}
+			if WRCellMatchesPKKeys(cell, keys, order, pkIdx, colDefs) {
+				target := append([]byte(nil), cell.Payload...)
+				targets = append(targets, target)
+			}
+			ok, nextErr := cursor.Next()
+			if nextErr != nil || !ok {
+				break
+			}
+		}
+		cursor.Close()
+		if len(targets) == 0 {
+			return 0, nil
+		}
+		n, err := tree.DeleteIndexEntries(targets)
+		return int64(n), err
 	}
 	if rowIDs == nil {
 		rowIDs = make(map[int64]bool, len(singleRowIDs))

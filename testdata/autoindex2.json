@@ -1,6 +1,7 @@
 {
   "file": "autoindex2.test",
   "name": "autoindex2",
+  "ordered": true,
   "tests": [
     {
       "name": "autoindex2-100",

@@ -39,15 +39,23 @@ func (e *SelectEngine) collectJoinMergedColumns(s *sql.SelectStmt, names map[str
 	}
 	addLeft(s.From.Name, s.From.As)
 	for _, join := range s.Joins {
+		if len(join.Using) > 0 {
+			mergeUsingCols(join.Using, merged)
+		}
+		if join.Table.JoinGroup && join.Table.Subquery != nil {
+			e.collectJoinMergedColumns(join.Table.Subquery, names, merged)
+			for _, name := range e.subqueryJoinColNames(join.Table.Subquery) {
+				leftColSets = append(leftColSets, []string{name})
+			}
+			continue
+		}
 		tn := operandTable(join.Table.Name, join.Table.As)
 		rightCols, err := e.tableColumnNames(tn)
 		if err != nil {
 			addLeft(join.Table.Name, join.Table.As)
 			continue
 		}
-		if len(join.Using) > 0 {
-			mergeUsingCols(join.Using, merged)
-		} else if isNaturalJoinType(join.JoinType) {
+		if len(join.Using) == 0 && isNaturalJoinType(join.JoinType) {
 			mergeNaturalJoinCols(rightCols, leftColSets, merged)
 		}
 		leftColSets = append(leftColSets, rightCols)

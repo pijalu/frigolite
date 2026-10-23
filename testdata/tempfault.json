@@ -1,0 +1,15 @@
+{
+  "file": "tempfault.test",
+  "name": "tempfault",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    }
+  ]
+}

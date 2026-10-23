@@ -403,6 +403,12 @@ func (p *Pager) WritePtrmap(pgno uint32, parentType byte, parentPgno uint32) err
 // relocate a live root. The caller still owns page-content initialization.
 func (p *Pager) AllocateRootPage() (*Page, error) {
 	pg := p.AllocatePage()
+	if pg == nil {
+		// Page cap reached (PRAGMA max_page_count): pager.c:5587 maps a page
+		// number beyond mxPgno to SQLITE_FULL, which btreeCreateTable
+		// reports as "database or disk is full" (pager1-6.2).
+		return nil, fmt.Errorf("database or disk is full")
+	}
 	if p.autoVacuum {
 		if err := p.WritePtrmap(pg.PageNum, storage.PtrmapRootpage, 0); err != nil {
 			return nil, err

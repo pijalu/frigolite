@@ -207,6 +207,9 @@ func (m *Manager) Init() error {
 	// Create page 1 as a leaf table page
 	// Note: for page 1, the b-tree content starts at byte 100 (after header)
 	pg := m.pager.AllocatePage()
+	if pg == nil {
+		return fmt.Errorf("database or disk is full")
+	}
 	if pg.PageNum != 1 {
 		return fmt.Errorf("schema: expected page 1, got %d", pg.PageNum)
 	}
@@ -674,34 +677,19 @@ func (m *Manager) FindView(name string) (*Entry, error) {
 	return nil, fmt.Errorf("schema: view not found: %s", name)
 }
 
-// FindTrigger returns a trigger by name.
+// FindTrigger returns a trigger by name. Trigger names are stored
+// unqualified, and callers resolve schema prefixes themselves, so the match
+// is exact: a dot is part of the name (a quoted token like "r17.1" is one
+// object), never a schema separator to strip.
 func (m *Manager) FindTrigger(name string) (*Entry, error) {
 	entries, err := m.GetEntries(TypeTrigger)
 	if err != nil {
 		return nil, err
 	}
-
-	// Try original name first, then without schema prefix
-	searchNames := []string{name}
-	if dotIdx := strings.Index(name, "."); dotIdx >= 0 {
-		shortName := name[dotIdx+1:]
-		searchNames = []string{name, shortName}
-	}
-
-	for _, searchName := range searchNames {
-		searchUpper := strings.ToUpper(searchName)
-		for _, e := range entries {
-			eUpper := strings.ToUpper(e.Name)
-			if eUpper == searchUpper {
-				return e, nil
-			}
-			// If stored entry has a schema prefix, try matching the short name
-			if dotIdx := strings.Index(e.Name, "."); dotIdx >= 0 {
-				shortUpper := strings.ToUpper(e.Name[dotIdx+1:])
-				if shortUpper == searchUpper {
-					return e, nil
-				}
-			}
+	searchUpper := strings.ToUpper(name)
+	for _, e := range entries {
+		if strings.ToUpper(e.Name) == searchUpper {
+			return e, nil
 		}
 	}
 	return nil, fmt.Errorf("no such trigger: %s", name)
@@ -923,7 +911,7 @@ func (m *Manager) UpdateEntryRoot(name string, newRoot uint32) error {
 
 	var foundRowID int64 = -1
 	var foundType, foundTbl, foundSQL interface{}
-	if _, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
+	if _, err := tree.DeleteCellsWhereFullPayload(func(cell *storage.Cell) bool {
 		rec, err := storage.DecodeRecord(cell.Payload)
 		if err != nil || rec == nil || len(rec.Values) < 5 {
 			return false

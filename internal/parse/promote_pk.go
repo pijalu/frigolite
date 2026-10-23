@@ -34,7 +34,7 @@ func promoteConstraints(ct *sql.CreateTableStmt) {
 		if tc.Type != sql.ConstraintPrimaryKey || len(tc.Columns) != 1 {
 			continue
 		}
-		if tc.Columns[0].Name == "" || tc.Columns[0].Desc {
+		if tc.Columns[0].Name == "" {
 			continue
 		}
 		promoteColumn(ct, tc, tc.Columns[0].Name)
@@ -51,6 +51,9 @@ func promoteColumn(ct *sql.CreateTableStmt, tc sql.TableConstraint, name string)
 			continue
 		}
 		if strings.EqualFold(strings.TrimSpace(cd.Type), "INTEGER") {
+			if cd.PrimaryKey {
+				return
+			}
 			cd.PrimaryKey = true
 			cd.PKDesc = false
 			cd.PKPromoted = true

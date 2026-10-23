@@ -65,6 +65,24 @@
       "name": "collate3-1.4",
       "steps": [
         {
+          "type": "register_collation",
+          "collationName": "caseless",
+          "collationProc": "caseless",
+          "collationBody": " string compare -nocase $a $b ",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionArgs": [
+            "a",
+            "b"
+          ]
+        },
+        {
           "type": "exec",
           "sql": "CREATE TABLE t1(a COLLATE caseless); \n    INSERT INTO t1 VALUES('Abc2');\n    INSERT INTO t1 VALUES('abc1');\n    INSERT INTO t1 VALUES('aBc3');"
         },
@@ -79,6 +97,13 @@
       "name": "collate3-1.5",
       "steps": [
         {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "catch",
           "sql": "SELECT * FROM t1 ORDER BY a",
           "expect": "1 {no such collation sequence: caseless}"
@@ -88,6 +113,24 @@
     {
       "name": "collate3-1.6.1",
       "steps": [
+        {
+          "type": "register_collation",
+          "collationName": "caseless",
+          "collationProc": "caseless",
+          "collationBody": " string compare -nocase $a $b ",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionArgs": [
+            "a",
+            "b"
+          ]
+        },
         {
           "type": "exec",
           "sql": "CREATE INDEX i1 ON t1(a)"
@@ -103,6 +146,13 @@
       "name": "collate3-1.6.2",
       "steps": [
         {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "catch",
           "sql": "SELECT * FROM t1 ORDER BY a",
           "expect": "1 {no such collation sequence: caseless}"
@@ -112,6 +162,13 @@
     {
       "name": "collate3-1.6.3",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
         {
           "type": "catch",
           "sql": "PRAGMA integrity_check",
@@ -123,6 +180,13 @@
       "name": "collate3-1.6.4",
       "steps": [
         {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "catch",
           "sql": "REINDEX",
           "expect": "1 {no such collation sequence: caseless}"
@@ -132,6 +196,24 @@
     {
       "name": "collate3-1.7.1",
       "steps": [
+        {
+          "type": "register_collation",
+          "collationName": "caseless",
+          "collationProc": "caseless",
+          "collationBody": " string compare -nocase $a $b ",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionArgs": [
+            "a",
+            "b"
+          ]
+        },
         {
           "type": "exec",
           "sql": "DROP TABLE t1;\n    CREATE TABLE t1(a);\n    CREATE INDEX i1 ON t1(a COLLATE caseless);\n    INSERT INTO t1 VALUES('Abc2');\n    INSERT INTO t1 VALUES('abc1');\n    INSERT INTO t1 VALUES('aBc3');\n    SELECT * FROM t1 ORDER BY a COLLATE caseless;",
@@ -143,6 +225,13 @@
       "name": "collate3-1.7.2",
       "steps": [
         {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "catch",
           "sql": "SELECT * FROM t1 ORDER BY a COLLATE caseless",
           "expect": "1 {no such collation sequence: caseless}"
@@ -152,6 +241,13 @@
     {
       "name": "collate3-1.7.4",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
         {
           "type": "catch",
           "sql": "REINDEX",
@@ -163,6 +259,13 @@
       "name": "collate3-1.7.3",
       "steps": [
         {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "catch",
           "sql": "PRAGMA integrity_check",
           "expect": "1 {no such collation sequence: caseless}"
@@ -172,6 +275,13 @@
     {
       "name": "collate3-1.7.4",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
         {
           "type": "catch",
           "sql": "REINDEX",
@@ -183,6 +293,31 @@
       "name": "collate3-1.7.5",
       "steps": [
         {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_collation",
+          "collationName": "caseless",
+          "collationProc": "caseless",
+          "collationBody": " string compare -nocase $a $b ",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionArgs": [
+            "a",
+            "b"
+          ]
+        },
+        {
           "type": "catch",
           "sql": "PRAGMA integrity_check",
           "expect": "0 ok"
@@ -192,6 +327,13 @@
     {
       "name": "collate3-1.7.6",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
         {
           "type": "catch",
           "sql": "PRAGMA integrity_check",
@@ -212,8 +354,28 @@
       "name": "collate3-2.0",
       "steps": [
         {
+          "type": "register_collation",
+          "collationName": "string_compare",
+          "collationProc": "string compare",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          }
+        },
+        {
           "type": "exec",
-          "sql": "CREATE TABLE collate3t1(c1 COLLATE string_compare, c2);",
+          "sql": "CREATE TABLE collate3t1(c1 COLLATE string_compare, c2);"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
           "expect": "0"
         }
       ]
@@ -402,8 +564,28 @@
       "name": "collate3-3.0",
       "steps": [
         {
+          "type": "register_collation",
+          "collationName": "string_compare",
+          "collationProc": "string compare",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          }
+        },
+        {
           "type": "exec",
-          "sql": "CREATE INDEX collate3t1_i1 ON collate3t1(c1);\n    INSERT INTO collate3t1 VALUES('xxx', 'yyy');",
+          "sql": "CREATE INDEX collate3t1_i1 ON collate3t1(c1);\n    INSERT INTO collate3t1 VALUES('xxx', 'yyy');"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
           "expect": "0"
         }
       ]
@@ -560,6 +742,19 @@
       "name": "collate3-4.6",
       "steps": [
         {
+          "type": "register_collation",
+          "collationName": "user_defined",
+          "collationProc": "string compare",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          }
+        },
+        {
           "type": "exec",
           "sql": "CREATE TABLE collate3t1(a, b);\n    INSERT INTO collate3t1 VALUES('hello', NULL);\n    CREATE INDEX collate3i1 ON collate3t1(a COLLATE user_defined);"
         }
@@ -568,6 +763,13 @@
     {
       "name": "collate3-4.7",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
         {
           "type": "catch",
           "sql": "SELECT * FROM collate3t1 ORDER BY a COLLATE user_defined;",
@@ -579,9 +781,35 @@
       "name": "collate3-4.8.1",
       "steps": [
         {
+          "type": "register_collation",
+          "collationName": "user_defined",
+          "collationProc": "string compare",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          }
+        },
+        {
           "type": "catch",
           "sql": "SELECT * FROM collate3t1 ORDER BY a COLLATE user_defined;",
           "expect": "0 {hello {}}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-4.8.2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "expect": "0"
         }
       ]
     },
@@ -598,6 +826,24 @@
       "name": "collate3-4.9",
       "steps": [
         {
+          "type": "register_collation",
+          "collationName": "user_defined",
+          "collationProc": "numeric_compare",
+          "collationBody": "\n  if {$rhs \u003e $lhs} {\n    set res -1\n  } else {\n    set res [expr ($lhs \u003e $rhs)?1:0]\n  }\n  return $res\n",
+          "callbackVars": {
+            "": "$__catch_result",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionArgs": [
+            "lhs",
+            "rhs"
+          ]
+        },
+        {
           "type": "exec",
           "sql": "CREATE TABLE collate3t1(a, b);\n    INSERT INTO collate3t1 VALUES('2', NULL);\n    INSERT INTO collate3t1 VALUES('101', NULL);\n    INSERT INTO collate3t1 VALUES('12', NULL);\n    CREATE VIEW collate3v1 AS SELECT * FROM collate3t1 \n        ORDER BY 1 COLLATE user_defined;\n    SELECT * FROM collate3v1;",
           "expect": "2 {} 12 {} 101 {}"
@@ -608,6 +854,13 @@
       "name": "collate3-4.10",
       "steps": [
         {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
           "type": "catch",
           "sql": "SELECT * FROM collate3v1;",
           "expect": "1 {no such collation sequence: user_defined}"
@@ -617,6 +870,24 @@
     {
       "name": "collate3-4.11",
       "steps": [
+        {
+          "type": "register_collation",
+          "collationName": "user_defined",
+          "collationProc": "numeric_compare",
+          "collationBody": "\n  if {$rhs \u003e $lhs} {\n    set res -1\n  } else {\n    set res [expr ($lhs \u003e $rhs)?1:0]\n  }\n  return $res\n",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionArgs": [
+            "lhs",
+            "rhs"
+          ]
+        },
         {
           "type": "catch",
           "sql": "SELECT * FROM collate3v1;",
@@ -654,12 +925,32 @@
       ]
     },
     {
+      "name": "collate3-5.3",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "cfact_cnt",
+          "expect": "1"
+        }
+      ]
+    },
+    {
       "name": "collate3-5.4",
       "steps": [
         {
           "type": "catch",
           "sql": "SELECT a FROM collate3t1 ORDER BY 1 COLLATE unk;",
           "expect": "0 10"
+        }
+      ]
+    },
+    {
+      "name": "collate3-5.5",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "cfact_cnt",
+          "expect": "1"
         }
       ]
     },
@@ -679,6 +970,13 @@
         {
           "type": "exec",
           "sql": "DROP TABLE collate3t1;\n    CREATE TABLE collate3t1(a COLLATE unk);"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         },
         {
           "type": "catch",

@@ -1,13 +1,294 @@
 {
   "file": "fts4umlaut.test",
   "name": "fts4umlaut",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "fts4umlaut-1.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE VIRTUAL TABLE t1 USING fts4(x, tokenize=unicode61);\n  CREATE VIRTUAL TABLE t2 USING fts4(\n      x, \n      tokenize=unicode61 \"remove_diacritics=2\"\n  );"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Hà Nội'",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Hà Nội');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Noi'",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Hà Nội'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Hà Nội');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Noi'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Hà Noi'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Hà Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Noi'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Hà Noi'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Hà Noi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Noi'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Noi'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Noi'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Noi'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Noi'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Nu1ed9i'",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Nu1ed9i');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Noi'",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Nu1ed9i'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Nu1ed9i');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Noi'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Nu006fi'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Nu006fi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Noi'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Nu006fi'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Nu006fi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Noi'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Nu006fu0302i'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Nu006fu0302i');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Noi'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Nu006fu0302i'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Nu006fu0302i');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Noi'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Nu006fu0323u0302i'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Nu006fu0323u0302i');\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Noi'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Nu006fu0323u0302i'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts4umlaut-1.7.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Nu006fu0323u0302i');\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Noi'",
+          "expect": "1"
         }
       ]
     }

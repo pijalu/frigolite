@@ -237,6 +237,15 @@ func TestP3Alter_DropColumn(t *testing.T) {
 	// Dropping a PRIMARY KEY column fails.
 	must("CREATE TABLE pk(p INTEGER PRIMARY KEY, q)")
 	execFails(t, db, "ALTER TABLE pk DROP COLUMN p", "PRIMARY KEY")
+	must("CREATE TABLE composite_pk(a,b,c, PRIMARY KEY(b,c))")
+	execFails(t, db, "ALTER TABLE composite_pk DROP COLUMN c", "cannot drop PRIMARY KEY column")
+
+	// Renaming a table rewrites view references; subsequent DROP COLUMN must
+	// resolve the quoted renamed-table identifier case-insensitively.
+	must("CREATE TABLE rename_src(a,b,c)")
+	must("CREATE VIEW rename_view AS SELECT * FROM rename_src")
+	must("ALTER TABLE rename_src RENAME TO rename_dst")
+	must("ALTER TABLE rename_dst DROP COLUMN c")
 
 	// Dropping a column referenced by an index fails.
 	must("CREATE TABLE idx(i1, i2)")

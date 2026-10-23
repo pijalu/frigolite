@@ -1,6 +1,7 @@
 {
   "file": "amatch1.test",
   "name": "amatch1",
+  "ordered": true,
   "tests": [
     {
       "name": "amatch1-1.0",
@@ -20,7 +21,7 @@
       "name": "amatch1-1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "SELECT term FROM t1aux WHERE term\u003e'b' AND col=0 ORDER BY 1 LIMIT 5",
           "expect": "baalhanan babel back backward bad"
         }
@@ -30,7 +31,7 @@
       "name": "amatch1-1.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "SELECT term FROM t1aux WHERE term\u003e'b' AND col=0 LIMIT 5",
           "expect": "baalhanan babel back backward bad"
         }
@@ -82,6 +83,10 @@
           "sql": "SELECT word, distance FROM t3\n     WHERE word MATCH 'joxxph' AND distance\u003c300;"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "amatch1-3.0",

@@ -372,7 +372,9 @@ func Test_misc7(t *testing.T) {
 		tclFileChmod("test.db", "rw-r--r--")
 		if tclBool("file attributes test.db -permissions" + "==0644") {
 			{ // "misc7-17.1" — skipped: file-permission manipulation to force readonly DB open N-A (SQL + file side effects only)
-				_res = db.Exec("\n        BEGIN;\n        DELETE FROM t3 WHERE (oid%3)==0;\n      ")
+				_res = db.Exec("BEGIN")
+				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+				_res = db.Exec("DELETE FROM t3 WHERE (oid%3)==0")
 				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 				tclFileCopy("test.db", "bak.db")
 				tclFileCopy("test.db-journal", "bak.db-journal")
@@ -392,7 +394,9 @@ func Test_misc7(t *testing.T) {
 			db.SetPendingByte(uint32(tclAtoi(sqlite_pending_byte)))
 			sqlite_pending_byte = sqlite_pending_byte
 			{ // "misc7-17.3" — skipped: sqlite3_test_control_pending_byte + writable_schema rootpage corruption N-A (SQL + file side effects only)
-				_res = db.Exec("\n        pragma writable_schema = true;\n        UPDATE sqlite_master \n          SET rootpage = " + sqlLiteral(pending_byte_page) + "\n          WHERE type = 'table' AND name = 't3';\n      ")
+				_res = db.Exec("pragma writable_schema = true")
+				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+				_res = db.Exec("UPDATE sqlite_master \n          SET rootpage = $pending_byte_page\n          WHERE type = 'table' AND name = 't3'")
 				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 				_res = db.Exec("\n        SELECT rootpage FROM sqlite_master WHERE type = 'table' AND name = 't3';\n      ")
 				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
@@ -439,7 +443,11 @@ func Test_misc7(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		tclConnRegister("db", db)
-		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
+		_res = db.Exec("CREATE TABLE t1(a, b)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("INSERT INTO t1 VALUES(1, 2)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("INSERT INTO t1 VALUES(3, 4)")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		db.Close()
 		db, err = frigolite.Open("test.db")

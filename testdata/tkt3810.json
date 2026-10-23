@@ -1,13 +1,15 @@
 {
   "file": "tkt3810.test",
   "name": "tkt3810",
+  "ordered": true,
   "tests": [
     {
       "name": "tkt3810-1.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(123);\n    SELECT * FROM t1;\n    CREATE TABLE t2(y);\n    CREATE TABLE t3(z);"
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(123);\n    SELECT * FROM t1;\n    CREATE TABLE t2(y);\n    CREATE TABLE t3(z);",
+          "expect": "123"
         }
       ]
     },
@@ -15,8 +17,15 @@
       "name": "tkt3810-2",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT * FROM t1;"
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;",
+          "expect": "123",
+          "database": "db2"
         }
       ]
     },
@@ -25,7 +34,17 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP TABLE t1"
+          "sql": "DROP TABLE t1",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TRIGGER r1 AFTER INSERT ON t1 BEGIN\n       INSERT INTO t2 VALUES(new.rowid);\n     END;"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t3;",
+          "expect": "0 {}"
         }
       ]
     },
@@ -33,7 +52,7 @@
       "name": "tkt3810-4",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT name FROM temp.sqlite_master ORDER BY name",
           "expect": "r1"
         }
@@ -43,7 +62,7 @@
       "name": "tkt3810-5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DROP TRIGGER r1",
           "expect": "1 {no such trigger: r1}"
         }
@@ -54,31 +73,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x)"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(123);\n    SELECT * FROM t1;\n    CREATE TABLE t2(y);\n    CREATE TABLE t3(z);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t1"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TEMP TRIGGER r1 AFTER INSERT ON t1 BEGIN\n       INSERT INTO t2 VALUES(new.rowid);\n     END;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name FROM temp.sqlite_master ORDER BY name"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x)"
+          "sql": "CREATE TABLE t1(x)",
+          "database": "db2"
         },
         {
           "type": "exec",
@@ -87,26 +83,36 @@
         {
           "type": "exec",
           "sql": "SELECT name FROM sqlite_temp_master;"
-        },
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "ATTACH ':memory:' AS aux1;\n    CREATE TABLE aux1.t1(x);\n    CREATE TEMP TRIGGER r1 DELETE ON t1 BEGIN SELECT *; END;\n    CREATE VIEW t1 AS SELECT *;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE t2 USING nosuchmodule;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t3(z);"
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "tkt3810-100",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "ATTACH ':memory:' AS aux1;\n    CREATE TABLE aux1.t1(x);\n    CREATE TEMP TRIGGER r1 DELETE ON t1 BEGIN SELECT *; END;\n    CREATE VIEW t1 AS SELECT *;"
+        },
+        {
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE t2 USING nosuchmodule;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(z);"
         }
       ]
     }

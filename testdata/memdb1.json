@@ -1,9 +1,46 @@
 {
   "file": "memdb1.test",
   "name": "memdb1",
+  "ordered": true,
   "tests": [
     {
-      "name": "110",
+      "name": "memdb1-100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);"
+        },
+        {
+          "type": "query_assign",
+          "sql": "PRAGMA page_size",
+          "variable": "pgsz"
+        },
+        {
+          "type": "query",
+          "sql": "PRAGMA page_count"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "$::pgsz*[db one {PRAGMA page_count}]",
+          "variable": "sz1"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "[string length \"\"]==$::sz1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "memdb1-110",
       "steps": [
         {
           "type": "query",
@@ -13,7 +50,7 @@
       ]
     },
     {
-      "name": "120",
+      "name": "memdb1-120",
       "steps": [
         {
           "type": "exec",
@@ -22,17 +59,17 @@
       ]
     },
     {
-      "name": "130",
+      "name": "memdb1-130",
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE TABLE t2(x, y);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n   INSERT INTO t2(x, y) SELECT x, randomblob(1000) FROM c;\n  DROP TABLE t2;\n  PRAGMA page_count;",
+          "sql": "CREATE TABLE t2(x, y);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c100)\n   INSERT INTO t2(x, y) SELECT x, randomblob(1000) FROM c;\n  DROP TABLE t2;\n  PRAGMA page_count;",
           "expect": "116"
         }
       ]
     },
     {
-      "name": "140",
+      "name": "memdb1-140",
       "steps": [
         {
           "type": "query",
@@ -42,27 +79,148 @@
       ]
     },
     {
-      "name": "200",
+      "name": "memdb1-151",
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE TABLE t3(x, y);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<400)\n   INSERT INTO t3(x, y) SELECT x, randomblob(1000) FROM c;\n  PRAGMA quick_check;",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "memdb1-152",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES(3,4);",
+          "expect": "1 {attempt to write a readonly database}"
+        }
+      ]
+    },
+    {
+      "name": "memdb1-160",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "memdb1-161",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,4); SELECT * FROM t1",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "memdb1-162",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES(5,randomblob(100000))",
+          "expect": "1 {database or disk is full}"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "memdb1-200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t3(x, y);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c400)\n   INSERT INTO t3(x, y) SELECT x, randomblob(1000) FROM c;\n  PRAGMA quick_check;",
           "expect": "ok"
         }
       ]
     },
     {
-      "name": "300",
+      "name": "memdb1-220",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH ':memory:' AS aux1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM main.t3 EXCEPT SELECT x, y FROM aux1.t3;"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "memdb1-300",
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE TABLE t3(x, y);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<400)\n   INSERT INTO t3(x, y) SELECT x, randomblob(1000) FROM c;\n  PRAGMA quick_check;",
+          "sql": "CREATE TABLE t3(x, y);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c400)\n   INSERT INTO t3(x, y) SELECT x, randomblob(1000) FROM c;\n  PRAGMA quick_check;",
           "expect": "ok"
         }
       ]
     },
     {
-      "name": "400",
+      "name": "memdb1-310",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH ':memory:' AS aux1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM main.t3 EXCEPT SELECT x, y FROM aux1.t3;"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "memdb1-400",
       "steps": [
         {
           "type": "query",
@@ -72,7 +230,7 @@
       ]
     },
     {
-      "name": "410",
+      "name": "memdb1-410",
       "steps": [
         {
           "type": "query",
@@ -82,7 +240,7 @@
       ]
     },
     {
-      "name": "420",
+      "name": "memdb1-420",
       "steps": [
         {
           "type": "query",
@@ -92,17 +250,43 @@
       ]
     },
     {
-      "name": "510",
+      "name": "setup_5",
       "steps": [
         {
-          "type": "exec",
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "memdb1-510",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "PRAGMA integrity_check;",
           "expect": "1 {file is not a database}"
         }
       ]
     },
     {
-      "name": "700",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "memdb1-650",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t0(a);\n    CREATE TABLE t1(x);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c1000)\n    INSERT INTO t1(x) SELECT random() FROM c;",
+          "expect": "1 err"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "memdb1-700",
       "steps": [
         {
           "type": "query",
@@ -111,196 +295,109 @@
       ]
     },
     {
-      "name": "800",
+      "name": "memdb1-710",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 8192;\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n    CREATE TABLE t2(x, y);"
-        }
-      ]
-    },
-    {
-      "name": "810",
-      "steps": [
+          "type": "close_db"
+        },
         {
-          "type": "query",
-          "sql": "PRAGMA locking_mode = exclusive;\n    SELECT * FROM t1",
-          "expect": "exclusive 1 2"
-        }
-      ]
-    },
-    {
-      "name": "820",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "INSERT INTO t1 VALUES(3, 4);\n    SELECT * FROM t1;",
-          "expect": "1 2 3 4"
-        }
-      ]
-    },
-    {
-      "name": "830",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA wal_checkpoint;",
-          "expect": "1 {database disk image is malformed}"
-        }
-      ]
-    },
-    {
-      "name": "1000",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t(x); \n  INSERT INTO t VALUES(1),(2);"
-        }
-      ]
-    },
-    {
-      "name": "1100",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t(x); \n  INSERT INTO t VALUES(1),(2);"
-        }
-      ]
-    },
-    {
-      "name": "152",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(3,4);",
-          "expect": "1 {attempt to write a readonly database}"
-        }
-      ]
-    },
-    {
-      "name": "162",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(5,randomblob(100000))",
-          "expect": "1 {database or disk is full}"
-        }
-      ]
-    },
-    {
-      "name": "710",
-      "steps": [
-        {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE t1 USING rtree(id, a, b, c, d);",
           "expect": "1 {table t1 already exists}"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(3,4); SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "ATTACH ':memory:' AS aux1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x, y FROM main.t3 EXCEPT SELECT x, y FROM aux1.t3;"
-        },
-        {
-          "type": "exec",
-          "sql": "ATTACH ':memory:' AS aux1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x, y FROM main.t3 EXCEPT SELECT x, y FROM aux1.t3;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TEMP TABLE t0(a);\n    CREATE TABLE t1(x);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(x) SELECT random() FROM c;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_6",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "open_named_db",
+          "sql": ":memory:",
+          "database": "dbempty"
+        },
+        {
+          "type": "close_named_db",
+          "database": "dbempty"
+        }
+      ]
+    },
+    {
+      "name": "memdb1-1000",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t(x); \n  INSERT INTO t VALUES(1),(2);"
+        }
+      ]
+    },
+    {
+      "name": "memdb1-1010",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t",
+          "catchMessage": "msg"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db2",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "memdb1-1100",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE TABLE t(x); \n  INSERT INTO t VALUES(1),(2);"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "delete_file",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "delete_file",
+          "sql": "test.db2"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "setup_8",
       "steps": [
         {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
+          "type": "open_named_db",
+          "sql": "test.db2",
+          "database": "db2"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

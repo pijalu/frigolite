@@ -151,6 +151,7 @@ func (db *DB) vacuumRebuild(schema string) *exec.Result {
 	if ctx := db.engine.GetDB(schema); ctx != nil {
 		ctx.PendingPageSize = 0
 		ctx.Schema.InvalidateCache()
+		db.engine.InvalidateTableCaches()
 	}
 	return &exec.Result{}
 }

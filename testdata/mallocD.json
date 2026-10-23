@@ -1,0 +1,19 @@
+{
+  "file": "mallocD.test",
+  "name": "mallocD",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    }
+  ]
+}

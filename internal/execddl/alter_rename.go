@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/btree"
+	"github.com/pijalu/frigolite/internal/parse"
+	"github.com/pijalu/frigolite/internal/rename"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -86,7 +88,7 @@ func (e *DDLExecutor) validateRenameNames(oldName, newName string) *Result {
 // tables, the FTS5 module, and the rtree shadow family.
 func (e *DDLExecutor) renameFollowupObjects(entryCtx *DatabaseContext, entry *schema.Entry, oldName, newName string) *Result {
 	if !e.ctx.WritableSchema() {
-		e.renameUpdateRelatedEntries(entry.Name, newName)
+		e.renameUpdateRelatedEntries(entry.Name, newName, entryCtx.Name)
 	}
 	if ftsMod := e.getFTSModuleForTable(oldName); ftsMod != nil {
 		ftsMod.RenameTable(oldName, newName)
@@ -171,7 +173,13 @@ func (e *DDLExecutor) checkRenameTarget(oldName, newName string, entry *schema.E
 // a string-regex fallback for occurrences the token walker missed.
 func (e *DDLExecutor) renameTableEntrySQL(entryCtx *DatabaseContext, entry *schema.Entry, oldName, newName string) *Result {
 	if e.ctx.LegacyAlterTable() {
-		if err := entryCtx.Schema.RenameTableEntryWithSQL(oldName, newName, entry.SQL, schema.TypeTable); err != nil {
+		sqlText := entry.SQL
+		// SQLite's virtual-table rename still records the new object name in
+		// CREATE VIRTUAL TABLE SQL even with legacy_alter_table enabled.
+		if e.isVirtualTable(entry) {
+			sqlText = replaceTableNameInSQL(sqlText, oldName, newName)
+		}
+		if err := entryCtx.Schema.RenameTableEntryWithSQL(oldName, newName, sqlText, schema.TypeTable); err != nil {
 			return &Result{Error: err}
 		}
 		return nil
@@ -496,18 +504,31 @@ func (e *DDLExecutor) execAlterTableRenameColumn(s *sql.AlterTableStmt) *Result 
 		return &Result{Error: fmt.Errorf("cannot rename columns of virtual table %q", tableName)}
 	}
 	colDefs := findColumnDefs(e, tableName, tableEntry)
+	oldColDefs := append([]sql.ColumnDef(nil), colDefs...)
+	if res := e.quoteFixRenameSchema(tableName, tableEntry); res != nil {
+		return res
+	}
+	colDefs = append([]sql.ColumnDef(nil), colDefs...)
 	if err := renameColumnInDefs(tableName, oldColName, newColName, colDefs); err != nil {
 		return &Result{Error: err}
 	}
 	e.ctx.ColCache()[tableName] = colDefs
-	if res := updateRenamedColumnSchema(e, tableEntry, tableName, oldColName, newColName); res != nil {
+	if res := checkTriggerSelectAmbiguity(e, tableName, oldColName, newColName); res != nil {
+		e.ctx.ColCache()[tableName] = oldColDefs
 		return res
 	}
-	e.renameColumnInTriggers(tableName, oldColName, newColName)
+	if res := updateRenamedColumnSchema(e, tableEntry, tableName, oldColName, newColName, s.NewNameQuoted); res != nil {
+		e.ctx.ColCache()[tableName] = oldColDefs
+		return res
+	}
+	e.renameColumnInTriggers(tableName, oldColName, newColName, newColName, s.NewNameQuoted)
+	if res := validateTriggersAgainstRenamedColumns(e, tableName); res != nil {
+		return res
+	}
 	if res := checkTriggerViewColRefs(e, tableName, oldColName, newColName); res != nil {
 		return res
 	}
-	e.renameColumnInIndexes(tableName, oldColName, newColName)
+	e.renameColumnInIndexes(tableName, oldColName, newColName, newColName, s.NewNameQuoted)
 	e.renameColumnInViews(tableName, oldColName, newColName)
 	e.renameColumnInForeignKeys(tableName, oldColName, newColName)
 	return &Result{}
@@ -565,25 +586,218 @@ func renameColumnInDefs(tableName, oldColName, newColName string, colDefs []sql.
 	return fmt.Errorf("no such column: %q", oldColName)
 }
 
-// updateRenamedColumnSchema rewrites the CREATE TABLE SQL for the renamed
-// column in the schema entry, preserving the row's position.
-func updateRenamedColumnSchema(e *DDLExecutor, tableEntry *schema.Entry, tableName, oldColName, newColName string) *Result {
-	newSQL := renameColumnInCreateTableSQL(tableEntry.SQL, oldColName, newColName)
+// quoteFixRenameSchema normalizes DQS schema SQL before changing the table's column set.
+func (e *DDLExecutor) quoteFixRenameSchema(tableName string, tableEntry *schema.Entry) *Result {
+	for _, dbCtx := range e.ctx.Databases() {
+		if dbCtx.Name != "main" && dbCtx.Name != "temp" {
+			continue
+		}
+		entries, err := dbCtx.Schema.GetEntries("")
+		if err != nil {
+			continue
+		}
+		for _, entry := range entries {
+			if entry.Type == schema.TypeTable && strings.EqualFold(entry.Name, tableName) {
+				continue
+			}
+			if !strings.EqualFold(entry.TblName, tableName) || (entry.Type != schema.TypeIndex && entry.Type != schema.TypeTrigger) {
+				continue
+			}
+			fixed := e.quoteFixWithSchema("main", entry.SQL)
+			if fixed != entry.SQL {
+				entry.SQL = fixed
+				if err := dbCtx.Schema.UpdateEntry(entry.Name, fixed); err != nil {
+					return &Result{Error: err}
+				}
+			}
+		}
+	}
+	fixedTable := e.quoteFixWithSchema("main", tableEntry.SQL)
+	if fixedTable != tableEntry.SQL {
+		tableEntry.SQL = fixedTable
+		if err := e.ctx.Schema().UpdateEntry(tableEntry.Name, fixedTable); err != nil {
+			return &Result{Error: err}
+		}
+	}
+	return nil
+}
+
+// updateRenamedColumnSchema rewrites the CREATE TABLE SQL for the renamed column.
+func updateRenamedColumnSchema(e *DDLExecutor, tableEntry *schema.Entry, tableName, oldColName, newColName string, quoted bool) *Result {
+	renameCtx := &RenameContext{OldName: oldColName, NewName: newColName, QuotedNew: newColName, ForceQuote: quoted, TableName: tableName}
+	newSQL := renameColumnInCreateTableSQL(tableEntry.SQL, renameCtx)
 	if newSQL == "" || newSQL == tableEntry.SQL {
 		return nil
 	}
 	tableEntry.SQL = newSQL
-	e.ctx.DeleteTableCache(tableName)
-	e.ctx.DeleteTcCacheTable(tableName)
 	if err := e.ctx.Schema().UpdateEntry(tableEntry.Name, newSQL); err != nil {
 		return &Result{Error: fmt.Errorf("failed to update schema entry: %w", err)}
 	}
 	return nil
 }
 
+func validateTriggersAgainstRenamedColumns(e *DDLExecutor, tableName string) *Result {
+	entries, err := e.ctx.Schema().GetEntries("")
+	if err != nil {
+		return nil
+	}
+	for _, entry := range entries {
+		if entry.Type != schema.TypeTrigger || !strings.EqualFold(entry.TblName, tableName) {
+			continue
+		}
+		if err := e.checkTriggerColRefs(entry); err != nil {
+			return &Result{Error: err}
+		}
+	}
+	return nil
+}
+
+func renamedColumnInUpdateFromSubquery(e *DDLExecutor, entry *schema.Entry, update *sql.UpdateStmt, tableName, oldColName, newColName string) error {
+	refs := make([]*sql.ColumnRef, 0)
+	collectNestedSelectRefs(update.From.Subquery, &refs)
+	for _, join := range update.FromJoins {
+		collectNestedSelectRefs(join.Table.Subquery, &refs)
+		if subquery, ok := join.On.(*sql.Subquery); ok {
+			collectNestedSelectRefs(subquery.Select, &refs)
+		} else {
+			collectExprTriggerColRefs(join.On, &refs, false)
+		}
+	}
+	if len(refs) == 0 {
+		return nil
+	}
+	tables := []sql.TableRef{update.From}
+	for _, join := range update.FromJoins {
+		tables = append(tables, join.Table)
+	}
+	for _, ref := range refs {
+		if ref.Table != "" || (!strings.EqualFold(ref.Name, oldColName) && !strings.EqualFold(ref.Name, newColName)) {
+			continue
+		}
+		matches := 0
+		for _, table := range tables {
+			name := baseTableName(table.Name)
+			if strings.EqualFold(name, tableName) {
+				matches++
+				continue
+			}
+			other, _, err := e.ctx.FindTable(name)
+			if err != nil || other == nil {
+				continue
+			}
+			for _, def := range e.ctx.ParseColumnDefs(other.Name, other.SQL) {
+				if strings.EqualFold(def.Name, newColName) {
+					matches++
+					break
+				}
+			}
+		}
+		if matches > 1 {
+			return fmt.Errorf("error in trigger %s after rename: no such column: %s", entry.Name, oldColName)
+		}
+	}
+	return nil
+}
+
+func collectNestedSelectRefs(sel *sql.SelectStmt, refs *[]*sql.ColumnRef) {
+	if sel == nil {
+		return
+	}
+	for _, column := range sel.Columns {
+		collectExprTriggerColRefs(column.Expr, refs, false)
+	}
+	collectNestedSelectRefs(sel.From.Subquery, refs)
+	for _, join := range sel.Joins {
+		collectNestedSelectRefs(join.Table.Subquery, refs)
+		collectExprTriggerColRefs(join.On, refs, false)
+	}
+}
+
+func checkTriggerSelectAmbiguity(e *DDLExecutor, tableName, oldColName, newColName string) *Result {
+	for _, dbCtx := range e.ctx.Databases() {
+		entries, err := dbCtx.Schema.GetEntries("")
+		if err != nil {
+			continue
+		}
+		for _, entry := range entries {
+			if entry.Type != schema.TypeTrigger {
+				continue
+			}
+			stmts, err := parse.ParseSQL(entry.SQL)
+			if err != nil {
+				continue
+			}
+			for _, stmt := range stmts {
+				trigger, ok := stmt.(*sql.CreateTriggerStmt)
+				if !ok {
+					continue
+				}
+				for _, body := range trigger.Statements {
+					if update, ok := body.(*sql.UpdateStmt); ok {
+						if err := renamedColumnInUpdateFromSubquery(e, entry, update, tableName, oldColName, newColName); err != nil {
+							return &Result{Error: err}
+						}
+					}
+					var selectStmt *sql.SelectStmt
+					switch s := body.(type) {
+					case *sql.SelectStmt:
+						selectStmt = s
+					case *sql.InsertStmt:
+						selectStmt = s.Select
+					}
+					for member := selectStmt; member != nil; member = member.Union {
+						var refs []*sql.ColumnRef
+						collectSelectTriggerColRefs(member, &refs, false)
+						for _, ref := range refs {
+							if ref.Table != "" || !strings.EqualFold(ref.Name, newColName) {
+								continue
+							}
+							matches := 0
+							for _, from := range selectTables(member) {
+								if strings.EqualFold(baseTableName(from.Name), baseTableName(tableName)) {
+									matches++
+									continue
+								}
+								other, _, findErr := e.ctx.FindTable(from.Name)
+								if findErr != nil {
+									continue
+								}
+								for _, def := range e.ctx.ParseColumnDefs(other.Name, other.SQL) {
+									if strings.EqualFold(def.Name, newColName) {
+										matches++
+										break
+									}
+								}
+							}
+							if matches > 1 {
+								return &Result{Error: fmt.Errorf("error in trigger %s after rename: ambiguous column name: %s", entry.Name, newColName)}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func selectTables(sel *sql.SelectStmt) []sql.TableRef {
+	if sel == nil {
+		return nil
+	}
+	tables := []sql.TableRef{sel.From}
+	for _, join := range sel.Joins {
+		tables = append(tables, join.Table)
+	}
+	return tables
+}
+
 // checkTriggerViewColRefs rejects a column rename when a trigger references
 // the old column name only through a view that depends on the renamed table.
 func checkTriggerViewColRefs(e *DDLExecutor, tableName, oldColName, newColName string) *Result {
+	if res := checkTriggerSelectAmbiguity(e, tableName, oldColName, newColName); res != nil {
+		return res
+	}
 	entries, gErr := e.ctx.Schema().GetEntries("")
 	if gErr != nil {
 		return nil
@@ -624,56 +838,138 @@ func triggerViewColRefError(entries []*schema.Entry, viewNames map[string]bool, 
 }
 
 // renameColumnInCreateTableSQL renames a column within CREATE TABLE SQL text,
-// preserving the rest of each column definition (type, constraints, etc.).
-func renameColumnInCreateTableSQL(sqlStr, oldName, newName string) string {
-	if !strings.Contains(strings.ToUpper(sqlStr), "CREATE TABLE") {
+func renameColumnInCreateTableSQL(sqlText string, ctx *RenameContext) string {
+	statements, err := parse.ParseSQL(sqlText)
+	if err != nil || len(statements) != 1 {
 		return ""
 	}
-	parenStart, parenEnd, ok := findColumnDefsParens(sqlStr)
+	create, ok := statements[0].(*sql.CreateTableStmt)
 	if !ok {
 		return ""
 	}
-	defText := sqlStr[parenStart+1 : parenEnd]
-	parts := splitTopLevelParts(defText)
-	for i, part := range parts {
-		renamed, ok := renameColumnDefPart(part, oldName, newName)
-		if ok {
-			parts[i] = renamed
+	ranges, err := FindRenameTokens(sqlText, ctx)
+	if err != nil {
+		return ""
+	}
+	ranges = appendColumnDeclarationRange(sqlText, create, ctx, ranges)
+	return rename.ApplyContextRenames(sqlText, ranges, ctx)
+}
+
+func renameTokenEnd(source string, token sql.Token) int {
+	if token.End > token.Pos {
+		return token.End
+	}
+	if token.Pos < 0 || token.Pos >= len(source) || source[token.Pos] != '\'' {
+		return token.End
+	}
+	for i := token.Pos + 1; i < len(source); i++ {
+		if source[i] == '\'' {
+			if i+1 < len(source) && source[i+1] == '\'' {
+				i++
+				continue
+			}
+			return i + 1
+		}
+	}
+	return len(source)
+}
+
+func appendColumnDeclarationRange(source string, create *sql.CreateTableStmt, ctx *RenameContext, ranges []RenameRange) []RenameRange {
+	tokens := make([]sql.Token, 0)
+	tokenizer := sql.NewTokenizer(source)
+	for {
+		token := tokenizer.Next()
+		if token.Type == sql.TokenEOF || token.Type == sql.TokenError {
+			break
+		}
+		tokens = append(tokens, token)
+	}
+	open := -1
+	for i, token := range tokens {
+		if token.Type == sql.TokenLParen {
+			open = i
 			break
 		}
 	}
-	var buf strings.Builder
-	buf.WriteString(sqlStr[:parenStart+1])
-	for i, part := range parts {
-		if i > 0 {
-			buf.WriteString(",")
-		}
-		buf.WriteString(part)
+	if open < 0 {
+		return ranges
 	}
-	buf.WriteString(sqlStr[parenEnd:])
-	return replaceColumnNameInSQL(buf.String(), oldName, newName)
+	depth := 1
+	for i := open + 1; i < len(tokens); {
+		start := i
+		for i < len(tokens) && depth > 0 {
+			switch tokens[i].Type {
+			case sql.TokenLParen:
+				depth++
+			case sql.TokenRParen:
+				depth--
+			case sql.TokenComma:
+				if depth == 1 {
+					i++
+					goto nextDefinition
+				}
+			}
+			if depth > 0 {
+				i++
+			}
+		}
+		if start < len(tokens) && (tokens[start].Type == sql.TokenIdentifier || tokens[start].Type == sql.TokenString) && strings.EqualFold(tokens[start].Value, ctx.OldName) {
+			ranges = append(ranges, RenameRange{Start: tokens[start].Pos, End: renameTokenEnd(source, tokens[start])})
+		}
+		break
+	nextDefinition:
+		if start < len(tokens) && (tokens[start].Type == sql.TokenIdentifier || tokens[start].Type == sql.TokenString) && strings.EqualFold(tokens[start].Value, ctx.OldName) {
+			ranges = append(ranges, RenameRange{Start: tokens[start].Pos, End: renameTokenEnd(source, tokens[start])})
+		}
+	}
+	return appendConstraintColumnRanges(source, create, ctx, ranges)
 }
 
-// findColumnDefsParens locates the outer parentheses wrapping the column
-// definitions in a CREATE TABLE statement.
-func findColumnDefsParens(sqlStr string) (int, int, bool) {
-	parenStart := strings.Index(sqlStr, "(")
-	if parenStart < 0 {
-		return 0, 0, false
+func appendConstraintColumnRanges(source string, create *sql.CreateTableStmt, ctx *RenameContext, ranges []RenameRange) []RenameRange {
+	if len(create.Constraints) == 0 {
+		return ranges
 	}
-	depth := 0
-	for i := parenStart; i < len(sqlStr); i++ {
-		switch sqlStr[i] {
-		case '(':
-			depth++
-		case ')':
-			depth--
-			if depth == 0 {
-				return parenStart, i, true
+	tokenizer := sql.NewTokenizer(source)
+	var tokens []sql.Token
+	for {
+		token := tokenizer.Next()
+		if token.Type == sql.TokenEOF || token.Type == sql.TokenError {
+			break
+		}
+		tokens = append(tokens, token)
+	}
+	for i := 0; i < len(tokens); i++ {
+		isColumnList := strings.EqualFold(tokens[i].Value, "UNIQUE") ||
+			strings.EqualFold(tokens[i].Value, "PRIMARY") && i+1 < len(tokens) && strings.EqualFold(tokens[i+1].Value, "KEY") ||
+			strings.EqualFold(tokens[i].Value, "FOREIGN") && i+1 < len(tokens) && strings.EqualFold(tokens[i+1].Value, "KEY")
+		if !isColumnList {
+			continue
+		}
+		open := i + 1
+		if strings.EqualFold(tokens[i].Value, "PRIMARY") || strings.EqualFold(tokens[i].Value, "FOREIGN") {
+			open = i + 2
+		}
+		for open < len(tokens) && tokens[open].Type != sql.TokenLParen && tokens[open].Type != sql.TokenComma && tokens[open].Type != sql.TokenRParen {
+			open++
+		}
+		if open >= len(tokens) || tokens[open].Type != sql.TokenLParen {
+			continue
+		}
+		depth := 1
+		for j := open + 1; j < len(tokens) && depth > 0; j++ {
+			switch tokens[j].Type {
+			case sql.TokenLParen:
+				depth++
+			case sql.TokenRParen:
+				depth--
+			default:
+				if depth == 1 && (tokens[j].Type == sql.TokenIdentifier || tokens[j].Type == sql.TokenString) && strings.EqualFold(tokens[j].Value, ctx.OldName) {
+					ranges = append(ranges, RenameRange{Start: tokens[j].Pos, End: renameTokenEnd(source, tokens[j])})
+				}
 			}
 		}
 	}
-	return 0, 0, false
+	return ranges
 }
 
 // splitTopLevelParts splits a column-definition body on top-level commas.
@@ -698,38 +994,6 @@ func splitTopLevelParts(defText string) []string {
 		parts = append(parts, defText[start:])
 	}
 	return parts
-}
-
-// renameColumnDefPart renames the leading column name in one definition part,
-// preserving quoting style and leading whitespace.
-func renameColumnDefPart(part, oldName, newName string) (string, bool) {
-	trimmed := strings.TrimSpace(part)
-	if trimmed == "" {
-		return "", false
-	}
-	colName := extractColumnName(trimmed)
-	if colName == "" || !strings.EqualFold(colName, oldName) {
-		return "", false
-	}
-	leadWS := part[:len(part)-len(trimmed)]
-	quoteNew := sqlNameNeedsQuoting(newName)
-	wasQuoted := strings.HasPrefix(trimmed, `"`+colName+`"`)
-	wasSingleQuoted := strings.HasPrefix(trimmed, `'`+colName+`'`)
-	newToken := newName
-	if quoteNew || wasQuoted || wasSingleQuoted {
-		newToken = `"` + newName + `"`
-	}
-	if wasQuoted {
-		return leadWS + strings.Replace(trimmed, `"`+colName+`"`, newToken, 1), true
-	}
-	if wasSingleQuoted {
-		return leadWS + newToken + " " + strings.TrimSpace(trimmed[len(colName)+2:]), true
-	}
-	spaceIdx := strings.IndexAny(trimmed, " (\"")
-	if spaceIdx > 0 {
-		return leadWS + newToken + trimmed[spaceIdx:], true
-	}
-	return leadWS + newToken, true
 }
 
 // renameColumnInForeignKeys rewrites REFERENCES clauses in child tables that
@@ -768,7 +1032,53 @@ func fkEntryNeedsColumnRename(entry *schema.Entry, parentTable, oldColName strin
 
 // renameColumnInViews updates view SQL in every attached database for views
 // that reference the renamed column.
+func appendViewColumnRenameRanges(source, tableName, oldName string, ranges []RenameRange) []RenameRange {
+	tokenizer := sql.NewTokenizer(source)
+	var tokens []sql.Token
+	for {
+		token := tokenizer.Next()
+		if token.Type == sql.TokenEOF || token.Type == sql.TokenError {
+			break
+		}
+		tokens = append(tokens, token)
+	}
+	for i, token := range tokens {
+		if token.Type != sql.TokenIdentifier || !strings.EqualFold(token.Value, oldName) {
+			continue
+		}
+		if i > 0 && tokens[i-1].Type == sql.TokenDot {
+			if i > 1 && strings.EqualFold(tokens[i-2].Value, tableName) {
+				appendRenameRange(&ranges, token)
+			}
+			continue
+		}
+		if i > 0 && strings.EqualFold(tokens[i-1].Value, "AS") {
+			continue
+		}
+		appendRenameRange(&ranges, token)
+	}
+	return ranges
+}
+
+func appendRenameRange(ranges *[]RenameRange, token sql.Token) {
+	for _, existing := range *ranges {
+		if existing.Start == token.Pos && existing.End == token.End {
+			return
+		}
+	}
+	*ranges = append(*ranges, RenameRange{Start: token.Pos, End: token.End})
+}
+
+func sqlRenameIdentifier(name string) string {
+	token := sql.NewTokenizer(name).Next()
+	if token.Type == sql.TokenIdentifier && token.Value == name {
+		return name
+	}
+	return sqlQuoteIdentifier(name)
+}
+
 func (e *DDLExecutor) renameColumnInViews(tableName, oldColName, newColName string) {
+	ctx := &RenameContext{OldName: oldColName, NewName: newColName, QuotedNew: newColName, IsTable: false, TableName: tableName}
 	for _, dbCtx := range e.ctx.Databases() {
 		if dbCtx == nil {
 			continue
@@ -781,7 +1091,14 @@ func (e *DDLExecutor) renameColumnInViews(tableName, oldColName, newColName stri
 			if !viewNeedsColumnRename(entry, tableName, oldColName) {
 				continue
 			}
-			newSQL := replaceColumnNameInSQL(entry.SQL, oldColName, newColName)
+			ranges, err := FindRenameTokens(entry.SQL, ctx)
+			if err == nil {
+				ranges = appendViewColumnRenameRanges(entry.SQL, tableName, oldColName, ranges)
+			}
+			if err != nil || len(ranges) == 0 {
+				continue
+			}
+			newSQL := ApplyRenames(entry.SQL, ranges, sqlRenameIdentifier(newColName))
 			if newSQL != entry.SQL && newSQL != "" {
 				entry.SQL = newSQL
 				e.ctx.DeleteTcCacheTable(entry.Name)
@@ -805,16 +1122,25 @@ func viewNeedsColumnRename(entry *schema.Entry, tableName, oldColName string) bo
 // renameColumnInEntries applies a column rename to schema entries of the given
 // type, using token-level rename with a string-regex fallback.
 func (e *DDLExecutor) renameColumnInEntries(entryType schema.SchemaType, tblName string, oldColName, newColName string, ctx *RenameContext) {
-	entries, err := e.ctx.Schema().GetEntries("")
-	if err != nil {
-		return
-	}
-	for _, entry := range entries {
-		if !columnRenameEntryMatches(entry, entryType, tblName, oldColName) {
+	for _, dbCtx := range e.ctx.Databases() {
+		if entryType == schema.TypeTrigger {
+			if dbCtx.Name != "main" && dbCtx.Name != "temp" {
+				continue
+			}
+		} else if dbCtx != e.ctx.MainDB() {
 			continue
 		}
-		if applyColumnRenameToEntry(entry, oldColName, newColName, ctx) {
-			_ = e.ctx.Schema().UpdateEntry(entry.Name, entry.SQL)
+		entries, err := dbCtx.Schema.GetEntries("")
+		if err != nil {
+			continue
+		}
+		for _, entry := range entries {
+			if !columnRenameEntryMatches(entry, entryType, tblName, oldColName) {
+				continue
+			}
+			if applyColumnRenameToEntry(entry, oldColName, newColName, ctx) {
+				_ = dbCtx.Schema.UpdateEntry(entry.Name, entry.SQL)
+			}
 		}
 	}
 }
@@ -845,9 +1171,25 @@ func columnRenameEntryMatches(entry *schema.Entry, entryType schema.SchemaType, 
 // applyColumnRenameToEntry rewrites one entry's SQL; token-level result is
 // authoritative when the parse succeeds, string-regex otherwise.
 func applyColumnRenameToEntry(entry *schema.Entry, oldColName, newColName string, ctx *RenameContext) bool {
+	if entry.Type == schema.TypeIndex {
+		newSQL, err := renameColumnInIndexSQL(entry.SQL, oldColName, ctx.NewName, entry.TblName, ctx.ForceQuote)
+		if err == nil && newSQL != entry.SQL && newSQL != "" {
+			entry.SQL = newSQL
+			return true
+		}
+		return false
+	}
+	if entry.Type == schema.TypeTrigger {
+		newSQL, err := renameColumnInTriggerSQL(entry.SQL, oldColName, ctx.NewName, strings.EqualFold(entry.TblName, ctx.TableName), ctx.ForceQuote)
+		if err == nil && newSQL != entry.SQL && newSQL != "" {
+			entry.SQL = newSQL
+			return true
+		}
+		return false
+	}
 	ranges, rErr := FindRenameTokens(entry.SQL, ctx)
 	if rErr == nil && len(ranges) > 0 {
-		newSQL := ApplyRenames(entry.SQL, ranges, newColName)
+		newSQL := rename.ApplyContextRenames(entry.SQL, ranges, ctx)
 		if newSQL != entry.SQL && newSQL != "" {
 			entry.SQL = newSQL
 			return true
@@ -893,7 +1235,6 @@ func replaceColumnNameInSQL(sqlStr, oldColName, newColName string) string {
 	return b.String()
 }
 
-// columnRenameToken renders the replacement for a column-name match at
 // [start, end), adjusting the span when the match was double-quoted so the
 // quotes are replaced together with the name.
 func columnRenameToken(sqlStr string, start, end int, newColName string, quoteNew bool) (string, int, int) {

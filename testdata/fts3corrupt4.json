@@ -1,9 +1,10 @@
 {
   "file": "fts3corrupt4.test",
   "name": "fts3corrupt4",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "fts3corrupt4-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,32 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "blob",
+          "callbackVars": {
+            "": "fts3corrupt4",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "fts3corrupt4"
+          },
+          "functionProc": "blob",
+          "functionArgs": [
+            "a"
+          ],
+          "functionBody": " binary decode hex $a ",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-1.1",
       "steps": [
         {
           "type": "query",
@@ -22,7 +48,16 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-1.2",
       "steps": [
         {
           "type": "exec",
@@ -31,17 +66,21 @@
       ]
     },
     {
-      "name": "1.3",
+      "name": "fts3corrupt4-1.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM ft WHERE ft MATCH 'abandon';",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "2.0.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-2.0.0",
       "steps": [
         {
           "type": "exec",
@@ -50,7 +89,65 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "fts3corrupt4-2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO ft VALUES('abc' || 0);\n        INSERT INTO ft VALUES('abc' || 0 || 'x' );\n        INSERT INTO ft VALUES('abc' || 0 || 'xx' );\n      COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO ft VALUES('abc' || 1);\n        INSERT INTO ft VALUES('abc' || 1 || 'x' );\n        INSERT INTO ft VALUES('abc' || 1 || 'xx' );\n      COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO ft VALUES('abc' || 2);\n        INSERT INTO ft VALUES('abc' || 2 || 'x' );\n        INSERT INTO ft VALUES('abc' || 2 || 'xx' );\n      COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO ft VALUES('abc' || 3);\n        INSERT INTO ft VALUES('abc' || 3 || 'x' );\n        INSERT INTO ft VALUES('abc' || 3 || 'xx' );\n      COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO ft VALUES('abc' || 4);\n        INSERT INTO ft VALUES('abc' || 4 || 'x' );\n        INSERT INTO ft VALUES('abc' || 4 || 'xx' );\n      COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO ft VALUES('abc' || 5);\n        INSERT INTO ft VALUES('abc' || 5 || 'x' );\n        INSERT INTO ft VALUES('abc' || 5 || 'xx' );\n      COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO ft VALUES('abc' || 6);\n        INSERT INTO ft VALUES('abc' || 6 || 'x' );\n        INSERT INTO ft VALUES('abc' || 6 || 'xx' );\n      COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO ft VALUES('abc' || 7);\n        INSERT INTO ft VALUES('abc' || 7 || 'x' );\n        INSERT INTO ft VALUES('abc' || 7 || 'xx' );\n      COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO ft VALUES('abc' || 8);\n        INSERT INTO ft VALUES('abc' || 8 || 'x' );\n        INSERT INTO ft VALUES('abc' || 8 || 'xx' );\n      COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO ft VALUES('abc' || 9);\n        INSERT INTO ft VALUES('abc' || 9 || 'x' );\n        INSERT INTO ft VALUES('abc' || 9 || 'xx' );\n      COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO ft VALUES('abc' || 10);\n        INSERT INTO ft VALUES('abc' || 10 || 'x' );\n        INSERT INTO ft VALUES('abc' || 10 || 'xx' );\n      COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO ft VALUES('abc' || 11);\n        INSERT INTO ft VALUES('abc' || 11 || 'x' );\n        INSERT INTO ft VALUES('abc' || 11 || 'xx' );\n      COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM ft_segdir;\n    SELECT count(*) FROM ft_segments;",
+          "expect": "12 0"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-2.1",
       "steps": [
         {
           "type": "query",
@@ -60,7 +157,7 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "fts3corrupt4-2.2",
       "steps": [
         {
           "type": "query",
@@ -70,7 +167,37 @@
       ]
     },
     {
-      "name": "2.3.1",
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "blob",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "i": "12",
+            "testdir": "",
+            "testprefix": "fts3corrupt4"
+          },
+          "functionProc": "blob",
+          "functionArgs": [
+            "a"
+          ],
+          "functionBody": " binary decode hex $a ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-2.3.1",
       "steps": [
         {
           "type": "exec",
@@ -79,17 +206,17 @@
       ]
     },
     {
-      "name": "2.3.2",
+      "name": "fts3corrupt4-2.3.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO ft(ft) VALUES('merge=1,4');",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "2.4.1",
+      "name": "fts3corrupt4-2.4.1",
       "steps": [
         {
           "type": "exec",
@@ -98,17 +225,17 @@
       ]
     },
     {
-      "name": "2.4.2",
+      "name": "fts3corrupt4-2.4.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO ft(ft) VALUES('merge=1,4');",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "2.5.1",
+      "name": "fts3corrupt4-2.5.1",
       "steps": [
         {
           "type": "exec",
@@ -117,17 +244,21 @@
       ]
     },
     {
-      "name": "2.5.2",
+      "name": "fts3corrupt4-2.5.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO ft(ft) VALUES('merge=1,4');",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "3.0.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-3.0.0",
       "steps": [
         {
           "type": "exec",
@@ -136,7 +267,101 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "fts3corrupt4-3.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('abc' || 0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('abc' || 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('abc' || 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('abc' || 3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('abc' || 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('abc' || 5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('abc' || 6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('abc' || 7)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('abc' || 8)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('abc' || 9)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('abc' || 10)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('abc' || 11)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('abc' || 12)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('abc' || 13)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('abc' || 14)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('abc' || 15)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('abc' || 16)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('abc' || 17)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('abc' || 18)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('abc' || 19)"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    SELECT count(*) FROM ft_segdir;\n    SELECT count(*) FROM ft_segments;",
+          "expect": "1 5"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-3.1",
       "steps": [
         {
           "type": "query",
@@ -146,7 +371,37 @@
       ]
     },
     {
-      "name": "3.2",
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "blob",
+          "callbackVars": {
+            "": "20",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "i": "20",
+            "testdir": "",
+            "testprefix": "fts3corrupt4"
+          },
+          "functionProc": "blob",
+          "functionArgs": [
+            "a"
+          ],
+          "functionBody": " binary decode hex $a ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-3.2",
       "steps": [
         {
           "type": "exec",
@@ -155,17 +410,21 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "fts3corrupt4-3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM ft WHERE ft MATCH 'abc20'",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "4.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-4.0",
       "steps": [
         {
           "type": "exec",
@@ -174,37 +433,37 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "fts3corrupt4-4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM t1 WHERE t1 MATCH 'one';",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "4.2",
+      "name": "fts3corrupt4-4.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM t1 WHERE t1 MATCH 'two';",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "4.3",
+      "name": "fts3corrupt4-4.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM t1 WHERE t1 MATCH 'three';",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "4.4",
+      "name": "fts3corrupt4-4.4",
       "steps": [
         {
           "type": "exec",
@@ -213,17 +472,33 @@
       ]
     },
     {
-      "name": "5.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-5.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-5.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "SELECT * FROM t1 WHERE t1 MATCH 'abandon';",
           "expect": "1 {malformed database schema (sqlite_autoindey_t1_segdir_1) - orphan index}"
         }
       ]
     },
     {
-      "name": "6.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-6.0",
       "steps": [
         {
           "type": "exec",
@@ -232,47 +507,83 @@
       ]
     },
     {
-      "name": "6.1",
+      "name": "fts3corrupt4-6.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM Table0 WHERE Table0 MATCH 'a';",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "6.2",
+      "name": "fts3corrupt4-6.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO Table0(Table0) VALUES('optimize');",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "7.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-7.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-7.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "SELECT matchinfo(t1,'y') FROM t1 WHERE t1 MATCH 'e*';",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "8.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-8.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-8.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "SELECT matchinfo(t1,'x') FROM t1 WHERE t1 MATCH 'e*';",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "9.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-9.0",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-9.1",
       "steps": [
         {
           "type": "query",
@@ -282,76 +593,140 @@
       ]
     },
     {
-      "name": "10.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-10.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT OR IGNORE INTO t1(a,c) SELECT x,null FROM c\n    UNION ALL SELECT 180-x,printf('[%,d]',x*-5844627) FROM c;",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-10.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c100)\n    INSERT OR IGNORE INTO t1(a,c) SELECT x,null FROM c\n    UNION ALL SELECT 180-x,printf('[%,d]',x*-5844627) FROM c;",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "10.3",
+      "name": "fts3corrupt4-10.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1(t1) VALUES('optimize');",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "11.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-11.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-11.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "SELECT rowid, quote(matchinfo(t1,'pcxybs')) FROM t1 WHERE t1 MATCH 'e*'",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "12.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-12.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-12.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "SELECT rowid, quote(matchinfo(t1,'pcxybspcxybs')) \n  FROM t1 WHERE t1 MATCH 'e*e*'",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "13.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-13.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-13.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "SELECT quote(matchinfo(t1,'pcxybs'))==0 FROM t1 WHERE b MATCH 'e*';",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "14.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-14.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA writable_schema = 1;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<10)\n    INSERT INTO t1(a) SELECT randomblob(3000) FROM c;"
+          "type": "open_empty_db"
         }
       ]
     },
     {
-      "name": "14.2",
+      "name": "fts3corrupt4-14.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
+          "sql": "PRAGMA writable_schema = 1;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c10)\n    INSERT INTO t1(a) SELECT randomblob(3000) FROM c;"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-14.2",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "INSERT INTO t1(t1) VALUES('optimize');",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "15.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-15.0",
       "steps": [
         {
           "type": "exec",
@@ -360,7 +735,7 @@
       ]
     },
     {
-      "name": "15.1",
+      "name": "fts3corrupt4-15.1",
       "steps": [
         {
           "type": "query",
@@ -370,17 +745,41 @@
       ]
     },
     {
-      "name": "16.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-16.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-16.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "INSERT INTO t1(t1) VALUES('optimize');",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "17.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-17.0",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-17.1",
       "steps": [
         {
           "type": "exec",
@@ -389,7 +788,7 @@
       ]
     },
     {
-      "name": "17.2",
+      "name": "fts3corrupt4-17.2",
       "steps": [
         {
           "type": "exec",
@@ -398,46 +797,82 @@
       ]
     },
     {
-      "name": "17.3",
+      "name": "fts3corrupt4-17.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DROP TABLE IF EXISTS t1;",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "18.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-18.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-18.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "SELECT quote(matchinfo(t1,'pcxybs'))==0 FROM t1 WHERE b MATCH 'e*';",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "19.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-19.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-19.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "PRAGMA writable_schema = 1;\n  SELECT rowid,a,c,snippet(t1,85101090932165,-1,10) FROM t1 WHERE a MATCH 'rtree';",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "20.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-20.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA writable_schema = 1;\n  BEGIN;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<10)\n    INSERT INTO t1(a) SELECT randomblob(3000) FROM c;"
+          "type": "open_empty_db"
         }
       ]
     },
     {
-      "name": "20.2",
+      "name": "fts3corrupt4-20.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA writable_schema = 1;\n  BEGIN;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c10)\n    INSERT INTO t1(a) SELECT randomblob(3000) FROM c;"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-20.2",
       "steps": [
         {
           "type": "exec",
@@ -446,346 +881,442 @@
       ]
     },
     {
-      "name": "21.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-21.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-21.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "PRAGMA writable_schema = 1;\n  SELECT offsets(t1) FROM t1 WHERE t1 MATCH 'R*';",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "22.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-22.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-22.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "PRAGMA writable_schema = 1;\n  SELECT snippet(t1,'', '', '--',-1,01)==0\n    FROM t1 WHERE a MATCH 'rtree OR json1rtree OR json1';",
           "expect": "0 {0 0 0 0 0 0 0}"
         }
       ]
     },
     {
-      "name": "23.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-23.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-23.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "PRAGMA writable_schema = 1;\n  SELECT 'FyzLy'FROM t1 WHERE t1 MATCH 'j';",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "24.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-24.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA writable_schema = 1;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT '4hE'+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-24.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "PRAGMA writable_schema = 1;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT '4hE'+x FROM c WHERE x\u003c72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "24.2",
+      "name": "fts3corrupt4-24.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "UPDATE t1 SET b=quote((true) ) WHERE t1 MATCH 'h';",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "24.3",
+      "name": "fts3corrupt4-24.3",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
+          "type": "catch",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x\u003c72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "24.4",
+      "name": "fts3corrupt4-24.4",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT null<<x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
+          "type": "catch",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT null\u003c\u003cx FROM c WHERE x\u003c72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "24.5",
+      "name": "fts3corrupt4-24.5",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
+          "type": "catch",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x\u003c72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "24.7",
+      "name": "fts3corrupt4-24.7",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1(t1) SELECT x FROM t2;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "25.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-25.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA writable_schema = 1;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x%1 FROM c WHERE x<599237)\n    INSERT INTO t1( a ) SELECT randomblob(3000) FROM t2 ;",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-25.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "PRAGMA writable_schema = 1;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x%1 FROM c WHERE x\u003c599237)\n    INSERT INTO t1( a ) SELECT randomblob(3000) FROM t2 ;",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "25.2",
+      "name": "fts3corrupt4-25.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "UPDATE t1 SET b=quote((true) ) WHERE t1 MATCH 'h*';",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "25.3",
+      "name": "fts3corrupt4-25.3",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x +x FROM c WHERE 72<x)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
+          "type": "catch",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x +x FROM c WHERE 72\u003cx)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "25.4",
+      "name": "fts3corrupt4-25.4",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x%1 FROM c WHERE 599237<x)\n    INSERT INTO t1(a) SELECT randomblob(3000) FROM t2 ;",
+          "type": "catch",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x%1 FROM c WHERE 599237\u003cx)\n    INSERT INTO t1(a) SELECT randomblob(3000) FROM t2 ;",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "25.5",
+      "name": "fts3corrupt4-25.5",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x%1 FROM c WHERE x<599237)\n    INSERT INTO t1( a ) SELECT randomblob(3000) FROM t2 ;",
+          "type": "catch",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x%1 FROM c WHERE x\u003c599237)\n    INSERT INTO t1( a ) SELECT randomblob(3000) FROM t2 ;",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "25.6a",
+      "name": "fts3corrupt4-25.6a",
       "steps": [
         {
-          "type": "exec",
-          "sql": "INSERT INTO t1(t1) SELECT x FROM t2;",
-          "expect": "1 {database disk image is malformed}"
-        }
-      ]
-    },
-    {
-      "name": "25.6b",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1(t1) SELECT x FROM t2;",
-          "expect": "1 {database disk image is malformed}"
-        }
-      ]
-    },
-    {
-      "name": "25.6a",
-      "steps": [
-        {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1(t1) SELECT x FROM t2;",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "25.6b",
+      "name": "fts3corrupt4-25.6b",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1(t1) SELECT x FROM t2;",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "26.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-26.0",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-26.1",
       "steps": [
         {
           "type": "query",
-          "sql": "PRAGMA writable_schema = 1;\n  SELECT count(*) FROM (\n    SELECT t1, (t1) FROM t1 WHERE b MATCH 'x'\n  )"
+          "sql": "PRAGMA writable_schema = 1;\n  SELECT count(*) FROM (\n    SELECT t1, (t1) FROM t1 WHERE b MATCH 'x'\n  )",
+          "expect": "34"
         }
       ]
     },
     {
-      "name": "27.2",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-27.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-27.2",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "PRAGMA writable_schema = 1;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x GLOB 2.16770 FROM x)\n    INSERT INTO t1(a) SELECT randomblob(3000) FROM t2 ;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "27.3",
+      "name": "fts3corrupt4-27.3",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<2.653)\n    INSERT INTO t1(a) SELECT randomblob(-current_time) FROM c;",
+          "type": "catch",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x\u003c2.653)\n    INSERT INTO t1(a) SELECT randomblob(-current_time) FROM c;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "27.4",
+      "name": "fts3corrupt4-27.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "UPDATE t1 SET b=quote((true) ) WHERE t1 MATCH 'h*h*';",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "27.5",
+      "name": "fts3corrupt4-27.5",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<2.653)\n    INSERT INTO t1(a) SELECT randomblob(-current_time) FROM c;",
+          "type": "catch",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x\u003c2.653)\n    INSERT INTO t1(a) SELECT randomblob(-current_time) FROM c;",
           "expect": "1 {database disk image is malformed}"
-        }
-      ]
-    },
-    {
-      "name": "27.5",
-      "steps": [
+        },
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1(t1) SELECT x FROM t2;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "27.6",
+      "name": "fts3corrupt4-27.6",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1(t1) SELECT x FROM t2;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "28.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-28.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA writable_schema = 1;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-28.1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "PRAGMA writable_schema = 1;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x\u003c72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "28.2",
+      "name": "fts3corrupt4-28.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "UPDATE t1 SET b=quote((true) ) WHERE t1 MATCH 'h';",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "28.3",
+      "name": "fts3corrupt4-28.3",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
+          "type": "catch",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x\u003c72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "28.4",
+      "name": "fts3corrupt4-28.4",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH c(x) AS (VALUES(1) UNION ALL SELECT 3<<x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
+          "type": "catch",
+          "sql": "WITH c(x) AS (VALUES(1) UNION ALL SELECT 3\u003c\u003cx FROM c WHERE x\u003c72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "28.5",
+      "name": "fts3corrupt4-28.5",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
+          "type": "catch",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x\u003c72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "28.6",
+      "name": "fts3corrupt4-28.6",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH c(x) AS (VALUES(1) UNION ALL SELECT 3<<x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
+          "type": "catch",
+          "sql": "WITH c(x) AS (VALUES(1) UNION ALL SELECT 3\u003c\u003cx FROM c WHERE x\u003c72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "28.7",
+      "name": "fts3corrupt4-28.7",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+3 FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
+          "type": "catch",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+3 FROM c WHERE x\u003c72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "28.8",
+      "name": "fts3corrupt4-28.8",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1(t1) SELECT x FROM t2;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "29.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-29.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-29.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "PRAGMA writable_schema = 1;\n  INSERT INTO t1(a) SELECT X'819192E578DE3F';\n  UPDATE t1 SET b=quote(zeroblob(current_date)) WHERE t1 MATCH 't*';\n  INSERT INTO t1(b) VALUES(x'78');\n  INSERT INTO t1(t1) SELECT x FROM t2;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "30.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-30.0",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-30.1",
       "steps": [
         {
           "type": "exec",
@@ -794,17 +1325,21 @@
       ]
     },
     {
-      "name": "30.2",
+      "name": "fts3corrupt4-30.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT (matchinfo(null)) FROM t1 WHERE t1 MATCH 'ee*e*e*e*e*e*e*Re*e*e*e**'",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "31.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-31.0",
       "steps": [
         {
           "type": "exec",
@@ -813,37 +1348,57 @@
       ]
     },
     {
-      "name": "31.1",
+      "name": "fts3corrupt4-31.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT (matchinfo(t1, c ) ) FROM t1 WHERE t1 MATCH 'M*M*M*M*';",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "32.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-32.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-32.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "UPDATE t1 SET b=quote(zeroblob(6.51158946e+5)) WHERE a MATCH '*t*';",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "32.2",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-33.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "#  UPDATE t1 SET b=((- '' )) WHERE a MATCH '0*t';\n#",
+          "type": "catch",
+          "sql": "CREATE VIRTUAL TABLE f USING fts3(a,b,tokenize=icu);\n    CREATE TABLE 'f_docsize'(docid INTEGER PRIMARY KEY, size BLOB);\n    CREATE TABLE 'f_stat'(id INTEGER PRIMARY KEY, value BLOB);\n    INSERT INTO f VALUES (1, '1234');\n    INSERT INTO f_stat VALUES (1,x'0000000165656565db6569746565c5c52bc5c5c53e3a003bc502ffffffffc5c5c53e3a003bc502fffffffffb8b2afbfb6565f0740100650000000165656565db6569746565c5c52bc5c5c53e3a003bc502ffffffffc5c5c53e3a003b8b00c5c5c5c5c5bfc5');\n    INSERT INTO f(f) VALUES ('merge=198,49');",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "34.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-34.0",
       "steps": [
         {
           "type": "exec",
@@ -852,17 +1407,21 @@
       ]
     },
     {
-      "name": "34.1",
+      "name": "fts3corrupt4-34.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "UPDATE f SET b = x'00' WHERE b IN (SELECT b FROM f LIMIT 1 OFFSET 0);",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "35.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-35.0",
       "steps": [
         {
           "type": "exec",
@@ -871,17 +1430,17 @@
       ]
     },
     {
-      "name": "35.1",
+      "name": "fts3corrupt4-35.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO f(f) VALUES ('integrity-check');",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "35.2",
+      "name": "fts3corrupt4-35.2",
       "steps": [
         {
           "type": "query",
@@ -891,17 +1450,25 @@
       ]
     },
     {
-      "name": "36.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-36.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE f USING fts3(a,tokenize=porter);\n  CREATE TABLE 'f_stat'(id INTEGER PRIMARY KEY, value BLOB);\n  INSERT INTO f VALUES (1);\n  INSERT INTO f_stat VALUES (1,x'00000000000101010119013d00ffff0400fa83717b71a69297979701f63d010101010101010101010101190000000000000000fa83717b71a601f63d01010101010101010101010119013d00ffffff0400fa83717b71a69297979701f63d010101010101010101010101190000000000000000fa83717b71a69201f63d010101f63d01010101010101010101010119013d00ffffff0400fa83717b71a6929797010101010101010101010119013d00ffff01f63d01010101010101010101010119013d00ffffff0400fa83717b71a69297979701f63d00fa03ffffffa69297979701f63d010101000000000101010101197e9797976567656565ffa63535354e');\n  INSERT INTO f(f) VALUES ('merge=53,216');",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "36.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-36.0",
       "steps": [
         {
           "type": "exec",
@@ -910,17 +1477,21 @@
       ]
     },
     {
-      "name": "36.1",
+      "name": "fts3corrupt4-36.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO f(f) VALUES ('merge=59,59');",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "37.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-37.0",
       "steps": [
         {
           "type": "exec",
@@ -929,17 +1500,29 @@
       ]
     },
     {
-      "name": "37.1",
+      "name": "fts3corrupt4-37.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO f VALUES (0,x'00');",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "38.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-38.0",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-38.1",
       "steps": [
         {
           "type": "exec",
@@ -948,17 +1531,21 @@
       ]
     },
     {
-      "name": "38.2",
+      "name": "fts3corrupt4-38.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT b FROM t1 WHERE a MATCH 'e*e*e*e*e*e*e*e*e*e*e*e*e*e*e*e*'",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "39.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-39.0",
       "steps": [
         {
           "type": "exec",
@@ -967,7 +1554,31 @@
       ]
     },
     {
-      "name": "40.1",
+      "name": "fts3corrupt4-39.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t0 WHERE t0 MATCH '1 NEAR 1'",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-39.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT matchinfo(t0,'yxy') FROM t0 WHERE t0 MATCH x'2b0a312b0a312a312a2a0b5d0a0b0b0a312a0a0b0b0a312a0b310a392a0b0a27312a2a0b5d0a312a0b310a31315d0b310a312a316d2a0b313b15bceaa50a312a0b0a27312a2a0b5d0a312a0b310a312b0b2a310a312a0b2a0b2a0b2e5d0a0bff313336e34a2a312a0b0a3c310b0a0b4b4b0b4b2a4bec40322b2a0b310a0a312a0a0a0a0a0a0a0a0a0b310a312a2a2a0b5d0a0b0b0a312a0b310a312a0b0a4e4541530b310a5df5ced70a0a0a0a0a4f520a0a0a0a0a0a0a312a0b0a4e4541520b310a5d616161610a0a0a0a4f520a0a0a0a0a0a312b0a312a312a0a0a0a0a0a0a004a0b0a310b220a0b0a310a4a22310a0b0a7e6fe0e0e030e0e0e0e0e01176e02000e0e0e0e0e01131320226310a0b0a310a4a22310a0b0a310a766f8b8b4ee0e0300ae0090909090909090909090909090909090909090909090909090909090909090947aaaa540b09090909090909090909090909090909090909090909090909090909090909fae0e0f2f22164e0e0f273e07fefefef7d6dfafafafa6d6d6d6d';",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-40.1",
       "steps": [
         {
           "type": "exec",
@@ -976,16 +1587,21 @@
       ]
     },
     {
-      "name": "40.2",
+      "name": "fts3corrupt4-40.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT 0==matchinfo(t0,'sx') FROM t0 WHERE t0 MATCH '1* 2 3 4 5 6 OR 1';"
+          "sql": "SELECT 0==matchinfo(t0,'sx') FROM t0 WHERE t0 MATCH '1* 2 3 4 5 6 OR 1';",
+          "expect": "0"
         }
       ]
     },
     {
-      "name": "41.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-41.1",
       "steps": [
         {
           "type": "exec",
@@ -994,7 +1610,7 @@
       ]
     },
     {
-      "name": "41.2",
+      "name": "fts3corrupt4-41.2",
       "steps": [
         {
           "type": "query",
@@ -1003,7 +1619,7 @@
       ]
     },
     {
-      "name": "42.1",
+      "name": "fts3corrupt4-42.1",
       "steps": [
         {
           "type": "exec",
@@ -1012,7 +1628,7 @@
       ]
     },
     {
-      "name": "42.2",
+      "name": "fts3corrupt4-42.2",
       "steps": [
         {
           "type": "exec",
@@ -1021,7 +1637,7 @@
       ]
     },
     {
-      "name": "42.3",
+      "name": "fts3corrupt4-42.3",
       "steps": [
         {
           "type": "exec",
@@ -1030,7 +1646,11 @@
       ]
     },
     {
-      "name": "43.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-43.1",
       "steps": [
         {
           "type": "exec",
@@ -1039,7 +1659,7 @@
       ]
     },
     {
-      "name": "43.2",
+      "name": "fts3corrupt4-43.2",
       "steps": [
         {
           "type": "query",
@@ -1049,7 +1669,11 @@
       ]
     },
     {
-      "name": "44.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-44.1",
       "steps": [
         {
           "type": "exec",
@@ -1058,7 +1682,7 @@
       ]
     },
     {
-      "name": "44.2",
+      "name": "fts3corrupt4-44.2",
       "steps": [
         {
           "type": "query",
@@ -1068,17 +1692,33 @@
       ]
     },
     {
-      "name": "45.2",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-45.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-45.2",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "INSERT INTO x1(x1) VALUES( 'merge=1' )",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "46.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-46.1",
       "steps": [
         {
           "type": "exec",
@@ -1087,17 +1727,21 @@
       ]
     },
     {
-      "name": "46.2",
+      "name": "fts3corrupt4-46.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM t0\n    WHERE t0 MATCH x'2b0a312b0a312a312a2a0b5d0a0b0b0a312a0a0b0b0a312a0b310a392a0b0a27312a2a0b5d0a312a0b310a31315d0b310a312a316d2a0b313b15bceaa50a312a0b0a27312a2a0b5d0a312a0b310a312b0b2a310a312a0b2a0b2a0b2e5d0a0bff313336e34a2a312a0b0a3c310b0a0b4b4b0b4b2a4bec40322b2a0b310a0a312a0a0a0a0a0a0a0a0a0b310a312a2a2a0b5d0a0b0b0a312a0b310a312a0b0a4e4541530b310a5df5ced70a0a0a0a0a4f520a0a0a0a0a0a0a312a0b0a4e4541520b310a5d616161610a0a0a0a4f520a0a0a0a0a0a312b0a312a312a0a0a0a0a0a0a004a0b0a310b220a0b0a310a4a22310a0b0a7e6fe0e0e030e0e0e0e0e01176e02000e0e0e0e0e01131320226310a0b0a310a4a22310a0b0a310a766f8b8b4ee0e0300ae0090909090909090909090909090909090909090909090909090909090909090947aaaa540b09090909090909090909090909090909090909090909090909090909090909fae0e0f2f22164e0e0f273e07fefefef7d6dfafafafa6d6d6d6d';",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "47.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-47.1",
       "steps": [
         {
           "type": "exec",
@@ -1106,7 +1750,7 @@
       ]
     },
     {
-      "name": "47.2",
+      "name": "fts3corrupt4-47.2",
       "steps": [
         {
           "type": "exec",
@@ -1115,67 +1759,139 @@
       ]
     },
     {
-      "name": "47.3",
+      "name": "fts3corrupt4-47.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT matchinfo(t1) FROM t1 WHERE t1 MATCH '\"json1 enable\"';",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "48.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-48.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-48.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "INSERT INTO x1(x1) VALUES('nodesize=24'),('merge=3,4');\n  INSERT INTO x1(x1) VALUES( 'merge=3,4' ),('merge=3,4');",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "49.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-49.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-49.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "SAVEPOINT one;\n  DELETE FROM t1 WHERE t1 MATCH 'c*';\n  SELECT matchinfo(t1,'pcx') IS NULL FROM t1 WHERE t1 MATCH 'f*e*';",
           "expect": "0 0"
         }
       ]
     },
     {
-      "name": "50.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-50.0",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT NULL FROM t1 WHERE t1 MATCH '\"^enable\"'",
-          "expect": "{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}"
+          "type": "open_empty_db"
         }
       ]
     },
     {
-      "name": "51.1",
+      "name": "fts3corrupt4-50.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
+          "sql": "SELECT NULL FROM t1 WHERE t1 MATCH '\"^enable\"'",
+          "expect": "\n  {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}\n"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-51.0",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-51.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "SELECT 'xyzzy',offsets(t1) FROM t1 WHERE t1 MATCH 'rtree OR json1''rtree NEAR \"json1 enable\"';",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "52.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-52.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-52.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "SELECT * FROM t1, t2;",
           "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "53.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-53.0",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-53.1",
       "steps": [
         {
           "type": "query",
@@ -1185,446 +1901,25 @@
       ]
     },
     {
-      "name": "54.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3corrupt4-54.0",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "fts3corrupt4-54.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT rowid, quote(matchinfo(t1,'pcxybspcxybs')) FROM t1 WHERE t1 MATCH'ATE\"0\"OR\"2:P\"\"\"';"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM ft_segdir;\n    SELECT count(*) FROM ft_segments;"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT;\n    SELECT count(*) FROM ft_segdir;\n    SELECT count(*) FROM ft_segments;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT rowid FROM t0 WHERE t0 MATCH '1 NEAR 1'"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT matchinfo(t0,'yxy') FROM t0 WHERE t0 MATCH x'2b0a312b0a312a312a2a0b5d0a0b0b0a312a0a0b0b0a312a0b310a392a0b0a27312a2a0b5d0a312a0b310a31315d0b310a312a316d2a0b313b15bceaa50a312a0b0a27312a2a0b5d0a312a0b310a312b0b2a310a312a0b2a0b2a0b2e5d0a0bff313336e34a2a312a0b0a3c310b0a0b4b4b0b4b2a4bec40322b2a0b310a0a312a0a0a0a0a0a0a0a0a0b310a312a2a2a0b5d0a0b0b0a312a0b310a312a0b0a4e4541530b310a5df5ced70a0a0a0a0a4f520a0a0a0a0a0a0a312a0b0a4e4541520b310a5d616161610a0a0a0a4f520a0a0a0a0a0a312b0a312a312a0a0a0a0a0a0a004a0b0a310b220a0b0a310a4a22310a0b0a7e6fe0e0e030e0e0e0e0e01176e02000e0e0e0e0e01131320226310a0b0a310a4a22310a0b0a310a766f8b8b4ee0e0300ae0090909090909090909090909090909090909090909090909090909090909090947aaaa540b09090909090909090909090909090909090909090909090909090909090909fae0e0f2f22164e0e0f273e07fefefef7d6dfafafafa6d6d6d6d';"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

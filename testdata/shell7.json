@@ -1,9 +1,10 @@
 {
   "file": "shell7.test",
   "name": "shell7",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "shell7-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,28 +13,53 @@
       ]
     },
     {
-      "name": "2.0",
+      "name": "setup_0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(b);\n    INSERT INTO t1 VALUES(1, 1), (2, 2);"
+          "type": "query",
+          "sql": "SELECT tn, length(x) AS l, x FROM f1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT tn, length(x) AS l, x FROM f1"
         }
       ]
     },
     {
-      "name": "2.2",
+      "name": "delete_file",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\"(a, b);\n    INSERT INTO  \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\" VALUES(10, 10), (20, 20);\n    CREATE INDEX i2 ON \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\"(b);"
-        },
+          "type": "delete_file",
+          "sql": "shell7_test.bin"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT tn, length(x) AS l, x FROM f1"
-        },
+          "type": "write_file",
+          "sql": "shell7_test.bin"
+        }
+      ]
+    },
+    {
+      "name": "shell7-1..3",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM dbstat"
+          "type": "query",
+          "sql": "SELECT (SELECT x FROM f1 WHERE tn=1)==(SELECT x FROM f2 WHERE tn=1)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM dbstat",
+          "catchMessage": "msg"
         }
       ]
     }

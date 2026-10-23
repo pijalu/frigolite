@@ -4,7 +4,6 @@ package execquery
 
 import (
 	"fmt"
-
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/schema"
@@ -61,6 +60,27 @@ func (e *SelectEngine) applyJoin(
 	if err != nil {
 		return nil, nil, "", err
 	}
+	// Correlated right rows stay paired positionally with corrLeftIdx. Filtering
+	// or reordering only rightMaps would corrupt that provenance.
+	if plainInnerJoin(join) && corrLeftIdx == nil {
+		rightMaps = e.orderJoinRightByAutomaticIndex(s.Where, rightMaps, rightDefs, tableName)
+	}
+	for _, row := range rightMaps {
+		if positional, ok := row[positionalRowKey]; ok {
+			row["__frigolite_join_group_values__"] = positional
+			delete(row, positionalRowKey)
+		}
+	}
+	if join.Table.JoinGroup {
+		for _, def := range rightDefs {
+			if IsRowIDName(def.Name) {
+				for _, row := range rightMaps {
+					row[joinGroupRowidAliasKey] = true
+				}
+				break
+			}
+		}
+	}
 	// NATURAL JOIN / USING: generate effective ON expression.
 	effectiveOn, naturalCols := e.setupJoinEffectiveOn(join, currentDefs, rightDefs, lastTableName, tableName)
 
@@ -85,11 +105,21 @@ func (e *SelectEngine) applyJoin(
 	e.usingAutoIndex = autoIndex != nil
 
 	// Pre-filter the right table when the ON references ONLY right-table columns.
-	rightMaps, effectiveOn = e.maybePrefilterJoinRight(join, effectiveOn, rightMaps, tableName)
+	if corrLeftIdx == nil {
+		rightMaps, effectiveOn = e.maybePrefilterJoinRight(join, effectiveOn, rightMaps, tableName)
+	}
 
 	// Build combined column defs (USING/NATURAL merges columns).
 	usingJoin := len(join.Using) > 0 || len(naturalCols) > 0
 	filteredRightDefs := e.filterUsingColumns(rightDefs, effectiveOn, naturalCols, usingJoin)
+	filteredRightIndices := filteredUsingColumnIndices(rightDefs, join, naturalCols, usingJoin)
+	mergedUsingCols := make(map[string]bool, len(join.Using)+len(naturalCols))
+	for _, col := range join.Using {
+		mergedUsingCols[strings.ToLower(col)] = true
+	}
+	for col := range naturalCols {
+		mergedUsingCols[strings.ToLower(col)] = true
+	}
 	rightDefsNamed := e.prefixRightColDefs(filteredRightDefs, currentDefs, tableName)
 	combinedDefs := append(append([]sql.ColumnDef{}, currentDefs...), rightDefsNamed...)
 
@@ -105,9 +135,17 @@ func (e *SelectEngine) applyJoin(
 	if isRightOrFull {
 		for ri, rm := range rightMaps {
 			if !matchedRight[ri] {
-				combinedMaps = append(combinedMaps, e.buildRightJoinUnmatched(rm, currentMaps, currentDefs, rightDefsNamed, tableName, leftName))
+				combinedMaps = append(combinedMaps, e.buildRightJoinUnmatched(rm, currentMaps, currentDefs, rightDefsNamed, mergedUsingCols, tableName, leftName))
 			}
 		}
+	}
+	for _, row := range combinedMaps {
+		leftValues := append([]interface{}(nil), joinSideValues(row, positionalRowKey, currentDefs, lastTableName)...)
+		if isRightOrFull {
+			mergeRightUsingValues(leftValues, row, currentDefs, rightDefs, join, naturalCols, lastTableName)
+		}
+		rightValues := joinSideValuesByIndices(row, "__frigolite_join_group_values__", rightDefs, filteredRightIndices, tableName)
+		row[positionalRowKey] = append(leftValues, rightValues...)
 	}
 	return combinedMaps, combinedDefs, tableName, nil
 }
@@ -167,7 +205,7 @@ func (e *SelectEngine) runJoinNestedLoop(
 	isRightOrFull bool, matchedRight []bool,
 ) []RowMap {
 	var combinedMaps []RowMap
-	swapJoin := e.shouldSwapCommaJoin(s, join, lastTableName, tableName)
+	swapJoin := corrLeftIdx == nil && e.shouldSwapCommaJoin(s, join, lastTableName, tableName)
 	if swapJoin {
 		for _, rightMap := range rightMaps {
 			for _, leftMap := range currentMaps {
@@ -256,7 +294,7 @@ func joinsHaveRightOrFull(joins []sql.JoinClause) bool {
 // joinIsEmptyNonLeft reports whether a non-LEFT join's plain-table right operand
 // has zero rows (which empties the INNER/CROSS/comma result).
 func joinIsEmptyNonLeft(e *SelectEngine, join sql.JoinClause) bool {
-	if strings.EqualFold(join.JoinType, "LEFT") {
+	if joinTypeHas(join.JoinType, "LEFT") || joinTypeHas(join.JoinType, "FULL") {
 		return false
 	}
 	if join.Table.Subquery != nil || join.Table.Name == "" {
@@ -325,6 +363,16 @@ func (e *SelectEngine) materializeSubqueryJoin(join sql.JoinClause) ([]RowMap, [
 	// joined tables (a parenthesized group), reuse its qualified row maps so
 	// outer references like t4.a resolve; otherwise build plain maps.
 	rightMaps := e.buildSubqueryRowMaps(subqResult, rightDefs, join.Table.Subquery, tableName, synthetic)
+	if join.Table.JoinGroup {
+		for _, def := range rightDefs {
+			if IsRowIDName(def.Name) {
+				for _, row := range rightMaps {
+					row[joinGroupRowidAliasKey] = true
+				}
+				break
+			}
+		}
+	}
 	return rightMaps, rightDefs, tableName, nil, nil
 }
 
@@ -422,13 +470,13 @@ func buildViewRowMaps(viewResult *Result, rightDefs []sql.ColumnDef, tableName s
 // materializeTableJoin builds the right-side row maps and column defs for a
 // real-table join operand (scanning the b-tree, or materializing a virtual
 // table when RootPage == 0).
-func (e *SelectEngine) materializeTableJoin(s *sql.SelectStmt, join sql.JoinClause, tableEntry *schema.Entry) ([]RowMap, []sql.ColumnDef, string, []int, error) {
+func (e *SelectEngine) materializeTableJoin(s *sql.SelectStmt, join sql.JoinClause, tableEntry *schema.Entry, currentMaps []RowMap) ([]RowMap, []sql.ColumnDef, string, []int, error) {
 	tableName := joinTableName(join)
 	if tableEntry.RootPage == 0 {
-		return e.materializeVirtualTableJoin(s, join, tableEntry, tableName)
+		return e.materializeVirtualTableJoin(s, join, tableEntry, tableName, currentMaps)
 	}
 	rightDefs := e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
-	rightMaps, err := e.scanRealTableJoinRows(join.Table.Name, tableEntry.RootPage, rightDefs, tableEntry.SQL)
+	rightMaps, err := e.scanRealTableJoinRows(join.Table.Name, tableEntry.RootPage, rightDefs, tableEntry.SQL, !e.ctx.TableIsWithoutRowidEntry(tableEntry))
 	if err != nil {
 		return nil, nil, "", nil, err
 	}
@@ -449,7 +497,7 @@ func (e *SelectEngine) materializeTableJoin(s *sql.SelectStmt, join sql.JoinClau
 // Full-source scans would otherwise lose rows to a re-applied range filter.
 // Native rowids back <table>.rowid references in the residual WHERE
 // (unionvtab.test 5.3: cc.rowid>c4.rowid), like the eponymous path.
-func (e *SelectEngine) materializeVirtualTableJoin(s *sql.SelectStmt, join sql.JoinClause, tableEntry *schema.Entry, tableName string) ([]RowMap, []sql.ColumnDef, string, []int, error) {
+func (e *SelectEngine) materializeVirtualTableJoin(s *sql.SelectStmt, join sql.JoinClause, tableEntry *schema.Entry, tableName string, currentMaps []RowMap) ([]RowMap, []sql.ColumnDef, string, []int, error) {
 	if ftsTable, ok := e.ctx.FTSTables()[tableEntry.Name]; ok {
 		rightDefs := e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
 		return e.ftsJoinRowMaps(ftsTable, rightDefs, tableName), rightDefs, tableName, nil, nil
@@ -463,26 +511,59 @@ func (e *SelectEngine) materializeVirtualTableJoin(s *sql.SelectStmt, join sql.J
 		maps := buildMaterializedRowMaps(&sql.SelectStmt{From: sql.TableRef{Name: tableName}}, rightDefs, allRows, rowids)
 		return maps, rightDefs, tableName, nil, nil
 	}
-	var residual sql.Expr
-	opts := e.vtabScanOptions(s)
-	opts.Residual = &residual
-	defs, rows, rowids, err, ok := e.ctx.MaterializeCreatedVTab(tableEntry.Name, opts)
-	if !ok {
-		return nil, nil, "", nil, fmt.Errorf("no such table: %s", tableEntry.Name)
+	outerRows := currentMaps
+	if join.On == nil || len(outerRows) == 0 {
+		outerRows = []RowMap{nil}
 	}
-	if err != nil {
-		return nil, nil, "", nil, err
-	}
-	if residual != nil {
-		s.Where = residual
-	}
-	rightMaps := buildScanRowMaps(rows, defs, tableName)
-	for i := range rightMaps {
-		if i < len(rowids) {
-			rightMaps[i]["rowid"] = rowids[i]
+	var defs []sql.ColumnDef
+	var rightMaps []RowMap
+	var corrLeftIdx []int
+	joinPlanAware := false
+	for leftIndex, outer := range outerRows {
+		var residual sql.Expr
+		callPlanAware := false
+		opts := e.vtabScanOptions(s)
+		opts.JoinOn = join.On
+		opts.TableName = tableName
+		opts.OuterRow = outer
+		opts.Residual = &residual
+		if join.On != nil {
+			opts.JoinPlanAware = &callPlanAware
+		}
+		curDefs, rows, rowids, err, ok := e.ctx.MaterializeCreatedVTab(tableEntry.Name, opts)
+		if !ok {
+			return nil, nil, "", nil, fmt.Errorf("no such table: %s", tableEntry.Name)
+		}
+		if err != nil {
+			return nil, nil, "", nil, err
+		}
+		if defs == nil {
+			defs = curDefs
+		}
+		if join.On != nil && leftIndex == 0 {
+			joinPlanAware = callPlanAware
+			if joinPlanAware {
+				corrLeftIdx = make([]int, 0)
+			}
+		}
+		if residual != nil {
+			s.Where = residual
+		}
+		maps := buildScanRowMaps(rows, curDefs, tableName)
+		for i := range maps {
+			if i < len(rowids) {
+				maps[i]["rowid"] = rowids[i]
+			}
+			rightMaps = append(rightMaps, maps[i])
+			if joinPlanAware {
+				corrLeftIdx = append(corrLeftIdx, leftIndex)
+			}
+		}
+		if join.On != nil && !joinPlanAware {
+			break
 		}
 	}
-	return rightMaps, defs, tableName, nil, nil
+	return rightMaps, defs, tableName, corrLeftIdx, nil
 }
 
 // scanRealTableJoinRows scans all rows from a real table's b-tree into RowMaps
@@ -491,8 +572,8 @@ func (e *SelectEngine) materializeVirtualTableJoin(s *sql.SelectStmt, join sql.J
 // record is remapped back to declared order before the row map is built (the
 // b-tree root is index-typed while the table fits in one leaf and once it
 // splits).
-func (e *SelectEngine) scanRealTableJoinRows(tableQualifiedName string, rootPage uint32, rightDefs []sql.ColumnDef, createSQL string) ([]RowMap, error) {
-	tree := e.ctx.TableBTreeForName(tableQualifiedName, rootPage, true)
+func (e *SelectEngine) scanRealTableJoinRows(tableQualifiedName string, rootPage uint32, rightDefs []sql.ColumnDef, createSQL string, isTable bool) ([]RowMap, error) {
+	tree := e.ctx.TableBTreeForName(tableQualifiedName, rootPage, isTable)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return nil, err
@@ -724,21 +805,35 @@ func (e *SelectEngine) crossJoinAllRight(
 
 // buildRightJoinUnmatched creates a combined row for an unmatched right row
 // in a RIGHT or FULL JOIN. The left side columns are set to NULL.
-func (e *SelectEngine) buildRightJoinUnmatched(rightMap RowMap, leftMaps []RowMap, leftDefs, rightDefs []sql.ColumnDef, tableName, leftTableName string) RowMap {
+func (e *SelectEngine) buildRightJoinUnmatched(rightMap RowMap, leftMaps []RowMap, leftDefs, rightDefs []sql.ColumnDef, mergedUsingCols map[string]bool, tableName, leftTableName string) RowMap {
 	combined := make(RowMap)
 	// Null out every left-side key from a sample left row. The left side may
 	// be a compound of several tables whose qualified keys (t1.a, dual.dummy)
 	// cannot be derived from a single table name; using a real left row's key
 	// set preserves exactly the keys the left operands expose.
 	if len(leftMaps) > 0 {
-		for k := range leftMaps[0] {
+		leftMap := leftMaps[0]
+		for k := range leftMap {
 			combined[k] = nil
+		}
+		// A base-table scan stores columns unqualified. Preserve the table's
+		// qualified NULL keys too, so later chained joins cannot resolve
+		// t1.column through a merged USING column from the right side.
+		if !leftMapHasForeignQualifiedKeys(leftMap, leftTableName) {
+			for _, def := range leftDefs {
+				if !strings.Contains(def.Name, ".") && def.Name != "rowid" {
+					combined[leftTableName+"."+def.Name] = nil
+				}
+			}
 		}
 	} else {
 		setLeftDefsNull(combined, leftDefs, leftTableName)
 	}
 	setRightDefsFromMap(combined, rightMap, rightDefs)
-	mergeUnmatchedUsingCols(combined, rightMap, rightDefs)
+	if positional, ok := rightMap["__frigolite_join_group_values__"]; ok {
+		combined["__frigolite_join_group_values__"] = positional
+	}
+	mergeUnmatchedUsingCols(combined, rightMap, mergedUsingCols)
 	copyRightQualifiedKeys(combined, rightMap, tableName)
 	return combined
 }
@@ -759,7 +854,11 @@ func setLeftDefsNull(combined RowMap, leftDefs []sql.ColumnDef, leftTableName st
 func setRightDefsFromMap(combined RowMap, rightMap RowMap, rightDefs []sql.ColumnDef) {
 	for _, cd := range rightDefs {
 		baseName := unprefixedColName(cd.Name)
-		if val, ok := rightMap[baseName]; ok {
+		val, ok := rightMap[cd.Name]
+		if !ok {
+			val, ok = rightMap[baseName]
+		}
+		if ok {
 			combined[cd.Name] = val
 			if _, exists := combined[baseName]; !exists {
 				combined[baseName] = val
@@ -771,10 +870,9 @@ func setRightDefsFromMap(combined RowMap, rightMap RowMap, rightDefs []sql.Colum
 // mergeUnmatchedUsingCols overwrites merged USING/NATURAL columns that were
 // filtered out of rightDefs with the right row's value (an unmatched right row
 // of t1 FULL JOIN t2 USING(id) has a real id from t2).
-func mergeUnmatchedUsingCols(combined RowMap, rightMap RowMap, rightDefs []sql.ColumnDef) {
-	rightDefNames := rightDefBaseNames(rightDefs)
+func mergeUnmatchedUsingCols(combined RowMap, rightMap RowMap, mergedUsingCols map[string]bool) {
 	for k, v := range rightMap {
-		if _, isLeft := combined[k]; isLeft && k != "rowid" && !rightDefNames[k] {
+		if mergedUsingCols[strings.ToLower(k)] {
 			combined[k] = v
 		}
 	}

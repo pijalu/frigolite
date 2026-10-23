@@ -147,7 +147,13 @@ func TestPinCountStarViewsAndWithoutRowid(t *testing.T) {
 	if got := countOf(t, db, "SELECT count(*) FROM wr"); got != 1200 {
 		t.Fatalf("count(*) on WITHOUT ROWID = %d, want 1200", got)
 	}
+	if got := countOf(t, db, "SELECT count(*) FROM wr WHERE n%2=0"); got != 600 {
+		t.Fatalf("WITHOUT ROWID even-key count before delete = %d, want 600", got)
+	}
 	mustExecCount(t, db, "DELETE FROM wr WHERE n%2=0")
+	if got := countOf(t, db, "SELECT count(*) FROM wr WHERE n%2=0"); got != 0 {
+		t.Fatalf("WITHOUT ROWID even-key count after delete = %d, want 0", got)
+	}
 	if got, want := countOf(t, db, "SELECT count(*) FROM wr"), countOf(t, db, "SELECT count(k) FROM wr"); got != want || got != 600 {
 		t.Fatalf("count(*) on WITHOUT ROWID after delete = %d (count(k)=%d), want 600", got, want)
 	}

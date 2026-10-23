@@ -327,6 +327,17 @@ func (e *DDLExecutor) execDropTable(s *sql.DropTableStmt) *Result {
 	if res != nil {
 		return res
 	}
+	// SQLite cannot DROP a persisted virtual table on a connection where its
+	// module is unregistered: schema loading needs module callbacks to destroy
+	// it (vtab.c). In particular, a close/reopen without re-registration must
+	// leave the virtual-table schema intact.
+	if isVtabSchemaEntry(entry) {
+		if module, _, err := parseVTabSQL(entry.SQL); err == nil {
+			if _, ok := e.ctx.VTables().Find(module); !ok {
+				return &Result{Error: fmt.Errorf("no such module: %s", module)}
+			}
+		}
+	}
 	if res := e.authorizeDropTableEntry(s, entry, ctx); res != nil {
 		return res
 	}
@@ -792,6 +803,13 @@ func (e *DDLExecutor) dropFTSState(ctx *DatabaseContext, tableName string) {
 // "%w_vocab" and frees the per-table cost-table state).
 func (e *DDLExecutor) dropVtabModuleState(ctx *DatabaseContext, entry *schema.Entry) *Result {
 	tableName := entry.Name
+	if modName, args, err := parseVTabSQL(entry.SQL); err == nil && strings.EqualFold(modName, "echo") && len(args) > 1 {
+		if _, _, findErr := e.ctx.FindTable(args[1]); findErr == nil {
+			if drop := e.ctx.Exec(&sql.DropTableStmt{Name: args[1]}); drop.Error != nil {
+				return drop
+			}
+		}
+	}
 	if modName, _, isVtab := parseVTabSQL(entry.SQL); isVtab == nil &&
 		(strings.EqualFold(modName, "rtree") || strings.EqualFold(modName, "rtree_i32") ||
 			strings.EqualFold(modName, "geopoly")) {

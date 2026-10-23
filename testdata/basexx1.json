@@ -1,19 +1,20 @@
 {
   "file": "basexx1.test",
   "name": "basexx1",
+  "ordered": true,
   "tests": [
     {
-      "name": "100",
+      "name": "basexx-100",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT base64(x'')||base85(x'');",
           "expect": "{}"
         }
       ]
     },
     {
-      "name": "101",
+      "name": "basexx-101",
       "steps": [
         {
           "type": "query",
@@ -23,7 +24,7 @@
       ]
     },
     {
-      "name": "102",
+      "name": "basexx-102",
       "steps": [
         {
           "type": "query",
@@ -33,7 +34,7 @@
       ]
     },
     {
-      "name": "102-b",
+      "name": "basexx-102-b",
       "steps": [
         {
           "type": "query",
@@ -43,7 +44,7 @@
       ]
     },
     {
-      "name": "103",
+      "name": "basexx-103",
       "steps": [
         {
           "type": "query",
@@ -53,7 +54,7 @@
       ]
     },
     {
-      "name": "104",
+      "name": "basexx-104",
       "steps": [
         {
           "type": "query",
@@ -63,7 +64,7 @@
       ]
     },
     {
-      "name": "105",
+      "name": "basexx-105",
       "steps": [
         {
           "type": "query",
@@ -73,7 +74,7 @@
       ]
     },
     {
-      "name": "106",
+      "name": "basexx-106",
       "steps": [
         {
           "type": "query",
@@ -83,7 +84,7 @@
       ]
     },
     {
-      "name": "107",
+      "name": "basexx-107",
       "steps": [
         {
           "type": "query",
@@ -93,7 +94,7 @@
       ]
     },
     {
-      "name": "108",
+      "name": "basexx-108",
       "steps": [
         {
           "type": "query",
@@ -103,7 +104,20 @@
       ]
     },
     {
-      "name": "109",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "set_limit",
+          "sql": "SQLITE_LIMIT_LENGTH:-1"
+        },
+        {
+          "type": "set_limit",
+          "sql": "SQLITE_LIMIT_LENGTH:1300"
+        }
+      ]
+    },
+    {
+      "name": "basexx-109",
       "steps": [
         {
           "type": "catch",
@@ -113,7 +127,7 @@
       ]
     },
     {
-      "name": "110",
+      "name": "basexx-110",
       "steps": [
         {
           "type": "catch",
@@ -123,7 +137,7 @@
       ]
     },
     {
-      "name": "111",
+      "name": "basexx-111",
       "steps": [
         {
           "type": "catch",
@@ -133,7 +147,16 @@
       ]
     },
     {
-      "name": "112",
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "set_limit",
+          "sql": "SQLITE_LIMIT_LENGTH:"
+        }
+      ]
+    },
+    {
+      "name": "basexx-112",
       "steps": [
         {
           "type": "exec",
@@ -143,7 +166,7 @@
       ]
     },
     {
-      "name": "113",
+      "name": "basexx-113",
       "steps": [
         {
           "type": "query",
@@ -153,7 +176,7 @@
       ]
     },
     {
-      "name": "114",
+      "name": "basexx-114",
       "steps": [
         {
           "type": "catch",
@@ -163,7 +186,7 @@
       ]
     },
     {
-      "name": "115",
+      "name": "basexx-115",
       "steps": [
         {
           "type": "catch",
@@ -173,7 +196,7 @@
       ]
     },
     {
-      "name": "116",
+      "name": "basexx-116",
       "steps": [
         {
           "type": "catch",
@@ -183,7 +206,7 @@
       ]
     },
     {
-      "name": "117",
+      "name": "basexx-117",
       "steps": [
         {
           "type": "query",
@@ -192,7 +215,7 @@
       ]
     },
     {
-      "name": "118",
+      "name": "basexx-118",
       "steps": [
         {
           "type": "catch",
@@ -202,7 +225,7 @@
       ]
     },
     {
-      "name": "119",
+      "name": "basexx-119",
       "steps": [
         {
           "type": "catch",

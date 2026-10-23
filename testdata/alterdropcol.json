@@ -164,6 +164,72 @@
       "steps": null
     },
     {
+      "name": "alterdropcol-2.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y INTEGER PRIMARY KEY, z)  ;\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n    INSERT INTO t1 VALUES(7, 8, 9);"
+        }
+      ]
+    },
+    {
+      "name": "alterdropcol-2.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE t1 DROP COLUMN x;\n    SELECT * FROM t1;",
+          "expect": "\n    2 3  5 6  8 9\n  "
+        }
+      ]
+    },
+    {
+      "name": "alterdropcol-2.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE t1 DROP COLUMN z;\n    SELECT * FROM t1;",
+          "expect": "\n    2 5 8\n  "
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "alterdropcol-2.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y INTEGER PRIMARY KEY, z) WITHOUT ROWID ;\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n    INSERT INTO t1 VALUES(7, 8, 9);"
+        }
+      ]
+    },
+    {
+      "name": "alterdropcol-2.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE t1 DROP COLUMN x;\n    SELECT * FROM t1;",
+          "expect": "\n    2 3  5 6  8 9\n  "
+        }
+      ]
+    },
+    {
+      "name": "alterdropcol-2.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE t1 DROP COLUMN z;\n    SELECT * FROM t1;",
+          "expect": "\n    2 5 8\n  "
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
       "name": "alterdropcol-3.0",
       "steps": [
         {
@@ -866,6 +932,18 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema \n  SET sql = 'CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b)'"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         }
       ]
     },

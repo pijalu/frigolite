@@ -1,0 +1,2054 @@
+{
+  "file": "sharedB.test",
+  "name": "sharedB",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db1"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x,y TEXT COLLATE nocase);\n    WITH RECURSIVE\n      c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i\u003c100)\n    INSERT INTO t1(x,y) SELECT i, printf('x%03dy',i) FROM c;\n    CREATE INDEX t1yx ON t1(y,x);",
+          "database": "db1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.2",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.3",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.4",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.5",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.6",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.7",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.8",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.9",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.10",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.11",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.12",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.13",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.14",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.15",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.16",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.17",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.18",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.19",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.20",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.21",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.22",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.23",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.24",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.25",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.26",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.27",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.28",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.29",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.30",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.31",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.32",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.33",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.34",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.35",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.36",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.37",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.38",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.39",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.40",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.41",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.42",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.43",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.44",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.45",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.46",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.47",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.48",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.49",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.50",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.51",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.52",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.53",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.54",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.55",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.56",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.57",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.58",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.59",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.60",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.61",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.62",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.63",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.64",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.65",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.66",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.67",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.68",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.69",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.70",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.71",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.72",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.73",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.74",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.75",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.76",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.77",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.78",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.79",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.80",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.81",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.82",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.83",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.84",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.85",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.86",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.87",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.88",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.89",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.90",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.91",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.92",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.93",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.94",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.95",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.96",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.97",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.98",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.99",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedB-1.2.100",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y='X014Y';",
+          "expect": "14",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db1"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    }
+  ]
+}

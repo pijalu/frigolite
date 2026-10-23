@@ -1,10 +1,48 @@
 {
   "file": "memsubsys1.test",
   "name": "memsubsys1",
+  "ordered": true,
   "tests": [
     {
       "name": "setup_0",
       "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024"
+        },
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(x, y);\n    CREATE TABLE t2(a, b);\n    CREATE INDEX i1 ON t1(x,y);\n    INSERT INTO t1 VALUES(1, 100);\n    INSERT INTO t1 VALUES(2, 200);"
@@ -15,18 +53,973 @@
         },
         {
           "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+2, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
           "sql": "DELETE FROM t2"
         },
         {
           "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
         },
         {
           "type": "exec",
-          "sql": "PRAGMA page_size"
+          "sql": "INSERT INTO t1 SELECT a+4, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+8, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+16, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+32, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+64, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+128, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+256, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+512, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+1024, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+2048, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+4096, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        }
+      ]
+    },
+    {
+      "name": "memsubsys1-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "8192"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024; PRAGMA mmap_size=0"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y);\n    CREATE TABLE t2(a, b);\n    CREATE INDEX i1 ON t1(x,y);\n    INSERT INTO t1 VALUES(1, 100);\n    INSERT INTO t1 VALUES(2, 200);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+2, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+4, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+8, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+16, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+32, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+64, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+128, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+256, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+512, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+1024, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+2048, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+4096, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        }
+      ]
+    },
+    {
+      "name": "memsubsys1-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "8192"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y);\n    CREATE TABLE t2(a, b);\n    CREATE INDEX i1 ON t1(x,y);\n    INSERT INTO t1 VALUES(1, 100);\n    INSERT INTO t1 VALUES(2, 200);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+2, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+4, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+8, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+16, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+32, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+64, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+128, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+256, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+512, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+1024, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+2048, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+4096, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        }
+      ]
+    },
+    {
+      "name": "memsubsys1-3.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "8192"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=2048"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y);\n    CREATE TABLE t2(a, b);\n    CREATE INDEX i1 ON t1(x,y);\n    INSERT INTO t1 VALUES(1, 100);\n    INSERT INTO t1 VALUES(2, 200);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+2, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+4, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+8, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+16, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+32, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+64, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+128, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+256, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+512, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+1024, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+2048, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+4096, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        }
+      ]
+    },
+    {
+      "name": "memsubsys1-3.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "8192"
+        }
+      ]
+    },
+    {
+      "name": "memsubsys1-3.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size",
+          "expect": "2048"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y);\n    CREATE TABLE t2(a, b);\n    CREATE INDEX i1 ON t1(x,y);\n    INSERT INTO t1 VALUES(1, 100);\n    INSERT INTO t1 VALUES(2, 200);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+2, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+4, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+8, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+16, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+32, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+64, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+128, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+256, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+512, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+1024, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+2048, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+4096, a+b*100 FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        }
+      ]
+    },
+    {
+      "name": "memsubsys1-4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1",
+          "expect": "8192"
+        }
+      ]
+    },
+    {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "close_db"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

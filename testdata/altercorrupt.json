@@ -1,9 +1,22 @@
 {
   "file": "altercorrupt.test",
   "name": "altercorrupt",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercorrupt-1.0",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "altercorrupt-1.1",
       "steps": [
         {
           "type": "catch",
@@ -13,7 +26,19 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "altercorrupt-2.0",
+      "steps": [
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "altercorrupt-2.1",
       "steps": [
         {
           "type": "catch",

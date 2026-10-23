@@ -1,0 +1,3 @@
+exit=1
+elapsed_seconds=377
+command=go test ./... -count=1

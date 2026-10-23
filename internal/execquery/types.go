@@ -53,6 +53,12 @@ type Result struct {
 	// API ignores it, but execJoins uses it to preserve qualified column keys
 	// (t4.a) when a derived table is joined again.
 	rowMaps []RowMap
+	// RowsInBranchOrder marks rows that came out of an OR-index plan: they
+	// are in OR-branch order, not in any index's order, so an ORDER BY needs
+	// a comparator sort. SQLite's MULTI-INDEX OR always adds a temp b-tree
+	// for an ORDER BY (the union of the branches is unordered) and counts one
+	// SQLITE_STMTSTATUS_SORT.
+	RowsInBranchOrder bool
 	// keepPriorRowsOnError marks a failed statement whose rows written before
 	// the conflict survive (SQLite ON CONFLICT FAIL resolution, statement OR
 	// or per-constraint). The statement-level rollback skips the restore.
@@ -215,12 +221,28 @@ type OrConstraint struct {
 	ApplyAffinity bool
 }
 
+// OrRange is a range constraint on one column of an OR branch: the branch
+// matches the rows whose value lies between the bounds. SQLite renders it as
+// "SEARCH t2 USING INDEX t2d (d>? AND d<?)".
+type OrRange struct {
+	Col            string
+	Lower          interface{}
+	LowerInclusive bool
+	Upper          interface{}
+	UpperInclusive bool
+	ApplyAffinity  bool
+}
+
 // OrBranchPlan is one OR term of an OR-index plan: the index whose leading
 // columns the term constrains, plus the constant prefix values.
 type OrBranchPlan struct {
 	IndexName string
 	IndexCols []string
 	Prefix    []OrConstraint
+	// Range is the range constraint the branch imposes on the index's
+	// leading column. SQLite serves such a branch with a range scan
+	// ("d>? AND d<?"); the branch's equality prefix stays empty then.
+	Range *OrRange
 }
 
 // IndexPragmaColumn describes one column of PRAGMA index_info/xinfo output.

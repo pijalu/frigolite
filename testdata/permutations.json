@@ -1,0 +1,15 @@
+{
+  "file": "permutations.test",
+  "name": "permutations",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    }
+  ]
+}

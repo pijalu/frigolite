@@ -4,8 +4,28 @@
   "ordered": true,
   "tests": [
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
       "name": "vtab_shared-1.1",
       "steps": [
+        {
+          "type": "register_echo_module"
+        },
         {
           "type": "exec",
           "sql": "CREATE TABLE t0(a, b, c);\n    INSERT INTO t0 VALUES(1, 2, 3);\n    CREATE VIRTUAL TABLE t1 USING echo(t0);"
@@ -28,7 +48,8 @@
         {
           "type": "catch",
           "sql": "SELECT * FROM t1",
-          "expect": "1 {no such module: echo}"
+          "expect": "1 {no such module: echo}",
+          "database": "db2"
         }
       ]
     },
@@ -38,13 +59,18 @@
         {
           "type": "exec",
           "sql": "SELECT * FROM t0",
-          "expect": "1 2 3"
+          "expect": "1 2 3",
+          "database": "db2"
         }
       ]
     },
     {
       "name": "vtab_shared-1.5",
       "steps": [
+        {
+          "type": "register_echo_module",
+          "database": "db2"
+        },
         {
           "type": "exec",
           "sql": "SELECT * FROM t1",
@@ -58,7 +84,8 @@
         {
           "type": "exec",
           "sql": "SELECT * FROM t1",
-          "expect": "1 2 3"
+          "expect": "1 2 3",
+          "database": "db2"
         }
       ]
     },
@@ -78,7 +105,8 @@
         {
           "type": "catch",
           "sql": "SELECT * FROM t1",
-          "expect": "1 {database table is locked}"
+          "expect": "1 {database table is locked}",
+          "database": "db2"
         }
       ]
     },
@@ -88,7 +116,8 @@
         {
           "type": "catch",
           "sql": "SELECT *  FROM t0",
-          "expect": "1 {database table is locked: t0}"
+          "expect": "1 {database table is locked: t0}",
+          "database": "db2"
         }
       ]
     },
@@ -112,7 +141,8 @@
         {
           "type": "exec",
           "sql": "SELECT *  FROM t1",
-          "expect": "1 2 3 4 5 6"
+          "expect": "1 2 3 4 5 6",
+          "database": "db2"
         }
       ]
     },
@@ -121,8 +151,17 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1",
-          "expect": "1 2 3 4 5 6"
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "register_echo_module",
+          "expect": "1 2 3 4 5 6",
+          "database": "$dbClose"
         }
       ]
     },
@@ -131,8 +170,36 @@
       "steps": [
         {
           "type": "query",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "register_echo_module",
+          "expect": "1 2 3 4 5 6",
+          "database": "$dbClose"
+        }
+      ]
+    },
+    {
+      "name": "vtab_shared-1.9.3",
+      "steps": [
+        {
+          "type": "query",
           "sql": "SELECT * FROM t1",
-          "expect": "1 2 3 4 5 6"
+          "database": "db2"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_echo_module",
+          "expect": "1 2 3 4 5 6",
+          "database": "$dbClose"
         }
       ]
     },
@@ -156,7 +223,8 @@
         {
           "type": "exec",
           "sql": "SELECT * FROM t3",
-          "expect": "1 2 3 4 5 6"
+          "expect": "1 2 3 4 5 6",
+          "database": "db2"
         }
       ]
     },
@@ -164,15 +232,26 @@
       "name": "vtab_shared-1.12.1",
       "steps": [
         {
+          "type": "close_db"
+        },
+        {
           "type": "exec",
           "sql": "SELECT * FROM t1 UNION ALL\n      SELECT * FROM t2 UNION ALL\n      SELECT * FROM t3",
-          "expect": "1 2 3 4 5 6 1 2 3 4 5 6 1 2 3 4 5 6"
+          "expect": "1 2 3 4 5 6 1 2 3 4 5 6 1 2 3 4 5 6",
+          "database": "db2"
         }
       ]
     },
     {
       "name": "vtab_shared-1.12.2",
       "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_echo_module"
+        },
         {
           "type": "exec",
           "sql": "SELECT * FROM t1 UNION ALL\n      SELECT * FROM t2 UNION ALL\n      SELECT * FROM t3",
@@ -200,7 +279,8 @@
         {
           "type": "exec",
           "sql": "SELECT * FROM t4",
-          "expect": "1 2 3 4 5 6"
+          "expect": "1 2 3 4 5 6",
+          "database": "db2"
         }
       ]
     },
@@ -214,13 +294,27 @@
         {
           "type": "exec",
           "sql": "SELECT * FROM t4",
-          "expect": "1 2 3 4 5 6"
+          "expect": "1 2 3 4 5 6",
+          "database": "db2"
         }
       ]
     },
     {
       "name": "vtab_shared_1.14.1",
       "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "register_echo_module",
+          "database": "db2"
+        },
         {
           "type": "exec",
           "sql": "SELECT * FROM t3",
@@ -234,13 +328,27 @@
         {
           "type": "exec",
           "sql": "UPDATE t3 SET c = 'six' WHERE c = 6;\n    SELECT * FROM t3;",
-          "expect": "1 2 3 4 5 six"
+          "expect": "1 2 3 4 5 six",
+          "database": "db2"
         }
       ]
     },
     {
       "name": "vtab_shared_1.14.3",
       "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "register_echo_module",
+          "database": "db2"
+        },
         {
           "type": "exec",
           "sql": "SELECT * FROM t3",
@@ -254,13 +362,27 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t3 WHERE c = 'six';\n    SELECT * FROM t3;",
-          "expect": "1 2 3"
+          "expect": "1 2 3",
+          "database": "db2"
         }
       ]
     },
     {
       "name": "vtab_shared_1.14.5",
       "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "register_echo_module",
+          "database": "db2"
+        },
         {
           "type": "exec",
           "sql": "SELECT * FROM t3",
@@ -274,7 +396,8 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t3 VALUES(4, 5, 6);\n    SELECT * FROM t3;",
-          "expect": "1 2 3 4 5 6"
+          "expect": "1 2 3 4 5 6",
+          "database": "db2"
         }
       ]
     },
@@ -282,9 +405,23 @@
       "name": "vtab_shared_1.15.1",
       "steps": [
         {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "register_echo_module",
+          "database": "db2"
+        },
+        {
           "type": "exec",
           "sql": "UPDATE t3 SET c = 'six' WHERE c = 6;\n    SELECT * FROM t3;",
-          "expect": "1 2 3 4 5 six"
+          "expect": "1 2 3 4 5 six",
+          "database": "db2"
         }
       ]
     },
@@ -292,9 +429,23 @@
       "name": "vtab_shared_1.15.2",
       "steps": [
         {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "register_echo_module",
+          "database": "db2"
+        },
+        {
           "type": "exec",
           "sql": "DELETE FROM t3 WHERE c = 'six';\n    SELECT * FROM t3;",
-          "expect": "1 2 3"
+          "expect": "1 2 3",
+          "database": "db2"
         }
       ]
     },
@@ -302,9 +453,34 @@
       "name": "vtab_shared_1.15.3",
       "steps": [
         {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "register_echo_module",
+          "database": "db2"
+        },
+        {
           "type": "exec",
           "sql": "INSERT INTO t3 VALUES(4, 5, 6);\n    SELECT * FROM t3;",
           "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     },
@@ -316,12 +492,34 @@
       "name": "vtab_shared-2.1.1",
       "steps": [
         {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
           "type": "exec",
           "sql": "CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2);\n      INSERT INTO rt VALUES(1, 2 ,3);\n      SELECT * FROM rt;"
         },
         {
           "type": "exec",
-          "sql": "DROP TABLE rt"
+          "sql": "DROP TABLE rt",
+          "database": "db2"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     },
@@ -333,12 +531,34 @@
       "name": "vtab_shared-2.2.1",
       "steps": [
         {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
           "type": "exec",
           "sql": "CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES('hello world');\n      SELECT * FROM ft;"
         },
         {
           "type": "exec",
-          "sql": "DROP TABLE ft"
+          "sql": "DROP TABLE ft",
+          "database": "db2"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     }

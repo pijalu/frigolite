@@ -1,6 +1,7 @@
 {
   "file": "trigger7.test",
   "name": "trigger7",
+  "ordered": true,
   "tests": [
     {
       "name": "trigger7-1.1",
@@ -8,6 +9,11 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(x, y);"
+        },
+        {
+          "type": "catch",
+          "sql": "CREATE TEMP TRIGGER main.r1 AFTER INSERT ON t1 BEGIN\n      SELECT 'no nothing';\n    END",
+          "expect": "1 {temporary trigger may not have qualified name}"
         }
       ]
     },
@@ -15,7 +21,7 @@
       "name": "trigger7-1.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TRIGGER not_a_db.r1 AFTER INSERT ON t1 BEGIN\n      SELECT 'no nothing';\n    END",
           "expect": "1 {unknown database not_a_db}"
         }
@@ -27,6 +33,73 @@
         {
           "type": "exec",
           "sql": "CREATE TRIGGER r1 AFTER UPDATE OF x ON t1 BEGIN\n        SELECT '___update_t1.x___';\n      END;\n      CREATE TRIGGER r2 AFTER UPDATE OF y ON t1 BEGIN\n        SELECT '___update_t1.y___';\n      END;"
+        },
+        {
+          "type": "query_assign",
+          "sql": "EXPLAIN UPDATE t1 SET x=5",
+          "variable": "txt",
+          "resultAll": true,
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "trigger7-2.2",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "EXPLAIN UPDATE t1 SET x=5",
+          "variable": "txt",
+          "resultAll": true,
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "trigger7-2.3",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "EXPLAIN UPDATE t1 SET y=5",
+          "variable": "txt",
+          "resultAll": true,
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "trigger7-2.4",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "EXPLAIN UPDATE t1 SET y=5",
+          "variable": "txt",
+          "resultAll": true,
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "trigger7-2.5",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "EXPLAIN UPDATE t1 SET rowid=5",
+          "variable": "txt",
+          "resultAll": true,
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "trigger7-2.6",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "EXPLAIN UPDATE t1 SET rowid=5",
+          "variable": "txt",
+          "resultAll": true,
+          "expect": "0"
         }
       ]
     },
@@ -43,51 +116,26 @@
       "name": "trigger7-99.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET sql='nonsense';"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x, y);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TRIGGER r1 AFTER UPDATE OF x ON t1 BEGIN\n        SELECT '___update_t1.x___';\n      END;\n      CREATE TRIGGER r2 AFTER UPDATE OF y ON t1 BEGIN\n        SELECT '___update_t1.y___';\n      END;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(x,y,z);\n    CREATE TRIGGER t2r1 AFTER INSERT ON t2 BEGIN SELECT 1; END;\n    CREATE TRIGGER t2r2 BEFORE INSERT ON t2 BEGIN SELECT 1; END;\n    CREATE TRIGGER t2r3 AFTER UPDATE ON t2 BEGIN SELECT 1; END;\n    CREATE TRIGGER t2r4 BEFORE UPDATE ON t2 BEGIN SELECT 1; END;\n    CREATE TRIGGER t2r5 AFTER DELETE ON t2 BEGIN SELECT 1; END;\n    CREATE TRIGGER t2r6 BEFORE DELETE ON t2 BEGIN SELECT 1; END;\n    CREATE TRIGGER t2r7 AFTER INSERT ON t2 BEGIN SELECT 1; END;\n    CREATE TRIGGER t2r8 BEFORE INSERT ON t2 BEGIN SELECT 1; END;\n    CREATE TRIGGER t2r9 AFTER UPDATE ON t2 BEGIN SELECT 1; END;\n    CREATE TRIGGER t2r10 BEFORE UPDATE ON t2 BEGIN SELECT 1; END;\n    CREATE TRIGGER t2r11 AFTER DELETE ON t2 BEGIN SELECT 1; END;\n    CREATE TRIGGER t2r12 BEFORE DELETE ON t2 BEGIN SELECT 1; END;\n    DROP TRIGGER t2r6;"
+          "type": "defensive",
+          "sql": "0"
         },
         {
           "type": "exec",
           "sql": "PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET sql='nonsense';"
         },
         {
-          "type": "exec",
-          "sql": "EXPLAIN UPDATE t1 SET x=5"
+          "type": "close_db"
         },
         {
-          "type": "exec",
-          "sql": "EXPLAIN UPDATE t1 SET x=5"
+          "type": "reopen_db",
+          "sql": "test.db"
         },
         {
-          "type": "exec",
-          "sql": "EXPLAIN UPDATE t1 SET y=5"
-        },
-        {
-          "type": "exec",
-          "sql": "EXPLAIN UPDATE t1 SET y=5"
-        },
-        {
-          "type": "exec",
-          "sql": "EXPLAIN UPDATE t1 SET rowid=5"
-        },
-        {
-          "type": "exec",
-          "sql": "EXPLAIN UPDATE t1 SET rowid=5"
+          "type": "catch",
+          "sql": "DROP TRIGGER t2r5",
+          "expect": "/1 {malformed database schema .*}/"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

@@ -1,29 +1,380 @@
 {
   "file": "fts3comp1.test",
   "name": "fts3comp1",
+  "ordered": true,
   "tests": [
     {
-      "name": "2.1",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "zip",
+          "callbackVars": {
+            "": "$__catch_result",
+            "::testprefix": "fts3comp1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "next_x": "0",
+            "testdir": "",
+            "tn": "1",
+            "unzip": "unzip",
+            "zip": "zip"
+          },
+          "functionProc": "zip",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": "\n incr ::next_x\n set ::strings($::next_x) $x\n return $::next_x\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "register_function",
+          "functionName": "unzip",
+          "callbackVars": {
+            "": "$__catch_result",
+            "::testprefix": "fts3comp1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "next_x": "0",
+            "testdir": "",
+            "tn": "1",
+            "unzip": "unzip",
+            "zip": "zip"
+          },
+          "functionProc": "unzip",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": "\n  return $::strings($x)\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "fts3comp1-1.1.0",
       "steps": [
         {
           "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(\n      a, b, \n      compress='zip', uncompress='unzip'\n    );"
+        }
+      ]
+    },
+    {
+      "name": "fts3comp1-1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES('one two three', 'two four six');\n    SELECT a, b FROM t1;",
+          "expect": "{one two three} {two four six}"
+        }
+      ]
+    },
+    {
+      "name": "fts3comp1-1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c0a, c1b FROM t1_content;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "fts3comp1-1.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES('three six nine', 'four eight twelve');\n    SELECT a, b FROM t1;",
+          "expect": "{one two three} {two four six} {three six nine} {four eight twelve}"
+        }
+      ]
+    },
+    {
+      "name": "fts3comp1-1.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c0a, c1b FROM t1_content;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "fts3comp1-1.1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1 WHERE docid = 2",
+          "expect": "{three six nine} {four eight twelve}"
+        }
+      ]
+    },
+    {
+      "name": "fts3comp1-1.1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1 WHERE t1 MATCH 'two'",
+          "expect": "{one two three} {two four six}"
+        }
+      ]
+    },
+    {
+      "name": "fts3comp1-1.1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE terms USING fts4aux(t1);\n    SELECT term, documents, occurrences FROM terms WHERE col = '*';",
+          "expect": "\n    eight 1 1    four 2 2    nine 1 1    one 1 1 \n    six 2 2      three 2 2   twelve 1 1  two 1 2\n  "
+        }
+      ]
+    },
+    {
+      "name": "fts3comp1-1.1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1 WHERE docid = 1;\n    SELECT term, documents, occurrences FROM terms WHERE col = '*';",
+          "expect": "\n    eight 1 1   four 1 1    nine 1 1 \n    six 1 1     three 1 1   twelve 1 1\n  "
+        }
+      ]
+    },
+    {
+      "name": "fts3comp1-1.1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c0a, c1b FROM t1_content",
+          "expect": "3 4"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "z.i.p!!",
+          "callbackVars": {
+            "": "$__catch_result",
+            "::testprefix": "fts3comp1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "next_x": "0",
+            "testdir": "",
+            "tn": "2",
+            "unzip": "un \"zip\"",
+            "zip": "z.i.p!!"
+          },
+          "functionProc": "zip",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": "\n incr ::next_x\n set ::strings($::next_x) $x\n return $::next_x\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "register_function",
+          "functionName": "un \"zip\"",
+          "callbackVars": {
+            "": "$__catch_result",
+            "::testprefix": "fts3comp1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "next_x": "0",
+            "testdir": "",
+            "tn": "2",
+            "unzip": "un \"zip\"",
+            "zip": "z.i.p!!"
+          },
+          "functionProc": "unzip",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": "\n  return $::strings($x)\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "fts3comp1-1.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(\n      a, b, \n      compress='z.i.p!!', uncompress='un \"zip\"'\n    );"
+        }
+      ]
+    },
+    {
+      "name": "fts3comp1-1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES('one two three', 'two four six');\n    SELECT a, b FROM t1;",
+          "expect": "{one two three} {two four six}"
+        }
+      ]
+    },
+    {
+      "name": "fts3comp1-1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c0a, c1b FROM t1_content;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "fts3comp1-1.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES('three six nine', 'four eight twelve');\n    SELECT a, b FROM t1;",
+          "expect": "{one two three} {two four six} {three six nine} {four eight twelve}"
+        }
+      ]
+    },
+    {
+      "name": "fts3comp1-1.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c0a, c1b FROM t1_content;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "fts3comp1-1.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1 WHERE docid = 2",
+          "expect": "{three six nine} {four eight twelve}"
+        }
+      ]
+    },
+    {
+      "name": "fts3comp1-1.2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1 WHERE t1 MATCH 'two'",
+          "expect": "{one two three} {two four six}"
+        }
+      ]
+    },
+    {
+      "name": "fts3comp1-1.2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE terms USING fts4aux(t1);\n    SELECT term, documents, occurrences FROM terms WHERE col = '*';",
+          "expect": "\n    eight 1 1    four 2 2    nine 1 1    one 1 1 \n    six 2 2      three 2 2   twelve 1 1  two 1 2\n  "
+        }
+      ]
+    },
+    {
+      "name": "fts3comp1-1.2.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1 WHERE docid = 1;\n    SELECT term, documents, occurrences FROM terms WHERE col = '*';",
+          "expect": "\n    eight 1 1   four 1 1    nine 1 1 \n    six 1 1     three 1 1   twelve 1 1\n  "
+        }
+      ]
+    },
+    {
+      "name": "fts3comp1-1.2.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c0a, c1b FROM t1_content",
+          "expect": "3 4"
+        }
+      ]
+    },
+    {
+      "name": "fts3comp1-2.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE t2 USING fts4(x, compress=zip)",
           "expect": "1 {missing uncompress parameter in fts4 constructor}"
         }
       ]
     },
     {
-      "name": "2.2",
+      "name": "fts3comp1-2.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE t2 USING fts4(x, uncompress=unzip)",
           "expect": "1 {missing compress parameter in fts4 constructor}"
         }
       ]
     },
     {
-      "name": "3.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3comp1-3.0",
       "steps": [
         {
           "type": "query",
@@ -32,7 +383,37 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "myfunc",
+          "callbackVars": {
+            "": "0",
+            "::myfunc_invoked": "0",
+            "::testprefix": "fts3comp1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "next_x": "0",
+            "testdir": "",
+            "tn": "2",
+            "unzip": "un \"zip\"",
+            "zip": "z.i.p!!"
+          },
+          "functionProc": "myfunc",
+          "functionArgs": [
+            "data"
+          ],
+          "functionBody": "\n  incr ::myfunc_invoked\n  return $data\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "fts3comp1-3.1",
       "steps": [
         {
           "type": "exec",
@@ -41,17 +422,17 @@
       ]
     },
     {
-      "name": "3.2",
+      "name": "fts3comp1-3.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM v1",
           "expect": "1 {unsafe use of myfunc()}"
         }
       ]
     },
     {
-      "name": "3.3",
+      "name": "fts3comp1-3.3",
       "steps": [
         {
           "type": "exec",
@@ -60,17 +441,27 @@
       ]
     },
     {
-      "name": "3.4",
+      "name": "fts3comp1-3.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO f1(rowid, x) VALUES(123, 'one two three');",
           "expect": "1 {SQL logic error}"
         }
       ]
     },
     {
-      "name": "3.6.1",
+      "name": "fts3comp1-3.5",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "myfunc_invoked",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "fts3comp1-3.6.1",
       "steps": [
         {
           "type": "exec",
@@ -79,17 +470,21 @@
       ]
     },
     {
-      "name": "3.6.2",
+      "name": "fts3comp1-3.6.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1 VALUES('hello world');",
           "expect": "1 {unsafe use of myfunc()}"
         }
       ]
     },
     {
-      "name": "4.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3comp1-4.0",
       "steps": [
         {
           "type": "exec",
@@ -98,56 +493,156 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "setup_5",
       "steps": [
         {
-          "type": "exec",
+          "type": "register_function",
+          "functionName": "comp",
+          "callbackVars": {
+            "": "0",
+            "::myfunc_invoked": "0",
+            "::testprefix": "fts3comp1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "next_x": "0",
+            "testdir": "",
+            "tn": "2",
+            "unzip": "un \"zip\"",
+            "zip": "z.i.p!!"
+          },
+          "functionProc": "comp",
+          "functionArgs": [
+            "data"
+          ],
+          "functionBody": " return $data ",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
+          "type": "register_function",
+          "functionName": "uncomp",
+          "callbackVars": {
+            "": "0",
+            "::myfunc_invoked": "0",
+            "::testprefix": "fts3comp1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "next_x": "0",
+            "testdir": "",
+            "tn": "2",
+            "unzip": "un \"zip\"",
+            "zip": "z.i.p!!"
+          },
+          "functionProc": "uncomp",
+          "functionArgs": [
+            "data"
+          ],
+          "functionBody": " return $data ",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "fts3comp1-4.1",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "INSERT INTO v1 VALUES('one two three');",
           "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "4.2",
+      "name": "setup_6",
       "steps": [
         {
-          "type": "exec",
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "comp",
+          "callbackVars": {
+            "": "0",
+            "::myfunc_invoked": "0",
+            "::testprefix": "fts3comp1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "next_x": "0",
+            "testdir": "",
+            "tn": "2",
+            "unzip": "un \"zip\"",
+            "zip": "z.i.p!!"
+          },
+          "functionProc": "comp",
+          "functionArgs": [
+            "data"
+          ],
+          "functionBody": " return $data ",
+          "minArgs": 1,
+          "maxArgs": -1,
+          "directOnly": true
+        }
+      ]
+    },
+    {
+      "name": "fts3comp1-4.2",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "INSERT INTO v1 VALUES('one two three');",
           "expect": "1 {SQL logic error}"
         }
       ]
     },
     {
-      "name": "4.3",
+      "name": "setup_7",
       "steps": [
         {
-          "type": "exec",
+          "type": "register_function",
+          "functionName": "uncomp",
+          "callbackVars": {
+            "": "0",
+            "::myfunc_invoked": "0",
+            "::testprefix": "fts3comp1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "next_x": "0",
+            "testdir": "",
+            "tn": "2",
+            "unzip": "un \"zip\"",
+            "zip": "z.i.p!!"
+          },
+          "functionProc": "uncomp",
+          "functionArgs": [
+            "data"
+          ],
+          "functionBody": " return $data ",
+          "minArgs": 1,
+          "maxArgs": -1,
+          "directOnly": true
+        }
+      ]
+    },
+    {
+      "name": "fts3comp1-4.3",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "SELECT * FROM v1",
           "expect": "1 {SQL logic error}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

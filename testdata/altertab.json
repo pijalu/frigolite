@@ -74,6 +74,14 @@
       "steps": null
     },
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_echo_module"
+        }
+      ]
+    },
+    {
       "name": "altertab-2.0",
       "steps": [
         {
@@ -90,6 +98,18 @@
           "type": "query",
           "sql": "ALTER TABLE eee RENAME TO fff;\n    SELECT * FROM fff;",
           "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         }
       ]
     },
@@ -209,6 +229,31 @@
       ]
     },
     {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "squish",
+          "callbackVars": {
+            "": "altertab",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "altertab"
+          },
+          "functionProc": "squish",
+          "functionArgs": [
+            "a"
+          ],
+          "functionBody": "\n  string trim [regsub -all {[[:space:]][[:space:]]*} $a { }]\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
       "name": "altertab-4.2",
       "steps": [
         {
@@ -292,6 +337,63 @@
       ]
     },
     {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "",
+            " ": "[[:space:]][[:space:]]*",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "altertab"
+          },
+          "callbackProcs": [
+            {
+              "Name": "squish",
+              "Args": [
+                "a"
+              ],
+              "Body": "\n  string trim [regsub -all {[[:space:]][[:space:]]*} $a { }]\n",
+              "Defaults": null
+            },
+            {
+              "Name": "tcl_command",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n    switch -- $method {\n      xConnect {\n        return \"CREATE TABLE t1(a, b, c)\"\n      }\n    }\n    return {}\n  ",
+              "Defaults": null
+            },
+            {
+              "Name": "trigger",
+              "Args": [
+                "args"
+              ],
+              "Body": "\n  lappend ::trigger $args\n",
+              "Defaults": null
+            },
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n    switch -- $method {\n      xConnect {\n        if {[info exists ::vtab_connect_sql]} {\n          execsql $::vtab_connect_sql\n        }\n        return \"CREATE TABLE t1(a, b, c)\"\n      }\n\n      xBestIndex {\n        set clist [lindex $args 0]\n        if {[llength $clist]!=1} { error \"unexpected constraint list\" }\n        catch { array unset C }\n        array set C [lindex $clist 0]\n        if {$C(usable)} {\n          return \"omit 0 cost 0 rows 1 idxnum 555 idxstr eq!\"\n        } else {\n          return \"cost 1000000 rows 0 idxnum 0 idxstr scan...\"\n        }\n      }\n    }\n\n    return {}\n  ",
+              "Defaults": null
+            }
+          ],
+          "moduleArgs": [
+            "db"
+          ]
+        }
+      ]
+    },
+    {
       "name": "altertab-6.0",
       "steps": [
         {
@@ -320,6 +422,16 @@
       ]
     },
     {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "internal_functions",
+          "sql": "enable",
+          "internalFunctions": true
+        }
+      ]
+    },
+    {
       "name": "altertab-7.2",
       "steps": [
         {
@@ -330,8 +442,26 @@
       ]
     },
     {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "internal_functions",
+          "sql": "disable"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": null
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
     },
     {
       "name": "altertab-8.1",
@@ -395,6 +525,15 @@
           "type": "catch",
           "sql": "ALTER TABLE t1 RENAME TO t3;",
           "expect": "1 {error in trigger tr: no such table: main.t2}"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
         }
       ]
     },
@@ -463,6 +602,37 @@
       "steps": null
     },
     {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "trigger",
+          "callbackVars": {
+            "": "",
+            " ": "[[:space:]][[:space:]]*",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "altertab"
+          },
+          "functionProc": "trigger",
+          "minArgs": -1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
       "name": "altertab-11.0",
       "steps": [
         {
@@ -477,6 +647,16 @@
         {
           "type": "exec",
           "sql": "INSERT INTO main.t1 VALUES(1, 2, 3);\n  INSERT INTO aux.t1 VALUES(4, 5, 6);"
+        }
+      ]
+    },
+    {
+      "name": "altertab-11.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "trigger",
+          "expect": "{4 5 6}"
         }
       ]
     },
@@ -516,6 +696,16 @@
         {
           "type": "exec",
           "sql": "INSERT INTO aux.t2 VALUES(7, 8, 9);"
+        }
+      ]
+    },
+    {
+      "name": "altertab-11.7",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "trigger",
+          "expect": "{4 5 6} {7 8 9}"
         }
       ]
     },
@@ -716,6 +906,68 @@
       ]
     },
     {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "",
+            " ": "[[:space:]][[:space:]]*",
+            "::trigger": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "altertab"
+          },
+          "callbackProcs": [
+            {
+              "Name": "squish",
+              "Args": [
+                "a"
+              ],
+              "Body": "\n  string trim [regsub -all {[[:space:]][[:space:]]*} $a { }]\n",
+              "Defaults": null
+            },
+            {
+              "Name": "tcl_command",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n    switch -- $method {\n      xConnect {\n        return \"CREATE TABLE t1(a, b, c)\"\n      }\n    }\n    return {}\n  ",
+              "Defaults": null
+            },
+            {
+              "Name": "trigger",
+              "Args": [
+                "args"
+              ],
+              "Body": "\n  lappend ::trigger $args\n",
+              "Defaults": null
+            },
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n    switch -- $method {\n      xConnect {\n        if {[info exists ::vtab_connect_sql]} {\n          execsql $::vtab_connect_sql\n        }\n        return \"CREATE TABLE t1(a, b, c)\"\n      }\n\n      xBestIndex {\n        set clist [lindex $args 0]\n        if {[llength $clist]!=1} { error \"unexpected constraint list\" }\n        catch { array unset C }\n        array set C [lindex $clist 0]\n        if {$C(usable)} {\n          return \"omit 0 cost 0 rows 1 idxnum 555 idxstr eq!\"\n        } else {\n          return \"cost 1000000 rows 0 idxnum 0 idxstr scan...\"\n        }\n      }\n    }\n\n    return {}\n  ",
+              "Defaults": null
+            }
+          ],
+          "moduleArgs": [
+            "db"
+          ]
+        },
+        {
+          "type": "defensive",
+          "sql": "1"
+        }
+      ]
+    },
+    {
       "name": "altertab-16.0",
       "steps": [
         {
@@ -750,12 +1002,30 @@
       ]
     },
     {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
+    {
       "name": "altertab-16.22",
       "steps": [
         {
           "type": "catch",
           "sql": "ALTER TABLE y1_segments RENAME TO abc;",
           "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "1"
         }
       ]
     },
@@ -780,12 +1050,30 @@
       ]
     },
     {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "0"
+        }
+      ]
+    },
+    {
       "name": "altertab-16.25",
       "steps": [
         {
           "type": "catch",
           "sql": "ALTER TABLE abc RENAME TO y1_segments;",
           "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "defensive",
+          "sql": "1"
         }
       ]
     },
@@ -1013,11 +1301,44 @@
       "steps": null
     },
     {
+      "name": "setup_12",
+      "steps": [
+        {
+          "type": "register_collation",
+          "collationName": "compare64",
+          "collationProc": "compare64",
+          "callbackVars": {
+            "": "",
+            " ": "[[:space:]][[:space:]]*",
+            "::trigger": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "altertab"
+          }
+        }
+      ]
+    },
+    {
       "name": "altertab-23.1",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE gigo(a text);\n  CREATE TABLE idx(x text COLLATE compare64);\n  CREATE VIEW v1 AS SELECT * FROM idx WHERE x='abc';"
+        }
+      ]
+    },
+    {
+      "name": "setup_13",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         }
       ]
     },

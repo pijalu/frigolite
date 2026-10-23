@@ -25,11 +25,11 @@ func (e *Engine) materializeVtabTableFunc(ref sql.TableRef, opts execquery.VtabS
 	if !ok {
 		return nil, nil, nil, fmt.Errorf("no such module: %s", ref.Name)
 	}
-	args, err := evalVtabArgs(e, ref, nil)
+	args, err := evalVtabArgs(e, ref, opts.OuterRow)
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	valArgs, verr := evalVtabArgValues(e, ref, nil)
+	valArgs, verr := evalVtabArgValues(e, ref, opts.OuterRow)
 	if verr != nil {
 		return nil, nil, nil, verr
 	}

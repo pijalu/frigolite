@@ -60,6 +60,15 @@ type Engine struct {
 	// tracking (lockreg).
 	connID int64
 
+	// fullScanSteps and sortOps mirror SQLite's sqlite3_stmt_status
+	// counters: fullScanSteps counts the rows stepped by a full table scan
+	// (SQLITE_STMTSTATUS_FULLSCAN_STEP) and sortOps counts the sorter
+	// invocations (SQLITE_STMTSTATUS_SORT). The testfixture reads them
+	// through `db status step` / `db status sort` (where7's count_steps_sort
+	// helper), so they must be per-statement and reset when read.
+	fullScanSteps int64
+	sortOps       int64
+
 	// tempBtreeOpen mirrors SQLite's lazy aDb[1].pBt creation: the temp
 	// database starts closed and "opens" the first time anything addresses
 	// the temp schema (PRAGMA temp.<...>, CREATE TEMP TABLE, ...).
@@ -130,6 +139,7 @@ type Engine struct {
 	databases map[string]*DatabaseContext // schema_name -> context (upper-cased key)
 	dbList    []*DatabaseContext          // attached databases in ATTACH order (main first)
 	mainDB    *DatabaseContext            // shortcut for "main"
+	statsUsed map[string]bool             // tables whose non-unique index plans consulted statistics
 
 	// Legacy direct fields pointing to mainDB (kept for backward compat with existing code)
 	pager           *pager.Pager
@@ -562,8 +572,8 @@ type tableCaches struct {
 	// added or same-key-overwritten (never retracted), so a superseded memo
 	// still serves a structurally verified statement correctly.
 	lastTemplate   *sqlTemplateEntry
-	uniqueIdxCache map[string][]uniqueIndexDef  // cached unique-index definitions per table name
-	viewDefCache   map[string][]sql.ColumnDef   // cached view column definitions (viewName -> colDefs)
+	uniqueIdxCache map[string][]uniqueIndexDef // cached unique-index definitions per table name
+	viewDefCache   map[string][]sql.ColumnDef  // cached view column definitions (viewName -> colDefs)
 }
 
 // schemaMemo is a single-entry content-keyed memo over (name, SQL text).

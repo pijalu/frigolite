@@ -1,0 +1,16 @@
+{
+  "file": "mallocI.test",
+  "name": "mallocI",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    }
+  ]
+}

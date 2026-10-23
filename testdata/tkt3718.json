@@ -1,6 +1,7 @@
 {
   "file": "tkt3718.test",
   "name": "tkt3718",
+  "ordered": true,
   "tests": [
     {
       "name": "tkt3718-1.1",
@@ -12,11 +13,57 @@
       ]
     },
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "f1",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "f1",
+          "functionArgs": [
+            "args"
+          ],
+          "functionBody": "\n  set a [lindex $args 0]\n  catch { db eval {SELECT f2($a)} } msg\n  set msg\n",
+          "maxArgs": -1
+        },
+        {
+          "type": "register_function",
+          "functionName": "f2",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "f2",
+          "functionArgs": [
+            "args"
+          ],
+          "functionBody": "\n  set a [lindex $args 0]\n  if {$a == \"three\"} { error \"Three!!\" }\n  return $a\n",
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
       "name": "tkt3718-1.2",
       "steps": [
         {
           "type": "exec",
           "sql": "BEGIN;\n    INSERT INTO t2 SELECT a, b FROM t1;\n    INSERT INTO t2 SELECT a+5, f1(b) FROM t1;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t2;",
+          "expect": "1 2 3 4 5 6 7 8 9 10"
         }
       ]
     },
@@ -25,7 +72,16 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM t2 WHERE a > 5;\n    PRAGMA count_changes = 1;\n    BEGIN;"
+          "sql": "DELETE FROM t2 WHERE a \u003e 5;\n    PRAGMA count_changes = 1;\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT a+5, b||'+5' FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    SELECT a FROM t2;",
+          "expect": "1 2 3 4 5 6 7 8 9 10"
         }
       ]
     },
@@ -33,8 +89,33 @@
       "name": "tkt3718-1.4",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "pragma count_changes=0"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "sql",
+          "callbackVars": {
+            "": "sql",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": ""
+          },
+          "functionProc": "sql",
+          "functionArgs": [
+            "doit",
+            "zSql"
+          ],
+          "functionBody": "\n  if {$doit} { catchsql $zSql }\n",
+          "minArgs": 2,
+          "maxArgs": -1
         }
       ]
     },
@@ -42,8 +123,12 @@
       "name": "tkt3718-2.1",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT sql(1, 'DELETE FROM t2 WHERE a = '||a ) FROM t2 WHERE a>5",
+          "type": "exec",
+          "sql": "SELECT sql(1, 'DELETE FROM t2 WHERE a = '||a ) FROM t2 WHERE a\u003e5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a from t2",
           "expect": "1 2 3 4 5"
         }
       ]
@@ -53,7 +138,12 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM t2 WHERE a > 5;\n    BEGIN;\n    INSERT INTO t2 SELECT a+5, sql(a==3,\n        'INSERT INTO t2 SELECT a+10, f2(b) FROM t1'\n    ) FROM t1;"
+          "sql": "DELETE FROM t2 WHERE a \u003e 5;\n    BEGIN;\n    INSERT INTO t2 SELECT a+5, sql(a==3,\n        'INSERT INTO t2 SELECT a+10, f2(b) FROM t1'\n    ) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    SELECT a FROM t2;",
+          "expect": "1 2 3 4 5 6 7 8 9 10"
         }
       ]
     },
@@ -62,91 +152,356 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM t2 WHERE a > 5;\n    BEGIN;\n    INSERT INTO t2 SELECT a+5, sql(a==3,\n        'INSERT INTO t2 SELECT a+10, b FROM t1'\n    ) FROM t1;\n    COMMIT;"
+          "sql": "DELETE FROM t2 WHERE a \u003e 5;\n    BEGIN;\n    INSERT INTO t2 SELECT a+5, sql(a==3,\n        'INSERT INTO t2 SELECT a+10, b FROM t1'\n    ) FROM t1;\n    COMMIT;"
         },
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');\n    CREATE TABLE t2(a PRIMARY KEY, b);"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    INSERT INTO t2 SELECT a, b FROM t1;\n    INSERT INTO t2 SELECT a+5, f1(b) FROM t1;\n    COMMIT;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t2;"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t2 WHERE a > 5;\n    PRAGMA count_changes = 1;\n    BEGIN;"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT;\n    SELECT a FROM t2;"
-        },
-        {
-          "type": "exec",
-          "sql": "pragma count_changes=0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT sql(1, 'DELETE FROM t2 WHERE a = '||a ) FROM t2 WHERE a>5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a from t2"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t2 WHERE a > 5;\n    BEGIN;\n    INSERT INTO t2 SELECT a+5, sql(a==3,\n        'INSERT INTO t2 SELECT a+10, f2(b) FROM t1'\n    ) FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT;\n    SELECT a FROM t2;"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t2 WHERE a > 5;\n    BEGIN;\n    INSERT INTO t2 SELECT a+5, sql(a==3,\n        'INSERT INTO t2 SELECT a+10, b FROM t1'\n    ) FROM t1;\n    COMMIT;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t2 ORDER BY a+0"
-        },
+          "sql": "SELECT a FROM t2 ORDER BY a+0",
+          "expect": "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15"
+        }
+      ]
+    },
+    {
+      "name": "tkt3718-3.1",
+      "steps": [
         {
           "type": "exec",
           "sql": "DELETE FROM t2;\n      INSERT INTO t2 SELECT a+5, b FROM t1;\n      INSERT INTO t2 SELECT a+15, b FROM t1;"
         },
         {
+          "type": "catch",
+          "sql": "BEGIN;\n      INSERT INTO t2 SELECT a+0, sql(a==3,\n          'INSERT INTO t2 SELECT a+10, b FROM t1'\n      ) FROM t1;"
+        },
+        {
           "type": "exec",
           "sql": "COMMIT"
         },
         {
           "type": "exec",
-          "sql": "SELECT a FROM t2 ORDER BY a+0"
+          "sql": "SELECT a FROM t2 ORDER BY a+0",
+          "expect": "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20"
+        }
+      ]
+    },
+    {
+      "name": "tkt3718-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2;\n      INSERT INTO t2 SELECT a+5, b FROM t1;\n      INSERT INTO t2 SELECT a+15, b FROM t1;"
         },
+        {
+          "type": "catch",
+          "sql": "BEGIN;\n      INSERT INTO t2 SELECT a+1, sql(a==3,\n          'INSERT INTO t2 SELECT a+10, b FROM t1'\n      ) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t2 ORDER BY a+0",
+          "expect": "6 7 8 9 10 16 17 18 19 20"
+        }
+      ]
+    },
+    {
+      "name": "tkt3718-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2;\n      INSERT INTO t2 SELECT a+5, b FROM t1;\n      INSERT INTO t2 SELECT a+15, b FROM t1;"
+        },
+        {
+          "type": "catch",
+          "sql": "BEGIN;\n      INSERT INTO t2 SELECT a+0, sql(a==3,\n          'INSERT INTO t2 SELECT a+11, b FROM t1'\n      ) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t2 ORDER BY a+0",
+          "expect": "1 2 3 4 5 6 7 8 9 10 16 17 18 19 20"
+        }
+      ]
+    },
+    {
+      "name": "tkt3718-3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2;\n      INSERT INTO t2 SELECT a+5, b FROM t1;\n      INSERT INTO t2 SELECT a+15, b FROM t1;"
+        },
+        {
+          "type": "catch",
+          "sql": "BEGIN;\n      INSERT INTO t2 SELECT a+1, sql(a==3,\n          'INSERT INTO t2 SELECT a+11, b FROM t1'\n      ) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t2 ORDER BY a+0",
+          "expect": "6 7 8 9 10 16 17 18 19 20"
+        }
+      ]
+    },
+    {
+      "name": "tkt3718-4.1",
+      "steps": [
         {
           "type": "exec",
           "sql": "DELETE FROM t2;\n      INSERT INTO t2 SELECT a+5, b FROM t1;\n      INSERT INTO t2 SELECT a+15, b FROM t1;\n      INSERT INTO t2 SELECT a+25, b FROM t1;"
         },
         {
+          "type": "catch",
+          "sql": "BEGIN;\n      INSERT INTO t2 SELECT a+0, sql(a==3,\n          'INSERT INTO t2 SELECT a+10, sql(a==3, \n             ''INSERT INTO t2 SELECT a+20, b FROM t1''\n           ) FROM t1'\n      ) FROM t1;"
+        },
+        {
           "type": "exec",
           "sql": "COMMIT"
         },
         {
           "type": "exec",
-          "sql": "SELECT a FROM t2 WHERE (a%5)==0 ORDER BY a+0"
+          "sql": "SELECT a FROM t2 WHERE (a%5)==0 ORDER BY a+0",
+          "expect": "5 10 15 20 25 30"
+        }
+      ]
+    },
+    {
+      "name": "tkt3718-4.1.extra",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT \n        (SELECT sum(a) FROM t2)==(SELECT sum(a*5-10) FROM t2 WHERE (a%5)==0)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt3718-4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2;\n      INSERT INTO t2 SELECT a+5, b FROM t1;\n      INSERT INTO t2 SELECT a+15, b FROM t1;\n      INSERT INTO t2 SELECT a+25, b FROM t1;"
+        },
+        {
+          "type": "catch",
+          "sql": "BEGIN;\n      INSERT INTO t2 SELECT a+0, sql(a==3,\n          'INSERT INTO t2 SELECT a+10, sql(a==3, \n             ''INSERT INTO t2 SELECT a+21, b FROM t1''\n           ) FROM t1'\n      ) FROM t1;"
         },
         {
           "type": "exec",
-          "sql": "SELECT \n        (SELECT sum(a) FROM t2)==(SELECT sum(a*5-10) FROM t2 WHERE (a%5)==0)"
+          "sql": "COMMIT"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t2 SELECT a+5, b||'+5' FROM t1"
+          "sql": "SELECT a FROM t2 WHERE (a%5)==0 ORDER BY a+0",
+          "expect": "5 10 15 20 30"
+        }
+      ]
+    },
+    {
+      "name": "tkt3718-4.2.extra",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT \n        (SELECT sum(a) FROM t2)==(SELECT sum(a*5-10) FROM t2 WHERE (a%5)==0)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt3718-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2;\n      INSERT INTO t2 SELECT a+5, b FROM t1;\n      INSERT INTO t2 SELECT a+15, b FROM t1;\n      INSERT INTO t2 SELECT a+25, b FROM t1;"
+        },
+        {
+          "type": "catch",
+          "sql": "BEGIN;\n      INSERT INTO t2 SELECT a+0, sql(a==3,\n          'INSERT INTO t2 SELECT a+11, sql(a==3, \n             ''INSERT INTO t2 SELECT a+20, b FROM t1''\n           ) FROM t1'\n      ) FROM t1;"
         },
         {
           "type": "exec",
-          "sql": "SELECT f2('three')"
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t2 WHERE (a%5)==0 ORDER BY a+0",
+          "expect": "5 10 20 30"
+        }
+      ]
+    },
+    {
+      "name": "tkt3718-4.3.extra",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT \n        (SELECT sum(a) FROM t2)==(SELECT sum(a*5-10) FROM t2 WHERE (a%5)==0)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt3718-4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2;\n      INSERT INTO t2 SELECT a+5, b FROM t1;\n      INSERT INTO t2 SELECT a+15, b FROM t1;\n      INSERT INTO t2 SELECT a+25, b FROM t1;"
+        },
+        {
+          "type": "catch",
+          "sql": "BEGIN;\n      INSERT INTO t2 SELECT a+0, sql(a==3,\n          'INSERT INTO t2 SELECT a+11, sql(a==3, \n             ''INSERT INTO t2 SELECT a+21, b FROM t1''\n           ) FROM t1'\n      ) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t2 WHERE (a%5)==0 ORDER BY a+0",
+          "expect": "5 10 20 30"
+        }
+      ]
+    },
+    {
+      "name": "tkt3718-4.4.extra",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT \n        (SELECT sum(a) FROM t2)==(SELECT sum(a*5-10) FROM t2 WHERE (a%5)==0)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt3718-4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2;\n      INSERT INTO t2 SELECT a+5, b FROM t1;\n      INSERT INTO t2 SELECT a+15, b FROM t1;\n      INSERT INTO t2 SELECT a+25, b FROM t1;"
+        },
+        {
+          "type": "catch",
+          "sql": "BEGIN;\n      INSERT INTO t2 SELECT a+1, sql(a==3,\n          'INSERT INTO t2 SELECT a+10, sql(a==3, \n             ''INSERT INTO t2 SELECT a+20, b FROM t1''\n           ) FROM t1'\n      ) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t2 WHERE (a%5)==0 ORDER BY a+0",
+          "expect": "10 20 30"
+        }
+      ]
+    },
+    {
+      "name": "tkt3718-4.5.extra",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT \n        (SELECT sum(a) FROM t2)==(SELECT sum(a*5-10) FROM t2 WHERE (a%5)==0)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt3718-4.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2;\n      INSERT INTO t2 SELECT a+5, b FROM t1;\n      INSERT INTO t2 SELECT a+15, b FROM t1;\n      INSERT INTO t2 SELECT a+25, b FROM t1;"
+        },
+        {
+          "type": "catch",
+          "sql": "BEGIN;\n      INSERT INTO t2 SELECT a+1, sql(a==3,\n          'INSERT INTO t2 SELECT a+10, sql(a==3, \n             ''INSERT INTO t2 SELECT a+21, b FROM t1''\n           ) FROM t1'\n      ) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t2 WHERE (a%5)==0 ORDER BY a+0",
+          "expect": "10 20 30"
+        }
+      ]
+    },
+    {
+      "name": "tkt3718-4.6.extra",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT \n        (SELECT sum(a) FROM t2)==(SELECT sum(a*5-10) FROM t2 WHERE (a%5)==0)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt3718-4.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2;\n      INSERT INTO t2 SELECT a+5, b FROM t1;\n      INSERT INTO t2 SELECT a+15, b FROM t1;\n      INSERT INTO t2 SELECT a+25, b FROM t1;"
+        },
+        {
+          "type": "catch",
+          "sql": "BEGIN;\n      INSERT INTO t2 SELECT a+1, sql(a==3,\n          'INSERT INTO t2 SELECT a+11, sql(a==3, \n             ''INSERT INTO t2 SELECT a+20, b FROM t1''\n           ) FROM t1'\n      ) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t2 WHERE (a%5)==0 ORDER BY a+0",
+          "expect": "10 20 30"
+        }
+      ]
+    },
+    {
+      "name": "tkt3718-4.7.extra",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT \n        (SELECT sum(a) FROM t2)==(SELECT sum(a*5-10) FROM t2 WHERE (a%5)==0)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt3718-4.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2;\n      INSERT INTO t2 SELECT a+5, b FROM t1;\n      INSERT INTO t2 SELECT a+15, b FROM t1;\n      INSERT INTO t2 SELECT a+25, b FROM t1;"
+        },
+        {
+          "type": "catch",
+          "sql": "BEGIN;\n      INSERT INTO t2 SELECT a+1, sql(a==3,\n          'INSERT INTO t2 SELECT a+11, sql(a==3, \n             ''INSERT INTO t2 SELECT a+21, b FROM t1''\n           ) FROM t1'\n      ) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t2 WHERE (a%5)==0 ORDER BY a+0",
+          "expect": "10 20 30"
+        }
+      ]
+    },
+    {
+      "name": "tkt3718-4.8.extra",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT \n        (SELECT sum(a) FROM t2)==(SELECT sum(a*5-10) FROM t2 WHERE (a%5)==0)",
+          "expect": "1"
         }
       ]
     }

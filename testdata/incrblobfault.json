@@ -1,9 +1,10 @@
 {
   "file": "incrblobfault.test",
   "name": "incrblobfault",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "incrblobfault-1.0",
       "steps": [
         {
           "type": "exec",

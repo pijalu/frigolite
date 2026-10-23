@@ -1,9 +1,10 @@
 {
   "file": "indexexpr2.test",
   "name": "indexexpr2",
+  "ordered": true,
   "tests": [
     {
-      "name": "1",
+      "name": "indexexpr2-1",
       "steps": [
         {
           "type": "exec",
@@ -12,27 +13,27 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "indexexpr2-1.1",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT 'TWOX' == (b || 'x') FROM t1 WHERE (b || 'x')>'onex'",
+          "sql": "SELECT 'TWOX' == (b || 'x') FROM t1 WHERE (b || 'x')\u003e'onex'",
           "expect": "0 0"
         }
       ]
     },
     {
-      "name": "1.2",
+      "name": "indexexpr2-1.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT 'TWOX' == (b || 'x') COLLATE nocase  FROM t1 WHERE (b || 'x')>'onex'",
+          "sql": "SELECT 'TWOX' == (b || 'x') COLLATE nocase  FROM t1 WHERE (b || 'x')\u003e'onex'",
           "expect": "0 1"
         }
       ]
     },
     {
-      "name": "2.0",
+      "name": "indexexpr2-2.0",
       "steps": [
         {
           "type": "exec",
@@ -41,7 +42,7 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "indexexpr2-2.1",
       "steps": [
         {
           "type": "query",
@@ -51,7 +52,11 @@
       ]
     },
     {
-      "name": "3.1.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "indexexpr2-3.1.0",
       "steps": [
         {
           "type": "exec",
@@ -60,7 +65,16 @@
       ]
     },
     {
-      "name": "3.2.0",
+      "name": "indexexpr2-3.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT b FROM t1 WHERE b IS NOT NULL AND a IS NULL \n  GROUP BY b COLLATE nocase\n  ORDER BY b COLLATE nocase;"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-3.2.0",
       "steps": [
         {
           "type": "exec",
@@ -69,27 +83,27 @@
       ]
     },
     {
-      "name": "3.2.1",
+      "name": "indexexpr2-3.2.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT x FROM t2 ORDER BY substr(x, 2) COLLATE nocase;",
-          "expect": ".ABC .abcd .DEF .defg"
+          "expect": "\n  .ABC .abcd .DEF .defg\n"
         }
       ]
     },
     {
-      "name": "3.2.2",
+      "name": "indexexpr2-3.2.2",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE INDEX i2 ON t2( substr(x, 2) );\n  SELECT x FROM t2 ORDER BY substr(x, 2) COLLATE nocase;",
-          "expect": ".ABC .abcd .DEF .defg"
+          "expect": "\n  .ABC .abcd .DEF .defg\n"
         }
       ]
     },
     {
-      "name": "3.3.0",
+      "name": "indexexpr2-3.3.0",
       "steps": [
         {
           "type": "exec",
@@ -98,7 +112,34 @@
       ]
     },
     {
-      "name": "3.4.0",
+      "name": "indexexpr2-3.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT json_extract(x, '$.b') FROM t2 \n    WHERE json_extract(x, '$.b') IS NOT NULL AND json_extract(x, '$.a') IS NULL \n    GROUP BY json_extract(x, '$.b') COLLATE nocase\n    ORDER BY json_extract(x, '$.b') COLLATE nocase;"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-3.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i3 ON t3(json_extract(x, '$.a'), json_extract(x, '$.b'));"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-3.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT json_extract(x, '$.b') FROM t3 \n    WHERE json_extract(x, '$.b') IS NOT NULL AND json_extract(x, '$.a') IS NULL \n    GROUP BY json_extract(x, '$.b') COLLATE nocase\n    ORDER BY json_extract(x, '$.b') COLLATE nocase;"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-3.4.0",
       "steps": [
         {
           "type": "exec",
@@ -107,27 +148,27 @@
       ]
     },
     {
-      "name": "3.4.1",
+      "name": "indexexpr2-3.4.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t4 \n  WHERE substr(a, 2) = 'abc' COLLATE NOCASE\n  ORDER BY substr(a, 2), b;",
-          "expect": ".ABC 1   .ABC 3   .abc 2   .abc 4"
+          "expect": "\n  .ABC 1   .ABC 3   .abc 2   .abc 4\n"
         }
       ]
     },
     {
-      "name": "3.4.2",
+      "name": "indexexpr2-3.4.2",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE INDEX i4 ON t4( substr(a, 2) COLLATE NOCASE, b );\n  SELECT * FROM t4 \n  WHERE substr(a, 2) = 'abc' COLLATE NOCASE\n  ORDER BY substr(a, 2), b;",
-          "expect": ".ABC 1   .ABC 3   .abc 2   .abc 4"
+          "expect": "\n  .ABC 1   .ABC 3   .abc 2   .abc 4\n"
         }
       ]
     },
     {
-      "name": "3.4.3",
+      "name": "indexexpr2-3.4.3",
       "steps": [
         {
           "type": "query",
@@ -137,7 +178,7 @@
       ]
     },
     {
-      "name": "3.4.4",
+      "name": "indexexpr2-3.4.4",
       "steps": [
         {
           "type": "query",
@@ -147,7 +188,7 @@
       ]
     },
     {
-      "name": "3.4.5",
+      "name": "indexexpr2-3.4.5",
       "steps": [
         {
           "type": "query",
@@ -157,7 +198,7 @@
       ]
     },
     {
-      "name": "3.4.5eqp",
+      "name": "indexexpr2-3.4.5eqp",
       "steps": [
         {
           "type": "query",
@@ -167,7 +208,7 @@
       ]
     },
     {
-      "name": "3.4.6",
+      "name": "indexexpr2-3.4.6",
       "steps": [
         {
           "type": "query",
@@ -177,7 +218,96 @@
       ]
     },
     {
-      "name": "4.200",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "refcnt",
+          "callbackVars": {
+            "": "0",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "cnt": "0",
+            "testdir": "",
+            "testprefix": "indexexpr2"
+          },
+          "functionProc": "refcnt",
+          "functionArgs": [
+            "x"
+          ],
+          "functionBody": "\n  global cnt\n  incr cnt\n  return $x\n",
+          "minArgs": 1,
+          "maxArgs": -1,
+          "deterministic": true
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-4.100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c,d,e,f);\n    CREATE INDEX t1abc ON t1(refcnt(a+b+c));"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "cnt",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-4.110",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,2,3,4,5,6);"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "cnt",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-4.120",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b+1;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "cnt",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-4.130",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET d=d+1;"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "cnt",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-4.200",
       "steps": [
         {
           "type": "query",
@@ -187,7 +317,7 @@
       ]
     },
     {
-      "name": "4.210",
+      "name": "indexexpr2-4.210",
       "steps": [
         {
           "type": "query",
@@ -197,7 +327,7 @@
       ]
     },
     {
-      "name": "4.220",
+      "name": "indexexpr2-4.220",
       "steps": [
         {
           "type": "query",
@@ -207,7 +337,17 @@
       ]
     },
     {
-      "name": "5.0",
+      "name": "indexexpr2-4.900",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM explain WHERE rowid = 0",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-5.0",
       "steps": [
         {
           "type": "exec",
@@ -216,7 +356,7 @@
       ]
     },
     {
-      "name": "5.1",
+      "name": "indexexpr2-5.1",
       "steps": [
         {
           "type": "query",
@@ -226,7 +366,7 @@
       ]
     },
     {
-      "name": "5.2",
+      "name": "indexexpr2-5.2",
       "steps": [
         {
           "type": "exec",
@@ -235,7 +375,7 @@
       ]
     },
     {
-      "name": "5.4",
+      "name": "indexexpr2-5.4",
       "steps": [
         {
           "type": "query",
@@ -245,7 +385,7 @@
       ]
     },
     {
-      "name": "6.0",
+      "name": "indexexpr2-6.0",
       "steps": [
         {
           "type": "exec",
@@ -254,7 +394,7 @@
       ]
     },
     {
-      "name": "6.1.1",
+      "name": "indexexpr2-6.1.1",
       "steps": [
         {
           "type": "query",
@@ -264,7 +404,7 @@
       ]
     },
     {
-      "name": "6.1.2",
+      "name": "indexexpr2-6.1.2",
       "steps": [
         {
           "type": "query",
@@ -274,7 +414,16 @@
       ]
     },
     {
-      "name": "6.2.1",
+      "name": "indexexpr2-6.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT a, b FROM x1 WHERE CAST(b AS INTEGER) = 123;"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-6.2.1",
       "steps": [
         {
           "type": "query",
@@ -284,7 +433,7 @@
       ]
     },
     {
-      "name": "6.2.2",
+      "name": "indexexpr2-6.2.2",
       "steps": [
         {
           "type": "query",
@@ -294,7 +443,16 @@
       ]
     },
     {
-      "name": "7.0",
+      "name": "indexexpr2-6.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT a, b FROM x1 WHERE CAST(b AS TEXT) = 123;"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-7.0",
       "steps": [
         {
           "type": "exec",
@@ -303,26 +461,27 @@
       ]
     },
     {
-      "name": "7.1",
+      "name": "indexexpr2-7.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE INDEX i0 ON t0(ABS(c0));",
           "expect": "1 {integer overflow}"
         }
       ]
     },
     {
-      "name": "7.2",
+      "name": "indexexpr2-7.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT;\n  SELECT sql FROM sqlite_master WHERE tbl_name = 't0';\n  CREATE INDEX i0 ON t0(c0);"
+          "sql": "COMMIT;\n  SELECT sql FROM sqlite_master WHERE tbl_name = 't0';\n  CREATE INDEX i0 ON t0(c0);",
+          "expect": "{CREATE TABLE t0(c0)}"
         }
       ]
     },
     {
-      "name": "7.3",
+      "name": "indexexpr2-7.3",
       "steps": [
         {
           "type": "exec",
@@ -331,7 +490,11 @@
       ]
     },
     {
-      "name": "8.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "indexexpr2-8.0",
       "steps": [
         {
           "type": "exec",
@@ -340,17 +503,17 @@
       ]
     },
     {
-      "name": "8.1.1",
+      "name": "indexexpr2-8.1.1",
       "steps": [
         {
-          "type": "query",
+          "type": "emptytext",
           "sql": "SELECT * FROM t0 WHERE ~('' BETWEEN t0.c0 AND TRUE);",
           "expect": "{}"
         }
       ]
     },
     {
-      "name": "8.1.2",
+      "name": "indexexpr2-8.1.2",
       "steps": [
         {
           "type": "query",
@@ -360,7 +523,247 @@
       ]
     },
     {
-      "name": "8.4",
+      "name": "indexexpr2-8.3.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 WHERE  0  ==  (34 BETWEEN c0 AND 33) ORDER BY c0",
+          "expect": " {} "
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.3.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( 0  ==  (34 BETWEEN c0 AND 33)) IS TRUE FROM t0",
+          "expect": " 1 "
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.3.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 WHERE  1  !=  (34 BETWEEN c0 AND 33) ORDER BY c0",
+          "expect": " {} "
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.3.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( 1  !=  (34 BETWEEN c0 AND 33)) IS TRUE FROM t0",
+          "expect": " 1 "
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.3.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 WHERE -1   \u003c  (34 BETWEEN c0 AND 33) ORDER BY c0",
+          "expect": " {} "
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.3.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (-1   \u003c  (34 BETWEEN c0 AND 33)) IS TRUE FROM t0",
+          "expect": " 1 "
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.3.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 WHERE -1  \u003c=  (34 BETWEEN c0 AND 33) ORDER BY c0",
+          "expect": " {} "
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.3.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (-1  \u003c=  (34 BETWEEN c0 AND 33)) IS TRUE FROM t0",
+          "expect": " 1 "
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.3.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 WHERE  1   \u003e  (34 BETWEEN c0 AND 33) ORDER BY c0",
+          "expect": " {} "
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.3.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( 1   \u003e  (34 BETWEEN c0 AND 33)) IS TRUE FROM t0",
+          "expect": " 1 "
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.3.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 WHERE  1  \u003e=  (34 BETWEEN c0 AND 33) ORDER BY c0",
+          "expect": " {} "
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.3.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( 1  \u003e=  (34 BETWEEN c0 AND 33)) IS TRUE FROM t0",
+          "expect": " 1 "
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.3.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 WHERE  1   -  (34 BETWEEN c0 AND 33) ORDER BY c0",
+          "expect": " {} "
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.3.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( 1   -  (34 BETWEEN c0 AND 33)) IS TRUE FROM t0",
+          "expect": " 1 "
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.3.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 WHERE -1   +  (34 BETWEEN c0 AND 33) ORDER BY c0",
+          "expect": " {} "
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.3.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (-1   +  (34 BETWEEN c0 AND 33)) IS TRUE FROM t0",
+          "expect": " 1 "
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.3.9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 WHERE  1   |  (34 BETWEEN c0 AND 33) ORDER BY c0",
+          "expect": " {} "
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.3.9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( 1   |  (34 BETWEEN c0 AND 33)) IS TRUE FROM t0",
+          "expect": " 1 "
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.3.10.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 WHERE  1  \u003c\u003c  (34 BETWEEN c0 AND 33) ORDER BY c0",
+          "expect": " {} "
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.3.10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( 1  \u003c\u003c  (34 BETWEEN c0 AND 33)) IS TRUE FROM t0",
+          "expect": " 1 "
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.3.11.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 WHERE  1  \u003e\u003e  (34 BETWEEN c0 AND 33) ORDER BY c0",
+          "expect": " {} "
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.3.11.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( 1  \u003e\u003e  (34 BETWEEN c0 AND 33)) IS TRUE FROM t0",
+          "expect": " 1 "
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.3.12.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 WHERE  1  ||  (34 BETWEEN c0 AND 33) ORDER BY c0",
+          "expect": " {} "
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.3.12.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( 1  ||  (34 BETWEEN c0 AND 33)) IS TRUE FROM t0",
+          "expect": " 1 "
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.4",
       "steps": [
         {
           "type": "exec",
@@ -369,7 +772,511 @@
       ]
     },
     {
-      "name": "9.0",
+      "name": "indexexpr2-8.5.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 WHERE  0  ==  (a=0 AND y=1)",
+          "expect": "1 2 {} {} 3 4 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( 0  ==  (a=0 AND y=1)) IS TRUE FROM t1 LEFT JOIN t2",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 WHERE  1  !=  (a=0 AND y=1)",
+          "expect": "1 2 {} {} 3 4 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( 1  !=  (a=0 AND y=1)) IS TRUE FROM t1 LEFT JOIN t2",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 WHERE -1  \u003c   (a=0 AND y=1)",
+          "expect": "1 2 {} {} 3 4 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (-1  \u003c   (a=0 AND y=1)) IS TRUE FROM t1 LEFT JOIN t2",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 WHERE -1  \u003c=  (a=0 AND y=1)",
+          "expect": "1 2 {} {} 3 4 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (-1  \u003c=  (a=0 AND y=1)) IS TRUE FROM t1 LEFT JOIN t2",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 WHERE  1   \u003e  (a=0 AND y=1)",
+          "expect": "1 2 {} {} 3 4 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( 1   \u003e  (a=0 AND y=1)) IS TRUE FROM t1 LEFT JOIN t2",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 WHERE  1  \u003e=  (a=0 AND y=1)",
+          "expect": "1 2 {} {} 3 4 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( 1  \u003e=  (a=0 AND y=1)) IS TRUE FROM t1 LEFT JOIN t2",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 WHERE  1   -  (a=0 AND y=1)",
+          "expect": "1 2 {} {} 3 4 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( 1   -  (a=0 AND y=1)) IS TRUE FROM t1 LEFT JOIN t2",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 WHERE -1   +  (a=0 AND y=1)",
+          "expect": "1 2 {} {} 3 4 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (-1   +  (a=0 AND y=1)) IS TRUE FROM t1 LEFT JOIN t2",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 WHERE  1   |  (a=0 AND y=1)",
+          "expect": "1 2 {} {} 3 4 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( 1   |  (a=0 AND y=1)) IS TRUE FROM t1 LEFT JOIN t2",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.10.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 WHERE 1  \u003c\u003c  (a=0 AND y=1)",
+          "expect": "1 2 {} {} 3 4 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1  \u003c\u003c  (a=0 AND y=1)) IS TRUE FROM t1 LEFT JOIN t2",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.11.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 WHERE 1  \u003e\u003e  (a=0 AND y=1)",
+          "expect": "1 2 {} {} 3 4 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.11.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1  \u003e\u003e  (a=0 AND y=1)) IS TRUE FROM t1 LEFT JOIN t2",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.12.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 WHERE 1  ||  (a=0 AND y=1)",
+          "expect": "1 2 {} {} 3 4 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.12.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1  ||  (a=0 AND y=1)) IS TRUE FROM t1 LEFT JOIN t2",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.13.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 WHERE  0  ==  (10 BETWEEN y AND b)",
+          "expect": "1 2 {} {} 3 4 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.13.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( 0  ==  (10 BETWEEN y AND b)) IS TRUE FROM t1 LEFT JOIN t2",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.14.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 WHERE  1  !=  (10 BETWEEN y AND b)",
+          "expect": "1 2 {} {} 3 4 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.14.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( 1  !=  (10 BETWEEN y AND b)) IS TRUE FROM t1 LEFT JOIN t2",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.15.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 WHERE -1  \u003c   (10 BETWEEN y AND b)",
+          "expect": "1 2 {} {} 3 4 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.15.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (-1  \u003c   (10 BETWEEN y AND b)) IS TRUE FROM t1 LEFT JOIN t2",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.16.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 WHERE -1  \u003c=  (10 BETWEEN y AND b)",
+          "expect": "1 2 {} {} 3 4 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.16.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (-1  \u003c=  (10 BETWEEN y AND b)) IS TRUE FROM t1 LEFT JOIN t2",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.17.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 WHERE  1   \u003e  (10 BETWEEN y AND b)",
+          "expect": "1 2 {} {} 3 4 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.17.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( 1   \u003e  (10 BETWEEN y AND b)) IS TRUE FROM t1 LEFT JOIN t2",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.18.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 WHERE  1  \u003e=  (10 BETWEEN y AND b)",
+          "expect": "1 2 {} {} 3 4 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.18.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( 1  \u003e=  (10 BETWEEN y AND b)) IS TRUE FROM t1 LEFT JOIN t2",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.19.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 WHERE  1   -  (10 BETWEEN y AND b)",
+          "expect": "1 2 {} {} 3 4 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.19.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( 1   -  (10 BETWEEN y AND b)) IS TRUE FROM t1 LEFT JOIN t2",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.20.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 WHERE -1   +  (10 BETWEEN y AND b)",
+          "expect": "1 2 {} {} 3 4 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.20.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (-1   +  (10 BETWEEN y AND b)) IS TRUE FROM t1 LEFT JOIN t2",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.21.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 WHERE  1   |  (10 BETWEEN y AND b)",
+          "expect": "1 2 {} {} 3 4 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.21.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( 1   |  (10 BETWEEN y AND b)) IS TRUE FROM t1 LEFT JOIN t2",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.22.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 WHERE  1  \u003c\u003c  (10 BETWEEN y AND b)",
+          "expect": "1 2 {} {} 3 4 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.22.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( 1  \u003c\u003c  (10 BETWEEN y AND b)) IS TRUE FROM t1 LEFT JOIN t2",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.23.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 WHERE  1  \u003e\u003e  (10 BETWEEN y AND b)",
+          "expect": "1 2 {} {} 3 4 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.23.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( 1  \u003e\u003e  (10 BETWEEN y AND b)) IS TRUE FROM t1 LEFT JOIN t2",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.24.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 WHERE  1  ||  (10 BETWEEN y AND b)",
+          "expect": "1 2 {} {} 3 4 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.24.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( 1  ||  (10 BETWEEN y AND b)) IS TRUE FROM t1 LEFT JOIN t2",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.25.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 WHERE  1  ||  (10 BETWEEN y AND b)",
+          "expect": "1 2 {} {} 3 4 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "indexexpr2-8.5.25.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( 1  ||  (10 BETWEEN y AND b)) IS TRUE FROM t1 LEFT JOIN t2",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "indexexpr2-9.0",
       "steps": [
         {
           "type": "query",
@@ -379,7 +1286,11 @@
       ]
     },
     {
-      "name": "10.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "indexexpr2-10.0",
       "steps": [
         {
           "type": "query",
@@ -389,77 +1300,22 @@
       ]
     },
     {
-      "name": "10.1",
+      "name": "indexexpr2-10.1",
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE TABLE t2(a TEXT);\n  INSERT INTO t2 VALUES('alice'),('bob'),('cindy'),('david');\n  CREATE INDEX t2x ON t2 (+a COLLATE NOCASE);\n  SELECT count(+a COLLATE NOCASE IN (SELECT 1)) AS x\n    FROM t2\n   GROUP BY SUBSTR(0,0);"
+          "sql": "CREATE TABLE t2(a TEXT);\n  INSERT INTO t2 VALUES('alice'),('bob'),('cindy'),('david');\n  CREATE INDEX t2x ON t2 (+a COLLATE NOCASE);\n  SELECT count(+a COLLATE NOCASE IN (SELECT 1)) AS x\n    FROM t2\n   GROUP BY SUBSTR(0,0);",
+          "expect": "4"
         }
       ]
     },
     {
-      "name": "11.0",
+      "name": "indexexpr2-11.0",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t3 (a INT, b AS (-a));\n  CREATE INDEX t3x ON t3(b, a);\n  INSERT INTO t3(a) VALUES(44);\n  SELECT * FROM t3 AS a0\n   WHERE (SELECT sum(-a0.a=b) FROM t3 GROUP BY b)\n   GROUP BY b;",
           "expect": "44 -44"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a,b,c,d,e,f);\n    CREATE INDEX t1abc ON t1(refcnt(a+b+c));"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(1,2,3,4,5,6);"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET b=b+1;"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET d=d+1;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

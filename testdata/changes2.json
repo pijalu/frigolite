@@ -1,9 +1,10 @@
 {
   "file": "changes2.test",
   "name": "changes2",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "changes2-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,57 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "UPDATE some_table SET value='v2' WHERE id=1 RETURNING id",
+          "variable": "stmt_1"
+        }
+      ]
+    },
+    {
+      "name": "changes2-1.1",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "UPDATE some_table SET value='v2' WHERE id=1 RETURNING id",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_1__ __DB_CHANGES__",
+          "expect": "SQLITE_ROW 1"
+        }
+      ]
+    },
+    {
+      "name": "changes2-1.2",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "UPDATE some_table SET value='v2' WHERE id=1 RETURNING id",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_1__ __DB_CHANGES__",
+          "expect": "SQLITE_DONE 1"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "stmt_reset",
+          "sql": "UPDATE some_table SET value='v2' WHERE id=1 RETURNING id",
+          "variable": "stmt_1"
+        }
+      ]
+    },
+    {
+      "name": "changes2-1.2",
       "steps": [
         {
           "type": "exec",
@@ -21,7 +72,51 @@
       ]
     },
     {
-      "name": "2.0",
+      "name": "changes2-1.3",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "UPDATE some_table SET value='v2' WHERE id=1 RETURNING id",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_1__ __DB_CHANGES__",
+          "expect": "SQLITE_ROW 1"
+        }
+      ]
+    },
+    {
+      "name": "changes2-1.4",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "UPDATE some_table SET value='v2' WHERE id=1 RETURNING id",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_1__ __DB_CHANGES__",
+          "expect": "SQLITE_DONE 1"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "UPDATE some_table SET value='v2' WHERE id=1 RETURNING id",
+          "variable": "stmt_1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "changes2-2.0",
       "steps": [
         {
           "type": "exec",
@@ -30,7 +125,17 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO log VALUES(changes() || ' changes')",
+          "variable": "stmt_2"
+        }
+      ]
+    },
+    {
+      "name": "changes2-2.1",
       "steps": [
         {
           "type": "exec",
@@ -39,7 +144,27 @@
       ]
     },
     {
-      "name": "2.3",
+      "name": "changes2-2.2",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO log VALUES(changes() || ' changes')",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "INSERT INTO log VALUES(changes() || ' changes')",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_2__ SQLITE_OK",
+          "expect": "SQLITE_DONE SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "changes2-2.3",
       "steps": [
         {
           "type": "exec",
@@ -48,7 +173,7 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "changes2-2.2",
       "steps": [
         {
           "type": "exec",
@@ -57,7 +182,37 @@
       ]
     },
     {
-      "name": "2.4",
+      "name": "changes2-2.3",
+      "steps": [
+        {
+          "type": "stmt_step",
+          "sql": "INSERT INTO log VALUES(changes() || ' changes')",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_reset",
+          "sql": "INSERT INTO log VALUES(changes() || ' changes')",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "runtime_assert",
+          "sql": "__STEP_stmt_2__ SQLITE_OK",
+          "expect": "SQLITE_DONE SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO log VALUES(changes() || ' changes')",
+          "variable": "stmt_2"
+        }
+      ]
+    },
+    {
+      "name": "changes2-2.4",
       "steps": [
         {
           "type": "query",
@@ -65,15 +220,6 @@
           "expect": "{2 changes} {2 changes}"
         }
       ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
     }
-  ],
-  "source": "capi"
+  ]
 }

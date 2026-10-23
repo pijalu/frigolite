@@ -1,9 +1,10 @@
 {
   "file": "e_changes.test",
   "name": "e_changes",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "e_changes-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,311 @@
       ]
     },
     {
-      "name": "3.1.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(b);"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-1.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0, 0)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-1.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH rows(i, j) AS (\n        SELECT 1, 1 UNION ALL SELECT i+1, j+i FROM rows WHERE i\u003c10\n    )\n    INSERT INTO t1 SELECT * FROM rows",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-1.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b+1 WHERE a\u003c5;",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-1.1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a\u003e6",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-1.1.5",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(-1, -1)",
+          "expect": "1",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-1.1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE UNIQUE INDEX i2 ON t1(a);",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-1.1.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES('a', 0), ('b', 0), ('c', 0), (0, 11);",
+          "expect": "1 {UNIQUE constraint failed: t1.a}"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-1.1.10",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('a', 0), ('b', 0), ('c', 0), (0, 11);",
+          "expect": "1 {UNIQUE constraint failed: t1.a}"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-1.1.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, PRIMARY KEY(a, b)) WITHOUT ROWID;\n      CREATE INDEX i1 ON t1(b);"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-1.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0, 0)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-1.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH rows(i, j) AS (\n        SELECT 1, 1 UNION ALL SELECT i+1, j+i FROM rows WHERE i\u003c10\n    )\n    INSERT INTO t1 SELECT * FROM rows",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-1.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b+1 WHERE a\u003c5;",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-1.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a\u003e6",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-1.2.5",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(-1, -1)",
+          "expect": "1",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-1.2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE UNIQUE INDEX i2 ON t1(a);",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-1.2.8",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 VALUES('a', 0), ('b', 0), ('c', 0), (0, 11);",
+          "expect": "1 {UNIQUE constraint failed: t1.a}"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-1.2.10",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('a', 0), ('b', 0), ('c', 0), (0, 11);",
+          "expect": "1 {UNIQUE constraint failed: t1.a}"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-1.2.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "e_changes-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH d(y) AS (SELECT 1 UNION ALL SELECT y+1 FROM d WHERE y\u003c47)\n  INSERT INTO t1 SELECT y FROM d;",
+          "expect": "47"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(x) FROM t1",
+          "expect": "47 47"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1",
+          "expect": "47"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x)",
+          "expect": "47"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 ADD COLUMN b",
+          "expect": "47"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "e_changes-3.1.0",
       "steps": [
         {
           "type": "exec",
@@ -21,16 +326,47 @@
       ]
     },
     {
-      "name": "3.1.4",
+      "name": "e_changes-3.1.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "-- None of the inserts on table log were counted.\n  SELECT count(*) FROM log"
+          "sql": "INSERT INTO p1 VALUES('a', 'A'), ('b', 'B'), ('c', 'C');",
+          "expect": "3"
         }
       ]
     },
     {
-      "name": "3.2.0",
+      "name": "e_changes-3.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE p1 SET two = two||two;",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-3.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM p1 WHERE one IN ('a', 'c');",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-3.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "-- None of the inserts on table log were counted.\n  SELECT count(*) FROM log",
+          "expect": "8"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-3.2.0",
       "steps": [
         {
           "type": "query",
@@ -39,7 +375,37 @@
       ]
     },
     {
-      "name": "3.2.4",
+      "name": "e_changes-3.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM p1 WHERE one = 'a'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-3.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM p1 WHERE one = 'b'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-3.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM p1 WHERE one = 'c'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-3.2.4",
       "steps": [
         {
           "type": "query",
@@ -49,7 +415,37 @@
       ]
     },
     {
-      "name": "3.2.8",
+      "name": "e_changes-3.2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE p1 SET one = 'g' WHERE one = 'd'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-3.2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE p1 SET one = 'h' WHERE one = 'e'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-3.2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE p1 SET one = 'i' WHERE one = 'f'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-3.2.8",
       "steps": [
         {
           "type": "query",
@@ -59,7 +455,7 @@
       ]
     },
     {
-      "name": "3.3.0",
+      "name": "e_changes-3.3.0",
       "steps": [
         {
           "type": "exec",
@@ -68,7 +464,47 @@
       ]
     },
     {
-      "name": "3.3.5",
+      "name": "e_changes-3.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE INTO r1 VALUES('i', 1)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-3.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE INTO r1 VALUES('iv', 'v')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-3.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE OR REPLACE r1 SET b='v' WHERE a='iii'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-3.3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE OR REPLACE r1 SET b='vi',a='vii' WHERE a='ii'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-3.3.5",
       "steps": [
         {
           "type": "query",
@@ -78,7 +514,11 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "e_changes-4.1",
       "steps": [
         {
           "type": "exec",
@@ -87,7 +527,94 @@
       ]
     },
     {
-      "name": "5.1.0",
+      "name": "e_changes-4.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT * FROM t1",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-4.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO v1 VALUES(1, 2)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-4.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT * FROM t1",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-4.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE v1 SET y='xyz' WHERE x=1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-4.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT * FROM t1",
+          "expect": "12"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-4.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM v1 WHERE x=5",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "my_changes",
+          "callbackVars": {
+            "": " __DB_CHANGES__",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "schema": " \n      CREATE TABLE t1(a, b, PRIMARY KEY(a, b)) WITHOUT ROWID;\n      CREATE INDEX i1 ON t1(b);\n  ",
+            "testdir": "",
+            "testprefix": "e_changes",
+            "tn": "2"
+          },
+          "functionProc": "my_changes",
+          "minArgs": -1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "e_changes-5.1.0",
       "steps": [
         {
           "type": "exec",
@@ -96,7 +623,7 @@
       ]
     },
     {
-      "name": "5.1.1",
+      "name": "e_changes-5.1.1",
       "steps": [
         {
           "type": "query",
@@ -106,16 +633,30 @@
       ]
     },
     {
-      "name": "5.2.0",
+      "name": "e_changes-5.1.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a, b);\n  CREATE TABLE log(x);\n  INSERT INTO t1 VALUES(1, 0);\n  INSERT INTO t1 VALUES(2, 0);\n  INSERT INTO t1 VALUES(3, 0);\n  CREATE TRIGGER t1_a_u AFTER UPDATE ON t1 BEGIN\n    INSERT INTO log VALUES(old.b || ' -> ' || new.b || ' c = ' || changes() );\n  END;\n  CREATE TABLE t2(a);\n  INSERT INTO t2 VALUES(1), (2), (3);\n  UPDATE t1 SET b = changes();"
+          "type": "runtime_var",
+          "variable": "changes",
+          "expect": "update 2 trigger 3 update 2 trigger 3 update 2 trigger 3"
         }
       ]
     },
     {
-      "name": "5.2.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "e_changes-5.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  CREATE TABLE log(x);\n  INSERT INTO t1 VALUES(1, 0);\n  INSERT INTO t1 VALUES(2, 0);\n  INSERT INTO t1 VALUES(3, 0);\n  CREATE TRIGGER t1_a_u AFTER UPDATE ON t1 BEGIN\n    INSERT INTO log VALUES(old.b || ' -\u003e ' || new.b || ' c = ' || changes() );\n  END;\n  CREATE TABLE t2(a);\n  INSERT INTO t2 VALUES(1), (2), (3);\n  UPDATE t1 SET b = changes();"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-5.2.1",
       "steps": [
         {
           "type": "query",
@@ -125,26 +666,64 @@
       ]
     },
     {
-      "name": "5.2.2",
+      "name": "e_changes-5.2.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM log;",
-          "expect": "{0 -> 3 c = 3} {0 -> 3 c = 3} {0 -> 3 c = 3}"
+          "expect": "{0 -\u003e 3 c = 3} {0 -\u003e 3 c = 3} {0 -\u003e 3 c = 3}"
         }
       ]
     },
     {
-      "name": "6.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "e_changes-6.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  CREATE TABLE t3(a, b);\n  CREATE TABLE log(x);\n\n  CREATE TRIGGER t1_i BEFORE INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES(new.a, new.b), (new.a, new.b);\n    INSERT INTO log VALUES('t2->' || changes());\n  END;\n\n  CREATE TRIGGER t2_i AFTER INSERT ON t2 BEGIN\n    INSERT INTO t3 VALUES(new.a, new.b), (new.a, new.b), (new.a, new.b);\n    INSERT INTO log VALUES('t3->' || changes());\n  END;\n\n  CREATE TRIGGER t1_u AFTER UPDATE ON t1 BEGIN\n    UPDATE t2 SET b=new.b WHERE a=old.a;\n    INSERT INTO log VALUES('t2->' || changes());\n  END;\n\n  CREATE TRIGGER t2_u BEFORE UPDATE ON t2 BEGIN\n    UPDATE t3 SET b=new.b WHERE a=old.a;\n    INSERT INTO log VALUES('t3->' || changes());\n  END;\n\n  CREATE TRIGGER t1_d AFTER DELETE ON t1 BEGIN\n    DELETE FROM t2 WHERE a=old.a AND b=old.b;\n    INSERT INTO log VALUES('t2->' || changes());\n  END;\n\n  CREATE TRIGGER t2_d BEFORE DELETE ON t2 BEGIN\n    DELETE FROM t3 WHERE a=old.a AND b=old.b;\n    INSERT INTO log VALUES('t3->' || changes());\n  END;"
+          "sql": "CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  CREATE TABLE t3(a, b);\n  CREATE TABLE log(x);\n\n  CREATE TRIGGER t1_i BEFORE INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES(new.a, new.b), (new.a, new.b);\n    INSERT INTO log VALUES('t2-\u003e' || changes());\n  END;\n\n  CREATE TRIGGER t2_i AFTER INSERT ON t2 BEGIN\n    INSERT INTO t3 VALUES(new.a, new.b), (new.a, new.b), (new.a, new.b);\n    INSERT INTO log VALUES('t3-\u003e' || changes());\n  END;\n\n  CREATE TRIGGER t1_u AFTER UPDATE ON t1 BEGIN\n    UPDATE t2 SET b=new.b WHERE a=old.a;\n    INSERT INTO log VALUES('t2-\u003e' || changes());\n  END;\n\n  CREATE TRIGGER t2_u BEFORE UPDATE ON t2 BEGIN\n    UPDATE t3 SET b=new.b WHERE a=old.a;\n    INSERT INTO log VALUES('t3-\u003e' || changes());\n  END;\n\n  CREATE TRIGGER t1_d AFTER DELETE ON t1 BEGIN\n    DELETE FROM t2 WHERE a=old.a AND b=old.b;\n    INSERT INTO log VALUES('t2-\u003e' || changes());\n  END;\n\n  CREATE TRIGGER t2_d BEFORE DELETE ON t2 BEGIN\n    DELETE FROM t3 WHERE a=old.a AND b=old.b;\n    INSERT INTO log VALUES('t3-\u003e' || changes());\n  END;"
         }
       ]
     },
     {
-      "name": "7.1",
+      "name": "e_changes-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('+', 'o');\n  SELECT * FROM log;",
+          "expect": "t3-\u003e3 t3-\u003e3 t2-\u003e2 1"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM log;\n  UPDATE t1 SET b='*';\n  SELECT * FROM log;",
+          "expect": "t3-\u003e6 t3-\u003e6 t2-\u003e2 1"
+        }
+      ]
+    },
+    {
+      "name": "e_changes-6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM log;\n  DELETE FROM t1;\n  SELECT * FROM log;",
+          "expect": "t3-\u003e6 t3-\u003e0 t2-\u003e2 1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "e_changes-7.1",
       "steps": [
         {
           "type": "exec",
@@ -153,85 +732,24 @@
       ]
     },
     {
-      "name": "7.2",
+      "name": "e_changes-7.2",
       "steps": [
         {
           "type": "query",
           "sql": "INSERT INTO q2 VALUES('x', 'y');\n  SELECT * FROM q1;",
-          "expect": "1:0   2:3   3:2   4:3   5:5"
+          "expect": "\n  1:0   2:3   3:2   4:3   5:5\n"
         }
       ]
     },
     {
-      "name": "7.3",
+      "name": "e_changes-7.3",
       "steps": [
         {
           "type": "query",
           "sql": "DELETE FROM q1;\n  INSERT INTO q2 VALUES('x', 'y');\n  SELECT * FROM q1;",
-          "expect": "1:5   2:3   3:2   4:3   5:5"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(-1, -1)"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
+          "expect": "\n  1:5   2:3   3:2   4:3   5:5\n"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

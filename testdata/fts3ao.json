@@ -1,34 +1,14 @@
 {
   "file": "fts3ao.test",
   "name": "fts3ao",
+  "ordered": true,
   "tests": [
     {
-      "name": "fts3ao-4.8",
+      "name": "setup_0",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT snippet(t5, '[', ']') FROM t5 WHERE t5 MATCH 'the'",
-          "expect": "{[the] quick brown fox} {jumped over [the]}"
-        }
-      ]
-    },
-    {
-      "name": "5.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE VIRTUAL TABLE t7 USING FTS4;\n  INSERT INTO t7 VALUES('coined by a German clinician');\n  SELECT count(*) FROM sqlite_master WHERE name LIKE 't7%';\n  SELECT count(*) FROM sqlite_master WHERE name LIKE 't8%';",
-          "expect": "6 0"
-        }
-      ]
-    },
-    {
-      "name": "5.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "ALTER TABLE t7 RENAME TO t8;\n  SELECT count(*) FROM sqlite_master WHERE name LIKE 't7%';\n  SELECT count(*) FROM sqlite_master WHERE name LIKE 't8%';",
-          "expect": "0 6"
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts3(a, b, c);\n  INSERT INTO t1(a, b, c) VALUES('one three four', 'one four', 'one four two');"
         }
       ]
     },
@@ -36,9 +16,9 @@
       "name": "fts3ao-1.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT rowid, snippet(t1) FROM t1 WHERE c MATCH 'four';",
-          "expect": "1 {one <b>four</b> two}"
+          "expect": "1 {one \u003cb\u003efour\u003c/b\u003e two}"
         }
       ]
     },
@@ -46,9 +26,9 @@
       "name": "fts3ao-1.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT rowid, snippet(t1) FROM t1 WHERE b MATCH 'four';",
-          "expect": "1 {one <b>four</b>}"
+          "expect": "1 {one \u003cb\u003efour\u003c/b\u003e}"
         }
       ]
     },
@@ -56,9 +36,9 @@
       "name": "fts3ao-1.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT rowid, snippet(t1) FROM t1 WHERE a MATCH 'four';",
-          "expect": "1 {one three <b>four</b>}"
+          "expect": "1 {one three \u003cb\u003efour\u003c/b\u003e}"
         }
       ]
     },
@@ -66,7 +46,7 @@
       "name": "fts3ao-2.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT tbl_name FROM sqlite_master WHERE type = 'table'",
           "expect": "t1 t1_content t1_segments t1_segdir"
         }
@@ -85,9 +65,9 @@
       "name": "fts3ao-2.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT rowid, snippet(fts_t1) FROM fts_t1 WHERE a MATCH 'four';",
-          "expect": "1 {one three <b>four</b>}"
+          "expect": "1 {one three \u003cb\u003efour\u003c/b\u003e}"
         }
       ]
     },
@@ -95,7 +75,7 @@
       "name": "fts3ao-2.4",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT tbl_name FROM sqlite_master WHERE type = 'table'",
           "expect": "fts_t1 fts_t1_content fts_t1_segments fts_t1_segdir"
         }
@@ -105,7 +85,7 @@
       "name": "fts3ao-2.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE TABLE t1_segdir(a, b, c);\n    ALTER TABLE fts_t1 RENAME to t1;",
           "expect": "1 {SQL logic error}"
         }
@@ -115,9 +95,9 @@
       "name": "fts3ao-2.6",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT rowid, snippet(fts_t1) FROM fts_t1 WHERE a MATCH 'four';",
-          "expect": "1 {one three <b>four</b>}"
+          "expect": "1 {one three \u003cb\u003efour\u003c/b\u003e}"
         }
       ]
     },
@@ -125,7 +105,7 @@
       "name": "fts3ao-2.7",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT tbl_name FROM sqlite_master WHERE type = 'table'",
           "expect": "fts_t1 fts_t1_content fts_t1_segments fts_t1_segdir t1_segdir"
         }
@@ -144,7 +124,7 @@
       "name": "fts3ao-2.9",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "ALTER TABLE fts_t1 RENAME to t1;",
           "expect": "1 {SQL logic error}"
         }
@@ -154,9 +134,9 @@
       "name": "fts3ao-2.10",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT rowid, snippet( fts_t1 ) FROM fts_t1 WHERE a MATCH 'four';",
-          "expect": "1 {one three <b>four</b>}"
+          "expect": "1 {one three \u003cb\u003efour\u003c/b\u003e}"
         }
       ]
     },
@@ -164,7 +144,7 @@
       "name": "fts3ao-2.11",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT tbl_name FROM sqlite_master WHERE type = 'table'",
           "expect": "fts_t1 fts_t1_content fts_t1_segments fts_t1_segdir t1_segdir"
         }
@@ -174,19 +154,53 @@
       "name": "fts3ao-2.12",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT a FROM fts_t1",
           "expect": "{one three four} {one two three}"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b, c FROM fts_t1 WHERE c MATCH 'four';",
+          "expect": "{one three four} {one four} {one four two}"
         }
       ]
     },
     {
-      "name": "fts3ao-2.12",
+      "name": "setup_1",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT a, b, c FROM fts_t1 WHERE c MATCH 'four';",
-          "expect": "{one three four} {one four} {one four two}"
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         }
       ]
     },
@@ -194,7 +208,7 @@
       "name": "fts3ao-3.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "CREATE VIRTUAL TABLE t1 USING fts3(a, b, c);\n    INSERT INTO t1(a, b, c) VALUES('one three four', 'one four', 'one two');\n    SELECT a, b, c FROM t1 WHERE c MATCH 'two';",
           "expect": "{one three four} {one four} {one two}"
         }
@@ -204,9 +218,27 @@
       "name": "fts3ao-3.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a, b, c FROM t1 WHERE c MATCH 'two';\n    CREATE TABLE t3(a, b, c);\n    SELECT a, b, c FROM t1 WHERE  c  MATCH 'two';",
           "expect": "{one three four} {one four} {one two} {one three four} {one four} {one two}"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test2.db-journal"
         }
       ]
     },
@@ -223,7 +255,7 @@
       "name": "fts3ao-3.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a, b, c FROM aux.t1 WHERE a MATCH 'song';",
           "expect": "{neung song sahm} {neung see} {neung see song}"
         }
@@ -233,7 +265,7 @@
       "name": "fts3ao-3.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a, b, c FROM t1 WHERE c MATCH 'two';",
           "expect": "{one three four} {one four} {one two}"
         }
@@ -252,7 +284,7 @@
       "name": "fts3ao-3.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a, b, c FROM t2 WHERE a MATCH 'song';",
           "expect": "{neung song sahm} {neung see} {neung see song}"
         }
@@ -262,7 +294,7 @@
       "name": "fts3ao-3.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT a, b, c FROM t1 WHERE c MATCH 'two';",
           "expect": "{one three four} {one four} {one two}"
         }
@@ -305,10 +337,19 @@
       ]
     },
     {
+      "name": "fts3ao-4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
       "name": "fts3ao-4.6",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM t5",
           "expect": "{the quick brown fox} {jumped over the} {lazy dog}"
         }
@@ -318,136 +359,185 @@
       "name": "fts3ao-4.7",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "BEGIN;\n      INSERT INTO t5 VALUES('Down came a jumbuck to drink at that billabong');\n      ALTER TABLE t5 RENAME TO t6;\n      INSERT INTO t6 VALUES('Down came the troopers, one, two, three');\n    ROLLBACK;\n    SELECT * FROM t5;",
           "expect": "{the quick brown fox} {jumped over the} {lazy dog}"
-        },
+        }
+      ]
+    },
+    {
+      "name": "fts3ao-4.8",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT rowid, snippet(t1) FROM t1 WHERE c MATCH 'four';"
-        },
+          "type": "query",
+          "sql": "SELECT snippet(t5, '[', ']') FROM t5 WHERE t5 MATCH 'the'",
+          "expect": "{[the] quick brown fox} {jumped over [the]}"
+        }
+      ]
+    },
+    {
+      "name": "fts3ao-5.1",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT rowid, snippet(t1) FROM t1 WHERE b MATCH 'four';"
-        },
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE t7 USING FTS4;\n  INSERT INTO t7 VALUES('coined by a German clinician');\n  SELECT count(*) FROM sqlite_master WHERE name LIKE 't7%';\n  SELECT count(*) FROM sqlite_master WHERE name LIKE 't8%';",
+          "expect": "6 0"
+        }
+      ]
+    },
+    {
+      "name": "fts3ao-5.2",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT rowid, snippet(t1) FROM t1 WHERE a MATCH 'four';"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT tbl_name FROM sqlite_master WHERE type = 'table'"
-        },
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE t1 RENAME to fts_t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT rowid, snippet(fts_t1) FROM fts_t1 WHERE a MATCH 'four';"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT tbl_name FROM sqlite_master WHERE type = 'table'"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT rowid, snippet(fts_t1) FROM fts_t1 WHERE a MATCH 'four';"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT tbl_name FROM sqlite_master WHERE type = 'table'"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    INSERT INTO fts_t1(a, b, c) VALUES('one two three', 'one four', 'one two');"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT rowid, snippet( fts_t1 ) FROM fts_t1 WHERE a MATCH 'four';"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT tbl_name FROM sqlite_master WHERE type = 'table'"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM fts_t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, b, c FROM fts_t1 WHERE c MATCH 'four';"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE t1 USING fts3(a, b, c);\n    INSERT INTO t1(a, b, c) VALUES('one three four', 'one four', 'one two');\n    SELECT a, b, c FROM t1 WHERE c MATCH 'two';"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, b, c FROM t1 WHERE c MATCH 'two';\n    CREATE TABLE t3(a, b, c);\n    SELECT a, b, c FROM t1 WHERE  c  MATCH 'two';"
-        },
-        {
-          "type": "exec",
-          "sql": "ATTACH 'test2.db' AS aux;\n    CREATE VIRTUAL TABLE aux.t1 USING fts3(a, b, c);\n    INSERT INTO aux.t1(a, b, c) VALUES(\n      'neung song sahm', 'neung see', 'neung see song'\n    );"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, b, c FROM aux.t1 WHERE a MATCH 'song';"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, b, c FROM t1 WHERE c MATCH 'two';"
-        },
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE aux.t1 RENAME TO t2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, b, c FROM t2 WHERE a MATCH 'song';"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, b, c FROM t1 WHERE c MATCH 'two';"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE t4 USING fts3;\n    INSERT INTO t4 VALUES('the quick brown fox');"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n      INSERT INTO t4 VALUES('jumped over the');"
-        },
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE t4 RENAME TO t5;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t5 VALUES('lazy dog');"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t5"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n      INSERT INTO t5 VALUES('Down came a jumbuck to drink at that billabong');\n      ALTER TABLE t5 RENAME TO t6;\n      INSERT INTO t6 VALUES('Down came the troopers, one, two, three');\n    ROLLBACK;\n    SELECT * FROM t5;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE t1 USING fts3(a, b, c);\n  INSERT INTO t1(a, b, c) VALUES('one three four', 'one four', 'one four two');"
+          "type": "query",
+          "sql": "ALTER TABLE t7 RENAME TO t8;\n  SELECT count(*) FROM sqlite_master WHERE name LIKE 't7%';\n  SELECT count(*) FROM sqlite_master WHERE name LIKE 't8%';",
+          "expect": "0 6"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3ao-6.1.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    CREATE VIRTUAL TABLE ft USING fts3;\n    INSERT INTO ft VALUES('hello world');"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "fts3ao-6.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "fts3ao-6.1.3",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM ft",
+          "variable": "stmt_1"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM ft",
+          "variable": "stmt_1",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts3ao-6.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    CREATE VIRTUAL TABLE ft USING fts3;\n    INSERT INTO ft VALUES('hello world');\n     INSERT INTO ft(ft) VALUES('merge=2,2');"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "fts3ao-6.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "fts3ao-6.2.3",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "prepare_stmt",
+          "sql": "SELECT * FROM ft",
+          "variable": "stmt_2"
+        },
+        {
+          "type": "stmt_finalize",
+          "sql": "SELECT * FROM ft",
+          "variable": "stmt_2",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "close_db"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

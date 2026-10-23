@@ -1,25 +1,184 @@
 {
   "file": "unordered.test",
   "name": "unordered",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "unordered-1.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(1, 'xxx');\n  INSERT INTO t1 SELECT a+1, b FROM t1;\n  INSERT INTO t1 SELECT a+2, b FROM t1;\n  INSERT INTO t1 SELECT a+4, b FROM t1;\n  INSERT INTO t1 SELECT a+8, b FROM t1;\n  INSERT INTO t1 SELECT a+16, b FROM t1;\n  INSERT INTO t1 SELECT a+32, b FROM t1;\n  INSERT INTO t1 SELECT a+64, b FROM t1;\n  ANALYZE;"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE sqlite_stat1 SET stat = stat || ' unordered'"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "setup_0",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "catch",
+          "sql": "DELETE FROM sqlite_stat2"
+        },
+        {
+          "type": "catch",
+          "sql": "DELETE FROM sqlite_stat3"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "unordered-1.ordered.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 ORDER BY a"
+        }
+      ]
+    },
+    {
+      "name": "unordered-1.ordered.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a \u003e 100"
+        }
+      ]
+    },
+    {
+      "name": "unordered-1.ordered.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a = ? ORDER BY rowid"
+        }
+      ]
+    },
+    {
+      "name": "unordered-1.ordered.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT max(a) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "unordered-1.ordered.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT group_concat(b) FROM t1 GROUP BY a"
+        }
+      ]
+    },
+    {
+      "name": "unordered-1.ordered.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a = ?"
+        }
+      ]
+    },
+    {
+      "name": "unordered-1.ordered.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT count(*) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "DELETE FROM sqlite_stat2"
+        },
+        {
+          "type": "catch",
+          "sql": "DELETE FROM sqlite_stat3"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE sqlite_stat1 SET stat = stat || ' unordered'"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "unordered-1.unordered.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 ORDER BY a"
+        }
+      ]
+    },
+    {
+      "name": "unordered-1.unordered.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a \u003e 100"
+        }
+      ]
+    },
+    {
+      "name": "unordered-1.unordered.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a = ? ORDER BY rowid"
+        }
+      ]
+    },
+    {
+      "name": "unordered-1.unordered.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT max(a) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "unordered-1.unordered.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT group_concat(b) FROM t1 GROUP BY a"
+        }
+      ]
+    },
+    {
+      "name": "unordered-1.unordered.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a = ?"
+        }
+      ]
+    },
+    {
+      "name": "unordered-1.unordered.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT count(*) FROM t1"
         }
       ]
     }

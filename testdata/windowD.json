@@ -1,9 +1,10 @@
 {
   "file": "windowD.test",
   "name": "windowD",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "windowD-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,57 +13,56 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "windowD-1.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT ('500') IS (v0.c1) FROM v0;",
-          "expect": "0"
+          "expect": "\n  0\n"
         }
       ]
     },
     {
-      "name": "1.2",
+      "name": "windowD-1.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT (('500') IS (v0.c1)) FROM v0, t0;",
-          "expect": "0"
-        }
-      ]
-    },
-    {
-      "name": "1.2",
-      "steps": [
+          "expect": "\n  0\n"
+        },
         {
           "type": "query",
           "sql": "SELECT (('500') IS (v0.c1)) IS FALSE FROM v0;",
-          "expect": "1"
+          "expect": "\n  1\n"
         }
       ]
     },
     {
-      "name": "1.3",
+      "name": "windowD-1.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM v0;",
-          "expect": "1.0 1"
+          "expect": "\n  1.0 1\n"
         }
       ]
     },
     {
-      "name": "1.4",
+      "name": "windowD-1.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM v0 WHERE ('500' IS v0.c1) IS FALSE;",
-          "expect": "1.0 1"
+          "expect": "\n  1.0 1\n"
         }
       ]
     },
     {
-      "name": "2.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "windowD-2.0",
       "steps": [
         {
           "type": "exec",
@@ -71,7 +71,7 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "windowD-2.1",
       "steps": [
         {
           "type": "query",
@@ -81,7 +81,7 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "windowD-2.2",
       "steps": [
         {
           "type": "query",
@@ -90,7 +90,7 @@
       ]
     },
     {
-      "name": "2.3",
+      "name": "windowD-2.3",
       "steps": [
         {
           "type": "query",
@@ -99,7 +99,7 @@
       ]
     },
     {
-      "name": "2.4",
+      "name": "windowD-2.4",
       "steps": [
         {
           "type": "exec",
@@ -108,28 +108,21 @@
       ]
     },
     {
-      "name": "2.5",
+      "name": "windowD-2.5",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT 500 IS c FROM v2;"
+          "sql": "SELECT 500 IS c FROM v2;",
+          "expect": "0"
         }
       ]
     },
     {
-      "name": "2.6",
+      "name": "windowD-2.6",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM v2 WHERE 500 IS c;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

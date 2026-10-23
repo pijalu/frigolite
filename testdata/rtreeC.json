@@ -1,0 +1,464 @@
+{
+  "file": "rtreeC.test",
+  "name": "rtreeC",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "rtreeC-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE r_tree USING rtree(id, min_x, max_x, min_y, max_y);\n  CREATE TABLE t(x, y);"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM r_tree, t \n  WHERE t.x\u003e=min_x AND t.x\u003c=max_x AND t.y\u003e=min_y AND t.x\u003c=max_y"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t, r_tree\n  WHERE t.x\u003e=min_x AND t.x\u003c=max_x AND t.y\u003e=min_y AND t.x\u003c=max_y"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t, r_tree\n  WHERE t.x\u003e=min_x AND t.x\u003c=max_x AND t.y\u003e=min_y AND ?\u003c=max_y"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t, r_tree"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t VALUES(0, 0);\n  INSERT INTO t VALUES(0, 1);\n  INSERT INTO t VALUES(0, 2);\n  INSERT INTO t VALUES(0, 3);\n  INSERT INTO t VALUES(0, 4);\n  INSERT INTO t VALUES(0, 5);\n  INSERT INTO t VALUES(0, 6);\n  INSERT INTO t VALUES(0, 7);\n  INSERT INTO t VALUES(0, 8);\n  INSERT INTO t VALUES(0, 9);\n\n  INSERT INTO t SELECT x+1, y FROM t;\n  INSERT INTO t SELECT x+2, y FROM t;\n  INSERT INTO t SELECT x+4, y FROM t;\n  INSERT INTO r_tree SELECT NULL, x-1, x+1, y-1, y+1 FROM t;\n  ANALYZE;"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM r_tree, t \n  WHERE t.x\u003e=min_x AND t.x\u003c=max_x AND t.y\u003e=min_y AND t.x\u003c=max_y"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t, r_tree\n  WHERE t.x\u003e=min_x AND t.x\u003c=max_x AND t.y\u003e=min_y AND t.x\u003c=max_y"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t, r_tree\n  WHERE t.x\u003e=min_x AND t.x\u003c=max_x AND t.y\u003e=min_y AND ?\u003c=max_y"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t, r_tree"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  CREATE VIRTUAL TABLE t3 USING rtree(z, x1,x2, y1,y2);"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-3.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN  SELECT * FROM t1 CROSS JOIN t2"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-3.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN  SELECT * FROM t2 CROSS JOIN t1"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-3.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN  SELECT * FROM t1 CROSS JOIN t3"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-3.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN  SELECT * FROM t3 CROSS JOIN t1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rtreeC-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n  CREATE VIRTUAL TABLE t2 USING rtree(b, x1,x2);\n\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n\n  INSERT INTO t2 VALUES(1, 0.0, 0.1);\n  INSERT INTO t2 VALUES(3, 0.0, 0.1);"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1 LEFT JOIN t2 ON (+a = +b);",
+          "expect": "1 1 2 {}"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b, a FROM t2 LEFT JOIN t1 ON (+a = +b);",
+          "expect": "1 1 3 {}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rtreeC-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x INT PRIMARY KEY, y);\n  CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2, +d1);\n\n  INSERT INTO t1(x) VALUES(1);\n  INSERT INTO t1(x) SELECT x+1 FROM t1;   --   2\n  INSERT INTO t1(x) SELECT x+2 FROM t1;   --   4\n  INSERT INTO t1(x) SELECT x+4 FROM t1;   --   8\n  INSERT INTO t1(x) SELECT x+8 FROM t1;   --  16\n  INSERT INTO t1(x) SELECT x+16 FROM t1;  --  32\n  INSERT INTO t1(x) SELECT x+32 FROM t1;  --  64\n  INSERT INTO t1(x) SELECT x+64 FROM t1;  -- 128\n  INSERT INTO t1(x) SELECT x+128 FROM t1; -- 256\n  INSERT INTO t1(x) SELECT x+256 FROM t1; -- 512\n  INSERT INTO t1(x) SELECT x+512 FROM t1; --1024\n\n  INSERT INTO rt SELECT x, x, x+1, printf('x%04xy',x) FROM t1 WHERE x\u003c=5;"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1, rt WHERE x==id;"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ANALYZE;\n  DELETE FROM sqlite_stat1 WHERE tbl='t1';"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1, rt WHERE x==id;"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-5.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE sqlite_stat1;"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-5.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1, rt WHERE x==id;"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-5.7",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db2",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "ANALYZE;\n    DELETE FROM sqlite_stat1 WHERE tbl='t1';",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-5.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1, rt WHERE x==id;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rtreeC-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO rt VALUES(1,2,3);\n    ANALYZE;"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-6.3",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE sqlite_stat1",
+          "database": "db2"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM rt",
+          "expect": "1 2.0 3.0"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "rtreeC-7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE xdir(x1);\n  CREATE TABLE ydir(y1);\n  CREATE VIRTUAL TABLE rt USING rtree_i32(id, xmin, xmax, ymin, ymax);\n\n  INSERT INTO xdir VALUES(5);\n  INSERT INTO ydir VALUES(10);\n\n  INSERT INTO rt VALUES(1, 2, 7, 12, 14);      -- Not a hit\n  INSERT INTO rt VALUES(2, 2, 7, 8, 12);       -- A hit!\n  INSERT INTO rt VALUES(3, 7, 11, 8, 12);      -- Not a hit!\n  INSERT INTO rt VALUES(4, 5, 5, 10, 10);      -- A hit!"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-7.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT id FROM xdir, rt, ydir \n  ON (y1 BETWEEN ymin AND ymax)\n  WHERE (x1 BETWEEN xmin AND xmax);"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-7.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id FROM xdir, rt, ydir \n  ON (y1 BETWEEN ymin AND ymax)\n  WHERE (x1 BETWEEN xmin AND xmax);",
+          "expect": "\n  2 4\n"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-7.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM xdir, rt LEFT JOIN ydir \n  ON (y1 BETWEEN ymin AND ymax)\n  WHERE (x1 BETWEEN xmin AND xmax);"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-7.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM xdir, rt LEFT JOIN ydir \n  ON (y1 BETWEEN ymin AND ymax)\n  WHERE (x1 BETWEEN xmin AND xmax);",
+          "expect": "\n  5 1 2 7 12 14 {}\n  5 2 2 7  8 12 10\n  5 4 5 5 10 10 10\n"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-7.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT id FROM xdir, rt CROSS JOIN ydir \n  ON (y1 BETWEEN ymin AND ymax)\n  WHERE (x1 BETWEEN xmin AND xmax);"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-7.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id FROM xdir, rt CROSS JOIN ydir \n  ON (y1 BETWEEN ymin AND ymax)\n  WHERE (x1 BETWEEN xmin AND xmax);",
+          "expect": "\n  2 4\n"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-7.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT id FROM rt, xdir CROSS JOIN ydir \n  ON (y1 BETWEEN ymin AND ymax)\n  WHERE (x1 BETWEEN xmin AND xmax);"
+        }
+      ]
+    },
+    {
+      "name": "rtreeC-7.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id FROM rt, xdir CROSS JOIN ydir \n  ON (y1 BETWEEN ymin AND ymax)\n  WHERE (x1 BETWEEN xmin AND xmax);",
+          "expect": "\n  2 4\n"
+        }
+      ]
+    }
+  ]
+}

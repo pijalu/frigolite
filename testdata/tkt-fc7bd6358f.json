@@ -1,0 +1,688 @@
+{
+  "file": "tkt-fc7bd6358f.test",
+  "name": "tkt-fc7bd6358f",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "tkt-fc7bd6358f.100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t(textid TEXT);\n    INSERT INTO t VALUES('12');\n    INSERT INTO t VALUES('34');\n    CREATE TABLE i(intid INTEGER PRIMARY KEY);\n    INSERT INTO i VALUES(12);\n    INSERT INTO i VALUES(34);"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.1.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=ON"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, i, t t2 WHERE t1.textid=i.intid AND t1.textid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.1.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, i, t t2 WHERE t1.textid=i.intid AND t1.textid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.1.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=ON"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, i, t t2 WHERE i.intid=t1.textid AND t1.textid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.1.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, i, t t2 WHERE i.intid=t1.textid AND t1.textid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.1.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=ON"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, i, t t2 WHERE t1.textid=i.intid AND i.intid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.1.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, i, t t2 WHERE t1.textid=i.intid AND i.intid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.1.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=ON"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, i, t t2 WHERE t1.textid=i.intid AND t2.textid=i.intid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.1.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, i, t t2 WHERE t1.textid=i.intid AND t2.textid=i.intid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.1.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=ON"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, i, t t2 WHERE i.intid=t1.textid AND i.intid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.1.5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, i, t t2 WHERE i.intid=t1.textid AND i.intid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.1.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=ON"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, i, t t2 WHERE i.intid=t1.textid AND t2.textid=i.intid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.1.6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, i, t t2 WHERE i.intid=t1.textid AND t2.textid=i.intid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.1.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=ON"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, i, t t2 WHERE t1.textid=t2.textid AND i.intid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.1.7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, i, t t2 WHERE t1.textid=t2.textid AND i.intid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.1.8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=ON"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, i, t t2 WHERE t1.textid=t2.textid AND t2.textid=i.intid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.1.8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, i, t t2 WHERE t1.textid=t2.textid AND t2.textid=i.intid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.2.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=ON"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM i, t t1, t t2 WHERE t1.textid=i.intid AND t1.textid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.2.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM i, t t1, t t2 WHERE t1.textid=i.intid AND t1.textid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.2.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=ON"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM i, t t1, t t2 WHERE i.intid=t1.textid AND t1.textid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.2.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM i, t t1, t t2 WHERE i.intid=t1.textid AND t1.textid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.2.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=ON"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM i, t t1, t t2 WHERE t1.textid=i.intid AND i.intid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.2.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM i, t t1, t t2 WHERE t1.textid=i.intid AND i.intid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.2.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=ON"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM i, t t1, t t2 WHERE t1.textid=i.intid AND t2.textid=i.intid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.2.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM i, t t1, t t2 WHERE t1.textid=i.intid AND t2.textid=i.intid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.2.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=ON"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM i, t t1, t t2 WHERE i.intid=t1.textid AND i.intid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.2.5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM i, t t1, t t2 WHERE i.intid=t1.textid AND i.intid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.2.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=ON"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM i, t t1, t t2 WHERE i.intid=t1.textid AND t2.textid=i.intid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.2.6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM i, t t1, t t2 WHERE i.intid=t1.textid AND t2.textid=i.intid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.2.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=ON"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM i, t t1, t t2 WHERE t1.textid=t2.textid AND i.intid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.2.7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM i, t t1, t t2 WHERE t1.textid=t2.textid AND i.intid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.2.8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=ON"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM i, t t1, t t2 WHERE t1.textid=t2.textid AND t2.textid=i.intid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.2.8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM i, t t1, t t2 WHERE t1.textid=t2.textid AND t2.textid=i.intid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.3.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=ON"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, t t2, i WHERE t1.textid=i.intid AND t1.textid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.3.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, t t2, i WHERE t1.textid=i.intid AND t1.textid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.3.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=ON"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, t t2, i WHERE i.intid=t1.textid AND t1.textid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.3.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, t t2, i WHERE i.intid=t1.textid AND t1.textid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.3.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=ON"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, t t2, i WHERE t1.textid=i.intid AND i.intid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.3.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, t t2, i WHERE t1.textid=i.intid AND i.intid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.3.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=ON"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, t t2, i WHERE t1.textid=i.intid AND t2.textid=i.intid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.3.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, t t2, i WHERE t1.textid=i.intid AND t2.textid=i.intid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.3.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=ON"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, t t2, i WHERE i.intid=t1.textid AND i.intid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.3.5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, t t2, i WHERE i.intid=t1.textid AND i.intid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.3.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=ON"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, t t2, i WHERE i.intid=t1.textid AND t2.textid=i.intid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.3.6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, t t2, i WHERE i.intid=t1.textid AND t2.textid=i.intid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.3.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=ON"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, t t2, i WHERE t1.textid=t2.textid AND i.intid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.3.7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, t t2, i WHERE t1.textid=t2.textid AND i.intid=t2.textid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.3.8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=ON"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, t t2, i WHERE t1.textid=t2.textid AND t2.textid=i.intid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc7bd6358f.110.3.8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT t1.textid, i.intid, t2.textid FROM t t1, t t2, i WHERE t1.textid=t2.textid AND t2.textid=i.intid",
+          "expect": "12 12 12 34 34 34"
+        }
+      ]
+    }
+  ]
+}

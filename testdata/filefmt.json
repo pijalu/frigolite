@@ -1,7 +1,520 @@
 {
   "file": "filefmt.test",
   "name": "filefmt",
+  "ordered": true,
   "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db-journal"
+        }
+      ]
+    },
+    {
+      "name": "filefmt-1.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x)"
+        },
+        {
+          "type": "close_db",
+          "expect": "53514C69746520666F726D6174203300"
+        }
+      ]
+    },
+    {
+      "name": "filefmt-1.2",
+      "steps": [
+        {
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileData": "54",
+          "fileTarget": "test.db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "variable": "x",
+          "catchResult": true,
+          "catchMessage": "err",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "filefmt-1.3",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT count(*) FROM sqlite_master",
+          "expect": "1 {file is not a database}"
+        }
+      ]
+    },
+    {
+      "name": "filefmt-1.4",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileData": "53",
+          "fileTarget": "test.db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT count(*) FROM sqlite_master",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "filefmt-1.5.512.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "filefmt-1.5.512.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=OFF"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=512"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x)",
+          "expect": "1024"
+        }
+      ]
+    },
+    {
+      "name": "filefmt-1.5.1024.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "filefmt-1.5.1024.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=OFF"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x)",
+          "expect": "2048"
+        }
+      ]
+    },
+    {
+      "name": "filefmt-1.5.2048.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "filefmt-1.5.2048.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=OFF"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=2048"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x)",
+          "expect": "4096"
+        }
+      ]
+    },
+    {
+      "name": "filefmt-1.5.4096.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "filefmt-1.5.4096.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=OFF"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=4096"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x)",
+          "expect": "8192"
+        }
+      ]
+    },
+    {
+      "name": "filefmt-1.5.8192.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "filefmt-1.5.8192.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=OFF"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=8192"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x)",
+          "expect": "16384"
+        }
+      ]
+    },
+    {
+      "name": "filefmt-1.5.16384.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "filefmt-1.5.16384.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=OFF"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=16384"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x)",
+          "expect": "32768"
+        }
+      ]
+    },
+    {
+      "name": "filefmt-1.5.32768.1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "filefmt-1.5.32768.1",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=OFF"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=32768"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x)",
+          "expect": "65536"
+        }
+      ]
+    },
+    {
+      "name": "filefmt-1.6",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileTarget": "test.db",
+          "fileOffset": 16
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT count(*) FROM sqlite_master",
+          "expect": "1 {file is not a database}"
+        }
+      ]
+    },
+    {
+      "name": "filefmt-1.7",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileTarget": "test.db",
+          "fileOffset": 16
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT count(*) FROM sqlite_master",
+          "expect": "1 {file is not a database}"
+        }
+      ]
+    },
+    {
+      "name": "filefmt-1.8",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "filefmt-1.8",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=512; CREATE TABLE t1(x)"
+        },
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "hexio_write",
+          "sql": "test.db",
+          "fileData": "21",
+          "fileTarget": "test.db",
+          "fileOffset": 20
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "catch",
+          "sql": "SELECT count(*) FROM sqlite_master",
+          "expect": "1 {file is not a database}"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "a_string",
+          "callbackVars": {
+            "": "1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "a_string_counter": "1",
+            "err": "$err",
+            "pagesize": "32768",
+            "testdir": "",
+            "x": "$x $err"
+          },
+          "functionProc": "a_string",
+          "functionArgs": [
+            "n"
+          ],
+          "functionBody": "\n  incr ::a_string_counter\n  string range [string repeat \"${::a_string_counter}.\" $n] 1 $n\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
     {
       "name": "filefmt-2.1.1",
       "steps": [
@@ -21,6 +534,55 @@
       ]
     },
     {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "a_string",
+          "callbackVars": {
+            "": "",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "a_string_counter": "1",
+            "err": "$err",
+            "pagesize": "32768",
+            "testdir": "",
+            "x": "$x $err"
+          },
+          "functionProc": "a_string",
+          "functionArgs": [
+            "n"
+          ],
+          "functionBody": "\n  incr ::a_string_counter\n  string range [string repeat \"${::a_string_counter}.\" $n] 1 $n\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
       "name": "filefmt-2.2.1",
       "steps": [
         {
@@ -34,7 +596,8 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA integrity_check;\n  BEGIN;\n    INSERT INTO t2 VALUES(2);\n    SAVEPOINT a;\n      INSERT INTO t2 VALUES(3);\n    ROLLBACK TO a;"
+          "sql": "PRAGMA integrity_check;\n  BEGIN;\n    INSERT INTO t2 VALUES(2);\n    SAVEPOINT a;\n      INSERT INTO t2 VALUES(3);\n    ROLLBACK TO a;",
+          "expect": "ok"
         }
       ]
     },
@@ -44,6 +607,39 @@
         {
           "type": "exec",
           "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         }
       ]
     },
@@ -67,6 +663,10 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
       "name": "filefmt-4.1",
       "steps": [
         {
@@ -76,84 +676,36 @@
       ]
     },
     {
-      "name": "filefmt-1.3",
+      "name": "delete_file",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM sqlite_master",
-          "expect": "1 {file is not a database}"
+          "type": "delete_file",
+          "sql": "bak.db"
         }
       ]
     },
     {
-      "name": "filefmt-1.4",
+      "name": "filefmt-4.4",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM sqlite_master",
-          "expect": "0 1"
-        }
-      ]
-    },
-    {
-      "name": "filefmt-1.6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM sqlite_master",
-          "expect": "1 {file is not a database}"
-        }
-      ]
-    },
-    {
-      "name": "filefmt-1.7",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM sqlite_master",
-          "expect": "1 {file is not a database}"
-        }
-      ]
-    },
-    {
-      "name": "filefmt-1.8",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM sqlite_master",
-          "expect": "1 {file is not a database}"
+          "type": "open_named_db",
+          "sql": "bak.db",
+          "database": "db2"
         },
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x)"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x)"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size=512; CREATE TABLE t1(x)"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA auto_vacuum=OFF"
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok",
+          "database": "db2"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "setup_7",
       "steps": [
         {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     }

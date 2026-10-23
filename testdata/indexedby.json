@@ -545,7 +545,7 @@
       ]
     },
     {
-      "name": "11.1",
+      "name": "indexedby-11.1",
       "steps": [
         {
           "type": "exec",
@@ -554,7 +554,7 @@
       ]
     },
     {
-      "name": "11.2",
+      "name": "indexedby-11.2",
       "steps": [
         {
           "type": "query",
@@ -564,7 +564,7 @@
       ]
     },
     {
-      "name": "11.3",
+      "name": "indexedby-11.3",
       "steps": [
         {
           "type": "query",
@@ -574,7 +574,7 @@
       ]
     },
     {
-      "name": "11.4",
+      "name": "indexedby-11.4",
       "steps": [
         {
           "type": "query",
@@ -584,7 +584,7 @@
       ]
     },
     {
-      "name": "11.5",
+      "name": "indexedby-11.5",
       "steps": [
         {
           "type": "query",
@@ -593,7 +593,7 @@
       ]
     },
     {
-      "name": "11.6",
+      "name": "indexedby-11.6",
       "steps": [
         {
           "type": "exec",
@@ -602,7 +602,7 @@
       ]
     },
     {
-      "name": "11.7",
+      "name": "indexedby-11.7",
       "steps": [
         {
           "type": "query",
@@ -612,7 +612,7 @@
       ]
     },
     {
-      "name": "11.8",
+      "name": "indexedby-11.8",
       "steps": [
         {
           "type": "query",
@@ -622,7 +622,7 @@
       ]
     },
     {
-      "name": "11.9",
+      "name": "indexedby-11.9",
       "steps": [
         {
           "type": "query",
@@ -632,7 +632,7 @@
       ]
     },
     {
-      "name": "11.10",
+      "name": "indexedby-11.10",
       "steps": [
         {
           "type": "query",
@@ -641,7 +641,7 @@
       ]
     },
     {
-      "name": "12.1",
+      "name": "indexedby-12.1",
       "steps": [
         {
           "type": "exec",
@@ -650,7 +650,7 @@
       ]
     },
     {
-      "name": "12.2",
+      "name": "indexedby-12.2",
       "steps": [
         {
           "type": "catch",
@@ -660,7 +660,7 @@
       ]
     },
     {
-      "name": "12.3",
+      "name": "indexedby-12.3",
       "steps": [
         {
           "type": "exec",
@@ -669,7 +669,7 @@
       ]
     },
     {
-      "name": "12.4",
+      "name": "indexedby-12.4",
       "steps": [
         {
           "type": "catch",

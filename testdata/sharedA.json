@@ -1,0 +1,216 @@
+{
+  "file": "sharedA.test",
+  "name": "sharedA",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "sharedA-0.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db1"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(100));\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    CREATE INDEX i1 ON t1(x);",
+          "database": "db1"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    DROP INDEX i1;",
+          "database": "db1"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    ROLLBACK;\n    PRAGMA integrity_check;",
+          "expect": "ok",
+          "database": "db1"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db1"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "sharedA-1.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db1"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(123);",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;\n    CREATE INDEX i1 ON t1(x);",
+          "expect": "123",
+          "database": "db1"
+        }
+      ]
+    },
+    {
+      "name": "sharedA-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY x;",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN; DROP INDEX i1;",
+          "database": "db1"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db1"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY x;",
+          "expect": "123",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedA-1.3",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "delete_file",
+      "steps": [
+        {
+          "type": "delete_file",
+          "sql": "test.db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedA-2.1",
+      "steps": [
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db1"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS two",
+          "database": "db1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    CREATE TABLE two.t2(x);\n    INSERT INTO t2 SELECT * FROM t1;",
+          "database": "db1"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedA-2.2",
+      "steps": [
+        {
+          "type": "prepare_stmt",
+          "sql": "CREATE INDEX i1 ON t1(x)",
+          "variable": "stmt_1",
+          "database": "db2"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE INDEX i1 ON t1(x);\n      INSERT INTO t2 VALUES('value!');",
+          "database": "db1"
+        }
+      ]
+    },
+    {
+      "name": "sharedA-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK",
+          "database": "db1"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_named_db",
+          "database": "db1"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
+        }
+      ]
+    }
+  ]
+}

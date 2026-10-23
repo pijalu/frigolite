@@ -1,0 +1,51 @@
+{
+  "file": "rollbackfault.test",
+  "name": "rollbackfault",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_function",
+          "functionName": "int2hex",
+          "callbackVars": {
+            "": "rollbackfault",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "testdir": "",
+            "testprefix": "rollbackfault"
+          },
+          "functionProc": "int2hex",
+          "functionArgs": [
+            "i"
+          ],
+          "functionBody": " format %.2X $i ",
+          "minArgs": 1,
+          "maxArgs": -1
+        }
+      ]
+    },
+    {
+      "name": "rollbackfault-1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT int2hex(0), int2hex(100), int2hex(255)",
+          "expect": "00 64 FF"
+        }
+      ]
+    },
+    {
+      "name": "rollbackfault-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(i, h);\n  CREATE INDEX i1 ON t1(h);\n  WITH data(a, b) AS (\n    SELECT 1, int2hex(1)\n      UNION ALL\n    SELECT a+1, int2hex(a+1) FROM data WHERE a\u003c40\n  )\n  INSERT INTO t1 SELECT * FROM data;"
+        }
+      ]
+    }
+  ]
+}

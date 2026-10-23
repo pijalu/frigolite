@@ -1,13 +1,18 @@
 {
   "file": "tkt2285.test",
   "name": "tkt2285",
+  "ordered": true,
   "tests": [
     {
       "name": "tkt2285-1.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA locking_mode = EXCLUSIVE;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE abc(a, b, c);\n    ROLLBACK;"
         }
       ]
     },
@@ -15,7 +20,7 @@
       "name": "tkt2285-1.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM sqlite_master;"
         }
       ]
@@ -32,26 +37,6 @@
     {
       "name": "tkt2285-2.2",
       "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM sqlite_temp_master;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA locking_mode = EXCLUSIVE;"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    CREATE TABLE abc(a, b, c);\n    ROLLBACK;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM sqlite_master;"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n      CREATE TEMP TABLE abc(a, b, c);\n      ROLLBACK;"
-        },
         {
           "type": "exec",
           "sql": "SELECT * FROM sqlite_temp_master;"

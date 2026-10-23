@@ -1,6 +1,7 @@
 {
   "file": "like3.test",
   "name": "like3",
+  "ordered": true,
   "tests": [
     {
       "name": "like3-1.1",
@@ -47,7 +48,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a, b FROM t2 WHERE b>=x'6162' AND b GLOB 'ab*'",
+          "sql": "SELECT a, b FROM t2 WHERE b\u003e=x'6162' AND b GLOB 'ab*'",
           "expect": "4 abc"
         }
       ]
@@ -57,7 +58,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a, b FROM t2 WHERE +b>=x'6162' AND +b GLOB 'ab*'",
+          "sql": "SELECT a, b FROM t2 WHERE +b\u003e=x'6162' AND +b GLOB 'ab*'",
           "expect": "4 abc"
         }
       ]
@@ -67,7 +68,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a, b FROM t2 WHERE b GLOB 'ab*' AND b>=x'6162'",
+          "sql": "SELECT a, b FROM t2 WHERE b GLOB 'ab*' AND b\u003e=x'6162'",
           "expect": "4 abc"
         }
       ]
@@ -77,7 +78,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a, b FROM t2 WHERE +b GLOB 'ab*' AND +b>=x'6162'",
+          "sql": "SELECT a, b FROM t2 WHERE +b GLOB 'ab*' AND +b\u003e=x'6162'",
           "expect": "4 abc"
         }
       ]
@@ -193,6 +194,15 @@
       ]
     },
     {
+      "name": "like3-5.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT x FROM t5a WHERE x LIKE '/%';"
+        }
+      ]
+    },
+    {
       "name": "like3-5.110",
       "steps": [
         {
@@ -213,12 +223,30 @@
       ]
     },
     {
+      "name": "like3-5.121",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT x FROM t5a WHERE x LIKE '^12%' ESCAPE '^';"
+        }
+      ]
+    },
+    {
       "name": "like3-5.122",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT x FROM t5a WHERE x LIKE '^-2%' ESCAPE '^';",
           "expect": "-234"
+        }
+      ]
+    },
+    {
+      "name": "like3-5.123",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT x FROM t5a WHERE x LIKE '^12%' ESCAPE '^';"
         }
       ]
     },
@@ -233,12 +261,30 @@
       ]
     },
     {
+      "name": "like3-5.201",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT x FROM t5b WHERE x GLOB '/*';"
+        }
+      ]
+    },
+    {
       "name": "like3-5.210",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT x FROM t5b WHERE x GLOB '/a*';",
           "expect": "/abc"
+        }
+      ]
+    },
+    {
+      "name": "like3-5.211",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT x FROM t5b WHERE x GLOB '/a*';"
         }
       ]
     },
@@ -293,71 +339,1446 @@
       ]
     },
     {
-      "name": "like3-6.100",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_0",
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(path TEXT COLLATE nocase PRIMARY KEY,a,b,c) WITHOUT ROWID;"
+          "sql": "PRAGMA encoding = 'UTF-16le'"
         }
       ]
     },
     {
-      "name": "like3-6.200",
+      "name": "like3-8.utf16le.1.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(path TEXT,x,y,z);\n  CREATE INDEX t2path ON t2(path COLLATE nocase);\n  CREATE INDEX t2path2 ON t2(path);"
+          "sql": "CREATE TABLE t1(x);"
         }
       ]
     },
     {
-      "name": "like3-7.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA encoding = 'UTF-16be';\n  \n    CREATE TABLE Example(word TEXT NOT NULL);\n    CREATE INDEX Example_word on Example(word);\n  \n    INSERT INTO Example VALUES(char(0x307F));"
-        }
-      ]
-    },
-    {
-      "name": "like3-7.1",
+      "name": "like3-8.utf16le.1.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT char(0x307F)=='\u307f';",
+          "sql": "PRAGMA encoding",
+          "expect": "UTF-16le"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( CAST (X'FF' AS TEXT) )"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x) FROM t1",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x || '%' FROM t1",
+          "variable": "x"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
           "expect": "1"
         }
       ]
     },
     {
-      "name": "like3-7.1",
+      "name": "like3-8.utf16le.1.6",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT * FROM Example WHERE word GLOB '\u307f*'",
-          "expect": "\u307f"
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(x);"
         }
       ]
     },
     {
-      "name": "like3-7.2",
+      "name": "like3-8.utf16le.1.7",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM Example WHERE word >= char(0x307F) AND word < char(0x3080);",
-          "expect": "\u307f"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA case_sensitive_like=ON"
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_2",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-16le'"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding",
+          "expect": "UTF-16le"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( CAST (X'FFBF' AS TEXT) )"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x) FROM t1",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x || '%' FROM t1",
+          "variable": "x"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-16le'"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding",
+          "expect": "UTF-16le"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( CAST (X'FFBFBF' AS TEXT) )"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x) FROM t1",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x || '%' FROM t1",
+          "variable": "x"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.3.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-16le'"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding",
+          "expect": "UTF-16le"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( CAST (X'FFBFBFBF' AS TEXT) )"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x) FROM t1",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x || '%' FROM t1",
+          "variable": "x"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.4.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.4.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-16le'"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding",
+          "expect": "UTF-16le"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( 'abc' || CAST (X'FF' AS TEXT) )"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x) FROM t1",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x || '%' FROM t1",
+          "variable": "x"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.5.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.5.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-16le'"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding",
+          "expect": "UTF-16le"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( 'def' || CAST (X'FFBF' AS TEXT) )"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x) FROM t1",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x || '%' FROM t1",
+          "variable": "x"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.6.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.6.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.6.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-16le'"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding",
+          "expect": "UTF-16le"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( 'ghi' || CAST (X'FFBFBF' AS TEXT) )"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.7.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x) FROM t1",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "setup_13",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x || '%' FROM t1",
+          "variable": "x"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.7.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.7.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.7.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-16le'"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding",
+          "expect": "UTF-16le"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.8.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( 'jkl' || CAST (X'FFBFBFBF' AS TEXT) )"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.8.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x) FROM t1",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "setup_15",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x || '%' FROM t1",
+          "variable": "x"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.8.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.8.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16le.8.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-16be'"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding",
+          "expect": "UTF-16be"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( CAST (X'FF' AS TEXT) )"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x) FROM t1",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "setup_17",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x || '%' FROM t1",
+          "variable": "x"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_18",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-16be'"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding",
+          "expect": "UTF-16be"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( CAST (X'FFBF' AS TEXT) )"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x) FROM t1",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "setup_19",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x || '%' FROM t1",
+          "variable": "x"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-16be'"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding",
+          "expect": "UTF-16be"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( CAST (X'FFBFBF' AS TEXT) )"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x) FROM t1",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "setup_21",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x || '%' FROM t1",
+          "variable": "x"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.3.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_22",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-16be'"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding",
+          "expect": "UTF-16be"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( CAST (X'FFBFBFBF' AS TEXT) )"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x) FROM t1",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "setup_23",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x || '%' FROM t1",
+          "variable": "x"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.4.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.4.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_24",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-16be'"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding",
+          "expect": "UTF-16be"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( 'abc' || CAST (X'FF' AS TEXT) )"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x) FROM t1",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "setup_25",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x || '%' FROM t1",
+          "variable": "x"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.5.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.5.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_26",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-16be'"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding",
+          "expect": "UTF-16be"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( 'def' || CAST (X'FFBF' AS TEXT) )"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x) FROM t1",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "setup_27",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x || '%' FROM t1",
+          "variable": "x"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.6.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.6.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.6.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_28",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-16be'"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding",
+          "expect": "UTF-16be"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( 'ghi' || CAST (X'FFBFBF' AS TEXT) )"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.7.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x) FROM t1",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "setup_29",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x || '%' FROM t1",
+          "variable": "x"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.7.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.7.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.7.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_30",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-16be'"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding",
+          "expect": "UTF-16be"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.8.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( 'jkl' || CAST (X'FFBFBFBF' AS TEXT) )"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.8.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x) FROM t1",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "setup_31",
+      "steps": [
+        {
+          "type": "query_assign",
+          "sql": "SELECT x || '%' FROM t1",
+          "variable": "x"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.8.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.8.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "like3-8.utf16be.8.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE x LIKE $x",
+          "expect": "1"
         }
       ]
     }

@@ -1,9 +1,10 @@
 {
   "file": "fts4content.test",
   "name": "fts4content",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.1.1",
+      "name": "fts4content-1.1.1",
       "steps": [
         {
           "type": "exec",
@@ -12,17 +13,17 @@
       ]
     },
     {
-      "name": "1.1.2",
+      "name": "fts4content-1.1.2",
       "steps": [
         {
           "type": "query",
           "sql": "PRAGMA table_info(ft1);",
-          "expect": "0 a {} 0 {} 0 \n  1 b {} 0 {} 0 \n  2 c {} 0 {} 0"
+          "expect": "\n  0 a {} 0 {} 0 \n  1 b {} 0 {} 0 \n  2 c {} 0 {} 0\n"
         }
       ]
     },
     {
-      "name": "1.1.3",
+      "name": "fts4content-1.1.3",
       "steps": [
         {
           "type": "query",
@@ -32,7 +33,7 @@
       ]
     },
     {
-      "name": "1.1.4",
+      "name": "fts4content-1.1.4",
       "steps": [
         {
           "type": "query",
@@ -42,7 +43,7 @@
       ]
     },
     {
-      "name": "1.1.5",
+      "name": "fts4content-1.1.5",
       "steps": [
         {
           "type": "exec",
@@ -51,7 +52,7 @@
       ]
     },
     {
-      "name": "1.1.6",
+      "name": "fts4content-1.1.6",
       "steps": [
         {
           "type": "query",
@@ -61,7 +62,7 @@
       ]
     },
     {
-      "name": "1.1.7",
+      "name": "fts4content-1.1.7",
       "steps": [
         {
           "type": "query",
@@ -70,17 +71,17 @@
       ]
     },
     {
-      "name": "1.2.1",
+      "name": "fts4content-1.2.1",
       "steps": [
         {
           "type": "query",
           "sql": "DROP TABLE ft1;\n  CREATE VIRTUAL TABLE ft1 USING fts4(content=t1, b);\n  PRAGMA table_info(ft1);",
-          "expect": "0 b {} 0 {} 0"
+          "expect": "\n  0 b {} 0 {} 0 \n"
         }
       ]
     },
     {
-      "name": "1.2.2",
+      "name": "fts4content-1.2.2",
       "steps": [
         {
           "type": "query",
@@ -90,7 +91,7 @@
       ]
     },
     {
-      "name": "2.0",
+      "name": "fts4content-2.0",
       "steps": [
         {
           "type": "exec",
@@ -99,7 +100,7 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "fts4content-2.1",
       "steps": [
         {
           "type": "exec",
@@ -108,7 +109,207 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "fts4content-2.2.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM ft2 WHERE ft2 MATCH 'S'",
+          "expect": "1 3 6 7 9 10 13 15 16 17 19"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-2.2.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM ft2 WHERE ft2 MATCH 'S'",
+          "expect": "1 3 6 7 9 10 13 15 16 17 19"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-2.2.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM ft2 WHERE ft2 MATCH '\"S R\"'",
+          "expect": "7 19"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-2.2.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM ft2 WHERE ft2 MATCH '\"S R\"'",
+          "expect": "7 19"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-2.2.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM ft2 WHERE ft2 MATCH '\"N K N\"'",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-2.2.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM ft2 WHERE ft2 MATCH '\"N K N\"'",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-2.2.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM ft2 WHERE ft2 MATCH '\"Q Q\"'",
+          "expect": "20"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-2.2.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM ft2 WHERE ft2 MATCH '\"Q Q\"'",
+          "expect": "20"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-2.2.1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM ft2 WHERE ft2 MATCH '\"B Y D\"'",
+          "expect": "17"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-2.2.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM ft2 WHERE ft2 MATCH '\"B Y D\"'",
+          "expect": "17"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-2.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM ft2 WHERE ft2 MATCH '\"N K N\"'",
+          "expect": "{J O B N K N E C H Z R K J O U G M K L S}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-2.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM ft2 WHERE ft2 MATCH '\"Q Q\"'",
+          "expect": "{a b c d e f g h i j}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-2.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM ft2 WHERE ft2 MATCH '\"B Y D\"'",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-2.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT snippet(ft2, '[', ']', '..', -1, 6) FROM ft2 WHERE ft2 MATCH '\"N K N\"'",
+          "expect": "{..O B [N] [K] [N] E..}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-2.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT snippet(ft2, '[', ']', '..', -1, 6) FROM ft2 WHERE ft2 MATCH '\"B Y D\"'",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-2.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT snippet(ft2, '[', ']', '..', -1, 6) FROM ft2 WHERE ft2 MATCH '\"Q Q\"'",
+          "expect": "{a [b] [c] [d] e f..}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-2.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offsets(ft2) FROM ft2 WHERE ft2 MATCH '\"N K N\"'",
+          "expect": "{0 0 6 1 0 1 8 1 0 2 10 1}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-2.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offsets(ft2) FROM ft2 WHERE ft2 MATCH '\"B Y D\"'",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-2.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offsets(ft2) FROM ft2 WHERE ft2 MATCH '\"Q Q\"'",
+          "expect": "{0 0 2 1 0 0 4 1 0 1 4 1 0 1 6 1}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-2.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offsets(ft2) FROM ft2 WHERE ft2 MATCH '\"Q D L\"'",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-3.1",
       "steps": [
         {
           "type": "exec",
@@ -117,17 +318,17 @@
       ]
     },
     {
-      "name": "3.1.1",
+      "name": "fts4content-3.1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO ft3 VALUES('a b c', 'd e f');",
           "expect": "1 {constraint failed}"
         }
       ]
     },
     {
-      "name": "3.1.2",
+      "name": "fts4content-3.1.2",
       "steps": [
         {
           "type": "query",
@@ -137,7 +338,7 @@
       ]
     },
     {
-      "name": "3.1.3",
+      "name": "fts4content-3.1.3",
       "steps": [
         {
           "type": "query",
@@ -146,7 +347,7 @@
       ]
     },
     {
-      "name": "3.1.4",
+      "name": "fts4content-3.1.4",
       "steps": [
         {
           "type": "query",
@@ -156,7 +357,7 @@
       ]
     },
     {
-      "name": "3.1.5",
+      "name": "fts4content-3.1.5",
       "steps": [
         {
           "type": "query",
@@ -165,7 +366,7 @@
       ]
     },
     {
-      "name": "3.1.6",
+      "name": "fts4content-3.1.6",
       "steps": [
         {
           "type": "query",
@@ -175,7 +376,7 @@
       ]
     },
     {
-      "name": "3.2.1",
+      "name": "fts4content-3.2.1",
       "steps": [
         {
           "type": "exec",
@@ -184,7 +385,67 @@
       ]
     },
     {
-      "name": "3.3.1",
+      "name": "fts4content-3.2.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM ft3 WHERE ft3 MATCH 'N A'",
+          "expect": "5 {} {} 19 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-3.2.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid, * FROM ft3 WHERE ft3 MATCH 'N A'",
+          "expect": "5 {} {} 19 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-3.2.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM ft3 WHERE ft3 MATCH 'x:O'",
+          "expect": "1 {} {} 2 {} {} 10 {} {} 11 {} {} 17 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-3.2.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid, * FROM ft3 WHERE ft3 MATCH 'x:O'",
+          "expect": "1 {} {} 2 {} {} 10 {} {} 11 {} {} 17 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-3.2.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM ft3 WHERE ft3 MATCH 'y:O'",
+          "expect": "0 {} {} 2 {} {} 6 {} {} 7 {} {} 18 {} {} 19 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-3.2.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid, * FROM ft3 WHERE ft3 MATCH 'y:O'",
+          "expect": "0 {} {} 2 {} {} 6 {} {} 7 {} {} 18 {} {} 19 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-3.3.1",
       "steps": [
         {
           "type": "exec",
@@ -193,7 +454,67 @@
       ]
     },
     {
-      "name": "3.3.1",
+      "name": "fts4content-3.3.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM ft3 WHERE ft3 MATCH 'N A'",
+          "expect": "5 {} {} 19 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-3.3.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid, * FROM ft3 WHERE ft3 MATCH 'N A'",
+          "expect": "5 {} {} 19 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-3.3.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM ft3 WHERE ft3 MATCH 'x:O'",
+          "expect": "0 {} {} 2 {} {} 10 {} {} 11 {} {} 17 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-3.3.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid, * FROM ft3 WHERE ft3 MATCH 'x:O'",
+          "expect": "0 {} {} 2 {} {} 10 {} {} 11 {} {} 17 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-3.3.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM ft3 WHERE ft3 MATCH 'y:O'",
+          "expect": "1 {} {} 2 {} {} 6 {} {} 7 {} {} 18 {} {} 19 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-3.3.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid, * FROM ft3 WHERE ft3 MATCH 'y:O'",
+          "expect": "1 {} {} 2 {} {} 6 {} {} 7 {} {} 18 {} {} 19 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-3.3.1",
       "steps": [
         {
           "type": "exec",
@@ -202,7 +523,67 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "fts4content-3.3.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM ft3 WHERE ft3 MATCH 'N A'",
+          "expect": "5 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-3.3.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid, * FROM ft3 WHERE ft3 MATCH 'N A'",
+          "expect": "5 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-3.3.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM ft3 WHERE ft3 MATCH 'x:O'",
+          "expect": "0 {} {} 2 {} {} 10 {} {} 11 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-3.3.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid, * FROM ft3 WHERE ft3 MATCH 'x:O'",
+          "expect": "0 {} {} 2 {} {} 10 {} {} 11 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-3.3.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM ft3 WHERE ft3 MATCH 'y:O'",
+          "expect": "1 {} {} 2 {} {} 6 {} {} 7 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-3.3.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid, * FROM ft3 WHERE ft3 MATCH 'y:O'",
+          "expect": "1 {} {} 2 {} {} 6 {} {} 7 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-4.0",
       "steps": [
         {
           "type": "exec",
@@ -211,7 +592,7 @@
       ]
     },
     {
-      "name": "4.1.1",
+      "name": "fts4content-4.1.1",
       "steps": [
         {
           "type": "exec",
@@ -220,7 +601,7 @@
       ]
     },
     {
-      "name": "4.1.2",
+      "name": "fts4content-4.1.2",
       "steps": [
         {
           "type": "query",
@@ -230,7 +611,7 @@
       ]
     },
     {
-      "name": "4.1.3",
+      "name": "fts4content-4.1.3",
       "steps": [
         {
           "type": "query",
@@ -240,7 +621,7 @@
       ]
     },
     {
-      "name": "4.2.1",
+      "name": "fts4content-4.2.1",
       "steps": [
         {
           "type": "query",
@@ -250,7 +631,7 @@
       ]
     },
     {
-      "name": "4.2.2",
+      "name": "fts4content-4.2.2",
       "steps": [
         {
           "type": "query",
@@ -260,7 +641,7 @@
       ]
     },
     {
-      "name": "4.2.3",
+      "name": "fts4content-4.2.3",
       "steps": [
         {
           "type": "query",
@@ -270,7 +651,7 @@
       ]
     },
     {
-      "name": "4.2.4",
+      "name": "fts4content-4.2.4",
       "steps": [
         {
           "type": "query",
@@ -280,7 +661,7 @@
       ]
     },
     {
-      "name": "4.2.5",
+      "name": "fts4content-4.2.5",
       "steps": [
         {
           "type": "query",
@@ -290,7 +671,7 @@
       ]
     },
     {
-      "name": "4.2.6",
+      "name": "fts4content-4.2.6",
       "steps": [
         {
           "type": "query",
@@ -300,37 +681,37 @@
       ]
     },
     {
-      "name": "5.1.1",
+      "name": "fts4content-5.1.1",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t5(a, b, c, d);\n  CREATE VIRTUAL TABLE ft5 USING fts4(content=t5);\n  SELECT name FROM sqlite_master WHERE name LIKE '%t5%';",
-          "expect": "t5 ft5 ft5_segments ft5_segdir \n  sqlite_autoindex_ft5_segdir_1 ft5_docsize ft5_stat"
+          "expect": "\n  t5 ft5 ft5_segments ft5_segdir \n  sqlite_autoindex_ft5_segdir_1 ft5_docsize ft5_stat\n"
         }
       ]
     },
     {
-      "name": "5.1.2",
+      "name": "fts4content-5.1.2",
       "steps": [
         {
           "type": "query",
           "sql": "ALTER TABLE ft5 RENAME TO ft6;\n  SELECT name FROM sqlite_master WHERE name LIKE '%t5%';",
-          "expect": "t5"
+          "expect": "\n  t5\n"
         }
       ]
     },
     {
-      "name": "5.1.3",
+      "name": "fts4content-5.1.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT name FROM sqlite_master WHERE name LIKE '%t6%';",
-          "expect": "ft6 ft6_segments ft6_segdir \n  sqlite_autoindex_ft6_segdir_1 ft6_docsize ft6_stat"
+          "expect": "\n  ft6 ft6_segments ft6_segdir \n  sqlite_autoindex_ft6_segdir_1 ft6_docsize ft6_stat\n"
         }
       ]
     },
     {
-      "name": "5.1.4",
+      "name": "fts4content-5.1.4",
       "steps": [
         {
           "type": "query",
@@ -340,7 +721,7 @@
       ]
     },
     {
-      "name": "5.1.5",
+      "name": "fts4content-5.1.5",
       "steps": [
         {
           "type": "query",
@@ -350,86 +731,99 @@
       ]
     },
     {
-      "name": "5.1.6",
+      "name": "fts4content-5.1.6",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT name FROM sqlite_master WHERE name LIKE '%t6%';"
+          "sql": "SELECT name FROM sqlite_master WHERE name LIKE '%t6%';",
+          "expect": "\n"
         }
       ]
     },
     {
-      "name": "5.1.7",
+      "name": "fts4content-5.1.7",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE VIRTUAL TABLE ft5 USING fts4(content=t5);\n  CREATE TABLE t5_content(a, b);\n  DROP TABLE ft5;\n  SELECT name FROM sqlite_master WHERE name LIKE '%t5%';",
-          "expect": "t5 t5_content"
+          "expect": "\n  t5 t5_content\n"
         }
       ]
     },
     {
-      "name": "6.1.1",
+      "name": "fts4content-6.1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE ft7 USING fts4(content=t7);",
           "expect": "1 {no such table: main.t7}"
         }
       ]
     },
     {
-      "name": "6.2.1",
+      "name": "fts4content-6.2.1",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t7(one, two);\n  CREATE VIRTUAL TABLE ft7 USING fts4(content=t7);\n  INSERT INTO t7 VALUES('A B', 'B A');\n  INSERT INTO t7 VALUES('C D', 'A A');\n  SELECT * FROM ft7;",
-          "expect": "{A B} {B A} {C D} {A A}"
+          "expect": "\n  {A B} {B A} {C D} {A A}\n"
         }
       ]
     },
     {
-      "name": "6.2.2",
+      "name": "fts4content-6.2.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "DROP TABLE t7;\n  SELECT * FROM ft7;",
           "expect": "1 {SQL logic error}"
         }
       ]
     },
     {
-      "name": "6.2.3",
+      "name": "setup_0",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT name FROM sqlite_master WHERE name LIKE '%t7%'",
-          "expect": "ft7 ft7_segments ft7_segdir sqlite_autoindex_ft7_segdir_1 \n  ft7_docsize ft7_stat"
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
         }
       ]
     },
     {
-      "name": "6.2.4",
+      "name": "fts4content-6.2.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE name LIKE '%t7%'",
+          "expect": "\n  ft7 ft7_segments ft7_segdir sqlite_autoindex_ft7_segdir_1 \n  ft7_docsize ft7_stat\n"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-6.2.4",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "SELECT * FROM ft7;",
           "expect": "1 {no such table: main.t7}"
         }
       ]
     },
     {
-      "name": "6.2.5",
+      "name": "fts4content-6.2.5",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t7(x, y);\n  INSERT INTO t7 VALUES('A B', 'B A');\n  INSERT INTO t7 VALUES('C D', 'A A');\n  SELECT * FROM ft7;",
-          "expect": "{A B} {B A} {C D} {A A}"
+          "expect": "\n  {A B} {B A} {C D} {A A}\n"
         }
       ]
     },
     {
-      "name": "6.2.6",
+      "name": "fts4content-6.2.6",
       "steps": [
         {
           "type": "query",
@@ -439,7 +833,7 @@
       ]
     },
     {
-      "name": "6.2.7",
+      "name": "fts4content-6.2.7",
       "steps": [
         {
           "type": "exec",
@@ -448,47 +842,59 @@
       ]
     },
     {
-      "name": "6.2.8",
+      "name": "fts4content-6.2.8",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM ft7 WHERE ft7 MATCH '\"A A\"';",
           "expect": "1 {SQL logic error}"
         }
       ]
     },
     {
-      "name": "6.2.9",
+      "name": "fts4content-6.2.9",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM ft7 WHERE ft7 MATCH '\"A A\"';",
           "expect": "1 {SQL logic error}"
         }
       ]
     },
     {
-      "name": "6.2.10",
+      "name": "setup_1",
       "steps": [
         {
-          "type": "exec",
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-6.2.10",
+      "steps": [
+        {
+          "type": "catch",
           "sql": "SELECT rowid FROM ft7 WHERE ft7 MATCH '\"A A\"';",
           "expect": "0 2"
         }
       ]
     },
     {
-      "name": "6.2.11",
+      "name": "fts4content-6.2.11",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT rowid, * FROM ft7 WHERE ft7 MATCH '\"A A\"';",
           "expect": "0 {2 {}}"
         }
       ]
     },
     {
-      "name": "7.1.1",
+      "name": "fts4content-7.1.1",
       "steps": [
         {
           "type": "exec",
@@ -497,7 +903,7 @@
       ]
     },
     {
-      "name": "7.1.2",
+      "name": "fts4content-7.1.2",
       "steps": [
         {
           "type": "query",
@@ -507,7 +913,7 @@
       ]
     },
     {
-      "name": "7.2.1",
+      "name": "fts4content-7.2.1",
       "steps": [
         {
           "type": "exec",
@@ -516,7 +922,7 @@
       ]
     },
     {
-      "name": "7.2.2",
+      "name": "fts4content-7.2.2",
       "steps": [
         {
           "type": "query",
@@ -526,7 +932,7 @@
       ]
     },
     {
-      "name": "7.2.3",
+      "name": "fts4content-7.2.3",
       "steps": [
         {
           "type": "query",
@@ -536,17 +942,17 @@
       ]
     },
     {
-      "name": "7.2.4",
+      "name": "fts4content-7.2.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM ft9 WHERE ft9 MATCH 'N';",
           "expect": "1 {SQL logic error}"
         }
       ]
     },
     {
-      "name": "8.1",
+      "name": "fts4content-8.1",
       "steps": [
         {
           "type": "exec",
@@ -555,7 +961,7 @@
       ]
     },
     {
-      "name": "8.2",
+      "name": "fts4content-8.2",
       "steps": [
         {
           "type": "query",
@@ -564,7 +970,7 @@
       ]
     },
     {
-      "name": "8.3",
+      "name": "fts4content-8.3",
       "steps": [
         {
           "type": "exec",
@@ -573,7 +979,7 @@
       ]
     },
     {
-      "name": "8.4",
+      "name": "fts4content-8.4",
       "steps": [
         {
           "type": "query",
@@ -583,7 +989,7 @@
       ]
     },
     {
-      "name": "8.5",
+      "name": "fts4content-8.5",
       "steps": [
         {
           "type": "query",
@@ -593,7 +999,7 @@
       ]
     },
     {
-      "name": "8.6",
+      "name": "fts4content-8.6",
       "steps": [
         {
           "type": "query",
@@ -603,7 +1009,19 @@
       ]
     },
     {
-      "name": "9.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "register_echo_module"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-9.1",
       "steps": [
         {
           "type": "exec",
@@ -612,7 +1030,7 @@
       ]
     },
     {
-      "name": "9.2",
+      "name": "fts4content-9.2",
       "steps": [
         {
           "type": "query",
@@ -622,7 +1040,7 @@
       ]
     },
     {
-      "name": "9.3",
+      "name": "fts4content-9.3",
       "steps": [
         {
           "type": "query",
@@ -632,7 +1050,7 @@
       ]
     },
     {
-      "name": "9.4",
+      "name": "fts4content-9.4",
       "steps": [
         {
           "type": "exec",
@@ -641,7 +1059,7 @@
       ]
     },
     {
-      "name": "9.5",
+      "name": "fts4content-9.5",
       "steps": [
         {
           "type": "query",
@@ -651,7 +1069,7 @@
       ]
     },
     {
-      "name": "9.6",
+      "name": "fts4content-9.6",
       "steps": [
         {
           "type": "query",
@@ -661,27 +1079,48 @@
       ]
     },
     {
-      "name": "10.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "write_file",
+          "sql": "t1.txt"
+        },
+        {
+          "type": "write_file",
+          "sql": "t2.txt"
+        },
+        {
+          "type": "write_file",
+          "sql": "t3.txt"
+        }
+      ]
+    },
+    {
+      "name": "fts4content-10.1",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE idx(id INTEGER PRIMARY KEY, path TEXT);\n  INSERT INTO idx VALUES (1, 't1.txt');\n  INSERT INTO idx VALUES (2, 't2.txt');\n  INSERT INTO idx VALUES (3, 't3.txt');\n\n  CREATE VIRTUAL TABLE vt USING fs(idx);\n  SELECT path, data FROM vt;",
-          "expect": "1 {a b c d e f g h i j k l m n o p q r s t u v w x y z} \n  2 {a b c d e f g h i j k l m a b c d e f g h i j k l m}\n  3 {n o p q r s t u v w x y z n o p q r s t u v w x y z}"
+          "expect": "\n  1 {a b c d e f g h i j k l m n o p q r s t u v w x y z} \n  2 {a b c d e f g h i j k l m a b c d e f g h i j k l m}\n  3 {n o p q r s t u v w x y z n o p q r s t u v w x y z}\n"
         }
       ]
     },
     {
-      "name": "10.2",
+      "name": "fts4content-10.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT path, data FROM vt WHERE rowid = 2;",
-          "expect": "2 {a b c d e f g h i j k l m a b c d e f g h i j k l m}"
+          "expect": "\n  2 {a b c d e f g h i j k l m a b c d e f g h i j k l m}\n"
         }
       ]
     },
     {
-      "name": "10.3",
+      "name": "fts4content-10.3",
       "steps": [
         {
           "type": "exec",
@@ -690,27 +1129,27 @@
       ]
     },
     {
-      "name": "10.4",
+      "name": "fts4content-10.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 'e'",
-          "expect": "{...c d [e] f g...} {...c d [e] f g...}"
+          "expect": "\n  {...c d [e] f g...} {...c d [e] f g...}\n"
         }
       ]
     },
     {
-      "name": "10.5",
+      "name": "fts4content-10.5",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 't'",
-          "expect": "{...r s [t] u v...} {...r s [t] u v...}"
+          "expect": "\n  {...r s [t] u v...} {...r s [t] u v...}\n"
         }
       ]
     },
     {
-      "name": "10.6",
+      "name": "fts4content-10.6",
       "steps": [
         {
           "type": "exec",
@@ -719,27 +1158,35 @@
       ]
     },
     {
-      "name": "10.7",
+      "name": "fts4content-10.7",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 'e'",
-          "expect": "{...c d [e] f g...}"
+          "expect": "\n  {...c d [e] f g...}\n"
         }
       ]
     },
     {
-      "name": "11.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts4content-11.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE VIRTUAL TABLE x1 USING fts4(content=x1);",
           "expect": "1 {vtable constructor called recursively: x1}"
         }
       ]
     },
     {
-      "name": "12.1.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts4content-12.1.1",
       "steps": [
         {
           "type": "exec",
@@ -748,37 +1195,41 @@
       ]
     },
     {
-      "name": "12.1.2",
+      "name": "fts4content-12.1.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM t1;",
           "expect": "1 {SQL logic error}"
         }
       ]
     },
     {
-      "name": "12.1.3",
+      "name": "fts4content-12.1.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM t1('abc');",
           "expect": "1 {SQL logic error}"
         }
       ]
     },
     {
-      "name": "12.1.4",
+      "name": "fts4content-12.1.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT count(*) FROM t1;",
           "expect": "1 {SQL logic error}"
         }
       ]
     },
     {
-      "name": "12.2.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts4content-12.2.1",
       "steps": [
         {
           "type": "exec",
@@ -787,37 +1238,41 @@
       ]
     },
     {
-      "name": "12.2.2",
+      "name": "fts4content-12.2.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM t1;",
           "expect": "1 {SQL logic error}"
         }
       ]
     },
     {
-      "name": "12.2.3",
+      "name": "fts4content-12.2.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT * FROM t1('abc');",
           "expect": "1 {SQL logic error}"
         }
       ]
     },
     {
-      "name": "12.2.4",
+      "name": "fts4content-12.2.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "SELECT count(*) FROM t1;",
           "expect": "1 {SQL logic error}"
         }
       ]
     },
     {
-      "name": "13.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "fts4content-13.0",
       "steps": [
         {
           "type": "exec",
@@ -826,79 +1281,101 @@
       ]
     },
     {
-      "name": "13.1",
+      "name": "fts4content-13.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "INSERT INTO t1(t1) VALUES('rebuild');",
           "expect": "1 {SQL logic error}"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "setup_4",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "register_tcl_module",
+          "callbackVars": {
+            "": "tclfile3",
+            "::testprefix": "fts4content",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "match": "y:O",
+            "res": "1 {} {} 2 {} {} 6 {} {} 7 {} {}",
+            "result": "{}",
+            "rowid": "7",
+            "rowidlist": "1 2 6 7",
+            "testdir": "",
+            "tn": "3"
+          },
+          "callbackProcs": [
+            {
+              "Name": "write_file",
+              "Args": [
+                "path",
+                "text"
+              ],
+              "Body": "\n  set fd [open $path w]\n  puts -nonewline $fd $text\n  close $fd\n",
+              "Defaults": null
+            },
+            {
+              "Name": "vtab_command",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xConnect {\n      return \"CREATE TABLE t1(a)\"\n    }\n\n    xBestIndex {\n      return \"\"\n    }\n\n    xFilter {\n      return [list sql {SELECT 1, 123}]\n    }\n\n    xUpdate {\n      return 123\n    }\n  }\n\n  return {}\n",
+              "Defaults": null
+            }
+          ],
+          "moduleArgs": [
+            "db",
+            "xyz"
+          ]
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "fts4content-13.2.0",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE aa USING tcl(vtab_command);"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "fts4content-13.2.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "INSERT INTO aa VALUES('one two three');"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "fts4content-13.2.2",
       "steps": [
         {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO aa VALUES('one two three');",
+          "variable": "stmt_1"
+        },
         {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
+          "type": "stmt_finalize",
+          "sql": "INSERT INTO aa VALUES('one two three');",
+          "variable": "stmt_1",
+          "expect": "SQLITE_OK"
+        },
         {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
+          "type": "prepare_stmt",
+          "sql": "INSERT INTO aa VALUES('one two three');",
+          "variable": "stmt_2",
+          "catchMessage": "msg"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

@@ -1,13 +1,22 @@
 {
   "file": "sharedlock.test",
   "name": "sharedlock",
+  "ordered": true,
   "tests": [
     {
-      "name": "2.1",
+      "name": "setup_0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "DROP TABLE IF EXISTS t2;\n    CREATE TABLE t2(x, y);\n    INSERT INTO t2 VALUES(1, 2);\n    INSERT INTO t2 VALUES(3, 4);"
+          "type": "close_db"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "open_named_db",
+          "sql": "test.db",
+          "database": "db2"
         }
       ]
     },
@@ -21,41 +30,124 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "sharedlock-1.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t2",
-          "expect": "1 2 3 4"
+          "sql": "SELECT * FROM t1 ORDER BY rowid",
+          "expect": "1 one 2 two 3 three"
         }
       ]
     },
     {
-      "name": "2.4",
+      "name": "sharedlock-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t2;\n    CREATE TABLE t2(x, y);\n    INSERT INTO t2 VALUES(1, 2);\n    INSERT INTO t2 VALUES(3, 4);"
+        }
+      ]
+    },
+    {
+      "name": "sharedlock-2.2",
       "steps": [
         {
           "type": "exec",
           "sql": "SELECT * FROM t2",
-          "expect": "1 {database table is locked: t2}"
-        },
+          "expect": "1 2 3 4",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedlock-2.3",
+      "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');"
-        },
+          "sql": "BEGIN;  DELETE FROM t2 WHERE 1 ;"
+        }
+      ]
+    },
+    {
+      "name": "sharedlock-2.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2",
+          "expect": "1 {database table is locked: t2}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedlock-2.5",
+      "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM t2"
-        },
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "sharedlock-2.1",
+      "steps": [
         {
           "type": "exec",
-          "sql": "SELECT * FROM t1 ORDER BY rowid"
-        },
+          "sql": "DROP TABLE IF EXISTS t2;\n    CREATE TABLE t2(x, y);\n    INSERT INTO t2 VALUES(1, 2);\n    INSERT INTO t2 VALUES(3, 4);"
+        }
+      ]
+    },
+    {
+      "name": "sharedlock-2.2",
+      "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(3, 'three')"
+          "sql": "SELECT * FROM t2",
+          "expect": "1 2 3 4",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedlock-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;  DELETE FROM t2 ;"
+        }
+      ]
+    },
+    {
+      "name": "sharedlock-2.4",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "SELECT * FROM t2",
+          "expect": "1 {database table is locked: t2}",
+          "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "sharedlock-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "close_named_db",
+          "database": "db2"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

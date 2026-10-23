@@ -1,9 +1,18 @@
 {
   "file": "intreal.test",
   "name": "intreal",
+  "ordered": true,
   "tests": [
     {
-      "name": "100",
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_test_funcs"
+        }
+      ]
+    },
+    {
+      "name": "intreal-100",
       "steps": [
         {
           "type": "query",
@@ -13,7 +22,7 @@
       ]
     },
     {
-      "name": "110",
+      "name": "intreal-110",
       "steps": [
         {
           "type": "query",
@@ -23,7 +32,7 @@
       ]
     },
     {
-      "name": "120",
+      "name": "intreal-120",
       "steps": [
         {
           "type": "query",
@@ -33,7 +42,7 @@
       ]
     },
     {
-      "name": "130",
+      "name": "intreal-130",
       "steps": [
         {
           "type": "query",
@@ -43,7 +52,7 @@
       ]
     },
     {
-      "name": "140",
+      "name": "intreal-140",
       "steps": [
         {
           "type": "query",
@@ -53,7 +62,7 @@
       ]
     },
     {
-      "name": "150",
+      "name": "intreal-150",
       "steps": [
         {
           "type": "query",
@@ -63,7 +72,7 @@
       ]
     },
     {
-      "name": "160",
+      "name": "intreal-160",
       "steps": [
         {
           "type": "query",
@@ -73,7 +82,7 @@
       ]
     },
     {
-      "name": "170",
+      "name": "intreal-170",
       "steps": [
         {
           "type": "query",
@@ -83,7 +92,7 @@
       ]
     },
     {
-      "name": "180",
+      "name": "intreal-180",
       "steps": [
         {
           "type": "query",
@@ -93,7 +102,7 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "intreal-2.1",
       "steps": [
         {
           "type": "query",
@@ -103,7 +112,7 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "intreal-2.2",
       "steps": [
         {
           "type": "query",
@@ -113,7 +122,7 @@
       ]
     },
     {
-      "name": "2.3",
+      "name": "intreal-2.3",
       "steps": [
         {
           "type": "exec",
@@ -122,34 +131,58 @@
       ]
     },
     {
-      "name": "2.4",
+      "name": "setup_1",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (t1.c1 = CAST(8366271098608253588 AS REAL));"
+          "type": "query_assign",
+          "sql": "SELECT c1 FROM t1",
+          "variable": "D"
         }
       ]
     },
     {
-      "name": "2.5",
+      "name": "intreal-2.4",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t0, t1 WHERE (t1.c1 = CAST(8366271098608253588 AS REAL));"
+          "sql": "SELECT * FROM t1 WHERE (t1.c1 = CAST(8366271098608253588 AS REAL));",
+          "expectedExpr": "$D"
         }
       ]
     },
     {
-      "name": "2.6",
+      "name": "intreal-2.5",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t0, t1 \n  WHERE (\n        t1.c1 >= CAST(8366271098608253588 AS REAL) \n    AND t1.c1 <= CAST(8366271098608253588 AS REAL)\n  );"
+          "sql": "SELECT * FROM t0, t1 WHERE (t1.c1 = CAST(8366271098608253588 AS REAL));",
+          "expect": "a $D"
         }
       ]
     },
     {
-      "name": "3.0",
+      "name": "intreal-2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0, t1 \n  WHERE (\n        t1.c1 \u003e= CAST(8366271098608253588 AS REAL) \n    AND t1.c1 \u003c= CAST(8366271098608253588 AS REAL)\n  );",
+          "expect": "a $D"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "close_db"
+        },
+        {
+          "type": "open_empty_db"
+        }
+      ]
+    },
+    {
+      "name": "intreal-3.0",
       "steps": [
         {
           "type": "query",
@@ -159,7 +192,11 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "intreal-4.0",
       "steps": [
         {
           "type": "exec",
@@ -168,7 +205,7 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "intreal-4.1",
       "steps": [
         {
           "type": "exec",
@@ -177,7 +214,7 @@
       ]
     },
     {
-      "name": "4.2",
+      "name": "intreal-4.2",
       "steps": [
         {
           "type": "exec",
@@ -186,31 +223,14 @@
       ]
     },
     {
-      "name": "4.3",
+      "name": "intreal-4.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT typeof(a), a FROM t1;",
-          "expect": "real 0.0\n  real 4.0"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
+          "expect": "\n  real 0.0\n  real 4.0\n"
         }
       ]
     }
-  ],
-  "source": "capi"
+  ]
 }

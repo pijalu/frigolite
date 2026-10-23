@@ -1,0 +1,17 @@
+{
+  "file": "rtreeB.test",
+  "name": "rtreeB",
+  "ordered": true,
+  "tests": [
+    {
+      "name": "rtreeB-1.1-intonly",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(ii, x0, y0, x1, y1);\n      INSERT INTO t1 VALUES(1073741824, 0.0, 0.0, 100.0, 100.0);\n      INSERT INTO t1 VALUES(2147483646, 0.0, 0.0, 200.0, 200.0);\n      INSERT INTO t1 VALUES(4294967296, 0.0, 0.0, 300.0, 300.0);\n      INSERT INTO t1 VALUES(8589934592, 20.0, 20.0, 150.0, 150.0);\n      INSERT INTO t1 VALUES(9223372036854775807, 150, 150, 400, 400);\n      SELECT rtreenode(2, data) FROM t1_node;",
+          "expect": "{{1073741824 0 0 100 100} {2147483646 0 0 200 200} {4294967296 0 0 300 300} {8589934592 20 20 150 150} {9223372036854775807 150 150 400 400}}"
+        }
+      ]
+    }
+  ]
+}

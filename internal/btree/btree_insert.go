@@ -346,10 +346,10 @@ func (t *BTree) insertInteriorPage(pg *pager.Page, page *storage.BTreePage, pare
 // and returned to the caller reversed (left-to-right), matching
 // retryChildSplitApply's contract.
 func (t *BTree) applyChildSplitChain(pg *pager.Page, parentPgno, childPageNum uint32, childSplits []leafSplitResult) ([]leafSplitResult, error) {
-	var outs []leafSplitResult
 	// Every page that may hold the anchor of the next divider: the left
 	// page plus each sibling created by its splits (retryChildSplitApply
 	// may move the anchor rightward).
+	var outs []leafSplitResult
 	order := []uint32{pg.PageNum}
 	target := childPageNum
 	for i := range childSplits {
@@ -362,7 +362,12 @@ func (t *BTree) applyChildSplitChain(pg *pager.Page, parentPgno, childPageNum ui
 			if serr != nil {
 				return nil, serr
 			}
-			outs = append(outs, more...)
+			// retryChildSplitApply returns its new pages left-to-right, while
+			// outs is kept in reverse order for childOrderAmongSplits and the
+			// final reverse below. Append this split group in reverse too.
+			for i := len(more) - 1; i >= 0; i-- {
+				outs = append(outs, more[i])
+			}
 			order = childOrderAmongSplits(pg, outs)
 		}
 		// The divider landed: its new sibling page anchors the next one.

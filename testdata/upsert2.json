@@ -1,13 +1,14 @@
 {
   "file": "upsert2.test",
   "name": "upsert2",
+  "ordered": true,
   "tests": [
     {
       "name": "upsert2-100",
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b int, c DEFAULT 0);\n  INSERT INTO t1(a,b) VALUES(1,2),(3,4);\n  INSERT INTO t1(a,b) VALUES(1,8),(2,11),(3,1)\n    ON CONFLICT(a) DO UPDATE SET b=excluded.b, c=c+1 WHERE t1.b<excluded.b;\n  SELECT *, 'x' FROM t1 ORDER BY a;",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b int, c DEFAULT 0);\n  INSERT INTO t1(a,b) VALUES(1,2),(3,4);\n  INSERT INTO t1(a,b) VALUES(1,8),(2,11),(3,1)\n    ON CONFLICT(a) DO UPDATE SET b=excluded.b, c=c+1 WHERE t1.b\u003cexcluded.b;\n  SELECT *, 'x' FROM t1 ORDER BY a;",
           "expect": "1 8 1 x 2 11 0 x 3 4 0 x"
         }
       ]
@@ -17,7 +18,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a INT PRIMARY KEY, b int, c DEFAULT 0) WITHOUT ROWID;\n  INSERT INTO t1(a,b) VALUES(1,2),(3,4);\n  INSERT INTO t1(a,b) VALUES(1,8),(2,11),(3,1)\n    ON CONFLICT(a) DO UPDATE SET b=excluded.b, c=c+1 WHERE t1.b<excluded.b;\n  SELECT *, 'x' FROM t1 ORDER BY a;",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a INT PRIMARY KEY, b int, c DEFAULT 0) WITHOUT ROWID;\n  INSERT INTO t1(a,b) VALUES(1,2),(3,4);\n  INSERT INTO t1(a,b) VALUES(1,8),(2,11),(3,1)\n    ON CONFLICT(a) DO UPDATE SET b=excluded.b, c=c+1 WHERE t1.b\u003cexcluded.b;\n  SELECT *, 'x' FROM t1 ORDER BY a;",
           "expect": "1 8 1 x 2 11 0 x 3 4 0 x"
         }
       ]
@@ -27,7 +28,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b int, c DEFAULT 0);\n  INSERT INTO t1(a,b) VALUES(1,2),(3,4);\n  WITH nx(a,b) AS (VALUES(1,8),(2,11),(3,1),(2,15),(1,4),(1,99))\n  INSERT INTO t1(a,b) SELECT a, b FROM nx WHERE true\n    ON CONFLICT(a) DO UPDATE SET b=excluded.b, c=c+1 WHERE t1.b<excluded.b;\n  SELECT *, 'x' FROM t1 ORDER BY a;",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b int, c DEFAULT 0);\n  INSERT INTO t1(a,b) VALUES(1,2),(3,4);\n  WITH nx(a,b) AS (VALUES(1,8),(2,11),(3,1),(2,15),(1,4),(1,99))\n  INSERT INTO t1(a,b) SELECT a, b FROM nx WHERE true\n    ON CONFLICT(a) DO UPDATE SET b=excluded.b, c=c+1 WHERE t1.b\u003cexcluded.b;\n  SELECT *, 'x' FROM t1 ORDER BY a;",
           "expect": "1 99 2 x 2 15 1 x 3 4 0 x"
         }
       ]
@@ -37,7 +38,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DELETE FROM t1;\n  INSERT INTO t1(a,b) VALUES(1,2),(3,4);\n  WITH nx(a,b) AS (VALUES(1,8),(2,11),(3,1),(2,15),(1,4),(1,99))\n  INSERT INTO main.t1 AS t2(a,b) SELECT a, b FROM nx WHERE true\n    ON CONFLICT(a) DO UPDATE SET b=excluded.b, c=t2.c+1 WHERE t2.b<excluded.b;\n  SELECT *, 'x' FROM t1 ORDER BY a;",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1(a,b) VALUES(1,2),(3,4);\n  WITH nx(a,b) AS (VALUES(1,8),(2,11),(3,1),(2,15),(1,4),(1,99))\n  INSERT INTO main.t1 AS t2(a,b) SELECT a, b FROM nx WHERE true\n    ON CONFLICT(a) DO UPDATE SET b=excluded.b, c=t2.c+1 WHERE t2.b\u003cexcluded.b;\n  SELECT *, 'x' FROM t1 ORDER BY a;",
           "expect": "1 99 2 x 2 15 1 x 3 4 0 x"
         }
       ]
@@ -46,8 +47,8 @@
       "name": "upsert2-202",
       "steps": [
         {
-          "type": "exec",
-          "sql": "WITH nx(a,b) AS (VALUES(1,8),(2,11),(3,1),(2,15),(1,4),(1,99))\n  INSERT INTO t1 AS t2(a,b) SELECT a, b FROM nx WHERE true\n    ON CONFLICT(a) DO UPDATE SET b=excluded.b, c=t1.c+1 WHERE t1.b<excluded.b;",
+          "type": "catch",
+          "sql": "WITH nx(a,b) AS (VALUES(1,8),(2,11),(3,1),(2,15),(1,4),(1,99))\n  INSERT INTO t1 AS t2(a,b) SELECT a, b FROM nx WHERE true\n    ON CONFLICT(a) DO UPDATE SET b=excluded.b, c=t1.c+1 WHERE t1.b\u003cexcluded.b;",
           "expect": "1 {no such column: t1.c}"
         }
       ]
@@ -57,7 +58,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a INT PRIMARY KEY, b int, c DEFAULT 0) WITHOUT ROWID;\n  INSERT INTO t1(a,b) VALUES(1,2),(3,4);\n  WITH nx(a,b) AS (VALUES(1,8),(2,11),(3,1),(2,15),(1,4),(1,99))\n  INSERT INTO t1(a,b) SELECT a, b FROM nx WHERE true\n    ON CONFLICT(a) DO UPDATE SET b=excluded.b, c=c+1 WHERE t1.b<excluded.b;\n  SELECT *, 'x' FROM t1 ORDER BY a;",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a INT PRIMARY KEY, b int, c DEFAULT 0) WITHOUT ROWID;\n  INSERT INTO t1(a,b) VALUES(1,2),(3,4);\n  WITH nx(a,b) AS (VALUES(1,8),(2,11),(3,1),(2,15),(1,4),(1,99))\n  INSERT INTO t1(a,b) SELECT a, b FROM nx WHERE true\n    ON CONFLICT(a) DO UPDATE SET b=excluded.b, c=c+1 WHERE t1.b\u003cexcluded.b;\n  SELECT *, 'x' FROM t1 ORDER BY a;",
           "expect": "1 99 2 x 2 15 1 x 3 4 0 x"
         }
       ]
@@ -87,7 +88,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DELETE FROM record;\n  INSERT INTO t1(a,b) VALUES(1,2)\n    ON CONFLICT(a) DO UPDATE SET c=c+1 WHERE c<0;\n  SELECT * FROM record;",
+          "sql": "DELETE FROM record;\n  INSERT INTO t1(a,b) VALUES(1,2)\n    ON CONFLICT(a) DO UPDATE SET c=c+1 WHERE c\u003c0;\n  SELECT * FROM record;",
           "expect": "before-insert 1,2,0"
         }
       ]
@@ -127,7 +128,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "DELETE FROM record;\n  INSERT INTO t1(a,b) VALUES(1,2)\n    ON CONFLICT(a) DO UPDATE SET c=c+1 WHERE c<0;\n  SELECT * FROM record;",
+          "sql": "DELETE FROM record;\n  INSERT INTO t1(a,b) VALUES(1,2)\n    ON CONFLICT(a) DO UPDATE SET c=c+1 WHERE c\u003c0;\n  SELECT * FROM record;",
           "expect": "before-insert 1,2,0"
         }
       ]
