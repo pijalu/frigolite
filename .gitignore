@@ -64,3 +64,8 @@ orafixture
 # perfbench built binaries
 benchmarks/perfbench/frigolite/frigolite
 benchmarks/perfbench/sqlite/sqlite
+
+# generated full-suite run artifacts (kept locally, never committed)
+portplan/FULL_SUITE_*.json
+portplan/FULL_SUITE_*.pid
+portplan/FULL_SUITE_*.elapsed

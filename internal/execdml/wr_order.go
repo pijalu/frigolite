@@ -273,23 +273,10 @@ func WRPKIndices(createSQL string, colDefs []sql.ColumnDef) []int {
 	return idx
 }
 
-// wrCellMatchesOldKey reports whether an index-leaf cell holds one of the
-// OLD PK keys (declared-order PK projections) collected for an UPDATE's
-// delete phase. The cell payload is PK-first storage order; project it to
-// the declared PK slots and compare with per-column affinity/collation.
-func wrCellMatchesOldKey(cell *storage.Cell, oldKeys [][]interface{}, tableEntry *schema.Entry, ctx DMLContext) bool {
-	if len(oldKeys) == 0 || tableEntry == nil || ctx == nil {
-		return false
-	}
-	colDefs := ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
-	order := WithoutRowidStorageOrder(tableEntry.SQL, colDefs)
-	return WRCellMatchesPKKeys(cell, oldKeys, order, WRPKIndices(tableEntry.SQL, colDefs), colDefs)
-}
-
 // WRCellMatchesPKKeys reports whether an index-leaf cell holds one of the
 // given PK keys (each key is a declared-order PK projection aligned with
-// pkIdx). Context-free core of wrCellMatchesOldKey, shared with the DDL
-// row-rebuild delete phase.
+// pkIdx, in PK-first storage order). Shared between the DML UPDATE delete
+// phase and the DDL row-rebuild delete phase.
 func WRCellMatchesPKKeys(cell *storage.Cell, keys [][]interface{}, order []int, pkIdx []int, colDefs []sql.ColumnDef) bool {
 	if len(keys) == 0 || len(order) != len(colDefs) || len(pkIdx) == 0 {
 		return false

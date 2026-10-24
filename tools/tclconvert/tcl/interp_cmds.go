@@ -1239,24 +1239,6 @@ func commandSQLite3Exec(i *Interp, rawWords []rawWord, args []string, _ map[stri
 	return nil
 }
 
-func decodeSQLiteExecHex(sql string) string {
-	var out strings.Builder
-	for pos := 0; pos < len(sql); {
-		if sql[pos] == '%' && pos+2 < len(sql) {
-			hi, e1 := strconv.ParseUint(sql[pos+1:pos+2], 16, 4)
-			lo, e2 := strconv.ParseUint(sql[pos+2:pos+3], 16, 4)
-			if e1 == nil && e2 == nil {
-				out.WriteByte(byte(hi<<4 | lo))
-				pos += 3
-				continue
-			}
-		}
-		out.WriteByte(sql[pos])
-		pos++
-	}
-	return out.String()
-}
-
 // commandForceDelete handles `forcedelete FILE...`: the named files are
 // removed, so a subsequent `sqlite3 db FILE` opens a fresh database.
 func commandForceCopy(i *Interp, _ []rawWord, args []string, _ map[string]string) error {

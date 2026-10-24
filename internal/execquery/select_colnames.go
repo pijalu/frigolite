@@ -271,55 +271,6 @@ func (e *SelectEngine) selectColumnName(col sql.SelectColumn, colDefs []sql.Colu
 	return []string{exprResultName(col.Expr)}
 }
 
-// starColumnNamesFor expands a "*" reference. A qualified star (t.*) covers
-// only that table's columns; a star naming a table that is not a visible
-// FROM/JOIN operand errors "no such table: tX" (build.c sqlite3TwoPartName;
-// select1-6.44a t5.*, 6.44b t3.* under an alias) — flagged and consumed on
-// the execSelect return paths like resultTooWide.
-func (e *SelectEngine) fullNamesForBareStar(names []string, colDefs []sql.ColumnDef, sel *sql.SelectStmt) []string {
-	owners := make(map[string][]string)
-	refs := []sql.TableRef{sel.From}
-	for _, join := range sel.Joins {
-		refs = append(refs, join.Table)
-	}
-	for _, ref := range refs {
-		if ref.Name == "" {
-			continue
-		}
-		source := ref.Name
-		qualifier := ref.Name
-		if ref.As != "" {
-			qualifier = ref.As
-		} else if entry, _, err := e.ctx.FindTable(source); err == nil {
-			source = entry.Name
-			qualifier = entry.Name
-		}
-		cols, err := e.tableColumnNames(source)
-		if err != nil {
-			continue
-		}
-		for _, name := range cols {
-			if e.hiddenColumnNames(source)[name] {
-				continue
-			}
-			key := strings.ToLower(name)
-			owners[key] = append(owners[key], qualifier+"."+name)
-		}
-	}
-	used := make(map[string]int)
-	out := make([]string, len(names))
-	for i, name := range names {
-		key := strings.ToLower(name)
-		if choices := owners[key]; used[key] < len(choices) {
-			out[i] = choices[used[key]]
-			used[key]++
-		} else {
-			out[i] = name
-		}
-	}
-	return out
-}
-
 func (e *SelectEngine) starColumnNamesFor(ref *sql.ColumnRef, colDefs []sql.ColumnDef, sel *sql.SelectStmt) []string {
 	if ref.Table != "" {
 		if !selectOperandVisible(sel, ref.Table) {

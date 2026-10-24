@@ -233,15 +233,6 @@ func unprefixedColName(name string) string {
 	return name
 }
 
-// rightDefBaseNames returns the set of unprefixed column names from right defs.
-func rightDefBaseNames(rightDefs []sql.ColumnDef) map[string]bool {
-	names := make(map[string]bool)
-	for _, cd := range rightDefs {
-		names[unprefixedColName(cd.Name)] = true
-	}
-	return names
-}
-
 // addAllToSet adds all strings to a set.
 func addAllToSet(set map[string]bool, names []string) {
 	for _, n := range names {

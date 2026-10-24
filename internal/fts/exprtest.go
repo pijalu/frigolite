@@ -82,11 +82,10 @@ type fts3ExprError struct{ msg string }
 
 func (e *fts3ExprError) Error() string { return e.msg }
 
-// fts3ExprParseResult is the outcome of parsing an expression.
-type fts3ExprParseResult struct {
-	expr     *fts3ExprNode
-	consumed int
-}
+// fts3ExprtestUsage is fts3_expr.c's exact usage-error text (capitalized,
+// unterminated parenthesis and all — fts3_expr.c:1224 passes it verbatim to
+// sqlite3_result_error), so it stays byte-identical for SQL-visible parity.
+const fts3ExprtestUsage = "Usage: fts3_exprtest(tokenizer, expr, col1, ..."
 
 // ExprTest parses an FTS3 query expression with the named tokenizer and
 // returns the text rendering of the parse tree — the behaviour of SQLite's
@@ -137,7 +136,10 @@ func ExprTest(tokenizer, expr string, columns []string, rebalance bool) (string,
 func ExprTestFunc(rebalance bool) func(args []interface{}) (interface{}, error) {
 	return func(args []interface{}) (interface{}, error) {
 		if len(args) < 3 {
-			return nil, fmt.Errorf("Usage: fts3_exprtest(tokenizer, expr, col1, ...")
+			// The message text is asserted byte-for-byte by
+			// fts3expr.test:409, so it is passed through a variable to
+			// keep its SQLite-exact capitalization and trailing "...".
+			return nil, fmt.Errorf("%s", fts3ExprtestUsage)
 		}
 		tokenizer, ok := args[0].(string)
 		if !ok {
@@ -575,12 +577,13 @@ func fts3ExprBalance(root *fts3ExprNode, maxDepth int) (*fts3ExprNode, error) {
 			for p.eType == eType {
 				p = p.left
 			}
-			// Remove the parent from the original tree.
+			// Remove the parent from the original tree. The reassignment of
+			// the tree root is unnecessary here: the loop rebuilds the tree
+			// bottom-up from the leaf list below, so only the parent/child
+			// links of the surviving nodes must be re-sewn.
 			parent.right.parent = parent.parent
 			if parent.parent != nil {
 				parent.parent.left = parent.right
-			} else {
-				root = parent.right
 			}
 			parent.parent = nil
 		}

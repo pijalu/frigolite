@@ -454,7 +454,9 @@ func (db *DB) Close() error {
 		// both connections at the end of a loop iteration (memdb2.test's
 		// per-tn db/db2 close), the store is dropped so the next iteration
 		// starts empty — just like the file-backed suites' forcedelete.
+		// Shared mode=memory&cache=shared stores follow the same contract.
 		releaseMemdb(db)
+		releaseSharedMem(db)
 		return err
 	}
 	db.closedFlag = true
