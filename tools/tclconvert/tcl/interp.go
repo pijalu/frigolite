@@ -112,6 +112,7 @@ type Interp struct {
 	depth             int    // call stack depth guard
 	selectGroup       int
 	catchDepth        int             // nesting level of `catch { ... }` blocks
+	condDepth         int             // nesting level of if-condition evaluation (command substitutions there run in condition context)
 	deletedFiles      map[string]bool // files removed via forcedelete/file delete
 	fileWrites        map[string]*tclFileWrite
 	nextFileHandle    int
@@ -1069,7 +1070,16 @@ func (i *Interp) cmdIf(rawWords []rawWord, localVars map[string]string) error {
 	// Also: if {cond} then {body} ...
 	idx := 1
 	for idx < len(rawWords) {
+		// A `[db status ...]` command substitution inside the condition
+		// (where.test's cksort variant:
+		//   if {[db status sort]} {set x sort} {set x nosort}
+		// ) is the same marker shape as sqlite_sort_count below: the query
+		// the body captured carries the sort marker, not the counter
+		// suffix. The substitution runs inside evalIfCondition/evalWord,
+		// so the condition context is flagged around it.
+		i.condDepth++
 		condVal, next, err := i.evalIfCondition(rawWords, idx, localVars)
+		i.condDepth--
 		if err != nil {
 			return err
 		}
@@ -1109,8 +1119,12 @@ func (i *Interp) cmdIf(rawWords []rawWord, localVars map[string]string) error {
 		}
 		// Evaluate condition. An unparseable condition is treated as false
 		// (skip to the elseif/else chain) instead of aborting the whole
-		// file conversion.
+		// file conversion. The condition's `[db status ...]` command
+		// substitution runs inside EvalExpr (substituteExprAtoms), so the
+		// condition context is flagged around it too (see evalIfCondition).
+		i.condDepth++
 		result, err := EvalExpr(condVal, i, localVars)
+		i.condDepth--
 		if err == nil && isTrue(result) {
 			return i.execIfBody(rawWords[idx], localVars)
 		}

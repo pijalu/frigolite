@@ -181,19 +181,59 @@ func (i *Interp) cmdDB(rawWords []rawWord, args []string, localVars map[string]s
 		return nil
 	case "status":
 		// `db status step` / `db status sort` read SQLite's statement-status
-		// counters (SQLITE_STMTSTATUS_FULLSCAN_STEP / _SORT). They are
-		// runtime values: the enclosing query's rendered value must carry
-		// them, so the statement the helper captured is marked.
+		// counters (SQLITE_STMTSTATUS_FULLSCAN_STEP / _SORT). Two shapes:
 		//
-		// where7.test's count_steps_sort helper:
-		//   set r [lsort -integer [db eval $sql]]
-		//   return "$r scan [db status step] sort [db status sort]"
-		i.markStmtStatus(sub)
+		// (a) inline in the same do_test body as the query it describes
+		//     (where7.test's count_steps_sort helper:
+		//       set r [lsort -integer [db eval $sql]]
+		//       return "$r scan [db status step] sort [db status sort]"
+		//     ) — the captured query is flagged and the harness appends
+		//     "scan N sort M" to its rendered value.
+		// (b) the body's own command (where.test 1.1.3/1.1.5:
+		//       do_test where-1.1.3 { db status step } {0}
+		//     ) — the body's value IS the counter of the last executed
+		//     statement, so it becomes a db_status step the harness answers
+		//     from the engine counters. Flagging the *previous* test's
+		//     statement here (the old behaviour) corrupted that statement's
+		//     rendering with a counter suffix nobody expected.
+		// (c) inside an if-condition (where.test's cksort variant:
+		//       if {[db status sort]} {set x sort} {set x nosort}
+		//     ) — the sort-marker shape, like sqlite_sort_count: the query
+		//     of the same body carries the marker.
+		if i.condDepth > 0 {
+			if len(i.stmts) > 0 {
+				i.stmts[len(i.stmts)-1].SortMarker = true
+			}
+			return nil
+		}
+		if i.lastStmtIsStatusFlaggable(i.curTest) {
+			i.markStmtStatus(sub)
+		} else if len(args) >= 2 {
+			i.stmts = append(i.stmts, Stmt{Type: "db_status", SQL: args[1], TestName: i.curTest})
+		}
 		return nil
 
 	}
 	// on_disconnect/cache/... — no-op
 	return nil
+}
+
+// lastStmtIsStatusFlaggable reports whether the most recently captured
+// statement belongs to the given test and is a query whose rendered value can
+// carry the statement-status counters (shape (a) of `db status` above).
+func (i *Interp) lastStmtIsStatusFlaggable(testName string) bool {
+	if len(i.stmts) == 0 {
+		return false
+	}
+	last := i.stmts[len(i.stmts)-1]
+	if last.TestName != testName {
+		return false
+	}
+	switch last.Type {
+	case "query", "query_assign", "query2":
+		return true
+	}
+	return false
 }
 
 // markStmtStatus flags the most recently captured statement so the harness

@@ -3631,7 +3631,25 @@ func TestSQLiteSuite(t *testing.T) {
 							}
 							if step.Expect != "" {
 								if diff := matchExpectation(got, step.Expect); diff != "" {
-									t.Errorf("sqlite3_exec result mismatch: %s\\n  got: %s\\n  want: %s\\n  sql: %s", diff, got, step.Expect, step.SQL)
+									t.Errorf("sqlite3_exec result mismatch: %s\n  got:  %s\n  want: %s\n  sql: %s", diff, got, step.Expect, step.SQL)
+								}
+							}
+						case "db_status":
+							// `db status step|sort` as a do_test body's own
+							// command (where.test 1.1.3/1.1.5): the body's
+							// value is the counter of the last executed
+							// statement. The counters reset when read, like
+							// the inline-helper capture above.
+							got := "0"
+							switch strings.TrimSpace(step.SQL) {
+							case "step":
+								got = fmt.Sprint(execDB.engine.StmtStatusFullScanStep())
+							case "sort":
+								got = fmt.Sprint(execDB.engine.StmtStatusSort())
+							}
+							if step.Expect != "" {
+								if diff := matchExpectation(got, step.Expect); diff != "" {
+									t.Errorf("db status %s mismatch: %s\n  got:  %s\n  want: %s", step.SQL, diff, got, step.Expect)
 								}
 							}
 						case "query_assign":

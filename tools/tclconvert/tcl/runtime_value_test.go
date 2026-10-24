@@ -93,6 +93,68 @@ db eval {SELECT $r}`); err != nil {
 	}
 }
 
+// TestDBStatusStandaloneBodyEmitsStep pins the where.test shape: `db status
+// step` as a do_test body's own command must become a db_status step whose
+// value the harness reads from the engine counters — it must NOT flag the
+// previous test's statement with the counter suffix (that corrupted the
+// earlier statement's rendering: where-1.1.4 gained " scan 99 sort 0").
+func TestDBStatusStandaloneBodyEmitsStep(t *testing.T) {
+	i := NewInterp()
+	script := `do_test where-1.1.3 { db status step } {0}
+do_test where-1.1.4 { db eval {SELECT x, y, w FROM t1 WHERE +w=10} } {3 121 10}
+do_test where-1.1.5 { db status step } {99}
+do_test where-1.1.6 { db status sort } {0}`
+	if err := i.Execute(script); err != nil {
+		t.Fatal(err)
+	}
+	stmts := i.Stmts()
+	if len(stmts) != 4 {
+		t.Fatalf("captured %d statements, want 4: %#v", len(stmts), stmts)
+	}
+	for idx, want := range map[int]struct{ typ, sql, expect string }{
+		0: {"db_status", "step", "0"},
+		2: {"db_status", "step", "99"},
+		3: {"db_status", "sort", "0"},
+	} {
+		s := stmts[idx]
+		if s.Type != want.typ || s.SQL != want.sql || s.Expected != want.expect {
+			t.Fatalf("statement %d = %#v, want type=%s sql=%s expect=%s", idx, s, want.typ, want.sql, want.expect)
+		}
+	}
+	if stmts[1].StmtStatus {
+		t.Fatalf("the plain query must not carry the counter flag: %#v", stmts[1])
+	}
+	if stmts[1].Expected != "3 121 10" {
+		t.Fatalf("query expectation = %q, want the rows", stmts[1].Expected)
+	}
+}
+
+// TestDBStatusInlineHelperStillFlagsQuery pins that the inline-helper shape
+// (count_steps_sort) still flags the query of the SAME body and emits no
+// db_status step.
+func TestDBStatusInlineHelperStillFlagsQuery(t *testing.T) {
+	i := NewInterp()
+	script := `proc count_steps_sort {sql} {
+  set r [lsort -integer [db eval $sql]]
+  return "$r scan [db status step] sort [db status sort]"
+}
+do_test where7-2.2.1 { count_steps_sort {SELECT a FROM t2} } {1 2 3 scan 0 sort 0}
+do_test where7-2.2.2 { db status step } {0}`
+	if err := i.Execute(script); err != nil {
+		t.Fatal(err)
+	}
+	stmts := i.Stmts()
+	if len(stmts) != 2 {
+		t.Fatalf("captured %d statements, want 2: %#v", len(stmts), stmts)
+	}
+	if !stmts[0].StmtStatus {
+		t.Fatalf("the helper's query must keep the counter flag: %#v", stmts[0])
+	}
+	if stmts[1].Type != "db_status" || stmts[1].SQL != "step" {
+		t.Fatalf("standalone read = %#v, want a db_status step", stmts[1])
+	}
+}
+
 // containsRuntimeMarker reports whether a string carries a runtime marker.
 func containsRuntimeMarker(s string) bool {
 	return len(s) != len(stripRuntimeValues(s))
