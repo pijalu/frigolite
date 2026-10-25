@@ -767,6 +767,15 @@ func (i *Interp) cmdSet(args []string, localVars map[string]string) error {
 	name := args[0]
 	if len(args) >= 2 {
 		i.setVar(name, args[1], localVars)
+		// A plain reset of a callback-recorded global (`set ::triggers_fired
+		// [list]` in e_droptrigger's droptrigger_reopen_db, `set ::matchargs
+		// [list]` between e_expr tests) must reach the harness too: the
+		// runtime list only grows there (the callback appends per firing),
+		// so without the reset step every later comparison sees the whole
+		// history.
+		if varName := strings.TrimPrefix(name, "::"); i.trackedVars[varName] && args[1] == "" {
+			i.stmts = append(i.stmts, Stmt{Type: "runtime_var_reset", Variable: varName, TestName: i.curTest})
+		}
 	}
 	val, _ := i.getVar(name, localVars)
 	i.vars[""] = val
@@ -1378,6 +1387,12 @@ func (i *Interp) cmdProc(rawWords []rawWord) error {
 	}
 	argNames := splitList(argsStr)
 	proc := &Proc{Name: name, Args: argNames, Body: body}
+	// A proc whose body writes a global (e_droptrigger's
+	// `proc r {x} { lappend ::triggers_fired $x }`) marks that global as a
+	// callback-recorded runtime variable from the moment it is defined, so
+	// a later `set VAR [list]` reset is captured even before the first SQL
+	// statement referencing the proc runs.
+	i.trackCallbackVars(nil, body)
 	// TCL optional arguments use {name default} specs: parse them so calls
 	// with fewer arguments bind the defaults instead of misnamed locals.
 	for _, spec := range argNames {

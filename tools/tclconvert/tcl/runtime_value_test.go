@@ -159,3 +159,35 @@ do_test where7-2.2.2 { db status step } {0}`
 func containsRuntimeMarker(s string) bool {
 	return len(s) != len(stripRuntimeValues(s))
 }
+
+// TestTrackedVarResetEmitsStep pins that a plain empty `set` on a
+// callback-recorded global becomes a runtime_var_reset step: the harness's
+// runtime list only grows (the callback appends per firing), so without the
+// reset every later comparison sees the whole history
+// (e_droptrigger 2.1.2's ::triggers_fired accumulated "temp.tr1" from 2.1.1).
+func TestTrackedVarResetEmitsStep(t *testing.T) {
+	i := NewInterp()
+	script := `proc droptrigger_reopen_db {} {
+  db close
+  set ::triggers_fired [list]
+  proc r {x} { lappend ::triggers_fired $x }
+  db eval {CREATE TEMP TABLE t1(a, b); CREATE TRIGGER temp.tr1 BEFORE INSERT ON t1 BEGIN SELECT r('temp.tr1'); END}
+}
+do_test 2.1.1 { droptrigger_reopen_db; db eval {INSERT INTO t1 VALUES(1, 2)}; set ::triggers_fired } {temp.tr1}
+do_test 2.1.2 { droptrigger_reopen_db; db eval {DROP TRIGGER tr1; INSERT INTO t1 VALUES(1, 2)}; set ::triggers_fired } {}`
+	if err := i.Execute(script); err != nil {
+		t.Fatal(err)
+	}
+	resets := 0
+	for _, s := range i.Stmts() {
+		if s.Type == "runtime_var_reset" {
+			resets++
+			if s.Variable != "triggers_fired" {
+				t.Fatalf("reset variable = %q, want triggers_fired", s.Variable)
+			}
+		}
+	}
+	if resets == 0 {
+		t.Fatalf("no runtime_var_reset emitted: %#v", i.Stmts())
+	}
+}

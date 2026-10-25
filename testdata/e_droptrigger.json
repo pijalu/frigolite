@@ -37,6 +37,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -110,6 +114,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -167,6 +175,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -242,6 +254,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -299,6 +315,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -374,6 +394,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -431,6 +455,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -506,6 +534,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -563,6 +595,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -638,6 +674,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -695,6 +735,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -770,6 +814,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -827,6 +875,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -902,6 +954,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -959,6 +1015,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -1034,6 +1094,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -1091,6 +1155,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -1164,6 +1232,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -1242,6 +1314,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -1313,6 +1389,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -1392,6 +1472,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -1463,6 +1547,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -1542,6 +1630,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -1613,6 +1705,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -1692,6 +1788,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -1763,6 +1863,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -1842,6 +1946,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -1913,6 +2021,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -1992,6 +2104,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -2063,6 +2179,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -2142,6 +2262,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -2213,6 +2337,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -2292,6 +2420,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -2363,6 +2495,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -2442,6 +2578,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -2513,6 +2653,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -2591,6 +2735,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -2662,6 +2810,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -2741,6 +2893,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -2812,6 +2968,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -2891,6 +3051,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -2962,6 +3126,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -3041,6 +3209,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -3112,6 +3284,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -3191,6 +3367,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -3262,6 +3442,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -3341,6 +3525,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -3412,6 +3600,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -3491,6 +3683,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -3562,6 +3758,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -3639,6 +3839,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -3712,6 +3916,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -3791,6 +3999,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -3862,6 +4074,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -3940,6 +4156,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -4011,6 +4231,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -4090,6 +4314,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -4161,6 +4389,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -4238,6 +4470,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -4311,6 +4547,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -4390,6 +4630,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -4461,6 +4705,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -4540,6 +4788,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -4611,6 +4863,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -4690,6 +4946,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -4761,6 +5021,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -4840,6 +5104,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -4911,6 +5179,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -4988,6 +5260,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -5061,6 +5337,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -5138,6 +5418,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",
@@ -5209,6 +5493,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -5282,6 +5570,10 @@
           "sql": "test.db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
+        },
+        {
           "type": "register_function",
           "functionName": "r",
           "callbackVars": {
@@ -5353,6 +5645,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "triggers_fired"
         },
         {
           "type": "register_function",

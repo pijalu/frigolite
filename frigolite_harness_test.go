@@ -4111,6 +4111,13 @@ func TestSQLiteSuite(t *testing.T) {
 							if diff := matchExpectation(got, step.Expect); diff != "" {
 								t.Errorf("runtime variable mismatch\\n  got: [%q]\\n  %s", got, diff)
 							}
+						case "runtime_var_reset":
+							// A plain `set VAR [list]` on a callback-recorded
+							// variable (e_droptrigger's droptrigger_reopen_db,
+							// e_expr's `set ::matchargs [list]`): the runtime
+							// list starts over, or the next callback append
+							// would see the whole history.
+							runtimeVars[step.Variable] = ""
 						case "runtime_list":
 							// The body's value is a Tcl `list` over runtime
 							// values (conflict.test: `list $r0 $r1 $r2
