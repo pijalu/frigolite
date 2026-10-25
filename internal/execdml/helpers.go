@@ -55,8 +55,11 @@ func indexKeyColName(col string) string {
 	// sqlite3CreateIndex keeps the token text after dequoting): a quoted
 	// column — including the zero-length name ("" "", tkt-78e04e52ea) —
 	// must compare equal to its bare name wherever the planner resolves
-	// index columns against column references.
-	if col != "" && (col[0] == '"' || col[0] == '`' || col[0] == '[') {
+	// index columns against column references. A single-quoted name is the
+	// old-MySQL-compatibility form (where.test's `CREATE INDEX i1xy ON
+	// t1(\`x\`,'y' ASC)`): sqlite3NameFromToken dequotes it exactly like the
+	// identifier quotes.
+	if col != "" && (col[0] == '"' || col[0] == '`' || col[0] == '[' || col[0] == '\'') {
 		col = quotedToken(col)
 	}
 	return col

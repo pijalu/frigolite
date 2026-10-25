@@ -588,9 +588,10 @@ func (e *SelectEngine) sortRowsWithMaps(result *Result, orderBy []sql.OrderByTer
 	// The loop delivers the order when the index walk provides it. SQLite
 	// emits OP_Sort (and counts one SQLITE_STMTSTATUS_SORT) whenever the
 	// ORDER BY is NOT delivered by the loop — even when the result has no
-	// rows: the plan still carries a temp b-tree.
+	// rows: the plan still carries a temp b-tree. The delivery check itself
+	// must therefore run for empty results too.
 	delivered := false
-	if !result.RowsInBranchOrder && len(result.Rows) > 0 {
+	if !result.RowsInBranchOrder {
 		delivered = e.emitIndexOrderedRows(result, rowMaps, s, orderBy)
 	}
 	if !delivered {

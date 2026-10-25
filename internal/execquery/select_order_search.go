@@ -70,6 +70,13 @@ func (e *SelectEngine) scanLoopForRowCount(t queryTable, s *sql.SelectStmt, nRow
 			return scanLoop{}, err
 		}
 		if loop.kind != loopNone {
+			// An ORDER BY led by the rowid is delivered for free by the table
+			// scan; a secondary-index loop would need the temp-b-tree sort,
+			// which where.c prices into every non-delivering loop — the scan
+			// always wins (the IPK loop keeps rowid order itself).
+			if (loop.kind == loopIndex || loop.kind == loopSkipScan) && e.orderByRowidLeadingName(s) {
+				return scanLoop{kind: loopNone, bestEst: float64(nRow), nRow: float64(nRow)}, nil
+			}
 			return loop, nil
 		}
 	}
@@ -102,9 +109,144 @@ func (e *SelectEngine) whereScanLoop(t queryTable, s *sql.SelectStmt, loop scanL
 	}
 	if bestIndex != "" && (bestIndex == "PRIMARY KEY" || e.indexSeekChosen(bestIndex, ret.bestEst, ret.nRow)) {
 		ret.kind, ret.token, ret.seek, ret.conditions = loopIndex, bestIndex, true, conditions
-		return bestIndex, conditions, ret, nil
+		return bestIndex, conditions, e.preferOrderByServingIndex(t, s, ret, wantConditions), nil
 	}
 	return bestIndex, conditions, ret, nil
+}
+
+// indexEqPrefixLen counts how many of an index's LEADING columns the WHERE
+// clause fixes by equality — index-independent (collectIndexedRefs only
+// carries refs for the term's best index, so a candidate index's prefix
+// cannot be counted through it). A range-bound trailing column does not
+// count (its rows still emerge in index order).
+func (e *SelectEngine) indexEqPrefixLen(t queryTable, token string, where sql.Expr) int {
+	cols := e.seekRefColumns(t.real, token)
+	if len(cols) == 0 || where == nil {
+		return 0
+	}
+	n := 0
+	for n < len(cols) {
+		tr := &orderTerm{col: cols[n]}
+		if !e.termEqBoundByWhere(t, where, tr) {
+			break
+		}
+		n++
+	}
+	return n
+}
+
+// preferOrderByServingIndex swaps a chosen secondary-index seek for another
+// candidate index that serves the same equality prefix AND satisfies the
+// ORDER BY — where.c's sort-cost rule: every loop that does not deliver the
+// ORDER BY pays the temp-b-tree sort, so among loops of equal row estimate
+// the one that delivers the order wins (where.test 6.9: `WHERE a=1 ORDER BY
+// c` plans SEARCH via (a,c,b), not the cheaper-per-row (a) index followed by
+// a sort). The candidate must drive a seek with at least as many leading
+// equality-bound columns, which pins its selectivity to the chosen loop's.
+func (e *SelectEngine) preferOrderByServingIndex(t queryTable, s *sql.SelectStmt, loop scanLoop, wantConditions bool) scanLoop {
+	if s == nil || len(s.OrderBy) == 0 || s.Union != nil || len(s.Joins) > 0 ||
+		len(s.GroupBy) > 0 || s.Distinct || s.Where == nil {
+		return loop
+	}
+	if len(e.withoutRowidPKCols(t.real)) > 0 {
+		return loop
+	}
+	if _, ok := e.indexLoopOrderSatisfied(t, loop, s); ok {
+		return loop // the chosen index already delivers the order
+	}
+	nEqBest := e.indexEqPrefixLen(t, loop.token, s.Where)
+	if nEqBest == 0 {
+		return loop // tranche rule: only equality-pinned substitutions
+	}
+	entries, err := e.ctx.Schema().GetEntries("")
+	if err != nil {
+		return loop
+	}
+	for _, entry := range entries {
+		if entry.Type != "index" || entry.TblName != t.display || e.indexIsUnordered(entry.Name) {
+			continue
+		}
+		token := indexLookupToken(entry.Name)
+		if token == loop.token || e.indexEqPrefixLen(t, token, s.Where) < nEqBest {
+			continue
+		}
+		cand := scanLoop{kind: loopIndex, token: token, seek: true,
+			bestEst: loop.bestEst, nRow: loop.nRow}
+		if _, ok := e.indexLoopOrderSatisfied(t, cand, s); !ok {
+			continue
+		}
+		if wantConditions {
+			cand.conditions = e.eqPrefixConditions(t.real, token, s.Where)
+		} else {
+			cand.conditions = loop.conditions
+		}
+		return cand
+	}
+	return loop
+}
+
+// eqPrefixConditions renders the SEARCH constraint text of an index's
+// equality-bound leading columns plus one range term on the next column
+// ("(a=?)", "(a=? AND c>?)"), the way the refs-driven formatConditions does
+// for the chosen index. A candidate index has no refs in
+// collectIndexedRefs's pool, so its text is rebuilt from the WHERE conjuncts.
+func (e *SelectEngine) eqPrefixConditions(tableName, token string, where sql.Expr) string {
+	cols := e.seekRefColumns(tableName, token)
+	t := queryTable{real: tableName, display: tableName}
+	var parts []string
+	n := 0
+	for n < len(cols) {
+		if !e.termEqBoundByWhere(t, where, &orderTerm{col: cols[n]}) {
+			break
+		}
+		parts = append(parts, cols[n]+"=?")
+		n++
+	}
+	if n < len(cols) {
+		if part, ok := indexRangeConjunctText(splitAndInto(nil, where), cols[n]); ok {
+			parts = append(parts, part)
+		}
+	}
+	if len(parts) == 0 {
+		return ""
+	}
+	return "(" + strings.Join(parts, " AND ") + ")"
+}
+
+// indexRangeConjunctText finds the first AND conjunct constraining the named
+// column with a seekable range/equality operator and renders it as SQLite's
+// SEARCH text does (BETWEEN expands to both bounds).
+func indexRangeConjunctText(conjuncts []sql.Expr, col string) (string, bool) {
+	for _, conj := range conjuncts {
+		b, ok := unwrapParenExpr(conj).(*sql.BinaryOp)
+		if !ok {
+			continue
+		}
+		ref, isRef := b.Left.(*sql.ColumnRef)
+		if !isRef || !strings.EqualFold(ref.Name, col) || !isSeekConstraintOperand(b.Right) {
+			continue
+		}
+		switch b.Operator {
+		case "=", "==":
+			return col + "=?", true
+		case ">", ">=", "<", "<=":
+			return col + b.Operator + "?", true
+		case "BETWEEN":
+			return col + ">? AND " + col + "<?", true
+		}
+	}
+	return "", false
+}
+
+// isSeekConstraintOperand reports whether an expression can serve as the
+// constant side of a SEARCH constraint rendering (literals and parameters;
+// anything else keeps the term out of the constraint text).
+func isSeekConstraintOperand(x sql.Expr) bool {
+	switch x.(type) {
+	case *sql.NumericLit, *sql.StringLit, *sql.NullLit, *sql.ParameterExpr:
+		return true
+	}
+	return false
 }
 
 // or the GROUP BY / DISTINCT optimization when no WHERE-driven seek exists.
@@ -301,31 +443,10 @@ func (e *SelectEngine) indexLoopOrderSatisfied(t queryTable, loop scanLoop, s *s
 	e.prePassEqBoundTerms(t, s.Where, terms)
 	nEq := 0
 	if loop.seek {
-		nEq = e.eqSeekRun(t.real, loop.token, s.Where)
+		nEq = e.indexEqPrefixLen(t, loop.token, s.Where)
 	}
 	backward, allSat := e.walkIndexOrderTerms(t, loop.token, idxCols, nEq, terms)
 	return backward, allSat
-}
-
-// eqSeekRun counts the loop index's leading columns bound by equality refs
-// (where.c nEq: the equality prefix; a trailing range column is NOT counted —
-// its rows still emerge in index order).
-func (e *SelectEngine) eqSeekRun(tableName, token string, where sql.Expr) int {
-	cols := e.seekRefColumns(tableName, token)
-	if len(cols) == 0 {
-		return 0
-	}
-	var idxRefs []indexedRef
-	for _, ref := range collectIndexedRefs(where, tableName, e) {
-		if ref.indexName == token {
-			idxRefs = append(idxRefs, ref)
-		}
-	}
-	n := 0
-	for n < len(cols) && hasSeekRefAt(cols, idxRefs, n, isEqualitySeekOp) {
-		n++
-	}
-	return n
 }
 
 // walkCtx carries the per-walk state of one index-order analysis: the loop's
@@ -572,28 +693,38 @@ func (e *SelectEngine) orderByConsumedByLoop(tables []queryTable, s *sql.SelectS
 	case loopIndex:
 		_, ok := e.indexLoopOrderSatisfied(t, loop, s)
 		return ok
+	case loopNone:
+		// A plain table scan emits rowid order, so an ORDER BY led by the
+		// rowid is consumed with no temp b-tree (where.c: the scan delivers
+		// the ordering; the rowid's uniqueness retires the later terms).
+		return e.orderByRowidLeadingName(s)
 	}
 	return e.sortCoveredByIndex(tables, s, orderByCols(s))
 }
 
 // rowsInRowidOrder reports whether the statement's rows are already in
 // rowid order and the ORDER BY asks for exactly that order: a plain
-// single-table scan whose ORDER BY terms are all the rowid pseudo-column or
-// the table's INTEGER PRIMARY KEY alias.
+// single-table scan whose FIRST ORDER BY term is the rowid pseudo-column or
+// the table's INTEGER PRIMARY KEY alias. The rowid is unique, so any terms
+// after the first add no ordering constraint (where.c: a unique leading term
+// retires the rest of the sort). backward reports a rowid DESC order, which
+// a reverse table scan delivers.
 //
 // SQLite's rule (where.c): a full table scan emits its rows in rowid order,
 // so an ORDER BY on the rowid needs no temp b-tree. A skip-scan, an index
 // seek and the OR-index plan all deliver a different order and are excluded.
-func (e *SelectEngine) rowsInRowidOrder(result *Result, s *sql.SelectStmt, orderBy []sql.OrderByTerm) bool {
+func (e *SelectEngine) rowsInRowidOrder(result *Result, s *sql.SelectStmt, orderBy []sql.OrderByTerm) (backward, ok bool) {
 	if result == nil || result.RowsInBranchOrder || s == nil || len(orderBy) == 0 {
-		return false
+		return false, false
 	}
 	if len(s.Joins) > 0 || s.Union != nil || len(s.GroupBy) > 0 || s.Distinct ||
 		s.From.Subquery != nil || s.From.Name == "" {
-		return false
+		return false, false
 	}
 	// The scan must be a plain table scan: an index loop (seek, skip-scan or
-	// a covering walk) delivers its own order.
+	// a covering walk) delivers its own order. An INTEGER PRIMARY KEY loop is
+	// rowid-ordered too — an equality seek emits one row and a range seek
+	// (rowid BETWEEN…) walks the table b-tree itself.
 	//
 	// A WHERE with a top-level OR is the exception: the OR-index plan
 	// decides the order, and when it is not applicable (a branch that no
@@ -602,38 +733,34 @@ func (e *SelectEngine) rowsInRowidOrder(result *Result, s *sql.SelectStmt, order
 	// RowsInBranchOrder, so the sort path never reaches this check for it.
 	loop, err := e.scanLoopForRowCount(queryTableFromRef(s.From), s, indexSeekPlanRowCount, false)
 	if err != nil {
-		return false
+		return false, false
 	}
-	if loop.kind != loopNone && !whereHasOrConjunct(s.Where) {
-		return false
+	if loop.kind != loopNone && loop.kind != loopIPK && !whereHasOrConjunct(s.Where) {
+		return false, false
 	}
 	alias := e.rowidAliasColumnName(s.From.Name)
-	if alias == "" {
-		return false
-	}
-	for _, ob := range orderBy {
-		if ref, ok := ob.Expr.(*sql.ColumnRef); ok {
-			if !strings.EqualFold(ref.Name, alias) && !isRowidPseudoColumnName(ref.Name) {
-				return false
-			}
-			continue
-		}
+	// The FIRST term decides (the rowid is unique, so later terms cannot
+	// break its order — where.c retires the remaining terms behind a unique
+	// leading term). It must name the rowid: the pseudo-columns
+	// rowid/_rowid_/oid work on every rowid table, the alias only where the
+	// table declares an INTEGER PRIMARY KEY.
+	first := orderBy[0]
+	isRowid := false
+	if ref, isRef := first.Expr.(*sql.ColumnRef); isRef {
+		isRowid = (alias != "" && strings.EqualFold(ref.Name, alias)) || isRowidPseudoColumnName(ref.Name)
+	} else if lit, isLit := first.Expr.(*sql.NumericLit); isLit {
 		// An ORDER BY ordinal names an output column: "ORDER BY 1" is the
 		// first column of the result.
-		lit, ok := ob.Expr.(*sql.NumericLit)
-		if !ok {
-			return false
-		}
-		n, err := strconv.Atoi(strings.TrimSpace(lit.Value))
-		if err != nil || n < 1 || n > len(result.Columns) {
-			return false
-		}
-		name := result.Columns[n-1]
-		if !strings.EqualFold(name, alias) && !isRowidPseudoColumnName(name) {
-			return false
+		if n, convErr := strconv.Atoi(strings.TrimSpace(lit.Value)); convErr == nil &&
+			n >= 1 && n <= len(result.Columns) {
+			name := result.Columns[n-1]
+			isRowid = (alias != "" && strings.EqualFold(name, alias)) || isRowidPseudoColumnName(name)
 		}
 	}
-	return true
+	if !isRowid {
+		return false, false
+	}
+	return first.Desc, true
 }
 
 // rowidAliasColumnName returns the table's INTEGER PRIMARY KEY alias column
@@ -719,15 +846,55 @@ func (e *SelectEngine) loopOrderedEmission(s *sql.SelectStmt) (idxName string, b
 // prefix fixes the leading values and the walk orders the rest, including
 // the reverse direction and its rowid-descending ties. Returns false when
 // the comparator sort stays responsible.
-func (e *SelectEngine) emitIndexOrderedRows(result *Result, rowMaps []RowMap, s *sql.SelectStmt, orderBy []sql.OrderByTerm) bool {
-	// A plain table scan yields its rows in rowid order, so an ORDER BY on
-	// the rowid (or its INTEGER PRIMARY KEY alias) is already satisfied and
-	// no sorter runs (SQLite: where.c's "the loop delivers the ordering" for
-	// a full table scan). An OR-index plan is excluded: its rows are in
-	// branch order, not rowid order.
-	if e.rowsInRowidOrder(result, s, orderBy) {
+// reverseResultRows flips the emitted row order in place — the reverse of a
+// table scan (OP_Last/OP_Prev) delivers a rowid-DESC order with no sorter.
+func reverseResultRows(result *Result) {
+	for i, j := 0, len(result.Rows)-1; i < j; i, j = i+1, j-1 {
+		result.Rows[i], result.Rows[j] = result.Rows[j], result.Rows[i]
+	}
+}
+
+// orderByRowidLeadingName reports whether the statement's first ORDER BY
+// term directly names the rowid (pseudo-column or INTEGER PRIMARY KEY
+// alias) by column name — the shape whose delivery the planner secures by
+// choosing the plain table scan over a secondary-index loop (where.c prices
+// the temp-b-tree sort into every loop that does not deliver the order, and
+// rowid order is free). Ordinal terms are excluded: resolving them needs
+// the result columns, which the planner does not have.
+func (e *SelectEngine) orderByRowidLeadingName(s *sql.SelectStmt) bool {
+	if s == nil || len(s.OrderBy) == 0 || s.Union != nil || len(s.Joins) > 0 ||
+		len(s.GroupBy) > 0 || s.Distinct || s.From.Subquery != nil || s.From.Name == "" {
+		return false
+	}
+	if len(e.withoutRowidPKCols(s.From.Name)) > 0 {
+		return false
+	}
+	ref, ok := normalizeOrderByExpr(s.OrderBy[0].Expr).(*sql.ColumnRef)
+	if !ok {
+		return false
+	}
+	if isRowidPseudoColumnName(ref.Name) {
 		return true
 	}
+	alias := e.rowidAliasColumnName(s.From.Name)
+	return alias != "" && strings.EqualFold(ref.Name, alias)
+}
+
+func (e *SelectEngine) emitIndexOrderedRows(result *Result, rowMaps []RowMap, s *sql.SelectStmt, orderBy []sql.OrderByTerm) bool {
+	// A plain table scan yields its rows in rowid order, so an ORDER BY whose
+	// FIRST term is the rowid (or its INTEGER PRIMARY KEY alias) is already
+	// satisfied and no sorter runs (SQLite: where.c's "the loop delivers the
+	// ordering" for a full table scan; the rowid's uniqueness retires later
+	// terms). A DESC first term is delivered by reversing the emitted rows —
+	// SQLite's OP_Last/OP_Prev reverse table scan. An OR-index plan is
+	// excluded: its rows are in branch order, not rowid order.
+	if backward, ok := e.rowsInRowidOrder(result, s, orderBy); ok {
+		if backward {
+			reverseResultRows(result)
+		}
+		return true
+	}
+
 	if idxName, backward, ok := e.indexOrderedScanForOrderBy(s, orderBy); ok &&
 		e.emitRowsInIndexOrder(result, rowMaps, s.From.Name, idxName, backward) {
 		return true

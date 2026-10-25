@@ -238,7 +238,13 @@ func (e *SelectEngine) emitRowsInIndexOrder(result *Result, rowMaps []RowMap, ta
 	if len(result.Rows) == 0 {
 		return true
 	}
-	if len(result.Rows) < 2 || len(rowMaps) != len(result.Rows) {
+	// One row needs no permutation: the order is trivially delivered (a
+	// sorter must not run for it — SQLite emits no OP_Sort for an
+	// index-ordered plan regardless of the row count).
+	if len(result.Rows) == 1 {
+		return true
+	}
+	if len(rowMaps) != len(result.Rows) {
 		return false
 	}
 	rowids, ok := e.indexStoredRowidOrder(tableName, idxName)
