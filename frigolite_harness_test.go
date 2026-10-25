@@ -1481,6 +1481,7 @@ var unsupportedTestFiles = map[string]string{
 	"uri":          "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
 	"win32lock":    "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
 	"win32nolock":  "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"win32longpath": "Windows long-path VFS (win32-longpath) - genuine N/A per PORTPLAN §1 platform list, same class as win32lock/win32nolock",
 
 	// Shell / CLI tooling — frigolite has its own CLI
 	"dbdata":   "Tests the sqlite3 CLI shell / shell tools - frigolite has its own CLI",
@@ -3137,9 +3138,20 @@ func TestSQLiteSuite(t *testing.T) {
 						t.Skipf("harness artifact: %s", reason)
 						return
 					}
+					// analyze5's 1.x b-tests compare two runtime row lists
+					// (`set a1 [db eval ...NOT INDEXED...]; set a2 [db eval
+					// ...]; if {$a1==$a2} {set res ok} ...`): the {ok}
+					// expectation describes the COMPARISON, not the rows of
+					// the second query. Run both queries, drop the misplaced
+					// row expectation, and assert the comparison itself.
+					analyze5CompareVars := []string(nil)
 					if base == "analyze5" && strings.HasPrefix(tc.Name, "analyze5-1.") && strings.HasSuffix(tc.Name, "b") && analyze5RowCompareAssertion(tc.Steps) {
-						t.Skip("TCL compares query results and returns 'ok'; JSON attaches that assertion to a row query")
-						return
+						for i := range tc.Steps {
+							if tc.Steps[i].Type == "query_assign" && tc.Steps[i].Variable != "" {
+								analyze5CompareVars = append(analyze5CompareVars, tc.Steps[i].Variable)
+							}
+							tc.Steps[i].Expect = ""
+						}
 					}
 					if base == "badutf2" && badUTF2ConversionArtifact(tc.Name, tc.Steps) {
 						t.Skip("converted TCL SQL variable or bound invalid-UTF8 value is absent from JSON; testgen/badutf2 passes")
@@ -4255,6 +4267,15 @@ func TestSQLiteSuite(t *testing.T) {
 							// went vacuous without a single failure).
 							t.Errorf("unknown step type %q (the harness must implement every step type the converter emits)", step.Type)
 							return
+						}
+					}
+					// analyze5's b-tests: both scans have run; assert the
+					// comparison the {ok} expectation describes (the indexed
+					// and NOT INDEXED scans must return the same rowids).
+					if len(analyze5CompareVars) == 2 {
+						a1, a2 := runtimeVars[analyze5CompareVars[0]], runtimeVars[analyze5CompareVars[1]]
+						if a1 != a2 {
+							t.Errorf("analyze5 row-compare: the indexed and NOT INDEXED scans differ\n  %s: [%s]\n  %s: [%s]", analyze5CompareVars[0], a1, analyze5CompareVars[1], a2)
 						}
 					}
 				})
