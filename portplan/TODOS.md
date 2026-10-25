@@ -34,7 +34,7 @@
 | run 27 (2026-10-22) | 1,858 | 129 | `/tmp/frigolite-full-suite27.log` |
 | **run 29 (2026-10-22)** | **1,072** | **79** | `/tmp/frigolite-full-suite29.log` |
 | run 30 (2026-10-24) | 3,773 | 314 | `/tmp/frigolite-full-suite30.log` — the consolidation commit `7f8441f73` installed the full-corpus fixture regeneration, so the red set is the *post-regen truth* (the stop rule applies: never re-drop). Newly-visible: multiplex 207 (the multiplex VFS feature gap), pager1 225, notify1 123, where 119, rtree2 103, wal2 90, wal 69, pagerfault 59, indexexpr2 50, normalize 47, like3 33 (UTF-16), select1 32, snapshot 31, win32longpath 19 (§1 N/A, entry added). `TestNativeThreadConcurrentWritersSerialize` failed under load only (passes isolated — flaky, watch it). |
-| run 31 (2026-10-25) | in flight | — | the M1 checkpoint (Q1 + M1a-e landed) |
+| run 31 (2026-10-25) | **3,678** | **313** | `/tmp/frigolite-full-suite31.log` — the M1 checkpoint: −95 leaves, regression-free (no family grew; e_droptrigger and win32longpath left the register). M1 verified per family: e_droptrigger 0, analyze5 0, e_expr 28→22, where 119→86, fts3expr 5→2. The big feature-gap families unchanged (multiplex 207, pager1 225, notify1 123, rtree2 103, e_reindex 97) — they are the M2/M3 cards below. `TestNativeThreadConcurrentWritersSerialize` did not fail in this run (run-30's failure was load-flakiness; watch it). |
 
 **M1 progress (2026-10-25, post run 30)** — verified per family:
 
@@ -68,7 +68,7 @@
 | like3 | 33 | "incomplete input" — UTF-16 DB encoding | P-C11 UTF-16 goal |
 | select1 | 32 | named result mismatch (28) | fresh fixture vs query2 renderer |
 | snapshot | 31 | "database disk image is malformed" (20) | WAL snapshot API paths |
-| insert4 | 30 | runtime var got "" want 0/1 (30) | the catch/errcode capture model |
+| insert4 | 30 | runtime var `sqlite3_xferopt_count` got "" want 0/1 (30) | engine goal: the INSERT…SELECT transfer optimization + its test counter (insert.c xferOptimization; the count asserts when the fast path fires vs the row-by-row path CHECK constraints force) |
 | fts3expr4 | 20 | "unknown tokenizer: icu" (11) + runtime "res" (7) | classify ICU (extension, N/A evidence?) + fix capture |
 | func | 37 | `no such function: test_auxdata` (6) + error texts | P-C6 auxdata goal |
 | memdb/func2/func4/stat/rowvalue | 18-19 each | result/query_assign mismatches | per-family probes |
