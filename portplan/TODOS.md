@@ -33,36 +33,81 @@
 | run 26 (2026-10-22) | 1,894 | 129 | `/tmp/frigolite-full-suite26.log` |
 | run 27 (2026-10-22) | 1,858 | 129 | `/tmp/frigolite-full-suite27.log` |
 | **run 29 (2026-10-22)** | **1,072** | **79** | `/tmp/frigolite-full-suite29.log` |
+| run 30 (2026-10-24) | 3,773 | 314 | `/tmp/frigolite-full-suite30.log` — the consolidation commit `7f8441f73` installed the full-corpus fixture regeneration, so the red set is the *post-regen truth* (the stop rule applies: never re-drop). Newly-visible: multiplex 207 (the multiplex VFS feature gap), pager1 225, notify1 123, where 119, rtree2 103, wal2 90, wal 69, pagerfault 59, indexexpr2 50, normalize 47, like3 33 (UTF-16), select1 32, snapshot 31, win32longpath 19 (§1 N/A, entry added). `TestNativeThreadConcurrentWritersSerialize` failed under load only (passes isolated — flaky, watch it). |
+| run 31 (2026-10-25) | in flight | — | the M1 checkpoint (Q1 + M1a-e landed) |
 
-**Where the leaves are now** (run 27, per family — the biggest first):
+**M1 progress (2026-10-25, post run 30)** — verified per family:
+
+| unit | family | before | after | the fix |
+|---|---|---|---|---|
+| M0.Q1 | (quality) | staticcheck 9 | **0** | unused symbols deleted; fts3_exprtest usage text kept byte-exact via a constant; shared `mode=memory&cache=shared` stores released on last Close (leak fix + `TestSharedMemoryDBReleasedOnLastClose`) |
+| M1a | where | 119 | **85** | `db status` had three shapes: inline helper (counter suffix), standalone body (new `db_status` step — the old code flagged the *previous* test's statement), if-condition (sort marker, where.test's cksort variant). Residue = ORDER BY not satisfied by index → the B4 engine unit |
+| M1a | where8 | 36 | 35→B4 | same fixture regen; residue is the same engine class |
+| M1b | e_droptrigger | 54 | **0** | a plain empty `set` on a callback-recorded global emits `runtime_var_reset` (`::triggers_fired` history accumulated across tests); proc bodies mark their `::`-globals tracked at definition |
+| M1b | e_expr | 28 | **21** | same reset (`::matchargs`); the 16 result-mismatch corners remain |
+| M1c | fts3expr | 5 (run 30) | **1** | fts3_exprtest is arity-free (nArg=-1 in C; the `Usage:` error comes from the body) and phrase tokens render the tokenizer's folded term (a demoted NEAR keyword renders lowercased); residue = one fixture-lifecycle artifact |
+| M1d | analyze5 | 86 | **0** | the b-tests now assert the real runtime comparison (indexed vs NOT INDEXED rowids) instead of the inline `t.Skip` |
+| M1e | win32longpath | 19 | skipped (§1) | win32* platform N/A documented in the skip map |
+
+**Standing items discovered**: the three inline `t.Skip` guards from `7f8441f73` (badutf2 `$sql` binding + `lindex` command substitution in runtime exprs; bestindex5's xFilter callback log) still hide ~32 leaves behind skips — both need the converter model, logged as W5 work.
+
+**M2 work cards (run-30 error classes, verified 2026-10-25)**:
+
+| family | leaves | dominant class (count) | first action |
+|---|---|---|---|
+| e_walckpt | 296 | cross-connection "database is locked" on open (73) + downstream runtime vars (63) | P-C1 testvfs/shm-lock goal |
+| pager1 | 225 | result mismatch (54) + "database disk image is malformed" (31) | probe the malformed class against the oracle first |
+| multiplex | 207 | `no such function: multiplex_control` | P-C multiplex VFS goal (ext/misc/multiplex.c) |
+| notify1 | 123 | shared cache + `sqlite3_unlock_notify` | P-C shared-cache/unlock-notify goal |
+| rtree2 | 102 | all `rtree_i32`: runtime `expr {$t1 eq $t2}` = 0 (WHERE-constraint divergence vs mirror) | native probe replay: rtree_i32 vs mirror over the OPS mixes |
+| e_reindex | 97 | integrity_check must report index/table mismatch (1.3, 26) · "no such table" lifecycle (2.x, 52) · FTS shadow `ta_segdir` (19) | read e_reindex.test 1.2-2.x setup; checkIndex vs our integrity_check |
+| wal2/wal/walbak | 90/69/23 | WAL lifecycle ("no such table: t1", "table t1 already exists") | WAL fixture lifecycle model |
+| pagerfault | 59 | fault-injection VFS (P-C1 family) | injectable VFS goal |
+| indexexpr2 | 50 | result mismatch (41) | expression-index EQP/rows probe |
+| normalize | 47 | prepared-statement bookkeeping (unknown handle) | harness stmt-handle model |
+| like3 | 33 | "incomplete input" — UTF-16 DB encoding | P-C11 UTF-16 goal |
+| select1 | 32 | named result mismatch (28) | fresh fixture vs query2 renderer |
+| snapshot | 31 | "database disk image is malformed" (20) | WAL snapshot API paths |
+| insert4 | 30 | runtime var got "" want 0/1 (30) | the catch/errcode capture model |
+| fts3expr4 | 20 | "unknown tokenizer: icu" (11) + runtime "res" (7) | classify ICU (extension, N/A evidence?) + fix capture |
+| func | 37 | `no such function: test_auxdata` (6) + error texts | P-C6 auxdata goal |
+| memdb/func2/func4/stat/rowvalue | 18-19 each | result/query_assign mismatches | per-family probes |
+
+**Where the leaves are now** (run 29 register — per-family unique failing
+leaf names, regenerated 2026-10-24 from the run-29 log; the leaf-grep count
+is 1,151, the summary's own count 1,072 — the register below is the work
+list):
 
 | family | leaves | the unit of work it belongs to |
 |---|---|---|
-| fts3expr3 | 329 | D2 — the FTS3 test helpers (`fts3_exprtest`) |
-| e_walckpt | 295 | C4 — the `testvfs` wrapper VFS |
-| fts3expr | 97 | D2 — the FTS3 test helpers |
-| e_reindex | 96 | C7 — the reindex rules |
+| e_walckpt | 296 | C4 — the `testvfs` wrapper VFS |
+| e_reindex | 97 | C7 — the reindex rules |
 | analyze5 | 86 | D1 — the missing Tcl functions (`alpha`, `mit`, …) |
-| e_droptrigger | 53 | D1 — `list_all_triggers` |
-| indexexpr2 | 49 | B5 — the planner (the expression indexes) |
-| func | 46 | C3 — the error texts |
-| badutf2 | 41 | C — the UTF-8 handling |
-| bestindexF | 34 | B5 — the planner (the virtual-table constraints) |
-| e_blobopen | 30 | C — the incremental blob I/O |
-| insert4 | 30 | C — the INSERT semantics |
-| e_expr | 29 | A10 — the expression corner cases |
-| fkey2 | 24 | C2 — the foreign-key errors |
-| json101 | 24 | C — the JSON functions |
-| fts3defer2 | 20 | D2 — the FTS3 deferred tokens |
-| e_wal | 19 | C4 — the WAL |
-| fts3expr4 | 19 | D2 — the FTS3 test helpers |
-| index9 | 19 | B5 — the planner |
-| descidx2 | 18 | B5 — the planner (the descending indexes) |
-| func2 / func4 | 35 | C3 — the error texts |
+| fts3expr | 70 | D2c — the braced parse-tree comparison normalization |
+| e_droptrigger | 54 | D1 — `list_all_triggers` residue |
+| badutf2 | 42 | C — the UTF-8 handling |
+| bestindexF | 35 | B5 — the planner (the virtual-table constraints) |
+| e_blobopen | 31 | C — the incremental blob I/O harness surface |
+| e_expr | 30 | A10 — the expression corner cases |
+| fkey2 | 25 | C2 — the foreign-key errors |
+| fts3defer2 / e_wal | 20 + 20 | D2 / C4 |
+| descidx2 | 19 | B5 — the planner (descending indexes) |
+| e_dropview / bestindex5 / attach3 | 15 + 14 + 14 | C / B5 / C5 |
+| expridx1 / exclusive / e_walhook | 11 each | B5 / C4 / C4 |
+| e_uri / e_select / blob / bestindexA / alterdropcol2 | 10 each | C5 / C / C / B5 / C1 |
+| bestindexE / e_fts3 / e_blobwrite / analyze3 | 9 + 8 + 8 + 8 | B5 / C / C / C |
+| errmsg / delete / columncount / bestindex9 | 7 each | C3 / C / C5 / B5 |
+| eval / e_vacuum / e_changes | 6 + 6 + 5 | C / C / C |
+| fts3defer / fkey4 / extension01 / expr / e_blobclose / collate4 | 4 + 4 + 4 + 4 + 4 + 2 | tail |
+| the remaining ~35 families | ≤3 each (~70 leaves) | E3 — the tail |
 
-The remaining ~1,400 leaves are in the ~105 families below 15 leaves each.
+Confirmed green at run 29 (previously listed red): `indexexpr2`, `func`,
+`func2`, `func4`, `insert4`, `json101`, `fts3expr4`, `conflict`/`conflict2`,
+`where`/`where8`/`where9`, `orderby5`, `index9` — the B5/C3 residue is now
+`descidx2`, `bestindexF`/`bestindex5`/`bestindexA`/`bestindexE`/`bestindex9`,
+`expridx1` and the planner's covering-index unit (B4) behind them.
 
-**Where the leaves were** (run 23, per family):
+**Where the leaves were** (run 27, per family):
 
 | family | leaves | the unit of work it belongs to |
 |---|---|---|
@@ -125,15 +170,14 @@ expectation is baked from a value that only exists at run time.*
       records the sort (`resultTransform: lsort:<mode>`), and the harness
       sorts the rows it rendered (Tcl's `lsort` modes: ascii/integer/real/
       dictionary, with -decreasing/-unique/-index) → where7 **1,589 → 0**
-- [ ] **A9** `conflict` / `conflict2` — the body's value is
-      `list $r0 $r1 $r2 $r3` over runtime values; the runtime list step
-      exists, but the do_test's *expectation* (`[list $t0 $t1 $t2 $t3]`) is
-      lost inside the `foreach {i cmd t0 t1 t2 t3}` body → **129 leaves**
+- [x] **A9** `conflict` / `conflict2` — the runtime-list support landed and
+      the stale fixtures were regenerated → both families **0 at run 29**
+      (was 129 leaves)
 - [ ] **A10** `e_expr` — a literal `$as$bs` must not be expanded as a
       variable → **35 leaves**
-- [ ] **A11** `collate4` — the "nosort"/"sort" marker is SQLite's test-build
-      `sqlite_sort_count` (the same event as the SORT counter); model it as a
-      runtime value → **52 leaves**
+- [x] **A11** `collate4` — the "nosort"/"sort" marker is SQLite's test-build
+      `sqlite_sort_count` (modelled as a runtime value, D1a) → **2 leaves at
+      run 29** (was 52); the residue is tail triage
 
 ### B. The planner — the counters are exact, the plan is not
 
@@ -212,11 +256,11 @@ differed only in the counters** — the rows were right, the plan was not.*
       *stripped* tree (`strip_phrase_data` drops the phrase data): a
       procedure that receives a runtime query value now records itself on the
       statement, and the harness applies it to the rendered rows
-- [ ] **D2c** the `fts3expr` family (69 leaves) — the expectation is the
-      braced parse tree ("AND {PHRASE 3 0 ab} {PHRASE 3 0 cd}") and the
-      harness compares the rendered rows with the *Tcl list* form of the
-      expectation, which drops the braces: the comparison must normalize
-      both sides the same way
+- [ ] **D2c** the `fts3expr` family (**70 leaves at run 29**) — the
+      expectation is the braced parse tree ("AND {PHRASE 3 0 ab} {PHRASE 3 0
+      cd}") and the harness compares the rendered rows with the *Tcl list*
+      form of the expectation, which drops the braces: the comparison must
+      normalize both sides the same way
 - [ ] **D3** the named-DB lifecycle ("named database db2 is not open" ≈ 40
       leaves) and the `vacuum-into` / `errmsg` / `trace2` classes
 
