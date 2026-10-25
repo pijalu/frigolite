@@ -103,6 +103,13 @@ func (v *rtreeVTab[T]) removeNode(node *rtreeNode[T], iHeight int) error {
 	if err := v.delParent(node.iNode); err != nil {
 		return err
 	}
+	// Remove the node from the in-memory cache BEFORE repurposing its
+	// number (rtree.c removeNode calls nodeHashDelete here): iNode becomes
+	// the subtree height, so a cached entry would hand later descents a
+	// dead object under its old number — reinserted cells then landed in
+	// the dead node and their %_rowid rows recorded nodeno 0 (rtree2's
+	// rtree_i32 delete ladder lost row 922 exactly this way).
+	delete(v.cache, node.iNode)
 	// Repurpose iNode to carry the subtree height for reinsertion; mark dead so
 	// nodeFlush never persists this in-memory copy.
 	node.dead = true
