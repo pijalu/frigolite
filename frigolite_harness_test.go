@@ -1120,24 +1120,6 @@ var harnessSkipSubtests = map[string]string{
 	"select2/select2-3.2e":  "fixture artifact: same missing data load (star form over idx1); pinned by TestSelect2LargeTableIndexScan",
 	"select2/select2-4.7":   "fixture artifact: the file's open BEGIN (2.0.x, no COMMIT in the JSON) makes 4.7's BEGIN fail before the CASE-join predicate runs; pinned by TestSelect2CaseJoinPredicate",
 
-	// descidx2.test section 2: the file's own comment states its premise —
-	// "Put some information in the table and verify that the DESC on the index
-	// is ignored" — a 2005-era expectation (the DESC flag was not honored by
-	// the then-current file format). The pinned oracle 3.54.0 honors it:
-	// `SELECT b FROM t1 WHERE a>3 AND a<7` over `CREATE INDEX i2 ON t1(a
-	// DESC)` returns 6,5,4 (2.1), 6,5,4,3 (2.3), 7,6,5,4 (2.4), 7,6,5,4,3
-	// (2.5) — exactly the engine's index-loop output, and exactly what the
-	// sibling fixture descidx1.test expects for the same shapes (2.1 {6 5 4},
-	// 2.3 {6 5 4 3}, 2.4 {7 6 5 4}, 2.5 {7 6 5 4 3}). The two fixtures
-	// contradict each other; the oracle sides with descidx1. Pinned by
-	// TestDescIndexRangeOrder / TestDescIndexMixedRangeOrder in
-	// frigolite_descidx_pin_test.go.
-	"descidx2/descidx2-2.1": "stale TCL premise (DESC ignored, 2005 file format): oracle 3.54 honors the DESC index and returns 6,5,4 — pinned by TestDescIndexRangeOrder",
-	"descidx2/descidx2-2.2": "same section: its fixture data is loaded by the skipped 2.1 step, so t1 is empty here; the ASC-index contract it asserts (4 5 6) passes as descidx1-2.2 and is pinned by TestDescIndexRangeOrder",
-	"descidx2/descidx2-2.3": "same stale DESC-ignored premise; oracle returns 6,5,4,3 — pinned by TestDescIndexRangeOrder",
-	"descidx2/descidx2-2.4": "same stale DESC-ignored premise; oracle returns 7,6,5,4 — pinned by TestDescIndexRangeOrder",
-	"descidx2/descidx2-2.5": "same stale DESC-ignored premise; oracle returns 7,6,5,4,3 — pinned by TestDescIndexRangeOrder",
-
 	// reindex.test redefines the TCL proc c1 (db collate c1 c1 late-binding)
 	// from reindex-2.5 onward and re-opens the db as a second connection
 	// without c1/c2 in section 3. Static fixture keeps c1 reverse, so:
@@ -1186,6 +1168,29 @@ var harnessSkipSubtests = map[string]string{
 	// installs the collA/collB registrations and best-effort deletes).
 	"e_reindex/e_reindex-2.0":   "ATTACH 'test.db2' hits the file another parallel JSON file keeps attached (shared-filename race); the REINDEX-subset contracts (collA/collB registrations installed) are pinned by TestPinReindexRebuildsUnderChangedCollation and TestPinReindexSecondConnectionMissingCollation",
 	"e_reindex/e_reindex-2.6.0": "cascades from 2.0's failed ATTACH (aux schema state)",
+}
+
+// harnessStaleAssertSubtests holds cases whose ASSERTION is stale but whose
+// steps carry side effects later tests need: they run with the expectations
+// dropped instead of skipping the case — a whole-case skip of descidx2-2.1
+// also skipped its INSERTs, so every 3.x assertion ran against an empty
+// table (18 vacuous failures).
+//
+// descidx2.test section 2's premise is stated in the file itself — "verify
+// that the DESC on the index is ignored" — a 2005-era expectation (the DESC
+// flag was not honored by the then-current file format). The pinned oracle
+// 3.54.0 honors it: `SELECT b FROM t1 WHERE a>3 AND a<7` over
+// `CREATE INDEX i2 ON t1(a DESC)` returns 6,5,4 (2.1), 6,5,4,3 (2.3),
+// 7,6,5,4 (2.4), 7,6,5,4,3 (2.5) — exactly the sibling descidx1.test's
+// expectations for the same shapes. The oracle sides with descidx1; the
+// DESC-index contracts are pinned by TestDescIndexRangeOrder /
+// TestDescIndexMixedRangeOrder (frigolite_descidx_pin_test.go).
+var harnessStaleAssertSubtests = map[string]bool{
+	"descidx2/descidx2-2.1": true,
+	"descidx2/descidx2-2.2": true,
+	"descidx2/descidx2-2.3": true,
+	"descidx2/descidx2-2.4": true,
+	"descidx2/descidx2-2.5": true,
 }
 
 // unsupportedTestFiles lists testdata/*.json files that are EXCLUDED from the
@@ -1445,42 +1450,42 @@ var unsupportedTestFiles = map[string]string{
 	"mmapcorrupt":  "Tests file-format corruption detection - requires byte-level corruption tooling",
 
 	// Custom VFS / OS layer — frigolite uses Go I/O directly
-	"avfs":         "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"busy":         "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"cksumvfs":     "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"fallocate":    "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"filectrl":     "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"interrupt":    "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"interrupt2":   "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"journal1":     "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"jrnlmode":     "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"jrnlmode2":    "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"jrnlmode3":    "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"lock":         "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"lock2":        "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"lock3":        "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"lock4":        "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"lock5":        "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"lock6":        "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"lock7":        "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"mjournal":     "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"mmap1":        "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"mmapwarm":     "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"nolock":       "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"openv2":       "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"oserror":      "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"pendingrace":  "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"reservebytes": "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"securedel":    "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"securedel2":   "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"shmlock":      "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"shortread1":   "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"superlock":    "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"sync":         "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"sync2":        "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"uri":          "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"win32lock":    "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"win32nolock":  "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"avfs":          "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"busy":          "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"cksumvfs":      "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"fallocate":     "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"filectrl":      "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"interrupt":     "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"interrupt2":    "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"journal1":      "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"jrnlmode":      "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"jrnlmode2":     "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"jrnlmode3":     "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"lock":          "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"lock2":         "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"lock3":         "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"lock4":         "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"lock5":         "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"lock6":         "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"lock7":         "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"mjournal":      "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"mmap1":         "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"mmapwarm":      "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"nolock":        "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"openv2":        "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"oserror":       "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"pendingrace":   "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"reservebytes":  "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"securedel":     "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"securedel2":    "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"shmlock":       "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"shortread1":    "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"superlock":     "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"sync":          "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"sync2":         "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"uri":           "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"win32lock":     "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"win32nolock":   "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
 	"win32longpath": "Windows long-path VFS (win32-longpath) - genuine N/A per PORTPLAN §1 platform list, same class as win32lock/win32nolock",
 
 	// Shell / CLI tooling — frigolite has its own CLI
@@ -3137,6 +3142,18 @@ func TestSQLiteSuite(t *testing.T) {
 					if reason, ok := harnessSkipSubtests[base+"/"+tc.Name]; ok {
 						t.Skipf("harness artifact: %s", reason)
 						return
+					}
+					// A stale-ASSERTION case (oracle-verified) whose steps
+					// carry side effects later tests need: run every step
+					// with its expectation dropped instead of skipping the
+					// whole case (descidx2's skipped 2.1 also skipped its
+					// INSERTs, so every 3.x assertion ran against an empty
+					// table).
+					if _, ok := harnessStaleAssertSubtests[base+"/"+tc.Name]; ok {
+						for i := range tc.Steps {
+							tc.Steps[i].Expect = ""
+							tc.Steps[i].ExpectedExpr = ""
+						}
 					}
 					// analyze5's 1.x b-tests compare two runtime row lists
 					// (`set a1 [db eval ...NOT INDEXED...]; set a2 [db eval
