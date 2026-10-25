@@ -218,14 +218,22 @@ func (e *Engine) registerFTSModules() {
 	// parser's test interface (fts3_expr.c's sqlite3Fts3ExprInitTestInterface,
 	// SQLITE_TEST-only in C). They parse an expression with a tokenizer and
 	// return a text rendering of the parse tree.
-	e.funcs.Register("fts3_exprtest", fts.ExprTestFunc(false), 3, -1)
-	e.funcs.Register("fts3_exprtest_rebalance", fts.ExprTestFunc(true), 3, -1)
+	// minArgs 0: the C registration uses nArg=-1 (any arity reaches the
+	// function, fts3_expr.c sqlite3Fts3ExprInitTestInterface), and the
+	// function itself reports the "Usage:" error for fewer than 3 args
+	// (fts3expr.test:409 asserts that exact text).
+	e.funcs.Register("fts3_exprtest", fts.ExprTestFunc(false), 0, -1)
+	e.funcs.Register("fts3_exprtest_rebalance", fts.ExprTestFunc(true), 0, -1)
 	// fts3_exprtest/fts3_exprtest_rebalance: the FTS3 query expression
 	// parser's test interface (fts3_expr.c's sqlite3Fts3ExprInitTestInterface,
 	// SQLITE_TEST-only in C). They parse an expression with a tokenizer and
 	// return a text rendering of the parse tree.
-	e.funcs.Register("fts3_exprtest", fts.ExprTestFunc(false), 3, -1)
-	e.funcs.Register("fts3_exprtest_rebalance", fts.ExprTestFunc(true), 3, -1)
+	// minArgs 0: the C registration uses nArg=-1 (any arity reaches the
+	// function, fts3_expr.c sqlite3Fts3ExprInitTestInterface), and the
+	// function itself reports the "Usage:" error for fewer than 3 args
+	// (fts3expr.test:409 asserts that exact text).
+	e.funcs.Register("fts3_exprtest", fts.ExprTestFunc(false), 0, -1)
+	e.funcs.Register("fts3_exprtest_rebalance", fts.ExprTestFunc(true), 0, -1)
 	// fts5's test-support scalar functions (fts5_index.c's fts5_rowid and
 	// fts5_expr.c's fts5_expr/fts5_expr_tcl, SQLITE_TEST-only in C and
 	// registered unconditionally here).

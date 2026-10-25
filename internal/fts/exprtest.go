@@ -426,7 +426,15 @@ func fts3GetNextToken(ctx *fts3ParseCtx, iCol, pos int) (*fts3ExprNode, int, err
 		end = tok.Start + barred
 	}
 	phrase := &fts3Phrase{column: iCol}
-	phrase.tokens = append(phrase.tokens, fts3PhraseToken{text: expr[tok.Start:end]})
+	// The phrase text is the tokenizer's (case-folded) term, as in C's
+	// aToken[i].z — a demoted keyword renders lowercased ("NEAR//" → the
+	// token "near", fts3expr.test 3.14). Only a delimiter-truncated token
+	// falls back to the raw slice.
+	tokenText := tok.Term
+	if end != tok.End {
+		tokenText = expr[tok.Start:end]
+	}
+	phrase.tokens = append(phrase.tokens, fts3PhraseToken{text: tokenText})
 	if end < len(expr) && expr[end] == '*' {
 		phrase.tokens[0].isPrefix = true
 		end++
@@ -465,8 +473,16 @@ func fts3GetNextString(ctx *fts3ParseCtx, start, end int) (*fts3ExprNode, error)
 		if tokEnd > end {
 			tokEnd = end
 		}
+		// The phrase text is the TOKENIZER's term (case-folded — the C
+		// phrase stores aToken[i].z from the tokenizer, so a demoted
+		// keyword renders lowercased: "(two NEAR// three)" renders
+		// "{AND two near}", fts3expr.test 3.14), not the raw input slice.
+		text := tok.Term
+		if tokEnd != tok.End {
+			text = ctx.expr[tok.Start:tokEnd]
+		}
 		phrase.tokens = append(phrase.tokens, fts3PhraseToken{
-			text:     ctx.expr[tok.Start:tokEnd],
+			text:     text,
 			isPrefix: tokEnd < end && ctx.expr[tokEnd] == '*',
 			bFirst:   tok.Start > 0 && ctx.expr[tok.Start-1] == '^',
 		})
