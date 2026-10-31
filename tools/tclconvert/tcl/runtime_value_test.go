@@ -232,3 +232,30 @@ do_test where7-2.2.1 { count_steps_sort {SELECT a FROM t1} } {1 2 3 scan 0 sort 
 		t.Fatalf("count_steps_sort = %#v, want the default labeled style", stmts[2])
 	}
 }
+
+// TestCatchLappendBodyValueEmitsRuntimeList pins select1.test's catch shape:
+// `set v [catch {execsql2 ...} msg]; lappend v $msg` — the body's value is
+// the catch code followed by the rows, so the expectation belongs to a
+// runtime_list step and the query keeps no expectation of its own.
+func TestCatchLappendBodyValueEmitsRuntimeList(t *testing.T) {
+	i := NewInterp()
+	script := `do_test select1-6.1 {
+  set v [catch {execsql2 {SELECT f1 FROM test1 ORDER BY f2}} msg]
+  lappend v $msg
+} {0 {f1 11 f1 33}}`
+	if err := i.Execute(script); err != nil {
+		t.Fatal(err)
+	}
+	stmts := i.Stmts()
+	if len(stmts) != 2 {
+		t.Fatalf("captured %d statements, want 2: %#v", len(stmts), stmts)
+	}
+	q := stmts[0]
+	if q.Type != "query2" || q.Expected != "" || q.CatchMessage != "msg" || !q.CatchResult {
+		t.Fatalf("query = %#v, want an expectation-free query2 with the catch markers", q)
+	}
+	l := stmts[1]
+	if l.Type != "runtime_list" || len(l.ListValues) != 2 || l.ListValues[0] != "$v" || l.ListValues[1] != "$msg" || l.Expected != "0 {f1 11 f1 33}" {
+		t.Fatalf("runtime_list = %#v, want [$v $msg] with the joined expectation", l)
+	}
+}

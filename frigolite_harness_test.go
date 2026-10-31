@@ -3833,7 +3833,16 @@ func TestSQLiteSuite(t *testing.T) {
 								} else {
 									runtimeVars[step.Variable] = "0"
 									if step.CatchMessage != "" {
-										runtimeVars[step.CatchMessage] = ""
+										// `catch {execsql {SELECT ...}} msg`
+										// (select1.test 2.x): on success msg
+										// holds the ROWS — Tcl execsql
+										// returns the row list, not "".
+										q := execDB.Query(step.SQL)
+										if q.Error == nil {
+											runtimeVars[step.CatchMessage] = flattenResultNull(&Result{Columns: q.Columns, Rows: q.Rows}, nullToken)
+										} else {
+											runtimeVars[step.CatchMessage] = ""
+										}
 									}
 								}
 							}
@@ -3935,6 +3944,17 @@ func TestSQLiteSuite(t *testing.T) {
 								t.Errorf("%v\n  sql: %s", terr, step.SQL)
 								return
 							}
+							if step.CatchMessage != "" {
+								// `catch {execsql ...} msg` captures the
+								// rendered rows in msg (select1.test 2.x
+								// lappends the catch code and the rows).
+								runtimeVars[step.CatchMessage] = got
+							}
+							if step.CatchResult && step.Variable != "" {
+								// `set v [catch {execsql ...} msg]`: a query
+								// reaching here succeeded, so the code is 0.
+								runtimeVars[step.Variable] = "0"
+							}
 							if step.StmtStatus {
 								// SQLite's statement-status counters, as the
 								// `db status step` / `db status sort` helper
@@ -3987,6 +4007,26 @@ func TestSQLiteSuite(t *testing.T) {
 							}
 							pairs := tclEvalNamedPairs(res.Columns, res.Rows)
 							got := strings.Join(pairs, " ")
+							if step.CatchMessage != "" {
+								// `catch {execsql2 ...} msg` captures the
+								// named-result rows in msg (select1.test 6.x
+								// lappends the catch code and the rows).
+								runtimeVars[step.CatchMessage] = got
+							}
+							if step.CatchResult && step.Variable != "" {
+								// `set v [catch {execsql2 ...} msg]`: a
+								// query2 reaching here succeeded (errors
+								// returned above), so the code is 0.
+								runtimeVars[step.Variable] = "0"
+							}
+							// An absent expectation (the body's value was
+							// captured by a runtime_list — the catch+lappend
+							// shape) leaves the comparison to that step. A
+							// genuine empty expectation is spelled "{}" and
+							// never reaches here as "".
+							if step.Expect == "" && step.ExpectedExpr == "" {
+								continue
+							}
 							want := cleanExpectedNull(step.Expect, td.NullToken)
 							if msg := matchExpectation(got, want); msg != "" {
 								t.Errorf("named result mismatch\n  got: [%s]\n  %s\n  sql: %s", got, msg, step.SQL)

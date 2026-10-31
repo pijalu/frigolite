@@ -11,7 +11,14 @@
           "sql": "SELECT * FROM test1",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "1 {no such table: test1}"
         }
       ]
@@ -33,7 +40,14 @@
           "sql": "SELECT * FROM test1, test2",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "1 {no such table: test2}"
         }
       ]
@@ -46,7 +60,14 @@
           "sql": "SELECT * FROM test2, test1",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "1 {no such table: test2}"
         }
       ]
@@ -261,7 +282,14 @@
           "sql": "SELECT count(f1,f2) FROM test1",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "1 {wrong number of arguments to function count()}"
         }
       ]
@@ -274,7 +302,14 @@
           "sql": "SELECT count(f1) FROM test1",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 2"
         }
       ]
@@ -287,7 +322,14 @@
           "sql": "SELECT Count() FROM test1",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 2"
         }
       ]
@@ -300,7 +342,14 @@
           "sql": "SELECT COUNT(*) FROM test1",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 2"
         }
       ]
@@ -313,7 +362,14 @@
           "sql": "SELECT COUNT(*)+1 FROM test1",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 3"
         }
       ]
@@ -356,7 +412,14 @@
           "sql": "SELECT min(*) FROM test1",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "1 {wrong number of arguments to function min()}"
         }
       ]
@@ -369,7 +432,14 @@
           "sql": "SELECT Min(f1) FROM test1",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 11"
         }
       ]
@@ -382,7 +452,14 @@
           "sql": "SELECT MIN(f1,f2) FROM test1",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {11 33}"
         }
       ]
@@ -425,7 +502,14 @@
           "sql": "SELECT MAX(*) FROM test1",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "1 {wrong number of arguments to function MAX()}"
         }
       ]
@@ -438,7 +522,14 @@
           "sql": "SELECT Max(f1) FROM test1",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 33"
         }
       ]
@@ -451,7 +542,14 @@
           "sql": "SELECT max(f1,f2) FROM test1",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {22 44}"
         }
       ]
@@ -464,7 +562,14 @@
           "sql": "SELECT MAX(f1,f2)+1 FROM test1",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {23 45}"
         }
       ]
@@ -477,7 +582,14 @@
           "sql": "SELECT MAX(f1)+1 FROM test1",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 34"
         }
       ]
@@ -510,7 +622,14 @@
           "sql": "SELECT SUM(*) FROM test1",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "1 {wrong number of arguments to function SUM()}"
         }
       ]
@@ -523,7 +642,14 @@
           "sql": "SELECT Sum(f1) FROM test1",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 44"
         }
       ]
@@ -536,7 +662,14 @@
           "sql": "SELECT sum(f1,f2) FROM test1",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "1 {wrong number of arguments to function sum()}"
         }
       ]
@@ -549,7 +682,14 @@
           "sql": "SELECT SUM(f1)+1 FROM test1",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 45"
         }
       ]
@@ -572,7 +712,14 @@
           "sql": "SELECT XYZZY(f1) FROM test1",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "1 {no such function: XYZZY}"
         }
       ]
@@ -585,7 +732,14 @@
           "sql": "SELECT SUM(min(f1,f2)) FROM test1",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 44"
         }
       ]
@@ -598,7 +752,14 @@
           "sql": "SELECT SUM(min(f1)) FROM test1",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "1 {misuse of aggregate function min()}"
         }
       ]
@@ -645,7 +806,14 @@
           "sql": "SELECT f1 FROM test1 WHERE f1\u003c11",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {}"
         }
       ]
@@ -658,7 +826,14 @@
           "sql": "SELECT f1 FROM test1 WHERE f1\u003c=11",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 11"
         }
       ]
@@ -671,7 +846,14 @@
           "sql": "SELECT f1 FROM test1 WHERE f1=11",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 11"
         }
       ]
@@ -684,7 +866,14 @@
           "sql": "SELECT f1 FROM test1 WHERE f1\u003e=11",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {11 33}"
         }
       ]
@@ -697,7 +886,14 @@
           "sql": "SELECT f1 FROM test1 WHERE f1\u003e11",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 33"
         }
       ]
@@ -710,7 +906,14 @@
           "sql": "SELECT f1 FROM test1 WHERE f1!=11",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 33"
         }
       ]
@@ -723,7 +926,14 @@
           "sql": "SELECT f1 FROM test1 WHERE min(f1,f2)!=11",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 33"
         }
       ]
@@ -736,7 +946,14 @@
           "sql": "SELECT f1 FROM test1 WHERE max(f1,f2)!=11",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {11 33}"
         }
       ]
@@ -749,7 +966,14 @@
           "sql": "SELECT f1 FROM test1 WHERE count(f1,f2)!=11",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "1 {wrong number of arguments to function count()}"
         }
       ]
@@ -762,7 +986,14 @@
           "sql": "SELECT f1 FROM test1 ORDER BY f1",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {11 33}"
         }
       ]
@@ -775,7 +1006,14 @@
           "sql": "SELECT f1 FROM test1 ORDER BY -f1",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {33 11}"
         }
       ]
@@ -788,7 +1026,14 @@
           "sql": "SELECT f1 FROM test1 ORDER BY min(f1,f2)",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {11 33}"
         }
       ]
@@ -801,7 +1046,14 @@
           "sql": "SELECT f1 FROM test1 ORDER BY min(f1)",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "1 {misuse of aggregate: min()}"
         }
       ]
@@ -919,7 +1171,14 @@
           "sql": "SELECT max(f1) FROM test1 ORDER BY f2",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 33"
         }
       ]
@@ -945,7 +1204,14 @@
           "sql": "SELECT f1 FROM test1 ORDER BY f2",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {f1 11 f1 33}"
         }
       ]
@@ -962,7 +1228,14 @@
           "sql": "SELECT f1 FROM test1 ORDER BY f2",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {test1.f1 11 test1.f1 33}"
         }
       ]
@@ -975,7 +1248,14 @@
           "sql": "SELECT f1 as 'f1' FROM test1 ORDER BY f2",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {f1 11 f1 33}"
         }
       ]
@@ -988,7 +1268,14 @@
           "sql": "SELECT * FROM test1 WHERE f1==11",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {f1 11 f2 22}"
         }
       ]
@@ -1005,7 +1292,14 @@
         },
         {
           "type": "exec",
-          "sql": "PRAGMA full_column_names=off",
+          "sql": "PRAGMA full_column_names=off"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {f1 11 f2 22}"
         }
       ]
@@ -1018,7 +1312,14 @@
           "sql": "SELECT * FROM test1 WHERE f1==11",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {f1 11 f2 22}"
         }
       ]
@@ -1031,7 +1332,14 @@
           "sql": "SELECT DISTINCT * FROM test1 WHERE f1==11",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {f1 11 f2 22}"
         }
       ]
@@ -1044,7 +1352,14 @@
           "sql": "SELECT f1 as xyzzy FROM test1 ORDER BY f2",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {xyzzy 11 xyzzy 33}"
         }
       ]
@@ -1057,7 +1372,14 @@
           "sql": "SELECT f1 as \"xyzzy\" FROM test1 ORDER BY f2",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {xyzzy 11 xyzzy 33}"
         }
       ]
@@ -1070,7 +1392,14 @@
           "sql": "SELECT f1 as 'xyzzy ' FROM test1 ORDER BY f2",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {{xyzzy } 11 {xyzzy } 33}"
         }
       ]
@@ -1083,7 +1412,14 @@
           "sql": "SELECT f1+F2 as xyzzy FROM test1 ORDER BY f2",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {xyzzy 33 xyzzy 77}"
         }
       ]
@@ -1096,7 +1432,14 @@
           "sql": "SELECT f1+F2 FROM test1 ORDER BY f2",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {f1+F2 33 f1+F2 77}"
         }
       ]
@@ -1109,7 +1452,14 @@
           "sql": "SELECT test1.f1+F2 FROM test1 ORDER BY f2",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {test1.f1+F2 33 test1.f1+F2 77}"
         }
       ]
@@ -1130,7 +1480,14 @@
         },
         {
           "type": "query2",
-          "sql": "PRAGMA full_column_names=off",
+          "sql": "PRAGMA full_column_names=off"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {test1.f1+F2 33 test1.f1+F2 77}"
         }
       ]
@@ -1143,7 +1500,14 @@
           "sql": "SELECT test1.f1+F2, t1 FROM test1, test2 \n         ORDER BY f2",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {test1.f1+F2 33 t1 abc test1.f1+F2 77 t1 abc}"
         }
       ]
@@ -1156,7 +1520,14 @@
           "sql": "SELECT A.f1, t1 FROM test1 as A, test2 \n         ORDER BY f2",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {f1 11 t1 abc f1 33 t1 abc}"
         }
       ]
@@ -1169,7 +1540,14 @@
           "sql": "SELECT A.f1, f1 FROM test1 as A, test1 as B \n         ORDER BY f2",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "1 {ambiguous column name: f1}"
         }
       ]
@@ -1182,7 +1560,14 @@
           "sql": "SELECT A.f1, B.f1 FROM test1 as A, test1 as B \n         ORDER BY f2",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "1 {ambiguous column name: f2}"
         }
       ]
@@ -1195,7 +1580,14 @@
           "sql": "SELECT A.f1, f1 FROM test1 as A, test1 as A \n         ORDER BY f2",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "1 {ambiguous column name: A.f1}"
         }
       ]
@@ -1208,7 +1600,14 @@
           "sql": "SELECT A.f1, B.f1 FROM test1 as A, test1 as B \n         ORDER BY A.f1, B.f1",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {11 11 11 33 33 11 33 33}"
         }
       ]
@@ -1221,7 +1620,14 @@
           "sql": "SELECT A.f1, B.f1 FROM test1 as A, test1 as B \n         ORDER BY A.f1, B.f1",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {f1 11 f1 11 f1 33 f1 33 f1 11 f1 11 f1 33 f1 33}"
         }
       ]
@@ -1407,7 +1813,14 @@
           "sql": "SELECT f1 FROM test1 UNION SELECT f2 FROM test1\n    ORDER BY f2;",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "0 {f1 11 f1 22 f1 33 f1 44}"
         }
       ]
@@ -1420,7 +1833,14 @@
           "sql": "SELECT f1 FROM test1 UNION SELECT f2+100 FROM test1\n    ORDER BY f2+101;",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "1 {1st ORDER BY term does not match any column in the result set}"
         }
       ]
@@ -1473,7 +1893,14 @@
           "sql": "SELECT f1 FROM test1 WHERE f2=;",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "1 {near \";\": syntax error}"
         }
       ]
@@ -1486,7 +1913,14 @@
           "sql": "SELECT f1 FROM test1 UNION SELECT WHERE;",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "1 {near \"WHERE\": syntax error}"
         }
       ]
@@ -1499,7 +1933,14 @@
           "sql": "SELECT f1 FROM test1 as 'hi', test2 as",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "1 {incomplete input}"
         }
       ]
@@ -1512,7 +1953,14 @@
           "sql": "SELECT f1 FROM test1 ORDER BY;",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "1 {near \";\": syntax error}"
         }
       ]
@@ -1525,7 +1973,14 @@
           "sql": "SELECT f1 FROM test1 ORDER BY f1 desc, f2 where;",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "1 {near \"where\": syntax error}"
         }
       ]
@@ -1538,7 +1993,14 @@
           "sql": "SELECT count(f1,f2 FROM test1;",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "1 {near \"FROM\": syntax error}"
         }
       ]
@@ -1551,7 +2013,14 @@
           "sql": "SELECT count(f1,f2+) FROM test1;",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "1 {near \")\": syntax error}"
         }
       ]
@@ -1564,7 +2033,14 @@
           "sql": "SELECT f1 FROM test1 ORDER BY f2, f1+;",
           "variable": "v",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$v",
+            "$msg"
+          ],
           "expect": "1 {near \";\": syntax error}"
         }
       ]
@@ -2009,44 +2485,14 @@
           "sql": "BEGIN;\n      create TABLE abc(a, b, c, PRIMARY KEY(a, b));\n      INSERT INTO abc VALUES(1, 1, 1);"
         },
         {
-          "type": "exec",
-          "sql": "INSERT INTO abc SELECT a+(select max(a) FROM abc), \n            b+(select max(a) FROM abc), c+(select max(a) FROM abc) FROM abc;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO abc SELECT a+(select max(a) FROM abc), \n            b+(select max(a) FROM abc), c+(select max(a) FROM abc) FROM abc;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO abc SELECT a+(select max(a) FROM abc), \n            b+(select max(a) FROM abc), c+(select max(a) FROM abc) FROM abc;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO abc SELECT a+(select max(a) FROM abc), \n            b+(select max(a) FROM abc), c+(select max(a) FROM abc) FROM abc;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO abc SELECT a+(select max(a) FROM abc), \n            b+(select max(a) FROM abc), c+(select max(a) FROM abc) FROM abc;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO abc SELECT a+(select max(a) FROM abc), \n            b+(select max(a) FROM abc), c+(select max(a) FROM abc) FROM abc;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO abc SELECT a+(select max(a) FROM abc), \n            b+(select max(a) FROM abc), c+(select max(a) FROM abc) FROM abc;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO abc SELECT a+(select max(a) FROM abc), \n            b+(select max(a) FROM abc), c+(select max(a) FROM abc) FROM abc;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO abc SELECT a+(select max(a) FROM abc), \n            b+(select max(a) FROM abc), c+(select max(a) FROM abc) FROM abc;"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO abc SELECT a+(select max(a) FROM abc), \n            b+(select max(a) FROM abc), c+(select max(a) FROM abc) FROM abc;"
+          "repeatCount": 10,
+          "repeatBody": [
+            {
+              "type": "exec",
+              "sql": "INSERT INTO abc SELECT a+(select max(a) FROM abc), \n            b+(select max(a) FROM abc), c+(select max(a) FROM abc) FROM abc;"
+            }
+          ],
+          "type": "repeat"
         },
         {
           "type": "exec",
@@ -2070,7 +2516,7 @@
     },
     {
       "name": "__DROP_ALL_TABLES__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "setup_6",
@@ -2232,7 +2678,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "select1-20.10",
@@ -2256,7 +2702,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "select1-21.1",

@@ -898,6 +898,16 @@ func (i *Interp) cmdDoTest(rawWords []rawWord, localVars map[string]string) erro
 				bodyValueCaptured = true
 			}
 		}
+		// A `lappend` over a runtime value is the same shape as `list`
+		// (select1.test 6.x: `set v [catch {execsql2 ...} msg];
+		// lappend v $msg` — the body's value is the catch code followed by
+		// the named-result rows): the expectation describes the joined list.
+		if lastCmd := bodyCommands[len(bodyCommands)-1]; len(lastCmd) >= 2 && lastCmd[0].Text == "lappend" {
+			if values, ok := i.lappendBodyValues(lastCmd[1:], localVars); ok {
+				i.stmts = append(i.stmts, Stmt{Type: "runtime_list", ListValues: values, Expected: expected, TestName: name})
+				bodyValueCaptured = true
+			}
+		}
 		if lastCmd := bodyCommands[len(bodyCommands)-1]; len(lastCmd) == 2 && lastCmd[0].Text == "expr" {
 			if exprText := strings.TrimSpace(lastCmd[1].Text); i.exprReadsRuntimeVar(exprText) {
 				// The expectation may itself be a runtime expression: the

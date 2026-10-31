@@ -1291,6 +1291,40 @@ func (i *Interp) runtimeListValues(words []rawWord, localVars map[string]string)
 	return values, true
 }
 
+// lappendBodyValues resolves a `lappend VAR VALUE...` body-value shape
+// (select1.test 6.x: `set v [catch {execsql2 ...} msg]; lappend v $msg`).
+// The conversion-time lappend already appended, so the variable's value is
+// the joined element string (the runtime refs concatenate: "$v $msg").
+// Splitting it back into elements gives the body value; ok is false when no
+// runtime value is involved.
+func (i *Interp) lappendBodyValues(words []rawWord, localVars map[string]string) ([]string, bool) {
+	if len(words) < 1 {
+		return nil, false
+	}
+	v, ok := i.getVar(words[0].Text, localVars)
+	if !ok {
+		return nil, false
+	}
+	tokens := strings.Fields(v)
+	if len(tokens) == 0 {
+		return nil, false
+	}
+	values := make([]string, 0, len(tokens))
+	runtime := false
+	for _, tok := range tokens {
+		if ref, isRef := runtimeVarRef(tok); isRef && i.dynamicVars[ref] {
+			values = append(values, "$"+ref)
+			runtime = true
+			continue
+		}
+		values = append(values, i.bakeKnownExprVars(tok, localVars))
+	}
+	if !runtime {
+		return nil, false
+	}
+	return values, true
+}
+
 // bracketedExprText extracts the expression text of a bracketed word that
 // holds a command substitution like "[expr {$a - $b}]".
 func bracketedExprText(text string) (string, bool) {
