@@ -489,11 +489,37 @@ func (e *SelectEngine) execSelectPrevalidate(s *sql.SelectStmt, tableEntry *sche
 	// planner's allocation-bearing pre-analysis — a point-lookup WHERE
 	// ("id=?") never has one and skips the walk entirely.
 	if len(s.Joins) == 0 && s.Where != nil && e.outerRow == nil && len(e.OuterRows()) == 0 && !e.ctx.ReverseUnordered() && whereHasOrConjunct(s.Where) {
-		if branches, ok := e.ctx.PlanOrIndexScan(s.Where, tableEntry.Name, colDefs, dbCtx); ok {
-			return e.ctx.ExecSelectWithOrPlan(s, tableEntry, dbCtx, colDefs, branches), colDefs
+		if result, routed := e.execSelectOrPlan(s, tableEntry, dbCtx, colDefs); routed {
+			return result, colDefs
 		}
 	}
 	return nil, colDefs
+}
+
+// execSelectOrPlan routes a single-table SELECT to the OR-index executor
+// (delegated through the context) when its WHERE plans as one, reporting
+// whether it routed. IN-valued OR arms (where8-1.12.1's
+// `a IN(1,2,3) OR a = 5`) plan as per-value equality branches: the IN-arm
+// expansion gives the OR planner the arms it understands, the executed
+// statement keeps its original WHERE, and the value loops' OP_Next delta
+// completes the search-count model.
+func (e *SelectEngine) execSelectOrPlan(s *sql.SelectStmt, tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef) (*Result, bool) {
+	if branches, ok := e.ctx.PlanOrIndexScan(s.Where, tableEntry.Name, colDefs, dbCtx); ok {
+		return e.ctx.ExecSelectWithOrPlan(s, tableEntry, dbCtx, colDefs, branches), true
+	}
+	expansion := e.expandOrInArms(s, tableEntry)
+	if expansion == nil {
+		return nil, false
+	}
+	branches, ok := e.ctx.PlanOrIndexScan(expansion.where, tableEntry.Name, colDefs, dbCtx)
+	if !ok {
+		return nil, false
+	}
+	result := e.ctx.ExecSelectWithOrPlan(s, tableEntry, dbCtx, colDefs, branches)
+	if result.Error == nil {
+		e.ctx.IncSearchCount(expansion.delta)
+	}
+	return result, true
 }
 
 // prevalidateMemoEntry, prevalidateMemoCap, cachedPrevalidateChecks and the

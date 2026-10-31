@@ -56,6 +56,14 @@ func (e *SelectEngine) selectIndexSeekRows(s *sql.SelectStmt, tableEntry *schema
 		return nil, nil, false, nil
 	}
 	defer idxTree.Close()
+	// SQLITE_TEST's sqlite3_search_count: +1 per OP_SeekLT/LE/GE/GT
+	// execution (vdbe.c:4973) — unconditional, the seek counts even when it
+	// finds nothing. A plan with neither a range start nor an equality
+	// prefix starts at the index's first entry (OP_Rewind), which the
+	// counter does not track.
+	if run.startProbe != nil || run.eqProbe != nil {
+		e.ctx.IncSearchCount(1)
+	}
 	cursor, ok := run.position(idxTree)
 	if !ok {
 		return [][]interface{}{}, nil, true, nil
@@ -286,6 +294,10 @@ func (e *SelectEngine) indexSeekForwardRows(s *sql.SelectStmt, tableEntry *schem
 		if !more {
 			break
 		}
+		// SQLITE_TEST's sqlite3_search_count: +1 per successful OP_Next
+		// positioning (vdbe.c next_tail); the final step onto EOF fails and
+		// is not counted.
+		e.ctx.IncSearchCount(1)
 	}
 	return allRows, allRowMaps, true
 }
@@ -311,6 +323,8 @@ func (e *SelectEngine) indexSeekReverseRows(s *sql.SelectStmt, tableEntry *schem
 		if !more {
 			break
 		}
+		// +1 per successful OP_Next/OP_Prev positioning (next_tail).
+		e.ctx.IncSearchCount(1)
 	}
 	var allRows [][]interface{}
 	var allRowMaps []RowMap
@@ -352,6 +366,11 @@ func indexSeekCurrentRowid(run *indexSeekRun, cursor *btree.Cursor) (rowid int64
 // b-tree seek), evaluates the statement's full WHERE clause on it, and builds
 // the row's output (or steps the statement's aggregate feed).
 func (e *SelectEngine) indexSeekRowOutput(s *sql.SelectStmt, tree *btree.BTree, colDefs []sql.ColumnDef, rowid int64, needMaps bool, feed *simpleAggFeed) ([][]interface{}, []RowMap, bool) {
+	// SQLITE_TEST's sqlite3_search_count: +1 per deferred table-row moveto
+	// (sqlite3VdbeFinishMoveto — the index-driven row fetch). SQLite issues
+	// OP_DeferredSeek per candidate entry BEFORE the residual WHERE runs, so
+	// every candidate counts, the rows the filter drops included.
+	e.ctx.IncSearchCount(1)
 	cursor, srow, found, ok := e.fetchSeekStructRow(s, tree, rowid, colDefs, needMaps, false, feed != nil)
 	if !ok {
 		return nil, nil, false

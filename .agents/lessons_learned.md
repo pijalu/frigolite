@@ -400,6 +400,35 @@ The per-family statement budget hides them: the conversion looked fine, the
   A full scan of n rows counts n−1 (same value as FULLSCAN_STEP). The MULTI-
   INDEX OR eq loop's final Next steps onto the boundary successor and SUCCEEDS
   (that's the `beyond[]` model in execdml/or.go).
+- **Index-driven walk accounting (where8-B, landed)**: the same model applied
+  to `selectIndexSeekRows` closes where8-1.8 (seek 1 + Nexts 8 + movetos 9 =
+  18) — an index walk of n candidates counts 1 seek + (n successful Nexts,
+  with the final boundary-successor step counting) + n movetos (issued per
+  candidate BEFORE the residual WHERE, so filtered candidates count); a
+  COVERING loop has no movetos (`SELECT a FROM t1 WHERE a > 1` over i1(a),
+  9 rows = 9); an upper-bounded range starts at OP_Rewind (not counted: 4
+  rows `a < 5` = 4 Nexts + 4 movetos = 8); a single-row eq seek = 3 (1 seek +
+  1 boundary Next + 1 moveto); a rowid probe = 0 (OP_SeekRowid). Pin:
+  `TestPinIndexSeekWalkSearchCounts` (internal/execquery/seekwalk_pin_test.go).
+- **The planner/executor disconnect was the blanket LIKE gate**: the old
+  `whereHasLikeOrCompleteGlob` pre-gate in `selectIndexSeekPlanFor` declined
+  the seek for ANY LIKE-bearing WHERE even when the planner's chosen loop was
+  driven by OTHER conjuncts (EQP `SEARCH t1 USING INDEX i1 (a>?)`, executor
+  full-scan). Fix: gate on the RESOLVED PLAN's provenance instead — a plan
+  whose seek bounds came from a LIKE / complete-GLOB term (`scanLocalOnly`,
+  the sqlite3_like_count elision contract) keeps the regular scan; a
+  pattern-term that merely rides along is a residual filter. GLOB-completeness
+  (`likePrefixRange`'s `complete`) means prefix+ONE trailing match-all `*`,
+  NOT a wildcard-free pattern.
+- **IN-valued OR arms plan as per-value equality branches** (where8-1.12.1,
+  `a IN(1,2,3) OR a = 5` → 14): the OR planner (execdml planOrIndexScan) only
+  understands eq/range arms, so execquery expands each `col IN (constants)`
+  arm into per-value eq arms FOR PLANNING (the executed statement keeps the
+  original WHERE — the IN filters identically) and adds the value loops'
+  ephemeral OP_Next delta of n−1 per expanded arm. `+a IN(...)` (unary plus)
+  must NOT expand — it suppresses index use (1.12.2 stays a full scan, 9).
+  where8-3.x join leaves stay red: the join executor scans the inner table
+  (separate leaf class, queued).
 - where8's `execsql_status`/`execsql_status2` helpers render the counters
   BARE (`N M[ S]`), unlike where7's labeled `scan N sort M`; status2 resets
   `::sqlite_search_count` BEFORE the probe and appends it after. The

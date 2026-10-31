@@ -131,6 +131,10 @@ func (e *SelectEngine) indexSeekCoveredRows(s *sql.SelectStmt, colDefs []sql.Col
 		if !more {
 			break
 		}
+		// SQLITE_TEST's sqlite3_search_count: +1 per successful OP_Next
+		// positioning (vdbe.c next_tail). A covering loop opens no table
+		// cursor, so there is no deferred moveto to count.
+		e.ctx.IncSearchCount(1)
 	}
 	return allRows, allRowMaps, true
 }

@@ -35,6 +35,11 @@ type indexSeekTerm struct {
 	op   string // "=", "<", "<=", ">", ">=", "LIKE", "GLOB", "BETWEEN"
 	val  interface{}
 	val2 interface{}
+	// scanLocalOnly marks a LIKE/complete-GLOB term whose matcher calls the
+	// regular scan elides (select_like_opt.go — the sqlite3_like_count
+	// contract): when such a term drives the seek's own bounds the plan
+	// keeps the regular scan instead.
+	scanLocalOnly bool
 }
 
 // indexSeekBound is one side of the loop's range bound, in VALUE space (the
@@ -55,6 +60,11 @@ type indexSeekPlan struct {
 	// empty marks a plan whose own constants prove that no row matches: a
 	// NULL equality or range constant makes the comparison never true.
 	empty bool
+	// patternDriven marks a plan whose seek constraints were derived from a
+	// LIKE or complete-GLOB term. Such statements keep the regular scan,
+	// whose scan-local optimizer elides the provably-decided like()/glob()
+	// calls (select_like_opt.go — the sqlite3_like_count contract).
+	patternDriven bool
 }
 
 // selectIndexSeekPlanFor resolves the index-driven scan for a single-table
@@ -62,9 +72,16 @@ type indexSeekPlan struct {
 // mirror the shapes whose row order an index loop can serve: one real rowid
 // table, no join, no ORDER BY / GROUP BY / DISTINCT / compound member, and a
 // WHERE without a top-level OR (an OR is a union of index ranges, served by
-// execSelectWithOrPlan).
+// execSelectWithOrPlan). The driving index is the planner's own loop — the
+// same decision the EXPLAIN QUERY PLAN renderer consumes — so a LIKE/GLOB
+// conjunct that merely rides along as a residual filter (where8-1.8's
+// `a > 1 AND c LIKE 'I%'` planned as `SEARCH t1 USING INDEX i1 (a>?)`) does
+// not disconnect the executor from the plan. Only a plan whose own seek
+// constraints were derived from a LIKE/complete-GLOB term keeps the regular
+// scan, whose scan-local optimizer elides the provably-decided matcher calls
+// (select_like_opt.go — the sqlite3_like_count contract).
 func (e *SelectEngine) selectIndexSeekPlanFor(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) (*indexSeekPlan, error) {
-	if !indexSeekShapeApplies(s, tableEntry) || e.ctx.TableIsWithoutRowidEntry(tableEntry) || whereHasLikeOrCompleteGlob(s.Where) {
+	if !indexSeekShapeApplies(s, tableEntry) || e.ctx.TableIsWithoutRowidEntry(tableEntry) {
 		return nil, nil
 	}
 	loop, err := e.scanLoopForRowCount(queryTableFromRef(s.From), s, indexSeekPlanRowCount, false)
@@ -74,7 +91,11 @@ func (e *SelectEngine) selectIndexSeekPlanFor(s *sql.SelectStmt, tableEntry *sch
 	if loop.kind != loopIndex || !loop.seek || loop.token == "PRIMARY KEY" {
 		return nil, nil
 	}
-	return e.buildIndexSeekPlan(s, tableEntry, colDefs, loop.token), nil
+	plan := e.buildIndexSeekPlan(s, tableEntry, colDefs, loop.token)
+	if plan == nil || plan.patternDriven {
+		return nil, nil
+	}
+	return plan, nil
 }
 
 // indexSeekShapeApplies reports whether the statement is a single-table scan
@@ -90,29 +111,6 @@ func indexSeekShapeApplies(s *sql.SelectStmt, tableEntry *schema.Entry) bool {
 		return false
 	}
 	return !IsSchemaTable(tableEntry.Name) && !whereHasOrConjunct(s.Where)
-}
-
-// whereHasLikeOrCompleteGlob keeps LIKE and complete GLOB terms on the
-// scan-local optimizer, which performs exact matcher-call elision. Partial
-// GLOB prefixes use the generic index seek only when both range bounds exist.
-func whereHasLikeOrCompleteGlob(where sql.Expr) bool {
-	for _, term := range likeOptConjuncts(where, nil) {
-		op, ok := term.(*sql.BinaryOp)
-		if !ok {
-			continue
-		}
-		if op.Operator == "LIKE" {
-			return true
-		}
-		if op.Operator != "GLOB" {
-			continue
-		}
-		pattern, valid := likePatternConst(op.Right)
-		if _, complete, usable := likePrefixRange(pattern, op.Escape, op.HasEscape, '*', '?', '['); valid && usable && complete {
-			return true
-		}
-	}
-	return false
 }
 
 // indexSeekPlainScanShape reports whether the statement is a plain
@@ -206,7 +204,7 @@ func (e *SelectEngine) indexSeekPlanStep(plan *indexSeekPlan, terms []indexSeekT
 		plan.eq = append(plan.eq, e.indexSeekAffinityValue(colDefs, col, term.val))
 		return true
 	}
-	lo, hi, ok := e.indexSeekRangeTerms(terms, allowed, colDefs, col)
+	lo, hi, ok := e.indexSeekRangeTerms(plan, terms, allowed, colDefs, col)
 	if !ok {
 		return false
 	}
@@ -238,20 +236,16 @@ func indexSeekEqualityTerm(terms []indexSeekTerm, allowed map[string]bool, col s
 // indexSeekRangeTerms returns the range bounds constraining col: a
 // comparison bound, a BETWEEN pair, or the LIKE/GLOB prefix's lower bound
 // (which walks the prefix run to the index's end, the WHERE filter making
-// the candidate set exact).
-func (e *SelectEngine) indexSeekRangeTerms(terms []indexSeekTerm, allowed map[string]bool, colDefs []sql.ColumnDef, col string) (*indexSeekBound, *indexSeekBound, bool) {
+// the candidate set exact). A contributing LIKE/complete-GLOB term marks the
+// plan patternDriven — its statement keeps the regular scan (the
+// scan-local optimizer's exact matcher-call elision).
+func (e *SelectEngine) indexSeekRangeTerms(plan *indexSeekPlan, terms []indexSeekTerm, allowed map[string]bool, colDefs []sql.ColumnDef, col string) (*indexSeekBound, *indexSeekBound, bool) {
 	var lo, hi *indexSeekBound
 	for _, t := range terms {
 		if !strings.EqualFold(t.col, col) || !allowed[indexSeekRefKey(t.col, t.op)] {
 			continue
 		}
-		l, h := e.indexSeekBoundFor(t, colDefs, col)
-		if l != nil {
-			lo = l
-		}
-		if h != nil {
-			hi = h
-		}
+		lo, hi = e.extendIndexSeekRange(plan, t, lo, hi, colDefs, col)
 	}
 	if lo == nil && hi == nil {
 		return nil, nil, false
@@ -263,6 +257,23 @@ func (e *SelectEngine) indexSeekRangeTerms(terms []indexSeekTerm, allowed map[st
 		hi.val = e.indexSeekAffinityValue(colDefs, col, hi.val)
 	}
 	return lo, hi, true
+}
+
+// extendIndexSeekRange folds one term's value-space bounds into the running
+// bound pair, marking the plan patternDriven when the term is a
+// scan-local-only (LIKE/complete-GLOB) constraint.
+func (e *SelectEngine) extendIndexSeekRange(plan *indexSeekPlan, t indexSeekTerm, lo, hi *indexSeekBound, colDefs []sql.ColumnDef, col string) (*indexSeekBound, *indexSeekBound) {
+	l, h := e.indexSeekBoundFor(t, colDefs, col)
+	if l != nil {
+		lo = l
+	}
+	if h != nil {
+		hi = h
+	}
+	if t.scanLocalOnly && (l != nil || h != nil) {
+		plan.patternDriven = true
+	}
+	return lo, hi
 }
 
 // indexSeekBoundFor maps one range term to its value-space bounds: a
@@ -386,7 +397,10 @@ func (e *SelectEngine) indexSeekBetweenTerm(v *sql.Between, tableEntry *schema.E
 // indexSeekLikeTerm resolves a LIKE/GLOB conjunct to its literal-prefix lower
 // bound. A pattern without a literal prefix cannot position the scan and
 // keeps the regular one (SQLite likewise only range-scans a non-empty
-// prefix).
+// prefix). A LIKE pattern, and a GLOB pattern whose prefix run provably
+// decides the match (prefix + one trailing match-all wildcard), are marked
+// scanLocalOnly: the regular scan's optimizer elides their matcher calls, so
+// they must not drive an index seek.
 func (e *SelectEngine) indexSeekLikeTerm(v *sql.BinaryOp, tableEntry *schema.Entry, alias string) (indexSeekTerm, bool) {
 	col, ok := e.indexSeekColumnRef(v.Left, tableEntry, alias)
 	if !ok {
@@ -408,6 +422,10 @@ func (e *SelectEngine) indexSeekLikeTerm(v *sql.BinaryOp, tableEntry *schema.Ent
 	term := indexSeekTerm{col: col, op: v.Operator, val: prefix}
 	if v.Operator == "GLOB" {
 		_, term.val2, _ = likeRangeBounds(prefix, false, false)
+		_, complete, usable := likePrefixRange(pattern, v.Escape, v.HasEscape, '*', '?', '[')
+		term.scanLocalOnly = usable && complete
+	} else {
+		term.scanLocalOnly = true
 	}
 	return term, true
 }
