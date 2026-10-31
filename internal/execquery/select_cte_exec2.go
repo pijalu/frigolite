@@ -287,10 +287,14 @@ func cteRefAlias(s *sql.SelectStmt, cte *sql.CTEDef) string {
 }
 
 // cteColDefs builds column definitions from the CTE result, applying declared
-// column names and carrying the body's compound column affinity.
+// column names and carrying the body's compound column affinity. The derived
+// table's column names are made unique (sqlite3ColumnsFromExprList ":N"
+// suffixing) so duplicate output names (joined t1.*/t2.* stars) cannot
+// collide in the row maps.
 func cteColDefs(cte *sql.CTEDef, cteResult *Result, e *SelectEngine) []sql.ColumnDef {
-	colDefs := make([]sql.ColumnDef, len(cteResult.Columns))
-	for i, colName := range cteResult.Columns {
+	names := dedupDerivedColumnNames(cteResult.Columns)
+	colDefs := make([]sql.ColumnDef, len(names))
+	for i, colName := range names {
 		colDefs[i] = sql.ColumnDef{Name: colName}
 		if aff := e.compoundColumnAffinity(cte.Select, i); aff != 0 {
 			colDefs[i].Type = affinityTypeName(aff)

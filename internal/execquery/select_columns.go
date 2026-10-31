@@ -349,48 +349,59 @@ func matchUnqualifiedColDef(colDefs []sql.ColumnDef, refName string) (string, bo
 }
 
 // resolveColumnRefName resolves an unaliased column reference to its result
-// column name. With full_column_names=ON the name is TABLE.COLUMN (the FROM
-// spelling: the operand's alias when aliased, else the table name —
-// select.c generateColumnNames, SQLITE_FullColNames takes precedence over
-// short_column_names; select1-6.1.1 "test1.f1"). Otherwise the qualifier is
-// stripped unless the column conflicts (join colDefs store conflicting
-// columns as table.col — keep those).
-func (e *SelectEngine) resolveColumnRefName(ref *sql.ColumnRef, colDefs []sql.ColumnDef, sel *sql.SelectStmt) string {
-	if strings.EqualFold(ref.Name, "rowid") || strings.EqualFold(ref.Name, "_rowid_") || strings.EqualFold(ref.Name, "oid") {
+// column name, per select.c sqlite3GenerateColumnNames:
+//
+//   - full_column_names=ON: RESOLVED-TABLE.COLUMN — pTab->zName, the REAL
+//     table name (select1-6.9.9: "SELECT a.f1 FROM test1 a" names
+//     "test1.f1", not the alias; sqlite3ExpandSubquery names a FROM-clause
+//     subquery after its alias or "(subquery-N)"). Takes precedence over
+//     short_column_names.
+//   - short=OFF, full=OFF: the expression's original span text
+//     (select1-6.9.3 "test1 . f1" — written spacing preserved).
+//   - short=ON, full=OFF (default): the bare (declared) column name.
+//
+// An AS alias never reaches here (selectColumnName handles it first).
+func (e *SelectEngine) resolveColumnRefName(ref *sql.ColumnRef, colDefs []sql.ColumnDef, sel *sql.SelectStmt, ops []colnameOperand) string {
+	// rowid/_rowid_/oid resolve to the declared IPK column name when one
+	// exists (generateColumnNames: iCol<0 maps to pTab->iPKey).
+	refName := ref.Name
+	if isRowIDName(refName) {
 		for _, cd := range colDefs {
 			if isIPKRowidAliasCol(cd) {
-				return cd.Name
+				refName = cd.Name
+				break
 			}
 		}
 	}
-	if !e.ctx.FullColumnNames() && !e.ctx.ShortColumnNames() && ref.Table != "" {
-		return ref.Table + "." + ref.Name
+	if !e.ctx.FullColumnNames() && !e.ctx.ShortColumnNames() {
+		// Span mode: the name is the expression's original text. Recover it
+		// from the statement's raw text via the reference's token span;
+		// without a verifiable span fall back to the reconstructed spelling.
+		if name := spanResultName(ref, sel); name != "" {
+			return name
+		}
+		if ref.Table != "" {
+			return ref.Table + "." + refName
+		}
+		if name, ok := matchUnqualifiedColDef(colDefs, refName); ok {
+			return name
+		}
+		return refName
 	}
 	if e.ctx.FullColumnNames() {
-		qualifier := ref.Table
-		if ref.Table != "" {
-			for _, operand := range fromOperands(sel) {
-				if strings.EqualFold(operand.ref, ref.Table) || strings.EqualFold(operand.table, ref.Table) {
-					qualifier = operand.table
-					break
-				}
-			}
-		} else {
-			qualifier = e.columnOwnerOperand(sel, ref, colDefs)
-		}
-		if qualifier != "" {
-			name := ref.Name
-			if n, ok := matchUnqualifiedColDef(colDefs, ref.Name); ok {
+		if qualifier := e.fullNameQualifier(ops, ref, refName, colDefs, sel); qualifier != "" {
+			name := refName
+			if n, ok := matchUnqualifiedColDef(colDefs, refName); ok {
 				name = n
 			}
 			return qualifier + "." + name
 		}
 	}
 	if ref.Table == "" {
-		if name, ok := matchUnqualifiedColDef(colDefs, ref.Name); ok {
+		if name, ok := matchUnqualifiedColDef(colDefs, refName); ok {
 			return name
 		}
-		return ref.Name
+		return refName
 	}
 	// Qualified reference with full_column_names=OFF: strip the table
 	// qualifier unless the column conflicts (join colDefs store conflicting
@@ -399,6 +410,33 @@ func (e *SelectEngine) resolveColumnRefName(ref *sql.ColumnRef, colDefs []sql.Co
 		return ref.Name
 	}
 	return ref.Name
+}
+
+// fullNameQualifier returns the full_column_names qualifier for a direct
+// column reference: the owning FROM item's resolved table name (pTab->zName
+// at generateColumnNames time — the declared table/view/CTE spelling, or a
+// subquery's alias-or-(subquery-N)). A written qualifier ("a.f1") matches the
+// operand by its FROM-clause name; an unqualified reference attributes to the
+// first operand (in FROM order) that exposes the column. Legacy operand
+// resolution (table-valued functions, parenthesized join groups) keeps the
+// pre-existing fallbacks when the naming operand list cannot represent the
+// shape.
+func (e *SelectEngine) fullNameQualifier(ops []colnameOperand, ref *sql.ColumnRef, refName string, colDefs []sql.ColumnDef, sel *sql.SelectStmt) string {
+	if ref.Table != "" {
+		if op, ok := matchOperandWritten(ops, ref.Table); ok {
+			return op.resolved
+		}
+		for _, operand := range fromOperands(sel) {
+			if strings.EqualFold(operand.ref, ref.Table) || strings.EqualFold(operand.table, ref.Table) {
+				return operand.table
+			}
+		}
+		return ""
+	}
+	if q := operandResolvedForColumn(ops, refName); q != "" {
+		return q
+	}
+	return e.columnOwnerOperand(sel, ref, colDefs)
 }
 
 // qualifiedColDefExists reports whether colDefs carries a conflicting

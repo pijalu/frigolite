@@ -197,11 +197,14 @@ func (e *SelectEngine) execSelectFromSubquery(s *sql.SelectStmt) *Result {
 	// expression affinities so row-map values wrap correctly (e.g. CAST(...
 	// AS REAL) produces a REAL-affinity column; a table column reference
 	// inherits the table column's declared type; a function call has no
-	// affinity, matching SQLite sqlite3ExprAffinity).
-	colDefs := make([]sql.ColumnDef, len(subqResult.Columns))
+	// affinity, matching SQLite sqlite3ExprAffinity). The derived table's
+	// names are made unique (sqlite3ColumnsFromExprList ":N" suffix) so
+	// duplicate output names cannot collide in the row maps.
+	subqColumns := dedupDerivedColumnNames(subqResult.Columns)
+	colDefs := make([]sql.ColumnDef, len(subqColumns))
 	subqDefs := e.ctx.ViewColumnDefsFromSelect(s.From.Subquery)
 	subqAff := subqueryColumnAffinities(s.From.Subquery)
-	for i, col := range subqResult.Columns {
+	for i, col := range subqColumns {
 		colDefs[i] = sql.ColumnDef{Name: col}
 		if i < len(subqDefs) {
 			colDefs[i].Type = subqDefs[i].Type
@@ -476,8 +479,12 @@ func (e *SelectEngine) materializeCTEForJoin(cte *sql.CTEDef) ([]sql.ColumnDef, 
 	if cteResult.Error != nil {
 		return nil, nil, cteResult.Error
 	}
-	colDefs := make([]sql.ColumnDef, len(cteResult.Columns))
-	for i, colName := range cteResult.Columns {
+	// The CTE's derived-table column names are made unique
+	// (sqlite3ColumnsFromExprList ":N" suffixing) so duplicate output names
+	// (joined t1.*/t2.* stars) cannot collide in the row maps.
+	cteColumns := dedupDerivedColumnNames(cteResult.Columns)
+	colDefs := make([]sql.ColumnDef, len(cteColumns))
+	for i, colName := range cteColumns {
 		colDefs[i] = sql.ColumnDef{Name: colName}
 	}
 	if len(cte.Columns) > 0 {

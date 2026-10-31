@@ -352,7 +352,10 @@ func (e *SelectEngine) materializeSubqueryJoin(join sql.JoinClause) ([]RowMap, [
 	if subqResult.Error != nil {
 		return nil, nil, "", nil, subqResult.Error
 	}
-	rightDefs := resultColumnDefs(subqResult.Columns)
+	// The derived table's column names are made unique
+	// (sqlite3ColumnsFromExprList ":N" suffixing) so duplicate output names
+	// (joined t1.*/t2.* stars) cannot collide in the row maps.
+	rightDefs := resultColumnDefs(dedupDerivedColumnNames(subqResult.Columns))
 	tableName := joinTableName(join)
 	synthetic := tableName == ""
 	if synthetic {
@@ -423,7 +426,7 @@ func (e *SelectEngine) buildViewRightDefs(viewEntry *schema.Entry, viewResult *R
 	if len(viewDefs) > 0 {
 		return viewDefs, nil
 	}
-	return resultColumnDefs(viewResult.Columns), nil
+	return resultColumnDefs(dedupDerivedColumnNames(viewResult.Columns)), nil
 }
 
 // rebuildViewDefsWithNames rebuilds view defs with explicitly declared column

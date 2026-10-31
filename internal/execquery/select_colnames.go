@@ -185,21 +185,6 @@ func selectAliasTarget(s *sql.SelectStmt, name string) string {
 	return ""
 }
 
-func selectAliasName(s *sql.SelectStmt, name string) string {
-	if s == nil || name == "" {
-		return ""
-	}
-	if strings.EqualFold(s.From.As, name) {
-		return s.From.As
-	}
-	for _, j := range s.Joins {
-		if strings.EqualFold(j.Table.As, name) {
-			return j.Table.As
-		}
-	}
-	return ""
-}
-
 // tableRefAliasTarget resolves a name against one FROM table reference: the
 // table's alias when the alias matches, else the table name when the reference
 // is unaliased and matches. An alias shadows a same-named table.
@@ -216,9 +201,12 @@ func tableRefAliasTarget(ref sql.TableRef, name string) string {
 // buildColumnNames builds the result-column name list, behind the
 // bare-reference memo (select_point_memo.go): the memoized shapes skip the
 // per-column resolution recomputation, every other shape walks the same
-// builder as before.
+// builder as before. The memo only serves the DEFAULT mode (short=ON,
+// full=OFF): span mode (both flags off) names unqualified references after
+// their written span text, and full_column_names qualifies them, so a memo
+// populated under one mode must not leak into another.
 func (e *SelectEngine) buildColumnNames(columns []sql.SelectColumn, colDefs []sql.ColumnDef, sel *sql.SelectStmt) []string {
-	if columnNamesMemoizable(columns) && len(colDefs) > 0 && !e.ctx.FullColumnNames() {
+	if columnNamesMemoizable(columns) && len(colDefs) > 0 && !e.ctx.FullColumnNames() && e.ctx.ShortColumnNames() {
 		if names, ok := e.columnNamesMemoGet(columns, colDefs); ok {
 			e.applyColumnWidthLimit(names)
 			return names
@@ -230,11 +218,18 @@ func (e *SelectEngine) buildColumnNames(columns []sql.SelectColumn, colDefs []sq
 	return e.buildColumnNamesCompute(columns, colDefs, sel)
 }
 
-// buildColumnNamesCompute is the uncached name-list builder.
+// buildColumnNamesCompute is the uncached name-list builder. The FROM-operand
+// naming context (written/resolved names, output columns) is built once when
+// any column needs it: full_column_names qualification, star expansions, or a
+// FROM-clause subquery operand's output names.
 func (e *SelectEngine) buildColumnNamesCompute(columns []sql.SelectColumn, colDefs []sql.ColumnDef, sel *sql.SelectStmt) []string {
+	var ops []colnameOperand
+	if sel != nil && (e.ctx.FullColumnNames() || selectHasStarColumn(columns)) {
+		ops = e.colnameOperands(sel)
+	}
 	var names []string
 	for _, col := range columns {
-		names = append(names, e.selectColumnName(col, colDefs, sel)...)
+		names = append(names, e.selectColumnName(col, colDefs, sel, ops)...)
 	}
 	// select.c sqlite3SelectCallback: a result set wider than
 	// SQLITE_LIMIT_COLUMN errors "too many columns in result set"; the flag
@@ -247,9 +242,9 @@ func (e *SelectEngine) buildColumnNamesCompute(columns []sql.SelectColumn, colDe
 
 // selectColumnName names one SELECT column (star expansion, row-value
 // expansion, alias, bare column reference, or the expression's SQL span).
-func (e *SelectEngine) selectColumnName(col sql.SelectColumn, colDefs []sql.ColumnDef, sel *sql.SelectStmt) []string {
+func (e *SelectEngine) selectColumnName(col sql.SelectColumn, colDefs []sql.ColumnDef, sel *sql.SelectStmt, ops []colnameOperand) []string {
 	if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name == "*" {
-		return e.starColumnNamesFor(ref, colDefs, sel)
+		return e.starColumnNamesFor(ref, colDefs, sel, ops)
 	}
 	if rv, ok := col.Expr.(*sql.RowValue); ok {
 		// Multi-expression RETURNING (RETURNING a, b, *): expand * inline
@@ -260,7 +255,7 @@ func (e *SelectEngine) selectColumnName(col sql.SelectColumn, colDefs []sql.Colu
 		return []string{col.As}
 	}
 	if ref, ok := col.Expr.(*sql.ColumnRef); ok {
-		return []string{e.resolveColumnRefName(ref, colDefs, sel)}
+		return []string{e.resolveColumnRefName(ref, colDefs, sel, ops)}
 	}
 	// Unaliased expression: SQLite names the result column after the
 	// expression text (e.g. SELECT a+b names it "a+b"). Without this,
@@ -269,31 +264,6 @@ func (e *SelectEngine) selectColumnName(col sql.SelectColumn, colDefs []sql.Colu
 	// mirrors the raw SQL span, so symbol operators render without
 	// injected spaces (select1-6.5 "f1+F2").
 	return []string{exprResultName(col.Expr)}
-}
-
-func (e *SelectEngine) starColumnNamesFor(ref *sql.ColumnRef, colDefs []sql.ColumnDef, sel *sql.SelectStmt) []string {
-	if ref.Table != "" {
-		if !selectOperandVisible(sel, ref.Table) {
-			e.starNoSuchTable = ref.Table
-			return nil
-		}
-		names := e.buildQualifiedStarNames(ref, colDefs, sel)
-		if e.ctx.FullColumnNames() {
-			table := ref.Table
-			if alias := selectAliasName(sel, ref.Table); alias != "" {
-				table = alias
-			} else if owner := e.columnOwnerOperand(sel, &sql.ColumnRef{Table: ref.Table, Name: names[0]}, colDefs); owner != "" {
-				table = owner
-			}
-			for i := range names {
-				names[i] = table + "." + names[i]
-			}
-		}
-		return names
-	}
-	// SQLite's full_column_names flag applies to direct column expressions,
-	// not the column names produced by expanding an unqualified `*`.
-	return expandStarColNames(colDefs)
 }
 
 // operandVisible reports whether a table reference matches the lookup name.
