@@ -4074,6 +4074,18 @@ func TestSQLiteSuite(t *testing.T) {
 						case "query2":
 							res := execDB.Query(step.SQL)
 							if res.Error != nil {
+								if step.CatchResult && step.Variable != "" {
+									// `catch {execsql2 ...} msg` (select1-6.8):
+									// the failed query's outcome IS the body
+									// value — the catch code 1 and the error
+									// message go to the runtime variables and
+									// the runtime_list step asserts them.
+									runtimeVars[step.Variable] = "1"
+									if step.CatchMessage != "" {
+										runtimeVars[step.CatchMessage] = res.Error.Error()
+									}
+									continue
+								}
 								t.Errorf("query error: %v\n  sql: %s", res.Error, step.SQL)
 								return
 							}
