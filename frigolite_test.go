@@ -5,6 +5,7 @@ import (
 	"math"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -289,12 +290,69 @@ func TestFormatSQLiteValueInfinity(t *testing.T) {
 	}
 }
 
+// formatTclDouble renders a double the way the testfixture's TCL sees it
+// (Tcl 9's shortest-round-trip print), pinned against tclsh: the shortest
+// digit string that round-trips, FIXED notation for decimal exponents
+// -4..16 with an ".0" suffix when integral ("10000000000000000.0"), and
+// scientific notation otherwise ("9.223372036854776e+18", "1.5e-05" —
+// two-digit signed exponent, no forced ".0" on the mantissa).
+func formatTclDouble(f float64) string {
+	switch {
+	case math.IsInf(f, 1):
+		return "Inf"
+	case math.IsInf(f, -1):
+		return "-Inf"
+	case math.IsNaN(f):
+		return "NaN"
+	}
+	s := strconv.FormatFloat(f, 'e', -1, 64)
+	e := strings.IndexAny(s, "eE")
+	if e < 0 {
+		return s // unreachable: 'e' format always carries the exponent
+	}
+	mant, expText := s[:e], s[e+1:]
+	exp, err := strconv.Atoi(expText)
+	if err != nil {
+		return s
+	}
+	if exp < -4 || exp > 16 {
+		return s // scientific form already matches TCL's
+	}
+	// Fixed form: shift the shortest mantissa's decimal point.
+	digits := strings.Replace(mant, ".", "", 1)
+	neg := false
+	if digits != "" && (digits[0] == '-' || digits[0] == '+') {
+		neg = digits[0] == '-'
+		digits = digits[1:]
+	}
+	point := exp + 1 // digits before the decimal point
+	var b strings.Builder
+	if neg {
+		b.WriteByte('-')
+	}
+	switch {
+	case point <= 0:
+		b.WriteString("0.")
+		b.WriteString(strings.Repeat("0", -point))
+		b.WriteString(digits)
+	case point >= len(digits):
+		b.WriteString(digits)
+		b.WriteString(strings.Repeat("0", point-len(digits)))
+		b.WriteString(".0")
+	default:
+		b.WriteString(digits[:point])
+		b.WriteByte('.')
+		b.WriteString(digits[point:])
+	}
+	return b.String()
+}
+
 func formatSQLiteValue(val interface{}) string {
 	// Unwrap column affinity wrapper for correct formatting.
 	val = util.UnwrapColumnValue(val)
 	switch v := val.(type) {
 	case float64:
-		return util.FormatSQLiteReal(v)
+		return formatTclDouble(v)
 	case []byte:
 		// The sqlite3 CLI renders blob values as their raw bytes, not as
 		// quote()'s X'..' literal (SELECT x'6869' prints "hi"). The test
