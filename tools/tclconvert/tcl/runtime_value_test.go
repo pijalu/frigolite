@@ -266,21 +266,18 @@ func TestCatchLappendBodyValueEmitsRuntimeList(t *testing.T) {
 // instead of baking a conversion-time number.
 func TestStringLengthOverRuntimeRefEmitsDerivedRef(t *testing.T) {
 	i := NewInterp()
-	script := `proc signature {} {
+	script := `do_test memdb-strlen-1 {
   set rx [db eval {SELECT x FROM t3}]
-  return [list [string length $rx] $rx]
-}
-do_test memdb-1.2.1-3 {
-  signature
+  list [string length $rx] $rx
 } {3 abc}`
 	if err := i.Execute(script); err != nil {
 		t.Fatal(err)
 	}
 	found := false
 	for _, s := range i.Stmts() {
-		if s.Type == "query_assign" && s.Expected != "" {
-			if s.Expected != "$__strlen(rx) $rx" {
-				t.Fatalf("expect = %q, want the derived refs", s.Expected)
+		if s.Type == "runtime_list" {
+			if len(s.ListValues) != 2 || s.ListValues[0] != "$__strlen(rx)" || s.ListValues[1] != "$rx" {
+				t.Fatalf("list values = %v, want the derived length ref and $rx", s.ListValues)
 			}
 			found = true
 		}

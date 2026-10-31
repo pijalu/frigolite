@@ -1276,6 +1276,17 @@ func (i *Interp) runtimeListValues(words []rawWord, localVars map[string]string)
 	runtime := false
 	for _, w := range words {
 		text := w.Text
+		// A `[string length $name]` element derives its value from a
+		// runtime variable (memdb.test's signature list): emit the derived
+		// reference the harness's expansion resolves as the runtime length.
+		if !w.Braced && strings.HasPrefix(text, "[string length ") && strings.HasSuffix(text, "]") {
+			inner := strings.TrimSpace(text[len("[string length ") : len(text)-1])
+			if _, name, ok := tclRuntimeRef(inner); ok && i.dynamicVars[name] {
+				values = append(values, "$__strlen("+name+")")
+				runtime = true
+				continue
+			}
+		}
 		if !w.Braced {
 			if name, ok := runtimeVarRef(text); ok && i.dynamicVars[name] {
 				values = append(values, "$"+name)
