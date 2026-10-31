@@ -33,6 +33,14 @@ type Func struct {
 	ScalarFn    func(args []interface{}) (interface{}, error)
 	AggregateFn func() Aggregator
 
+	// ContextFn, when non-nil, is the context-aware scalar implementation
+	// (sqlite3 xFunc with an sqlite3_context): it receives a FuncContext
+	// exposing the sqlite3_get_auxdata/sqlite3_set_auxdata slots for THIS
+	// call site and takes precedence over ScalarFn. Registered with
+	// RegisterContext. Scalar-only: aggregates are invoked without a
+	// context in this engine.
+	ContextFn func(ctx *FuncContext, args []interface{}) (interface{}, error)
+
 	// Builtin reports whether the function was registered by the engine (true)
 	// or by the application via Register (false). pragma_function_list reports
 	// this as the "builtin" column.
@@ -173,6 +181,16 @@ func (r *Registry) register(f *Func) {
 func (r *Registry) Register(name string, fn func(args []interface{}) (interface{}, error), minArgs, maxArgs int) {
 	r.noteUser(name)
 	r.register(&Func{Name: name, Type: TypeScalar, MinArgs: minArgs, MaxArgs: maxArgs, ScalarFn: fn})
+}
+
+// RegisterContext registers a context-aware scalar function: fn receives a
+// FuncContext exposing the sqlite3_get_auxdata/sqlite3_set_auxdata slots of
+// the call site (sqlite3_create_function for functions such as the test
+// suite's test_auxdata/test_frombind). The registration shadows a built-in
+// of the same name exactly like Register.
+func (r *Registry) RegisterContext(name string, fn func(ctx *FuncContext, args []interface{}) (interface{}, error), minArgs, maxArgs int) {
+	r.noteUser(name)
+	r.register(&Func{Name: name, Type: TypeScalar, MinArgs: minArgs, MaxArgs: maxArgs, ContextFn: fn})
 }
 
 // RegisterDeterministic adds an application scalar function with SQLite's deterministic flag.

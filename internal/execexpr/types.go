@@ -178,6 +178,13 @@ type Evaluator struct {
 	// function-call state that lives for the duration of the outermost
 	// statement and dies when the next one starts. Keyed by function name.
 	stmtAux map[string]interface{}
+	// siteAux holds the function auxiliary-data slots (P-C6,
+	// sqlite3_get_auxdata/sqlite3_set_auxdata; see auxdata.go): keyed by
+	// (call site, argument index), living for one statement execution with
+	// per-call release of non-constant-argument slots. Statement-scoped
+	// like stmtAux — the Evaluator is engine-scoped, so entries are dropped
+	// (with destructor callbacks) when the next outermost statement starts.
+	siteAux map[auxKey]auxEntry
 	// collMemo caches compile-time collation resolution per expression node.
 	// exprCollation is a pure function of the AST subtree, so per-statement
 	// memoization removes the per-row recomputation in evalExprWithCollation
@@ -217,8 +224,12 @@ func (ev *Evaluator) SetAuxData(key string, v interface{}) {
 // so per-statement sequences (stmtrand()) restart with every statement.
 // Statements nested inside the outer one (triggers, eval()) share the outer
 // statement's auxdata (and the collation memo — their ASTs stay alive for
-// the outer statement's duration).
+// the outer statement's duration). The per-call-site auxdata slots
+// (siteAux) are destroyed with their destructor callbacks — C's
+// closeAllCursors teardown at statement halt/reset (func.test 13.8.1-3:
+// a re-executed statement starts with empty auxdata).
 func (ev *Evaluator) ResetStatementAux() {
+	ev.destroyStatementAux()
 	ev.stmtAux = nil
 	ev.collMemo = nil
 }

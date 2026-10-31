@@ -495,6 +495,9 @@ func (ev *Evaluator) evalFuncCallDispatched(fn *function.Func, f *sql.FuncCall, 
 // names route through the engine (schema access, LIKE settings, statement
 // execution) or enforce SQLITE_LIMIT_LENGTH on their output first.
 func (ev *Evaluator) evalScalarFuncCall(fn *function.Func, f *sql.FuncCall, args []interface{}) (interface{}, error) {
+	if fn.ContextFn != nil {
+		return ev.evalContextScalarFunc(fn, f, args)
+	}
 	if res, handled, err := ev.evalScalarSpecial(f, args); handled {
 		return res, err
 	}
@@ -531,6 +534,31 @@ func (ev *Evaluator) evalScalarFuncCall(fn *function.Func, f *sql.FuncCall, args
 // scalarSpecialImpl evaluates one engine-routed scalar function; handled=false
 // falls through to the registry scalar.
 type scalarSpecialImpl func(ev *Evaluator, f *sql.FuncCall, args []interface{}) (interface{}, bool, error)
+
+// evalContextScalarFunc invokes a context-aware scalar function (registered
+// with Registry.RegisterContext): it receives a function.FuncContext whose
+// auxdata slots are keyed by THIS call site (C keys them by the
+// OP_Function instruction address, vdbeapi.c:1183). After the call, C's
+// OP_Function release runs exactly when the call errored or the function
+// created a NEW auxdata slot (the isError==-1 soft flag, vdbe.c ~8824):
+// every slot at this site whose argument was not compile-time constant is
+// destroyed — constant-argument slots persist across rows of one statement
+// execution, non-constant slots are fresh every call (func.test 13.4/13.5).
+func (ev *Evaluator) evalContextScalarFunc(fn *function.Func, f *sql.FuncCall, args []interface{}) (interface{}, error) {
+	mask := ev.funcArgConstMask(f)
+	ctx := function.NewFuncContext(auxStore{ev: ev}, f)
+	out, err := fn.ContextFn(ctx, args)
+	if err != nil || ctx.AuxSlotCreated() {
+		ev.releaseNonConstSiteAux(f, mask)
+	}
+	if err != nil {
+		return nil, err
+	}
+	if err := ev.checkScalarResultLimit(out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
 
 // scalarSpecialDispatch maps the engine-routed scalar function names to their
 // implementations. Populated in init() to avoid an initialization cycle.
