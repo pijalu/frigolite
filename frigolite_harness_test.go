@@ -1832,6 +1832,23 @@ func TestFixtureAttachPathIsolationPreservesRootArtifact(t *testing.T) {
 	}
 }
 
+// dropMainHarnessIndexes mirrors tester.tcl's drop_all_indexes: drop every
+// EXPLICIT index in main (implicit auto-indexes have no CREATE SQL and
+// cannot be dropped).
+func dropMainHarnessIndexes(db *DB) {
+	res := db.Query("SELECT name FROM main.sqlite_master WHERE type='index' AND sql LIKE 'create%'")
+	if res.Error != nil {
+		return
+	}
+	for _, row := range res.Rows {
+		if len(row) < 1 {
+			continue
+		}
+		name := strings.ReplaceAll(fmt.Sprint(row[0]), `"`, `""`)
+		db.Exec(`DROP INDEX "` + name + `"`)
+	}
+}
+
 // dropAllHarnessTables mirrors tester.tcl's drop_all_tables: turn foreign
 // keys off, drop every table and view in main, temp and all attached
 // databases, then restore the foreign-keys flag. Attachments survive.
@@ -3099,6 +3116,10 @@ func TestSQLiteSuite(t *testing.T) {
 				}
 				if tc.Name == "__DROP_MAIN_TABLES__" {
 					dropMainHarnessTables(db)
+					continue
+				}
+				if tc.Name == "__DROP_ALL_INDEXES__" {
+					dropMainHarnessIndexes(db)
 					continue
 				}
 				if tc.Name == "__RESET_DB__" {

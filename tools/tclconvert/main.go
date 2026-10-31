@@ -363,6 +363,10 @@ func classifyStmt(s tcl.Stmt, resetCounter, dropCounter *int) (string, string) {
 		name := fmt.Sprintf("drop_all_tables_%d", *dropCounter)
 		*dropCounter++
 		return name, "droptables"
+	case s.Type == "drop_all_indexes":
+		name := fmt.Sprintf("drop_all_indexes_%d", *dropCounter)
+		*dropCounter++
+		return name, "dropindexes"
 	case s.Type == "drop_main_tables":
 		return "drop_main_tables", "dropmaintables"
 
@@ -405,6 +409,8 @@ func markerTestCase(g *stmtGroup) (TestCase, bool) {
 		return TestCase{Name: "__RESET_DB__"}, true
 	case "droptables":
 		return TestCase{Name: "__DROP_ALL_TABLES__"}, true
+	case "dropindexes":
+		return TestCase{Name: "__DROP_ALL_INDEXES__"}, true
 	case "dropmaintables":
 		return TestCase{Name: "__DROP_MAIN_TABLES__"}, true
 
@@ -430,7 +436,7 @@ func groupToTestCase(g *stmtGroup) TestCase {
 	tc := TestCase{Name: tcl.StripRuntimeValues(g.name)}
 	for _, s := range g.stmts {
 		step := stepFromStmt(s)
-		if step.SQL != "" || step.Type == "runtime_loop" || step.Type == "runtime_list" || step.Type == "register_function" || step.Type == "register_collation" || step.Type == "delete_collation" || step.Type == "runtime_var" || step.Type == "register_echo_module" || step.Type == "register_tcl_module" || step.Type == "register_test_funcs" || step.Type == "defensive" || step.Type == "auth_analyze_deny" || step.Type == "auth_proc" || step.Type == "close_db" || step.Type == "reopen_db" || step.Type == "open_empty_db" || step.Type == "open_named_db" || step.Type == "close_named_db" || step.Type == "nullvalue" || step.Type == "set_current_time" || step.Type == "set_limit" || step.Type == "alter_table" || step.Type == "header_format" || step.Type == "write_file" || step.Type == "copy_file" || step.Type == "prepare_stmt" || step.Type == "stmt_step" || step.Type == "stmt_reset" || step.Type == "stmt_finalize" || step.Type == "runtime_assert" || step.Type == "db_status" || step.Type == "runtime_var_reset" || step.Type == "cacheflush" {
+		if step.SQL != "" || step.Type == "runtime_loop" || step.Type == "runtime_list" || step.Type == "drop_all_indexes" || step.Type == "register_function" || step.Type == "register_collation" || step.Type == "delete_collation" || step.Type == "runtime_var" || step.Type == "register_echo_module" || step.Type == "register_tcl_module" || step.Type == "register_test_funcs" || step.Type == "defensive" || step.Type == "auth_analyze_deny" || step.Type == "auth_proc" || step.Type == "close_db" || step.Type == "reopen_db" || step.Type == "open_empty_db" || step.Type == "open_named_db" || step.Type == "close_named_db" || step.Type == "nullvalue" || step.Type == "set_current_time" || step.Type == "set_limit" || step.Type == "alter_table" || step.Type == "header_format" || step.Type == "write_file" || step.Type == "copy_file" || step.Type == "prepare_stmt" || step.Type == "stmt_step" || step.Type == "stmt_reset" || step.Type == "stmt_finalize" || step.Type == "runtime_assert" || step.Type == "db_status" || step.Type == "runtime_var_reset" || step.Type == "cacheflush" {
 			tc.Steps = append(tc.Steps, step)
 		}
 	}

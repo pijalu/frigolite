@@ -392,6 +392,10 @@
       ]
     },
     {
+      "name": "__DROP_ALL_INDEXES__",
+      "steps": []
+    },
+    {
       "name": "rowvalue3-3.1.1",
       "steps": [
         {
@@ -490,6 +494,10 @@
           "expect": " 3 3 3 2 3 1   2 3 2 2 2 1   1 3 1 2 1 1 "
         }
       ]
+    },
+    {
+      "name": "__DROP_ALL_INDEXES__",
+      "steps": []
     },
     {
       "name": "rowvalue3-3.2.1",
@@ -592,6 +600,10 @@
       ]
     },
     {
+      "name": "__DROP_ALL_INDEXES__",
+      "steps": []
+    },
+    {
       "name": "rowvalue3-3.3.1",
       "steps": [
         {
@@ -692,6 +704,10 @@
       ]
     },
     {
+      "name": "__DROP_ALL_INDEXES__",
+      "steps": []
+    },
+    {
       "name": "rowvalue3-3.4.1",
       "steps": [
         {
@@ -790,6 +806,10 @@
           "expect": " 3 3 3 2 3 1   2 3 2 2 2 1   1 3 1 2 1 1 "
         }
       ]
+    },
+    {
+      "name": "__DROP_ALL_INDEXES__",
+      "steps": []
     },
     {
       "name": "rowvalue3-3.5.1",
@@ -901,6 +921,10 @@
       ]
     },
     {
+      "name": "__DROP_ALL_INDEXES__",
+      "steps": []
+    },
+    {
       "name": "rowvalue3-4.1.1",
       "steps": [
         {
@@ -939,6 +963,10 @@
           "expect": "4 3 2 1"
         }
       ]
+    },
+    {
+      "name": "__DROP_ALL_INDEXES__",
+      "steps": []
     },
     {
       "name": "setup_4",
@@ -990,6 +1018,10 @@
       ]
     },
     {
+      "name": "__DROP_ALL_INDEXES__",
+      "steps": []
+    },
+    {
       "name": "setup_5",
       "steps": [
         {
@@ -1037,6 +1069,10 @@
           "expect": "4 3 2 1"
         }
       ]
+    },
+    {
+      "name": "__DROP_ALL_INDEXES__",
+      "steps": []
     },
     {
       "name": "setup_6",
@@ -1088,6 +1124,10 @@
       ]
     },
     {
+      "name": "__DROP_ALL_INDEXES__",
+      "steps": []
+    },
+    {
       "name": "setup_7",
       "steps": [
         {
@@ -1135,6 +1175,10 @@
           "expect": "4 3 2 1"
         }
       ]
+    },
+    {
+      "name": "__DROP_ALL_INDEXES__",
+      "steps": []
     },
     {
       "name": "setup_8",

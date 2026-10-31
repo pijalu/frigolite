@@ -104,6 +104,7 @@ func init() {
 		"ifcapable":                   commandIfCapable,
 		"drop_all_tables":             commandDropAllTables,
 		"drop_all_tables_and_views":   commandDropAllMainTables,
+		"drop_all_indexes":            commandDropAllIndexes,
 		"register_echo_module":        commandRegisterEchoModule,
 		"register_tcl_module":         commandRegisterTCLModule,
 		"sqlite3_db_config":           commandDBConfig,
@@ -1338,6 +1339,16 @@ func commandFile(i *Interp, rawWords []rawWord, args []string, localVars map[str
 // tester.tcl does not do).
 func commandDropAllTables(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
 	i.stmts = append(i.stmts, Stmt{Type: "drop_all_tables"})
+	return nil
+}
+
+// commandDropAllIndexes mirrors tester.tcl's drop_all_indexes: every
+// EXPLICIT index in main (`sql LIKE 'create%'` — implicit auto-indexes have
+// no SQL) is dropped. rowvalue4.test's section loop re-creates t2abc with a
+// different definition per iteration; without the drop the second CREATE
+// fails "already exists" and every leaf of the iteration starves.
+func commandDropAllIndexes(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
+	i.stmts = append(i.stmts, Stmt{Type: "drop_all_indexes"})
 	return nil
 }
 
