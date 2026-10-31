@@ -386,3 +386,39 @@ The per-family statement budget hides them: the conversion looked fine, the
 *run* did not.
 
 - Before pushing, inspect complete unpushed history, not just current tree sizes: a squash does not remove oversized blobs already reachable from the remote base. For generated reports, retain useful local copies but exclude them from the replacement commit; verify every outgoing blob against GitHub's 100 MiB limit. Keep a backup ref before rewriting history.
+
+## SQLITE_TEST counter calibration (2026-10-31, where8)
+
+- `sqlite3_search_count` increments are EXACTLY: +1 per `OP_SeekLT/LE/GE/GT`
+  **execution** (vdbe.c:4973 — unconditional, even when the seek finds
+  nothing); +1 per **successful** OP_Next/OP_Prev/OP_SorterNext (next_tail);
+  +1 per deferred table-row moveto (FinishMoveto — index-driven row fetches).
+  OP_Rewind/OP_Last/OP_SeekRowid are **NOT** counted (OP_Rewind has its own
+  `break` and never reaches next_tail); OP_Sort/OP_SorterSort is a bare **−1
+  with NO recovering +1** — a sorter of n rows nets n−2, an empty sorter −1.
+  A full scan of n rows counts n−1 (same value as FULLSCAN_STEP). The MULTI-
+  INDEX OR eq loop's final Next steps onto the boundary successor and SUCCEEDS
+  (that's the `beyond[]` model in execdml/or.go).
+- where8's `execsql_status`/`execsql_status2` helpers render the counters
+  BARE (`N M[ S]`), unlike where7's labeled `scan N sort M`; status2 resets
+  `::sqlite_search_count` BEFORE the probe and appends it after. The
+  converter models this with counter markers in the body value +
+  `applyStatusStyle`; the markers must never reach a fixture
+  (stripRuntimeValues drops them).
+- A do_test body `set v [catch {execsql ...} msg]; lappend v $msg`
+  (select1 2.x/6.x) has the value "0 {rows}": the conversion-time lappend
+  concatenates the refs into the var ("$v $msg"), so the runtime_list
+  elements come from SPLITTING the var's post-lappend value. On success msg
+  holds the ROWS (Tcl execsql returns the row list), not "" — the harness's
+  catch path must run a Query to fill it.
+- A family whose leaves are all "passing" can still be FAILING: an unresolved
+  runtime variable makes the harness `return` mid-family, so the leaf-fail
+  grep counts 0. Baseline comparisons must count family-level FAIL lines, not
+  only leaf lines (select2/select7/conflict2/ioerr4/select5 hid behind this).
+- The groupToTestCase step whitelist is still the silent-drop trap: any new
+  empty-SQL step type must be added there (runtime_list had been dropped for
+  every fixture until 2026-10-31).
+- The slot-path live clone rewrites literal leaves IN PLACE per execution of
+  a prepared shape — any statement-shape memo must separate structural
+  resolution (index token, column, operator class) from literal VALUES, which
+  must be re-read from the current leaves on every serve (F1a's design).
