@@ -142,10 +142,10 @@ func formatHarnessValue(base string, value interface{}) string {
 			return strings.ToUpper(hex.EncodeToString(blob))
 		}
 	}
-	return formatSQLiteValue(value)
+	return formatSQLiteValue("", value)
 }
 
-func flattenBlobHexResult(result *Result, nullToken string) string {
+func flattenBlobHexResult(base string, result *Result, nullToken string) string {
 	if result == nil {
 		return ""
 	}
@@ -160,7 +160,7 @@ func flattenBlobHexResult(result *Result, nullToken string) string {
 			}
 		}
 	}
-	return flattenResultNull(&Result{Columns: result.Columns, Rows: rows}, nullToken)
+	return flattenResultNull(base, &Result{Columns: result.Columns, Rows: rows}, nullToken)
 }
 
 type TestStep struct {
@@ -904,9 +904,10 @@ func testHarnessLocaltime(unixSec int64) (int64, error) {
 }
 
 type TestFileData struct {
-	File      string `json:"file"`
-	Name      string `json:"name"`
-	NullToken string `json:"nullToken,omitempty"`
+	File         string `json:"file"`
+	Name         string `json:"name"`
+	NullToken    string `json:"nullToken,omitempty"`
+	TclPrecision *int `json:"tclPrecision,omitempty"` // the source's `set tcl_precision N` (nil/absent = the testfixture default; explicit 0 = TCL shortest-round-trip)
 	// Ordered marks files emitted by tools/tclconvert whose Tests are in
 	// faithful TCL execution order (loops and procs unrolled). Such files
 	// must NOT be reordered by sortTestsBySection: the sort exists only to
@@ -1855,7 +1856,7 @@ func dropMainHarnessIndexes(db *DB) {
 func dropMainHarnessTables(db *DB) {
 	pk := "0"
 	if res := db.Query("PRAGMA foreign_keys"); res.Error == nil && len(res.Rows) > 0 && len(res.Rows[0]) > 0 {
-		pk = formatSQLiteValue(res.Rows[0][0])
+		pk = formatSQLiteValue("", res.Rows[0][0])
 	}
 	db.Exec("PRAGMA foreign_keys = off")
 	res := db.Query("SELECT name, type FROM main.sqlite_master WHERE type IN ('table','view') AND name NOT LIKE 'sqlite_%' ORDER BY 1")
@@ -1874,7 +1875,7 @@ func dropMainHarnessTables(db *DB) {
 func dropAllHarnessTables(db *DB) {
 	pk := "0"
 	if res := db.Query("PRAGMA foreign_keys"); res.Error == nil && len(res.Rows) > 0 && len(res.Rows[0]) > 0 {
-		pk = formatSQLiteValue(res.Rows[0][0])
+		pk = formatSQLiteValue("", res.Rows[0][0])
 	}
 	db.Exec("PRAGMA foreign_keys = off")
 	masters := []string{"main.sqlite_master", "sqlite_temp_master"}
@@ -1947,7 +1948,7 @@ func runSQLite3Exec(db *DB, sql string) (string, error) {
 		values := append([]string(nil), result.Columns...)
 		for _, row := range result.Rows {
 			for _, value := range row {
-				values = append(values, formatSQLiteValue(value))
+				values = append(values, formatSQLiteValue("", value))
 			}
 		}
 		return "0 {" + strings.Join(values, " ") + "}", nil
@@ -2233,7 +2234,7 @@ func registerAnalyze9Functions(db *DB) {
 			} else if blobValue, ok := value.([]byte); ok {
 				items[i] = "x'" + fmt.Sprintf("%x", blobValue) + "'"
 			} else {
-				items[i] = quoteTclListElement(formatSQLiteValue(value))
+				items[i] = quoteTclListElement(formatSQLiteValue("", value))
 			}
 		}
 		return strings.Join(items, " "), nil
@@ -3041,6 +3042,7 @@ func TestSQLiteSuite(t *testing.T) {
 			if err := json.Unmarshal(data, &td); err != nil {
 				t.Fatalf("parse %s: %v", fpath, err)
 			}
+			harnessTclPrecision[base] = td.TclPrecision
 			newDB := setupDB
 			if base == "vtab1" || base == "altertab" {
 				newDB = setupDBWithoutEcho
@@ -3843,14 +3845,14 @@ func TestSQLiteSuite(t *testing.T) {
 								// The expectation of a query_assign is the
 								// captured result: it must be checked, or the
 								// assertion is silently dropped.
-								got := flattenResultNull(&Result{Columns: result.Columns, Rows: result.Rows}, nullToken) + statusSuffix
+								got := flattenResultNull(base, &Result{Columns: result.Columns, Rows: result.Rows}, nullToken) + statusSuffix
 								if base == "blob" || base == "func2" {
 									// blob.test and func2-3.x wrap every
 									// blob result in Tcl bin_to_hex: the
 									// expectations are UPPER HEX. func2's
 									// ASCII/UTF8 sections are unaffected —
 									// only []byte values render as hex.
-									got = flattenBlobHexResult(&Result{Columns: result.Columns, Rows: result.Rows}, nullToken) + statusSuffix
+									got = flattenBlobHexResult(base, &Result{Columns: result.Columns, Rows: result.Rows}, nullToken) + statusSuffix
 								}
 								want := cleanExpectedNull(step.Expect, nullToken)
 								if msg := matchExpectation(got, want); msg != "" {
@@ -3906,7 +3908,7 @@ func TestSQLiteSuite(t *testing.T) {
 										if strings.HasPrefix(upper, "SELECT ") || strings.HasPrefix(upper, "WITH ") || strings.HasPrefix(upper, "VALUES ") {
 											q := execDB.Query(step.SQL)
 											if q.Error == nil {
-												runtimeVars[step.CatchMessage] = flattenResultNull(&Result{Columns: q.Columns, Rows: q.Rows}, nullToken)
+												runtimeVars[step.CatchMessage] = flattenResultNull(base, &Result{Columns: q.Columns, Rows: q.Rows}, nullToken)
 											} else {
 												runtimeVars[step.CatchMessage] = ""
 											}
@@ -4004,7 +4006,7 @@ func TestSQLiteSuite(t *testing.T) {
 								t.Errorf("query error: %v\n  sql: %s", res.Error, step.SQL)
 								return
 							}
-							got, terr := applyResultTransform(res, step.ResultTransform, nullToken)
+							got, terr := applyResultTransform(base, res, step.ResultTransform, nullToken)
 							if terr != nil {
 								t.Errorf("%v\n  sql: %s", terr, step.SQL)
 								return
@@ -4185,7 +4187,7 @@ func TestSQLiteSuite(t *testing.T) {
 								return
 							}
 							if step.Expect != "" {
-								got := flattenResultNull(&Result{Rows: streamedRows}, nullToken)
+								got := flattenResultNull(base, &Result{Rows: streamedRows}, nullToken)
 								want := cleanExpectedNull(step.Expect, nullToken)
 								if msg := matchExpectation(got, want); msg != "" {
 									t.Errorf("query_each mismatch\\n  got: [%s]\\n  %s\\n  sql: %s", got, msg, step.SQL)
@@ -4206,7 +4208,7 @@ func TestSQLiteSuite(t *testing.T) {
 										first.Rows = append(first.Rows, row[:1])
 									}
 								}
-								got := flattenResultNull(first, nullToken)
+								got := flattenResultNull(base, first, nullToken)
 								want := cleanExpectedNull(step.Expect, nullToken)
 								if msg := matchExpectation(got, want); msg != "" {
 									t.Errorf("result mismatch\n  got:  [%s]\n  %s\n  sql: %s", got, msg, step.SQL)
@@ -4238,7 +4240,7 @@ func TestSQLiteSuite(t *testing.T) {
 									break
 								}
 								for _, bodyStep := range step.LoopBody {
-									runHarnessBodyStep(t, execDB, bodyStep, runtimeVars, nullToken)
+									runHarnessBodyStep(t, execDB, bodyStep, runtimeVars, nullToken, base)
 								}
 								counter += step.LoopStep
 								if step.LoopStep <= 0 {
@@ -4255,7 +4257,7 @@ func TestSQLiteSuite(t *testing.T) {
 								t.Errorf("query error: %v\n  sql: %s", res.Error, step.SQL)
 								return
 							}
-							got, terr := applyResultTransform(res, step.ResultTransform, nullToken)
+							got, terr := applyResultTransform(base, res, step.ResultTransform, nullToken)
 							if terr != nil {
 								t.Errorf("%v\n  sql: %s", terr, step.SQL)
 								return
@@ -4520,8 +4522,8 @@ func harnessGCPercent() int {
 
 // flattenResultNull renders result rows using a per-file NULL token
 // (tester.tcl "db null TOKEN" support).
-func flattenResultNull(res *Result, nullToken string) string {
-	out := flattenResult(res)
+func flattenResultNull(base string, res *Result, nullToken string) string {
+	out := flattenResult(base, res)
 	if nullToken != "" && nullToken != "NULL" {
 		out = strings.ReplaceAll(out, "NULL", nullToken)
 	}
@@ -4560,7 +4562,7 @@ func tclEvalNamedPairs(columns []string, rows [][]interface{}) []string {
 			}
 		}
 		for _, name := range columns {
-			pairs = append(pairs, name, formatSQLiteValue(values[name]))
+			pairs = append(pairs, name, formatSQLiteValue("", values[name]))
 		}
 	}
 	return pairs
@@ -4574,14 +4576,14 @@ func TestTclExecsql2DuplicateColumnNamesUseLastArrayValue(t *testing.T) {
 	}
 }
 
-func flattenResult(res *Result) string {
+func flattenResult(base string, res *Result) string {
 	var parts []string
 	for _, row := range res.Rows {
 		for _, val := range row {
 			if val == nil {
 				parts = append(parts, "NULL")
 			} else {
-				parts = append(parts, formatSQLiteValue(val))
+				parts = append(parts, formatSQLiteValue(base, val))
 			}
 		}
 	}
@@ -5026,7 +5028,7 @@ func appendRuntimeList(runtimeVars map[string]string, name, value string) {
 // runHarnessBodyStep executes one statement of a runtime loop body. The
 // body's SQL may reference the loop variable, which the runtime variables
 // carry.
-func runHarnessBodyStep(t *testing.T, db *DB, step TestStep, runtimeVars map[string]string, nullToken string) {
+func runHarnessBodyStep(t *testing.T, db *DB, step TestStep, runtimeVars map[string]string, nullToken string, base string) {
 	sql := expandTCLRuntimeVars(step.SQL, runtimeVars)
 	switch step.Type {
 	case "exec", "catch":
@@ -5042,7 +5044,7 @@ func runHarnessBodyStep(t *testing.T, db *DB, step TestStep, runtimeVars map[str
 			return
 		}
 		if step.Expect != "" {
-			got := flattenResultNull(res, nullToken)
+			got := flattenResultNull(base, res, nullToken)
 			want := cleanExpectedNull(step.Expect, nullToken)
 			if msg := matchExpectation(got, want); msg != "" {
 				t.Errorf("runtime loop body mismatch\n  got:  [%s]\n  %s\n  sql: %s", got, msg, sql)

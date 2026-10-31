@@ -508,5 +508,5 @@ func fmtVal(v interface{}) string {
 	if v == nil {
 		return ""
 	}
-	return formatSQLiteValue(v)
+	return formatSQLiteValue("", v)
 }

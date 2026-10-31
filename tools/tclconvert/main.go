@@ -90,11 +90,21 @@ type TestCase struct {
 
 // TestFileData matches the JSON format expected by frigolite_harness_test.go.
 type TestFileData struct {
-	File      string     `json:"file"`
-	Name      string     `json:"name"`
-	NullToken string     `json:"nullToken,omitempty"`
-	Ordered   bool       `json:"ordered,omitempty"`
-	Tests     []TestCase `json:"tests"`
+	File         string     `json:"file"`
+	Name         string     `json:"name"`
+	NullToken    string     `json:"nullToken,omitempty"`
+	Ordered      bool       `json:"ordered,omitempty"`
+	TclPrecision *int       `json:"tclPrecision,omitempty"` // the source's `set tcl_precision N` (nil/absent = the testfixture default; 0 = TCL shortest-round-trip)
+	Tests        []TestCase `json:"tests"`
+}
+
+// tclPrecisionPtr distinguishes an explicit `set tcl_precision 0` (the TCL
+// shortest-round-trip rendering) from the unset default (nil).
+func tclPrecisionPtr(n int, seen bool) *int {
+	if !seen {
+		return nil
+	}
+	return &n
 }
 
 const compressedFixtureThreshold = 1 << 20
@@ -168,7 +178,7 @@ func processTestFile(testFile, base, outDir string, verbose bool) outcome {
 		return outcomeSkipped
 	}
 
-	stmts, nullToken, err := runInterpreter(src)
+	stmts, nullToken, tclPrecision, tclPrecisionSeen, err := runInterpreter(src)
 	if err != nil {
 		if verbose {
 			fmt.Fprintf(os.Stderr, "error %s: %v\n", base, err)
@@ -177,7 +187,7 @@ func processTestFile(testFile, base, outDir string, verbose bool) outcome {
 	}
 
 	// Convert captured statements to JSON
-	td := convertToJSON(base, stmts, nullToken)
+	td := convertToJSON(base, stmts, nullToken, tclPrecision, tclPrecisionSeen)
 	for i := range td.Tests {
 		td.Tests[i].Steps = compactRepeatedSteps(td.Tests[i].Steps)
 	}
@@ -265,19 +275,19 @@ const conversionDeadline = 30 * time.Second
 // The previous implementation used select/time.After, which abandoned a
 // goroutine that kept executing and appending to i.stmts forever — one
 // leaked runaway loop per timed-out file (multi-GB converter process).
-func runInterpreter(src []byte) (stmts []tcl.Stmt, nullToken string, err error) {
+func runInterpreter(src []byte) (stmts []tcl.Stmt, nullToken string, tclPrecision int, tclPrecisionSeen bool, err error) {
 	interp := tcl.NewInterp()
 	interp.SetStatementBudget(statementBudget)
 	interp.SetDeadline(time.Now().Add(conversionDeadline))
 	defer func() {
 		if r := recover(); r != nil {
-			stmts, nullToken, err = nil, "", fmt.Errorf("panic: %v", r)
+			stmts, nullToken, tclPrecision, tclPrecisionSeen, err = nil, "", 0, false, fmt.Errorf("panic: %v", r)
 		}
 	}()
 	if execErr := interp.Execute(string(src)); execErr != nil {
-		return nil, "", execErr
+		return nil, "", 0, false, execErr
 	}
-	return interp.Stmts(), interp.NullToken(), nil
+	return interp.Stmts(), interp.NullToken(), interp.TclPrecision(), interp.TclPrecisionSeen(), nil
 }
 
 // convertToJSON converts captured TCL statements into the JSON test format.
@@ -286,11 +296,12 @@ func runInterpreter(src []byte) (stmts []tcl.Stmt, nullToken string, err error) 
 // starts a NEW test case so each invocation keeps its own steps and
 // expectation, mirroring the TCL harness. Statements with no TestName go
 // into "setup" groups. Each group becomes a TestCase with Steps.
-func convertToJSON(base string, stmts []tcl.Stmt, nullToken string) TestFileData {
+func convertToJSON(base string, stmts []tcl.Stmt, nullToken string, tclPrecision int, tclPrecisionSeen bool) TestFileData {
 	td := TestFileData{
-		File:      base + ".test",
-		Name:      base,
-		NullToken: nullToken,
+		File:         base + ".test",
+		Name:         base,
+		NullToken:    nullToken,
+		TclPrecision: tclPrecisionPtr(tclPrecision, tclPrecisionSeen),
 		// Statements are captured in TCL execution order; the harness must
 		// not re-order them (see TestFileData.Ordered in the harness).
 		Ordered: true,

@@ -30,14 +30,14 @@ import (
 
 // applyResultTransform applies the recorded Tcl postprocessing to a result
 // and returns its rendered form.
-func applyResultTransform(res *Result, transform, nullToken string) (string, error) {
+func applyResultTransform(base string, res *Result, transform, nullToken string) (string, error) {
 	switch {
 	case transform == "":
-		return flattenResultNull(res, nullToken), nil
+		return flattenResultNull(base, res, nullToken), nil
 	case transform == "tolower":
-		return strings.ToLower(flattenResultNull(res, nullToken)), nil
+		return strings.ToLower(flattenResultNull(base, res, nullToken)), nil
 	case strings.HasPrefix(transform, "lreplace:"):
-		got := flattenResultNull(res, nullToken)
+		got := flattenResultNull(base, res, nullToken)
 		parts := strings.SplitN(transform, ":", 4)
 		if len(parts) != 4 {
 			return "", fmt.Errorf("invalid lreplace transform %q", transform)
@@ -54,7 +54,7 @@ func applyResultTransform(res *Result, transform, nullToken string) (string, err
 		if err := sortResultRows(res, transform); err != nil {
 			return "", err
 		}
-		return flattenResultNull(res, nullToken), nil
+		return flattenResultNull(base, res, nullToken), nil
 	}
 	return "", fmt.Errorf("unsupported result transform %q", transform)
 }
@@ -104,7 +104,7 @@ func sortResultRows(res *Result, transform string) error {
 				cells[j] = "NULL"
 				continue
 			}
-			cells[j] = formatSQLiteValue(v)
+			cells[j] = formatSQLiteValue("", v)
 		}
 		if index >= 0 {
 			if index < len(cells) {
@@ -254,7 +254,7 @@ func TestApplyResultTransformSortsRows(t *testing.T) {
 		Columns: []string{"a"},
 		Rows:    [][]interface{}{{int64(100)}, {int64(6)}, {int64(18)}},
 	}
-	got, err := applyResultTransform(res, "lsort:integer", "")
+	got, err := applyResultTransform("", res, "lsort:integer", "")
 	if err != nil {
 		t.Fatalf("applyResultTransform() error: %v", err)
 	}
@@ -269,7 +269,7 @@ func TestApplyResultTransformSortsRowsDecreasing(t *testing.T) {
 		Columns: []string{"a"},
 		Rows:    [][]interface{}{{int64(6)}, {int64(100)}, {int64(18)}},
 	}
-	got, err := applyResultTransform(res, "lsort:integer:decreasing", "")
+	got, err := applyResultTransform("", res, "lsort:integer:decreasing", "")
 	if err != nil {
 		t.Fatalf("applyResultTransform() error: %v", err)
 	}
@@ -285,7 +285,7 @@ func TestApplyResultTransformSortsRowsByIndex(t *testing.T) {
 		Columns: []string{"a", "b"},
 		Rows:    [][]interface{}{{int64(1), int64(9)}, {int64(1), int64(4)}},
 	}
-	got, err := applyResultTransform(res, "lsort:ascii:index:1", "")
+	got, err := applyResultTransform("", res, "lsort:ascii:index:1", "")
 	if err != nil {
 		t.Fatalf("applyResultTransform() error: %v", err)
 	}
@@ -298,7 +298,7 @@ func TestApplyResultTransformSortsRowsByIndex(t *testing.T) {
 // an error, not a silent pass.
 func TestApplyResultTransformRejectsUnknown(t *testing.T) {
 	res := &Result{Columns: []string{"a"}, Rows: [][]interface{}{{int64(1)}}}
-	if _, err := applyResultTransform(res, "nonsense", ""); err == nil {
+	if _, err := applyResultTransform("", res, "nonsense", ""); err == nil {
 		t.Fatal("applyResultTransform() accepted an unknown transform")
 	}
 }

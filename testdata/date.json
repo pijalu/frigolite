@@ -2,6 +2,7 @@
   "file": "date.test",
   "name": "date",
   "ordered": true,
+  "tclPrecision": 15,
   "tests": [
     {
       "name": "date-1.1",
@@ -12000,14 +12001,15 @@
       "name": "date-3.18.6",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT coalesce(strftime('%6','2003-10-31'),'NULL')",
-          "expect": "NULL"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT coalesce(strftime('%6','2003-10-31'),'NULL')",
-          "expect": "NULL"
+          "repeatCount": 2,
+          "repeatBody": [
+            {
+              "type": "exec",
+              "sql": "SELECT coalesce(strftime('%6','2003-10-31'),'NULL')",
+              "expect": "NULL"
+            }
+          ],
+          "type": "repeat"
         }
       ]
     },

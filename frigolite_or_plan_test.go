@@ -23,7 +23,7 @@ func flattenRowsForTest(rows [][]interface{}) string {
 		case string:
 			parts = append(parts, v)
 		default:
-			parts = append(parts, strings.TrimSpace(formatSQLiteValue(v)))
+			parts = append(parts, strings.TrimSpace(formatSQLiteValue("", v)))
 		}
 	}
 	return strings.Join(parts, " ")

@@ -51,7 +51,7 @@ func TestBlobLiteralSubstrQuote(t *testing.T) {
 			t.Errorf("no result row\n  sql: %s", tt.sql)
 			continue
 		}
-		got := formatSQLiteValue(res.Rows[0][0])
+		got := formatSQLiteValue("", res.Rows[0][0])
 		if got != tt.want {
 			t.Errorf("result mismatch\n  sql:  %s\n  got:  [%s]\n  want: [%s]", tt.sql, got, tt.want)
 		}

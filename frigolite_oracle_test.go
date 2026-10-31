@@ -42,7 +42,7 @@ func queryRows(t *testing.T, db *DB, sql string, nullToken ...string) [][]string
 			if v == nil {
 				cols[i] = tok
 			} else {
-				cols[i] = formatSQLiteValue(v)
+				cols[i] = formatSQLiteValue("", v)
 			}
 		}
 		rows = append(rows, cols)

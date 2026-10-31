@@ -27,7 +27,7 @@ func dbstatRows(t *testing.T, db *DB, query string) []string {
 			if v == nil {
 				parts = append(parts, "NULL")
 			} else {
-				parts = append(parts, formatSQLiteValue(v))
+				parts = append(parts, formatSQLiteValue("", v))
 			}
 		}
 		out = append(out, strings.Join(parts, "|"))
@@ -234,7 +234,7 @@ func TestNativeDBStatCorruptPage(t *testing.T) {
 	root := r.Rows[0][0]
 	exec(fmtPageZero(root.(int64)))
 
-	rows := dbstatRows(t, db, `SELECT pagetype, ncell, payload, unused, mx_payload FROM dbstat WHERE name='t1' AND pageno=`+formatSQLiteValue(root))
+	rows := dbstatRows(t, db, `SELECT pagetype, ncell, payload, unused, mx_payload FROM dbstat WHERE name='t1' AND pageno=`+formatSQLiteValue("", root))
 	if len(rows) == 0 {
 		t.Fatal("corrupt scan returned no rows")
 	}
@@ -247,7 +247,7 @@ func TestNativeDBStatCorruptPage(t *testing.T) {
 // byte (the b-tree flags byte).
 func fmtPageZero(pgno int64) string {
 	return `UPDATE sqlite_dbpage SET data = x'00' || substr(data, 2) WHERE pgno = ` +
-		formatSQLiteValue(pgno)
+		formatSQLiteValue("", pgno)
 }
 
 func TestNativeDBStatOverflowChainPath(t *testing.T) {

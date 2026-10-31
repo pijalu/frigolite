@@ -100,7 +100,7 @@ func checkQueryResult(t *testing.T, res *Result, expected string) {
 			if val == nil {
 				parts = append(parts, "NULL")
 			} else {
-				parts = append(parts, formatSQLiteValue(val))
+				parts = append(parts, formatSQLiteValue("", val))
 			}
 		}
 	}
@@ -284,7 +284,7 @@ func TestFormatSQLiteValueInfinity(t *testing.T) {
 		value float64
 		want  string
 	}{{math.Inf(1), "Inf"}, {math.Inf(-1), "-Inf"}} {
-		if got := formatSQLiteValue(tc.value); got != tc.want {
+		if got := formatSQLiteValue("", tc.value); got != tc.want {
 			t.Errorf("formatSQLiteValue(%v) = %q, want %q", tc.value, got, tc.want)
 		}
 	}
@@ -347,12 +347,29 @@ func formatTclDouble(f float64) string {
 	return b.String()
 }
 
-func formatSQLiteValue(val interface{}) string {
+// harnessTclPrecision records each family's `set tcl_precision N` (from the
+// fixture metadata): the harness's REAL rendering follows it — precision 0
+// (func4) uses the TCL shortest-round-trip print, anything else (and the
+// unset default) uses SQLite's %!.15g-style 15-significant-digit form.
+var harnessTclPrecision = map[string]*int{}
+
+// renderRealFor formats one REAL the way the family's testfixture would: an
+// explicit `set tcl_precision 0` renders the shortest-round-trip form, the
+// unset default and any other precision use SQLite's 15-significant-digit
+// style.
+func renderRealFor(base string, f float64) string {
+	if p := harnessTclPrecision[base]; p != nil && *p == 0 {
+		return formatTclDouble(f)
+	}
+	return util.FormatSQLiteReal(f)
+}
+
+func formatSQLiteValue(base string, val interface{}) string {
 	// Unwrap column affinity wrapper for correct formatting.
 	val = util.UnwrapColumnValue(val)
 	switch v := val.(type) {
 	case float64:
-		return formatTclDouble(v)
+		return renderRealFor(base, v)
 	case []byte:
 		// The sqlite3 CLI renders blob values as their raw bytes, not as
 		// quote()'s X'..' literal (SELECT x'6869' prints "hi"). The test

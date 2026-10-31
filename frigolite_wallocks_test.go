@@ -75,7 +75,7 @@ func queryInt(t *testing.T, db *DB, sql string) string {
 	if len(r.Rows) == 0 {
 		t.Fatalf("%s: no rows", sql)
 	}
-	return formatSQLiteValue(r.Rows[0][0])
+	return formatSQLiteValue("", r.Rows[0][0])
 }
 
 // TestShmLockMatrix ports shmlock.test 1.3's 8-slot matrix through the
@@ -490,7 +490,7 @@ func TestWalCheckpointTruncateZero(t *testing.T) {
 	if r.Error != nil {
 		t.Fatal(r.Error)
 	}
-	if got := formatSQLiteValue(r.Rows[0][0]) + " " + formatSQLiteValue(r.Rows[0][1]) + " " + formatSQLiteValue(r.Rows[0][2]); got != "0 0 0" {
+	if got := formatSQLiteValue("", r.Rows[0][0]) + " " + formatSQLiteValue("", r.Rows[0][1]) + " " + formatSQLiteValue("", r.Rows[0][2]); got != "0 0 0" {
 		t.Errorf("TRUNCATE triple = [%s], want [0 0 0]", got)
 	}
 	if fi, err := os.Stat(path + "-wal"); err != nil || fi.Size() != 0 {
@@ -528,7 +528,7 @@ func TestWalLockCheckpointBusy(t *testing.T) {
 	if r.Error != nil {
 		t.Fatal(r.Error)
 	}
-	if got := formatSQLiteValue(r.Rows[0][0]); got != "1" {
+	if got := formatSQLiteValue("", r.Rows[0][0]); got != "1" {
 		t.Errorf("FULL behind WRITER: busy = %s, want 1", got)
 	}
 	c2.pager.WALIndexLock(0, 1, true, false)
@@ -541,7 +541,7 @@ func TestWalLockCheckpointBusy(t *testing.T) {
 	if r.Error != nil {
 		t.Fatal(r.Error)
 	}
-	if got := formatSQLiteValue(r.Rows[0][0]); got != "1" {
+	if got := formatSQLiteValue("", r.Rows[0][0]); got != "1" {
 		t.Errorf("PASSIVE behind CKPT: busy = %s, want 1", got)
 	}
 	c2.pager.WALIndexLock(1, 1, true, false)
@@ -551,7 +551,7 @@ func TestWalLockCheckpointBusy(t *testing.T) {
 	if r.Error != nil {
 		t.Fatal(r.Error)
 	}
-	if got := formatSQLiteValue(r.Rows[0][0]); got != "0" {
+	if got := formatSQLiteValue("", r.Rows[0][0]); got != "0" {
 		t.Errorf("uncontended busy = %s, want 0", got)
 	}
 }
@@ -588,7 +588,7 @@ func TestWalRestartConcurrent(t *testing.T) {
 		t.Errorf("count = %s, want 50", got)
 	}
 	r := c1.Query("PRAGMA integrity_check")
-	if r.Error != nil || formatSQLiteValue(r.Rows[0][0]) != "ok" {
+	if r.Error != nil || formatSQLiteValue("", r.Rows[0][0]) != "ok" {
 		t.Errorf("integrity_check: %v %v", r.Error, r.Rows)
 	}
 }

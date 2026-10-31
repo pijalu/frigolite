@@ -2,6 +2,7 @@
   "file": "expr.test",
   "name": "expr",
   "ordered": true,
+  "tclPrecision": 15,
   "tests": [
     {
       "name": "setup_0",
@@ -5515,7 +5516,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "setup_4",

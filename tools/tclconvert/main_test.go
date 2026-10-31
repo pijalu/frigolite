@@ -48,12 +48,12 @@ func TestCompressFixtureJSONIsDeterministicAndLossless(t *testing.T) {
 
 func TestConvertKeepsSelectTestCasesInOneOrderedHarnessCase(t *testing.T) {
 	data := convertToJSON("e_createtable", []tcl.Stmt{
-		{Type: "exec", SQL: "CREATE TABLE t1(a)", TestName: "e_createtable-3.2.3.1", GroupName: "select_tests_1"},
+		{Type: "exec", SQL: "CREATE TABLE t1(a, 0, false)", TestName: "e_createtable-3.2.3.1", GroupName: "select_tests_1"},
 		{Type: "exec", SQL: "INSERT INTO t1 VALUES(1)", TestName: "e_createtable-3.2.3.1", GroupName: "select_tests_1"},
 		{Type: "query", SQL: "SELECT a FROM t1", Expected: "1", TestName: "e_createtable-3.2.3.1", GroupName: "select_tests_1"},
 		{Type: "exec", SQL: "INSERT INTO t1 VALUES(2)", TestName: "e_createtable-3.2.3.2", GroupName: "select_tests_1"},
 		{Type: "query", SQL: "SELECT a FROM t1", Expected: "1 2", TestName: "e_createtable-3.2.3.2", GroupName: "select_tests_1"},
-	}, "")
+	}, "", 0, false)
 	if len(data.Tests) != 1 {
 		t.Fatalf("converted helper call split into %d harness cases; want one sequential case", len(data.Tests))
 	}
@@ -75,11 +75,11 @@ func TestAltercolRenameHelperKeepsTclListExpectationAndGrouping(t *testing.T) {
   }
 }
 rename_test altercol-9.1 _x_ _xxx_ {{CREATE TABLE t1(a, _x_)} {CREATE TRIGGER tr AFTER INSERT ON t1 BEGIN SELECT _x_ FROM t1; END}}`
-	stmts, _, err := runInterpreter([]byte(src))
+	stmts, _, _, _, err := runInterpreter([]byte(src))
 	if err != nil {
 		t.Fatal(err)
 	}
-	data := convertToJSON("altercol", stmts, "")
+	data := convertToJSON("altercol", stmts, "", 0, false)
 	if len(data.Tests) != 10 {
 		t.Fatalf("converted test groups = %d, want two setup/reset runs and six checks/renames: %#v", len(data.Tests), data.Tests)
 	}
@@ -92,7 +92,7 @@ rename_test altercol-9.1 _x_ _xxx_ {{CREATE TABLE t1(a, _x_)} {CREATE TRIGGER tr
 }
 
 func TestConvertPreservesFunctionMarker(t *testing.T) {
-	data := convertToJSON("trustschema1", []tcl.Stmt{{Type: "register_function", FunctionName: "f1", FunctionProc: "f1", FunctionArgs: []string{"x"}, FunctionBody: "return $x", MinArgs: 1, MaxArgs: 1, Deterministic: true, Innocuous: true, TestName: "trustschema1-1.100"}}, "")
+	data := convertToJSON("trustschema1", []tcl.Stmt{{Type: "register_function", FunctionName: "f1", FunctionProc: "f1", FunctionArgs: []string{"x"}, FunctionBody: "return $x", MinArgs: 1, MaxArgs: 1, Deterministic: true, Innocuous: true, TestName: "trustschema1-1.100"}}, "", 0, false)
 	if len(data.Tests) != 1 || len(data.Tests[0].Steps) != 1 {
 		t.Fatalf("function marker conversion = %#v", data.Tests)
 	}
@@ -107,7 +107,7 @@ func TestConvertPreservesConnectionLifecycleMarkerOrder(t *testing.T) {
 		{Type: "close_db", TestName: "vtab1-1.10"},
 		{Type: "reopen_db", SQL: "test.db", TestName: "vtab1-1.10"},
 		{Type: "register_echo_module", TestName: "vtab1-1.10"},
-	}, "")
+	}, "", 0, false)
 	if len(data.Tests) != 1 || len(data.Tests[0].Steps) != 3 {
 		t.Fatalf("converted lifecycle steps = %#v, want 3 ordered steps", data.Tests)
 	}
@@ -118,14 +118,14 @@ func TestConvertPreservesConnectionLifecycleMarkerOrder(t *testing.T) {
 }
 
 func TestConvertPreservesNamedConnection(t *testing.T) {
-	data := convertToJSON("vtab1", []tcl.Stmt{{Type: "exec", SQL: "INSERT INTO t VALUES(1)", Database: "db2", TestName: "vtab1-1.1"}}, "")
+	data := convertToJSON("vtab1", []tcl.Stmt{{Type: "exec", SQL: "INSERT INTO t VALUES(1, 0)", Database: "db2", TestName: "vtab1-1.1"}}, "", 0, false)
 	if len(data.Tests) != 1 || len(data.Tests[0].Steps) != 1 || data.Tests[0].Steps[0].Database != "db2" {
 		t.Fatalf("converted named connection = %#v, want db2", data.Tests)
 	}
 }
 
 func TestConvertPreservesResultTransform(t *testing.T) {
-	data := convertToJSON("func", []tcl.Stmt{{Type: "query", SQL: "SELECT round(1e500)", Expected: "inf", ResultTransform: "tolower", TestName: "func-4.39"}}, "")
+	data := convertToJSON("func", []tcl.Stmt{{Type: "query", SQL: "SELECT round(1e500, 0, false)", Expected: "inf", ResultTransform: "tolower", TestName: "func-4.39"}}, "", 0, false)
 	if len(data.Tests) != 1 || len(data.Tests[0].Steps) != 1 || data.Tests[0].Steps[0].ResultTransform != "tolower" {
 		t.Fatalf("converted result transform = %#v, want tolower", data.Tests)
 	}
@@ -133,7 +133,7 @@ func TestConvertPreservesResultTransform(t *testing.T) {
 
 func TestConvertPreservesTclCallbackRegistration(t *testing.T) {
 	proc := tcl.Proc{Name: "vtab_command", Args: []string{"method", "args"}, Body: "return schema"}
-	data := convertToJSON("bestindex1", []tcl.Stmt{{Type: "register_tcl_module", ModuleArgs: []string{"db"}, CallbackProcs: []tcl.Proc{proc}}}, "")
+	data := convertToJSON("bestindex1", []tcl.Stmt{{Type: "register_tcl_module", ModuleArgs: []string{"db"}, CallbackProcs: []tcl.Proc{proc}}}, "", 0, false)
 	if len(data.Tests) != 1 || len(data.Tests[0].Steps) != 1 {
 		t.Fatalf("converted TCL module marker = %#v", data.Tests)
 	}
@@ -148,11 +148,11 @@ func TestConvertPreservesCustomCollationLifecycle(t *testing.T) {
 proc caseless_cmp {zLeft zRight} { string compare -nocase $zLeft $zRight }
 do_test collation-1 { sqlite3_create_collation_v2 db CASELESS caseless_cmp {incr ::caseless_del}; set ::caseless_del } {0}
 do_test collation-2 { sqlite_delete_collation db CASELESS; set ::caseless_del } {1}`
-	stmts, _, err := runInterpreter([]byte(src))
+	stmts, _, _, _, err := runInterpreter([]byte(src))
 	if err != nil {
 		t.Fatal(err)
 	}
-	data := convertToJSON("collate7", stmts, "")
+	data := convertToJSON("collate7", stmts, "", 0, false)
 	if len(data.Tests) != 2 || len(data.Tests[0].Steps) != 2 || len(data.Tests[1].Steps) != 2 {
 		t.Fatalf("collation lifecycle steps = %#v", data.Tests)
 	}
@@ -168,11 +168,11 @@ do_test collation-2 { sqlite_delete_collation db CASELESS; set ::caseless_del } 
 func TestConvertPreservesDBCollationCallback(t *testing.T) {
 	src := `proc reverse_sort {lhs rhs} { return [string compare $rhs $lhs] }
 db collate "reverse sort" reverse_sort`
-	stmts, _, err := runInterpreter([]byte(src))
+	stmts, _, _, _, err := runInterpreter([]byte(src))
 	if err != nil {
 		t.Fatal(err)
 	}
-	data := convertToJSON("collate9", stmts, "")
+	data := convertToJSON("collate9", stmts, "", 0, false)
 	if len(data.Tests) != 1 || len(data.Tests[0].Steps) != 1 {
 		t.Fatalf("db collate marker = %#v", data.Tests)
 	}
@@ -204,7 +204,7 @@ func TestCompactRepeatedStepsRoundTripsSequence(t *testing.T) {
 }
 
 func TestConvertRetainsEchoRegistrationMarker(t *testing.T) {
-	data := convertToJSON("vtab1", []tcl.Stmt{{Type: "register_echo_module"}}, "")
+	data := convertToJSON("vtab1", []tcl.Stmt{{Type: "register_echo_module"}}, "", 0, false)
 	if len(data.Tests) != 1 || len(data.Tests[0].Steps) != 1 || data.Tests[0].Steps[0].Type != "register_echo_module" {
 		t.Fatalf("converted registration marker = %#v, want one register_echo_module step", data.Tests)
 	}

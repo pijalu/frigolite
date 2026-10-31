@@ -2,6 +2,7 @@
   "file": "func4.test",
   "name": "func4",
   "ordered": true,
+  "tclPrecision": 0,
   "tests": [
     {
       "name": "setup_0",

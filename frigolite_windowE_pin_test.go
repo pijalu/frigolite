@@ -28,7 +28,7 @@ func TestWindowELowercaseFrameKeywords(t *testing.T) {
 	if r.Error != nil {
 		t.Fatalf("query error: %v", r.Error)
 	}
-	got := flattenResult(r)
+	got := flattenResult("", r)
 	want := "447 0.0 448 0.0 449 0.0 536 0.0 537 1.0 538 1.0 544 1.0"
 	if got != want {
 		t.Fatalf("RANGE 366.0 PRECEDING result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
@@ -37,7 +37,7 @@ func TestWindowELowercaseFrameKeywords(t *testing.T) {
 	if r.Error != nil {
 		t.Fatalf("query error: %v", r.Error)
 	}
-	got = flattenResult(r)
+	got = flattenResult("", r)
 	want = "447 0.0 448 0.0 449 0.0 536 0.0 537 1.0 538 1.0 544 0.0"
 	if got != want {
 		t.Fatalf("ROWS frame result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
@@ -71,7 +71,7 @@ func TestWindowESumOverflowFloatFallback(t *testing.T) {
 	if r.Error != nil {
 		t.Fatalf("query error: %v", r.Error)
 	}
-	got := flattenResult(r)
+	got := flattenResult("", r)
 	want := "1 9223372036854775807 2 9.22337203685478e+18 3 1.5 4 0.5"
 	if got != want {
 		t.Fatalf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)

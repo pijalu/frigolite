@@ -516,7 +516,7 @@ func TestP1SelectJoinOn(t *testing.T) {
 		if r.Error != nil {
 			t.Fatalf("select: %v", r.Error)
 		}
-		got := flattenResult(r)
+		got := flattenResult("", r)
 		if got != "One one Four four" {
 			t.Errorf("got [%s] want [One one Four four]", got)
 		}
@@ -527,7 +527,7 @@ func TestP1SelectJoinOn(t *testing.T) {
 		if r.Error != nil {
 			t.Fatalf("select: %v", r.Error)
 		}
-		got := flattenResult(r)
+		got := flattenResult("", r)
 		if got != "One Four" {
 			t.Errorf("got [%s] want [One Four]", got)
 		}
@@ -548,7 +548,7 @@ func TestP1SelectHavingMinMaxBare(t *testing.T) {
 	if r.Error != nil {
 		t.Fatalf("select: %v", r.Error)
 	}
-	got := flattenResult(r)
+	got := flattenResult("", r)
 	if got != "x4" {
 		t.Errorf("got [%s] want [x4]", got)
 	}
@@ -575,7 +575,7 @@ func TestP1SelectUnionCollation(t *testing.T) {
 			t.Errorf("query %q error: %v", tc.sql, r.Error)
 			continue
 		}
-		got := flattenResult(r)
+		got := flattenResult("", r)
 		if got != tc.want {
 			t.Errorf("sql %q: got [%s] want [%s]", tc.sql, got, tc.want)
 		}
@@ -590,7 +590,7 @@ func TestP1SelectUnionCollation(t *testing.T) {
 	if r.Error != nil {
 		t.Fatalf("select: %v", r.Error)
 	}
-	if got := flattenResult(r); got != "Abc abc" {
+	if got := flattenResult("", r); got != "Abc abc" {
 		t.Errorf("column binary: got [%s] want [Abc abc]", got)
 	}
 }
@@ -625,7 +625,7 @@ func TestP1SelectTempTableJoin(t *testing.T) {
 			t.Errorf("query %q error: %v", tc.sql, r.Error)
 			continue
 		}
-		if got := flattenResult(r); got != tc.want {
+		if got := flattenResult("", r); got != tc.want {
 			t.Errorf("sql %q: got [%s] want [%s]", tc.sql, got, tc.want)
 		}
 	}

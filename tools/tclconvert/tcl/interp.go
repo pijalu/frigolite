@@ -127,6 +127,8 @@ type Interp struct {
 	randSeeded        bool
 	runtimeID         int            // counter for the runtime value markers
 	runtimeVars       map[string]int // variable name -> the runtime query id it holds
+	tclPrecision     int            // the last `set tcl_precision N`
+	tclPrecisionSeen bool           // whether the source ever set tcl_precision
 	statusFlagged     *Stmt          // the statement the last `db status` substitution flagged (render-style detection)
 	searchCountReset  bool           // a `set ::sqlite_search_count ...` ran in the current test body (where8's execsql_status2)
 }
@@ -282,6 +284,20 @@ func (i *Interp) callbackVars() map[string]string {
 
 // Stmts returns captured SQL statements.
 func (i *Interp) Stmts() []Stmt { return i.stmts }
+
+// TclPrecision returns the last `set tcl_precision N` the source executed
+// (0 when never set): the harness's REAL rendering follows it — the
+// testfixture's TCL print uses shortest-round-trip at precision 0 and the
+// N-significant-digit form otherwise.
+func (i *Interp) TclPrecision() int {
+	return i.tclPrecision
+}
+
+// TclPrecisionSeen reports whether the source ever executed `set
+// tcl_precision N` (distinguishing an explicit 0 from the default).
+func (i *Interp) TclPrecisionSeen() bool {
+	return i.tclPrecisionSeen
+}
 func (i *Interp) LoadProcedures(procs []Proc) {
 	for idx := range procs {
 		proc := procs[idx]
@@ -788,6 +804,12 @@ func (i *Interp) cmdSet(args []string, localVars map[string]string) error {
 		i.searchCountReset = true
 		i.vars[""] = ""
 		return nil
+	}
+	if name == "tcl_precision" && len(args) >= 2 {
+		if n, err := strconv.Atoi(args[1]); err == nil {
+			i.tclPrecision = n
+			i.tclPrecisionSeen = true
+		}
 	}
 	if len(args) >= 2 {
 		i.setVar(name, args[1], localVars)
