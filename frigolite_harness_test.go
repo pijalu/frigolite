@@ -3800,7 +3800,12 @@ func TestSQLiteSuite(t *testing.T) {
 								// captured result: it must be checked, or the
 								// assertion is silently dropped.
 								got := flattenResultNull(&Result{Columns: result.Columns, Rows: result.Rows}, nullToken) + statusSuffix
-								if base == "blob" {
+								if base == "blob" || base == "func2" {
+									// blob.test and func2-3.x wrap every
+									// blob result in Tcl bin_to_hex: the
+									// expectations are UPPER HEX. func2's
+									// ASCII/UTF8 sections are unaffected —
+									// only []byte values render as hex.
 									got = flattenBlobHexResult(&Result{Columns: result.Columns, Rows: result.Rows}, nullToken) + statusSuffix
 								}
 								want := cleanExpectedNull(step.Expect, nullToken)
