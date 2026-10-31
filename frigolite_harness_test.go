@@ -1490,6 +1490,15 @@ var unsupportedTestFiles = map[string]string{
 	"win32nolock":   "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
 	"win32longpath": "Windows long-path VFS (win32-longpath) - genuine N/A per PORTPLAN §1 platform list, same class as win32lock/win32nolock",
 
+	// fts3expr4 — the source is capability-gated: `ifcapable !fts3||!icu
+	// { finish_test; return }` (fts3expr4.test:22-24). The canonical
+	// testfixture does not define SQLITE_ENABLE_ICU, so the reference run
+	// omits the file entirely; frigolite does not build ICU either. The
+	// fixture was removed on the 8_3_names precedent; a converter regen
+	// must not re-emit it until the converter honors ifcapable icu guards
+	// (queued in GAP_CLOSURE_PLAN §5.1).
+	"fts3expr4": "Source file is ifcapable !fts3||!icu-gated (fts3expr4.test:22-24) - the canonical testfixture omits it without SQLITE_ENABLE_ICU; frigolite does not build ICU",
+
 	// Shell / CLI tooling — frigolite has its own CLI
 	"dbdata":   "Tests the sqlite3 CLI shell / shell tools - frigolite has its own CLI",
 	"dbpage":   "Tests the sqlite3 CLI shell / shell tools - frigolite has its own CLI",
