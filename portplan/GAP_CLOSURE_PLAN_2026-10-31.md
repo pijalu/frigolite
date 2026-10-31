@@ -132,7 +132,10 @@ per unit with run stamps.
 | **stat (22)** | setup idempotency (S) + `table dbstat may not be dropped`/`no such database: mainx` errors (S) + dbstat page-level fidelity (M-L) | PROBES §4 |
 | **rowvalue (21)** | setup cascades (S) + row-value IN/comparison probes (S-M) + row-value join-range EQP (M, B5) | PROBES §4 |
 | **func (92)** | auxdata slots on the eval context with Stmt lifetime (P-C6, M) + the test_func.c fixture-UDF set (M) | PROBES §5 |
-| **fts3expr4 (19)** | STALE FIXTURE: the source is `ifcapable !fts3||!icu`-gated — skip-map entry with evidence (S); optional: converter honors ifcapable icu guards (M) | PROBES §6 |
-| **normalize integration** | `Stmt.NormalizedSQL()` + harness step + the converter catch-retag fix (prepare handle renamed to the catch variable) | TODOS.md normalize card + internal/normalize/doc.go |
-| **insert4 xfer-opt (30)** | INSERT…SELECT transfer optimization + `sqlite3_xferopt_count` (insert.c xferOptimization) | TODOS.md M2 card |
+| **fts3expr4 (19)** | **LANDED** — fixture removed (source is `ifcapable !fts3||!icu`-gated, 8_3_names precedent) + skip-map evidence entry | commit `M2.FTS3EXPR4` |
+| **func2 (17)** | **LANDED** — bin_to_hex hex-render for the family's []byte results (blob.test mechanism) → 0 | commit `M2.FUNC2` |
+| **func4 (18)** | **18→2** — the harness's REAL rendering now uses the TCL shortest-round-trip rules (tclsh-pinned formatTclDouble); residue 2 = func4 2.46/2.49's runtime-conditional highPrecision probes (converter runtime_expr assignment card) | commits `M2.FUNC4` (formatTclDouble) |
+| **rowvalue4 (8) + rowvalue3 (3)** | **LANDED** — drop_all_indexes fixture marker (tester.tcl parity) → 0/0 | commit `M2.RV34` |
+| **rowvalue5 (8)** | vtab row-value constraint unwrapping: SQLite passes `(a,b) = (9,10)` to xBestIndex as per-column EQ constraints; our TCL-vtab path gets none, so the constraint-rendering `expr` column stays empty (B5, S-M) | rowvalue5.test xBestIndex rendering |
+| **memdb (18)** | composition-aware set-assignments: `set X [proc]` whose value is a Tcl list over runtime components ([string length $rx] + $rx) collapses to the single query marker — needs a runtime_list-with-variable step so $X stays a full runtime ref; strlen derivation + runtime case-name expansion already landed | commits `M2.MEMDB-a` |
 | **testgen drift (25 pkgs)** | enumerated in PROBES §7 (altercol, altercorrupt, … without_rowid7) — one triage pass classifies each engine-vs-testgen-only per the pure-Go-port protocol | PROBES §7 |

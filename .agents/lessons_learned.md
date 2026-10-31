@@ -422,3 +422,33 @@ The per-family statement budget hides them: the conversion looked fine, the
   a prepared shape — any statement-shape memo must separate structural
   resolution (index token, column, operator class) from literal VALUES, which
   must be re-read from the current leaves on every serve (F1a's design).
+
+## Closure tranche 2026-10-31b (rowvalue/memdb/floats)
+
+- tester.tcl's `drop_all_indexes` (explicit indexes in main, `sql LIKE
+  'create%'`) must be a fixture marker like drop_all_tables — section loops
+  that re-create an index starve their whole iteration otherwise
+  (rowvalue4/rowvalue3).
+- The testfixture renders REAL results through TCL's shortest-round-trip
+  print (tclsh-pinned): fixed notation for decimal exponents −4..16 with
+  ".0" when integral ("9007199254740992.0"), scientific otherwise
+  ("9.223372036854776e+18", two-digit signed exponent, no forced ".0").
+  Go's strconv 'g',15 gives a DIFFERENT rendering ("4.5035996273705e+15") —
+  the harness must use the TCL rules while the ENGINE's own value→text
+  (cast/printf) keeps SQLite's %!.15g.
+- toreal()/tointeger() (ext/misc/totype.c) keep SQLite's exact round-trip
+  semantics: INTEGER→REAL only when (i64)(double)i == i; the func4 2.46
+  expectation is RUNTIME-CONDITIONAL on the C compiler's float-cast
+  behavior (highPrecision(3)) — the fixture needs conditional steps, not a
+  baked branch.
+- `set X [expr {[db eval …] eq …}]` (func4's highPrecision probes) is
+  runtime-conditional: the converter must emit a runtime_expr assignment +
+  dynamic marking so the following `if` fires the both-branches conditional
+  machinery. Baked single-branch expectations are wrong for probe-guarded
+  leaves.
+- memdb's `signature` value is a COMPOSITION ([string length $rx] + $rx):
+  runtime_list over derived refs handles the do_test body-value shape
+  ($__strlen(rx) expands at run time), but `set X [proc-returning-list]`
+  still collapses to the single runtime marker — composition-aware
+  set-assignments are the queued unit. Case names may carry runtime refs:
+  the harness expands them when the case actually runs.
