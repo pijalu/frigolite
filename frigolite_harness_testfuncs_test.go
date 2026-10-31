@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 	"testing"
+
+	"github.com/pijalu/frigolite/internal/function"
 )
 
 // registerTest1Functions installs the SQL functions that testfixture's
@@ -31,6 +34,55 @@ func registerTest1Functions(t *testing.T, db *DB) {
 		return nil, nil
 	}, -1, -1)
 	db.RegisterFunction("pointer_change", pointerChange, 4, 4)
+	// SQLITE_TEST UDFs that need the auxdata/context API (test_func.c's
+	// test_auxdata) and the process-global counter (test1.c's
+	// counter1/counter2 share ONE counter; counter1 non-deterministic,
+	// counter2 deterministic).
+	db.engine.Functions().RegisterContext("test_auxdata", testAuxdataFunc, -1, -1)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		return nil, fmt.Errorf("%s", test1ValueText(args[0]))
+	}, 1, 2)
+	db.RegisterFunction("counter1", nondeterministicCounter, -1, -1)
+	db.RegisterFunction("counter2", nondeterministicCounter, -1, -1)
+	// test_func.c's abuse_create_function installs the maximum-length-name
+	// no-op with the maximum parameter count; func-26.x asserts the
+	// "too many arguments" arity error when it is called with more.
+	db.RegisterFunction("nullx"+strings.Repeat("_123456789", 25),
+		func(args []interface{}) (interface{}, error) { return nil, nil },
+		1, 1000000)
+}
+
+// testFuncCounter is the shared process-global counter of test1.c's
+// nondeterministicFunction (counter1/counter2 both draw from it).
+var testFuncCounter int64
+
+// nondeterministicCounter returns an ascending integer per call.
+func nondeterministicCounter(args []interface{}) (interface{}, error) {
+	n := testFuncCounter
+	testFuncCounter++
+	return n, nil
+}
+
+// testAuxdataFunc ports test_func.c's test_auxdata: for each non-NULL
+// argument, report whether the auxdata slot at that index already held a
+// value ('1') or not ('0'), then store the argument's text in the slot. The
+// C builds one "d " pair per non-NULL argument and trims the final space
+// through the result length; pairs for NULL arguments are omitted entirely.
+func testAuxdataFunc(ctx *function.FuncContext, args []interface{}) (interface{}, error) {
+	var b strings.Builder
+	for i, arg := range args {
+		if arg == nil {
+			continue
+		}
+		if ctx.GetAuxData(i) != nil {
+			b.WriteByte('1')
+		} else {
+			b.WriteByte('0')
+		}
+		b.WriteByte(' ')
+		ctx.SetAuxData(i, test1ValueText(arg), nil)
+	}
+	return strings.TrimRight(b.String(), " "), nil
 }
 
 // test1ValueText renders a SQL value the way sqlite3_value_text would: numbers

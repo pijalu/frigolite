@@ -3081,6 +3081,11 @@ func TestSQLiteSuite(t *testing.T) {
 			} else {
 				db = newDB(t)
 			}
+			// The testfixture registers its test-only SQL functions
+			// (test_auxdata, test_error, counter1/counter2, ...) on EVERY
+			// connection it opens — the corpus families call them without
+			// any fixture-side registration marker.
+			registerTest1Functions(t, db)
 			if fixture, ok := harnessCollationFixtures[base]; ok {
 				fixture(db)
 			}
