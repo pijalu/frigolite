@@ -39,8 +39,8 @@ Durable, reusable guidance only. Keep session-specific evidence in plans and res
 - UTF-16-only attach2 tests are wholly guarded by `ifcapable utf16`; engine's UTF-8-only build must omit both setup and dependent assertions, while retaining ATTACH encoding-mismatch semantics in a native header-fixture test. Route named DB opens, relative ATTACH operands, and reopen_db basenames into the same fixture-local directory.
 - `DB.QueryEach` implemented by iterating `DB.Query` is only API-level iteration, not streaming: callbacks happen after the executor has completed and cannot affect later JOIN rows. A real-table JOIN can stream by keeping outer B-tree cursor live, computing inner combinations from each decoded outer row, then callbacking complete post-WHERE projection before advancing; after callback nested writes, re-read to trigger cursor restore/reseek and detect whether outer key vanished before continuing inner combinations. If deleted with a successor, call Next once to consume CURSOR_SKIPNEXT while retaining that successor for next outer iteration; regression must cover both deleting final outer key and deleting one before another. Verify mutation timing explicitly; thread yield callback into execution before claiming cursor-driven behavior.
 - Callback-time SQL mutation requires a live scan cursor through JOIN-pair emission. Frigolite's real-table SELECT materializes scan rows before JOIN (`select_exec.go:346-353`), while `execJoins` materializes combinations before WHERE/projection (`select.go:667-696`); a post-Query callback cannot match SQLite btreefault-2.2. SQLite `btree.c:756-843,891-918` saves/reseeks other cursors by key before writes; use that only with an actually live outer cursor.
-- PRAGMA `full_column_names` star labels must derive source identity per visible expanded column (including aliases/views and canonical schema spelling); qualified stars cannot apply user token casing blindly. Bare references need their resolved source, not just first FROM operand. `USING`/`NATURAL` require accounting for suppressed duplicate right-side columns. `short_column_names=OFF` also preserves explicit qualified reference spelling when `full_column_names=OFF`; primary-key rowid aliases report declared column name.
-- `PRAGMA full_column_names=ON` qualifies direct column references and qualified-star expansions, but not names emitted by unqualified `SELECT *`; bare star labels remain bare even with `short_column_names=OFF`. SQLite `select.c:2193-2215` applies full names to `TK_COLUMN`; `*` expands through another path. Keep native regressions explicit about unqualified versus qualified stars.
+- PRAGMA `full_column_names` result naming (select.c sqlite3GenerateColumnNames, oracle-verified 3.54): direct column references name `RESOLVED-TABLE.COLUMN` with the REAL table name (never the written alias; a FROM-clause subquery names its synthesized table after the alias, or `(subquery-N)` unaliased — sqlite3ExpandSubquery); `short=OFF/full=OFF` names the expression's original span text (written spacing/case/quotes — recovered from `ColumnRef.NameTok` + `SelectStmt.RawSQL`); default `short=ON` names the bare column. Star expansion names are fixed at expansion time (select.c sqlite3SelectExpand): `zTabName.column` only when longNames (`full=ON && short=OFF`), bare otherwise — so `SELECT *` under short=ON stays bare even with full=ON. Primary-key rowid aliases report the declared column name in every mode. `USING`/`NATURAL` right-side suppression is handled by the merged colDefs walk, not per-operand enumeration.
+- Derived tables (FROM-clause subqueries, CTE bodies, views) carry UNIQUE column names: select.c sqlite3ColumnsFromExprList suffixes a case-insensitive collision with `:N` (per column, from 1, stripping any existing `:N` first). The engine must apply the same dedup wherever a subquery/CTE result becomes colDefs (joined `t1.*/t2.*` stars produce duplicate bare names; without dedup the row-map key collisions corrupt outer star values — join8-7010). Top-level result sets never dedup.
 - Broad test runtime claims require equivalent-scope evidence: `go test ./... -count=1 -timeout 60m` took 2,865s here, with root package ~1,614s; this includes 1,233 fixture files and non-root tests, not directly comparable to SQLite CLI. `../sqlite/testfixture test/quick.test` cannot currently benchmark the SQLite TCL suite: executable won't launch because linked `/opt/homebrew/opt/tcl-tk/lib/libtcl9.0.dylib` is missing.
 - For TCL `register_tcl_module` bestindex families, distinguish engine contract from lost Tcl callback state: bestindexB's xBestIndex performs nested `INSERT ... RETURNING` and stores result in a Tcl global that the JSON fixture drops. Port callback reentrancy/rowid behavior directly in a pure-Go vtab test before superseding family; link unsupported entry to native regression.
 - For FTS3 stress insertion, `DDLExecutor.readCellByRowID` must use B-tree `SeekToRowID`, not scan from the first cell: CPU profile of `fts3defer` attributed 45s cumulative to `Cursor.ReadCell` in INSERT-SELECT docsize handling; rowid seek reduced observed family wall time 95s→15s. FTS merge's per-document posting de-dup also needs a membership map above a small-list threshold; CPU profile attributed 11s to `mergeDoclistHits` and the same failure-containing family then took ~3.6s. Oracle `go-sqlite3` handles exact 65k-row FTS4 self-copy in ~107ms vs Frigolite ~0.61s; comparison is useful but still shows optimization backlog. Existing `testgen/fts3defer*` suites pass; JSON `fts3defer` retains unrelated ICU tokenizer limitation.
@@ -59,7 +59,7 @@ Durable, reusable guidance only. Keep session-specific evidence in plans and res
 
 ## Tests, fixtures, and measurement
 - WITHOUT ROWID table btrees are index btrees: interior divider cells are rows, so DML scans must use index traversal and mutations must remove exact full-record keys with `DeleteIndexEntries`; leaf-only predicate sweeps skip interior rows, causing UPDATE to retain stale rows and duplicate replacements. Pin 1,000-row partial-index UPDATE counts and generated `index7` behavior.
-- SQLite `full_column_names=ON` qualifies direct column expressions, but does not qualify names introduced by unqualified `SELECT *` expansion. Probe exact result column metadata with SQLite and keep these output-naming paths distinct; `testgen/select1` pins both.
+- Probe exact result column metadata with SQLite when touching output naming; `testgen/select1` and the JSON harness pin both direct-reference and star-expansion modes (see the full_column_names entry above for the mode matrix).
 - JSON-harness C-API `runtime_var` assertions can lose Tcl assignments to SQLite result codes even when generated `testgen` family and isolated SQL behavior pass; classify by source operation sequence and preserve generated test as authoritative instead of altering engine behavior.
 - Correlated table-valued pragma joins return right rows paired positionally with `corrLeftIdx`; right-only filtering/reordering must preserve pairing or be disabled. json102-1130 panicked when `orderJoinRightByAutomaticIndex` filtered rows but left provenance indices unchanged; regression drives correlated `json_tree` with right-side WHERE constraints.
 - For repeated fixture operations, encode consecutive structurally identical steps as `{type:"repeat", repeatCount:N, repeatBody:[step]}` and expand in order at both harness pre-scan and execution. Compare expanded steps against original fixture structurally before installing; gzip alone shrinks stored bytes but not decode memory or execution metadata. Include error-producing steps and surrounding distinct operations to pin order.
@@ -452,3 +452,48 @@ The per-family statement budget hides them: the conversion looked fine, the
   still collapses to the single runtime marker — composition-aware
   set-assignments are the queued unit. Case names may carry runtime refs:
   the harness expands them when the case actually runs.
+
+## Integrity-check index phases 2026-10-31 (e_reindex-1.3 unit)
+
+- `PRAGMA integrity_check`'s "row N missing from index X" number is the
+  1-based SCAN ORDINAL (pragma.c reg[7], reset per table), NOT the rowid:
+  the oracle shows rows at rowids 4 and 5 reporting "row 3"/"row 4".
+  quick_check runs the entry-count comparison but skips the per-row
+  presence pass; the count rule is checkTreePage's
+  `leaf || !intKey` (every page's nCell except interior TABLE pages) —
+  exactly btree.CountEntries. Index report order is REVERSE creation
+  (Table.pIndex is prepend-ordered): i2's line precedes i1's.
+- PROBE TREES MUST GET SetIndexKeyInfo: SeekIndexKey on a tree without an
+  installed comparator falls back to the exhaustive stored-order walk —
+  integrity_check on 50k rows x2 indexes went 46s → 95ms once the
+  KeyInfo was installed on the walk's own trees (O(n²) → O(n log n)).
+- WITHOUT ROWID secondary indexes: probes compare the KEY PREFIX only.
+  The engine stores [key..., insert-time rowid] in WR secondary indexes
+  (maintainIndexesOnInsert appends rowID for WR tables too), and the WR
+  scan's index-leaf cells carry no rowid, so the tail is not re-derivable.
+- DISCOVERED PRE-EXISTING EXEC DML LEAK: WR-table DELETE removes
+  [key..., 0] from secondary indexes while INSERT wrote [key..., N], so
+  the deleted row's secondary-index entry SURVIVES (count mismatch that
+  integrity_check now reports; REINDEX heals it; scans look correct
+  because index hits are rowid-joined against the table). Fix belongs to
+  the execdml delete path (deleteRowFromIndexes' rowID for WR rows).
+- Parallel-agent hazard: uncommitted work in this repo has been wiped by
+  another agent's checkout/clean mid-session. Back up in-flight files to
+  /tmp before long validation runs.
+
+## Closure tranche 2026-10-31c (insert4/colname)
+
+- insert.c's xferOptimization compares COLUMN REFERENCES BY ORDINAL, not by
+  name (iTab<0 assumes both sides belong to the same schema table): 3.1's
+  `b>a` over (a,b) equals `y>x` over (x,y), and 6.3's t2(x ASC,y ASC) is
+  index-compatible with t3(a,b). Unresolved references (rowid inside a CHECK
+  constraint) are conservatively DIFFERENT (12.2 expects 0). The counter is
+  plan-time: a later constraint failure does not undo it (insert.c:3235).
+- A TCL probe variable can be WRITTEN and READ in the same corpus: the
+  converter's interception of `set ::sqlite3_xferopt_count` must only fire
+  on the two-arg WRITE form; the one-arg READ (`set ::sqlite3_xferopt_count`
+  as a probe body) must stay a runtime_var step, or every read resets the
+  counter it is about to assert.
+- `PRAGMA foreign_keys` gates xferOptimization's FK check (insert.c reads
+  db->flags & SQLITE_ForeignKeys at plan time); column-level REFERENCES
+  count as FK constraints.
