@@ -773,9 +773,17 @@ func (ev *Evaluator) dispatchAuxBinaryValues(op string, left, right interface{})
 	case "NOT MATCH":
 		return int64(1), nil, true
 	case "->":
+		// A user function named "->" (db func -> ptr1, func-36.100)
+		// replaces the built-in JSON operator, like the LIKE/GLOB family.
+		if res, err, handled := ev.userBinaryOperatorOverload(left, right, "->"); handled {
+			return res, err, true
+		}
 		res, err := function.JSONArrowExtract(left, right)
 		return res, err, true
 	case "->>":
+		if res, err, handled := ev.userBinaryOperatorOverload(left, right, "->>"); handled {
+			return res, err, true
+		}
 		res, err := function.JSONArrowExtractSQL(left, right)
 		return res, err, true
 	case "COLLATE":
@@ -827,6 +835,22 @@ func (ev *Evaluator) evalLikeOp(left, right interface{}, negated bool) interface
 // probeOperatorOverload invokes a user-registered override of like/glob/
 // regexp for its side effects when an opted-in vtab scan feeds the current
 // statement; the override's result never influences filtering.
+// userBinaryOperatorOverload dispatches a binary operator to a user
+// function registered under the operator's name (func-36.x: `db func ->
+// ptr1` redefines "->"). handled is false when no such function exists and
+// the built-in semantics apply.
+func (ev *Evaluator) userBinaryOperatorOverload(left, right interface{}, op string) (interface{}, error, bool) {
+	if !ev.ctx.OverloadProbe() {
+		return nil, nil, false
+	}
+	fn, ok := ev.ctx.Functions().Find(op)
+	if !ok || fn.ScalarFn == nil {
+		return nil, nil, false
+	}
+	res, err := fn.ScalarFn([]interface{}{util.UnwrapColumnValue(left), util.UnwrapColumnValue(right)})
+	return res, err, true
+}
+
 func (ev *Evaluator) probeOperatorOverload(op string, pattern, value interface{}) {
 	if !ev.ctx.OverloadProbe() {
 		return
