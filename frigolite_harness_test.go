@@ -3833,13 +3833,25 @@ func TestSQLiteSuite(t *testing.T) {
 								} else {
 									runtimeVars[step.Variable] = "0"
 									if step.CatchMessage != "" {
-										// `catch {execsql {SELECT ...}} msg`
+										// `catch {execsql {STMT}} msg`
 										// (select1.test 2.x): on success msg
 										// holds the ROWS — Tcl execsql
-										// returns the row list, not "".
-										q := execDB.Query(step.SQL)
-										if q.Error == nil {
-											runtimeVars[step.CatchMessage] = flattenResultNull(&Result{Columns: q.Columns, Rows: q.Rows}, nullToken)
+										// returns the row list, not "". Only
+										// a pure read-only statement may run
+										// again to render them: a second
+										// execution of a stateful statement
+										// (PRAGMA incremental_vacuum) shifts
+										// the fault/page schedule and breaks
+										// the NEXT test (incrvacuum_ioerr
+										// 4.1.2/4.2.2).
+										upper := strings.ToUpper(strings.TrimSpace(step.SQL))
+										if strings.HasPrefix(upper, "SELECT ") || strings.HasPrefix(upper, "WITH ") || strings.HasPrefix(upper, "VALUES ") {
+											q := execDB.Query(step.SQL)
+											if q.Error == nil {
+												runtimeVars[step.CatchMessage] = flattenResultNull(&Result{Columns: q.Columns, Rows: q.Rows}, nullToken)
+											} else {
+												runtimeVars[step.CatchMessage] = ""
+											}
 										} else {
 											runtimeVars[step.CatchMessage] = ""
 										}
