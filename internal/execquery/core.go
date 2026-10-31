@@ -35,6 +35,11 @@ type TableScanner struct {
 // the SelectEngine and exposes the planning entry points.
 type QueryPlanner struct {
 	engine *SelectEngine
+	// whereref hosts the WHERE-ref analysis memo (whereref_cache.go): the
+	// planner owns the per-shape index-selection state. Created lazily
+	// through the engine's own &e.planner field, so it persists for the
+	// engine's lifetime; SelectEngine's field set itself is context.go's.
+	whereref *whererefState
 }
 
 // --- JoinExecutor public surface (SOLID-03) ---

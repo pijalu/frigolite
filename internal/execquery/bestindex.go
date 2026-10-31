@@ -34,8 +34,14 @@ func (e *SelectEngine) bestIndexForQuery(tableName string, where sql.Expr, estim
 // formatConditions' strings.Builder/Sprintf/error chain), so on that path the
 // second return value is the empty string.
 func (e *SelectEngine) bestIndexForRowCount(tableName string, where sql.Expr, estimate *float64, rowCount int64, wantConditions bool) (string, string, error) {
-	// Collect all column references with their operators
-	refs := collectIndexedRefs(where, tableName, e)
+	// Collect all column references with their operators — from the
+	// statement-shape memo when the shape is cacheable (whereref_cache.go:
+	// the resolutions are replayed, the constants re-read from the current
+	// literal leaves), else with the uncached walk.
+	refs, sk, cached := e.whererefCollect(where, tableName)
+	if !cached {
+		refs = collectIndexedRefs(where, tableName, e)
+	}
 	if len(refs) > 0 {
 		eligible := refs[:0]
 		for _, ref := range refs {
@@ -55,7 +61,16 @@ func (e *SelectEngine) bestIndexForRowCount(tableName string, where sql.Expr, es
 	// leading prefix cannot drive the index at all — index-14.3 "WHERE b=''"
 	// over index t6i1(a,b) plans "SCAN t6", not a "(b=?)"-driven SEARCH
 	// (skip-scan needs stat1 evidence; skipscan.go owns that path).
-	refs = e.seekableRefs(refs, tableName)
+	//
+	// The all-plain memoized shape with nothing dropped already carries the
+	// recorded outcome's input list — replay the recorded order instead of
+	// re-running the filter (whose per-group index-columns walk the memo
+	// exists to skip).
+	if cached && sk.likeFree && len(refs) == sk.refCount {
+		refs = whererefSeekOrdered(refs, sk)
+	} else {
+		refs = e.seekableRefs(refs, tableName)
+	}
 	if len(refs) == 0 {
 		return "", "", nil
 	}
@@ -95,9 +110,24 @@ func (e *SelectEngine) bestIndexForRowCount(tableName string, where sql.Expr, es
 // model cannot place (expression-index keys matched by findIndexOnExpr) are
 // kept unchanged.
 func (e *SelectEngine) seekableRefs(refs []indexedRef, tableName string) []indexedRef {
+	order := e.seekableRefOrder(refs, tableName)
+	if len(order) == 0 {
+		return nil
+	}
+	out := make([]indexedRef, 0, len(order))
+	for _, i := range order {
+		out = append(out, refs[i])
+	}
+	return out
+}
+
+// seekableRefOrder is seekableRefs in index space: the surviving input
+// positions in output order. whereref_cache.go records the outcome once per
+// statement shape and replays it, so both paths stay on one algorithm.
+func (e *SelectEngine) seekableRefOrder(refs []indexedRef, tableName string) []int32 {
 	type indexGroup struct {
 		cols    []string
-		refIdxs []int
+		refIdxs []int32
 	}
 	groups := map[string]*indexGroup{}
 	var order []string
@@ -108,9 +138,9 @@ func (e *SelectEngine) seekableRefs(refs []indexedRef, tableName string) []index
 			groups[ref.indexName] = g
 			order = append(order, ref.indexName)
 		}
-		g.refIdxs = append(g.refIdxs, i)
+		g.refIdxs = append(g.refIdxs, int32(i))
 	}
-	var out []indexedRef
+	var out []int32
 	for _, name := range order {
 		g := groups[name]
 		end, ok := seekPrefixEnd(g.cols, refsAt(g.refIdxs, refs))
@@ -118,7 +148,7 @@ func (e *SelectEngine) seekableRefs(refs []indexedRef, tableName string) []index
 			if pos, known := refColumnPos(g.cols, refs[i]); ok && known && pos >= end {
 				continue // filter term, not a search constraint
 			}
-			out = append(out, refs[i])
+			out = append(out, i)
 		}
 	}
 	return out
@@ -133,7 +163,7 @@ func (e *SelectEngine) seekRefColumns(tableName, idx string) []string {
 }
 
 // refsAt gathers the refs named by idxs, in idxs order.
-func refsAt(idxs []int, refs []indexedRef) []indexedRef {
+func refsAt(idxs []int32, refs []indexedRef) []indexedRef {
 	out := make([]indexedRef, len(idxs))
 	for k, i := range idxs {
 		out[k] = refs[i]

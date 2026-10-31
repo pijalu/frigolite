@@ -138,9 +138,22 @@ const indexSeekPlanRowCount = defaultPlanRowCount
 // constraint when the planner collected the same pair, so the seek inherits
 // the planner's gates (LIKE collation compatibility, partial-index
 // implication, the leading-prefix rule) instead of re-deriving them.
+//
+// The analysis runs through the statement-shape memo (whereref_cache.go);
+// an all-plain shape's per-index set is published once and shared read-only,
+// so the hot lookup path re-allocates nothing.
 func (e *SelectEngine) indexSeekRefSet(s *sql.SelectStmt, tableEntry *schema.Entry, token string) map[string]bool {
+	refs, sk, cached := e.whererefCollect(s.Where, tableEntry.Name)
+	if cached {
+		if sk.likeFree {
+			return sk.seekSet(token)
+		}
+		refs = e.seekableRefs(refs, tableEntry.Name)
+	} else {
+		refs = e.seekableRefs(collectIndexedRefs(s.Where, tableEntry.Name, e), tableEntry.Name)
+	}
 	allowed := map[string]bool{}
-	for _, ref := range e.seekableRefs(collectIndexedRefs(s.Where, tableEntry.Name, e), tableEntry.Name) {
+	for _, ref := range refs {
 		if ref.indexName == token {
 			allowed[indexSeekRefKey(ref.colName, ref.op)] = true
 		}
