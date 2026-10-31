@@ -52,6 +52,10 @@ type DMLContext interface {
 	// internal/exec stmt_status.go for the opcode-level semantics); the
 	// OR-plan executor adds its plan model's delta.
 	IncSearchCount(n int64)
+	// IncXferoptCount feeds SQLITE_TEST's sqlite3_xferopt_count (insert.c
+	// xferOptimization): incremented when the INSERT-transfer plan is
+	// chosen for an INSERT...SELECT (insert4.test's counter probes).
+	IncXferoptCount(n int64)
 	// Statement execution (trigger bodies run Engine.Exec).
 	Exec(stmt sql.Stmt) *Result
 	// ExecDepth reports the current nested-Exec depth (Engine.Exec entry

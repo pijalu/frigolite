@@ -79,6 +79,11 @@ type Engine struct {
 	// execsql_status2).
 	searchCount int64
 
+	// xferoptCount mirrors SQLITE_TEST's sqlite3_xferopt_count (insert.c):
+	// incremented when xferOptimization picks the INSERT-transfer plan for
+	// an INSERT...SELECT. insert4.test resets and reads it per probe.
+	xferoptCount int64
+
 	// tempBtreeOpen mirrors SQLite's lazy aDb[1].pBt creation: the temp
 	// database starts closed and "opens" the first time anything addresses
 	// the temp schema (PRAGMA temp.<...>, CREATE TEMP TABLE, ...).

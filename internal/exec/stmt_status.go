@@ -83,3 +83,22 @@ func (e *Engine) ResetSearchCount() {
 func (e *Engine) SearchCount() int64 {
 	return e.searchCount
 }
+
+// IncXferoptCount adds n to the INSERT-transfer-optimization counter
+// (SQLITE_TEST's sqlite3_xferopt_count, incremented in insert.c's
+// xferOptimization when the transfer plan is chosen). The insert4 family
+// resets it before each probe and reads it through a runtime_var step.
+func (e *Engine) IncXferoptCount(n int64) {
+	e.xferoptCount += n
+}
+
+// ResetXferoptCount zeroes the transfer-optimization counter (insert4.test's
+// `set ::sqlite3_xferopt_count 0` inside each probe body).
+func (e *Engine) ResetXferoptCount() {
+	e.xferoptCount = 0
+}
+
+// XferoptCount returns the current transfer-optimization counter.
+func (e *Engine) XferoptCount() int64 {
+	return e.xferoptCount
+}

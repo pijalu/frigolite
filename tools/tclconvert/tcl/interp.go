@@ -769,6 +769,17 @@ func (i *Interp) cmdSet(args []string, localVars map[string]string) error {
 		return nil
 	}
 	name := args[0]
+	// `set ::sqlite3_xferopt_count 0` (insert4.test's xferopt probes)
+	// resets SQLITE_TEST's INSERT-transfer counter before the statement:
+	// the harness zeroes the engine counter at this point. The one-arg
+	// READ form (`set ::sqlite3_xferopt_count` as a probe body) must fall
+	// through to the ordinary variable read — it becomes the probe's
+	// runtime_var step.
+	if len(args) >= 2 && (name == "::sqlite3_xferopt_count" || name == "sqlite3_xferopt_count") {
+		i.stmts = append(i.stmts, Stmt{Type: "xferopt_reset", TestName: i.curTest})
+		i.vars[""] = ""
+		return nil
+	}
 	// `set ::sqlite_search_count 0` (where8.test's execsql_status2) resets
 	// SQLITE_TEST's vdbe search counter before the probe query. The reset
 	// rides on the flagged query step (SearchCount: reset-before +

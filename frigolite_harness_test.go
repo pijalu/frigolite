@@ -4283,6 +4283,12 @@ func TestSQLiteSuite(t *testing.T) {
 							registerTest1Functions(t, execDB)
 						case "runtime_var":
 							got := runtimeVars[step.Variable]
+							if step.Variable == "sqlite3_xferopt_count" {
+								// SQLITE_TEST's INSERT-transfer counter
+								// (insert4.test's xferopt probes): the value
+								// is the ENGINE counter, not a Tcl variable.
+								got = fmt.Sprint(execDB.engine.XferoptCount())
+							}
 							if diff := matchExpectation(got, step.Expect); diff != "" {
 								t.Errorf("runtime variable mismatch\\n  got: [%q]\\n  %s", got, diff)
 							}
@@ -4293,6 +4299,11 @@ func TestSQLiteSuite(t *testing.T) {
 							// list starts over, or the next callback append
 							// would see the whole history.
 							runtimeVars[step.Variable] = ""
+						case "xferopt_reset":
+							// `set ::sqlite3_xferopt_count 0` (insert4.test):
+							// zero SQLITE_TEST's transfer counter before the
+							// next probe reads it.
+							execDB.engine.ResetXferoptCount()
 						case "runtime_list":
 							// The body's value is a Tcl `list` over runtime
 							// values (conflict.test: `list $r0 $r1 $r2

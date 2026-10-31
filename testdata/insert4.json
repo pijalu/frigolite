@@ -16,6 +16,9 @@
       "name": "insert4-1.1",
       "steps": [
         {
+          "type": "xferopt_reset"
+        },
+        {
           "type": "exec",
           "sql": "DELETE FROM t1;\n    DELETE FROM t2;\n    INSERT INTO t2 VALUES(9,1);"
         },
@@ -179,6 +182,9 @@
         {
           "type": "exec",
           "sql": "INSERT INTO src VALUES(1,9)"
+        },
+        {
+          "type": "xferopt_reset"
         }
       ]
     },
@@ -220,6 +226,9 @@
         {
           "type": "exec",
           "sql": "INSERT INTO src VALUES(1,9)"
+        },
+        {
+          "type": "xferopt_reset"
         }
       ]
     },
@@ -261,6 +270,9 @@
         {
           "type": "exec",
           "sql": "INSERT INTO src VALUES(1,9)"
+        },
+        {
+          "type": "xferopt_reset"
         }
       ]
     },
@@ -302,6 +314,9 @@
         {
           "type": "exec",
           "sql": "INSERT INTO src VALUES(1,9)"
+        },
+        {
+          "type": "xferopt_reset"
         }
       ]
     },
@@ -343,6 +358,9 @@
         {
           "type": "exec",
           "sql": "INSERT INTO src VALUES(1,9)"
+        },
+        {
+          "type": "xferopt_reset"
         }
       ]
     },
@@ -384,6 +402,9 @@
         {
           "type": "exec",
           "sql": "INSERT INTO src VALUES(1,9)"
+        },
+        {
+          "type": "xferopt_reset"
         }
       ]
     },
@@ -425,6 +446,9 @@
         {
           "type": "exec",
           "sql": "INSERT INTO src VALUES(1,9)"
+        },
+        {
+          "type": "xferopt_reset"
         }
       ]
     },
@@ -466,6 +490,9 @@
         {
           "type": "exec",
           "sql": "INSERT INTO src VALUES(1,9)"
+        },
+        {
+          "type": "xferopt_reset"
         }
       ]
     },
@@ -507,6 +534,9 @@
         {
           "type": "exec",
           "sql": "INSERT INTO src VALUES(1,9)"
+        },
+        {
+          "type": "xferopt_reset"
         }
       ]
     },
@@ -548,6 +578,9 @@
         {
           "type": "exec",
           "sql": "INSERT INTO src VALUES(1,9)"
+        },
+        {
+          "type": "xferopt_reset"
         }
       ]
     },
@@ -589,6 +622,9 @@
         {
           "type": "exec",
           "sql": "INSERT INTO src VALUES(1,9)"
+        },
+        {
+          "type": "xferopt_reset"
         }
       ]
     },
@@ -630,6 +666,9 @@
         {
           "type": "exec",
           "sql": "INSERT INTO src VALUES(1,9)"
+        },
+        {
+          "type": "xferopt_reset"
         }
       ]
     },
@@ -671,6 +710,9 @@
         {
           "type": "exec",
           "sql": "INSERT INTO src VALUES(1,9)"
+        },
+        {
+          "type": "xferopt_reset"
         }
       ]
     },
@@ -712,6 +754,9 @@
         {
           "type": "exec",
           "sql": "INSERT INTO src VALUES(1,9)"
+        },
+        {
+          "type": "xferopt_reset"
         }
       ]
     },
@@ -753,6 +798,9 @@
         {
           "type": "exec",
           "sql": "INSERT INTO src VALUES(1,9)"
+        },
+        {
+          "type": "xferopt_reset"
         }
       ]
     },
@@ -827,6 +875,9 @@
       "name": "insert4-6.1",
       "steps": [
         {
+          "type": "xferopt_reset"
+        },
+        {
           "type": "exec",
           "sql": "CREATE INDEX t2_i2 ON t2(x, y COLLATE nocase); \n    CREATE INDEX t2_i1 ON t2(x ASC, y DESC);\n    CREATE INDEX t3_i1 ON t3(a, b);\n    INSERT INTO t2 SELECT * FROM t3;"
         },
@@ -840,6 +891,9 @@
     {
       "name": "insert4-6.2",
       "steps": [
+        {
+          "type": "xferopt_reset"
+        },
         {
           "type": "exec",
           "sql": "DROP INDEX t2_i2;\n    INSERT INTO t2 SELECT * FROM t3;"
@@ -855,6 +909,9 @@
       "name": "insert4-6.3",
       "steps": [
         {
+          "type": "xferopt_reset"
+        },
+        {
           "type": "exec",
           "sql": "DROP INDEX t2_i1;\n    CREATE INDEX t2_i1 ON t2(x ASC, y ASC);\n    INSERT INTO t2 SELECT * FROM t3;"
         },
@@ -868,6 +925,9 @@
     {
       "name": "insert4-6.4",
       "steps": [
+        {
+          "type": "xferopt_reset"
+        },
         {
           "type": "exec",
           "sql": "DROP INDEX t2_i1;\n    CREATE INDEX t2_i1 ON t2(x ASC, y COLLATE RTRIM);\n    INSERT INTO t2 SELECT * FROM t3;"
@@ -921,6 +981,9 @@
       "name": "insert4-7.1",
       "steps": [
         {
+          "type": "xferopt_reset"
+        },
+        {
           "type": "exec",
           "sql": "CREATE TABLE t7a(x INTEGER PRIMARY KEY); INSERT INTO t7a VALUES(123);\n      CREATE TABLE t7b(y INTEGER REFERENCES t7a);\n      CREATE TABLE t7c(z INT);  INSERT INTO t7c VALUES(234);\n      INSERT INTO t7b SELECT * FROM t7c;\n      SELECT * FROM t7b;",
           "expect": "234"
@@ -940,6 +1003,9 @@
     {
       "name": "insert4-7.3",
       "steps": [
+        {
+          "type": "xferopt_reset"
+        },
         {
           "type": "exec",
           "sql": "DELETE FROM t7b;\n      PRAGMA foreign_keys=ON;"
@@ -974,6 +1040,9 @@
       "name": "insert4-7.6",
       "steps": [
         {
+          "type": "xferopt_reset"
+        },
+        {
           "type": "exec",
           "sql": "DELETE FROM t7b; DELETE FROM t7c;\n      INSERT INTO t7c VALUES(123);\n      INSERT INTO t7b SELECT * FROM t7c;\n      SELECT * FROM t7b;",
           "expect": "123"
@@ -987,6 +1056,9 @@
           "type": "runtime_var",
           "variable": "sqlite3_xferopt_count",
           "expect": "0"
+        },
+        {
+          "type": "xferopt_reset"
         },
         {
           "type": "exec",
@@ -1200,8 +1272,15 @@
       "name": "insert4-10.2",
       "steps": [
         {
+          "type": "xferopt_reset"
+        },
+        {
           "type": "exec",
-          "sql": "INSERT INTO x SELECT * FROM t8",
+          "sql": "INSERT INTO x SELECT * FROM t8"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
           "expect": "1"
         }
       ]
@@ -1214,8 +1293,15 @@
           "sql": "PRAGMA integrity_check"
         },
         {
+          "type": "xferopt_reset"
+        },
+        {
           "type": "exec",
-          "sql": "INSERT INTO x     SELECT * FROM t8",
+          "sql": "INSERT INTO x     SELECT * FROM t8"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
           "expect": "1"
         }
       ]
@@ -1228,8 +1314,15 @@
           "sql": "PRAGMA integrity_check"
         },
         {
+          "type": "xferopt_reset"
+        },
+        {
           "type": "exec",
-          "sql": "INSERT INTO x     SELECT * FROM t8  RETURNING *",
+          "sql": "INSERT INTO x     SELECT * FROM t8  RETURNING *"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
           "expect": "0"
         }
       ]
@@ -1255,12 +1348,30 @@
       ]
     },
     {
+      "name": "setup_17",
+      "steps": [
+        {
+          "type": "xferopt_reset"
+        }
+      ]
+    },
+    {
       "name": "insert4-12.1",
       "steps": [
         {
           "type": "catch",
           "sql": "INSERT INTO dest SELECT * FROM src;",
           "expect": "1 {CHECK constraint failed: c2}"
+        }
+      ]
+    },
+    {
+      "name": "insert4-12.2",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "0"
         }
       ]
     },
@@ -1284,12 +1395,30 @@
       ]
     },
     {
+      "name": "setup_18",
+      "steps": [
+        {
+          "type": "xferopt_reset"
+        }
+      ]
+    },
+    {
       "name": "insert4-12.5",
       "steps": [
         {
           "type": "catch",
           "sql": "INSERT INTO dest SELECT * FROM src;",
           "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "insert4-12.6",
+      "steps": [
+        {
+          "type": "runtime_var",
+          "variable": "sqlite3_xferopt_count",
+          "expect": "1"
         }
       ]
     },

@@ -283,6 +283,14 @@ func (e *DMLExecutor) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.C
 		e.ctx.PushCTEScope(s.CTEs)
 		defer e.ctx.PopCTEScope()
 	}
+	// The INSERT-transfer-optimization counter: SQLite's xferOptimization
+	// runs at plan time and increments sqlite3_xferopt_count when the
+	// decision passes — before the statement executes (insert.c:3235), so
+	// a later constraint failure does not undo the count (insert4.test's
+	// probes reset the counter and read it right after the statement).
+	if e.xferOptimizationApplies(tableEntry, colDefs, s) {
+		e.ctx.IncXferoptCount(1)
+	}
 	selectResult := e.ctx.ExecSelect(s.Select)
 	if selectResult.Error != nil {
 		return selectResult
