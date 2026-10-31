@@ -27,6 +27,21 @@ import (
 // that bake a value into one strip it (stripRuntimeValues).
 const runtimeValuePrefix = "\x00frt:"
 
+// Counter markers for SQLITE_TEST's statement/search counters. A `db status
+// step` / `db status sort` substitution inside a do_test body (where7's
+// count_steps_sort, where8's execsql_status) carries one of the first two
+// markers in the body value; a `::sqlite_search_count` read (where8's
+// execsql_status2) carries the third. The markers let the flagged statement
+// learn *how* its value embeds the counters — labeled (`scan N sort M`) or
+// bare (`N M`) — and whether the engine's search counter joins them. Like
+// the runtime value markers they are an internal representation and never
+// reach a fixture.
+const (
+	stmtStatusStepMarker  = "\x00st:step\x00"
+	stmtStatusSortMarker  = "\x00st:sort\x00"
+	searchCountMarker     = "\x00st:search\x00"
+)
+
 // runtimeValueMarker returns the marker of the value of a captured query.
 // The id identifies the statement whose rows the value holds.
 func runtimeValueMarker(id int) string {
@@ -56,7 +71,10 @@ func runtimeValueID(s string) (int, bool) {
 // are an internal representation: they must never appear in an expectation,
 // in a SQL statement or in a rendered result.
 func stripRuntimeValues(s string) string {
-	if !strings.Contains(s, runtimeValuePrefix) {
+	if !strings.Contains(s, runtimeValuePrefix) &&
+		!strings.Contains(s, stmtStatusStepMarker) &&
+		!strings.Contains(s, stmtStatusSortMarker) &&
+		!strings.Contains(s, searchCountMarker) {
 		return s
 	}
 	var b strings.Builder
@@ -75,7 +93,12 @@ func stripRuntimeValues(s string) string {
 		}
 		s = rest[end+1:]
 	}
-	return b.String()
+	// The counter markers carry no value of their own: drop them wherever
+	// they survived into a captured value.
+	out := strings.ReplaceAll(b.String(), stmtStatusStepMarker, "")
+	out = strings.ReplaceAll(out, stmtStatusSortMarker, "")
+	out = strings.ReplaceAll(out, searchCountMarker, "")
+	return out
 }
 
 // markRuntimeValue tags a captured statement with a runtime value id and

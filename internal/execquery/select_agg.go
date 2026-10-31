@@ -210,6 +210,9 @@ func (e *SelectEngine) sortRowsByOrderBy(orderBy []sql.OrderByTerm, rows []Row) 
 	// SQLITE_STMTSTATUS_SORT: one sorter invocation (SQLite emits OP_Sort
 	// for the GROUP BY / DISTINCT ordering).
 	e.ctx.RecordSortOp()
+	// The sorter's search-counter delta: OP_Sort -1, each successful
+	// delivery Next +1 (vdbe.c next_tail) — n rows net n-2, empty net -1.
+	e.ctx.IncSearchCount(sorterSearchDelta(len(rows)))
 	sorted := make([]Row, len(rows))
 	copy(sorted, rows)
 	sort.SliceStable(sorted, func(i, j int) bool {

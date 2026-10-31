@@ -69,6 +69,16 @@ type Engine struct {
 	fullScanSteps int64
 	sortOps       int64
 
+	// searchCount mirrors SQLITE_TEST's sqlite3_search_count (vdbe.c): +1 at
+	// each index seek (OP_SeekLT/LE/GE/GT) and each successful OP_Next /
+	// OP_Prev / OP_Rewind / OP_Last positioning, +1 per deferred table-row
+	// fetch (vdbeaux.c sqlite3VdbeFinishMoveto), −1 per sorter open
+	// (OP_Sort, recovered +1 by its Rewind fall-through when rows exist).
+	// Unlike the stmt-status counters it is process-global until the test
+	// resets it (`set ::sqlite_search_count 0`, where8.test's
+	// execsql_status2).
+	searchCount int64
+
 	// tempBtreeOpen mirrors SQLite's lazy aDb[1].pBt creation: the temp
 	// database starts closed and "opens" the first time anything addresses
 	// the temp schema (PRAGMA temp.<...>, CREATE TEMP TABLE, ...).

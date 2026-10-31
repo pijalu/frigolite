@@ -191,3 +191,44 @@ do_test 2.1.2 { droptrigger_reopen_db; db eval {DROP TRIGGER tr1; INSERT INTO t1
 		t.Fatalf("no runtime_var_reset emitted: %#v", i.Stmts())
 	}
 }
+
+// TestDBStatusBareStyleAndSearchCount pins where8.test's helper shapes:
+// execsql_status concatenates the counters bare (no "scan"/"sort" labels →
+// statusStyle "bare") and execsql_status2 additionally resets and appends
+// SQLITE_TEST's search counter (searchCount). The labeled helper
+// (count_steps_sort, where7) keeps the default render.
+func TestDBStatusBareStyleAndSearchCount(t *testing.T) {
+	i := NewInterp()
+	script := `proc execsql_status {sql {db db}} {
+  set result [uplevel $db eval [list $sql]]
+  concat $result [db status step] [db status sort]
+}
+proc execsql_status2 {sql {db db}} {
+  set ::sqlite_search_count 0
+  set result [uplevel [list execsql_status $sql $db]]
+  concat $result $::sqlite_search_count
+}
+proc count_steps_sort {sql} {
+  set r [lsort -integer [db eval $sql]]
+  return "$r scan [db status step] sort [db status sort]"
+}
+do_test where8-1.9 { execsql_status {SELECT c FROM t1 WHERE a = 1 OR b = 'three' ORDER BY rowid} } {I III 0 1}
+do_test where8-1.2 { execsql_status2 {SELECT c FROM t1 WHERE a = 1 OR b = 'nine'} } {I IX 0 0 6}
+do_test where7-2.2.1 { count_steps_sort {SELECT a FROM t1} } {1 2 3 scan 0 sort 0}`
+	if err := i.Execute(script); err != nil {
+		t.Fatal(err)
+	}
+	stmts := i.Stmts()
+	if len(stmts) != 3 {
+		t.Fatalf("captured %d statements, want 3: %#v", len(stmts), stmts)
+	}
+	if !stmts[0].StmtStatus || stmts[0].StatusStyle != "bare" || stmts[0].SearchCount {
+		t.Fatalf("execsql_status = %#v, want bare style without the search counter", stmts[0])
+	}
+	if !stmts[1].StmtStatus || stmts[1].StatusStyle != "bare" || !stmts[1].SearchCount {
+		t.Fatalf("execsql_status2 = %#v, want bare style with the search counter", stmts[1])
+	}
+	if !stmts[2].StmtStatus || stmts[2].StatusStyle != "" || stmts[2].SearchCount {
+		t.Fatalf("count_steps_sort = %#v, want the default labeled style", stmts[2])
+	}
+}

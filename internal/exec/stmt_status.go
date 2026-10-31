@@ -60,3 +60,26 @@ func (e *Engine) ResetStmtStatus() {
 	e.fullScanSteps = 0
 	e.sortOps = 0
 }
+
+// IncSearchCount adds n to the search counter (SQLITE_TEST's
+// sqlite3_search_count). The increments mirror the VDBE opcodes: +1 per
+// OP_SeekLT/LE/GE/GT, OP_SeekRowid is NOT counted (its moveto is direct);
+// +1 per successful OP_Next/OP_Prev/OP_Rewind/OP_Last positioning (the
+// shared next_tail); +1 per deferred table-row fetch
+// (sqlite3VdbeFinishMoveto); −1 per OP_Sort/OP_SorterSort open (OP_Sort
+// falls through into Rewind, which recovers +1 when the sorter is
+// non-empty).
+func (e *Engine) IncSearchCount(n int64) {
+	e.searchCount += n
+}
+
+// ResetSearchCount zeroes the search counter (where8.test's
+// execsql_status2 does `set ::sqlite_search_count 0` before each probe).
+func (e *Engine) ResetSearchCount() {
+	e.searchCount = 0
+}
+
+// SearchCount returns the current search counter without resetting it.
+func (e *Engine) SearchCount() int64 {
+	return e.searchCount
+}

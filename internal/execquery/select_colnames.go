@@ -596,6 +596,10 @@ func (e *SelectEngine) sortRowsWithMaps(result *Result, orderBy []sql.OrderByTer
 	}
 	if !delivered {
 		e.ctx.RecordSortOp()
+		// SQLITE_TEST's search counter: OP_Sort decrements it (vdbe.c:6349)
+		// and each successful OP_SorterNext/OP_Next delivery re-increments
+		// (next_tail) — n sorted rows net n-2, an empty sorter net -1.
+		e.ctx.IncSearchCount(sorterSearchDelta(n))
 	}
 	if n <= 1 {
 		return nil

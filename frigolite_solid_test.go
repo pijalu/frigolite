@@ -28,6 +28,7 @@ var internalLayers = map[string]int{
 	"github.com/pijalu/frigolite/internal/quota":          0, // quota layer (test_quota.c port; leaf utility)
 	"github.com/pijalu/frigolite/internal/value":          0, // value comparison
 	"github.com/pijalu/frigolite/internal/auth":           0, // authorization (no internal deps)
+	"github.com/pijalu/frigolite/internal/normalize":      0, // SQL normalizer (normalize.c port; no internal deps)
 	"github.com/pijalu/frigolite/internal/storage":        1, // file format
 	"github.com/pijalu/frigolite/internal/pager":          2, // page cache
 	"github.com/pijalu/frigolite/internal/btree":          3, // B-tree

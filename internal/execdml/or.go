@@ -1,6 +1,7 @@
 package execdml
 
 import (
+	"bytes"
 	"sort"
 	"strings"
 
@@ -84,6 +85,18 @@ func (e *DMLExecutor) planOrIndexScan(where sql.Expr, tableName string, colDefs 
 	return branches, true
 }
 
+// mergeOrRangeBounds folds src's missing bound(s) into dst (same column).
+// A bound already present stays: two lower bounds on one column cannot both
+// constrain the branch (the extractor only emits one comparison per sub).
+func mergeOrRangeBounds(dst, src *orRange) {
+	if src.Lower != nil && dst.Lower == nil {
+		dst.Lower, dst.LowerInclusive = src.Lower, src.LowerInclusive
+	}
+	if src.Upper != nil && dst.Upper == nil {
+		dst.Upper, dst.UpperInclusive = src.Upper, src.UpperInclusive
+	}
+}
+
 // collectOrConstraintTerms splits AND terms into the single OR term and the
 // constant equality constraints from the non-OR conjuncts.
 func (e *DMLExecutor) collectOrConstraintTerms(andTerms []sql.Expr, outerCols map[string]bool) ([]orConstraint, sql.Expr, int) {
@@ -114,11 +127,18 @@ func (e *DMLExecutor) bestIndexForOrBranch(term sql.Expr, outerCols map[string]b
 		}
 	}
 	// A range constraint on a column serves the branch too: SQLite scans the
-	// index over the range ("SEARCH t2 USING INDEX t2d (d>? AND d<?)").
+	// index over the range ("SEARCH t2 USING INDEX t2d (d>? AND d<?)"). Two
+	// bounds on one column (a>=4 AND a<=6) merge into ONE branch — SQLite's
+	// plan renders a single combined range, and separate branches would both
+	// over-scan.
 	branchRange := make(map[string]*orRange)
 	for _, sub := range splitAndTerms(term) {
 		if rng, ok := e.extractRange(sub, outerCols); ok {
-			branchRange[rng.Col] = rng
+			if prev, exists := branchRange[rng.Col]; exists {
+				mergeOrRangeBounds(prev, rng)
+			} else {
+				branchRange[rng.Col] = rng
+			}
 		}
 	}
 	if len(branchCols) == 0 && len(branchRange) == 0 {
@@ -200,7 +220,7 @@ func (e *DMLExecutor) extractRange(expr sql.Expr, outerCols map[string]bool) (*o
 			if !ok {
 				return nil, false
 			}
-			return &orRange{Col: col, Lower: low, LowerInclusive: true, Upper: high, UpperInclusive: false, ApplyAffinity: false}, true
+			return &orRange{Col: col, Lower: low, LowerInclusive: true, Upper: high, UpperInclusive: false, ApplyAffinity: false, LikeGlob: true}, true
 		case ">", ">=", "<", "<=":
 			col, ok := columnRefName(v.Left)
 			var bound interface{}
@@ -626,10 +646,31 @@ func (e *DMLExecutor) execSelectWithOrPlan(s *sql.SelectStmt, tableEntry *schema
 	// Pass 1: scan the table once, collecting for every branch the rowids of
 	// rows whose prefix columns match, along with the index key values used
 	// to reproduce the index scan order.
-	matches := e.collectOrBranchMatches(cursor, branches, tableEntry, colDefs, colIndex)
+	matches, beyond := e.collectOrBranchMatches(cursor, branches, tableEntry, colDefs, colIndex)
 
 	// Union the rowids in branch scan order, deduplicating.
 	ordered := unionBranchRowIDs(matches)
+
+	// The search counter for the plan SQLite would run (its MULTI-INDEX OR
+	// walks each branch's index): one seek per branch, one successful Next
+	// per consumed entry except the branch range's EOF step, one deferred
+	// row fetch per emitted row, and a second (blob-pass) seek for each
+	// LIKE/GLOB branch (vdbe.c:4973, 6530; wherecode.c's LIKE loop).
+	searchDelta := int64(len(ordered))
+	for bi, br := range branches {
+		searchDelta++ // the branch seek
+		if n := len(matches[bi]); n > 0 {
+			nexts := int64(n)
+			if !beyond[bi] {
+				nexts-- // the branch's last Next steps to EOF and fails
+			}
+			searchDelta += nexts
+		}
+		if br.Range != nil && br.Range.LikeGlob {
+			searchDelta++ // the blob-pass seek of the LIKE-optimization loop
+		}
+	}
+	e.ctx.IncSearchCount(searchDelta)
 
 	// Pass 2: fetch the matching rows in order and apply the full WHERE as a
 	// safety filter (the index prefixes cover only part of the predicate).
@@ -663,8 +704,12 @@ type branchMatch struct {
 
 // collectOrBranchMatches scans the table once, collecting for every branch the
 // rowids of rows whose prefix columns match, plus their index key values.
-func (e *DMLExecutor) collectOrBranchMatches(cursor *btree.Cursor, branches []orBranchPlan, tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int) [][]branchMatch {
+func (e *DMLExecutor) collectOrBranchMatches(cursor *btree.Cursor, branches []orBranchPlan, tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int) ([][]branchMatch, []bool) {
 	matches := make([][]branchMatch, len(branches))
+	// beyond[bi]: some row's key on the branch's leading column sorts after
+	// the branch's bound — SQLite's Next would step onto that boundary
+	// entry (successfully) before the bound check exits the loop.
+	beyond := make([]bool, len(branches))
 	for {
 		cell, err := cursor.ReadCell()
 		if err != nil || cell == nil {
@@ -681,12 +726,132 @@ func (e *DMLExecutor) collectOrBranchMatches(cursor *btree.Cursor, branches []or
 		}
 		e.matchRowAgainstBranches(rec, cell.RowID, string(cell.Payload), branches, colDefs, colIndex, matches)
 
+		row := e.ctx.BuildRowMap(rec, colDefs, cell.RowID)
+		for bi, br := range branches {
+			if valueSortsAfterBranchBound(rowValueForBranch(row, br), br) {
+				beyond[bi] = true
+			}
+		}
+
 		ok, err := cursor.Next()
 		if err != nil || !ok {
 			break
 		}
 	}
-	return matches
+	return matches, beyond
+}
+
+// rowValueForBranch returns the row's value on the branch's leading index
+// column (the range column, else the first prefix column).
+func rowValueForBranch(row map[string]interface{}, br orBranchPlan) interface{} {
+	col := ""
+	if br.Range != nil {
+		col = br.Range.Col
+	} else if len(br.Prefix) > 0 {
+		col = br.Prefix[0].Col
+	}
+	if col == "" {
+		return nil
+	}
+	return util.UnwrapColumnValue(row[col])
+}
+
+// valueSortsAfterBranchBound reports whether v sorts after the branch's
+// upper scope in index order (NULL < numbers < text < blobs): such an entry
+// is the successful Next step SQLite takes before its bound check fails.
+// An eq-prefix branch's scope is "not after the eq value".
+func valueSortsAfterBranchBound(v interface{}, br orBranchPlan) bool {
+	var bound interface{}
+	inclusive := false
+	if br.Range != nil {
+		if br.Range.Upper == nil {
+			return false // open-ended: entries never exit via the bound
+		}
+		bound, inclusive = br.Range.Upper, br.Range.UpperInclusive
+	} else if len(br.Prefix) > 0 {
+		bound, inclusive = br.Prefix[0].Val, true
+	} else {
+		return false
+	}
+	cmp := indexValueOrder(v, bound)
+	if inclusive {
+		return cmp > 0
+	}
+	return cmp >= 0
+}
+
+// indexValueOrder compares two SQL values by storage-class rank then value
+// (NULL < numeric < text < blob; BINARY within text/blob).
+func indexValueOrder(a, b interface{}) int {
+	ra, rb := storageClassRank(a), storageClassRank(b)
+	if ra != rb {
+		return ra - rb
+	}
+	switch ra {
+	case 1: // numeric
+		af, aok := toFloatForOrder(a)
+		bf, bok := toFloatForOrder(b)
+		if !aok || !bok {
+			return 0
+		}
+		switch {
+		case af < bf:
+			return -1
+		case af > bf:
+			return 1
+		}
+		return 0
+	case 2, 3: // text / blob
+		as, aok := toStringForOrder(a)
+		bs, bok := toStringForOrder(b)
+		if !aok || !bok {
+			return 0
+		}
+		return bytes.Compare([]byte(as), []byte(bs))
+	}
+	return 0
+}
+
+// storageClassRank orders NULL=0, numeric=1, text=2, blob=3 (index order).
+func storageClassRank(v interface{}) int {
+	switch x := v.(type) {
+	case nil:
+		return 0
+	case int64, float64, int, float32:
+		return 1
+	case string:
+		_ = x
+		return 2
+	case []byte:
+		return 3
+	}
+	return 2
+}
+
+// toFloatForOrder extracts a float from a numeric value for ordering.
+func toFloatForOrder(v interface{}) (float64, bool) {
+	switch x := v.(type) {
+	case int64:
+		return float64(x), true
+	case float64:
+		return x, true
+	case int:
+		return float64(x), true
+	case float32:
+		return float64(x), true
+	}
+	return 0, false
+}
+
+// toStringForOrder extracts the bytes of a text/blob value for ordering.
+func toStringForOrder(v interface{}) (string, bool) {
+	switch x := v.(type) {
+	case string:
+		return x, true
+	case []byte:
+		return string(x), true
+	}
+	return "", false
 }
 
 // matchRowAgainstBranches checks one decoded record against every OR branch

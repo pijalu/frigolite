@@ -231,6 +231,11 @@ type OrRange struct {
 	Upper          interface{}
 	UpperInclusive bool
 	ApplyAffinity  bool
+	// LikeGlob marks a range synthesized from a LIKE/GLOB prefix: SQLite
+	// serves it with a TWO-pass loop (strings, then blobs — wherecode.c's
+	// "second pass of a LIKE-optimization loop"), and the second pass
+	// contributes its own seek to the search counter.
+	LikeGlob bool
 }
 
 // OrBranchPlan is one OR term of an OR-index plan: the index whose leading

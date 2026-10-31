@@ -36,6 +36,8 @@ type TestStep struct {
 	ResultAll         bool              `json:"resultAll,omitempty"`
 	ResultRows        bool              `json:"resultRows,omitempty"`
 	StmtStatus        bool              `json:"stmtStatus,omitempty"`
+	StatusStyle       string            `json:"statusStyle,omitempty"` // "bare" renders the counters as "N M" (where8's execsql_status)
+	SearchCount       bool              `json:"searchCount,omitempty"` // reset + append SQLITE_TEST's search counter (where8's execsql_status2)
 	SortMarker        bool              `json:"sortMarker,omitempty"`
 	TransformProc     string            `json:"transformProc,omitempty"`
 	TransformBody     string            `json:"transformBody,omitempty"`
@@ -480,6 +482,8 @@ func stepFromStmt(s tcl.Stmt) TestStep {
 		ResultAll:         s.ResultAll,
 		ResultRows:        s.ResultRows,
 		StmtStatus:        s.StmtStatus,
+		StatusStyle:       s.StatusStyle,
+		SearchCount:       s.SearchCount,
 		SortMarker:        s.SortMarker,
 		TransformProc:     s.TransformProc,
 		TransformBody:     s.TransformBody,

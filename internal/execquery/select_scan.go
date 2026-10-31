@@ -445,9 +445,11 @@ func (e *SelectEngine) scanTableRowsWithSQL(cursor *btree.Cursor, s *sql.SelectS
 	// SQLITE_STMTSTATUS_FULLSCAN_STEP: the number of rows *advanced past* by
 	// this full table scan. SQLite reaches the first row with OP_Rewind (not
 	// counted) and increments the counter in OP_Next, so a scan of n rows
-	// counts n-1.
+	// counts n-1. The search counter (SQLITE_TEST's sqlite3_search_count)
+	// counts those same successful OP_Next positionings (vdbe.c next_tail).
 	if st.rowsVisited > 1 {
 		e.ctx.RecordFullScanSteps(int(st.rowsVisited) - 1)
+		e.ctx.IncSearchCount(int64(st.rowsVisited) - 1)
 	}
 	allRows := st.buildResultRows()
 	// PRAGMA reverse_unordered_selects: reverse the scan order of the
@@ -985,4 +987,15 @@ func (e *SelectEngine) compareColumnToLiteral(op string, colVal, litVal interfac
 		return applyComparisonOp(op, e.ctx.CompareValuesWithCollate(litVal, colVal))
 	}
 	return applyComparisonOp(op, e.ctx.CompareValuesWithCollate(colVal, litVal))
+}
+
+// sorterSearchDelta is SQLITE_TEST's search-counter delta of one sorter
+// invocation: OP_Sort/OP_SorterSort decrements the counter (vdbe.c:6349) and
+// each successful OP_SorterNext/OP_Next delivery re-increments it
+// (next_tail). A sorter over n rows therefore nets n-2, an empty sorter -1.
+func sorterSearchDelta(n int) int64 {
+	if n <= 0 {
+		return -1
+	}
+	return int64(n) - 2
 }

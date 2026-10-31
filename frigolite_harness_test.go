@@ -172,6 +172,8 @@ type TestStep struct {
 	ResultAll            bool              `json:"resultAll,omitempty"`  // Tcl execsql/db eval yield the whole row
 	ResultRows           bool              `json:"resultRows,omitempty"` // the variable holds every row (a Tcl list of rows)
 	StmtStatus           bool              `json:"stmtStatus,omitempty"`
+	StatusStyle          string            `json:"statusStyle,omitempty"` // "bare" renders the counters as "N M" (where8's execsql_status); "" renders "scan N sort M" (where7)
+	SearchCount          bool              `json:"searchCount,omitempty"` // reset SQLITE_TEST's search counter before the query and append it after (where8's execsql_status2)
 	SortMarker           bool              `json:"sortMarker,omitempty"`
 	TransformProc        string            `json:"transformProc,omitempty"`
 	TransformBody        string            `json:"transformBody,omitempty"`
@@ -3691,6 +3693,13 @@ func TestSQLiteSuite(t *testing.T) {
 								}
 								continue
 							}
+							// where8's execsql_status2 resets SQLITE_TEST's
+							// search counter (`set ::sqlite_search_count 0`)
+							// before the probe query runs; the appended value
+							// is read after it.
+							if step.SearchCount {
+								execDB.engine.ResetSearchCount()
+							}
 							result := execDB.Query(step.SQL)
 							if result.Error != nil {
 								t.Fatalf("Tcl result assignment query: %v\\n  sql: %s", result.Error, step.SQL)
@@ -3750,10 +3759,24 @@ func TestSQLiteSuite(t *testing.T) {
 								// (where7's count_steps_sort helper), so the
 								// rendered value carries them. The counters
 								// reset when read (sqlite3_stmt_status with
-								// the reset flag), so read them once.
-								statusSuffix = " scan " + fmt.Sprint(execDB.engine.StmtStatusFullScanStep()) +
-									" sort " + fmt.Sprint(execDB.engine.StmtStatusSort())
+								// the reset flag), so read them once. The
+								// bare style (where8's execsql_status)
+								// concatenates the counters without labels.
+								if step.StatusStyle == "bare" {
+									statusSuffix = " " + fmt.Sprint(execDB.engine.StmtStatusFullScanStep()) +
+										" " + fmt.Sprint(execDB.engine.StmtStatusSort())
+								} else {
+									statusSuffix = " scan " + fmt.Sprint(execDB.engine.StmtStatusFullScanStep()) +
+										" sort " + fmt.Sprint(execDB.engine.StmtStatusSort())
+								}
 								value = value + statusSuffix
+							}
+							if step.SearchCount {
+								// SQLITE_TEST's sqlite3_search_count (vdbe.c):
+								// reset before the probe (above), read after.
+								searchSuffix := " " + fmt.Sprint(execDB.engine.SearchCount())
+								statusSuffix = statusSuffix + searchSuffix
+								value = value + searchSuffix
 							}
 							if step.SortMarker {
 								// The testfixture's cksort helper (collate4.test)
@@ -3891,6 +3914,12 @@ func TestSQLiteSuite(t *testing.T) {
 							// neither executed nor asserted (173,795 steps in
 							// 768 families were dropped that way — the
 							// `btree01` "no such table: t1" cascade).
+							//
+							// where8's execsql_status2 resets the search
+							// counter before the probe query runs.
+							if step.SearchCount {
+								execDB.engine.ResetSearchCount()
+							}
 							res := execDB.Query(step.SQL)
 							if res.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", res.Error, step.SQL)
@@ -3910,8 +3939,20 @@ func TestSQLiteSuite(t *testing.T) {
 								// SQLite's statement-status counters, as the
 								// `db status step` / `db status sort` helper
 								// reads them (where7's count_steps helper).
-								got = got + " scan " + fmt.Sprint(execDB.engine.StmtStatusFullScanStep()) +
-									" sort " + fmt.Sprint(execDB.engine.StmtStatusSort())
+								// The bare style (where8's execsql_status)
+								// concatenates the counters without labels.
+								if step.StatusStyle == "bare" {
+									got = got + " " + fmt.Sprint(execDB.engine.StmtStatusFullScanStep()) +
+										" " + fmt.Sprint(execDB.engine.StmtStatusSort())
+								} else {
+									got = got + " scan " + fmt.Sprint(execDB.engine.StmtStatusFullScanStep()) +
+										" sort " + fmt.Sprint(execDB.engine.StmtStatusSort())
+								}
+							}
+							if step.SearchCount {
+								// SQLITE_TEST's sqlite3_search_count (vdbe.c):
+								// reset before the probe (above), read after.
+								got = got + " " + fmt.Sprint(execDB.engine.SearchCount())
 							}
 							if step.SortMarker {
 								// The testfixture's cksort helper (collate4.test)

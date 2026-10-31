@@ -48,6 +48,10 @@ type PreupdateEvent struct {
 // SOLID-12), trigger state (kept on the Engine for SOLID-13), and the
 // rowid/cache state the write path maintains.
 type DMLContext interface {
+	// IncSearchCount feeds SQLITE_TEST's sqlite3_search_count (see
+	// internal/exec stmt_status.go for the opcode-level semantics); the
+	// OR-plan executor adds its plan model's delta.
+	IncSearchCount(n int64)
 	// Statement execution (trigger bodies run Engine.Exec).
 	Exec(stmt sql.Stmt) *Result
 	// ExecDepth reports the current nested-Exec depth (Engine.Exec entry

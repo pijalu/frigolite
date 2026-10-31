@@ -78,6 +78,10 @@ type SelectContext interface {
 	// which the testfixture reads through `db status step` / `db status sort`.
 	RecordFullScanSteps(n int)
 	RecordSortOp()
+	// IncSearchCount feeds SQLITE_TEST's sqlite3_search_count (vdbe.c: +1
+	// per seek and per successful cursor positioning, −1 per sorter open);
+	// where8.test's execsql_status2 reads it as a fourth element.
+	IncSearchCount(n int64)
 	// Engine resources.
 	Functions() *function.Registry
 	Schema() *schema.Manager

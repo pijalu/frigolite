@@ -35,6 +35,8 @@ type Stmt struct {
 	ResultAll       bool              // query_assign keeps the whole row (Tcl execsql/db eval)
 	ResultRows      bool              // the variable holds every row (a Tcl list of rows)
 	StmtStatus      bool              // append the stmt-status counters ("scan N sort M") to the value
+	StatusStyle     string            // "" = labeled ("scan N sort M", where7's count_steps_sort); "bare" = bare counters ("N M", where8's execsql_status)
+	SearchCount     bool              // the body also reads ::sqlite_search_count (where8's execsql_status2): reset the counter before the query, append it after
 	Condition       string            // the step runs only when this Tcl expression is true
 	CatchResult     bool              // the step stores its success code in Variable (a `catch` result)
 	CatchMessage    string            // the variable the catch's error message is stored in
@@ -125,6 +127,8 @@ type Interp struct {
 	randSeeded        bool
 	runtimeID         int            // counter for the runtime value markers
 	runtimeVars       map[string]int // variable name -> the runtime query id it holds
+	statusFlagged     *Stmt          // the statement the last `db status` substitution flagged (render-style detection)
+	searchCountReset  bool           // a `set ::sqlite_search_count ...` ran in the current test body (where8's execsql_status2)
 }
 
 // TCL's random number generator (TclRand in tclBasic.c): a Park-Miller LCG
@@ -765,6 +769,15 @@ func (i *Interp) cmdSet(args []string, localVars map[string]string) error {
 		return nil
 	}
 	name := args[0]
+	// `set ::sqlite_search_count 0` (where8.test's execsql_status2) resets
+	// SQLITE_TEST's vdbe search counter before the probe query. The reset
+	// rides on the flagged query step (SearchCount: reset-before +
+	// append-after); no Tcl variable exists to store.
+	if name == "::sqlite_search_count" || name == "sqlite_search_count" {
+		i.searchCountReset = true
+		i.vars[""] = ""
+		return nil
+	}
 	if len(args) >= 2 {
 		i.setVar(name, args[1], localVars)
 		// A plain reset of a callback-recorded global (`set ::triggers_fired
@@ -1597,6 +1610,12 @@ func (i *Interp) setVar(name, val string, localVars map[string]string) {
 }
 
 func (i *Interp) getVar(name string, localVars map[string]string) (string, bool) {
+	// `::sqlite_search_count` (where8.test's execsql_status2) is SQLITE_TEST's
+	// vdbe search counter, not a Tcl variable: a read carries the search
+	// marker so the flagged query learns its body appends the engine counter.
+	if name == "::sqlite_search_count" || name == "sqlite_search_count" {
+		return searchCountMarker, true
+	}
 	// A "::name" reference targets the global namespace; foreach loop
 	// variables are captured as locals, so try the bare name as well.
 	if strings.HasPrefix(name, "::") {

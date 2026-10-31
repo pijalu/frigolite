@@ -21,6 +21,8 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
+          "searchCount": true,
           "expect": "I IX 0 0 6"
         }
       ]
@@ -34,6 +36,8 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
+          "searchCount": true,
           "expect": "IX X II 0 0 6"
         }
       ]
@@ -47,6 +51,8 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
+          "searchCount": true,
           "expect": "IX X III II 0 0 10"
         }
       ]
@@ -60,6 +66,8 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
+          "searchCount": true,
           "expect": "IX X V IV 0 0 10"
         }
       ]
@@ -73,6 +81,7 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
           "expect": "I III 0 1"
         }
       ]
@@ -86,6 +95,7 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
           "expect": "I III 0 1"
         }
       ]
@@ -99,6 +109,8 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
+          "searchCount": true,
           "expect": "II III IV IX 0 0 18"
         }
       ]
@@ -112,6 +124,8 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
+          "searchCount": true,
           "expect": "IX X VIII 0 0 7"
         }
       ]
@@ -125,6 +139,8 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
+          "searchCount": true,
           "expect": "IX VIII 0 0 7"
         }
       ]
@@ -138,6 +154,8 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
+          "searchCount": true,
           "expect": "IV V VI IX 0 0 10"
         }
       ]
@@ -151,6 +169,8 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
+          "searchCount": true,
           "expect": "I II III V 0 0 14"
         }
       ]
@@ -164,6 +184,8 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
+          "searchCount": true,
           "expect": "I II III V 9 0 9"
         }
       ]
@@ -177,6 +199,8 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
+          "searchCount": true,
           "expect": "II III IV V VI 0 1 18"
         }
       ]
@@ -190,6 +214,8 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
+          "searchCount": true,
           "expect": "II III IV V VI VII VIII IX X 0 1 33"
         }
       ]
@@ -203,6 +229,8 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
+          "searchCount": true,
           "expect": "II III IV IX 0 1 12"
         }
       ]
@@ -225,6 +253,7 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
           "expect": "4 2 9 0"
         }
       ]
@@ -238,6 +267,7 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
           "expect": "2 6 3 6 0 0"
         }
       ]
@@ -251,6 +281,7 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
           "expect": "2 2 3 3 0 0"
         }
       ]
@@ -264,6 +295,7 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
           "expect": "2 2 2 4 3 3 3 4 0 1"
         }
       ]
@@ -277,6 +309,7 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
           "expect": "2 2 2 4 3 3 3 4 0 1"
         }
       ]
@@ -290,6 +323,7 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
           "expect": "/2 2 2 4 0 [01]/"
         }
       ]
@@ -303,6 +337,7 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
           "expect": "2 2 2 4 3 3 3 4 0 1"
         }
       ]
@@ -316,6 +351,7 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
           "expect": "2 2 2 4 3 3 3 4 9 9 9 4 9 0"
         }
       ]
@@ -329,6 +365,7 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
           "expect": "1 3 5 10 2 0 0"
         }
       ]
@@ -342,6 +379,7 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
           "expect": "1 1 2 2 3 3 4 2 4 4 0 0"
         }
       ]
@@ -355,6 +393,7 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
           "expect": "1 1 2 2 3 3 4 2 4 4 9 0"
         }
       ]
@@ -368,6 +407,7 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
           "expect": "1 1 2 2 3 3 4 2 4 4 9 0"
         }
       ]
@@ -381,6 +421,7 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
           "expect": "IV V 9 0"
         }
       ]
@@ -394,6 +435,7 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
           "expect": "I I I I I I I I I I II II II II II II II II II II III III III III III 9 1"
         }
       ]
@@ -407,6 +449,7 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
           "expect": "1 1 2 2 3 3 4 2 4 4 0 0"
         }
       ]
@@ -420,6 +463,7 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
           "expect": "1 1 2 2 3 3 4 2 4 4 0 0"
         }
       ]
@@ -433,6 +477,7 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
           "expect": "1 1 2 2 3 3 4 2 4 4 0 0"
         }
       ]
@@ -446,6 +491,7 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
           "expect": "1 1 2 2 3 3 4 2 4 4 0 0"
         }
       ]
@@ -459,6 +505,7 @@
           "variable": "result",
           "resultAll": true,
           "stmtStatus": true,
+          "statusStyle": "bare",
           "expect": "1 {} I 2 four IV 3 {} IX 4 sixteen XVI 5 {} XXV 6 thirtysix XXXVI 7 fortynine XLIX 8 sixtyeight LXIV 9 eightyone LXXXIX 10 {} C 9 0"
         }
       ]

@@ -206,8 +206,17 @@ func (i *Interp) cmdDB(rawWords []rawWord, args []string, localVars map[string]s
 			}
 			return nil
 		}
-		if i.lastStmtIsStatusFlaggable(i.curTest) {
-			i.markStmtStatus(sub)
+		if i.markStmtStatus(sub) {
+			i.statusFlagged = &i.stmts[len(i.stmts)-1]
+			// The marker tells the flagged statement's style detection how
+			// the body value embeds the counters (where7 labels them,
+			// where8 concatenates them bare). sub is "status"; args[1] is
+			// the counter being read.
+			if len(args) >= 2 && args[1] == "sort" {
+				i.vars[""] = stmtStatusSortMarker
+			} else {
+				i.vars[""] = stmtStatusStepMarker
+			}
 		} else if len(args) >= 2 {
 			i.stmts = append(i.stmts, Stmt{Type: "db_status", SQL: args[1], TestName: i.curTest})
 		}
@@ -218,37 +227,50 @@ func (i *Interp) cmdDB(rawWords []rawWord, args []string, localVars map[string]s
 	return nil
 }
 
-// lastStmtIsStatusFlaggable reports whether the most recently captured
-// statement belongs to the given test and is a query whose rendered value can
-// carry the statement-status counters (shape (a) of `db status` above).
-func (i *Interp) lastStmtIsStatusFlaggable(testName string) bool {
-	if len(i.stmts) == 0 {
-		return false
-	}
-	last := i.stmts[len(i.stmts)-1]
-	if last.TestName != testName {
-		return false
-	}
-	switch last.Type {
-	case "query", "query_assign", "query2":
-		return true
-	}
-	return false
-}
-
 // markStmtStatus flags the most recently captured statement so the harness
 // appends the statement-status counters to its rendered value. The helper
 // (`db status step` / `db status sort`) runs right after the query it
-// describes, so the last captured statement is the right one.
-func (i *Interp) markStmtStatus(kind string) {
+// describes, so the last captured statement is the right one — and it must
+// belong to the current test (a stale statement from an earlier test must
+// not be flagged). It reports whether a statement was actually flagged.
+func (i *Interp) markStmtStatus(kind string) bool {
 	if len(i.stmts) == 0 {
-		return
+		return false
 	}
 	last := &i.stmts[len(i.stmts)-1]
+	if last.TestName != i.curTest {
+		return false
+	}
 	if last.Type != "query" && last.Type != "query_assign" && last.Type != "query2" {
-		return
+		return false
 	}
 	last.StmtStatus = true
+	return true
+}
+
+// applyStatusStyle reads the counter markers out of a do_test body value and
+// configures the statement the `db status` substitutions flagged: the render
+// style of the status suffix (bare `N M` when the body concatenated the
+// counters without where7's "scan"/"sort" labels) and whether the engine's
+// search counter joins them (::sqlite_search_count was read, or reset, in
+// the body — where8.test's execsql_status2 resets it before the probe).
+func (i *Interp) applyStatusStyle(bodyValue string) {
+	stmt := i.statusFlagged
+	i.statusFlagged = nil
+	resetPending := i.searchCountReset
+	i.searchCountReset = false
+	if stmt == nil {
+		return
+	}
+	if strings.Contains(bodyValue, searchCountMarker) || resetPending {
+		stmt.SearchCount = true
+	}
+	if strings.Contains(bodyValue, " scan "+stmtStatusStepMarker+" sort "+stmtStatusSortMarker) {
+		return // where7's count_steps_sort: the labeled render is the default
+	}
+	if strings.Contains(bodyValue, stmtStatusStepMarker) || strings.Contains(bodyValue, stmtStatusSortMarker) {
+		stmt.StatusStyle = "bare"
+	}
 }
 
 func (i *Interp) dbCollation(args []string) error {
@@ -801,6 +823,11 @@ func (i *Interp) cmdDoTest(rawWords []rawWord, localVars map[string]string) erro
 
 	i.curTest = name
 
+	// Fresh per-test status state: the `db status` substitutions and the
+	// ::sqlite_search_count reset only describe THIS body's flagged query.
+	i.statusFlagged = nil
+	i.searchCountReset = false
+
 	// Execute the body — this captures SQL statements
 	if bodyWord.Braced {
 		i.execScript(bodyWord.Text, localVars)
@@ -808,6 +835,13 @@ func (i *Interp) cmdDoTest(rawWords []rawWord, localVars map[string]string) erro
 		body, _ := i.evalWord(bodyWord, localVars)
 		i.execScript(body, localVars)
 	}
+
+	// where8.test's execsql_status / execsql_status2 shapes: the body value's
+	// counter markers decide how the harness renders the flagged statement's
+	// status suffix — bare `N M` (no "scan"/"sort" labels) — and whether it
+	// also appends SQLITE_TEST's search counter (execsql_status2 resets it
+	// before the probe: `set ::sqlite_search_count 0`).
+	i.applyStatusStyle(i.vars[""])
 
 	// C-API lifecycle tests compare result codes plus DB changes. Keep the exact
 	// Tcl result expression as a runtime assertion after the ordered operations.
