@@ -177,21 +177,28 @@ func (ev *Evaluator) evalBetween(v *sql.Between, row Row) (interface{}, error) {
 	if opIsRow || loIsRow || hiIsRow {
 		return ev.evalBetweenRowValue(v, opRow, loRow, hiRow, opIsRow, loIsRow, hiIsRow)
 	}
-	if isSQLNull(low) || isSQLNull(high) {
-		// SQLite: any NULL bound makes the whole BETWEEN NULL.
-		return nil, nil
-	}
 	return ev.evalBetweenScalar(v, operand, low, high), nil
 }
 
-// evalBetweenScalar evaluates a scalar BETWEEN: operand >= low AND operand <=
-// high, with NOT BETWEEN negation.
+// evalBetweenScalar evaluates a scalar BETWEEN as SQLite lowers it
+// (expr.c's TK_BETWEEN case): `x >= low AND x <= high`. Each comparison is
+// NULL when either side is NULL, and the AND is Kleene — FALSE dominates
+// NULL, so a provably-false side makes the whole BETWEEN false even when the
+// other bound is NULL (`'' BETWEEN NULL AND 1` is false, not NULL; the
+// indexexpr2 8.x oracle probes). NOT BETWEEN negates the Kleene result.
 func (ev *Evaluator) evalBetweenScalar(v *sql.Between, operand, low, high interface{}) interface{} {
-	result := ev.ctx.CompareValuesWithCollate(operand, low) >= 0 && ev.ctx.CompareValuesWithCollate(operand, high) <= 0
-	if v.Negated {
-		result = !result
+	var cmpLow, cmpHigh interface{}
+	if !isSQLNull(operand) && !isSQLNull(low) {
+		cmpLow = boolToInt(ev.ctx.CompareValuesWithCollate(operand, low) >= 0)
 	}
-	return boolToInt(result)
+	if !isSQLNull(operand) && !isSQLNull(high) {
+		cmpHigh = boolToInt(ev.ctx.CompareValuesWithCollate(operand, high) <= 0)
+	}
+	result := kleeneAnd(cmpLow, cmpHigh)
+	if v.Negated && result != nil {
+		result = boolToInt(result != int64(1))
+	}
+	return result
 }
 
 // betweenResolveRows resolves subquery operands/bounds of a BETWEEN to their
