@@ -24,7 +24,7 @@ func (e *DMLExecutor) uniqueIndexColumns(tableName string) []uniqueIndexDef {
 		return defs
 	}
 	var result []uniqueIndexDef
-	for _, ctx := range e.ctx.Databases() {
+	for _, ctx := range e.databasesDeduped() {
 		result = append(result, e.uniqueIndexDefsIn(ctx, tableName)...)
 	}
 	// SQLite checks UNIQUE indexes newest-first (its table index list is
@@ -134,7 +134,7 @@ func (e *DMLExecutor) allTableIndexes(tableName string) []indexDef {
 		return e.atiDefs
 	}
 	var result []indexDef
-	for _, ctx := range e.ctx.Databases() {
+	for _, ctx := range e.databasesDeduped() {
 		result = append(result, e.indexDefsInCached(ctx, tableName)...)
 	}
 	e.atiName, e.atiStamp, e.atiDefs = tableName, stamp, result
@@ -323,3 +323,21 @@ func (e *DMLExecutor) rowMatchesIndexKey(rc *storage.Record, cl *storage.Cell, c
 // separate autoindex and their own rowid.
 
 // buildRowMapFromValues creates a column-name-to-value map from a values slice.
+
+// databasesDeduped returns the database contexts with duplicates removed:
+// the temp context is registered under both "TEMP" and "TEMPORARY" (and
+// appended to dbList), so an aggregate over Databases() would collect every
+// temp index twice — every temp INSERT wrote each index entry twice
+// (temptable2's integrity_check "wrong # of entries").
+func (e *DMLExecutor) databasesDeduped() []*DatabaseContext {
+	seen := make(map[*DatabaseContext]bool)
+	var out []*DatabaseContext
+	for _, ctx := range e.ctx.Databases() {
+		if ctx == nil || seen[ctx] {
+			continue
+		}
+		seen[ctx] = true
+		out = append(out, ctx)
+	}
+	return out
+}

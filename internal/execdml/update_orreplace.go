@@ -131,6 +131,14 @@ func (e *DMLExecutor) deleteOneConflictRow(tableEntry *schema.Entry, colDefs []s
 	if _, err := e.deleteRowCells(tableEntry, colDefs, cf.rowID, cf.values); err != nil {
 		return &Result{Error: err}
 	}
+	// Remove the conflicting row's index entries: REPLACE deletes the old
+	// row and its index entries must go with it (insert_replace.go's
+	// deleteReplaceConflictRow does the same — without this the secondary
+	// indexes keep a stale entry and integrity_check reports "wrong # of
+	// entries" — update2-4.1.4).
+	if err := e.maintainIndexesOnDeleteRowMaps(tableEntry, colDefs, []RowMap{oldRow}); err != nil {
+		return &Result{Error: err}
+	}
 	deletedByConflict[conflictSeenKey(tableEntry, colDefs, cf.rowID, cf.values)] = true
 	e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
 	// Fire the preupdate hook for the deleted conflicting row.

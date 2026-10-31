@@ -498,3 +498,27 @@ The per-family statement budget hides them: the conversion looked fine, the
 - `PRAGMA foreign_keys` gates xferOptimization's FK check (insert.c reads
   db->flags & SQLITE_ForeignKeys at plan time); column-level REFERENCES
   count as FK constraints.
+
+## Integrity-check leak root causes 2026-10-31b (for the main track)
+
+- TEMP schema double-registration: Engine.databases registers the temp
+  context under BOTH "TEMP" and "TEMPORARY" (engine.go ~973). Any aggregate
+  that walks Databases() (allTableIndexes, insert_index_defs.go:138;
+  uniqueIndexColumns, :27) yields each temp index TWICE — every temp-table
+  INSERT writes each index entry twice (verified: 3-row temp table → 6
+  identical index cells). Fix: dedupe contexts by pointer in the aggregate
+  loops (or register one canonical key).
+- UPDATE OR REPLACE leak: deleteOneConflictRow (update_orreplace.go:124)
+  deletes the conflict row's table cell but never calls
+  maintainIndexesOnDeleteRowMaps — unlike the INSERT-side
+  deleteReplaceConflictRow (insert_replace.go:380, which does). The stale
+  entries surface as "wrong # of entries in index ..." (update2-4.1.4:
+  table 6 rows vs 7 index entries). Fix: mirror insert_replace.go:380-382
+  after the deleteRowCells call (oldRow already carries cf.rowID).
+- WITHOUT ROWID secondary-index tails disagree across write paths: INSERT
+  appends the insert-time rowid (maintainIndexesOnInsert → append(values,
+  rowID)), while DELETE addresses [key..., 0] (scan cells have no rowid)
+  and DDL backfill writes [key..., 0]. Until the tail is unified (the
+  SQLite-faithful layout is [key..., PK columns] on every path),
+  integrity_check exempts WR secondary indexes from the count comparison
+  and the presence pass (delete4-4.11, without_rowid1-6.x stay green).

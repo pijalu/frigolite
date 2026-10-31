@@ -13,7 +13,6 @@ import (
 	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/util"
 	"github.com/pijalu/frigolite/internal/vtab"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -59,21 +58,6 @@ func (e *Engine) execPragmaForeignKeyList(tableName string) *Result {
 	return &Result{Columns: cols, Rows: rows}
 }
 
-// execQuickCheck implements PRAGMA quick_check / integrity_check. Without an
-// argument it checks all tables; an integer argument limits the number of
-// errors reported; a table-name argument restricts the check to one table.
-// For each table row (in rowid order) it verifies NOT NULL columns, STRICT
-// types, CHECK constraints, and UNIQUE index keys, reporting violations as
-// separate rows (SQLite pragma.c integrityCheck):
-//
-//	"NULL value in T.C"            — NOT NULL column holds NULL
-//	"non-unique entry in index X"  — UNIQUE index key repeats
-//	"CHECK constraint failed in T" — stored row violates a CHECK
-//
-// The engine does not maintain secondary index btrees, so index uniqueness is
-// verified by grouping the table rows by index key: a key repeated across
-// multiple rows (with no NULL in a nullable key column) is a violation,
-// reported once per duplicate row.
 // unknownIndexCollation returns the first unregistered collation among the
 // key collations of every schema index (optionally restricted to the indexes
 // of one table), or "" when all resolve. integrity_check opens every index
@@ -139,75 +123,27 @@ func (e *Engine) quickCheckPreempt(colName string) *Result {
 	return nil
 }
 
+// execQuickCheck implements PRAGMA quick_check / integrity_check (the
+// legacy integrity_check-mode entry; the pragma mapping uses QuickCheckMode
+// to pass the quick/integrity mode through). Without an argument it checks
+// all tables; an integer argument limits the number of errors reported; a
+// table-name argument restricts the check to one table. For each table row
+// (in rowid order) it verifies NOT NULL columns, STRICT types, CHECK
+// constraints, and UNIQUE index keys, reporting violations as separate rows
+// (SQLite pragma.c integrityCheck):
+//
+//	"NULL value in T.C"            — NOT NULL column holds NULL
+//	"non-unique entry in index X"  — UNIQUE index key repeats
+//	"CHECK constraint failed in T" — stored row violates a CHECK
+//
+// Index uniqueness is verified by grouping the table rows by index key: a
+// key repeated across multiple rows (with no NULL in a nullable key column)
+// is a violation, reported once per duplicate row. The index b-trees
+// themselves are verified separately — entry counts (both pragmas) and
+// per-row entry presence (integrity_check only) — see
+// pragma_integrity_index.go.
 func (e *Engine) execQuickCheck(tableName string) *Result {
-	limit, arg := quickCheckParseArg(tableName)
-
-	var rows [][]interface{}
-	colName := "integrity_check"
-	if early := e.quickCheckPreempt(colName); early != nil {
-		return early
-	}
-	// integrity_check opens every index and resolves each index key's
-	// collation at prepare time (pragma.c integrityCheck → build.c
-	// sqlite3LocateCollSeq): an index whose key collation is not registered
-	// fails the check with "no such collation sequence: NAME"
-	// (collate3-1.6.3/1.7.3/3.8). Tables whose declared collations appear in
-	// no index keep passing (verified against SQLite 3.53).
-	if unknown := e.unknownIndexCollation(arg); unknown != "" {
-		return &Result{Error: fmt.Errorf("no such collation sequence: %s", unknown)}
-	}
-	emit := func(msg string) {
-		if limit > 0 && len(rows) >= limit {
-			return
-		}
-		rows = append(rows, []interface{}{msg})
-	}
-	// PRAGMA integrity_check(<fts-table>): run the FTS integrity check.
-	// A clean FTS index emits "ok"; a drifted one reports "malformed inverted
-	// index for FTS4 table main.<t>" (fts3.c sqlite3Fts3IntegrityCheck via
-	// PRAGMA; fts4intck1/fts4check). A missing validation capability reports
-	// "unable to validate the inverted index for FTS4 table main.<t>: ...".
-	if e.quickCheckFTSResult(arg, emit) {
-		return &Result{Columns: []string{colName}, Rows: rows}
-	}
-	// Structural pass first: SQLite aborts the integrity check with
-	// SQLITE_CORRUPT when any reachable b-tree page is malformed.
-	ok := e.btreeStructureOK()
-	if !ok {
-		if os.Getenv("T33R_DEBUG") != "" {
-			fmt.Fprintf(os.Stderr, "T33R: quickcheck malformed at btreeStructureOK\n")
-		}
-		return &Result{Error: fmt.Errorf("database disk image is malformed")}
-	}
-	// Multi-line per-page diagnostics (Tree N page M cell K: 2nd reference
-	// to page X / Page Y: never used). Mirrors btree.c::checkTree /
-	// checkTreePage. corrupt2-5.1 asserts the "Tree 2 page 2 cell 0:
-	// 2nd reference to page 10 / Page 4: never used" diagnostic format.
-	// btree.c gates the page-usage audit behind !bPartial: a TABLE-SCOPED
-	// check (quick_check('t1')) skips it entirely — shared-root images from
-	// writable_schema experiments report orphan pages only on the full scan
-	// (strict2-1.2: scoped check is "ok", full check reports "Page 3/4:
-	// never used").
-	if arg == "" {
-		e.checkTreePage(emit)
-	}
-	if msg := e.checkFreelistCount(emit); msg != "" {
-		emit(msg)
-	}
-	// Index key shape vs the stored CREATE INDEX definition (corruptL-19.4:
-	// an index whose SQL was narrowed through writable_schema while its
-	// btree still holds the old-width keys). SQLite's integrity check reads
-	// every index entry through the index's column count and aborts with
-	// SQLITE_CORRUPT on a field-count mismatch.
-	if err := e.checkIndexKeyShape(); err != nil {
-		return &Result{Error: err}
-	}
-	e.quickCheckTables(arg, emit)
-
-	if len(rows) == 0 {
-		rows = append(rows, []interface{}{"ok"})
-	}
-	return &Result{Columns: []string{colName}, Rows: rows}
+	return e.execQuickCheckMode(tableName, false)
 }
 
 // quickCheckParseArg classifies the PRAGMA argument: a non-negative integer
@@ -372,10 +308,11 @@ func isReservedStatName(name string) bool {
 // (or the unnamed scan's FTS tables) it runs the FTS integrity check and
 // reports a drifted index as "malformed inverted index for FTS4 table
 // main.<t>" (fts3.c fts3IntegrityMethod via PRAGMA integrity_check;
-// fts4check 1.2.3).
-func (e *Engine) quickCheckTables(arg string, emit func(string)) {
+// fts4check 1.2.3). quick selects quick_check mode (no per-row index
+// presence pass).
+func (e *Engine) quickCheckTables(arg string, emit func(string), quick bool) {
 	if arg == "" {
-		e.quickCheckAllTables(emit)
+		e.quickCheckAllTables(emit, quick)
 		return
 	}
 	te, dbCtx, err := e.findTable(arg)
@@ -386,12 +323,12 @@ func (e *Engine) quickCheckTables(arg string, emit func(string)) {
 		e.quickCheckFTSReport(te, emit)
 		return
 	}
-	e.quickCheckTable(te, dbCtx, emit)
+	e.quickCheckTable(te, dbCtx, emit, quick)
 }
 
 // quickCheckAllTables runs the integrity scan over every database's tables
 // (the unnamed quick_check/integrity_check form).
-func (e *Engine) quickCheckAllTables(emit func(string)) {
+func (e *Engine) quickCheckAllTables(emit func(string), quick bool) {
 	for _, dbCtx := range e.databases {
 		entries, err := dbCtx.Schema.GetEntries(schema.TypeTable)
 		if err != nil {
@@ -405,7 +342,7 @@ func (e *Engine) quickCheckAllTables(emit func(string)) {
 				e.quickCheckFTSReport(te, emit)
 				continue
 			}
-			e.quickCheckTable(te, dbCtx, emit)
+			e.quickCheckTable(te, dbCtx, emit, quick)
 		}
 	}
 }
@@ -453,45 +390,66 @@ func (e *Engine) quickCheckFTSReport(te *schema.Entry, emit func(string)) {
 }
 
 // quickCheckTable scans a single table's rows and runs the per-row integrity
-// checks.
-func (e *Engine) quickCheckTable(te *schema.Entry, dbCtx *DatabaseContext, emit func(string)) {
+// checks. quick selects quick_check mode: the per-row index-presence pass
+// (integrityIndexTargetsFor / quickCheckIndexPresence) runs only for
+// integrity_check, mirroring pragma.c's !isQuick gate.
+func (e *Engine) quickCheckTable(te *schema.Entry, dbCtx *DatabaseContext, emit func(string), quick bool) {
 	colDefs := e.parseColumnDefs(te.Name, te.SQL)
 	uniqIdx := e.uniqueIndexColumns(te.Name)
+	withoutRowid := execdml.TableIsWithoutRowid(te.SQL)
+	targets := e.integrityIndexTargetsFor(dbCtx, te, colDefs, quick)
+	defer e.closeIntegrityIndexTargets(targets)
 	var seenKeys = map[string]int{}
 	tree := e.tableBTreePg(dbCtx.Pager, te.Name, te.RootPage, true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return
 	}
+	// ordinal is the 1-based scan position (pragma.c reg[7]): the "row %lld
+	// missing from index %s" number counts rows in rowid order, it is not
+	// the rowid itself.
+	var ordinal int64
 	for {
 		cell, err := cursor.ReadCell()
 		if err != nil || cell == nil {
 			break
 		}
-		rec, err := storage.DecodeRecord(cell.Payload)
-		if err != nil || rec == nil {
+		rec, ok := e.declaredOrderRecord(te, colDefs, cell, withoutRowid)
+		if !ok {
 			break
 		}
-		// WITHOUT ROWID rows live in an index btree whose records are stored
-		// PK-first (index_xinfo iField layout, see execdml/wr_order.go); the
-		// SELECT scan path permutes them back to declared order at decode time
-		// (execquery.RemapWRRecordToDeclared). The integrity scan must do the
-		// same or it misreads storage slot 0 as declared column 0 — e.g. for
-		// t1(b UNIQUE, a INT PRIMARY KEY) the on-disk record [1, NULL] (a=1,
-		// b=NULL) would be read as b=1, a=NULL and falsely report
-		// "NULL value in t1.a" (upsert1-600/610). Rowid tables need no remap.
-		if execdml.TableIsWithoutRowid(te.SQL) {
-			e.selectEngine.RemapWRRecordToDeclared(rec, te.SQL, colDefs)
-		}
+		ordinal++
 		row := buildRowMapFromValues(rec.Values, colDefs, cell.RowID)
 		if e.quickCheckRow(te, colDefs, uniqIdx, row, rec.Values, cell.RowID, seenKeys, emit) {
 			break
 		}
-		ok, err := cursor.Next()
+		e.quickCheckIndexPresence(targets, colDefs, rec.Values, row, cell.RowID, withoutRowid, ordinal, emit)
+		ok, err = cursor.Next()
 		if err != nil || !ok {
 			break
 		}
 	}
+}
+
+// declaredOrderRecord decodes one scan cell's record and, for WITHOUT ROWID
+// tables, permutes it back to declared column order: WR rows live in an
+// index btree whose records are stored PK-first (index_xinfo iField layout,
+// see execdml/wr_order.go); the SELECT scan path permutes them back to
+// declared order at decode time (execquery.RemapWRRecordToDeclared). The
+// integrity scan must do the same or it misreads storage slot 0 as declared
+// column 0 — e.g. for t1(b UNIQUE, a INT PRIMARY KEY) the on-disk record
+// [1, NULL] (a=1, b=NULL) would be read as b=1, a=NULL and falsely report
+// "NULL value in t1.a" (upsert1-600/610). Rowid tables need no remap.
+// ok=false when the record cannot be decoded (the scan stops).
+func (e *Engine) declaredOrderRecord(te *schema.Entry, colDefs []sql.ColumnDef, cell *storage.Cell, withoutRowid bool) (*storage.Record, bool) {
+	rec, err := storage.DecodeRecord(cell.Payload)
+	if err != nil || rec == nil {
+		return nil, false
+	}
+	if withoutRowid {
+		e.selectEngine.RemapWRRecordToDeclared(rec, te.SQL, colDefs)
+	}
+	return rec, true
 }
 
 // quickCheckRow runs the per-row integrity checks for execQuickCheck: UNIQUE

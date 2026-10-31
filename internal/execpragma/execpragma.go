@@ -132,6 +132,13 @@ type EngineState interface {
 	// Integrity pragmas.
 	QuickCheck(table string) *Result
 
+	// QuickCheckMode implements PRAGMA quick_check (quick=true) and
+	// PRAGMA integrity_check (quick=false): both share the structural walk
+	// and the index entry-count comparison, but quick_check skips the
+	// per-row index-presence pass (pragma.c "Omit the remaining tests for
+	// quick_check").
+	QuickCheckMode(table string, quick bool) *Result
+
 	// Encoding.
 	Encoding(schema, value string) *Result
 
@@ -366,10 +373,10 @@ var pragmaHandlers = map[string]Handler{
 
 	// --- Integrity pragmas (value is an optional arg) ---
 	"QUICK_CHECK": func(st EngineState, s *sql.PragmaStmt) *Result {
-		return st.QuickCheck(s.Value)
+		return st.QuickCheckMode(s.Value, true)
 	},
 	"INTEGRITY_CHECK": func(st EngineState, s *sql.PragmaStmt) *Result {
-		return st.QuickCheck(s.Value)
+		return st.QuickCheckMode(s.Value, false)
 	},
 
 	// --- Boolean engine-flag pragmas ---
