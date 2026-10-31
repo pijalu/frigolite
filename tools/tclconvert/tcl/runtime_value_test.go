@@ -259,3 +259,33 @@ func TestCatchLappendBodyValueEmitsRuntimeList(t *testing.T) {
 		t.Fatalf("runtime_list = %#v, want [$v $msg] with the joined expectation", l)
 	}
 }
+
+// TestStringLengthOverRuntimeRefEmitsDerivedRef pins memdb.test's signature
+// shape: `[string length $rx]` over a runtime value emits the derived
+// reference "$__strlen(rx)" (the harness resolves it as the runtime length)
+// instead of baking a conversion-time number.
+func TestStringLengthOverRuntimeRefEmitsDerivedRef(t *testing.T) {
+	i := NewInterp()
+	script := `proc signature {} {
+  set rx [db eval {SELECT x FROM t3}]
+  return [list [string length $rx] $rx]
+}
+do_test memdb-1.2.1-3 {
+  signature
+} {3 abc}`
+	if err := i.Execute(script); err != nil {
+		t.Fatal(err)
+	}
+	found := false
+	for _, s := range i.Stmts() {
+		if s.Type == "query_assign" && s.Expected != "" {
+			if s.Expected != "$__strlen(rx) $rx" {
+				t.Fatalf("expect = %q, want the derived refs", s.Expected)
+			}
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("no query_assign with an expectation captured")
+	}
+}

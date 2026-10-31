@@ -1968,6 +1968,18 @@ func expandTCLRuntimeVars(sql string, values map[string]string) string {
 			i = end
 			continue
 		}
+		// The converter's derived reference `$__strlen(name)` (memdb.test's
+		// signature proc: `[string length $rx]` over a query's rows)
+		// resolves as the RUNTIME length of the referenced variable.
+		if inner, ok := strings.CutPrefix(key, "__strlen("); ok && strings.HasSuffix(inner, ")") {
+			inner = strings.TrimSuffix(inner, ")")
+			inner = strings.TrimPrefix(inner, "::")
+			if v, ok := values[inner]; ok {
+				b.WriteString(strconv.Itoa(len(v)))
+				i = end
+				continue
+			}
+		}
 		// The converter emits "$name" placeholders for runtime values. Two
 		// adjacent placeholders ("$as$bs", from `[list "${as}${bs}"]`) are one
 		// parameter reference under Tcl's rules, because '$' is a valid
@@ -3149,7 +3161,13 @@ func TestSQLiteSuite(t *testing.T) {
 				}
 				lastSection = section
 
-				t.Run(tc.Name, func(t *testing.T) {
+				// A case name may carry runtime references (memdb.test's
+				// `memdb-1.$i.2-$cnt` names where cnt is the runtime row
+				// count): the setup steps of earlier cases stored the
+				// values, so expand the name when the case actually runs.
+				caseName := expandTCLRuntimeVars(tc.Name, runtimeVars)
+
+				t.Run(caseName, func(t *testing.T) {
 					if reason, ok := harnessSkipSubtests[base+"/"+tc.Name]; ok {
 						t.Skipf("harness artifact: %s", reason)
 						return

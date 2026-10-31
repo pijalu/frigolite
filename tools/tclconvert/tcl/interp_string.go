@@ -443,8 +443,30 @@ func parseTclReplaceIndex(spec string, length int) (int, bool) {
 
 // stringLength implements `string length str`.
 func stringLength(i *Interp, args []string) error {
+	// A length over a runtime value (memdb.test's signature proc:
+	// `[string length $rx]` where rx holds a query's rows) is only known
+	// when the harness runs: emit the derived reference form, which the
+	// harness's runtime-variable expansion resolves as the runtime length.
+	if _, name, ok := tclRuntimeRef(args[1]); ok && i.dynamicVars[name] {
+		i.vars[""] = "$__strlen(" + name + ")"
+		return nil
+	}
 	i.vars[""] = strconv.Itoa(len(args[1]))
 	return nil
+}
+
+// tclRuntimeRef reports the variable name when text is a plain "$name"
+// reference (no braces, no adjacent identifier characters).
+func tclRuntimeRef(text string) (string, string, bool) {
+	t := strings.TrimSpace(text)
+	if !strings.HasPrefix(t, "$") || len(t) < 2 {
+		return "", "", false
+	}
+	name := t[1:]
+	if name == "" || strings.ContainsAny(name, " \t\n[]") {
+		return "", "", false
+	}
+	return t, name, true
 }
 
 // stringToLower implements `string tolower str`.
