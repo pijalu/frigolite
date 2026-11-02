@@ -67,7 +67,7 @@ R14 §7's attribution; the F1 residue levers target exactly these lanes.
 | shared cache + unlock-notify | notify1 (123) | P-C shared-cache goal | M3 |
 | WAL snapshot API | snapshot (31), wal2/wal/walbak (182) | P7.WAL-G7 residue | M3 |
 | pager1 | pager1 (225) | probe malformed-class first | M3 |
-| UTF-16 | like3 (33) | P-C11 UTF-16 (last) | M3 |
+| UTF-16 | like3 (33) | **LANDED (M3.UTF16, 3689a29b6)** — the C contract is a BOUND PARAMETER: `$x` inside a braced script is bound from TCL scope, the bytes never pass through the tokenizer. The harness runtime-var substitution now renders non-trivial values as SQL string literals ('' doubled, invalid UTF-8 verbatim); identifier-shaped values stay bare (e_expr $tcl column-name use) and numbers stay bare. like3 32->0 (utf16le+utf16be runs both pass; engine is UTF-8-native, byte-identical pattern matches its row). BONUS: like 47->15 (same invalid-UTF-8 pattern class). Sweep-verified leaf-exact: all other families unchanged. **Residues (distinct units)**: like 15 = user-registered like() override on plain connections (like-8.x/12.x/13.x: resolve-time LIKE/GLOB/REGEXP operator->function conversion, resolve.c; our dispatch is OverloadProbe-gated = vtab-only); like2 6 = TCL octal escapes \173 in the converter subst (also fixes func-13.7 hello\000 -> "hello000" byte inaccuracy) | M3 |
 | planner tail | where (27), bestindex* residue (~85) | B4/B5 continuation | M2/M3 |
 | testgen drift | 25 packages | drift triage | queued |
 | perf indexed lanes | — | F1a (#5 WHERE-ref cache), F1d (findChildIndexForInsert decode diet) | **P** / M6-F1 |
