@@ -56,6 +56,12 @@ func (e *SelectEngine) selectIndexSeekRows(s *sql.SelectStmt, tableEntry *schema
 		return nil, nil, false, nil
 	}
 	defer idxTree.Close()
+	// The per-row offset sources are scan-local: a nested scan (a correlated
+	// subquery inside this row's evaluation) must not leave its rows'
+	// offsets behind for the enclosing scan's remaining expressions.
+	prevTable, prevTableOK, prevIndex, prevIndexOK := e.ctx.ScanRowOffsets()
+	prevIndexCols := e.ctx.ScanIndexColumns()
+	defer e.ctx.SetScanRowOffsets(prevTable, prevTableOK, prevIndex, prevIndexOK, prevIndexCols)
 	// SQLITE_TEST's sqlite3_search_count: +1 per OP_SeekLT/LE/GE/GT
 	// execution (vdbe.c:4973) — unconditional, the seek counts even when it
 	// finds nothing. A plan with neither a range start nor an equality
@@ -70,7 +76,7 @@ func (e *SelectEngine) selectIndexSeekRows(s *sql.SelectStmt, tableEntry *schema
 	}
 	needMaps := e.selectNeedsRowMapsCached(s, tableEntry.Name)
 	if e.indexSeekCoversQuery(s, colDefs, run.cols, needMaps) {
-		rows, maps, done := e.indexSeekCoveredRows(s, colDefs, run, cursor, needMaps, feed)
+		rows, maps, done := e.indexSeekCoveredRows(s, tableEntry, colDefs, run, cursor, needMaps, feed)
 		return rows, maps, done, nil
 	}
 	if e.indexSeekReversed(s) {
@@ -281,6 +287,10 @@ func (e *SelectEngine) indexSeekForwardRows(s *sql.SelectStmt, tableEntry *schem
 		if !inRange {
 			break
 		}
+		// sqlite_offset's index source: this entry's cell in the driving index
+		// b-tree (its key carries the indexed columns and the rowid).
+		off, offOK := cursor.PayloadOffset()
+		e.ctx.SetScanRowOffsets(0, false, off, offOK, indexOffsetCols(e.indexColumns(run.plan.index), true))
 		rows, maps, ok := e.indexSeekRowOutput(s, tree, colDefs, rowid, needMaps, feed)
 		if !ok {
 			return nil, nil, false
@@ -307,6 +317,7 @@ func (e *SelectEngine) indexSeekForwardRows(s *sql.SelectStmt, tableEntry *schem
 // scan direction, so the whole range is walked backwards.
 func (e *SelectEngine) indexSeekReverseRows(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, tree *btree.BTree, run *indexSeekRun, cursor *btree.Cursor, needMaps bool, feed *simpleAggFeed) ([][]interface{}, []RowMap, bool) {
 	var rowids []int64
+	var rowidOffsets []int64
 	for {
 		rowid, inRange, ok := indexSeekCurrentRowid(run, cursor)
 		if !ok {
@@ -316,6 +327,9 @@ func (e *SelectEngine) indexSeekReverseRows(s *sql.SelectStmt, tableEntry *schem
 			break
 		}
 		rowids = append(rowids, rowid)
+		off, offOK := cursor.PayloadOffset()
+		rowidOffsets = append(rowidOffsets, off)
+		_ = offOK
 		more, err := cursor.Next()
 		if err != nil {
 			return nil, nil, false
@@ -329,6 +343,7 @@ func (e *SelectEngine) indexSeekReverseRows(s *sql.SelectStmt, tableEntry *schem
 	var allRows [][]interface{}
 	var allRowMaps []RowMap
 	for i := len(rowids) - 1; i >= 0; i-- {
+		e.ctx.SetScanRowOffsets(0, false, rowidOffsets[i], true, indexOffsetCols(e.indexColumns(run.plan.index), true))
 		rows, maps, ok := e.indexSeekRowOutput(s, tree, colDefs, rowids[i], needMaps, feed)
 		if !ok {
 			return nil, nil, false
@@ -337,6 +352,20 @@ func (e *SelectEngine) indexSeekReverseRows(s *sql.SelectStmt, tableEntry *schem
 		allRowMaps = append(allRowMaps, maps...)
 	}
 	return allRows, allRowMaps, true
+}
+
+// indexOffsetCols builds the driving index's provided-column set for
+// sqlite_offset: the key columns plus the rowid (every rowid-table index
+// key ends with the rowid).
+func indexOffsetCols(indexCols []string, withRowid bool) map[string]bool {
+	set := make(map[string]bool, len(indexCols)+1)
+	for _, c := range indexCols {
+		set[strings.ToLower(c)] = true
+	}
+	if withRowid {
+		set["rowid"] = true
+	}
+	return set
 }
 
 // indexSeekCurrentRowid reads the cursor's current entry: the trailing rowid,
@@ -375,6 +404,13 @@ func (e *SelectEngine) indexSeekRowOutput(s *sql.SelectStmt, tree *btree.BTree, 
 	if !ok {
 		return nil, nil, false
 	}
+	// The row fetch positioned the table b-tree cursor: its cell payload
+	// offset is sqlite_offset's table source for this row.
+	if cursor != nil {
+		tOff, tOK := cursor.PayloadOffset()
+		_, _, iOff, iOK := e.ctx.ScanRowOffsets()
+		e.ctx.SetScanRowOffsets(tOff, tOK, iOff, iOK, e.ctx.ScanIndexColumns())
+	}
 	if !found {
 		// The index entry names a row the table b-tree no longer holds: the
 		// regular scan's table walk would not see it either.
@@ -395,4 +431,14 @@ func (e *SelectEngine) indexSeekRowOutput(s *sql.SelectStmt, tree *btree.BTree, 
 	}
 	rows, maps, ok := e.seekRowOutput(s, colDefs, srow, true, needMaps)
 	return rows, maps, ok
+}
+
+// indexOffsetAllCols marks every declared column (plus the rowid aliases a
+// WITHOUT ROWID table lacks) as provided by the driving index b-tree.
+func indexOffsetAllCols(colDefs []sql.ColumnDef) map[string]bool {
+	set := make(map[string]bool, len(colDefs)+1)
+	for i := range colDefs {
+		set[strings.ToLower(colDefs[i].Name)] = true
+	}
+	return set
 }

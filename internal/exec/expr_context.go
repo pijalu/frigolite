@@ -26,6 +26,27 @@ func (e *Engine) Functions() *function.Registry {
 // an opted-in OperatorOverloadCounter vtab feeds the statement).
 func (e *Engine) OverloadProbe() bool { return e.overloadProbe }
 
+// ScanRowOffsets implements ExprContext: the b-tree payload offsets captured
+// for the row currently under evaluation (sqlite_offset's OP_Offset sources).
+func (e *Engine) ScanRowOffsets() (table int64, tableOK bool, index int64, indexOK bool) {
+	return e.scanTableOffset, e.scanTableOffsetOK, e.scanIndexOffset, e.scanIndexOffsetOK
+}
+
+// ScanIndexColumns implements ExprContext: the columns the driving index
+// provided for the current row (nil when there is no index source).
+func (e *Engine) ScanIndexColumns() map[string]bool { return e.scanIndexCols }
+
+// SetScanRowOffsets records the current scan row's b-tree payload offsets.
+// execquery's scan paths call it once per row (before the row's WHERE/output
+// expressions evaluate) and once per scan boundary with the OUTER scan's
+// saved values, so a nested scan's rows never leak into the enclosing row's
+// remaining evaluation.
+func (e *Engine) SetScanRowOffsets(table int64, tableOK bool, index int64, indexOK bool, indexCols map[string]bool) {
+	e.scanTableOffset, e.scanTableOffsetOK = table, tableOK
+	e.scanIndexOffset, e.scanIndexOffsetOK = index, indexOK
+	e.scanIndexCols = indexCols
+}
+
 // TCLParam implements ExprContext: resolves $name / $::name parameters
 // against the TCL variable table (the tclvar registry mirrors the TCL
 // interpreter's variables, exactly the values sqlite3's TCL driver binds

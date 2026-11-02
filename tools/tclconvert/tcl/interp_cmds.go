@@ -53,6 +53,7 @@ func init() {
 		"split":       commandSplit,
 
 		"format":   commandFormat,
+		"binary":   commandBinary,
 		"strftime": commandStrftime,
 		"string":   commandString,
 		"regexp":   commandRegexp,
@@ -338,6 +339,21 @@ func commandSet(i *Interp, rawWords []rawWord, args []string, localVars map[stri
 			}
 		}
 	}
+	// `set F [loadhex test.db]` (func6.test) reads the database FILE into a
+	// hex string the record-verification UDFs compare against. The file's
+	// bytes exist only at run time: record a load_hex_file step and defer F
+	// to the harness's runtime variables.
+	if len(args) >= 2 && len(rawWords) >= 3 && strings.HasPrefix(args[0], "::") == false {
+		text := strings.TrimSpace(rawWords[2].Text)
+		if strings.HasPrefix(text, "[loadhex ") && strings.HasSuffix(text, "]") {
+			path := strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(text, "[loadhex "), "]"))
+			name := strings.TrimPrefix(args[0], "::")
+			i.stmts = append(i.stmts, Stmt{Type: "load_hex_file", SQL: path, Variable: name, TestName: i.curTest})
+			i.setVar(args[0], "$"+name, localVars)
+			i.vars[""] = "$" + name
+			return nil
+		}
+	}
 	// `set X [expr {...}]` where the expression reads runtime-captured values
 	// (rtree2: `set rc [expr {$t1 eq $t2}]`) cannot be evaluated at
 	// conversion time: capture it as a runtime expression step that also
@@ -549,6 +565,23 @@ func (i *Interp) rewriteEmbeddedQueryExpr(inner string) (string, bool) {
 	i.dynamicVars[name] = true
 	i.runtimeVars[name] = last.runtimeID
 	return inner[:spanStart] + "$" + name + inner[spanEnd:], true
+}
+
+// commandBinary implements the `binary encode hex <string>` form
+// (func6.test's loadhex/hexrecord build their comparisons with it): each
+// byte renders as two lowercase hex digits, exactly TCL's output.
+func commandBinary(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
+	if len(args) >= 3 && args[0] == "encode" && args[1] == "hex" {
+		const digits = "0123456789abcdef"
+		s := args[2]
+		out := make([]byte, 0, len(s)*2)
+		for k := 0; k < len(s); k++ {
+			out = append(out, digits[s[k]>>4], digits[s[k]&0x0f])
+		}
+		i.vars[""] = string(out)
+		return nil
+	}
+	return fmt.Errorf("unsupported binary form: %s", strings.Join(args, " "))
 }
 
 // commandUnset implements `unset var...`.
@@ -1638,6 +1671,11 @@ func rewriteCapExpr(expr string) string {
 func capabilityPresent(name string) bool {
 	switch strings.ToLower(name) {
 	case "utf16", "8_3_names":
+		return false
+	case "null_trim":
+		// SQLITE_ENABLE_NULL_TRIM is a non-default compile option: the
+		// standard build (and this engine) keeps trailing NULLs in records
+		// (func6.test's bNullTrim probes).
 		return false
 	}
 	return true

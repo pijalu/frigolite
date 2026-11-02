@@ -82,6 +82,17 @@ type ExprContext interface {
 	// should probe overridden like()/glob()/regexp() functions per TRUE
 	// operator evaluation (vtab.OperatorOverloadCounter modules).
 	OverloadProbe() bool
+	// ScanRowOffsets reports the b-tree payload offsets captured for the row
+	// currently under evaluation (sqlite_offset()'s OP_Offset reads the
+	// active cursor's position, vdbe.c:2929): the table b-tree offset and
+	// the driving index b-tree offset. ok=false when this scan did not read
+	// that source, or the position is not a valid leaf cell (OP_Offset
+	// answers NULL then).
+	ScanRowOffsets() (table int64, tableOK bool, index int64, indexOK bool)
+	// ScanIndexColumns reports which columns the driving index provided for
+	// the current row (nil when there is no index source; a rowid-table
+	// index key also carries the rowid).
+	ScanIndexColumns() map[string]bool
 	// LengthLimit reports the SQLITE_LIMIT_LENGTH setting (used by
 	// base64/base85 to reject outputs that would exceed the limit).
 	LengthLimit() int

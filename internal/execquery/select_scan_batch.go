@@ -39,7 +39,8 @@ func (st *scanState) runScanBatch(cursor *btree.Cursor) (saved bool, err error) 
 				}
 				return false, nil // clean EOF (the cursor loop breaks silently)
 			}
-			if err := st.scanRow(payload, rowID); err != nil {
+			off, offOK := b.PayloadOffset(i)
+			if err := st.scanRow(payload, rowID, off, offOK); err != nil {
 				return false, err
 			}
 		}

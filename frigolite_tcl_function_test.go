@@ -29,7 +29,7 @@ type harnessTclFunction struct {
 // cross}" — func8.test) loads the procedures the script invokes and runs
 // the script with the SQL arguments appended as extra command words, the
 // way tclsqlite does.
-func newHarnessTclFunction(step TestStep) *harnessTclFunction {
+func newHarnessTclFunction(step TestStep, runtimeVars map[string]string) *harnessTclFunction {
 	runtime := &harnessTclFunction{interp: tcl.NewInterp(), proc: step.FunctionProc, script: step.FunctionScript}
 	procs := step.CallbackProcs
 	if step.FunctionBody != "" {
@@ -43,6 +43,12 @@ func newHarnessTclFunction(step TestStep) *harnessTclFunction {
 		runtime.interp.LoadProcedures(loaded)
 	}
 	for name, value := range step.CallbackVars {
+		runtime.interp.SetVariable(name, value)
+	}
+	// The snapshot's values may be stale: variables the file assigned at run
+	// time (func6.test's `set F [loadhex test.db]`) live in the harness's
+	// runtime variables — they override the conversion-time snapshot.
+	for name, value := range runtimeVars {
 		runtime.interp.SetVariable(name, value)
 	}
 	return runtime

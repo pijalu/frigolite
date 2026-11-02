@@ -782,6 +782,7 @@ func init() {
 		"BM25":              (*Evaluator).engineFTSAux,
 		"HIGHLIGHT":         (*Evaluator).engineFTSAux,
 		"FTS5_GET_LOCALE":   (*Evaluator).engineFTSAux,
+		"SQLITE_OFFSET":     (*Evaluator).engineSQLiteOffset,
 	}
 }
 

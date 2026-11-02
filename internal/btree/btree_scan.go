@@ -274,3 +274,82 @@ func (c *Cursor) readTableLeafCellData() (payload []byte, rowID int64, err error
 
 	return payload, rowID, nil
 }
+
+// PayloadOffset returns the file offset of the current cell's payload start
+// (sqlite3BtreeOffset, btree.c:4917): pageSize*(pgno-1) + payload - pageData.
+// ok is false when the cursor is not positioned on a valid leaf cell —
+// OP_Offset answers NULL then (vdbe.c:2929: an EOF or non-btree cursor).
+func (c *Cursor) PayloadOffset() (int64, bool) {
+	if err := c.restoreIfNeeded(); err != nil {
+		return 0, false
+	}
+	if c.endOfBTree {
+		return 0, false
+	}
+	if err := c.cachePage(); err != nil {
+		return 0, false
+	}
+	if err := c.skipEmptyLeaves(); err != nil {
+		return 0, false
+	}
+	pg := c.currentPg
+	page := c.currentPage
+	if page == nil || c.cellIdx < 0 || c.cellIdx >= int(page.CellCount) {
+		return 0, false
+	}
+	// Interior cells are transient positioning states; a scan evaluates its
+	// expressions on leaf rows, so the offset is defined for leaves only.
+	if pageIsInterior(page.PageType) {
+		return 0, false
+	}
+	ptrBase := contentOffset(pg.PageNum)
+	cellOff := int(storage.CellPointer(pg.Data, ptrBase, c.cellIdx, int(c.tx.pageSize)))
+	if cellOff < 0 || cellOff >= len(pg.Data) {
+		return 0, false
+	}
+	var payloadPos int
+	switch page.PageType {
+	case storage.PageTypeLeafTable:
+		// Payload start = cell + varint(payload length) + varint(rowid).
+		payloadPos = tableLeafPayloadPos(pg.Data, cellOff)
+	case storage.PageTypeLeafIndex:
+		// Payload start = cell + varint(payload length).
+		_, n := util.GetVarint(pg.Data[cellOff:])
+		payloadPos = cellOff + n
+		if payloadPos >= len(pg.Data) {
+			return 0, false
+		}
+	default:
+		return 0, false
+	}
+	return int64(c.tx.pageSize)*(int64(pg.PageNum)-1) + int64(payloadPos), true
+}
+
+// PayloadOffset returns cell i's payload-start file offset without decoding
+// the record — the batch-path form of Cursor.PayloadOffset over one
+// LeafBatch page (the walker holds the page bytes the cursor loop would
+// cache).
+func (b *LeafBatch) PayloadOffset(i int) (int64, bool) {
+	cellOff := int(storage.CellPointer(b.pg.Data, b.coff, i, int(b.c.tx.pageSize)))
+	if cellOff < 0 || cellOff >= len(b.pg.Data) {
+		return 0, false
+	}
+	pos := tableLeafPayloadPos(b.pg.Data, cellOff)
+	if pos >= len(b.pg.Data) {
+		return 0, false
+	}
+	return int64(b.c.tx.pageSize)*(int64(b.pg.PageNum)-1) + int64(pos), true
+}
+
+// tableLeafPayloadPos returns the payload-start position within the page of
+// the table-leaf cell at cellOff: the cell header's two varints (payload
+// length, rowid) precede the payload.
+func tableLeafPayloadPos(data []byte, cellOff int) int {
+	_, n := util.GetVarint(data[cellOff:])
+	pos := cellOff + n
+	if pos >= len(data) {
+		return len(data)
+	}
+	_, n2 := util.GetVarint(data[pos:])
+	return pos + n2
+}

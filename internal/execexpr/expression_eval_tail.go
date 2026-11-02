@@ -556,3 +556,32 @@ func exprNodeConstantForFactoring(ev *Evaluator, expr sql.Expr) bool {
 	// RaiseExpr, LikeRangeOpt and anything newer: row-dependent.
 	return false
 }
+
+// engineSQLiteOffset is the sqlite_offset() INLINEFUNC (expr.c:4578,
+// INLINEFUNC_sqlite_offset under SQLITE_ENABLE_OFFSET_SQL_FUNC; func6.test).
+// The argument must be a plain column reference (expr.c: pArg->op==TK_COLUMN):
+// OP_Offset reads the source cursor's current payload position — the driving
+// index b-tree when the scan served the column from the index key (every
+// rowid-table index key also carries the rowid; a WITHOUT ROWID table's PK
+// b-tree IS the table), otherwise the table b-tree. Anything else — an
+// expression like `+a`, an unknown column — is NULL (expr.c:4586 OP_Null).
+func (ev *Evaluator) engineSQLiteOffset(f *sql.FuncCall, row Row) (interface{}, error) {
+	if len(f.Args) != 1 {
+		return nil, nil
+	}
+	col, ok := f.Args[0].(*sql.ColumnRef)
+	if !ok {
+		return nil, nil
+	}
+	table, tableOK, index, indexOK := ev.ctx.ScanRowOffsets()
+	indexCols := ev.ctx.ScanIndexColumns()
+	name := strings.ToLower(col.Name)
+	isRowid := name == "rowid" || name == "oid" || name == "_rowid_"
+	if indexOK && (isRowid || indexCols[name]) {
+		return index, nil
+	}
+	if tableOK {
+		return table, nil
+	}
+	return nil, nil
+}

@@ -815,7 +815,7 @@ func registerTCLIdentityFunction(t *testing.T, db *DB, step TestStep, runtimeVar
 	// A function implemented by a Tcl proc: the proc body travels with the
 	// step, so the harness evaluates it with the converter's Tcl interpreter
 	// (the same interpreter the collations and the authorizer use).
-	function := newHarnessTclFunction(step)
+	function := newHarnessTclFunction(step, runtimeVars)
 	db.RegisterFunctionFlags(step.FunctionName, function.Call, step.MinArgs, step.MaxArgs, step.Innocuous, step.DirectOnly)
 }
 
@@ -3063,6 +3063,11 @@ func TestSQLiteSuite(t *testing.T) {
 					if step.Type == "reopen_db" || step.Type == "alter_table" || step.Type == "header_format" || step.Type == "copy_file" {
 						usesReopen = true
 					}
+					// `set F [loadhex test.db]` (func6.test) reads the
+					// database FILE's bytes: the db must be file-backed.
+					if step.Type == "load_hex_file" {
+						usesReopen = true
+					}
 					// `db close; sqlite3 db ""` replaces a main handle whose
 					// TCL original was the test directory's test.db: model
 					// main as that lifecycle file so earlier writes reach it
@@ -4407,6 +4412,26 @@ func TestSQLiteSuite(t *testing.T) {
 									t.Errorf("runtime expression mismatch\n  got: [%s]\n  %s\n  expr: %s", got, diff, step.SQL)
 								}
 							}
+						case "load_hex_file":
+							// `set F [loadhex test.db]` (func6.test): the
+							// record-verification UDFs compare the engine's file
+							// offsets against the file's bytes. The lifecycle
+							// path is the fixture's test.db (this family runs
+							// file-backed); re-read it NOW — the bytes the TCL
+							// script saw are the flushed state at this point of
+							// the statement order.
+							hexPath, pathErr := fixtureLifecyclePath(fixtureDBDir, step.SQL)
+							if pathErr != nil {
+								t.Errorf("load hex file path: %v", pathErr)
+								return
+							}
+							data, readErr := os.ReadFile(hexPath)
+							if readErr != nil {
+								t.Errorf("load hex file: %v\n  path: %s", readErr, hexPath)
+								return
+							}
+							runtimeVars[step.Variable] = hexEncodeBytes(data)
+							continue
 						case "auth_proc":
 							// `db auth <proc>` installs a Tcl authorizer:
 							// the proc answers SQLITE_OK / SQLITE_DENY /
@@ -5344,4 +5369,16 @@ func tclExprTrue(v string) bool {
 		return false
 	}
 	return true
+}
+
+// hexEncodeBytes renders bytes as the lowercase hex string TCL's
+// `binary encode hex` produces (func6.test's loadhex).
+func hexEncodeBytes(data []byte) string {
+	const digits = "0123456789abcdef"
+	out := make([]byte, len(data)*2)
+	for i, b := range data {
+		out[i*2] = digits[b>>4]
+		out[i*2+1] = digits[b&0x0f]
+	}
+	return string(out)
 }

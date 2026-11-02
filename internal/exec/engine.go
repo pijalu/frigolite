@@ -186,6 +186,17 @@ type Engine struct {
 	// statement. Set when such an instance materializes, cleared at the next
 	// top-level statement dispatch.
 	overloadProbe bool
+	// scanRow offsets: the b-tree payload offsets of the row currently under
+	// evaluation (sqlite_offset's OP_Position sources) — the table b-tree
+	// cursor and, when the scan is index-driven, the driving index b-tree
+	// cursor with the columns its key provides. Set per row by the scan
+	// paths (execquery), restored to the outer scan's values when a nested
+	// scan finishes (expr_context.go SetScanRowOffsets).
+	scanTableOffset   int64
+	scanTableOffsetOK bool
+	scanIndexOffset   int64
+	scanIndexOffsetOK bool
+	scanIndexCols     map[string]bool
 	// ftsDeleteDepth tracks in-progress FTS DELETE statements per table so a
 	// shadow-table trigger body that re-enters DELETE on the same FTS table is
 	// rejected with "SQL logic error" (SQLite's fts3DeleteMethod recursion

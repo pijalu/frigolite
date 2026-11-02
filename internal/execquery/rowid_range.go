@@ -828,6 +828,11 @@ func (it *rangeSeekRow) step(payload []byte, rowID int64) (done, ok bool) {
 // passing row and emits it. ok=false marks an anomaly the scan fallback
 // re-evaluates and surfaces identically.
 func (it *rangeSeekRow) processRow(payload []byte, rowID int64) bool {
+	// sqlite_offset's OP_Offset source: this row's cell in the table b-tree
+	// (the iterator's cursor — the batch walker keeps it at the current
+	// cell).
+	off, offOK := it.cursor.PayloadOffset()
+	it.e.ctx.SetScanRowOffsets(off, offOK, 0, false, nil)
 	if it.typed != nil {
 		return it.processRowTyped(payload, rowID)
 	}

@@ -421,6 +421,10 @@ func distinctIndexOrder(e *SelectEngine, entry *schema.Entry, tableEntry *schema
 // when the scan ran in positional-aggregate mode (its rowMaps stay empty in
 // that mode — the aggregate passes consume aggRows instead).
 func (e *SelectEngine) scanTableRowsWithSQL(cursor *btree.Cursor, s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps bool, createSQL string, feed *simpleAggFeed, allowPosAgg bool) ([][]interface{}, []RowMap, []Row, error) {
+	// The per-row offset sources are scan-local (see selectIndexSeekRows).
+	prevTable, prevTableOK, prevIndex, prevIndexOK := e.ctx.ScanRowOffsets()
+	prevIndexCols := e.ctx.ScanIndexColumns()
+	defer e.ctx.SetScanRowOffsets(prevTable, prevTableOK, prevIndex, prevIndexOK, prevIndexCols)
 
 	st := newScanState(e, s, colDefs, needMaps, feed, allowPosAgg)
 	// WITHOUT ROWID tables live in an index btree; the root is an index-leaf
@@ -483,7 +487,8 @@ func (st *scanState) runScan(cursor *btree.Cursor) error {
 		if err != nil {
 			break
 		}
-		if err := st.scanRow(payload, rowID); err != nil {
+		off, offOK := cursor.PayloadOffset()
+		if err := st.scanRow(payload, rowID, off, offOK); err != nil {
 			return err
 		}
 		if ok, err := cursor.Next(); err != nil || !ok {
@@ -498,8 +503,12 @@ func (st *scanState) runScan(cursor *btree.Cursor) error {
 // loop share one body; the caller owns advancing. The pure bare-projection
 // shape folds decode into output (scanRowBarePassthrough); scanRowDecoded is
 // the general pipeline both paths fall back to.
-func (st *scanState) scanRow(payload []byte, rowID int64) error {
+func (st *scanState) scanRow(payload []byte, rowID int64, tableOffset int64, tableOffsetOK bool) error {
 	st.rowsVisited++
+	// sqlite_offset's OP_Offset source: this scan's table b-tree cursor
+	// position (the row's cell payload start). Cleared state survives — the
+	// scan entry saved and restores the outer scan's values.
+	st.e.ctx.SetScanRowOffsets(tableOffset, tableOffsetOK, 0, false, nil)
 	if st.barePassthrough {
 		return st.scanRowBarePassthrough(payload, rowID)
 	}

@@ -82,6 +82,16 @@ type SelectContext interface {
 	// per seek and per successful cursor positioning, −1 per sorter open);
 	// where8.test's execsql_status2 reads it as a fourth element.
 	IncSearchCount(n int64)
+	// SetScanRowOffsets records the current scan row's b-tree payload
+	// offsets (sqlite_offset's OP_Offset sources; see ExprContext
+	// .ScanRowOffsets). Called per row by the scan paths and at scan
+	// boundaries with the outer scan's saved values.
+	SetScanRowOffsets(table int64, tableOK bool, index int64, indexOK bool, indexCols map[string]bool)
+	// ScanRowOffsets / ScanIndexColumns read back the recorded offsets so a
+	// table-row fetch inside an index-driven scan can layer the table source
+	// under the index source without losing it.
+	ScanRowOffsets() (table int64, tableOK bool, index int64, indexOK bool)
+	ScanIndexColumns() map[string]bool
 	// Engine resources.
 	Functions() *function.Registry
 	Schema() *schema.Manager

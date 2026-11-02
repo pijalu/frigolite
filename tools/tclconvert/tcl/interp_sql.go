@@ -316,6 +316,10 @@ func (i *Interp) dbFunction(args []string) error {
 	case procOK:
 		marker.FunctionArgs = append([]string(nil), proc.Args...)
 		marker.FunctionBody = proc.Body
+		// The body may call helper procedures (func6.test's offrec calls
+		// hexrecord and offset_contains_record): the harness's function
+		// interpreter needs their bodies too.
+		marker.CallbackProcs = i.scriptProcs(proc.Body)
 		marker.MinArgs = len(proc.Args)
 		if len(proc.Args) == 0 {
 			marker.MinArgs, marker.MaxArgs = 0, 0
@@ -356,16 +360,35 @@ func (i *Interp) dbFunction(args []string) error {
 func (i *Interp) scriptProcs(script string) []Proc {
 	var procs []Proc
 	seen := map[string]bool{}
-	for _, word := range splitList(script) {
-		name := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(word), "::"))
-		if name == "" || seen[name] {
-			continue
-		}
-		if proc, ok := i.procs[name]; ok && !seen[proc.Name] {
-			seen[proc.Name] = true
-			procs = append(procs, Proc{Name: proc.Name, Args: append([]string(nil), proc.Args...), Body: proc.Body})
+	var collect func(text string)
+	collect = func(text string) {
+		for _, cmd := range parseCommands(text) {
+			for _, w := range cmd {
+				// A command name may sit inside a bracket substitution
+				// (`set rec [hexrecord {*}[lrange $args 1 end]]`): collect
+				// the nested commands too.
+				if strings.HasPrefix(w.Text, "[") && strings.HasSuffix(w.Text, "]") {
+					collect(w.Text[1 : len(w.Text)-1])
+					continue
+				}
+				if len(cmd) == 0 || w.Text != cmd[0].Text {
+					continue
+				}
+				name := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(w.Text), "::"))
+				if name == "" || seen[name] {
+					continue
+				}
+				proc, ok := i.procs[name]
+				if !ok {
+					continue
+				}
+				seen[name] = true
+				procs = append(procs, Proc{Name: proc.Name, Args: append([]string(nil), proc.Args...), Body: proc.Body})
+				collect(proc.Body)
+			}
 		}
 	}
+	collect(script)
 	return procs
 }
 

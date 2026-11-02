@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/btree"
+	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/util"
@@ -107,7 +108,7 @@ func colDefsCoverable(colDefs []sql.ColumnDef) bool {
 
 // indexSeekCoveredRows emits the seek's candidates from the index entries
 // themselves (a covering index scan).
-func (e *SelectEngine) indexSeekCoveredRows(s *sql.SelectStmt, colDefs []sql.ColumnDef, run *indexSeekRun, cursor *btree.Cursor, needMaps bool, feed *simpleAggFeed) ([][]interface{}, []RowMap, bool) {
+func (e *SelectEngine) indexSeekCoveredRows(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, run *indexSeekRun, cursor *btree.Cursor, needMaps bool, feed *simpleAggFeed) ([][]interface{}, []RowMap, bool) {
 	var allRows [][]interface{}
 	var allRowMaps []RowMap
 	for {
@@ -117,6 +118,16 @@ func (e *SelectEngine) indexSeekCoveredRows(s *sql.SelectStmt, colDefs []sql.Col
 		}
 		if !inRange {
 			break
+		}
+		// sqlite_offset's sources: this entry's cell in the driving index
+		// b-tree. For a WITHOUT ROWID table the driving "index" IS the
+		// table b-tree (the PK b-tree holds the full row), so the same
+		// offset serves both sources and every column is index-provided.
+		off, offOK := cursor.PayloadOffset()
+		if e.ctx.TableIsWithoutRowidEntry(tableEntry) {
+			e.ctx.SetScanRowOffsets(off, offOK, off, offOK, indexOffsetAllCols(colDefs))
+		} else {
+			e.ctx.SetScanRowOffsets(0, false, off, offOK, indexOffsetCols(run.cols, true))
 		}
 		rows, maps, ok := e.indexSeekCoveredOutput(s, colDefs, run.cols, cell, needMaps, feed)
 		if !ok {
