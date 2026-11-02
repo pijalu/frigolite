@@ -206,6 +206,7 @@ type TestStep struct {
 	CallbackVars         map[string]string `json:"callbackVars,omitempty"`
 	ModuleArgs           []string          `json:"moduleArgs,omitempty"`
 	FunctionProc         string            `json:"functionProc,omitempty"`
+	FunctionScript       string            `json:"functionScript,omitempty"`
 	FunctionArgs         []string          `json:"functionArgs,omitempty"`
 	FunctionBody         string            `json:"functionBody,omitempty"`
 	MinArgs              int               `json:"minArgs,omitempty"`
@@ -907,7 +908,7 @@ type TestFileData struct {
 	File         string `json:"file"`
 	Name         string `json:"name"`
 	NullToken    string `json:"nullToken,omitempty"`
-	TclPrecision *int `json:"tclPrecision,omitempty"` // the source's `set tcl_precision N` (nil/absent = the testfixture default; explicit 0 = TCL shortest-round-trip)
+	TclPrecision *int   `json:"tclPrecision,omitempty"` // the source's `set tcl_precision N` (nil/absent = the testfixture default; explicit 0 = TCL shortest-round-trip)
 	// Ordered marks files emitted by tools/tclconvert whose Tests are in
 	// faithful TCL execution order (loops and procs unrolled). Such files
 	// must NOT be reordered by sortTestsBySection: the sort exists only to
@@ -3236,6 +3237,11 @@ func TestSQLiteSuite(t *testing.T) {
 						return
 					}
 					for _, step := range expandRepeatedSteps(tc.Steps) {
+						// A statement's results are destroyed when the
+						// statement completes (test_func.c's result
+						// destructors run with the statement): drain the
+						// pending test_destructor results between steps.
+						drainTestDestructors()
 						// A step captured inside a runtime-conditional branch
 						// runs only when its condition holds (the converter
 						// cannot know the outcome of a `catch` around a SQL
@@ -3974,7 +3980,7 @@ func TestSQLiteSuite(t *testing.T) {
 									return
 								}
 								parts := splitExpect(expect)
-								if len(parts) >= 2 && !strings.Contains(res.Error.Error(), parts[1]) {
+								if len(parts) >= 2 && !catchMessageMatches(res.Error, parts[1]) {
 									t.Errorf("error mismatch\n  got:  %v\n  want: %s\n  sql: %s", res.Error, parts[1], step.SQL)
 									return
 								}
@@ -4792,6 +4798,22 @@ func splitExpect(expect string) []string {
 	return parts
 }
 
+// catchMessageMatches compares a catchsql error message with the recorded
+// message part. A SQL-NULL error message (sqlite3_result_error with a NULL
+// text — test_error(NULL)) renders as an empty string on the engine side
+// while cleanExpected renders the recorded TCL empty message ({}) as NULL,
+// so the two null renderings are interchangeable here.
+func catchMessageMatches(err error, want string) bool {
+	msg := ""
+	if err != nil {
+		msg = err.Error()
+	}
+	if msg == "" && (want == "NULL" || want == "") {
+		return true
+	}
+	return strings.Contains(msg, want)
+}
+
 // bracedMessageExpect reports whether a raw TCL expectation literal is a
 // catchsql error tuple of the form `1 {message}` — a rc of 1 followed by
 // exactly one braced element that spans the rest of the literal. Result
@@ -4956,8 +4978,232 @@ func matchExpectation(got, want string) string {
 	if cleanExpected(got) == want {
 		return ""
 	}
+	// tester.tcl's do_test falls back to fpnum_compare (test1.c:6168) when
+	// the string comparison fails: whitespace-separated tokens compare
+	// numerically — same digits before the decimal point, fractional digits
+	// matching up to 15 places with rounding — so "60.000000" matches the
+	// recorded "60.0" (func7-pg-301).
+	if fpnumCompare(got, want) {
+		return ""
+	}
 	return fmt.Sprintf("want: [%s]", want)
 }
+
+// fpnumCompare ports src/test1.c's fpnum_compare: the SQLite test suite's
+// numeric comparison for results whose rendering may differ in trailing
+// fractional digits or exponent zero-padding between TCL versions.
+//
+// Rules (test1.c:6139):
+//
+//	A. tokens that are not floating-point numbers must match exactly;
+//	B. floating-point numbers must have exactly the same digits before the
+//	   decimal point;
+//	C. digits must match after the decimal point up to 15 digits, taking
+//	   rounding into consideration (a "…5|999" tail rounds up to the next
+//	   leading digit when at least 14 digits already matched);
+//	D. an exponent "e+NN" matches "e+N" when NN==N.
+func fpnumCompare(strA, strB string) bool {
+	zA, zB := []byte(strA), []byte(strB)
+	i, j := 0, 0
+	for {
+		for i < len(zA) && isspaceASCII(byteAt(zA, i)) {
+			i++
+		}
+		for j < len(zB) && isspaceASCII(byteAt(zB, j)) {
+			j++
+		}
+		// First character must match (end-of-string included).
+		a0, b0 := byteAt(zA, i), byteAt(zB, j)
+		if a0 != b0 {
+			break
+		}
+		// Skip an initial '-' on both sides.
+		if a0 == '-' && isDigitASCII(byteAt(zA, i+1)) {
+			i++
+			j++
+		}
+		if !isDigitASCII(byteAt(zA, i)) {
+			// Not a number: the token must match exactly, then continue
+			// with the next token pair (or end together).
+			for i < len(zA) && j < len(zB) && !isspaceASCII(byteAt(zA, i)) && byteAt(zA, i) == byteAt(zB, j) {
+				i++
+				j++
+			}
+			if byteAt(zA, i) != byteAt(zB, j) {
+				break
+			}
+			if i < len(zA) && isspaceASCII(byteAt(zA, i)) {
+				continue
+			}
+			break
+		}
+		// Number: match digits before the decimal point, which must all be
+		// the same.
+		nDigit := 0
+		for isDigitASCII(byteAt(zA, i)) && byteAt(zA, i) == byteAt(zB, j) {
+			i++
+			j++
+			nDigit++
+		}
+		if byteAt(zA, i) != byteAt(zB, j) {
+			break
+		}
+		if i >= len(zA) {
+			break
+		}
+		if byteAt(zA, i) == '.' && byteAt(zB, j) == '.' {
+			i++
+			j++
+			for isDigitASCII(byteAt(zA, i)) && byteAt(zA, i) == byteAt(zB, j) {
+				i++
+				j++
+				nDigit++
+			}
+			switch {
+			case i >= len(zA):
+				// A ended: B may continue only with zeros (or digits when
+				// 15 significant digits have already matched).
+				for {
+					b := byteAt(zB, j)
+					if b == '0' || (isDigitASCII(b) && nDigit >= 15) {
+						j++
+						nDigit++
+					} else {
+						break
+					}
+				}
+			case j >= len(zB):
+				for {
+					a := byteAt(zA, i)
+					if a == '0' || (isDigitASCII(a) && nDigit >= 15) {
+						i++
+						nDigit++
+					} else {
+						break
+					}
+				}
+			case isspaceASCII(byteAt(zA, i)) && isspaceASCII(byteAt(zB, j)):
+				continue
+			case isDigitASCII(byteAt(zA, i)) && isDigitASCII(byteAt(zB, j)):
+				// A and B are both digits, but different digits: accept a
+				// rounding relationship (test1.c:6296).
+				switch {
+				case byteAt(zA, i) == byteAt(zB, j)+1 && !isDigitASCII(byteAt(zA, i+1)) && isDigitASCII(byteAt(zB, j+1)):
+					// Is A a rounded up version of B?
+					j++
+					for byteAt(zB, j) == '9' {
+						j++
+						nDigit++
+					}
+					if nDigit < 14 && (!isDigitASCII(byteAt(zB, j)) || byteAt(zB, j) < '5') {
+						return false
+					}
+					for isDigitASCII(byteAt(zB, j)) {
+						j++
+					}
+					i++
+				case byteAt(zB, j) == byteAt(zA, i)+1 && !isDigitASCII(byteAt(zB, j+1)) && isDigitASCII(byteAt(zA, i+1)):
+					// Is B a rounded up version of A?
+					i++
+					for byteAt(zA, i) == '9' {
+						i++
+						nDigit++
+					}
+					if nDigit < 14 && (!isDigitASCII(byteAt(zA, i)) || byteAt(zA, i) < '5') {
+						return false
+					}
+					for isDigitASCII(byteAt(zA, i)) {
+						i++
+					}
+					j++
+				default:
+					return false
+				}
+			case !isDigitASCII(byteAt(zA, i)) && isDigitASCII(byteAt(zB, j)):
+				// A's fraction ended: B may continue with zeros only, or
+				// with any digits once 15 digits matched.
+				for isDigitASCII(byteAt(zB, j)) && (byteAt(zB, j) == '0' || nDigit >= 15) {
+					j++
+					nDigit++
+				}
+				if nDigit < 15 {
+					return false
+				}
+				for isDigitASCII(byteAt(zB, j)) {
+					j++
+				}
+			case !isDigitASCII(byteAt(zB, j)) && isDigitASCII(byteAt(zA, i)):
+				for isDigitASCII(byteAt(zA, i)) && (byteAt(zA, i) == '0' || nDigit >= 15) {
+					i++
+					nDigit++
+				}
+				if nDigit < 15 {
+					return false
+				}
+				for isDigitASCII(byteAt(zA, i)) {
+					i++
+				}
+			default:
+				return false
+			}
+		}
+		// Exponent handling: "e+NN" matches "e+N" when NN==N (test1.c:6338).
+		if byteAt(zA, i) == 'e' && byteAt(zB, j) == 'e' {
+			i++
+			j++
+			if (byteAt(zA, i) == '+' || byteAt(zA, i) == '-') && byteAt(zB, j) == byteAt(zA, i) {
+				i++
+				j++
+			}
+			if byteAt(zA, i) != byteAt(zB, j) {
+				if byteAt(zA, i) == '0' && byteAt(zA, i+1) == byteAt(zB, j) {
+					i++
+				}
+				if byteAt(zB, j) == '0' && byteAt(zB, j+1) == byteAt(zA, i) {
+					j++
+				}
+			}
+			for isDigitASCII(byteAt(zA, i)) && byteAt(zA, i) == byteAt(zB, j) {
+				i++
+				j++
+			}
+			if byteAt(zA, i) != byteAt(zB, j) {
+				break
+			}
+			if i >= len(zA) {
+				break
+			}
+			continue
+		}
+		// The number token (fraction and optional exponent) is consumed:
+		// loop back for the next whitespace-separated token pair.
+		continue
+	}
+	for i < len(zA) && isspaceASCII(byteAt(zA, i)) {
+		i++
+	}
+	for j < len(zB) && isspaceASCII(byteAt(zB, j)) {
+		j++
+	}
+	return i >= len(zA) && j >= len(zB)
+}
+
+// byteAt returns z[idx] or 0 when idx is out of range (the C code scans
+// NUL-terminated strings; 0 doubles as the end sentinel here).
+func byteAt(z []byte, idx int) byte {
+	if idx < 0 || idx >= len(z) {
+		return 0
+	}
+	return z[idx]
+}
+
+// isspaceASCII mirrors C isspace for the byte range the comparisons use.
+func isspaceASCII(c byte) bool {
+	return c == ' ' || c == '\t' || c == '\n' || c == '\v' || c == '\f' || c == '\r'
+}
+
+// isDigitASCII mirrors C isdigit.
+func isDigitASCII(c byte) bool { return c >= '0' && c <= '9' }
 
 // nullEmptyEquivalent reports whether got and want match as single-space-joined
 // result lists when TCL's empty value ({}) is treated as matching either

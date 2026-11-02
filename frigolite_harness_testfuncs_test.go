@@ -40,21 +40,86 @@ func registerTest1Functions(t *testing.T, db *DB) {
 	// counter2 deterministic).
 	db.engine.Functions().RegisterContext("test_auxdata", testAuxdataFunc, -1, -1)
 	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		if args[0] == nil {
+			// sqlite3_result_error with sqlite3_value_text(NULL): the error
+			// message is SQL NULL, which TCL renders as an empty string.
+			return nil, fmt.Errorf("")
+		}
 		return nil, fmt.Errorf("%s", test1ValueText(args[0]))
 	}, 1, 2)
 	db.RegisterFunction("counter1", nondeterministicCounter, -1, -1)
 	db.RegisterFunction("counter2", nondeterministicCounter, -1, -1)
+	// test_func.c's test_destructor attaches a result destructor that
+	// decrements test_destructor_count_var; the count therefore reports
+	// results not yet destroyed. The harness drains the pending results at
+	// each step boundary (a statement's results die with the statement in
+	// SQLite's C API as well).
+	db.RegisterFunction("test_destructor", func(args []interface{}) (interface{}, error) {
+		testDestructorPending++
+		if args[0] == nil {
+			return nil, nil
+		}
+		return test1ValueText(args[0]), nil
+	}, 1, 1)
+	db.RegisterFunction("test_destructor_count", func([]interface{}) (interface{}, error) {
+		return int64(testDestructorPending), nil
+	}, 0, 0)
+	// test_func.c's test_isolation (test_isolation()): type-converts argv[0]
+	// between text and UTF-16 repeatedly to prove the conversions do not
+	// corrupt later arguments, then returns argv[1]. The conversions are
+	// unobservable in the pure-Go value model, so only the return matters.
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) != 2 {
+			return nil, fmt.Errorf("wrong number of arguments to function test_isolation()")
+		}
+		return args[1], nil
+	}, 2, 2)
+	// test1.c's test_create_aggregate registers legacy_count() to exercise
+	// the deprecated sqlite3_aggregate_count() API: the step is a no-op and
+	// the finalizer reports the number of aggregated rows.
+	db.engine.Functions().RegisterAggregate("legacy_count", 0, 0, func() function.Aggregator {
+		return &legacyCountAggregator{}
+	})
 	// test_func.c's abuse_create_function installs the maximum-length-name
-	// no-op with the maximum parameter count; func-26.x asserts the
-	// "too many arguments" arity error when it is called with more.
+	// no-op with the maximum parameter count: it raises
+	// SQLITE_LIMIT_FUNCTION_ARG to 1000000 (sqlite3_limit clamps to the
+	// hard max 127) and registers nullx… with that exact arity, so calls
+	// with fewer arguments fail with "wrong number of arguments" and calls
+	// beyond the limit fail with "too many arguments on function".
 	db.RegisterFunction("nullx"+strings.Repeat("_123456789", 25),
 		func(args []interface{}) (interface{}, error) { return nil, nil },
-		1, 1000000)
+		harnessMaxFunctionArg, harnessMaxFunctionArg)
 }
+
+// harnessMaxFunctionArg is the engine's SQLITE_MAX_FUNCTION_ARG (the
+// compile-time default 127; see internal/exec's sqliteMaxFunctionArgDefault).
+const harnessMaxFunctionArg = 127
 
 // testFuncCounter is the shared process-global counter of test1.c's
 // nondeterministicFunction (counter1/counter2 both draw from it).
 var testFuncCounter int64
+
+// testDestructorPending counts test_destructor results whose destructor has
+// not run yet (test_func.c's test_destructor_count_var). The harness drains
+// it at each step boundary — a statement's results are destroyed when the
+// statement completes.
+var testDestructorPending int
+
+// drainTestDestructors runs the pending result destructors. test_func.c
+// attaches the destructor to the result value; the value dies with the
+// statement that produced it, so the harness drains between steps.
+func drainTestDestructors() { testDestructorPending = 0 }
+
+// legacyCountAggregator ports test1.c's legacyCountStep/legacyCountFinalize:
+// the step is a no-op and the finalizer reports sqlite3_aggregate_count() —
+// the number of rows aggregated.
+type legacyCountAggregator struct{ n int64 }
+
+// Step counts one aggregated row.
+func (a *legacyCountAggregator) Step([]interface{}) error { a.n++; return nil }
+
+// Final returns the aggregate row count.
+func (a *legacyCountAggregator) Final() (interface{}, error) { return a.n, nil }
 
 // nondeterministicCounter returns an ascending integer per call.
 func nondeterministicCounter(args []interface{}) (interface{}, error) {

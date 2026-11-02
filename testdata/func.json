@@ -84,7 +84,14 @@
           "sql": "SELECT length(*) FROM tbl1 ORDER BY t1",
           "variable": "r",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$r",
+            "$msg"
+          ],
           "expect": "1 {wrong number of arguments to function length()}"
         }
       ]
@@ -97,7 +104,14 @@
           "sql": "SELECT length(t1,5) FROM tbl1 ORDER BY t1",
           "variable": "r",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$r",
+            "$msg"
+          ],
           "expect": "1 {wrong number of arguments to function length()}"
         }
       ]
@@ -22168,6 +22182,7 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "STMT": "stmt_1",
             "V": "three",
@@ -22184,7 +22199,7 @@
             "x1": "41220.05",
             "x2": "41220.1"
           },
-          "functionProc": "return \"hello\"",
+          "functionScript": "return \"hello\"",
           "minArgs": -1,
           "maxArgs": -1
         }
@@ -22204,6 +22219,7 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "STMT": "stmt_1",
             "V": "three",
@@ -22220,7 +22236,7 @@
             "x1": "41220.05",
             "x2": "41220.1"
           },
-          "functionProc": "return \"hello\"",
+          "functionScript": "return \"hello\"",
           "minArgs": -1,
           "maxArgs": -1
         }
@@ -22311,6 +22327,7 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "STMT": "stmt_2",
             "V": "three",
@@ -22328,7 +22345,10 @@
             "x2": "41220.1"
           },
           "functionProc": "::testfunc1",
-          "minArgs": -1,
+          "functionArgs": [
+            "args"
+          ],
+          "functionBody": "error \"Error %d with %s percents %p\"",
           "maxArgs": -1
         },
         {
@@ -146093,6 +146113,7 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "STMT": "stmt_2",
             "V": "three",
@@ -146201,7 +146222,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "func-34.10",
@@ -146215,7 +146236,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "func-35.100",
@@ -146260,6 +146281,7 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "STMT": "stmt_2",
             "V": "three",
@@ -146302,6 +146324,7 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "STMT": "stmt_2",
             "V": "three",
@@ -146356,7 +146379,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "func-37.100",

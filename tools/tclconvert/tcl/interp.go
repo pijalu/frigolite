@@ -54,6 +54,7 @@ type Stmt struct {
 	DestructorBody  string            // Tcl destructor script
 	ModuleArgs      []string          // Tcl module registration arguments
 	FunctionProc    string            // Tcl procedure name implementing registered function
+	FunctionScript  string            // Tcl script implementing registered function (`db func NAME {script}`: SQL args append to the script words)
 	FunctionArgs    []string          // Tcl argument names
 	FunctionBody    string            // Tcl procedure body
 	MinArgs         int               // registered function minimum argument count
@@ -311,6 +312,33 @@ func (i *Interp) LoadProcedures(procs []Proc) {
 	}
 }
 
+// HasProcedure reports whether name resolves to a user procedure (the Tcl
+// global-scope "::" prefix is accepted).
+func (i *Interp) HasProcedure(name string) bool {
+	_, ok := i.procs[strings.TrimPrefix(name, "::")]
+	return ok
+}
+
+// HasCommand reports whether name resolves to a built-in command, a user
+// procedure or a registered callback command. dispatchCommand silently
+// ignores unknown commands (the converter's drop semantics), so callers that
+// must observe a failure — a SQL function callback invoking a missing proc —
+// check this first.
+func (i *Interp) HasCommand(name string) bool {
+	if _, ok := commandHandlers[name]; ok {
+		return true
+	}
+	if _, ok := i.procs[strings.TrimPrefix(name, "::")]; ok {
+		return true
+	}
+	if _, ok := i.callbackCommands[name]; ok {
+		return true
+	}
+	// The dispatch also treats "<db> func/eval/close" shapes as database
+	// commands; those never matter for function callbacks.
+	return false
+}
+
 // InvokeCommand runs a Tcl command with the given arguments and returns its
 // result. The command may be a built-in ("lindex", "string", ...) or a user
 // procedure. The arguments are used verbatim: no substitution is applied to
@@ -320,6 +348,10 @@ func (i *Interp) LoadProcedures(procs []Proc) {
 // ("db func lindex lindex"), so a harness that evaluates a function's proc
 // needs this entry point.
 func (i *Interp) InvokeCommand(name string, args ...string) (string, error) {
+	head := strings.Fields(name)
+	if len(head) == 0 || !i.HasCommand(head[0]) {
+		return "", fmt.Errorf("invalid command name \"%s\"", name)
+	}
 	i.vars[""] = ""
 	words := make([]rawWord, 0, len(args)+1)
 	words = append(words, rawWord{Text: name})
@@ -337,7 +369,7 @@ func (i *Interp) InvokeCommand(name string, args ...string) (string, error) {
 
 // InvokeProcedure invokes a named Tcl procedure and returns its Tcl result.
 func (i *Interp) InvokeProcedure(name string, args ...string) (string, error) {
-	proc, ok := i.procs[name]
+	proc, ok := i.procs[strings.TrimPrefix(name, "::")]
 	if !ok {
 		return "", fmt.Errorf("invalid command name %q", name)
 	}

@@ -60,6 +60,7 @@ type TestStep struct {
 	CallbackProcs     []tcl.Proc        `json:"callbackProcs,omitempty"`
 	ModuleArgs        []string          `json:"moduleArgs,omitempty"`
 	FunctionProc      string            `json:"functionProc,omitempty"`
+	FunctionScript    string            `json:"functionScript,omitempty"`
 	FunctionArgs      []string          `json:"functionArgs,omitempty"`
 	FunctionBody      string            `json:"functionBody,omitempty"`
 	MinArgs           int               `json:"minArgs,omitempty"`
@@ -523,6 +524,7 @@ func stepFromStmt(s tcl.Stmt) TestStep {
 		CallbackProcs:     s.CallbackProcs,
 		ModuleArgs:        s.ModuleArgs,
 		FunctionProc:      s.FunctionProc,
+		FunctionScript:    s.FunctionScript,
 		FunctionArgs:      s.FunctionArgs,
 		FunctionBody:      s.FunctionBody,
 		MinArgs:           s.MinArgs,

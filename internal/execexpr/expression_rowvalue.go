@@ -774,14 +774,16 @@ func (ev *Evaluator) dispatchAuxBinaryValues(op string, left, right interface{})
 		return int64(1), nil, true
 	case "->":
 		// A user function named "->" (db func -> ptr1, func-36.100)
-		// replaces the built-in JSON operator, like the LIKE/GLOB family.
-		if res, err, handled := ev.userBinaryOperatorOverload(left, right, "->"); handled {
+		// replaces the built-in JSON operator: parse.y's PTR rule compiles
+		// `a -> b` into a plain function call "->"(a, b), so resolution is
+		// the ordinary registry lookup, not the LIKE/GLOB probe contract.
+		if res, err, handled := ev.userArrowOperatorOverload(left, right, "->"); handled {
 			return res, err, true
 		}
 		res, err := function.JSONArrowExtract(left, right)
 		return res, err, true
 	case "->>":
-		if res, err, handled := ev.userBinaryOperatorOverload(left, right, "->>"); handled {
+		if res, err, handled := ev.userArrowOperatorOverload(left, right, "->>"); handled {
 			return res, err, true
 		}
 		res, err := function.JSONArrowExtractSQL(left, right)
@@ -843,6 +845,21 @@ func (ev *Evaluator) userBinaryOperatorOverload(left, right interface{}, op stri
 	if !ev.ctx.OverloadProbe() {
 		return nil, nil, false
 	}
+	fn, ok := ev.ctx.Functions().Find(op)
+	if !ok || fn.ScalarFn == nil {
+		return nil, nil, false
+	}
+	res, err := fn.ScalarFn([]interface{}{util.UnwrapColumnValue(left), util.UnwrapColumnValue(right)})
+	return res, err, true
+}
+
+// userArrowOperatorOverload resolves the "->"/"->>" operators through the
+// function registry without the LIKE/GLOB/REGEXP OverloadProbe gate:
+// parse.y compiles `a -> b` into the function call "->"(a, b)
+// (parse.y "expr ::= expr PTR expr"), so a user registration simply
+// replaces the json.c built-in (JFUNCTION(->, 2, ...) at json.c:5538) —
+// no virtual-table opt-in involved.
+func (ev *Evaluator) userArrowOperatorOverload(left, right interface{}, op string) (interface{}, error, bool) {
 	fn, ok := ev.ctx.Functions().Find(op)
 	if !ok || fn.ScalarFn == nil {
 		return nil, nil, false

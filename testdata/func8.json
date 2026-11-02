@@ -14,10 +14,21 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "testdir": ""
           },
-          "functionProc": "joinx cross",
+          "callbackProcs": [
+            {
+              "Name": "joinx",
+              "Args": [
+                "args"
+              ],
+              "Body": "return [join $args -]",
+              "Defaults": null
+            }
+          ],
+          "functionScript": "joinx cross",
           "minArgs": -1,
           "maxArgs": -1
         },
@@ -29,10 +40,21 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "testdir": ""
           },
-          "functionProc": "joinx full",
+          "callbackProcs": [
+            {
+              "Name": "joinx",
+              "Args": [
+                "args"
+              ],
+              "Body": "return [join $args -]",
+              "Defaults": null
+            }
+          ],
+          "functionScript": "joinx full",
           "minArgs": -1,
           "maxArgs": -1
         },
@@ -44,10 +66,21 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "testdir": ""
           },
-          "functionProc": "joinx inner",
+          "callbackProcs": [
+            {
+              "Name": "joinx",
+              "Args": [
+                "args"
+              ],
+              "Body": "return [join $args -]",
+              "Defaults": null
+            }
+          ],
+          "functionScript": "joinx inner",
           "minArgs": -1,
           "maxArgs": -1
         },
@@ -59,10 +92,21 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "testdir": ""
           },
-          "functionProc": "joinx left",
+          "callbackProcs": [
+            {
+              "Name": "joinx",
+              "Args": [
+                "args"
+              ],
+              "Body": "return [join $args -]",
+              "Defaults": null
+            }
+          ],
+          "functionScript": "joinx left",
           "minArgs": -1,
           "maxArgs": -1
         },
@@ -74,10 +118,21 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "testdir": ""
           },
-          "functionProc": "joinx natural",
+          "callbackProcs": [
+            {
+              "Name": "joinx",
+              "Args": [
+                "args"
+              ],
+              "Body": "return [join $args -]",
+              "Defaults": null
+            }
+          ],
+          "functionScript": "joinx natural",
           "minArgs": -1,
           "maxArgs": -1
         },
@@ -89,10 +144,21 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "testdir": ""
           },
-          "functionProc": "joinx outer",
+          "callbackProcs": [
+            {
+              "Name": "joinx",
+              "Args": [
+                "args"
+              ],
+              "Body": "return [join $args -]",
+              "Defaults": null
+            }
+          ],
+          "functionScript": "joinx outer",
           "minArgs": -1,
           "maxArgs": -1
         },
@@ -104,10 +170,21 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "testdir": ""
           },
-          "functionProc": "joinx right",
+          "callbackProcs": [
+            {
+              "Name": "joinx",
+              "Args": [
+                "args"
+              ],
+              "Body": "return [join $args -]",
+              "Defaults": null
+            }
+          ],
+          "functionScript": "joinx right",
           "minArgs": -1,
           "maxArgs": -1
         }

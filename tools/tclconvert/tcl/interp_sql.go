@@ -309,7 +309,11 @@ func (i *Interp) dbFunction(args []string) error {
 			marker.DirectOnly = true
 		}
 	}
-	if proc, ok := i.procs[procName]; ok {
+	// A proc reference may carry the Tcl global scope prefix ("db function
+	// testfunc1 ::testfunc1" — func.test:17.1).
+	proc, procOK := i.procs[strings.TrimPrefix(procName, "::")]
+	switch {
+	case procOK:
 		marker.FunctionArgs = append([]string(nil), proc.Args...)
 		marker.FunctionBody = proc.Body
 		marker.MinArgs = len(proc.Args)
@@ -326,16 +330,43 @@ func (i *Interp) dbFunction(args []string) error {
 				marker.MinArgs--
 			}
 		}
-	} else if strings.TrimSpace(procName) == "set ::val" {
+	case strings.TrimSpace(procName) == "set ::val":
 		// SQLite test harness accepts a Tcl command prefix as callback; this
 		// prefix receives one SQL argument and assigns it to global ::val.
 		marker.FunctionArgs = []string{"value"}
 		marker.FunctionBody = "set ::val $value"
 		marker.MinArgs, marker.MaxArgs = 1, 1
+	case strings.ContainsAny(procName, " \t\n"):
+		// `db func cross {joinx cross}` (func8.test): the callback is a Tcl
+		// *script*, not a procedure name. tclsqlite appends the SQL
+		// arguments to the script as extra command words, so the harness
+		// needs the script itself plus every procedure the script calls.
+		marker.FunctionScript = procName
+		marker.FunctionProc = ""
+		marker.CallbackProcs = i.scriptProcs(procName)
 	}
 	i.trackCallbackVars(nil, marker.FunctionBody)
 	i.stmts = append(i.stmts, marker)
 	return nil
+}
+
+// scriptProcs collects the procedures a db-func callback script invokes by
+// name, so the harness's function interpreter can resolve them ("db func
+// cross {joinx cross}" needs the joinx proc from func8.test's file scope).
+func (i *Interp) scriptProcs(script string) []Proc {
+	var procs []Proc
+	seen := map[string]bool{}
+	for _, word := range splitList(script) {
+		name := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(word), "::"))
+		if name == "" || seen[name] {
+			continue
+		}
+		if proc, ok := i.procs[name]; ok && !seen[proc.Name] {
+			seen[proc.Name] = true
+			procs = append(procs, Proc{Name: proc.Name, Args: append([]string(nil), proc.Args...), Body: proc.Body})
+		}
+	}
+	return procs
 }
 
 // dbEval implements `db eval { SQL } ?script?`.
