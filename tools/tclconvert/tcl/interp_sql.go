@@ -1066,8 +1066,10 @@ func firstStatement(sql string) string {
 	return ""
 }
 
-// tclVarRef matches $name and $::name variable references in a Tcl expression.
-var tclVarRef = regexp.MustCompile(`\$(?:::)?([A-Za-z_][A-Za-z0-9_]*)`)
+// tclVarRef matches $name, $::name and $array(element) variable references
+// in a Tcl expression — the same references readVarName reads (the element
+// may nest one level of parentheses).
+var tclVarRef = regexp.MustCompile(`\$(?:::)?([A-Za-z_][A-Za-z0-9_]*(?:\((?:[^()]|\([^()]*\))*\))?)`)
 
 // exprReadsRuntimeVar reports whether a Tcl expression references a variable
 // whose value is only known at runtime (assigned from a query result), meaning

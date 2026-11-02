@@ -8,16 +8,37 @@
       "name": "setup_0",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT tointeger(9223372036854775807 + 1);"
+          "type": "query_assign",
+          "sql": "SELECT tointeger(9223372036854775807 + 1);",
+          "variable": "runtime_probe_0",
+          "resultAll": true
         },
         {
-          "type": "query",
-          "sql": "SELECT toreal(-9223372036854775808 + 1);"
+          "type": "runtime_expr",
+          "sql": "$runtime_probe_0 eq {{}}",
+          "variable": "highPrecision(1)"
         },
         {
-          "type": "query",
-          "sql": "SELECT toreal(9007199254740992 + 1);"
+          "type": "query_assign",
+          "sql": "SELECT toreal(-9223372036854775808 + 1);",
+          "variable": "runtime_probe_1",
+          "resultAll": true
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "$runtime_probe_1 eq {{}}",
+          "variable": "highPrecision(2)"
+        },
+        {
+          "type": "query_assign",
+          "sql": "SELECT toreal(9007199254740992 + 1);",
+          "variable": "runtime_probe_2",
+          "resultAll": true
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "$runtime_probe_2 eq {{}}",
+          "variable": "highPrecision(3)"
         }
       ]
     },
@@ -382,6 +403,17 @@
       ]
     },
     {
+      "name": "func4-1.37",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT tointeger(9223372036854775807 + 1);",
+          "condition": "$highPrecision(1)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
       "name": "func4-1.38",
       "steps": [
         {
@@ -488,6 +520,50 @@
           "type": "query",
           "sql": "SELECT tointeger(9223372036854775807);",
           "expect": "9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.49",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT tointeger(9223372036854775807 + 1);",
+          "condition": "$highPrecision(1)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.50",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT tointeger(9223372036854775808 - 1);",
+          "condition": "$highPrecision(1)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.51",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT tointeger(9223372036854775808);",
+          "condition": "$highPrecision(1)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.52",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT tointeger(9223372036854775808 + 1);",
+          "condition": "$highPrecision(1)",
+          "expect": "{}"
         }
       ]
     },
@@ -762,11 +838,44 @@
       ]
     },
     {
+      "name": "func4-2.25",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT toreal(-9223372036854775808 + 1);",
+          "condition": "$highPrecision(2)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
       "name": "func4-2.26",
       "steps": [
         {
           "type": "emptytext",
           "sql": "SELECT toreal(-9223372036854775807 - 1);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-2.27",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT toreal(-9223372036854775807);",
+          "condition": "$highPrecision(2)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-2.28",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT toreal(-9223372036854775807 + 1);",
+          "condition": "$highPrecision(2)",
           "expect": "{}"
         }
       ]
@@ -828,6 +937,28 @@
           "type": "query",
           "sql": "SELECT toreal(2147483647 + 1);",
           "expect": "2147483648.0"
+        }
+      ]
+    },
+    {
+      "name": "func4-2.35",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT toreal(9223372036854775807 - 1);",
+          "condition": "$highPrecision(2)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-2.36",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT toreal(9223372036854775807);",
+          "condition": "($highPrecision(1)) \u0026\u0026 ($highPrecision(2))",
+          "expect": "{}"
         }
       ]
     },
@@ -925,8 +1056,15 @@
       "name": "func4-2.46",
       "steps": [
         {
+          "type": "emptytext",
+          "sql": "SELECT toreal(9007199254740992 + 1);",
+          "condition": "$highPrecision(3)",
+          "expect": "{}"
+        },
+        {
           "type": "query",
           "sql": "SELECT toreal(9007199254740992 + 1);",
+          "condition": "!($highPrecision(3))",
           "expect": "9007199254740992.0"
         }
       ]
@@ -947,6 +1085,28 @@
         {
           "type": "emptytext",
           "sql": "SELECT toreal(tointeger(9223372036854775808) - 1);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-2.49",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT toreal(tointeger(9223372036854775808));",
+          "condition": "$highPrecision(1)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-2.50",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT toreal(tointeger(9223372036854775808) + 1);",
+          "condition": "$highPrecision(1)",
           "expect": "{}"
         }
       ]
@@ -1156,6 +1316,17 @@
         {
           "type": "catch",
           "sql": "INSERT INTO t1 (x) VALUES ('-9223372036854775809');",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.19",
+      "steps": [
+        {
+          "type": "catch",
+          "sql": "INSERT INTO t1 (x) VALUES (9223372036854775808);",
+          "condition": "$highPrecision(1)",
           "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
         }
       ]
@@ -1400,6 +1571,17 @@
       ]
     },
     {
+      "name": "func4-5.8",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT tointeger(toreal(-9223372036854775808 + 1));",
+          "condition": "$highPrecision(2)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
       "name": "func4-5.9",
       "steps": [
         {
@@ -1470,6 +1652,28 @@
       ]
     },
     {
+      "name": "func4-5.16",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT tointeger(toreal(9223372036854775807));",
+          "condition": "$highPrecision(1)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-5.17",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT tointeger(toreal(9223372036854775807 + 1));",
+          "condition": "$highPrecision(1)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
       "name": "func4-5.18",
       "steps": [
         {
@@ -1523,8 +1727,15 @@
       "name": "func4-5.23",
       "steps": [
         {
+          "type": "emptytext",
+          "sql": "SELECT tointeger(toreal(9007199254740992 + 1));",
+          "condition": "$highPrecision(3)",
+          "expect": "{}"
+        },
+        {
           "type": "query",
           "sql": "SELECT tointeger(toreal(9007199254740992 + 1));",
+          "condition": "!($highPrecision(3))",
           "expect": "9007199254740992"
         }
       ]
@@ -1536,6 +1747,39 @@
           "type": "query",
           "sql": "SELECT tointeger(toreal(9007199254740992 + 2));",
           "expect": "9007199254740994"
+        }
+      ]
+    },
+    {
+      "name": "func4-5.25",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT tointeger(toreal(9223372036854775808 - 1));",
+          "condition": "$highPrecision(1)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-5.26",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT tointeger(toreal(9223372036854775808));",
+          "condition": "$highPrecision(1)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-5.27",
+      "steps": [
+        {
+          "type": "emptytext",
+          "sql": "SELECT tointeger(toreal(9223372036854775808 + 1));",
+          "condition": "$highPrecision(1)",
+          "expect": "{}"
         }
       ]
     },

@@ -441,6 +441,13 @@ func (p *exprParser) parsePrimary() (interface{}, error) {
 		return p.parseStringLit()
 	}
 
+	// Braced string literal: Tcl expr treats {..} as a literal operand with
+	// no substitutions (func4.test's probes compare against the empty list:
+	// `[db eval {...}] eq {{}}`).
+	if ch == '{' {
+		return p.parseBracedLit()
+	}
+
 	// Identifier — could be function call or bare word (string)
 	if unicode.IsLetter(rune(ch)) || ch == '_' {
 		return p.parseIdent()
@@ -485,6 +492,30 @@ func (p *exprParser) parseStringLit() (interface{}, error) {
 	// Unterminated literal: keep the text seen so far (the caller reports the
 	// parse failure).
 	return b.String(), nil
+}
+
+// parseBracedLit parses a {..} braced string operand: the content is a
+// literal (no substitutions), with balanced inner braces.
+func (p *exprParser) parseBracedLit() (interface{}, error) {
+	p.pos++ // opening brace
+	depth := 1
+	var b strings.Builder
+	for p.pos < len(p.input) {
+		c := p.input[p.pos]
+		switch c {
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth == 0 {
+				p.pos++
+				return b.String(), nil
+			}
+		}
+		b.WriteByte(c)
+		p.pos++
+	}
+	return nil, fmt.Errorf("unterminated braced literal")
 }
 
 // parseIdent parses an identifier: either a function call or a bare word.

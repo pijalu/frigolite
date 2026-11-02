@@ -347,10 +347,28 @@ func commandSet(i *Interp, rawWords []rawWord, args []string, localVars map[stri
 		text := strings.TrimSpace(rawWords[2].Text)
 		if strings.HasPrefix(text, "[expr") {
 			inner := strings.TrimSpace(strings.TrimSuffix(strings.TrimSpace(text[len("[expr"):]), "]"))
+			// A backslash-newline continuation inside the word (func4.test
+			// wraps its probe exprs over two lines) separates the braced
+			// body from the [expr head; Tcl treats it as a space.
+			inner = strings.TrimSpace(strings.ReplaceAll(inner, "\\\n", " "))
 			// The expression is usually a braced word: `expr {$a eq $b}` —
 			// the braces delimit the expression, they are not part of it.
 			if len(inner) >= 2 && strings.HasPrefix(inner, "{") && strings.HasSuffix(inner, "}") {
 				inner = strings.TrimSpace(inner[1 : len(inner)-1])
+			}
+			// The expression may embed a query command substitution instead
+			// of a variable reference (func4.test's floating-point platform
+			// probes: `set highPrecision(3) [expr {[db eval {SELECT
+			// toreal(...);}] eq {{}}}]`): the query ran while the value word
+			// was evaluated and its rows exist only at run time. The
+			// embedded substitution becomes a probe variable the harness
+			// fills from the captured query, so the expression is deferred
+			// against it instead of statically comparing the runtime marker
+			// (which silently answers 0 and records the `if`'s else branch).
+			if inner != "" && !i.exprReadsRuntimeVar(inner) {
+				if rewritten, ok := i.rewriteEmbeddedQueryExpr(inner); ok {
+					inner = rewritten
+				}
 			}
 			if inner != "" && i.exprReadsRuntimeVar(inner) {
 				name := strings.TrimPrefix(args[0], "::")
@@ -472,6 +490,65 @@ func commandSet(i *Interp, rawWords []rawWord, args []string, localVars map[stri
 		delete(i.dynamicVars, strings.TrimPrefix(args[0], "::"))
 	}
 	return nil
+}
+
+// rewriteEmbeddedQueryExpr rewrites an expression that reads an embedded
+// query substitution: `... [db eval {SELECT ...}] ...` becomes
+// `... $runtime_probe_N ...`, where the probe variable is assigned from the
+// query that evaluating the substituted word just captured (the newest
+// statement). A query inside an expr is a runtime value — func4.test's
+// floating-point platform probes compare one against the empty list:
+//
+//	set highPrecision(3) [expr \
+//	    {[db eval {SELECT toreal(9007199254740992 + 1);}] eq {{}}}]
+//
+// Statically the substitution carries the runtime marker and the comparison
+// answers 0, silently recording every conditional's else branch. ok is false
+// when the expression embeds no (single) query substitution; the caller
+// keeps the original text then.
+func (i *Interp) rewriteEmbeddedQueryExpr(inner string) (string, bool) {
+	depth, start := 0, -1
+	spanStart, spanEnd := 0, 0
+	matchedCmd := ""
+	found := 0
+	for pos := 0; pos < len(inner); pos++ {
+		switch inner[pos] {
+		case '[':
+			if depth == 0 {
+				start = pos
+			}
+			depth++
+		case ']':
+			depth--
+			if depth == 0 && start >= 0 {
+				cmd := strings.TrimSpace(inner[start+1 : pos])
+				if strings.HasPrefix(cmd, "db eval ") || strings.HasPrefix(cmd, "db one ") ||
+					strings.HasPrefix(cmd, "db onecolumn ") || strings.HasPrefix(cmd, "execsql ") {
+					spanStart, spanEnd, matchedCmd = start, pos+1, cmd
+					found++
+				}
+				start = -1
+			}
+		}
+	}
+	if found != 1 || len(i.stmts) == 0 {
+		return inner, false
+	}
+	last := &i.stmts[len(i.stmts)-1]
+	if last.TestName != i.curTest || (last.Type != "exec" && last.Type != "query") ||
+		!isQueryStmt(firstStatement(last.SQL)) {
+		return inner, false
+	}
+	name := fmt.Sprintf("runtime_probe_%d", i.runtimeProbeCount)
+	i.runtimeProbeCount++
+	// `db eval`/`execsql` yield the whole result (a list of rows), `db one`/
+	// `db onecolumn` a single value (see commandSet's direct substitutions).
+	last.Type = "query_assign"
+	last.Variable = name
+	last.ResultAll = !strings.HasPrefix(matchedCmd, "db one")
+	i.dynamicVars[name] = true
+	i.runtimeVars[name] = last.runtimeID
+	return inner[:spanStart] + "$" + name + inner[spanEnd:], true
 }
 
 // commandUnset implements `unset var...`.

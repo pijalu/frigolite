@@ -116,6 +116,7 @@ type Interp struct {
 	selectGroup       int
 	catchDepth        int             // nesting level of `catch { ... }` blocks
 	condDepth         int             // nesting level of if-condition evaluation (command substitutions there run in condition context)
+	runtimeProbeCount int             // fresh probe variables for exprs embedding a query substitution (rewriteEmbeddedQueryExpr)
 	deletedFiles      map[string]bool // files removed via forcedelete/file delete
 	fileWrites        map[string]*tclFileWrite
 	nextFileHandle    int
