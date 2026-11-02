@@ -551,3 +551,47 @@ The per-family statement budget hides them: the conversion looked fine, the
   SQLite-faithful layout is [key..., PK columns] on every path),
   integrity_check exempts WR secondary indexes from the count comparison
   and the presence pass (delete4-4.11, without_rowid1-6.x stay green).
+
+## Multiplex VFS + session traps 2026-11-02
+
+- **os.SameFile type-asserts `*os.fileStat`** (both args): a custom
+  fs.FileInfo wrapper (the multiplex Group's aggregated FileInfo) fails the
+  assertion → SameFile returns false → databaseFileMoved reports "moved" →
+  every journal-mode write fails SQLITE_READONLY. Any custom FileInfo fed to
+  identity checks must be paired with a raw stat path (multiplex.Group.Chunk0Stat).
+- **multiplexor semantics that the corpus pins** (src/test_multiplex.c is
+  the spec; ext/misc/multiplex.c is not in-tree): chunk sizes round UP to
+  64 KiB multiples (SET_CHUNK_SIZE has NO pending-byte loop; the open-time
+  one is a no-op for corpus values); the open-time chunk-1 probe REDERIVES
+  szChunk from chunk 0's on-disk size when chunk 1 exists and the size is a
+  64 KiB multiple (2.5.12's chunksize=65536 after reopen with
+  multiplex_set dropped by the converter); PRAGMA multiplex_filecount =
+  EXISTING chunk files (1/3/3); bTruncate defaults FALSE for MAIN_DB
+  (truncates higher chunks to 0, no delete); chunk names are base+"%03d";
+  groups are per-open (no global reuse); journal/WAL files are NOT
+  multiplexed for the corpus.
+- **The converter's `global` command needed write-through**: proc bodies'
+  `global NAME; set NAME X` wrote a LOCAL (global was a no-op), so
+  multiplex_set's g_chunk_size update never reached the global slot.
+  commandGlobal now seeds the local from the global and setVar writes
+  through for declared names (per-frame procGlobals map).
+- **Converter traps**: tclconvert silently drops unknown TCL commands
+  (sqlite3_multiplex_initialize/set vanished) while KEEPING the recorded
+  expectations — engine/harness scaffolding must reconstruct the dropped
+  semantics; tclconvert writes .json.gz (the tracked corpus is plain .json)
+  and regenerating rewrites ALL files — always `git checkout -- testdata/`
+  then re-apply only the target family's file; zsh does not word-split
+  `$VAR` in for-loops (use explicit lists); `grep ... > same-file`
+  self-truncates (split files need distinct names).
+- **Checkpoint protocol**: per-family leaf registers are the default
+  verification (a family run is seconds; a full suite ~30 min); every run's
+  log + family-count register is archived under portplan/runs/ so a cleaned
+  /tmp cannot force a baseline rebuild. Run 36's checkpoint commit does not
+  build (its fixup landed after) — never launch a checkpoint from a tree
+  that cannot build.
+- **The OR-single-range rule is whereexpr.c CASE 2** (whereCombineDisjuncts),
+  not a union-range: a two-way OR with a same-operand pair combines to a
+  virtual term (a>2 OR (a=2 AND b>2) → a>=2); CASE 1 (all-eq arms on one
+  column → IN) already coincides with the multi-branch executor's output
+  (arm-order = IN-value order). Non-combining: different bound constants,
+  different literal tokens (2 vs 2.0), mixed directions.

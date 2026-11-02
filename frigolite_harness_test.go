@@ -3421,7 +3421,10 @@ func TestSQLiteSuite(t *testing.T) {
 								t.Errorf("close lifecycle database: %v", err)
 								return
 							}
-							if step.Expect != "" && matchExpectation(runtimeVars["caseless_del"], step.Expect) != "" {
+							// The close_db expect is a COLLATION-fixture contract: the fixture
+							// families close_db to assert their destructor ran. Other families'
+							// close_db expects (multiplex-2.6.99's SQLITE_OK) carry no such meaning.
+							if step.Expect != "" && harnessCollationFixtures[base] != nil && matchExpectation(runtimeVars["caseless_del"], step.Expect) != "" {
 								t.Errorf("collation destructor count = %s, want %s", runtimeVars["caseless_del"], step.Expect)
 							}
 							continue

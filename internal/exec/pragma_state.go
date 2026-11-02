@@ -8,6 +8,7 @@ import (
 	"github.com/pijalu/frigolite/internal/execpragma"
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/function"
+	"github.com/pijalu/frigolite/internal/multiplex"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
@@ -903,3 +904,70 @@ func (e *Engine) CaseSensitiveLike() bool { return e.settings.caseSensitiveLike 
 func (e *Engine) SetCaseSensitiveLike(b bool) { e.settings.caseSensitiveLike = b }
 
 // SkipScanEnabled reports whether the skip-scan query optimization is on.
+
+// --- Multiplex pragmas (src/test_multiplex.c's SQLITE_FCNTL_PRAGMA
+// handlers; they resolve through the named database's multiplexor group and
+// report an empty result when that pager has none — the C's unknown-pragma
+// pass-through) ---
+
+// MultiplexEnabled implements PRAGMA multiplex_enabled.
+func (e *Engine) MultiplexEnabled(schema string) *execpragma.Result {
+	g := e.multiplexGroupFor(schema)
+	if g == nil {
+		return &execpragma.Result{}
+	}
+	return &execpragma.Result{Rows: [][]interface{}{{boolToInt64(g.Enabled())}}}
+}
+
+// MultiplexChunkSize implements PRAGMA multiplex_chunksize (only active
+// while the multiplexor is enabled, like the C's handler).
+func (e *Engine) MultiplexChunkSize(schema string) *execpragma.Result {
+	g := e.multiplexGroupFor(schema)
+	if g == nil || !g.Enabled() {
+		return &execpragma.Result{}
+	}
+	return &execpragma.Result{Rows: [][]interface{}{{int64(g.ChunkSize())}}}
+}
+
+// MultiplexFileCount implements PRAGMA multiplex_filecount: the number of
+// chunk files the multiplexor is using.
+func (e *Engine) MultiplexFileCount(schema string) *execpragma.Result {
+	g := e.multiplexGroupFor(schema)
+	if g == nil {
+		return &execpragma.Result{}
+	}
+	return &execpragma.Result{Rows: [][]interface{}{{int64(g.FileCount())}}}
+}
+
+// MultiplexTruncate implements PRAGMA multiplex_truncate (getter of the
+// group's truncate-above-mark disposition).
+func (e *Engine) MultiplexTruncate(schema string) *execpragma.Result {
+	g := e.multiplexGroupFor(schema)
+	if g == nil {
+		return &execpragma.Result{}
+	}
+	v := "off"
+	if g.TruncateMode() {
+		v = "on"
+	}
+	return &execpragma.Result{Rows: [][]interface{}{{v}}}
+}
+
+// multiplexGroupFor resolves the named database's multiplexor group (nil
+// when there is none — an in-memory database, a read-only open, or an
+// unknown schema).
+func (e *Engine) multiplexGroupFor(schema string) *multiplex.Group {
+	ctx := e.pragmaDBCtx(schema)
+	if ctx == nil || ctx.Pager == nil {
+		return nil
+	}
+	return ctx.Pager.MultiplexGroup()
+}
+
+// boolToInt64 converts a boolean to 0/1 (the pragma row-value convention).
+func boolToInt64(b bool) int64 {
+	if b {
+		return 1
+	}
+	return 0
+}

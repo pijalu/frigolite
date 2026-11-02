@@ -12,11 +12,13 @@ package pager
 
 import (
 	"encoding/binary"
+	"io/fs"
 	"os"
 	"sync"
 	"sync/atomic"
 	"time"
 
+	"github.com/pijalu/frigolite/internal/multiplex"
 	"github.com/pijalu/frigolite/internal/quota"
 	"github.com/pijalu/frigolite/internal/storage"
 )
@@ -29,6 +31,20 @@ const (
 	HeaderSize       = 100
 )
 
+// pagerFile is the database file abstraction the pager reads and writes
+// through: a plain *os.File, or a multiplex.Group when the database is a
+// multiplexed main-database file (src/test_multiplex.c's multiplexGroup —
+// every main-db file is attached to a group; with the default 2 GiB-64 KiB
+// chunk size the group is a byte-for-byte pass-through to chunk 0).
+type pagerFile interface {
+	ReadAt(p []byte, off int64) (int, error)
+	WriteAt(p []byte, off int64) (int, error)
+	Truncate(size int64) error
+	Stat() (fs.FileInfo, error)
+	Sync() error
+	Close() error
+}
+
 type Pager struct {
 	mu       sync.RWMutex
 	pageSize uint32
@@ -36,11 +52,15 @@ type Pager struct {
 	// requestedReserve holds a SQLITE_FCNTL_RESERVE_BYTES request that has
 	// not been materialized in the file yet (applied by the next VACUUM).
 	requestedReserve uint32
-	file             *os.File
-	pages            map[uint32]*Page
-	dirty            map[uint32]bool
-	readOnly         bool
-	numPages         uint32
+	file             pagerFile
+	// mux is the multiplexor group over file (nil for in-memory pagers and
+	// for tests that set file directly); the multiplex_control function and
+	// the multiplex_* pragmas operate through it.
+	mux      *multiplex.Group
+	pages    map[uint32]*Page
+	dirty    map[uint32]bool
+	readOnly bool
+	numPages uint32
 	// pendingFileTruncate records a pager_truncate_image shrink that must
 	// reach the database FILE at COMMIT: mid-transaction the file keeps the
 	// pre-truncate images (the savepoint-snapshot restore re-reads evicted

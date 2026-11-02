@@ -125,12 +125,13 @@ type Interp struct {
 	substErr          error     // sticky error from a command substitution
 	randSeed          int64     // expr rand() state (see tclRand)
 	randSeeded        bool
-	runtimeID         int            // counter for the runtime value markers
-	runtimeVars       map[string]int // variable name -> the runtime query id it holds
-	tclPrecision     int            // the last `set tcl_precision N`
-	tclPrecisionSeen bool           // whether the source ever set tcl_precision
-	statusFlagged     *Stmt          // the statement the last `db status` substitution flagged (render-style detection)
-	searchCountReset  bool           // a `set ::sqlite_search_count ...` ran in the current test body (where8's execsql_status2)
+	runtimeID         int             // counter for the runtime value markers
+	runtimeVars       map[string]int  // variable name -> the runtime query id it holds
+	tclPrecision      int             // the last `set tcl_precision N`
+	tclPrecisionSeen  bool            // whether the source ever set tcl_precision
+	statusFlagged     *Stmt           // the statement the last `db status` substitution flagged (render-style detection)
+	searchCountReset  bool            // a `set ::sqlite_search_count ...` ran in the current test body (where8's execsql_status2)
+	procGlobals       map[string]bool // names the current proc body declared `global` (write-through in setVar)
 }
 
 // TCL's random number generator (TclRand in tclBasic.c): a Park-Miller LCG
@@ -233,11 +234,15 @@ func NewInterp() *Interp {
 			"SQLITE_MAX_LENGTH":          "1000000000",
 			"SQLITE_MAX_ATTACHED":        "10",
 			"SQLITE_MAX_VARIABLE_NUMBER": "32766",
+			// The multiplexor's MAX_PAGE_SIZE (test_multiplex.c): the
+			// granularity multiplex_set rounds chunk sizes up to.
+			"SQLITE_MAX_PAGE_SIZE": "65536",
 		},
 		dynamicVars:      make(map[string]bool),
 		trackedVars:      make(map[string]bool),
 		callbackCommands: make(map[string]func([]string) (string, error)),
 		procs:            make(map[string]*Proc),
+		procGlobals:      make(map[string]bool),
 		fileWrites:       make(map[string]*tclFileWrite),
 		preparedSQL:      make(map[string]string),
 		runtimeVars:      make(map[string]int),
@@ -1538,6 +1543,11 @@ func (i *Interp) callProc(proc *Proc, args []string, callerVars map[string]strin
 		i.depth--
 		return fmt.Errorf("proc call depth exceeded")
 	}
+	// The `global` declarations are per call frame: a nested proc body's
+	// `global` does not leak into the caller's frame.
+	savedGlobals := i.procGlobals
+	i.procGlobals = make(map[string]bool)
+	defer func() { i.procGlobals = savedGlobals }()
 	// A procedure that receives a runtime query value post-processes the
 	// rows the query returns (fts3expr3.test's strip_phrase_data). The
 	// result is only known at run time, so the fixture records the
@@ -1682,6 +1692,13 @@ func (i *Interp) cmdRegsub(args []string, localVars map[string]string) error {
 func (i *Interp) setVar(name, val string, localVars map[string]string) {
 	if localVars != nil {
 		localVars[name] = val
+		// A name declared by the body's `global` command aliases the
+		// interpreter global (TCL link semantics): the write also lands in
+		// the global slot, so later reads outside the proc see it
+		// (multiplex_set's `global g_chunk_size; set g_chunk_size ...`).
+		if i.procGlobals[name] {
+			i.vars[name] = val
+		}
 	} else {
 		i.vars[name] = val
 	}

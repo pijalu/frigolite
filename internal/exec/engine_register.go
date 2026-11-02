@@ -9,6 +9,7 @@ import (
 	"github.com/pijalu/frigolite/internal/fts"
 	"github.com/pijalu/frigolite/internal/fts5"
 	"github.com/pijalu/frigolite/internal/function"
+	"github.com/pijalu/frigolite/internal/multiplex"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
@@ -339,6 +340,16 @@ func (e *Engine) registerEngineFuncs() {
 	// The remember(X, PTR) test-harness function (ext/misc/remember.c analog):
 	// stores X into the first element of the addressed carray and returns X.
 	e.funcs.Register("remember", vtab.RememberFunc, 2, 2)
+	// The multiplex_control() function (src/test_multiplex.c's
+	// multiplexControlFunc, auto-registered on every connection once the
+	// multiplexor is initialized): maps op 1/2/3 onto the main database
+	// pager's multiplexor group ENABLE / SET_CHUNK_SIZE / SET_MAX_CHUNKS
+	// controls. Any other op is a NOTFOUND error; a connection without a
+	// multiplexor group (in-memory main) errors the same way the C's
+	// file-control NOTFOUND does.
+	e.funcs.Register("multiplex_control", func(args []interface{}) (interface{}, error) {
+		return nil, e.multiplexControl(funcIntArg(args[0]), funcIntArg(args[1]))
+	}, 2, 2)
 	e.registerFileIOFuncs()
 	e.registerZipFuncs()
 	// Built-in decimal collation (ext/misc/decimal.c creates it via
@@ -420,4 +431,60 @@ func zipCdsScalar(args []interface{}) (interface{}, error) {
 		return nil, nil
 	}
 	return vtab.ZipCdsJSON(rest[:i], idx), nil
+}
+
+// funcIntArg coerces a scalar function argument to int64 the way
+// sqlite3_value_int does (numeric value; text/negatives through their
+// numeric prefix). Non-numeric arguments yield 0.
+func funcIntArg(v interface{}) int64 {
+	switch x := v.(type) {
+	case int64:
+		return x
+	case float64:
+		return int64(x)
+	case int:
+		return int64(x)
+	case []byte:
+		var n int64
+		fmt.Sscanf(string(x), "%d", &n)
+		return n
+	case string:
+		var n int64
+		fmt.Sscanf(x, "%d", &n)
+		return n
+	}
+	return 0
+}
+
+// multiplexControl applies one MULTIPLEX_CTRL_* operation to the main
+// database pager's multiplexor group (src/test_multiplex.c multiplexFileControl):
+// op 1 = enable/disable, op 2 = chunk size (rounded up to a 64 KiB multiple,
+// below 1 is a misuse error), op 3 = max chunks (accepted, unenforced). Any
+// other op — or a pager without a group (in-memory main) — is a NOTFOUND
+// error.
+func (e *Engine) multiplexControl(op, val int64) error {
+	g := e.mainPagerMultiplexGroup()
+	if g == nil {
+		return fmt.Errorf("unknown operation")
+	}
+	switch op {
+	case 1:
+		g.SetEnabled(val != 0)
+		return nil
+	case 2:
+		return g.SetChunkSize(val)
+	case 3:
+		g.SetMaxChunks(val)
+		return nil
+	}
+	return fmt.Errorf("unknown operation")
+}
+
+// mainPagerMultiplexGroup returns the main database pager's multiplexor
+// group (nil for an in-memory main database).
+func (e *Engine) mainPagerMultiplexGroup() *multiplex.Group {
+	if e.pager == nil {
+		return nil
+	}
+	return e.pager.MultiplexGroup()
 }

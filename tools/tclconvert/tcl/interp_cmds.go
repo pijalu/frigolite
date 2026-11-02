@@ -62,7 +62,7 @@ func init() {
 		"error":   commandError,
 		"uplevel": commandUplevel,
 		"upvar":   commandUpvar,
-		"global":  noopCommand,
+		"global":  commandGlobal,
 		"eval":    commandEval,
 		"info":    commandInfo,
 
@@ -106,6 +106,12 @@ func init() {
 		"drop_all_tables_and_views":   commandDropAllMainTables,
 		"drop_all_indexes":            commandDropAllIndexes,
 		"register_echo_module":        commandRegisterEchoModule,
+		// The multiplexor control surface (src/test_multiplex.c): the
+		// conversion emits multiplex_control() SQL calls the engine's
+		// multiplexor group answers.
+		"sqlite3_multiplex_control":   commandMultiplexControl,
+		"sqlite3_multiplex_initialize": noopCommand,
+		"sqlite3_multiplex_shutdown":   noopCommand,
 		"register_tcl_module":         commandRegisterTCLModule,
 		"sqlite3_db_config":           commandDBConfig,
 		"forcedelete":                 commandForceDelete,
@@ -173,6 +179,29 @@ func (i *Interp) dispatchCommand(cmd string, rawWords []rawWord, args []string, 
 		return i.callProc(proc, args, localVars)
 	}
 	// Unknown command — silently ignore (many TCL commands are not needed)
+	return nil
+}
+
+// commandGlobal implements Tcl's `global NAME...` inside a proc body: the
+// names alias interpreter globals for the call — reads see the global's
+// current value (seeded into the local scope) and writes land in the global
+// slot as well (setVar's write-through), so multiplex_set's
+// `global g_chunk_size; set g_chunk_size ...` updates the value later
+// references read.
+func commandGlobal(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
+	if localVars == nil {
+		return nil // top-level `global` is a no-op
+	}
+	for _, a := range args {
+		name := strings.TrimPrefix(a, "::")
+		if name == "" {
+			continue
+		}
+		i.procGlobals[name] = true
+		if _, exists := localVars[name]; !exists {
+			localVars[name] = i.vars[name]
+		}
+	}
 	return nil
 }
 
@@ -1549,4 +1578,38 @@ func skipCapName(expr string, i int) int {
 // isCapNameChar reports whether c can appear in a capability identifier.
 func isCapNameChar(c byte) bool {
 	return c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')
+}
+
+// commandMultiplexControl implements sqlite3_multiplex_control HANDLE DBNAME
+// SUB-COMMAND ?INT-VALUE? (src/test_multiplex.c's test_multiplex_control):
+// the sub-command maps to the multiplex_control() SQL function's op —
+// enable→1, chunk_size→2, max_chunks→3 — and the conversion emits the
+// function call as an exec step (the engine's multiplex_control resolves the
+// main pager's multiplexor group). The value passes through verbatim so a
+// loop variable's per-iteration literal reaches the generated SQL.
+func commandMultiplexControl(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
+	if len(args) < 3 {
+		return nil
+	}
+	op := 0
+	switch args[2] {
+	case "enable":
+		op = 1
+	case "chunk_size":
+		op = 2
+	case "max_chunks":
+		op = 3
+	default:
+		return nil
+	}
+	val := "0"
+	if len(args) > 3 {
+		val = args[3]
+	}
+	i.stmts = append(i.stmts, Stmt{
+		Type:     "exec",
+		SQL:      fmt.Sprintf("SELECT multiplex_control(%d, %s);", op, val),
+		TestName: i.curTest,
+	})
+	return nil
 }

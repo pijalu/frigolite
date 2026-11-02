@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/pijalu/frigolite/internal/multiplex"
 	"github.com/pijalu/frigolite/internal/quota"
 	"github.com/pijalu/frigolite/internal/storage"
 )
@@ -44,15 +45,40 @@ func openPager(path string, pageSize uint32, forceReadOnly bool) (*Pager, error)
 	if err != nil {
 		return nil, err
 	}
-	info, err := f.Stat()
+	// The multiplexor group (src/test_multiplex.c multiplexOpen): every
+	// main-database file attaches to a group. With the default chunk size
+	// (2 GiB - 64 KiB) the group is a byte-level pass-through to the single
+	// chunk-0 file; a small chunk size (multiplex_control(2, N)) splits
+	// reads/writes across "path001"... chunk files. A read-only pager keeps
+	// the plain file (the group's disabled writes would surface identical
+	// errors, but chunk files must never be created read-only).
+	var file pagerFile = f
+	var mux *multiplex.Group
+	if readOnlyFallback || forceReadOnly {
+		// read-only: keep the raw file.
+	} else if g, gerr := multiplex.NewGroup(f, cleanPath, false); gerr == nil {
+		file = g
+		mux = g
+	}
+	info, err := file.Stat()
 	if err != nil {
-		f.Close()
+		file.Close()
 		return nil, fmt.Errorf("pager: stat %s: %w", path, err)
+	}
+	// The file-identity cache (dbFileInfo feeds os.SameFile, which
+	// type-asserts *os.fileStat): chunk 0's RAW stat, not the multiplex
+	// group's aggregated FileInfo wrapper.
+	identityInfo := info
+	if mux != nil {
+		if raw, rerr := mux.Chunk0Stat(); rerr == nil {
+			identityInfo = raw
+		}
 	}
 
 	pr := &Pager{
 		pageSize: pageSize,
-		file:     f,
+		file:     file,
+		mux:      mux,
 		pages:    make(map[uint32]*Page),
 		dirty:    make(map[uint32]bool),
 		fileSize: info.Size(),
@@ -65,8 +91,8 @@ func openPager(path string, pageSize uint32, forceReadOnly bool) (*Pager, error)
 		// databaseFileMoved compares the path stat against dbFileInfo and
 		// initJournalEpochLocked chmods the journal only when the mode
 		// differs — both otherwise cost 1-2 syscalls per transaction.
-		dbFileInfo: info,
-		dbFilePerm: info.Mode().Perm(),
+		dbFileInfo: identityInfo,
+		dbFilePerm: identityInfo.Mode().Perm(),
 		// SQLite's default PRAGMA journal_size_limit is -1 (no truncation;
 		// pager.h SQLITE_DEFAULT_JOURNAL_SIZE_LIMIT). A PERSIST journal is
 		// truncated to the limit after a commit when one is set; negative
@@ -81,8 +107,8 @@ func openPager(path string, pageSize uint32, forceReadOnly bool) (*Pager, error)
 	// its size counts toward the group cap. No-op when uninitialized.
 	quota.RegisterDBFile(cleanPath)
 
-	if err := loadExistingImage(pr, f, info.Size()); err != nil {
-		f.Close()
+	if err := loadExistingImage(pr, file, info.Size()); err != nil {
+		file.Close()
 		return nil, err
 	}
 	// Baseline the external-change stamp on what we just opened (pager.c
@@ -90,11 +116,11 @@ func openPager(path string, pageSize uint32, forceReadOnly bool) (*Pager, error)
 	pr.refreshKnownFileStamp()
 
 	if err := recoverJournalAtOpen(pr, cleanPath); err != nil {
-		f.Close()
+		file.Close()
 		return nil, err
 	}
 	if err := attachWalAtOpen(pr, cleanPath); err != nil {
-		f.Close()
+		file.Close()
 		return nil, err
 	}
 
@@ -160,7 +186,7 @@ func openDatabaseFile(cleanPath, displayPath string, forceReadOnly bool) (*os.Fi
 // error to the first statement touching the page (pr.headerCorrupt; see
 // ValidateHeader). Hard I/O failures do fail the open. No-op for an empty
 // file (pager.c lazy creation).
-func loadExistingImage(pr *Pager, f *os.File, fileSize int64) error {
+func loadExistingImage(pr *Pager, f pagerFile, fileSize int64) error {
 	if fileSize <= 0 {
 		return nil
 	}
@@ -452,3 +478,9 @@ func (p *Pager) ValidateHeader() error {
 	}
 	return nil
 }
+
+// MultiplexGroup returns the pager's multiplexor group (nil for in-memory
+// pagers and read-only opens): the multiplex_control function and the
+// multiplex_* pragmas operate the group through it
+// (src/test_multiplex.c's MULTIPLEX_CTRL_* file controls).
+func (p *Pager) MultiplexGroup() *multiplex.Group { return p.mux }

@@ -65,6 +65,15 @@ type EngineState interface {
 	// inside a transaction and is a no-op on temp.
 	Synchronous(schema, value string) *Result
 
+	// Multiplex pragmas (src/test_multiplex.c's SQLITE_FCNTL_PRAGMA
+	// handlers): they resolve through the named database's multiplexor
+	// group and report an empty result when that pager has none (the C's
+	// unknown-pragma pass-through).
+	MultiplexEnabled(schema string) *Result
+	MultiplexChunkSize(schema string) *Result
+	MultiplexFileCount(schema string) *Result
+	MultiplexTruncate(schema string) *Result
+
 	// TempStore implements PRAGMA temp_store (pragma.c
 	// sqlite3PragmaTempStore): the getter reports the connection value
 	// (0=default); an actual setter change invalidates the temp storage.
@@ -285,6 +294,20 @@ var pragmaHandlers = map[string]Handler{
 	},
 	"PAGE_SIZE": func(st EngineState, s *sql.PragmaStmt) *Result {
 		return st.PageSize(s.Schema, s.Value)
+	},
+
+	// --- Multiplex pragmas (test_multiplex.c file controls) ---
+	"MULTIPLEX_ENABLED": func(st EngineState, s *sql.PragmaStmt) *Result {
+		return st.MultiplexEnabled(s.Schema)
+	},
+	"MULTIPLEX_CHUNKSIZE": func(st EngineState, s *sql.PragmaStmt) *Result {
+		return st.MultiplexChunkSize(s.Schema)
+	},
+	"MULTIPLEX_FILECOUNT": func(st EngineState, s *sql.PragmaStmt) *Result {
+		return st.MultiplexFileCount(s.Schema)
+	},
+	"MULTIPLEX_TRUNCATE": func(st EngineState, s *sql.PragmaStmt) *Result {
+		return st.MultiplexTruncate(s.Schema)
 	},
 
 	// --- Cache pragmas ---

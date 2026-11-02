@@ -305,6 +305,17 @@ func (p *Pager) FileInfo() (os.FileInfo, bool) {
 	if p.file == nil {
 		return nil, false
 	}
+	// External-modification detection compares file identities
+	// (os.SameFile): a multiplexed file's identity is chunk 0's raw stat —
+	// the group's aggregated FileInfo wrapper does not satisfy
+	// os.SameFile's *os.fileStat assertion.
+	if p.mux != nil {
+		info, err := p.mux.Chunk0Stat()
+		if err != nil {
+			return nil, false
+		}
+		return info, true
+	}
 	info, err := p.file.Stat()
 	if err != nil {
 		return nil, false
