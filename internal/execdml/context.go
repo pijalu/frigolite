@@ -317,4 +317,7 @@ type DMLContext interface {
 	PopCTEScope()
 	FindCTEByName(name string) (sql.CTEDef, bool)
 	SchemaFunctionSafe(name string) bool
+	// FunctionExists reports whether a scalar/aggregate function of any
+	// arity is registered (built-ins plus connection-defined functions).
+	FunctionExists(name string) bool
 }

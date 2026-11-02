@@ -193,6 +193,20 @@ type Evaluator struct {
 	// starts — otherwise a freed statement's node addresses could be reused
 	// by a later statement's AST and serve stale results.
 	collMemo map[sql.Expr]collationResult
+	// constMemo holds the SQLITE_FUNC_CONSTANT factoring (expr.c codes a
+	// deterministic scalar function over constant arguments into the
+	// statement's constant section, evaluated once per run — func5-2.3's
+	// counter2('hello') must advance the shared counter exactly once inside
+	// the WHERE loop). Keyed by the call-site node, cleared with the other
+	// statement-scoped state.
+	constMemo map[sql.Expr]constMemoEntry
+}
+
+// constMemoEntry is a factored constant call's outcome (SQLite evaluates it
+// once; the statement either fails or produces one value).
+type constMemoEntry struct {
+	value interface{}
+	err   error
 }
 
 // collationResult is a memoized exprCollation outcome.
@@ -232,4 +246,5 @@ func (ev *Evaluator) ResetStatementAux() {
 	ev.destroyStatementAux()
 	ev.stmtAux = nil
 	ev.collMemo = nil
+	ev.constMemo = nil
 }

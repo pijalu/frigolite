@@ -420,6 +420,14 @@ func (e *DMLExecutor) evalDefaultExpr(expr sql.Expr, colName string) (interface{
 	if aggName := execquery.FindAggregateInExpr(expr); aggName != "" {
 		return nil, fmt.Errorf("unknown function: %s()", strings.ToLower(aggName))
 	}
+	// A function the registry does not know takes the same INSERT-time
+	// prepare error: expr.c's codegen path (sqlite3ExprCodeTarget, TK_FUNCTION)
+	// renders "unknown function: %#T()" for a missing definition — the
+	// DEFAULT evaluation is that path (func-28.1, ticket 2d401a94287b5),
+	// while SELECT-time resolution reports "no such function: X".
+	if name := e.unknownRegistryFunc(expr); name != "" {
+		return nil, fmt.Errorf("unknown function: %s()", name)
+	}
 	// trusted_schema=OFF blocks non-innocuous user functions in DEFAULT
 	// expressions at USE time (trustschema1-1.310); temp-schema tables are
 	// always trusted (1.320).
@@ -429,6 +437,28 @@ func (e *DMLExecutor) evalDefaultExpr(expr sql.Expr, colName string) (interface{
 		}
 	}
 	return e.ctx.EvalExpr(expr, nil)
+}
+
+// unknownRegistryFunc returns the first function in the expr that neither
+// the built-ins nor a user registration define.
+func (e *DMLExecutor) unknownRegistryFunc(expr sql.Expr) string {
+	if expr == nil {
+		return ""
+	}
+	var unknown string
+	execquery.WalkExprFull(expr, func(n sql.Expr) {
+		if unknown != "" {
+			return
+		}
+		fc, ok := n.(*sql.FuncCall)
+		if !ok {
+			return
+		}
+		if !e.ctx.FunctionExists(fc.Name) {
+			unknown = fc.Name
+		}
+	})
+	return unknown
 }
 
 // defaultValuesWithRowID fills every column with its DEFAULT (NULL if none)

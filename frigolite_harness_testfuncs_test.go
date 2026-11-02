@@ -48,7 +48,9 @@ func registerTest1Functions(t *testing.T, db *DB) {
 		return nil, fmt.Errorf("%s", test1ValueText(args[0]))
 	}, 1, 2)
 	db.RegisterFunction("counter1", nondeterministicCounter, -1, -1)
-	db.RegisterFunction("counter2", nondeterministicCounter, -1, -1)
+	// test1.c:1149 registers counter2 with SQLITE_DETERMINISTIC: the shared
+	// counter is constant-factored, once per statement run (func5-2.3).
+	db.engine.Functions().RegisterDeterministic("counter2", nondeterministicCounter, -1, -1, true, false, false)
 	// test_func.c's test_destructor attaches a result destructor that
 	// decrements test_destructor_count_var; the count therefore reports
 	// results not yet destroyed. The harness drains the pending results at

@@ -488,3 +488,71 @@ func (ev *Evaluator) evalCastExpr(v *sql.CastExpr, row Row) (result interface{},
 		return val, nil
 	}
 }
+
+// exprConstantForFactoring reports whether every argument is a compile-time
+// constant under expr.c's sqlite3ExprIsConstant rule (expr.c's
+// sqlite3ExprCodeTarget factoring of SQLITE_FUNC_CONSTANT calls): literals,
+// arithmetic over constants, and deterministic scalar calls over constants.
+// Column references, bound parameters, subqueries and non-deterministic
+// calls are row-dependent; unknown node shapes are conservatively rejected
+// so a constant factoring never changes results (it only loses one).
+func exprConstantForFactoring(ev *Evaluator, args []sql.Expr) bool {
+	for _, a := range args {
+		if !exprNodeConstantForFactoring(ev, a) {
+			return false
+		}
+	}
+	return true
+}
+
+// exprNodeConstantForFactoring is exprConstantForFactoring over one node.
+func exprNodeConstantForFactoring(ev *Evaluator, expr sql.Expr) bool {
+	switch v := expr.(type) {
+	case nil:
+		return true
+	case *sql.NumericLit, *sql.StringLit, *sql.NullLit, *sql.BlobLit:
+		return true
+	case *sql.ParenExpr:
+		return exprNodeConstantForFactoring(ev, v.Expr)
+	case *sql.UnaryOp:
+		return exprNodeConstantForFactoring(ev, v.Operand)
+	case *sql.BinaryOp:
+		return exprNodeConstantForFactoring(ev, v.Left) && exprNodeConstantForFactoring(ev, v.Right)
+	case *sql.CastExpr:
+		return exprNodeConstantForFactoring(ev, v.Operand)
+	case *sql.IsNull:
+		return exprNodeConstantForFactoring(ev, v.Operand)
+	case *sql.IsNotNull:
+		return exprNodeConstantForFactoring(ev, v.Operand)
+	case *sql.IsTrue:
+		return exprNodeConstantForFactoring(ev, v.Operand)
+	case *sql.IsFalse:
+		return exprNodeConstantForFactoring(ev, v.Operand)
+	case *sql.IsDistinctFrom:
+		return exprNodeConstantForFactoring(ev, v.Left) && exprNodeConstantForFactoring(ev, v.Right)
+	case *sql.IsNotDistinctFrom:
+		return exprNodeConstantForFactoring(ev, v.Left) && exprNodeConstantForFactoring(ev, v.Right)
+	case *sql.Between:
+		return exprNodeConstantForFactoring(ev, v.Operand) &&
+			exprNodeConstantForFactoring(ev, v.Low) && exprNodeConstantForFactoring(ev, v.High)
+	case *sql.RowValue:
+		for _, item := range v.Values {
+			if !exprNodeConstantForFactoring(ev, item) {
+				return false
+			}
+		}
+		return true
+	case *sql.FuncCall:
+		if ev == nil {
+			return false
+		}
+		fn, ok := ev.ctx.Functions().Find(v.Name)
+		if !ok || fn.Type != function.TypeScalar || !fn.Deterministic {
+			return false
+		}
+		return exprConstantForFactoring(ev, v.Args)
+	}
+	// ColumnRef, ParameterExpr, Subquery, ExistsExpr, InList, CaseExpr,
+	// RaiseExpr, LikeRangeOpt and anything newer: row-dependent.
+	return false
+}

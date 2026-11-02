@@ -342,6 +342,31 @@ func (ev *Evaluator) evalFuncCall(f *sql.FuncCall, row Row) (interface{}, error)
 		}
 	}
 
+	// SQLITE_FUNC_CONSTANT factoring (expr.c codegen): a scalar function
+	// registered SQLITE_DETERMINISTIC over an all-constant argument list is
+	// evaluated once per statement run, not once per row — SQLite codes it
+	// into the statement's constant section (func5-2.3: counter2('hello')
+	// advances the shared test counter exactly once inside the WHERE loop).
+	// Statement-scoped memo, cleared with the auxdata.
+	if fn.Type == function.TypeScalar && fn.Deterministic && exprConstantForFactoring(ev, f.Args) {
+		if entry, cached := ev.constMemo[f]; cached {
+			return entry.value, entry.err
+		}
+		value, err := ev.evalFuncCallPrepared(fn, f, upper, row)
+		if ev.constMemo == nil {
+			ev.constMemo = make(map[sql.Expr]constMemoEntry)
+		}
+		ev.constMemo[f] = constMemoEntry{value: value, err: err}
+		return value, err
+	}
+
+	return ev.evalFuncCallPrepared(fn, f, upper, row)
+}
+
+// evalFuncCallPrepared evaluates a call whose function is resolved and whose
+// aggregate-wrapper / constant-factoring special cases did not apply.
+func (ev *Evaluator) evalFuncCallPrepared(fn *function.Func, f *sql.FuncCall, upper string, row Row) (interface{}, error) {
+
 	// ORDER BY is only allowed for aggregate functions
 	if len(f.OrderBy) > 0 && fn.Type != function.TypeAggregate {
 		return nil, fmt.Errorf("ORDER BY may not be used with non-aggregate %s()", f.Name)
