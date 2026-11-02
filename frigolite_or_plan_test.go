@@ -170,3 +170,53 @@ func TestOrderByRowidAliasOrdinalNeedsNoSorter(t *testing.T) {
 		t.Fatalf("sort counter = %d, want 0 (the scan delivers the order)", n)
 	}
 }
+
+// TestOrPlanCollapsesSingleRange pins whereexpr.c's CASE 2
+// (whereCombineDisjuncts): a two-way OR holding a subterm pair with the same
+// operands and compatible operators ("a>2 OR (a=2 AND b>2)") plans ONE index
+// range (the combined "a>=2" term drives the loop; the full OR is residual),
+// so the rows come out in the index's key order — the multi-branch union
+// order would differ whenever a branch's rows do not adjoin (rowvalue2-2.1:
+// the oracle emits 44..63, the multi-branch union 48..63 then 44..47). The
+// non-combining controls stay on the multi-branch path: different bound
+// constants ("a=4 OR a>2"), a different literal token ("a=2.0" vs "a=2") and
+// mixed directions ("a>2 OR a<0") keep the per-arm order.
+func TestOrPlanCollapsesSingleRange(t *testing.T) {
+	db, err := Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	for _, s := range []string{
+		"CREATE TABLE t2(a,b,c,d)",
+		"CREATE INDEX i2 ON t2(a,b,c)",
+		"INSERT INTO t2 VALUES(1,1,1,1),(2,2,2,2),(2,3,3,3),(3,3,3,3),(3,4,4,4),(4,4,4,4)",
+	} {
+		if r := db.Exec(s); r.Error != nil {
+			t.Fatalf("%s: %v", s, r.Error)
+		}
+	}
+	cases := []struct {
+		sql  string
+		want string
+	}{
+		{"SELECT d FROM t2 WHERE a>2 OR (a=2 AND b>2)", "3 3 4 4"},
+		{"SELECT d FROM t2 WHERE a>2 OR (a=2 AND b>=2)", "2 3 3 4 4"},
+		{"SELECT d FROM t2 WHERE (a=2 AND b>2) OR a>2", "3 3 4 4"},
+		{"SELECT d FROM t2 WHERE a>=2 OR a>2", "2 3 3 4 4"},
+		{"SELECT d FROM t2 WHERE a<2 OR a=2", "1 2 3"},
+		// Non-combining controls: the multi-branch union order.
+		{"SELECT d FROM t2 WHERE a=4 OR a>2", "4 3 4"},
+		{"SELECT d FROM t2 WHERE a>2 OR a<0", "3 4 4"},
+		{"SELECT d FROM t2 WHERE a>2 OR (a=2.0 AND b>2)", "3 4 4 3"},
+	}
+	for _, tc := range cases {
+		res := db.Query(tc.sql)
+		if res.Error != nil {
+			t.Fatalf("%s: %v", tc.sql, res.Error)
+		}
+		if got := flattenRowsForTest(res.Rows); got != tc.want {
+			t.Fatalf("%s: rows = %q, want %q", tc.sql, got, tc.want)
+		}
+	}
+}

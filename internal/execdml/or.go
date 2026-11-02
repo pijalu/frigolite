@@ -63,6 +63,18 @@ func (e *DMLExecutor) planOrIndexScan(where sql.Expr, tableName string, colDefs 
 		return nil, false
 	}
 
+	// whereexpr.c CASE 2 (whereCombineDisjuncts): a two-way OR whose
+	// disjuncts hold a subterm pair with the same operands and compatible
+	// operators ("a>2 OR (a=2 AND b>2)") adds a virtual combined conjunct
+	// ("a>=2"). When an index serves it, SQLite plans ONE index range loop
+	// with the full OR evaluated as residual — "SEARCH t USING INDEX i
+	// (a>?)" — so the OR plan collapses to that single branch and the rows
+	// come out in the index's key order (where the multi-branch union order
+	// would differ).
+	if branch, ok := e.combineOrDisjunctsPlan(orTerm, indexes, constConstraints, colDefs, outerCols); ok {
+		return []orBranchPlan{branch}, true
+	}
+
 	var branches []orBranchPlan
 	for _, term := range terms {
 		bestK, bestIdx, bestCols, bestPrefix, bestRange := e.bestIndexForOrBranch(term, outerCols, indexes, constConstraints, colDefs)
@@ -95,6 +107,106 @@ func mergeOrRangeBounds(dst, src *orRange) {
 	if src.Upper != nil && dst.Upper == nil {
 		dst.Upper, dst.UpperInclusive = src.Upper, src.UpperInclusive
 	}
+}
+
+// combineOrDisjunctsPlan ports whereexpr.c's CASE 2 for the OR plan: a
+// TWO-way OR is scanned for a pair of subterms (one from each disjunct's
+// AND-chain) that whereCombineDisjuncts would combine — same left and right
+// operands, operators entirely lower-side (=,<,<=) or entirely upper-side
+// (=,>,>=). The combined virtual term ("x>A OR (x=A AND y>B)" adds "x>=A")
+// drives the collapsed plan when an index (or the INTEGER PRIMARY KEY) can
+// serve it; ok is false when no pair combines or no index serves the
+// combined term (the multi-branch path stays responsible).
+func (e *DMLExecutor) combineOrDisjunctsPlan(orTerm sql.Expr, indexes []*schema.Entry, constConstraints []orConstraint, colDefs []sql.ColumnDef, outerCols map[string]bool) (orBranchPlan, bool) {
+	orTerm = unwrapParen(orTerm)
+	bin, ok := orTerm.(*sql.BinaryOp)
+	if !ok || !strings.EqualFold(bin.Operator, "OR") {
+		return orBranchPlan{}, false
+	}
+	// whereNthSubterm's enumeration: each disjunct contributes its
+	// AND-conjuncts (the disjunct itself when it is not an AND).
+	for _, pOne := range splitAndTerms(bin.Left) {
+		for _, pTwo := range splitAndTerms(bin.Right) {
+			combined, ok := e.combineDisjunctTerms(pOne, pTwo, colDefs)
+			if !ok {
+				continue
+			}
+			k, idx, cols, prefix, rng := e.bestIndexForOrBranch(combined, outerCols, indexes, constConstraints, colDefs)
+			if k == 0 || (idx == nil && rng == nil && len(prefix) == 0) {
+				continue
+			}
+			branch := orBranchPlan{IndexCols: cols, Prefix: prefix, Range: rng}
+			if idx != nil {
+				branch.IndexName = idx.Name
+			}
+			return branch, true
+		}
+	}
+	return orBranchPlan{}, false
+}
+
+// combineDisjunctTerms ports whereCombineDisjuncts for one subterm pair: both
+// must be column-vs-constant comparisons whose operator set is entirely
+// lower-side (=,<,<=) or entirely upper-side (=,>,>=) — mixed directions
+// ("x<y OR x>y") do not combine — with structurally equal operands on both
+// sides (sqlite3ExprCompare: "2" and "2.0" differ). The combined operator
+// widens to <= / >= when the two operators differ; equal operators keep
+// their operator ("x=2 OR x=2" combines to "x=2").
+func (e *DMLExecutor) combineDisjunctTerms(pOne, pTwo sql.Expr, colDefs []sql.ColumnDef) (sql.Expr, bool) {
+	one, ok1 := unwrapParen(pOne).(*sql.BinaryOp)
+	two, ok2 := unwrapParen(pTwo).(*sql.BinaryOp)
+	if !ok1 || !ok2 {
+		return nil, false
+	}
+	opOne, ok1 := combineOpBit(one.Operator)
+	opTwo, ok2 := combineOpBit(two.Operator)
+	if !ok1 || !ok2 {
+		return nil, false
+	}
+	eOp := opOne | opTwo
+	if eOp&(orOpEq|orOpLt|orOpLe) != eOp && eOp&(orOpEq|orOpGt|orOpGe) != eOp {
+		return nil, false
+	}
+	if !e.exprsStructurallyEqual(colDefs, colDefs, one.Left, two.Left) ||
+		!e.exprsStructurallyEqual(colDefs, colDefs, one.Right, two.Right) {
+		return nil, false
+	}
+	op := one.Operator
+	if opOne != opTwo {
+		if eOp&(orOpLt|orOpLe) != 0 {
+			op = "<="
+		} else {
+			op = ">="
+		}
+	}
+	return &sql.BinaryOp{Operator: op, Left: one.Left, Right: two.Right}, true
+}
+
+// orOp comparison-operator bits for the disjunct combination.
+const (
+	orOpEq = 1 << iota
+	orOpLt
+	orOpLe
+	orOpGt
+	orOpGe
+)
+
+// combineOpBit maps a comparison operator to its combination bit; ok is
+// false for any other operator.
+func combineOpBit(op string) (int, bool) {
+	switch op {
+	case "=", "==":
+		return orOpEq, true
+	case "<":
+		return orOpLt, true
+	case "<=":
+		return orOpLe, true
+	case ">":
+		return orOpGt, true
+	case ">=":
+		return orOpGe, true
+	}
+	return 0, false
 }
 
 // collectOrConstraintTerms splits AND terms into the single OR term and the

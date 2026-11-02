@@ -16,6 +16,7 @@ import (
 // no observable result, only speed; it is the queued F-lane lever.
 //
 // The rules, in the C's order:
+//
 //	no WITH anywhere; dest not virtual; exactly one FROM term, no subquery;
 //	no WHERE/ORDER BY/GROUP BY/HAVING/LIMIT; not a compound SELECT; not
 //	DISTINCT; the result set is exactly "*"; src resolves to an ordinary
@@ -167,4 +168,3 @@ func (e *DMLExecutor) xferOptimizationApplies(tableEntry *schema.Entry, colDefs 
 func isIntegerDeclaredType(t string) bool {
 	return strings.EqualFold(strings.TrimSpace(t), "INTEGER")
 }
-
