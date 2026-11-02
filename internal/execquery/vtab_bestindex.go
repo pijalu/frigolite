@@ -232,6 +232,9 @@ func classifyVtabBetween(b *vtabPlanBuilder, conjunct sql.Expr, t *sql.Between, 
 // the four range operators, "IS"/"IS NOT", and the infix MATCH/LIKE/GLOB/
 // REGEXP family.
 func classifyVtabBinaryOp(b *vtabPlanBuilder, conjunct sql.Expr, bo *sql.BinaryOp, tableName string, cols vtabColumnIndex) {
+	if classifyVtabRowValue(b, conjunct, bo, tableName, cols) {
+		return
+	}
 	switch op := strings.ToUpper(bo.Operator); op {
 	case "=", "==":
 		classifyVtabEitherSide(b, conjunct, bo.Left, bo.Right, vtab.IndexConstraintEq, tableName, cols)
@@ -455,4 +458,82 @@ func vtabSetColUsedBit(ii *vtab.IndexInfo, col int) {
 		col = 62
 	}
 	ii.ColsUsed |= uint64(1) << uint(col)
+}
+
+// classifyVtabRowValue handles row-value comparison conjuncts against a
+// vtab (whereexpr.c's TK_ROW exprAnalyze): `(a, b) = (9, 10)` offers one EQ
+// constraint per element with a synthetic per-element conjunct (the xFilter
+// value resolves through VtabConjunctValue's binary path); an ordering
+// comparison offers only the FIRST element's constraint (the row-value's
+// first-difference rule — `(a, b) < ('d', 'e')` gives `a <= 'd'` and the
+// rest stays residual). IN splits like EQ, with the value side narrowed to
+// the matching subquery column.
+func classifyVtabRowValue(b *vtabPlanBuilder, conjunct sql.Expr, bo *sql.BinaryOp, tableName string, cols vtabColumnIndex) bool {
+	op := strings.ToUpper(bo.Operator)
+	switch op {
+	case "=", "==", "<", "<=", ">", ">=":
+	default:
+		return false
+	}
+	lRow, lOk := unwrapParenExpr(bo.Left).(*sql.RowValue)
+	if !lOk || len(lRow.Values) == 0 {
+		return false
+	}
+	// The value side is either a row value of constants or a subquery
+	// (`(a, b) = (SELECT 9, 10)` — its projected columns are the elements).
+	var rElems []sql.Expr
+	var rSub *sql.Subquery
+	if rRow, ok := unwrapParenExpr(bo.Right).(*sql.RowValue); ok {
+		rElems = rRow.Values
+	} else if sub, ok := unwrapParenExpr(bo.Right).(*sql.Subquery); ok {
+		rSub = sub
+	} else {
+		return false
+	}
+	if rSub != nil && len(rSub.Select.Columns) != len(lRow.Values) {
+		return false
+	}
+	terms := len(lRow.Values)
+	if op != "=" && op != "==" {
+		terms = 1 // ordering: the first-difference prefix only
+	}
+	offered := 0
+	for i := 0; i < terms; i++ {
+		col, ok := cols.resolve(lRow.Values[i], tableName)
+		if !ok {
+			continue
+		}
+		var value sql.Expr
+		if rSub != nil {
+			narrowed := *rSub.Select
+			narrowed.Columns = []sql.SelectColumn{rSub.Select.Columns[i]}
+			value = &sql.Subquery{Select: &narrowed}
+		} else {
+			value = rElems[i]
+		}
+		if !b.usable(value) {
+			continue
+		}
+		synthetic := &sql.BinaryOp{Left: lRow.Values[i], Right: value, Operator: bo.Operator}
+		b.add(synthetic, col, vtabOpFor(op), b.usable(value), false)
+		offered++
+	}
+	return offered > 0
+}
+
+// vtabOpFor maps the comparison operator to its constraint kind.
+func vtabOpFor(op string) vtab.IndexConstraintOp {
+	switch strings.ToUpper(op) {
+	case "=", "==":
+		return vtab.IndexConstraintEq
+	case "<":
+		return vtab.IndexConstraintLt
+	case "<=":
+		return vtab.IndexConstraintLe
+	case ">":
+		return vtab.IndexConstraintGt
+	case ">=":
+		return vtab.IndexConstraintGe
+	}
+	return vtab.IndexConstraintEq
 }
