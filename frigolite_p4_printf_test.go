@@ -39,7 +39,7 @@ func TestP4Printf_Standard(t *testing.T) {
 			t.Errorf("%s: unexpected error %v", c.sql, q.Error)
 			continue
 		}
-		got := flattenResult(q)
+		got := flattenResult("", q)
 		if got != c.want {
 			t.Errorf("%s: got %q want %q", c.sql, got, c.want)
 		}
@@ -66,7 +66,7 @@ func TestP4Printf_Bang(t *testing.T) {
 			t.Errorf("%s: unexpected error %v", c.sql, q.Error)
 			continue
 		}
-		got := flattenResult(q)
+		got := flattenResult("", q)
 		if got != c.want {
 			t.Errorf("%s: got %q want %q", c.sql, got, c.want)
 		}
@@ -93,7 +93,7 @@ func TestP4Printf_Comma(t *testing.T) {
 			t.Errorf("%s: unexpected error %v", c.sql, q.Error)
 			continue
 		}
-		got := flattenResult(q)
+		got := flattenResult("", q)
 		if got != c.want {
 			t.Errorf("%s: got %q want %q", c.sql, got, c.want)
 		}
@@ -122,7 +122,7 @@ func TestP4Printf_Quote(t *testing.T) {
 			t.Errorf("%s: unexpected error %v", c.sql, q.Error)
 			continue
 		}
-		got := flattenResult(q)
+		got := flattenResult("", q)
 		if got != c.want {
 			t.Errorf("%s: got %q want %q", c.sql, got, c.want)
 		}
@@ -149,7 +149,7 @@ func TestP4Printf_FormatAlias(t *testing.T) {
 			t.Errorf("%s: unexpected error %v", c.sql, q.Error)
 			continue
 		}
-		got := flattenResult(q)
+		got := flattenResult("", q)
 		if got != c.want {
 			t.Errorf("%s: got %q want %q", c.sql, got, c.want)
 		}
@@ -179,7 +179,7 @@ func TestP4Printf_Precision(t *testing.T) {
 			t.Errorf("%s: unexpected error %v", c.sql, q.Error)
 			continue
 		}
-		got := flattenResult(q)
+		got := flattenResult("", q)
 		if got != c.want {
 			t.Errorf("%s: got %q want %q", c.sql, got, c.want)
 		}

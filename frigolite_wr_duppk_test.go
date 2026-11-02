@@ -153,7 +153,7 @@ func TestWithoutRowidInsertDuplicatePKRejected(t *testing.T) {
 			if r.Error != nil {
 				t.Fatalf("count error: %v", r.Error)
 			}
-			if got := flattenResult(r); got != "1" {
+			if got := flattenResult("", r); got != "1" {
 				t.Fatalf("post-error row count [%s], want [1]", got)
 			}
 		})
@@ -194,7 +194,7 @@ func TestWithoutRowidInsertDistinctPKsAccepted(t *testing.T) {
 	if r.Error != nil {
 		t.Fatalf("query error: %v", r.Error)
 	}
-	if got := flattenResult(r); got != "1 2 3 1 3 4 2 2 5" {
+	if got := flattenResult("", r); got != "1 2 3 1 3 4 2 2 5" {
 		t.Fatalf("rows [%s], want [1 2 3 1 3 4 2 2 5]", got)
 	}
 }
@@ -226,7 +226,7 @@ func TestWithoutRowidInsertOrIgnoreReplaceUpsert(t *testing.T) {
 	if r.Error != nil {
 		t.Fatalf("query error: %v", r.Error)
 	}
-	if got := flattenResult(r); got != "1 e" {
+	if got := flattenResult("", r); got != "1 e" {
 		t.Fatalf("rows [%s], want [1 e]", got)
 	}
 }
@@ -254,7 +254,7 @@ func TestWithoutRowidInsertDuplicatePKSeekDeepTable(t *testing.T) {
 		}
 	}
 	r := db.Query("SELECT count(*) FROM d")
-	if got := flattenResult(r); got != "2000" {
+	if got := flattenResult("", r); got != "2000" {
 		t.Fatalf("row count [%s], want [2000]", got)
 	}
 }

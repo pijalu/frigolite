@@ -28,7 +28,7 @@ func TestWith2GenerateSeriesNullStopNoRows(t *testing.T) {
 	if r.Error != nil {
 		t.Fatalf("query error: %v", r.Error)
 	}
-	if got := flattenResult(r); got != "1 2 3" {
+	if got := flattenResult("", r); got != "1 2 3" {
 		t.Fatalf("got [%s], want [1 2 3]", got)
 	}
 }

@@ -62,7 +62,7 @@ func TestWalMVCCExclusiveModeVisibility(t *testing.T) {
 		t.Errorf("conn2 final count = %s, want 3", got)
 	}
 	r := c1.Query("PRAGMA integrity_check")
-	if r.Error != nil || formatSQLiteValue(r.Rows[0][0]) != "ok" {
+	if r.Error != nil || formatSQLiteValue("", r.Rows[0][0]) != "ok" {
 		t.Errorf("integrity_check: %v %v", r.Error, r.Rows)
 	}
 }
@@ -74,7 +74,7 @@ func ckptTripleInt(t *testing.T, r *Result, col int) int {
 	if r.Error != nil || len(r.Rows) == 0 {
 		t.Fatalf("checkpoint row: %v", r.Error)
 	}
-	v, err := strconv.Atoi(formatSQLiteValue(r.Rows[0][col]))
+	v, err := strconv.Atoi(formatSQLiteValue("", r.Rows[0][col]))
 	if err != nil {
 		t.Fatalf("checkpoint column %d: %v", col, err)
 	}
@@ -146,7 +146,7 @@ func TestWalMVCCVisibilityAtStatementBoundaries(t *testing.T) {
 		if r.Error != nil {
 			t.Fatalf("read %d: %v", i, r.Error)
 		}
-		if got := formatSQLiteValue(r.Rows[0][0]); got != itoa(i) {
+		if got := formatSQLiteValue("", r.Rows[0][0]); got != itoa(i) {
 			t.Errorf("after insert %d: conn1 count = %s, want %d", i, got, i)
 		}
 	}
@@ -301,7 +301,7 @@ func TestWalMVCCCheckpointRespectsReader(t *testing.T) {
 	if r.Error != nil {
 		t.Fatal(r.Error)
 	}
-	busy := formatSQLiteValue(r.Rows[0][0])
+	busy := formatSQLiteValue("", r.Rows[0][0])
 	nLog := ckptTripleInt(t, r, 1)
 	nCkpt := ckptTripleInt(t, r, 2)
 	if busy != "0" {
@@ -432,7 +432,7 @@ func TestWalMVCCRaceWriterReaders(t *testing.T) {
 		t.Errorf("count = %s, want 40", got)
 	}
 	r := conns[0].Query("PRAGMA integrity_check")
-	if r.Error != nil || formatSQLiteValue(r.Rows[0][0]) != "ok" {
+	if r.Error != nil || formatSQLiteValue("", r.Rows[0][0]) != "ok" {
 		t.Errorf("integrity_check: %v %v", r.Error, r.Rows)
 	}
 }
@@ -487,7 +487,7 @@ func TestWalMVCCReaderAfterBackfill(t *testing.T) {
 	nCkpt := ckptTripleInt(t, r, 2)
 	if nCkpt >= nLog {
 		t.Fatalf("expected a reader-capped backfill, triple [%s %d %d]",
-			formatSQLiteValue(r.Rows[0][0]), nLog, nCkpt)
+			formatSQLiteValue("", r.Rows[0][0]), nLog, nCkpt)
 	}
 	// End the parked transaction; the fresh read transaction re-pins at F2
 	// with minFrame = nBackfill+1.

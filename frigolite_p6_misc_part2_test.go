@@ -32,7 +32,7 @@ func flattenQuery(t *testing.T, db *DB, sql string) string {
 			if v == nil {
 				parts = append(parts, "NULL")
 			} else {
-				parts = append(parts, formatSQLiteValue(v))
+				parts = append(parts, formatSQLiteValue("", v))
 			}
 		}
 	}

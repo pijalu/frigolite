@@ -46,7 +46,7 @@ func TestWalMultiCrossVisibility(t *testing.T) {
 	if r.Error != nil {
 		t.Fatalf("conn2 read: %v", r.Error)
 	}
-	if got := formatSQLiteValue(r.Rows[0][0]); got != "1" {
+	if got := formatSQLiteValue("", r.Rows[0][0]); got != "1" {
 		t.Errorf("conn2 sees conn1's commit: got [%s] want [1]", got)
 	}
 
@@ -58,7 +58,7 @@ func TestWalMultiCrossVisibility(t *testing.T) {
 	if r.Error != nil {
 		t.Fatalf("conn1 read: %v", r.Error)
 	}
-	if got := formatSQLiteValue(r.Rows[0][0]); got != "3" {
+	if got := formatSQLiteValue("", r.Rows[0][0]); got != "3" {
 		t.Errorf("conn1 sees conn2's commit: got [%s] want [3]", got)
 	}
 
@@ -73,7 +73,7 @@ func TestWalMultiCrossVisibility(t *testing.T) {
 		}
 	}
 	r = c2.Query("SELECT count(*) FROM t1")
-	if got := formatSQLiteValue(r.Rows[0][0]); got != "5" {
+	if got := formatSQLiteValue("", r.Rows[0][0]); got != "5" {
 		t.Errorf("interleaved count: got [%s] want [5]", got)
 	}
 }
@@ -94,7 +94,7 @@ func TestWalMultiCheckpointVisibility(t *testing.T) {
 		t.Fatal("checkpoint returned no row")
 	}
 	r = c1.Query("SELECT count(*) FROM t1")
-	if got := formatSQLiteValue(r.Rows[0][0]); got != "1" {
+	if got := formatSQLiteValue("", r.Rows[0][0]); got != "1" {
 		t.Errorf("post-checkpoint count: got [%s]", got)
 	}
 }
@@ -130,7 +130,7 @@ func TestWalMultiReopenRecovery(t *testing.T) {
 	if r.Error != nil {
 		t.Fatalf("reopen read: %v", r.Error)
 	}
-	if len(r.Rows) != 1 || formatSQLiteValue(r.Rows[0][0]) != "42" {
+	if len(r.Rows) != 1 || formatSQLiteValue("", r.Rows[0][0]) != "42" {
 		t.Errorf("recovery: got %v", r.Rows)
 	}
 }

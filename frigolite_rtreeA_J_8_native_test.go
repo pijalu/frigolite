@@ -25,7 +25,7 @@ func queryText(t *testing.T, db *DB, q string) string {
 	if r.Rows[0][0] == nil {
 		return "NULL"
 	}
-	return formatSQLiteValue(r.Rows[0][0])
+	return formatSQLiteValue("", r.Rows[0][0])
 }
 
 // TestNativeRtreeCheckEntryCountAudit pins rtreecheck's shadow-table entry

@@ -42,7 +42,7 @@ func TestWith1NestedWithScopesCompoundBody(t *testing.T) {
 	if r.Error != nil {
 		t.Fatalf("17.1: query error: %v", r.Error)
 	}
-	if got := flattenResult(r); got != "9 10" {
+	if got := flattenResult("", r); got != "9 10" {
 		t.Fatalf("17.1: got [%s], want [9 10]", got)
 	}
 	// Column-name propagation through the nested-WITH body (with1-17.2).

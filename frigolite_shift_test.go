@@ -41,7 +41,7 @@ func TestBitwiseShiftSemantics(t *testing.T) {
 			t.Errorf("%s: rows = %v", c.sql, r.Rows)
 			continue
 		}
-		if got := formatSQLiteValue(r.Rows[0][0]); got != c.want {
+		if got := formatSQLiteValue("", r.Rows[0][0]); got != c.want {
 			t.Errorf("%s = %s, want %s", c.sql, got, c.want)
 		}
 	}

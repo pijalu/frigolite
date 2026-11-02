@@ -54,7 +54,7 @@ func (f *harnessTclFunction) Call(args []interface{}) (interface{}, error) {
 		case []byte:
 			values[i] = string(v)
 		default:
-			values[i] = strings.TrimSpace(formatSQLiteValue(v))
+			values[i] = strings.TrimSpace(formatSQLiteValue("", v))
 		}
 	}
 	answer, err := f.interp.InvokeProcedure(f.proc, values...)

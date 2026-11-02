@@ -33,7 +33,7 @@ func TestWithoutRowidUpdateIgnoreSkipsPKConflict(t *testing.T) {
 		t.Fatalf("query error: %v", r.Error)
 	}
 	want := "1 2 3 4"
-	if got := flattenResult(r); got != want {
+	if got := flattenResult("", r); got != want {
 		t.Fatalf("got [%s], want [%s] — the conflicting row must keep (3,4)", got, want)
 	}
 }
@@ -66,7 +66,7 @@ func TestWithoutRowidCascadeUpdateChildStorage(t *testing.T) {
 	if r.Error != nil {
 		t.Fatalf("query error: %v", r.Error)
 	}
-	if got := flattenResult(r); got != "5 d" {
+	if got := flattenResult("", r); got != "5 d" {
 		t.Fatalf("cd got [%s], want [5 d]", got)
 	}
 }

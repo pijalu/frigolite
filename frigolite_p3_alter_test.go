@@ -62,7 +62,7 @@ func tableSQL(t *testing.T, db *DB, name string) string {
 	if len(r.Rows[0]) == 0 || r.Rows[0][0] == nil {
 		return ""
 	}
-	return formatSQLiteValue(r.Rows[0][0])
+	return formatSQLiteValue("", r.Rows[0][0])
 }
 
 // execFails asserts that executing sql returns an error containing substr.

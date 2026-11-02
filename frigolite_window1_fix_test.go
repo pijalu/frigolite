@@ -29,7 +29,7 @@ func TestReproWindow73_3_ViewJoinWindowPass(t *testing.T) {
 	if r.Error != nil {
 		t.Fatalf("query error: %v", r.Error)
 	}
-	got := flattenResult(r)
+	got := flattenResult("", r)
 	want := "4 1 1 15 4 2 1 15 4 4 1 15 4 1 2 15 4 2 2 15 4 4 2 15 4 1 4 15 4 2 4 15 4 4 4 15"
 	if got != want {
 		t.Fatalf("73.3 result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
@@ -56,7 +56,7 @@ func TestReproWindow65_3_InLhsCollation(t *testing.T) {
 	if r.Error != nil {
 		t.Fatalf("query error: %v", r.Error)
 	}
-	got := flattenResult(r)
+	got := flattenResult("", r)
 	want := "1 1"
 	if got != want {
 		t.Fatalf("65.3 result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
@@ -111,7 +111,7 @@ func TestReproWindow73_4_ViewUpdateSetWindow(t *testing.T) {
 	if r.Error != nil {
 		t.Fatalf("query error: %v", r.Error)
 	}
-	got := flattenResult(r)
+	got := flattenResult("", r)
 	want := "4 15 4 15 4 15 4 15 4 15 4 15 4 15 4 15 4 15"
 	if got != want {
 		t.Fatalf("73.4 result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
@@ -170,7 +170,7 @@ func TestReproWindow76_5_GroupByCorrelatedAggSubquery(t *testing.T) {
 	if r.Error != nil {
 		t.Fatalf("query error: %v", r.Error)
 	}
-	got := flattenResult(r)
+	got := flattenResult("", r)
 	want := "100 NULL 400"
 	if got != want {
 		t.Fatalf("76.5 result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
@@ -192,7 +192,7 @@ func TestReproWindow78_2_EmptyFrameAggregateNull(t *testing.T) {
 	if r.Error != nil {
 		t.Fatalf("query error: %v", r.Error)
 	}
-	got := flattenResult(r)
+	got := flattenResult("", r)
 	want := "NULL"
 	if got != want {
 		t.Fatalf("78.2 result mismatch\n  got:  [%s]\n  want: [%s]", got, want)

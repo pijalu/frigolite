@@ -39,7 +39,7 @@ func TestPragmaTableInfoViewCast(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", res.Error, tt.sql)
 			continue
 		}
-		got := flattenResult(res)
+		got := flattenResult("", res)
 		if got != tt.want {
 			t.Errorf("result mismatch\n  sql:  %s\n  got:  [%s]\n  want: [%s]", tt.sql, got, tt.want)
 		}

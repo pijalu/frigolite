@@ -29,7 +29,7 @@ func TestWindowOverEmpty(t *testing.T) {
 	if len(r.Rows) != 1 {
 		t.Fatalf("expected 1 row, got %d: %v", len(r.Rows), r.Rows)
 	}
-	got := flattenResult(r)
+	got := flattenResult("", r)
 	if got != "0.0" {
 		t.Errorf("result mismatch\n  got:  [%s]\n  want: [0.0]", got)
 	}

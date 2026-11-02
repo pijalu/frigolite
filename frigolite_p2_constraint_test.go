@@ -53,7 +53,7 @@ func TestP2Constraint_OrderByAlias(t *testing.T) {
 	if r.Error != nil {
 		t.Fatal(r.Error)
 	}
-	got := flattenResult(r)
+	got := flattenResult("", r)
 	if got != "1 x 1 y 1 z" {
 		t.Errorf("ORDER BY bare alias: got %q, want %q", got, "1 x 1 y 1 z")
 	}
@@ -63,7 +63,7 @@ func TestP2Constraint_OrderByAlias(t *testing.T) {
 	if r.Error != nil {
 		t.Fatal(r.Error)
 	}
-	got = flattenResult(r)
+	got = flattenResult("", r)
 	if got != "2 x 2 y 2 z" {
 		t.Errorf("ORDER BY alias COLLATE: got %q, want %q", got, "2 x 2 y 2 z")
 	}
@@ -73,7 +73,7 @@ func TestP2Constraint_OrderByAlias(t *testing.T) {
 	if r.Error != nil {
 		t.Fatal(r.Error)
 	}
-	got = flattenResult(r)
+	got = flattenResult("", r)
 	if got != "3 z 3 y 3 x" {
 		t.Errorf("ORDER BY lower(m): got %q, want %q", got, "3 z 3 y 3 x")
 	}
@@ -92,7 +92,7 @@ func TestP2Constraint_SubqueryAliasRef(t *testing.T) {
 	if r.Error != nil {
 		t.Fatalf("subquery alias ref: %v", r.Error)
 	}
-	got := flattenResult(r)
+	got := flattenResult("", r)
 	if got != "2" {
 		t.Errorf("subquery alias ref: got %q, want %q", got, "2")
 	}
@@ -123,7 +123,7 @@ func TestP2Constraint_UpdateFrom(t *testing.T) {
 	if r.Error != nil {
 		t.Fatal(r.Error)
 	}
-	got := flattenResult(r)
+	got := flattenResult("", r)
 	want := "1 100 1000 4 5 6 7 700 7000"
 	if got != want {
 		t.Errorf("UPDATE FROM: got %q, want %q", got, want)

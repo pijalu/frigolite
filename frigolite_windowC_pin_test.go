@@ -50,7 +50,7 @@ func TestWindowCGroupConcatBlobUTF16(t *testing.T) {
 		if r.Error != nil {
 			t.Fatalf("%s: query error: %v", tc.pragma, r.Error)
 		}
-		got := flattenResult(r)
+		got := flattenResult("", r)
 		if got != tc.want {
 			t.Errorf("%s: result mismatch\n  got:  [%s]\n  want: [%s]", tc.pragma, got, tc.want)
 		}
@@ -74,7 +74,7 @@ func TestWindowCGroupConcatBlobUTF8(t *testing.T) {
 	if r.Error != nil {
 		t.Fatalf("query error: %v", r.Error)
 	}
-	got := flattenResult(r)
+	got := flattenResult("", r)
 	want := "NULL 1 " + string([]byte{0x55, 0x85, 0xd0, 0x90, 0x13, 0x45, 0x51, 0x78, 0xcd, 0x11, 0xce, 0x4a}) + " 1"
 	if got != want {
 		t.Errorf("result mismatch\n  got:  [%q]\n  want: [%q]", got, want)
