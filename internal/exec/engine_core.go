@@ -780,6 +780,10 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 		return res
 	}
 	defer e.execDepthLeave()
+	// The autocommit statement's implicit transaction ends here: release its
+	// shared-cache table locks and fire the blocked connections' unlock-notify
+	// callbacks (explicit transactions release in releaseTransactionLocks).
+	defer e.sharedCacheStatementEnd()
 	// Statement-scoped b-tree cursor lifecycle (btree.c closes a statement's
 	// cursors when its program halts): track the wrappers created during this
 	// statement and release them — unregistering their cursors from the
@@ -927,7 +931,11 @@ func (e *Engine) restoreStatementSnapsIfAny(snaps []pagerSnap) {
 // interrupt-countdown check. A non-nil result means the statement failed
 // before execution (execDepth is balanced; callers must NOT execDepthLeave).
 func (e *Engine) execEntry(stmt sql.Stmt) *Result {
-	if e.WriteBlockedByPreparedRead(stmt) {
+	// Shared-cache connections coordinate through the table-lock layer
+	// (sharedcache.go): C's BtShared owns the pager file locks for all its
+	// members, so the per-connection file-lock matrix below must not apply
+	// between them — the table locks decide (btree.c sqlite3BtreeLockTable).
+	if e.WriteBlockedByPreparedRead(stmt) && !e.sharableConn() {
 		return &Result{Error: fmt.Errorf("database is locked")}
 	}
 	// Read-only connection gate (SQLITE_OPEN_READONLY, pager.c
@@ -940,11 +948,14 @@ func (e *Engine) execEntry(stmt sql.Stmt) *Result {
 	}
 	// Cross-connection pager lock matrix (src/pager.c + os_unix.c): another
 	// connection's RESERVED lock blocks our writes; its EXCLUSIVE lock blocks
-	// our reads and writes (lock3-3.2/4.1/4.2).
-	if err := e.CrossConnLockError(stmt); err != nil {
-		return &Result{Error: err}
+	// our reads and writes (lock3-3.2/4.1/4.2). Skipped for shared-cache
+	// connections (see above).
+	if !e.sharableConn() {
+		if err := e.CrossConnLockError(stmt); err != nil {
+			return &Result{Error: err}
+		}
+		e.noteStmtReadLock(stmt)
 	}
-	e.noteStmtReadLock(stmt)
 	// WAL write gate (P7.WAL-G7 slice 2, sqlite3WalBeginWriteTransaction
 	// parity): writing statements open the WAL write transaction BEFORE the
 	// btree phase reads pages, so the WRITER shm lock freezes the snapshot
@@ -994,6 +1005,16 @@ func (e *Engine) execEntry(stmt sql.Stmt) *Result {
 		// (incrcorrupt 1.x/2.x hexio_write and chan truncate under an open
 		// connection).
 		if res := e.execDBFileChecks(stmt); res != nil {
+			e.execDepthLeave()
+			return res
+		}
+		// Shared-cache table locks (btree.c sqlite3BtreeLockTable via the
+		// program's OP_TableLock ops): one acquisition phase at the outermost
+		// statement's entry, released at the transaction end (an autocommit
+		// statement IS its transaction — sharedCacheStatementEnd in the Exec
+		// epilogue; COMMIT/ROLLBACK via releaseTransactionLocks). Inert for
+		// non-sharable connections.
+		if res := e.execSharedCacheGate(stmt); res != nil {
 			e.execDepthLeave()
 			return res
 		}

@@ -192,11 +192,18 @@ func (e *Engine) commitReleaseLocksAndCounters() {
 
 // releaseTransactionLocks drops this connection's cross-connection lock
 // marks: the write-transaction registration, the BEGIN EXCLUSIVE mark and
-// the transaction-level SHARED lock.
+// the transaction-level SHARED lock. The shared-cache table locks release
+// here too (explicit-transaction path — btree.c clears the BtLock entries
+// and pWriter at sqlite3BtreeCommit/ sqlite3BtreeRollback), and the blocked
+// connections' unlock-notify callbacks fire.
 func (e *Engine) releaseTransactionLocks() {
 	e.registerWriteTx(false)
 	e.ReleaseExclusive()
 	e.releaseSharedTx()
+	if e.tx.sharedCacheLocked {
+		e.tx.sharedCacheLocked = false
+		e.releaseSharedCacheLocks()
+	}
 }
 
 // commitFlushAllPagers flushes every database's pager so HasDirtyPages()

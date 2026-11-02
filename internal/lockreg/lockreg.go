@@ -65,6 +65,15 @@ type Registry struct {
 	// sqlite3PagerUnlock... the lock is held until the connection closes or
 	// the mode reverts to normal).
 	persistentShared map[string]map[int64]bool
+	// Shared-cache state (sharedcache.go): the process-global enable flag,
+	// one group per file with member connections, and the notify.c
+	// blocked-connection graph (all guarded by mu).
+	sharedCacheEnabled bool
+	sharedCaches       map[string]*SharedCache
+	blockedOrder       []int64
+	blockedBy          map[int64]int64
+	unlockTarget       map[int64]int64
+	notifyCB           map[int64]func()
 	// pending maps a file path to the connection ID whose COMMIT failed the
 	// EXCLUSIVE upgrade and now sits in PENDING: new SHARED acquisitions by
 	// other connections are denied until the holder releases (lock2-1.7).

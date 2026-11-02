@@ -22,6 +22,7 @@ import (
 	"sync"
 
 	"github.com/pijalu/frigolite/internal/exec"
+	"github.com/pijalu/frigolite/internal/lockreg"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
 )
@@ -373,6 +374,17 @@ func Open(path string) (*DB, error) {
 		return nil, err
 	}
 
+	// Shared-cache membership (C sets db->sharable at open when
+	// sqlite3GlobalConfig.sharedCacheEnabled was on): the connection joins
+	// its main file's shared-cache group — btree.c table locks and the
+	// unlock-notify graph apply between the group's members. The group
+	// tracks the coordination state; the page data itself coordinates
+	// through the existing external-modification machinery (a shared cache
+	// still serves each connection its own committed read snapshot).
+	if path != "" && path != ":memory:" && lockreg.Global.SharedCacheEnabled() {
+		db.engine.SetSharable(true)
+	}
+
 	// For a database that was EMPTY at open, pager.c lazy creation applies:
 	// do not write the Init-time schema page to disk (opening — even
 	// followed by close — must leave a 0-byte file untouched). Drop the
@@ -446,6 +458,11 @@ func (db *DB) Close() error {
 	}
 	if db.engine != nil {
 		db.engine.ClearBlobLocks()
+		// Leave the shared-cache group and cancel the unlock-notify
+		// registration (btree.c sqlite3BtreeClose drops the connection's
+		// BtLock entries; notify.c removes the connection from the blocked
+		// list at close).
+		db.engine.LeaveSharedCache()
 		err := db.engine.Close()
 		db.closedFlag = true
 		// Shared memdb stores (file:/name?vfs=memdb) live as long as at
@@ -480,6 +497,24 @@ func (db *DB) unregisterStmt() {
 		db.activeStmts--
 	}
 	db.stmtMu.Unlock()
+}
+
+// EnableSharedCache toggles the process-global shared-cache flag
+// (sqlite3_enable_shared_cache). Connections opened while it is set join
+// their file's shared-cache group: btree.c table-level locks apply between
+// the members ("database table is locked") and sqlite3-style unlock-notify
+// callbacks coordinate waiting connections.
+func EnableSharedCache(on bool) {
+	lockreg.Global.EnableSharedCache(on)
+}
+
+// UnlockNotify registers the connection's one unlock-notify callback
+// (sqlite3_unlock_notify): it fires immediately when the connection is not
+// blocked, reports "database is deadlocked" for a cyclic wait graph, and
+// otherwise fires when the blocking connection's transaction ends. A nil cb
+// cancels the registration.
+func (db *DB) UnlockNotify(cb func()) error {
+	return db.engine.SharedCacheUnlockNotify(cb)
 }
 
 // DetachAll detaches all attached databases except "main", "temp", and

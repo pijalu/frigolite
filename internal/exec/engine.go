@@ -60,6 +60,16 @@ type Engine struct {
 	// tracking (lockreg).
 	connID int64
 
+	// sharable marks a shared-cache connection (C sets db->sharable at open
+	// when the global shared-cache flag was on): the statement gates in
+	// sharedcache.go acquire btree.c table locks and join the unlock-notify
+	// graph. Inert (false) for every connection opened with the flag off —
+	// the default. sharedFiles tracks the files whose shared-cache group
+	// this connection joined (main at the first locked statement, an
+	// attached file when first touched).
+	sharable    bool
+	sharedFiles map[string]bool
+
 	// fullScanSteps and sortOps mirror SQLite's sqlite3_stmt_status
 	// counters: fullScanSteps counts the rows stepped by a full table scan
 	// (SQLITE_STMTSTATUS_FULLSCAN_STEP) and sortOps counts the sorter
@@ -640,12 +650,18 @@ type txState struct {
 	// execDBFileChecks after a clean in-transaction run; cleared at BEGIN /
 	// implicit-savepoint transaction start and at COMMIT / ROLLBACK / the
 	// implicit-savepoint commit.
-	fileChecksDone  bool                         // transaction's shared-lock validation ran
-	ddlBuffer       []func()                     // DDL undo operations for transaction rollback
-	txSnapshots     map[string]*pager.PagerState // pager snapshots per database at BEGIN (for ROLLBACK undo)
-	txFTSnapshots   []ftsSnap                    // FTS in-memory index snapshots at BEGIN (for ROLLBACK undo)
-	txFTS5Snapshots []fts5Snap                   // fts5 in-memory state snapshots at BEGIN
-	savepointStack  []savepointEntry             // nested SAVEPOINT stack
+	fileChecksDone bool // transaction's shared-lock validation ran
+	// sharedCacheLocked marks that the outermost statement acquired
+	// shared-cache table locks (execSharedCacheGate): an autocommit
+	// statement releases them (and fires the unlock-notify callbacks) at
+	// statement end; inside an explicit transaction they survive until
+	// COMMIT/ROLLBACK (releaseTransactionLocks).
+	sharedCacheLocked bool
+	ddlBuffer         []func()                     // DDL undo operations for transaction rollback
+	txSnapshots       map[string]*pager.PagerState // pager snapshots per database at BEGIN (for ROLLBACK undo)
+	txFTSnapshots     []ftsSnap                    // FTS in-memory index snapshots at BEGIN (for ROLLBACK undo)
+	txFTS5Snapshots   []fts5Snap                   // fts5 in-memory state snapshots at BEGIN
+	savepointStack    []savepointEntry             // nested SAVEPOINT stack
 	// reservedDbs remembers every attached database that held a write
 	// (RESERVED) pager lock at any point in the open transaction. C's pager
 	// keeps the WRITER lock across a ROLLBACK TO (only a full COMMIT /
