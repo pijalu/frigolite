@@ -1977,6 +1977,84 @@ func runSQLite3Exec(db *DB, sql string) (string, error) {
 // runtime variable named `t`, which used to turn `SELECT $tcl FROM tblname`
 // into `SELECT nullcl FROM tblname`).
 func expandTCLRuntimeVars(sql string, values map[string]string) string {
+	return expandTCLVarRefs(sql, values, func(v string) string { return v })
+}
+
+// expandTCLRuntimeVarsSQL is expandTCLRuntimeVars for SQL fields. In C the
+// $name inside a braced script is a BOUND PARAMETER (tclsqlite.c binds it
+// from TCL scope) — the value never passes through the SQL tokenizer, so
+// arbitrary bytes work (like3-8's CAST(X'FF' AS TEXT) LIKE pattern). The
+// textual substitute therefore renders non-trivial values as SQL string
+// literals (” doubled; invalid UTF-8 bytes stay verbatim — readString scans
+// byte-wise). Identifier-shaped values stay bare: e_expr-12.3.13.1's
+// `SELECT $tcl FROM tblname` substitutes a COLUMN NAME, and numeric values
+// keep today's bare rendering (TCL binds "5" with an integer rep).
+func expandTCLRuntimeVarsSQL(sql string, values map[string]string) string {
+	return expandTCLVarRefs(sql, values, sqlSafeRuntimeValue)
+}
+
+// sqlSafeRuntimeValue renders one substituted value for an SQL field.
+func sqlSafeRuntimeValue(v string) string {
+	if v == "" {
+		return "''"
+	}
+	if isBareSQLToken(v) {
+		return v
+	}
+	return "'" + strings.ReplaceAll(v, "'", "''") + "'"
+}
+
+// isBareSQLToken reports whether v can substitute into SQL text verbatim: an
+// identifier (a column/table name reference) or a numeric literal.
+func isBareSQLToken(v string) bool {
+	for i := 0; i < len(v); i++ {
+		c := v[i]
+		switch {
+		case c >= 'a' && c <= 'z', c >= 'A' && c <= 'Z', c == '_':
+		case c >= '0' && c <= '9':
+			if i == 0 {
+				// Numeric: digits, one optional dot, optional exponent.
+				return bareNumberTail(v[i:])
+			}
+		case c == '-':
+			if i != 0 {
+				return false
+			}
+			return bareNumberTail(v[i+1:])
+		default:
+			return false
+		}
+	}
+	return true
+}
+
+// bareNumberTail validates the digits after an optional leading sign:
+// digits with one optional fraction dot and one optional exponent.
+func bareNumberTail(s string) bool {
+	digits, dot, exp := 0, false, false
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		switch {
+		case c >= '0' && c <= '9':
+			digits++
+		case c == '.' && !dot && !exp:
+			dot = true
+		case (c == 'e' || c == 'E') && digits > 0 && !exp:
+			exp = true
+			if i+1 < len(s) && (s[i+1] == '+' || s[i+1] == '-') {
+				i++
+			}
+		default:
+			return false
+		}
+	}
+	return digits > 0
+}
+
+// expandTCLVarRefs scans `$name` references and writes render(value) for each
+// resolved one. The render hook decides the output shape (raw for TCL-level
+// fields, SQL-literal for SQL fields).
+func expandTCLVarRefs(sql string, values map[string]string, render func(string) string) string {
 	if len(values) == 0 || !strings.Contains(sql, "$") {
 		return sql
 	}
@@ -1991,7 +2069,7 @@ func expandTCLRuntimeVars(sql string, values map[string]string) string {
 		name := sql[i+1 : end]
 		key := strings.TrimPrefix(name, "::")
 		if v, ok := values[key]; ok && key != "" {
-			b.WriteString(v)
+			b.WriteString(render(v))
 			i = end
 			continue
 		}
@@ -2016,7 +2094,7 @@ func expandTCLRuntimeVars(sql string, values map[string]string) string {
 			// reference: "$as$bs" is two placeholders, but "$tcl" is one
 			// (a variable whose name happens to start with a known one).
 			if v, ok := values[key[:idx]]; ok && idx+1 < len(key) && key[idx+1] == '$' {
-				b.WriteString(v)
+				b.WriteString(render(v))
 				i += 1 + idx
 				continue
 			}
@@ -3280,7 +3358,7 @@ func TestSQLiteSuite(t *testing.T) {
 						// itself; textual expansion would corrupt values
 						// containing spaces.
 						if step.Type != "runtime_expr" {
-							step.SQL = expandTCLRuntimeVars(step.SQL, runtimeVars)
+							step.SQL = expandTCLRuntimeVarsSQL(step.SQL, runtimeVars)
 							step.SQL = routeFixtureAttachPaths(step.SQL, fixtureDBDir)
 							step.Expect = expandTCLRuntimeVars(step.Expect, runtimeVars)
 						}
@@ -5381,7 +5459,7 @@ func appendRuntimeList(runtimeVars map[string]string, name, value string) {
 // body's SQL may reference the loop variable, which the runtime variables
 // carry.
 func runHarnessBodyStep(t *testing.T, db *DB, step TestStep, runtimeVars map[string]string, nullToken string, base string) {
-	sql := expandTCLRuntimeVars(step.SQL, runtimeVars)
+	sql := expandTCLRuntimeVarsSQL(step.SQL, runtimeVars)
 	switch step.Type {
 	case "exec", "catch":
 		res := db.Exec(sql)
