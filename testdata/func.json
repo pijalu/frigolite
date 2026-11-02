@@ -22092,9 +22092,17 @@
           "variable": "stmt_1"
         },
         {
+          "type": "stmt_bind",
+          "sql": "SELECT test_auxdata( ? , a ) FROM t4;",
+          "variable": "stmt_1",
+          "bindIndex": 1,
+          "bindValue": "hello000"
+        },
+        {
           "type": "stmt_step",
           "sql": "SELECT test_auxdata( ? , a ) FROM t4;",
-          "variable": "stmt_1"
+          "variable": "stmt_1",
+          "collectVar": "res"
         },
         {
           "type": "stmt_finalize",
@@ -22103,7 +22111,7 @@
         },
         {
           "type": "runtime_assert",
-          "sql": "SQLITE_OK",
+          "sql": "__COLLECT_res__ SQLITE_OK",
           "expect": "{0 0} {1 0} SQLITE_OK"
         }
       ]
@@ -22191,7 +22199,7 @@
             "isutf16": "0",
             "msg": "$msg",
             "r": "$r $msg",
-            "res": "SQLITE_OK",
+            "res": "__COLLECT_res__",
             "sql": "SELECT test_auxdata( ? , a ) FROM t4;",
             "testdir": "",
             "testprefix": "func",
@@ -22228,7 +22236,7 @@
             "isutf16": "0",
             "msg": "$msg",
             "r": "$r $msg",
-            "res": "SQLITE_OK",
+            "res": "__COLLECT_res__",
             "sql": "SELECT test_auxdata( ? , a ) FROM t4;",
             "testdir": "",
             "testprefix": "func",
@@ -22285,6 +22293,14 @@
           "variable": "stmt_2"
         },
         {
+          "type": "stmt_bind",
+          "sql": "INSERT INTO tbl2 VALUES(?, ?)",
+          "variable": "stmt_2",
+          "bindIndex": 1,
+          "bindValue": "abc",
+          "bindBlob": true
+        },
+        {
           "type": "stmt_step",
           "sql": "INSERT INTO tbl2 VALUES(?, ?)",
           "variable": "stmt_2"
@@ -22295,11 +22311,8 @@
           "variable": "stmt_2"
         },
         {
-          "type": "exec",
-          "sql": "SELECT quote(a), quote(b) FROM tbl2;"
-        },
-        {
-          "type": "runtime_assert",
+          "type": "query",
+          "sql": "SELECT quote(a), quote(b) FROM tbl2;",
           "expect": "X'616263' NULL"
         }
       ]
@@ -22336,7 +22349,7 @@
             "isutf16": "0",
             "msg": "$msg",
             "r": "$r $msg",
-            "res": "SQLITE_OK",
+            "res": "__COLLECT_res__",
             "sql": "SELECT test_auxdata( ? , a ) FROM t4;",
             "testdir": "",
             "testprefix": "func",
@@ -146126,7 +146139,7 @@
             "midres": "",
             "msg": "$msg",
             "r": "$r $msg",
-            "res": "SQLITE_OK",
+            "res": "__COLLECT_res__",
             "sql": "SELECT test_auxdata( ? , a ) FROM t4;",
             "testdir": "",
             "testprefix": "func",
@@ -146294,7 +146307,7 @@
             "midres": "",
             "msg": "$msg",
             "r": "$r $msg",
-            "res": "SQLITE_OK",
+            "res": "__COLLECT_res__",
             "sql": "SELECT test_auxdata( ? , a ) FROM t4;",
             "testdir": "",
             "testprefix": "func",
@@ -146337,7 +146350,7 @@
             "midres": "",
             "msg": "$msg",
             "r": "$r $msg",
-            "res": "SQLITE_OK",
+            "res": "__COLLECT_res__",
             "sql": "SELECT test_auxdata( ? , a ) FROM t4;",
             "testdir": "",
             "testprefix": "func",

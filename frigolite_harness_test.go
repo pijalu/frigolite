@@ -223,6 +223,14 @@ type TestStep struct {
 	CallbackDeleteColumn int               `json:"callbackDeleteColumn,omitempty"`
 	CallbackDeleteValue  string            `json:"callbackDeleteValue,omitempty"`
 	CallbackDeleteSQL    string            `json:"callbackDeleteSQL,omitempty"`
+	// C-API prepared-statement steps (func-13.7/16.1): the sqlite3_bind_text/
+	// blob the test performs before stepping, and the while-loop row
+	// collection (step the statement to completion, one column per row).
+	BindIndex     int    `json:"bindIndex,omitempty"`
+	BindValue     string `json:"bindValue,omitempty"`
+	BindBlob      bool   `json:"bindBlob,omitempty"`
+	CollectColumn int    `json:"collectColumn,omitempty"`
+	CollectVar    string `json:"collectVar,omitempty"`
 }
 
 // patchFileHexBytes writes the hex-decoded DATA at OFFSET in path, mirroring
@@ -3664,10 +3672,50 @@ func TestSQLiteSuite(t *testing.T) {
 								continue
 							}
 							prepared[step.Variable] = stmt
+						case "stmt_bind":
+							stmt := prepared[step.Variable]
+							if stmt == nil {
+								t.Errorf("unknown prepared statement %q", step.Variable)
+								continue
+							}
+							var bindErr error
+							if step.BindBlob {
+								bindErr = stmt.BindBlob(step.BindIndex, []byte(step.BindValue))
+							} else {
+								bindErr = stmt.BindText(step.BindIndex, step.BindValue)
+							}
+							if bindErr != nil {
+								t.Errorf("bind: %v", bindErr)
+							}
 						case "stmt_step":
 							stmt := prepared[step.Variable]
 							if stmt == nil {
 								t.Errorf("unknown prepared statement %q", step.Variable)
+								continue
+							}
+							if step.CollectVar != "" {
+								// func-13.7's collection loop: step the prepared
+								// statement to completion, appending one column's
+								// text per row to the runtime list.
+								collected := make([]string, 0, 8)
+								for {
+									row, stepErr := stmt.Step()
+									if stepErr != nil {
+										t.Errorf("step: %v", stepErr)
+										break
+									}
+									if !row {
+										break
+									}
+									rowData := stmt.Row()
+									value := ""
+									if step.CollectColumn < len(rowData) && rowData[step.CollectColumn] != nil {
+										value = formatHarnessValue(base, rowData[step.CollectColumn])
+									}
+									collected = append(collected, value)
+								}
+								runtimeVars[step.CollectVar] = tclListString(collected)
+								stmtCode[step.Variable] = "SQLITE_DONE"
 								continue
 							}
 							row, stepErr := stmt.Step()
@@ -3710,6 +3758,9 @@ func TestSQLiteSuite(t *testing.T) {
 							}
 							for handle, code := range stmtCode {
 								actual = strings.ReplaceAll(actual, "__STEP_"+handle+"__", code)
+							}
+							for varName, value := range runtimeVars {
+								actual = strings.ReplaceAll(actual, "__COLLECT_"+varName+"__", value)
 							}
 							if diff := matchExpectation(actual, step.Expect); diff != "" {
 								t.Errorf("C-API result mismatch: %s\\n got: %s\\n want: %s", diff, actual, step.Expect)

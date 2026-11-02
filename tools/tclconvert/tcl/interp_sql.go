@@ -881,6 +881,9 @@ func (i *Interp) cmdDoTest(rawWords []rawWord, localVars map[string]string) erro
 	// ::sqlite_search_count reset only describe THIS body's flagged query.
 	i.statusFlagged = nil
 	i.searchCountReset = false
+	// The while-shape collection marker (stmtCollectWhileShape) is scoped to
+	// one test: a later test's `lappend res X Y` must not hit the marker.
+	i.lastCollectVar = ""
 
 	// Execute the body — this captures SQL statements
 	if bodyWord.Braced {
@@ -900,6 +903,18 @@ func (i *Interp) cmdDoTest(rawWords []rawWord, localVars map[string]string) erro
 	// C-API lifecycle tests compare result codes plus DB changes. Keep the exact
 	// Tcl result expression as a runtime assertion after the ordered operations.
 	if strings.Contains(bodyWord.Text, "sqlite3_step") || strings.Contains(bodyWord.Text, "sqlite3_reset") {
+		// The body's value may be a runtime query marker (the final command is
+		// an execsql SELECT whose rows exist only at run time — func-16.1): the
+		// marker must never reach a fixture. Promote that statement to a
+		// compared "query" carrying the expectation — the same carrier the
+		// standard do_test path uses for runtime values.
+		if last := i.runtimeValueStatement(i.vars[""]); last != nil {
+			last.Type = "query"
+			last.Expected = expected
+			last.ExpectedExpr = expectedExpr
+			i.curTest = ""
+			return nil
+		}
 		i.stmts = append(i.stmts, Stmt{Type: "runtime_assert", SQL: i.vars[""], Expected: expected, TestName: name})
 		i.curTest = ""
 		return nil

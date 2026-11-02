@@ -61,6 +61,11 @@ type TestStep struct {
 	ModuleArgs        []string          `json:"moduleArgs,omitempty"`
 	FunctionProc      string            `json:"functionProc,omitempty"`
 	FunctionScript    string            `json:"functionScript,omitempty"`
+	BindIndex         int               `json:"bindIndex,omitempty"`
+	BindValue         string            `json:"bindValue,omitempty"`
+	BindBlob          bool              `json:"bindBlob,omitempty"`
+	CollectColumn     int               `json:"collectColumn,omitempty"`
+	CollectVar        string            `json:"collectVar,omitempty"`
 	FunctionArgs      []string          `json:"functionArgs,omitempty"`
 	FunctionBody      string            `json:"functionBody,omitempty"`
 	MinArgs           int               `json:"minArgs,omitempty"`
@@ -129,9 +134,19 @@ func main() {
 	testDir := flag.String("testdir", "ori/sqlite/test", "TCL test directory")
 	outDir := flag.String("outdir", "testdata", "JSON output directory")
 	verbose := flag.Bool("v", false, "verbose output")
+	only := flag.String("only", "", "convert only this test file (base name without .test) — per-unit regeneration")
 	flag.Parse()
 
 	files := selectTestFiles(*testDir)
+	if *only != "" {
+		var filtered []string
+		for _, testFile := range files {
+			if strings.TrimSuffix(filepath.Base(testFile), ".test") == *only {
+				filtered = append(filtered, testFile)
+			}
+		}
+		files = filtered
+	}
 
 	processed := 0
 	skipped := 0
@@ -525,6 +540,11 @@ func stepFromStmt(s tcl.Stmt) TestStep {
 		ModuleArgs:        s.ModuleArgs,
 		FunctionProc:      s.FunctionProc,
 		FunctionScript:    s.FunctionScript,
+		BindIndex:         s.BindIndex,
+		BindValue:         s.BindValue,
+		BindBlob:          s.BindBlob,
+		CollectColumn:     s.CollectColumn,
+		CollectVar:        s.CollectVar,
 		FunctionArgs:      s.FunctionArgs,
 		FunctionBody:      s.FunctionBody,
 		MinArgs:           s.MinArgs,

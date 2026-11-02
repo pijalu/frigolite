@@ -29,15 +29,23 @@ var ErrConversionDeadline = errors.New("conversion deadline exceeded")
 
 // Stmt represents a captured SQL statement with its expected result.
 type Stmt struct {
-	Type            string // exec, query, tclquery, query2, or catch (exec expecting error)
-	SQL             string
-	Variable        string            // Tcl global assigned from query_assign result
-	ResultAll       bool              // query_assign keeps the whole row (Tcl execsql/db eval)
-	ResultRows      bool              // the variable holds every row (a Tcl list of rows)
-	StmtStatus      bool              // append the stmt-status counters ("scan N sort M") to the value
-	StatusStyle     string            // "" = labeled ("scan N sort M", where7's count_steps_sort); "bare" = bare counters ("N M", where8's execsql_status)
-	SearchCount     bool              // the body also reads ::sqlite_search_count (where8's execsql_status2): reset the counter before the query, append it after
-	Condition       string            // the step runs only when this Tcl expression is true
+	Type        string // exec, query, tclquery, query2, or catch (exec expecting error)
+	SQL         string
+	Variable    string // Tcl global assigned from query_assign result
+	ResultAll   bool   // query_assign keeps the whole row (Tcl execsql/db eval)
+	ResultRows  bool   // the variable holds every row (a Tcl list of rows)
+	StmtStatus  bool   // append the stmt-status counters ("scan N sort M") to the value
+	StatusStyle string // "" = labeled ("scan N sort M", where7's count_steps_sort); "bare" = bare counters ("N M", where8's execsql_status)
+	SearchCount bool   // the body also reads ::sqlite_search_count (where8's execsql_status2): reset the counter before the query, append it after
+	Condition   string // the step runs only when this Tcl expression is true
+	// stmt_bind: the C-API bind the step performs (sqlite3_bind_text/blob).
+	BindIndex int
+	BindValue string
+	BindBlob  bool
+	// stmt_step row collection (func-13.7's while loop): per row, column
+	// CollectColumn's text appends to the runtime list CollectVar.
+	CollectColumn   int
+	CollectVar      string
 	CatchResult     bool              // the step stores its success code in Variable (a `catch` result)
 	CatchMessage    string            // the variable the catch's error message is stored in
 	AuthProc        string            // the Tcl authorizer proc name (a `db auth <proc>` step)
@@ -117,6 +125,7 @@ type Interp struct {
 	catchDepth        int             // nesting level of `catch { ... }` blocks
 	condDepth         int             // nesting level of if-condition evaluation (command substitutions there run in condition context)
 	runtimeProbeCount int             // fresh probe variables for exprs embedding a query substitution (rewriteEmbeddedQueryExpr)
+	lastCollectVar    string          // the while-shape's collected runtime list (func-13.7)
 	deletedFiles      map[string]bool // files removed via forcedelete/file delete
 	fileWrites        map[string]*tclFileWrite
 	nextFileHandle    int
@@ -1034,6 +1043,22 @@ func (i *Interp) cmdWhile(rawWords []rawWord, localVars map[string]string) error
 	}
 	cond := rawWords[1]
 	body := rawWords[2]
+	if shape, ok := i.stmtCollectWhileShape(cond, body, localVars); ok {
+		// func-13.7's C-API loop: step the prepared statement to completion,
+		// collecting one column's text per row into a runtime list.
+		i.stmts = append(i.stmts, Stmt{
+			Type:          "stmt_step",
+			Variable:      shape.handle,
+			SQL:           i.preparedSQL[shape.handle],
+			CollectColumn: shape.column,
+			CollectVar:    shape.listVar,
+			TestName:      i.curTest,
+		})
+		i.lastCollectVar = shape.listVar
+		i.dynamicVars[shape.listVar] = true
+		i.setVar(shape.listVar, "$"+shape.listVar, localVars)
+		return nil
+	}
 
 	for iter := 0; iter < 50000; iter++ {
 		ok, err := i.evalLoopCond(cond, localVars)
@@ -1635,6 +1660,14 @@ func (i *Interp) cmdLappend(args []string, localVars map[string]string) error {
 		return nil
 	}
 	name := args[0]
+	// The while-shape's collection loop (func-13.7): `lappend res [sqlite3_finalize
+	// $STMT]` after the loop builds the assertion value — the collected rows
+	// joined with the trailing element. The marker expands at run time.
+	if name == i.lastCollectVar && len(args) == 2 {
+		i.setVar(name, "__COLLECT_"+strings.TrimPrefix(name, "::")+"__", localVars)
+		i.vars[""] = "__COLLECT_" + strings.TrimPrefix(name, "::") + "__ " + args[1]
+		return nil
+	}
 	cur, _ := i.getVar(name, localVars)
 
 	// Fast path: when all appended elements are simple (no spaces, braces,
