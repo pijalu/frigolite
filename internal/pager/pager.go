@@ -293,12 +293,35 @@ func (p *Pager) deriveCksumInit() uint32 {
 func (p *Pager) Close() error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	// pagerUnlockAndRollback parity (sqlite3PagerClose → pager.c
+	// pagerUnlockAndRollback; sqlite3_close on a connection with an open
+	// transaction rolls it back — vdbeaux.c sqlite3VdbeRollback): dirty
+	// pages at close belong to an open explicit transaction (autocommit
+	// statements flush at statement end). In WAL mode those pages exist
+	// only in the cache — frames append at COMMIT (walFrames' isCommit) —
+	// so the rollback is a cache drop plus the WRITER-lock release.
+	// Committing them here (the flushAll below) would turn `db close`
+	// mid-transaction into an implicit COMMIT (e_walckpt's `db2 close`
+	// after `BEGIN; INSERT` expects the insert discarded).
+	if p.wal != nil && p.wal.writeLock && len(p.dirty) > 0 {
+		p.walEndWriteLocked()
+		p.clearDirtySetLocked()
+	}
 	flushErr := p.flushAll()
 	// Release the WAL writer: close the "-wal" fd and drop this connection's
 	// shared wal-index reference (the last detach closes the shm fd and
 	// removes the registry entry — the next attach re-runs the DMS truncate
 	// + recovery from the "-wal").
 	if p.wal != nil {
+		// End this connection's WAL read transaction BEFORE the close
+		// checkpoint (pager.c order: sqlite3PagerClose runs
+		// pagerUnlockAndRollback — releasing the shared read-mark locks —
+		// before sqlite3WalClose's finalization). The backfill below needs
+		// the EXCLUSIVE READ_LOCK(0), which the connection's own pinned
+		// read mark blocks in the wal-index lock shadow; a blocked backfill
+		// reports nCkpt=0 (success) and the log reset below would destroy
+		// un-backfilled frames.
+		p.wal.walEndReadTxn()
 		// sqlite3WalClose (wal.c L2487) port: when this connection is the
 		// last one attached to the database (C proves that with an EXCLUSIVE
 		// rollback-journal lock on the db file; the in-process wal-index

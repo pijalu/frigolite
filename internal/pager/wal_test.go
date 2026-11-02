@@ -84,6 +84,13 @@ func TestWalFrameChecksum(t *testing.T) {
 	if err := p.SetJournalMode("wal"); err != nil {
 		t.Fatalf("SetJournalMode: %v", err)
 	}
+	// The engine's eager statement gate opens the WAL write transaction
+	// before a statement's pages are dirtied (Engine.walBeginStmtWrite →
+	// Pager.WALBeginWrite); the writes below accumulate into ONE commit at
+	// Flush exactly as a statement's do.
+	if _, err := p.WALBeginWrite(); err != nil {
+		t.Fatalf("WALBeginWrite: %v", err)
+	}
 	// Two dirty pages -> two frames in one commit.
 	pg1 := p.AllocatePage()
 	pg2 := p.AllocatePage()
@@ -98,6 +105,7 @@ func TestWalFrameChecksum(t *testing.T) {
 	if err := p.Flush(); err != nil {
 		t.Fatalf("Flush: %v", err)
 	}
+	p.WALEndRead() // autocommit statement end releases the read snapshot
 	frames, err := readWalFrames(t, p)
 	if err != nil {
 		t.Fatal(err)
@@ -128,6 +136,9 @@ func TestWalCrashRecovery(t *testing.T) {
 		t.Fatalf("SetJournalMode: %v", err)
 	}
 	// T1: pages 1..2 committed.
+	if _, err := p.WALBeginWrite(); err != nil {
+		t.Fatalf("T1 WALBeginWrite: %v", err)
+	}
 	t1a := p.AllocatePage()
 	t1b := p.AllocatePage()
 	copy(t1a.Data[100:], []byte("t1-a"))
@@ -137,19 +148,26 @@ func TestWalCrashRecovery(t *testing.T) {
 	if err := p.Flush(); err != nil {
 		t.Fatalf("T1 Flush: %v", err)
 	}
+	p.WALEndRead() // autocommit statement end releases the read snapshot
 	s1 := p.WalFileSize() // -wal size after T1 (crash boundary)
+	t.Logf("DBG s1=%d frames=%d", s1, len(readWalFramesMust(t, p)))
 
 	// T2: page 3 committed (frames appended beyond s1).
+	if _, err := p.WALBeginWrite(); err != nil {
+		t.Fatalf("T2 WALBeginWrite: %v", err)
+	}
 	t2 := p.AllocatePage()
 	copy(t2.Data, []byte("t2"))
 	p.WritePage(t2)
 	if err := p.Flush(); err != nil {
 		t.Fatalf("T2 Flush: %v", err)
 	}
+	p.WALEndRead()
 	if p.WalFileSize() <= s1 {
 		t.Fatal("T2 did not grow the -wal")
 	}
 	// Crash: discard T2's frames (truncate -wal to T1's end).
+	t.Logf("DBG before truncate frames=%d size=%d", len(readWalFramesMust(t, p)), p.WalFileSize())
 	if err := os.Truncate(path+"-wal", s1); err != nil {
 		t.Fatalf("truncate -wal: %v", err)
 	}
@@ -184,6 +202,12 @@ func TestWalCacheFlushSpillsUncommittedFramesAndRollbackRewinds(t *testing.T) {
 	if err := p.SetJournalMode("wal"); err != nil {
 		t.Fatal(err)
 	}
+	// Each phase below models one statement's write phase: the engine's
+	// eager gate opens the WAL write transaction before the pages are
+	// dirtied, so the writes accumulate until the phase's Flush.
+	if _, err := p.WALBeginWrite(); err != nil {
+		t.Fatal(err)
+	}
 	pg := p.AllocatePage()
 	copy(pg.Data[100:], []byte("before"))
 	if err := p.WritePage(pg); err != nil {
@@ -192,9 +216,13 @@ func TestWalCacheFlushSpillsUncommittedFramesAndRollbackRewinds(t *testing.T) {
 	if err := p.Flush(); err != nil {
 		t.Fatal(err)
 	}
+	p.WALEndRead()
 	baseSize := p.WalFileSize()
 	baseCommit := LastCommitFrame(readWalFramesMust(t, p))
 	snapshot := p.Snapshot()
+	if _, err := p.WALBeginWrite(); err != nil {
+		t.Fatal(err)
+	}
 	pg, err := p.ReadPage(1)
 	if err != nil {
 		t.Fatal(err)
@@ -217,6 +245,9 @@ func TestWalCacheFlushSpillsUncommittedFramesAndRollbackRewinds(t *testing.T) {
 	p.Restore(snapshot)
 	if got := p.WalFileSize(); got != baseSize {
 		t.Fatalf("rollback WAL size=%d, want %d", got, baseSize)
+	}
+	if _, err := p.WALBeginWrite(); err != nil {
+		t.Fatal(err)
 	}
 	pg, err = p.ReadPage(1)
 	if err != nil {

@@ -439,6 +439,18 @@ func (p *Pager) WritePage(pg *Page) error {
 		copy(pg.Data[:HeaderSize], p.header)
 	}
 	p.mu.Lock()
+	// Out-of-transaction write detection: an engine statement brackets every
+	// attached pager with a statement scope (snapshotAllPagers) and opens the
+	// WAL write transaction through the eager statement gate (WALBeginWrite),
+	// so an in-statement write arrives with writeLock already held or a
+	// statement scope open. A write with NEITHER is the schema bootstrap
+	// (schema.Init at Open — C runs newDatabase inside the first statement's
+	// transaction; frigolite bootstraps at Open): its WAL write transaction
+	// must not outlive this call, or the WRITER shm lock it takes stays held
+	// for the connection's lifetime and every OTHER connection's open (whose
+	// walIndexReadHdr recovery needs the WRITER) fails with "database is
+	// locked" (e_walckpt's cross-connection open cascade).
+	walOrphan := p.wal != nil && !p.wal.writeLock && p.stmtTop == nil
 	// Open the WAL write transaction on the first dirty page
 	// (sqlite3WalBeginWriteTransaction parity): the WRITER shm lock is held
 	// from the first write until COMMIT/ROLLBACK so the whole write phase
@@ -468,6 +480,14 @@ func (p *Pager) WritePage(pg *Page) error {
 		return err
 	}
 	p.mu.Unlock()
+	if walOrphan {
+		// Complete the orphaned write as its own implicit autocommit
+		// transaction: flushAllCtx routes the commit through wal.commit
+		// (frames appended, wal-index header published) whose deferred
+		// walEndWriteLocked releases the WRITER shm lock — the
+		// walBeginWriteTransaction/walEndWriteTransaction pairing of wal.c.
+		return p.flushAllCtx(false)
+	}
 	return nil
 }
 
