@@ -39,6 +39,12 @@ func registerTest1Functions(t *testing.T, db *DB) {
 	// counter1/counter2 share ONE counter; counter1 non-deterministic,
 	// counter2 deterministic).
 	db.engine.Functions().RegisterContext("test_auxdata", testAuxdataFunc, -1, -1)
+	// test_func.c:636 test_frombind(A,B,...): the bitmask of arguments that
+	// originate from a bind parameter — the per-call from-bind mask the
+	// evaluator folds from sqlite3_value_frombind per argument value.
+	db.engine.Functions().RegisterContext("test_frombind", func(ctx *function.FuncContext, args []interface{}) (interface{}, error) {
+		return int64(ctx.FromBind()), nil
+	}, -1, -1)
 	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
 		if args[0] == nil {
 			// sqlite3_result_error with sqlite3_value_text(NULL): the error

@@ -3147,6 +3147,12 @@ func TestSQLiteSuite(t *testing.T) {
 					} else {
 						db = newDB(t)
 					}
+					// The reopened connection carries the test-only SQL
+					// functions again: testfixture registers them on EVERY
+					// connection it opens (sqlite3_open in tester.tcl), so a
+					// reset_db between sections keeps them (func-32.x calls
+					// test_frombind after an earlier reset).
+					registerTest1Functions(t, db)
 					lastSection = 0
 					if fixture, ok := harnessCollationFixtures[base]; ok {
 						fixture(db)
@@ -3409,6 +3415,9 @@ func TestSQLiteSuite(t *testing.T) {
 							} else {
 								db = newDB(t)
 							}
+							// testfixture registers the test-only SQL functions
+							// on every connection it opens.
+							registerTest1Functions(t, db)
 							if fixture, ok := harnessCollationFixtures[base]; ok {
 								fixture(db)
 							}
@@ -3461,6 +3470,9 @@ func TestSQLiteSuite(t *testing.T) {
 							} else if base != "vtab1" && base != "altertab" && base != "alterlegacy" {
 								db.RegisterEchoModule()
 							}
+							// testfixture registers the test-only SQL functions
+							// on every connection it opens.
+							registerTest1Functions(t, db)
 							continue
 						}
 						if step.Type == "open_empty_db" {
@@ -3485,6 +3497,9 @@ func TestSQLiteSuite(t *testing.T) {
 							} else if base != "vtab1" && base != "altertab" {
 								db.RegisterEchoModule()
 							}
+							// testfixture registers the test-only SQL functions
+							// on every connection it opens.
+							registerTest1Functions(t, db)
 							continue
 						}
 						if step.Type == "register_collation" {

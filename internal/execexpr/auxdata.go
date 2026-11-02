@@ -271,3 +271,33 @@ func constVariadicOperands(e sql.Expr) []sql.Expr {
 	}
 	return nil
 }
+
+// funcFromBindMask is test_frombind's view (test_func.c:636): bit i set when
+// argument i IS a bind parameter. MEM_FromBind (vdbeapi.c:339) travels on
+// parameter values only, so a compound expression (?+7, $xyz+f) is not from
+// bind even though it contains one — func-32.120/140/150 pin that rule,
+// while a parenthesized (?) keeps the flag (func-32.120).
+func (ev *Evaluator) funcFromBindMask(f *sql.FuncCall) uint64 {
+	var mask uint64
+	for i, arg := range f.Args {
+		if i >= 63 {
+			break
+		}
+		if exprIsBindParameter(arg) {
+			mask |= 1 << uint(i)
+		}
+	}
+	return mask
+}
+
+// exprIsBindParameter reports whether the expression is exactly a bound
+// parameter reference, possibly parenthesized.
+func exprIsBindParameter(e sql.Expr) bool {
+	switch v := e.(type) {
+	case *sql.ParenExpr:
+		return exprIsBindParameter(v.Expr)
+	case *sql.ParameterExpr:
+		return true
+	}
+	return false
+}

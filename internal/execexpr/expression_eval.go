@@ -571,7 +571,7 @@ type scalarSpecialImpl func(ev *Evaluator, f *sql.FuncCall, args []interface{}) 
 // execution, non-constant slots are fresh every call (func.test 13.4/13.5).
 func (ev *Evaluator) evalContextScalarFunc(fn *function.Func, f *sql.FuncCall, args []interface{}) (interface{}, error) {
 	mask := ev.funcArgConstMask(f)
-	ctx := function.NewFuncContext(auxStore{ev: ev}, f)
+	ctx := function.NewFuncContextWithFromBind(auxStore{ev: ev}, f, ev.funcFromBindMask(f))
 	out, err := fn.ContextFn(ctx, args)
 	if err != nil || ctx.AuxSlotCreated() {
 		ev.releaseNonConstSiteAux(f, mask)

@@ -27,6 +27,10 @@ type FuncContext struct {
 	// slots at this site) exactly when C does: after the call, when the
 	// soft flag is set or the call errored (vdbe.c OP_Function).
 	newSlot bool
+	// fromBind folds sqlite3_value_frombind (MEM_FromBind, vdbeapi.c:339)
+	// over the call's arguments: bit i is set when argument i IS a bind
+	// parameter. test_func.c's test_frombind reads it as one bitmask.
+	fromBind uint64
 }
 
 // AuxStore is the auxiliary-data storage port the evaluator implements for
@@ -50,6 +54,16 @@ type AuxStore interface {
 func NewFuncContext(store AuxStore, site interface{}) *FuncContext {
 	return &FuncContext{store: store, site: site}
 }
+
+// NewFuncContextWithFromBind wires a per-call context that also carries the
+// call's from-bind bitmask (test_func.c's test_frombind contract).
+func NewFuncContextWithFromBind(store AuxStore, site interface{}, fromBind uint64) *FuncContext {
+	return &FuncContext{store: store, site: site, fromBind: fromBind}
+}
+
+// FromBind returns the call's from-bind bitmask: bit i set when argument i
+// originated from a bind parameter (sqlite3_value_frombind per argument).
+func (c *FuncContext) FromBind() uint64 { return c.fromBind }
 
 // GetAuxData returns the auxiliary data previously stored for argument arg
 // at this call site, or nil (sqlite3_get_auxdata). A negative arg reads the
