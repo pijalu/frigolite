@@ -10,8 +10,38 @@
           "type": "close_db"
         },
         {
+          "type": "register_testvfs",
+          "variable": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "xSync",
+          "callbackProcs": [
+            {
+              "Name": "xSync",
+              "Args": [
+                "method",
+                "file",
+                "args"
+              ],
+              "Body": "\n  if {[file tail $file]==\"test.db-wal\"} {\n    incr ::sync_count\n  }\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "xSync",
+          "database": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xSync",
+          "database": "tvfs"
+        },
+        {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "tvfs"
         }
       ]
     },
@@ -22,6 +52,16 @@
           "type": "query",
           "sql": "PRAGMA auto_vacuum = 0;\n  PRAGMA journal_mode = wal;\n  PRAGMA synchronous = normal;\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  INSERT INTO t1 VALUES(7, 8, 9);\n  PRAGMA wal_checkpoint;",
           "expect": "wal 0 5 5"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "sync_count"
         }
       ]
     },
@@ -40,14 +80,21 @@
       ]
     },
     {
-      "name": "setup_1",
+      "name": "setup_2",
       "steps": [
         {
           "type": "close_db"
         },
         {
+          "type": "testvfs_config",
+          "sql": "devchar",
+          "variable": "sequential",
+          "database": "tvfs"
+        },
+        {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "tvfs"
         }
       ]
     },
@@ -58,6 +105,16 @@
           "type": "query",
           "sql": "PRAGMA synchronous = normal;\n  INSERT INTO t1 VALUES(13, 14, 15);\n  INSERT INTO t1 VALUES(16, 17, 18);\n  PRAGMA wal_checkpoint;",
           "expect": "0 4 4"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "sync_count"
         }
       ]
     },
@@ -77,7 +134,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "walvfs-2.0",
@@ -111,17 +168,23 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
-      "name": "setup_2",
+      "name": "setup_4",
       "steps": [
         {
           "type": "close_db"
         },
         {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "database": "tvfs"
         }
       ]
     },
@@ -136,12 +199,56 @@
       ]
     },
     {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xWrite",
+          "database": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "xWrite",
+          "callbackProcs": [
+            {
+              "Name": "xWrite",
+              "Args": [
+                "method",
+                "file",
+                "args"
+              ],
+              "Body": "\n  if {[file tail $file]==\"test.db\"} {\n    incr ::cnt -1\n    if {$::cnt==0} {\n      sqlite3_memdebug_fail 1 -repeat 0\n      # For this test to pass, the following statement must call malloc() at \n      # least once. Even if the lookaside is enabled.\n      set ::xwrite_stmt_res [catchsql { SELECT hex(randomblob(4000)) }]\n      sqlite3_interrupt db\n    }\n  }\n  return SQLITE_OK\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "xWrite",
+          "database": "tvfs"
+        }
+      ]
+    },
+    {
       "name": "walvfs-3.1",
       "steps": [
         {
           "type": "catch",
           "sql": "PRAGMA wal_checkpoint",
           "expect": "1 interrupted"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "2",
+          "variable": "cnt"
+        },
+        {
+          "type": "runtime_expr",
+          "variable": "xwrite_stmt_res"
         }
       ]
     },
@@ -167,10 +274,10 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
-      "name": "setup_3",
+      "name": "setup_7",
       "steps": [
         {
           "type": "close_db"
@@ -182,7 +289,8 @@
       "steps": [
         {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "tvfs"
         },
         {
           "type": "exec",
@@ -192,14 +300,41 @@
       ]
     },
     {
-      "name": "setup_4",
+      "name": "setup_8",
       "steps": [
         {
           "type": "close_db"
         },
         {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmMap",
+          "database": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "xShmMap",
+          "callbackProcs": [
+            {
+              "Name": "xShmMap",
+              "Args": [
+                "method",
+                "file",
+                "handle",
+                "args"
+              ],
+              "Body": "\n  switch -- $method {\n    xShmMap {\n      return \"SQLITE_READONLY_CANTINIT\"\n    }\n    xShmLock {\n      if {$args==\"{3 1 lock shared}\"} {\n        return \"SQLITE_IOERR\"\n      }\n    }\n  }\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "xShmMap",
+          "database": "tvfs"
+        },
+        {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "tvfs"
         }
       ]
     },
@@ -210,6 +345,22 @@
           "type": "catch",
           "sql": "SELECT count(*) FROM t1",
           "expect": "1 {attempt to write a readonly database}"
+        }
+      ]
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "5",
+          "variable": "cnt"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmMap xShmLock",
+          "database": "tvfs"
         }
       ]
     },
@@ -225,17 +376,23 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
-      "name": "setup_5",
+      "name": "setup_10",
       "steps": [
         {
           "type": "close_db"
         },
         {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "database": "tvfs"
         }
       ]
     },
@@ -270,6 +427,42 @@
       ]
     },
     {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "xShmLock",
+          "callbackProcs": [
+            {
+              "Name": "xShmLock",
+              "Args": [
+                "method",
+                "file",
+                "handle",
+                "spec"
+              ],
+              "Body": "\n  if {$spec==\"1 1 lock exclusive\"} {\n    return SQLITE_BUSY\n  }\n  return SQLITE_OK\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "xShmLock",
+          "database": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock",
+          "database": "tvfs"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "20",
+          "variable": "cnt"
+        }
+      ]
+    },
+    {
       "name": "walvfs-5.4",
       "steps": [
         {
@@ -280,11 +473,36 @@
       ]
     },
     {
-      "name": "setup_6",
+      "name": "setup_12",
       "steps": [
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "xShmMapLock",
+          "callbackProcs": [
+            {
+              "Name": "xShmMapLock",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n  if {$method==\"xShmMap\"} {\n    return \"SQLITE_READONLY\"\n  }\n  return SQLITE_BUSY\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "xShmMapLock",
+          "database": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock xShmMap",
+          "database": "tvfs"
+        },
         {
           "type": "open_named_db",
           "sql": "test.db",
+          "vfs": "tvfs",
           "database": "db2"
         }
       ]
@@ -297,6 +515,24 @@
           "sql": "SELECT count(*) FROM t1",
           "catchMessage": "msg",
           "database": "db2"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "[catch { execsql { SELECT count(*) FROM t1 } db2 } msg]",
+            "$msg"
+          ],
+          "expect": "1 {attempt to write a readonly database}"
+        }
+      ]
+    },
+    {
+      "name": "setup_13",
+      "steps": [
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "database": "tvfs"
         }
       ]
     },
@@ -308,11 +544,19 @@
           "sql": "SELECT count(*) FROM t1",
           "catchMessage": "msg",
           "database": "db2"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "[catch { execsql { SELECT count(*) FROM t1 } db2 } msg]",
+            "$msg"
+          ],
+          "expect": "0 20"
         }
       ]
     },
     {
-      "name": "setup_7",
+      "name": "setup_14",
       "steps": [
         {
           "type": "close_named_db",
@@ -325,17 +569,23 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
-      "name": "setup_8",
+      "name": "setup_15",
       "steps": [
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "database": "tvfs"
+        },
         {
           "type": "close_db"
         },
         {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "tvfs"
         }
       ]
     },
@@ -359,6 +609,34 @@
       ]
     },
     {
+      "name": "setup_16",
+      "steps": [
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock",
+          "database": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "xShmLock",
+          "callbackProcs": [
+            {
+              "Name": "xShmLock",
+              "Args": [
+                "args"
+              ],
+              "Body": "\n  incr ::cnt -1\n  if {$::cnt\u003e0} { return SQLITE_BUSY }\n  return SQLITE_OK\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "xShmLock",
+          "database": "tvfs"
+        }
+      ]
+    },
+    {
       "name": "walvfs-6.2",
       "steps": [
         {
@@ -370,17 +648,23 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
-      "name": "setup_9",
+      "name": "setup_17",
       "steps": [
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "database": "tvfs"
+        },
         {
           "type": "close_db"
         },
         {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "tvfs"
         }
       ]
     },
@@ -391,6 +675,37 @@
           "type": "query",
           "sql": "PRAGMA auto_vacuum = 0;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x);\n  PRAGMA journal_mode = wal;\n  WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s LIMIT 20\n  )\n  INSERT INTO t1 SELECT randomblob(750) FROM s;",
           "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "setup_18",
+      "steps": [
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "xShmLock",
+          "callbackProcs": [
+            {
+              "Name": "xShmLock",
+              "Args": [
+                "method",
+                "file",
+                "handle",
+                "spec"
+              ],
+              "Body": "\n  if {$::flag \u0026\u0026 [lrange $spec 2 end]==\"lock shared\"} {\n    return SQLITE_BUSY\n  }\n  if {$spec==\"3 1 unlock shared\"} {\n    set ::flag 1\n  }\n  return SQLITE_OK\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "xShmLock",
+          "database": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock",
+          "database": "tvfs"
         }
       ]
     },
@@ -406,17 +721,22 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
-      "name": "setup_10",
+      "name": "setup_19",
       "steps": [
+        {
+          "type": "register_testvfs",
+          "variable": "tvfs2"
+        },
         {
           "type": "close_db"
         },
         {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "tvfs2"
         }
       ]
     },
@@ -446,6 +766,7 @@
         {
           "type": "open_named_db",
           "sql": "test.db",
+          "vfs": "tvfs2",
           "database": "db2"
         },
         {
@@ -470,7 +791,7 @@
       ]
     },
     {
-      "name": "setup_11",
+      "name": "setup_20",
       "steps": [
         {
           "type": "close_db"
@@ -479,17 +800,18 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
-      "name": "setup_12",
+      "name": "setup_21",
       "steps": [
         {
           "type": "close_db"
         },
         {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "tvfs"
         }
       ]
     },
@@ -504,12 +826,39 @@
       ]
     },
     {
-      "name": "setup_13",
+      "name": "setup_22",
       "steps": [
         {
           "type": "open_named_db",
           "sql": "test.db",
+          "vfs": "tvfs",
           "database": "db2"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmMap xShmLock",
+          "database": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "xShmMap",
+          "callbackProcs": [
+            {
+              "Name": "xShmMap",
+              "Args": [
+                "method",
+                "file",
+                "name",
+                "args"
+              ],
+              "Body": " \n  switch -- $method {\n    xShmMap {  return SQLITE_READONLY }\n    xShmLock {\n      if {$args == \"{0 1 lock shared}\"} {\n        incr ::cnt -1\n        if {$::cnt\u003e0} { return SQLITE_BUSY }\n      }\n    }\n  }\n  return SQLITE_OK\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "xShmMap",
+          "database": "tvfs"
         }
       ]
     },
@@ -525,7 +874,7 @@
       ]
     },
     {
-      "name": "setup_14",
+      "name": "setup_23",
       "steps": [
         {
           "type": "close_db"

@@ -10,6 +10,7 @@ import (
 
 	"github.com/pijalu/frigolite/internal/execpragma"
 	"github.com/pijalu/frigolite/internal/lockreg"
+	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
 )
 
@@ -315,8 +316,26 @@ func (e *Engine) setSynchronous(schema, value string) *execpragma.Result {
 		} else {
 			e.settings.synchronousLevels[upper] = int64(lvl)
 		}
+		// Push the WAL sync-flag level to the pager (vfshooks.go): the WAL
+		// writer emits its sync events per this level.
+		if ctx := e.pragmaDBCtx(schema); ctx != nil && ctx.Pager != nil {
+			ctx.Pager.SetWALSyncFlags(walSyncFlagsForLevel(lvl))
+		}
 	}
 	return &execpragma.Result{}
+}
+
+// walSyncFlagsForLevel maps the stored synchronous level ((level+1)&7 —
+// 1=OFF, 2=NORMAL, 3=FULL) to the pager's WAL sync-flag bits.
+func walSyncFlagsForLevel(lvl int64) uint8 {
+	switch lvl {
+	case 1:
+		return pager.WALSyncOff
+	case 3:
+		return pager.WALSyncFull
+	default:
+		return pager.WALSyncNormal
+	}
 }
 
 // journalModeChangeLockError reports "database is locked" when a WAL-involving

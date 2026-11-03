@@ -325,6 +325,11 @@ func (w *walWriter) writeWalFileHeaderLocked() error {
 	if _, err := w.file.WriteAt(hdr, 0); err != nil {
 		return fmt.Errorf("pager: write wal header: %w", err)
 	}
+	// wal.c:4098 — sync the just-written WAL header unless IOCAP_SEQUENTIAL
+	// or synchronous=OFF (CKPT_SYNC_FLAGS run at NORMAL and FULL).
+	if w.p.walHeaderSyncAllowed() {
+		w.p.vfsSync(w.path, walCkptSyncBits(w.p.walSyncFlags))
+	}
 	w.cksum1, w.cksum2 = hc1, hc2
 	w.hdr.BigEndCksum = false
 	setPageSizeForHdr(&w.hdr, w.pageSize)
@@ -503,6 +508,10 @@ func (w *walWriter) commit() (int, error) {
 	if commitErr != nil {
 		return 0, commitErr
 	}
+	// wal.c:4187 — the transaction-commit sync runs only when the commit
+	// sync bits are non-zero (synchronous=FULL; NORMAL's walSyncFlags carry
+	// only the checkpoint bits).
+	p.vfsSync(w.path, walCommitSyncBits(p.walSyncFlags))
 	if p.walHook != nil {
 		p.walHook(appended, 0)
 	}
@@ -536,6 +545,10 @@ func (w *walWriter) commitPrepareLocked() error {
 	}
 	if changed {
 		w.adoptHeaderLocked()
+	}
+	if os.Getenv("FRIGOLITE_WALTRACE") != "" {
+		info := w.wi.ckptInfoLocked()
+		fmt.Fprintf(os.Stderr, "TRACE prepare: readLock=%d spill=%v nbackfill=%d mxframe=%d\n", w.readLock, w.spillStarted, info.NBackfill, w.hdr.MxFrame)
 	}
 	if w.readLock == 0 && !w.spillStarted {
 		// walRestartLog (wal.c L3852): this writer's read transaction pins
@@ -738,10 +751,15 @@ func (w *walWriter) ckptBackfillPass(mxFrame, mxSafeFrame uint32) (uint32, error
 	if w.wi.shmTryLockHeld(walReadLockIdx(0), 1, true) != nil {
 		return nBackfill0, nil
 	}
+	// wal.c:2260 — sync the WAL before copying its frames into the db
+	// (CKPT_SYNC_FLAGS run at synchronous=NORMAL and FULL).
+	w.p.vfsSync(w.path, walCkptSyncBits(w.p.walSyncFlags))
 	w.wi.setCkptInfoLocked(func(ci *WalCkptInfo) { ci.NBackfillAttempted = mxSafeFrame })
 	berr := w.backfillLocked(nBackfill0, mxSafeFrame, mxFrame)
 	if berr == nil {
 		w.wi.setCkptInfoLocked(func(ci *WalCkptInfo) { ci.NBackfill = mxSafeFrame })
+		// wal.c:2314 — sync the database file after copying pages.
+		w.p.vfsSync(w.p.path, walCkptSyncBits(w.p.walSyncFlags))
 	}
 	w.wi.shmUnlockHeld(walReadLockIdx(0), 1, true)
 	if berr != nil {

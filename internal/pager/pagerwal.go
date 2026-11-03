@@ -40,6 +40,22 @@ func (p *Pager) walBeginWriteLocked(cacheDroppable bool) (bool, error) {
 	for {
 		err := w.wi.WriterSection(w.checkWriteSnapshot)
 		if err == nil {
+			// C's pagerSharedLock pins READ_LOCK(0) (the "ignore the WAL"
+			// mark) before the write transaction: walFrames' walRestartLog
+			// gate (wal.c:4056) requires the writer's readLock==0 at
+			// frame-write time — without the pin a fully-backfilled log
+			// never restarts and the next commit never rewrites the WAL
+			// header (walvfs-1.1's sync count).
+			if w.readLock == -1 {
+				_ = w.wi.WriterSection(func() error {
+					info := w.wi.ckptInfoLocked()
+					if w.tryLockZeroHeld(&info) == rdPinRetry {
+						info = w.wi.ckptInfoLocked()
+						w.tryLockZeroHeld(&info)
+					}
+					return nil
+				})
+			}
 			return adopted, nil
 		}
 		if errors.Is(err, errWalBusySnapshot) &&

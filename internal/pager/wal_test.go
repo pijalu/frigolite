@@ -148,7 +148,7 @@ func TestWalCrashRecovery(t *testing.T) {
 	if err := p.Flush(); err != nil {
 		t.Fatalf("T1 Flush: %v", err)
 	}
-	p.WALEndRead() // autocommit statement end releases the read snapshot
+	p.WALEndRead()        // autocommit statement end releases the read snapshot
 	s1 := p.WalFileSize() // -wal size after T1 (crash boundary)
 	t.Logf("DBG s1=%d frames=%d", s1, len(readWalFramesMust(t, p)))
 

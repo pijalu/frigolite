@@ -93,6 +93,7 @@ func init() {
 		"faultsim_delete_and_reopen":  commandResetDB,
 		"db_delete_and_reopen":        commandResetDB,
 		"sqlite3":                     commandSQLite3,
+		"testvfs":                     commandTestVFS,
 		"sqlite3_exec":                commandSQLite3Exec,
 		"sqlite3_prepare_v2":          commandPrepareStmt,
 		"sqlite3_prepare_v3":          commandPrepareStmt,
@@ -202,6 +203,11 @@ func (i *Interp) dispatchCommand(cmd string, rawWords []rawWord, args []string, 
 				i.stmts[len(i.stmts)-1].Database = cmd
 			}
 			return nil
+		}
+	}
+	if i.testvfsNames[cmd] {
+		if _, ok := testvfsOptionArity(args[0]); ok {
+			return commandTestVFSConfig(i, args, cmd)
 		}
 	}
 	if fn, ok := i.callbackCommands[cmd]; ok {
@@ -1351,6 +1357,16 @@ func commandSQLite3(i *Interp, rawWords []rawWord, args []string, localVars map[
 	if len(args) < 2 {
 		return nil
 	}
+	// Options follow the filename: `-vfs <name>` opens through the named
+	// testvfs wrapper (walvfs.test's `sqlite3 db test.db -vfs tvfs`).
+	vfsName := ""
+	for k := 2; k+1 < len(args); k += 2 {
+		if args[k] == "-vfs" {
+			vfsName = args[k+1]
+		}
+	}
+	i.pendingVFS = vfsName
+	defer func() { i.pendingVFS = "" }()
 	name, filename := args[0], args[1]
 	if filename == ":memory:" || filename == "" {
 		if name == "db" {
@@ -1386,13 +1402,13 @@ func commandSQLite3(i *Interp, rawWords []rawWord, args []string, localVars map[
 	localPath := filepath.Base(path)
 	if name == "db" && i.deletedFiles[path] {
 		delete(i.deletedFiles, path)
-		i.stmts = append(i.stmts, Stmt{Type: "reopen_db", SQL: localPath, TestName: i.curTest})
+		i.stmts = append(i.stmts, Stmt{Type: "reopen_db", SQL: localPath, VFS: i.pendingVFS, TestName: i.curTest})
 		return nil
 	}
 	if name == "db" {
-		i.stmts = append(i.stmts, Stmt{Type: "reopen_db", SQL: localPath, TestName: i.curTest})
+		i.stmts = append(i.stmts, Stmt{Type: "reopen_db", SQL: localPath, VFS: i.pendingVFS, TestName: i.curTest})
 	} else {
-		i.stmts = append(i.stmts, Stmt{Type: "open_named_db", SQL: filename, Database: name, TestName: i.curTest})
+		i.stmts = append(i.stmts, Stmt{Type: "open_named_db", SQL: filename, Database: name, VFS: i.pendingVFS, TestName: i.curTest})
 	}
 	return nil
 }
@@ -1516,6 +1532,16 @@ func commandClose(i *Interp, _ []rawWord, args []string, _ map[string]string) er
 func commandFile(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
 	if len(args) >= 1 && args[0] == "delete" {
 		return commandForceDelete(i, rawWords, args[1:], localVars)
+	}
+	// Path-inspection subcommands the fixture callbacks use (walvfs's
+	// xSync dispatches on `file tail $file`).
+	switch {
+	case len(args) == 2 && args[0] == "tail":
+		i.vars[""] = filepath.Base(args[1])
+	case len(args) == 2 && args[0] == "dirname":
+		i.vars[""] = filepath.Dir(args[1])
+	case len(args) == 2 && args[0] == "extension":
+		i.vars[""] = filepath.Ext(args[1])
 	}
 	return nil
 }

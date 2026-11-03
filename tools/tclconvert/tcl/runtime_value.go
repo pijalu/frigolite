@@ -37,9 +37,9 @@ const runtimeValuePrefix = "\x00frt:"
 // the runtime value markers they are an internal representation and never
 // reach a fixture.
 const (
-	stmtStatusStepMarker  = "\x00st:step\x00"
-	stmtStatusSortMarker  = "\x00st:sort\x00"
-	searchCountMarker     = "\x00st:search\x00"
+	stmtStatusStepMarker = "\x00st:step\x00"
+	stmtStatusSortMarker = "\x00st:sort\x00"
+	searchCountMarker    = "\x00st:search\x00"
 )
 
 // runtimeValueMarker returns the marker of the value of a captured query.

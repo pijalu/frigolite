@@ -76,12 +76,13 @@ func openPager(path string, pageSize uint32, forceReadOnly bool) (*Pager, error)
 	}
 
 	pr := &Pager{
-		pageSize: pageSize,
-		file:     file,
-		mux:      mux,
-		pages:    make(map[uint32]*Page),
-		dirty:    make(map[uint32]bool),
-		fileSize: info.Size(),
+		walSyncFlags: WALSyncNormal, // SQLITE_DEFAULT_SYNCHRONOUS=2 (NORMAL)
+		pageSize:     pageSize,
+		file:         file,
+		mux:          mux,
+		pages:        make(map[uint32]*Page),
+		dirty:        make(map[uint32]bool),
+		fileSize:     info.Size(),
 		// pager.c lazy creation: a database opened empty (0 bytes) must
 		// stay untouched on disk until the first real write — opening and
 		// closing it never materializes the file.
@@ -376,12 +377,13 @@ func OpenInMemory(pageSize uint32) *Pager {
 	}
 	dh := storage.DefaultHeader(pageSize)
 	return &Pager{
-		pageSize: pageSize,
-		file:     nil,
-		pages:    make(map[uint32]*Page),
-		dirty:    make(map[uint32]bool),
-		numPages: 0,
-		header:   dh.Encode(),
+		walSyncFlags: WALSyncNormal, // SQLITE_DEFAULT_SYNCHRONOUS=2 (NORMAL)
+		pageSize:     pageSize,
+		file:         nil,
+		pages:        make(map[uint32]*Page),
+		dirty:        make(map[uint32]bool),
+		numPages:     0,
+		header:       dh.Encode(),
 	}
 }
 

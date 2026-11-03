@@ -314,3 +314,89 @@ func (i *Interp) preRegisterNotifyTargets(bodyText string) {
 		}
 	}
 }
+
+// commandTestVFS records `testvfs <name>` — the named testvfs wrapper VFS
+// (test_vfs.c). The object's option calls (`<name> script <proc>`,
+// `<name> filter <methods>`, `<name> devchar <chars>`, ...) dispatch through
+// the named-object fallthrough into commandTestVFSConfig.
+func commandTestVFS(i *Interp, _ []rawWord, args []string, _ map[string]string) error {
+	if len(args) < 1 {
+		return nil
+	}
+	name := args[0]
+	if i.testvfsNames == nil {
+		i.testvfsNames = make(map[string]bool)
+	}
+	i.testvfsNames[name] = true
+	i.stmts = append(i.stmts, Stmt{Type: "register_testvfs", Variable: name, TestName: i.curTest})
+	return nil
+}
+
+// testvfsOptionArity reports the argument count each testvfs option takes
+// (false = the option is not recognized here).
+func testvfsOptionArity(opt string) (int, bool) {
+	switch opt {
+	case "script", "filter", "devchar", "sectorsize", "ioerr", "fullerr", "cantopenerr", "shm", "delete":
+		return 1, true
+	}
+	return 0, false
+}
+
+// commandTestVFSConfig records a testvfs object option call
+// (`tvfs script xSync`, `tvfs devchar sequential`, `tvfs filter xSync`):
+// SQL carries the option, FunctionProc the script proc (option "script"),
+// Variable the option's value.
+func commandTestVFSConfig(i *Interp, args []string, cmd string) error {
+	if len(args) < 2 {
+		return nil
+	}
+	step := Stmt{Type: "testvfs_config", Database: cmd, SQL: args[0], Variable: args[1], TestName: i.curTest}
+	if args[0] == "script" {
+		step.FunctionProc = args[1]
+		// The script proc's body travels with the step (the harness loads
+		// it into the fixture's callback interpreter).
+		if proc, ok := i.procs[strings.TrimPrefix(args[1], "::")]; ok {
+			step.CallbackProcs = []Proc{*proc}
+			i.seedCallbackTargets(proc.Body)
+		}
+		if i.testvfsScriptProcs == nil {
+			i.testvfsScriptProcs = make(map[string]bool)
+		}
+		i.testvfsScriptProcs[strings.TrimPrefix(args[1], "::")] = true
+	}
+	i.stmts = append(i.stmts, step)
+	return nil
+}
+
+// seedCallbackTargets marks the variables a callback script writes as
+// runtime-tracked globals: later `set NAME <value>` resets (the file-level
+// `set ::sync_count 0` between walvfs tests) record runtime_expr steps.
+func (i *Interp) seedCallbackTargets(body string) {
+	if i.trackedVars == nil {
+		i.trackedVars = make(map[string]bool)
+	}
+	if i.dynamicVars == nil {
+		i.dynamicVars = make(map[string]bool)
+	}
+	for _, name := range NotifyScriptVarTargets(body) {
+		i.trackedVars[name] = true
+		i.dynamicVars[name] = true
+	}
+}
+
+// AttachLateCallbackProcs post-processes the captured statements: steps that
+// NAME a proc before the file defines it (TCL late binding — walvfs's
+// `tvfs script xSync` precedes `proc xSync {...}`) carry the proc body from
+// here. The interpreter is done executing, so i.procs holds every
+// file-level definition.
+func (i *Interp) AttachLateCallbackProcs() {
+	for idx := range i.stmts {
+		s := &i.stmts[idx]
+		if s.FunctionProc == "" || len(s.CallbackProcs) > 0 {
+			continue
+		}
+		if proc, ok := i.procs[strings.TrimPrefix(s.FunctionProc, "::")]; ok {
+			s.CallbackProcs = []Proc{*proc}
+		}
+	}
+}

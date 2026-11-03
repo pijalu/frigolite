@@ -38,6 +38,7 @@ type Stmt struct {
 	StatusStyle string // "" = labeled ("scan N sort M", where7's count_steps_sort); "bare" = bare counters ("N M", where8's execsql_status)
 	SearchCount bool   // the body also reads ::sqlite_search_count (where8's execsql_status2): reset the counter before the query, append it after
 	Condition   string // the step runs only when this Tcl expression is true
+	VFS         string // the -vfs option of the opening sqlite3 command
 	// stmt_bind: the C-API bind the step performs (sqlite3_bind_text/blob).
 	BindIndex int
 	BindValue string
@@ -109,41 +110,44 @@ type Stmt struct {
 
 // Interp is the TCL interpreter state.
 type Interp struct {
-	vars              map[string]string
-	dynamicVars       map[string]bool
-	trackedVars       map[string]bool // globals written by registered callbacks (runtime_var candidates)
-	internalFunctions bool
-	callbackCommands  map[string]func([]string) (string, error)
-	currentLocalVars  map[string]string
-	procs             map[string]*Proc
-	stmts             []Stmt // captured SQL statements
-	preparedSQL       map[string]string
-	preparedSeq       int
-	curTest           string // current test name (from do_test/do_execsql_test)
-	depth             int    // call stack depth guard
-	selectGroup       int
-	catchDepth        int             // nesting level of `catch { ... }` blocks
-	condDepth         int             // nesting level of if-condition evaluation (command substitutions there run in condition context)
-	runtimeProbeCount int             // fresh probe variables for exprs embedding a query substitution (rewriteEmbeddedQueryExpr)
-	lastCollectVar    string          // the while-shape's collected runtime list (func-13.7)
-	sharedCacheFlag   bool            // the sqlite3_enable_shared_cache conversion-time flag (the restore bakes the previous value)
-	deletedFiles      map[string]bool // files removed via forcedelete/file delete
-	fileWrites        map[string]*tclFileWrite
-	nextFileHandle    int
-	nullToken         string    // "db null TOKEN": rendering of SQL NULLs in results
-	stmtBudget        int       // max captured statements; 0 = unlimited
-	deadline          time.Time // zero = none
-	runawayErr        error     // sticky budget/deadline error
-	substErr          error     // sticky error from a command substitution
-	randSeed          int64     // expr rand() state (see tclRand)
-	randSeeded        bool
-	runtimeID         int             // counter for the runtime value markers
-	runtimeVars       map[string]int  // variable name -> the runtime query id it holds
-	tclPrecision      int             // the last `set tcl_precision N`
-	tclPrecisionSeen  bool            // whether the source ever set tcl_precision
-	statusFlagged     *Stmt           // the statement the last `db status` substitution flagged (render-style detection)
-	searchCountReset  bool            // a `set ::sqlite_search_count ...` ran in the current test body (where8's execsql_status2)
-	procGlobals       map[string]bool // names the current proc body declared `global` (write-through in setVar)
+	vars               map[string]string
+	dynamicVars        map[string]bool
+	trackedVars        map[string]bool // globals written by registered callbacks (runtime_var candidates)
+	internalFunctions  bool
+	callbackCommands   map[string]func([]string) (string, error)
+	currentLocalVars   map[string]string
+	procs              map[string]*Proc
+	stmts              []Stmt // captured SQL statements
+	preparedSQL        map[string]string
+	preparedSeq        int
+	curTest            string // current test name (from do_test/do_execsql_test)
+	depth              int    // call stack depth guard
+	selectGroup        int
+	catchDepth         int             // nesting level of `catch { ... }` blocks
+	condDepth          int             // nesting level of if-condition evaluation (command substitutions there run in condition context)
+	runtimeProbeCount  int             // fresh probe variables for exprs embedding a query substitution (rewriteEmbeddedQueryExpr)
+	lastCollectVar     string          // the while-shape's collected runtime list (func-13.7)
+	sharedCacheFlag    bool            // the sqlite3_enable_shared_cache conversion-time flag (the restore bakes the previous value)
+	testvfsNames       map[string]bool // the named testvfs wrapper VFSes (test_vfs.c)
+	testvfsScriptProcs map[string]bool // proc names bound as testvfs callback scripts
+	pendingVFS         string          // the -vfs option of the sqlite3 open being converted
+	deletedFiles       map[string]bool // files removed via forcedelete/file delete
+	fileWrites         map[string]*tclFileWrite
+	nextFileHandle     int
+	nullToken          string    // "db null TOKEN": rendering of SQL NULLs in results
+	stmtBudget         int       // max captured statements; 0 = unlimited
+	deadline           time.Time // zero = none
+	runawayErr         error     // sticky budget/deadline error
+	substErr           error     // sticky error from a command substitution
+	randSeed           int64     // expr rand() state (see tclRand)
+	randSeeded         bool
+	runtimeID          int             // counter for the runtime value markers
+	runtimeVars        map[string]int  // variable name -> the runtime query id it holds
+	tclPrecision       int             // the last `set tcl_precision N`
+	tclPrecisionSeen   bool            // whether the source ever set tcl_precision
+	statusFlagged      *Stmt           // the statement the last `db status` substitution flagged (render-style detection)
+	searchCountReset   bool            // a `set ::sqlite_search_count ...` ran in the current test body (where8's execsql_status2)
+	procGlobals        map[string]bool // names the current proc body declared `global` (write-through in setVar)
 }
 
 // TCL's random number generator (TclRand in tclBasic.c): a Park-Miller LCG
@@ -1542,6 +1546,13 @@ func (i *Interp) cmdProc(rawWords []rawWord) error {
 	}
 	argNames := splitList(argsStr)
 	proc := &Proc{Name: name, Args: argNames, Body: body}
+	// A proc bound as a testvfs/unlock-notify callback script makes its
+	// write targets runtime-tracked globals (TCL late binding: the script
+	// config usually precedes the definition — walvfs's `tvfs script xSync`
+	// then `proc xSync {...}` — so the seeding happens here too).
+	if i.testvfsScriptProcs[strings.TrimPrefix(name, "::")] {
+		i.seedCallbackTargets(body)
+	}
 	// A proc whose body writes a global (e_droptrigger's
 	// `proc r {x} { lappend ::triggers_fired $x }`) marks that global as a
 	// callback-recorded runtime variable from the moment it is defined, so

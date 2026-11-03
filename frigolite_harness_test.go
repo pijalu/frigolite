@@ -232,6 +232,9 @@ type TestStep struct {
 	BindBlob      bool   `json:"bindBlob,omitempty"`
 	CollectColumn int    `json:"collectColumn,omitempty"`
 	CollectVar    string `json:"collectVar,omitempty"`
+	// VFS names the testvfs wrapper the opening command requested
+	// (walvfs.test's `sqlite3 db test.db -vfs tvfs`).
+	VFS string `json:"vfs,omitempty"`
 }
 
 // patchFileHexBytes writes the hex-decoded DATA at OFFSET in path, mirroring
@@ -3195,6 +3198,7 @@ func TestSQLiteSuite(t *testing.T) {
 			usesReopen := base == "vtab1" || base == "altertab"
 			nullToken := td.NullToken
 			runtimeVars := make(map[string]string)
+			testvfsFixtures := make(map[string]*testvfsFixture)
 			collationDestructors := make(map[*DB]map[string]string)
 			prepared := make(map[string]*Stmt)
 			stmtCode := make(map[string]string)
@@ -3510,10 +3514,15 @@ func TestSQLiteSuite(t *testing.T) {
 							continue
 						}
 						execDB := db
-						if step.Database != "" && step.Database != "db" {
+						if step.Database != "" && step.Database != "db" && step.Type != "testvfs_config" {
 							execDB = namedDBs[step.Database]
 							if execDB == nil {
 								t.Fatalf("named database %q is not open", step.Database)
+							}
+						}
+						if step.VFS != "" {
+							if fx := testvfsFixtures[step.VFS]; fx != nil {
+								execDB.engine.InstallVFSHook(fx.hook(runtimeVars), fx.devcharBits)
 							}
 						}
 						if step.Type == "auth_analyze_deny" {
@@ -3627,6 +3636,11 @@ func TestSQLiteSuite(t *testing.T) {
 							// testfixture registers the test-only SQL functions
 							// on every connection it opens.
 							registerTest1Functions(t, db)
+							if step.VFS != "" {
+								if fx := testvfsFixtures[step.VFS]; fx != nil {
+									db.engine.InstallVFSHook(fx.hook(runtimeVars), fx.devcharBits)
+								}
+							}
 							continue
 						}
 						if step.Type == "open_empty_db" {
@@ -3911,6 +3925,30 @@ func TestSQLiteSuite(t *testing.T) {
 								// "database is locked".
 								continue
 							}
+						case "register_testvfs":
+							testvfsFixtures[step.Variable] = &testvfsFixture{name: step.Variable}
+						case "testvfs_config":
+							fx := testvfsFixtures[step.Database]
+							if fx == nil {
+								t.Errorf("testvfs %q is not registered", step.Database)
+								continue
+							}
+							if step.SQL == "delete" {
+								// test_vfs.c CMD_DELETE: `tvfs delete FILE` removes
+								// the file through xDelete (e_walckpt's section
+								// reset after `db close` emptied the -wal).
+								target := step.Variable
+								if target != "" && !filepath.IsAbs(target) {
+									target = filepath.Join(fixtureDBDir, target)
+								}
+								if target != "" {
+									if err := os.Remove(target); err != nil && !os.IsNotExist(err) {
+										t.Errorf("tvfs delete %s: %v", target, err)
+									}
+								}
+								continue
+							}
+							fx.configure(t, step, runtimeVars)
 						case "enable_shared_cache":
 							// sqlite3_enable_shared_cache (notify1's file-level
 							// setup): the process-global flag decides whether
@@ -5655,4 +5693,90 @@ func hexEncodeBytes(data []byte) string {
 		out[i*2+1] = digits[b&0x0f]
 	}
 	return string(out)
+}
+
+// testvfsFixture is one named testvfs wrapper VFS (test_vfs.c): the fixture
+// script proc, the method filter list, and the devchar override.
+type testvfsFixture struct {
+	name        string
+	scriptProc  string
+	filters     map[string]bool
+	devcharBits int
+	procs       []callbackProc
+}
+
+// configure applies one testvfs_config step: script/filter/devchar.
+func (fx *testvfsFixture) configure(t *testing.T, step TestStep, runtimeVars map[string]string) {
+	t.Helper()
+	switch step.SQL {
+	case "script":
+		fx.scriptProc = step.FunctionProc
+		if len(step.CallbackProcs) > 0 {
+			fx.procs = append(fx.procs, step.CallbackProcs...)
+		}
+	case "filter":
+		fx.filters = make(map[string]bool)
+		for _, m := range strings.Fields(step.Variable) {
+			fx.filters[m] = true
+		}
+	case "devchar":
+		bits := 0
+		for _, name := range strings.Fields(step.Variable) {
+			switch strings.TrimPrefix(name, "+") {
+			case "sequential":
+				bits |= 0x100 // SQLITE_IOCAP_SEQUENTIAL
+			case "atomic":
+				bits |= 0x4
+			case "powersafe_overwrite":
+				bits |= 0x800
+			}
+		}
+		fx.devcharBits = bits
+	}
+}
+
+// hook builds the observational VFS callback: invoke the script proc for
+// filtered methods, then sync the proc's written variables back into the
+// runtime set (the xSync body's `incr ::sync_count`).
+func (fx *testvfsFixture) hook(runtimeVars map[string]string) func(op, path string) error {
+	if fx.scriptProc == "" {
+		return nil
+	}
+	if fx.filters != nil && !fx.filters["xSync"] {
+		return nil
+	}
+	interp := tcl.NewInterp()
+	loaded := make([]tcl.Proc, 0, len(fx.procs))
+	for _, proc := range fx.procs {
+		loaded = append(loaded, tcl.Proc{Name: strings.TrimPrefix(proc.Name, "::"), Args: proc.Args, Body: proc.Body})
+	}
+	interp.LoadProcedures(loaded)
+	var targets []string
+	for _, proc := range fx.procs {
+		targets = append(targets, tcl.NotifyScriptVarTargets(proc.Body)...)
+	}
+	return func(op, path string) error {
+		base := strings.TrimPrefix(fx.scriptProc, "::")
+		if !interp.HasProcedure(base) {
+			return nil
+		}
+		// The harness's runtime variables are authoritative: the fixture's
+		// `set ::sync_count 0` reset lands in runtimeVars, so each fire
+		// re-seeds the interpreter from the current values before the
+		// proc's incr mutates them.
+		for _, name := range targets {
+			if v, ok := runtimeVars[name]; ok {
+				interp.SetVariable(name, v)
+			}
+		}
+		_, _ = interp.InvokeProcedure(base, op, path)
+		for _, name := range targets {
+			if v, ok := interp.Variable(name); ok {
+				runtimeVars[name] = v
+			} else if v, ok := interp.Variable("::" + name); ok {
+				runtimeVars[name] = v
+			}
+		}
+		return nil
+	}
 }

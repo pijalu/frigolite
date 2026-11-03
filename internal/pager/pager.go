@@ -225,6 +225,11 @@ type Pager struct {
 	wal *walWriter
 	// walHook is the sqlite3_wal_hook callback, fired after each WAL commit.
 	walHook func(nLog, nCkpt int) int
+	// testvfs hook layer (vfshooks.go): the fixture VFS's observable I/O
+	// events, the devchar override, and the WAL sync-flag level.
+	vfsHook               func(op, path string) error
+	deviceCharacteristics int
+	walSyncFlags          uint8
 	// walFault injects I/O faults into WAL writes when non-nil (mirrors
 	// SQLite's test_syscall faultsim). The writer calls it before each write;
 	// a non-nil return aborts the write with that error. Nil in production.
