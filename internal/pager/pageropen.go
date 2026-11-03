@@ -78,7 +78,7 @@ func openPager(path string, pageSize uint32, forceReadOnly bool) (*Pager, error)
 	pr := &Pager{
 		walSyncFlags: WALSyncNormal, // SQLITE_DEFAULT_SYNCHRONOUS=2 (NORMAL)
 		pageSize:     pageSize,
-		file:         file,
+		file:         newFaultFile(file), // the TEST io-error injector seam
 		mux:          mux,
 		pages:        make(map[uint32]*Page),
 		dirty:        make(map[uint32]bool),

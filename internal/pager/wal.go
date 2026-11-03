@@ -107,6 +107,11 @@ func openWal(p *Pager, dbPath string, pageSize uint32) (*walWriter, error) {
 	if err := p.vfsCall("xShmMap", walPath+"-shm"); err != nil {
 		return nil, translateVFSHookError(err)
 	}
+	// C's TEST io-error injector covers xOpen too — the wal file's open
+	// counts against the pending counter.
+	if injectIOErr() {
+		return nil, ErrIOErr
+	}
 	f, err := os.OpenFile(walPath, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return nil, fmt.Errorf("pager: open wal %s: %w", walPath, err)

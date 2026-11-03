@@ -331,6 +331,9 @@ func (p *Pager) openJournalFileLocked(jpath, mode string) error {
 		// offset 0 (overwriting the old header) and the new records
 		// append after the header. The COMMIT-time finalize truncates
 		// to journal_size_limit (or to 0 in the multi-DB path).
+		if injectIOErr() {
+			return ErrIOErr
+		}
 		f, err := os.OpenFile(jpath, os.O_RDWR|os.O_CREATE, 0o644)
 		if err != nil {
 			return fmt.Errorf("pager: open journal: %w", err)
@@ -349,6 +352,9 @@ func (p *Pager) openJournalFileLocked(jpath, mode string) error {
 	// pre-open os.Remove was one syscall per transaction for a path that is
 	// never populated (pager.c's DELETE mode uses DELETEONCLOSE and does
 	// not pre-unlink either).
+	if injectIOErr() {
+		return ErrIOErr
+	}
 	f, err := os.OpenFile(jpath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o644)
 	if err != nil {
 		return fmt.Errorf("pager: open journal: %w", err)
