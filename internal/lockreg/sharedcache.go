@@ -41,8 +41,20 @@ type SharedCache struct {
 	// connID of the group member holding the shared b-tree's write
 	// transaction (btree.c BtShared.pWriter); 0 = none.
 	writer int64
+	// pending is BTS_PENDING: a WRITE-lock request failed while readers
+	// held conflicting locks — every new transaction (reads included)
+	// fails until the conflicting transactions end (btree.c:3635, the
+	// "pending-lock" feature, notify1-9.*).
+	pending bool
+	// exclusiveConn is BTS_EXCLUSIVE (BEGIN EXCLUSIVE / locking_mode=
+	// exclusive on the shared b-tree): other members' transactions fail
+	// with "database schema is locked" (btree.c:352).
+	exclusiveConn int64
 	// tableLocks is the BtLock list: one entry per (connection, root) lock.
 	tableLocks []sharedTableLock
+	// txnConns counts the members with an open transaction on this file
+	// (BtShared.nTransaction — the pending-clear rule needs it).
+	txnConns map[int64]bool
 	// refs counts the member connections.
 	refs int
 }
@@ -109,10 +121,34 @@ func (r *Registry) LeaveSharedCache(fileKey string, connID int64) {
 	}
 }
 
+// SharedReadTxBegin opens a read transaction on the file's shared b-tree:
+// BTS_PENDING fails it with the BARE ErrTableLocked (btree.c:3635 — the
+// pending-lock feature blocks every new transaction, notify1-9.4), as does
+// another member's BTS_EXCLUSIVE (notify1-8.3's "database schema is locked"
+// is layered on top by the statement gate, which knows the schema name).
+func (r *Registry) SharedReadTxBegin(fileKey string, connID int64) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	group := r.sharedCaches[fileKey]
+	if group == nil {
+		return nil
+	}
+	if group.pending {
+		r.connectionBlockedLocked(connID, group.writer)
+		return ErrTableLocked
+	}
+	if group.txnConns == nil {
+		group.txnConns = make(map[int64]bool)
+	}
+	group.txnConns[connID] = true
+	return nil
+}
+
 // SharedWriteTxBegin registers connID as the group's write transaction
-// holder. Another member's open write transaction fails with the BARE
-// ErrTableLocked — btree.c:3638's begin_transaction path, which has no table
-// name to report (notify1-1.2's bare "database table is locked").
+// holder. Another member's open write transaction, or BTS_PENDING, fails
+// with the BARE ErrTableLocked — btree.c:3638's begin_transaction path,
+// which has no table name to report (notify1-1.2's bare "database table is
+// locked").
 func (r *Registry) SharedWriteTxBegin(fileKey string, connID int64) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -120,12 +156,69 @@ func (r *Registry) SharedWriteTxBegin(fileKey string, connID int64) error {
 	if group == nil {
 		return nil
 	}
+	if group.pending && group.writer != connID {
+		r.connectionBlockedLocked(connID, group.writer)
+		return ErrTableLocked
+	}
 	if group.writer != 0 && group.writer != connID {
 		r.connectionBlockedLocked(connID, group.writer)
 		return ErrTableLocked
 	}
+	if group.exclusiveConn != 0 && group.exclusiveConn != connID {
+		r.connectionBlockedLocked(connID, group.exclusiveConn)
+		return ErrTableLocked
+	}
 	group.writer = connID
+	if group.txnConns == nil {
+		group.txnConns = make(map[int64]bool)
+	}
+	group.txnConns[connID] = true
 	return nil
+}
+
+// SharedExclusiveSet marks connID's BEGIN EXCLUSIVE (BTS_EXCLUSIVE).
+func (r *Registry) SharedExclusiveSet(fileKey string, connID int64) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if group := r.sharedCaches[fileKey]; group != nil {
+		group.exclusiveConn = connID
+		group.writer = connID
+	}
+}
+
+// SharedExclusiveClear drops the BTS_EXCLUSIVE mark (transaction end).
+func (r *Registry) SharedExclusiveClear(fileKey string, connID int64) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	group := r.sharedCaches[fileKey]
+	if group == nil || group.exclusiveConn != connID {
+		return
+	}
+	group.exclusiveConn = 0
+	if group.writer == connID {
+		group.writer = 0
+	}
+	group.pending = false
+}
+
+// SharedExclusiveByOther reports whether another member holds BTS_EXCLUSIVE.
+func (r *Registry) SharedExclusiveByOther(fileKey string, connID int64) bool {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	group := r.sharedCaches[fileKey]
+	return group != nil && group.exclusiveConn != 0 && group.exclusiveConn != connID
+}
+
+// SharedReadTxEnd removes connID's transaction mark (the statement-gate
+// undo for a failed autocommit read; in-transaction marks persist until the
+// transaction's release).
+func (r *Registry) SharedReadTxEnd(fileKey string, connID int64) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	group := r.sharedCaches[fileKey]
+	if group != nil && group.txnConns != nil {
+		delete(group.txnConns, connID)
+	}
 }
 
 // SharedWriteTxEnd clears connID's writer registration (transaction end).
@@ -153,6 +246,12 @@ func (r *Registry) AcquireTableLock(key TableLockKey, connID int64, write bool) 
 	for _, l := range group.tableLocks {
 		if l.conn != connID && l.root == key.Root && l.write != write {
 			r.connectionBlockedLocked(connID, l.conn)
+			if write {
+				// A failed WRITE-lock request sets BTS_PENDING: every new
+				// transaction fails until the conflicting transactions end
+				// (btree.c:374, the pending-lock feature).
+				group.pending = true
+			}
 			return ErrTableLocked
 		}
 	}
@@ -211,6 +310,8 @@ func (r *Registry) ReleaseSharedTxLocks(fileKey string, connID int64) {
 func (r *Registry) releaseSharedTxLocksLocked(group *SharedCache, connID int64) {
 	if group.writer == connID {
 		group.writer = 0
+		group.pending = false
+		group.exclusiveConn = 0
 	}
 	locks := group.tableLocks[:0]
 	for _, l := range group.tableLocks {
@@ -219,6 +320,18 @@ func (r *Registry) releaseSharedTxLocksLocked(group *SharedCache, connID int64) 
 		}
 	}
 	group.tableLocks = locks
+	if group.txnConns != nil {
+		delete(group.txnConns, connID)
+	}
+	// clearAllSharedCacheTableLocks (btree.c:495-507): a non-writer ending
+	// its transaction clears BTS_PENDING when the only remaining
+	// transaction is the writer's — the conflicting read locks are gone.
+	if !group.pending {
+		return
+	}
+	if group.writer != 0 && group.writer != connID && len(group.txnConns) == 1 && group.txnConns[group.writer] {
+		group.pending = false
+	}
 }
 
 // --- Unlock-notify (notify.c) ---

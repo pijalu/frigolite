@@ -102,6 +102,30 @@ func (i *Interp) cmdDB(rawWords []rawWord, args []string, localVars map[string]s
 		return i.dbCollation(args)
 	case "function", "func":
 		return i.dbFunction(args)
+	case "unlock_notify":
+		// sqlite3_unlock_notify on the MAIN connection (notify1-2.3.6's
+		// `db unlock_notify {lappend lUnlock db}`): the same record the
+		// named-connection dispatch in dispatchCommand makes.
+		step := Stmt{Type: "unlock_notify", TestName: i.curTest}
+		if len(args) > 1 {
+			step.CallbackProcs = i.notifyScriptProcs(args[1])
+			step.FunctionScript = args[1]
+			if i.trackedVars == nil {
+				i.trackedVars = make(map[string]bool)
+			}
+			if i.dynamicVars == nil {
+				i.dynamicVars = make(map[string]bool)
+			}
+			for _, name := range NotifyScriptVarTargets(args[1]) {
+				i.trackedVars[name] = true
+				// A `set NAME <value>` reset before the next callback
+				// run is a runtime_expr (notify1-6.2.1's
+				// `set unlocked 0` must reach the harness).
+				i.dynamicVars[name] = true
+			}
+		}
+		i.stmts = append(i.stmts, step)
+		return nil
 	case "eval":
 		return i.dbEval(rawWords, args, localVars)
 	case "changes":
@@ -885,7 +909,10 @@ func (i *Interp) cmdDoTest(rawWords []rawWord, localVars map[string]string) erro
 	// one test: a later test's `lappend res X Y` must not hit the marker.
 	i.lastCollectVar = ""
 
-	// Execute the body — this captures SQL statements
+	// Execute the body — this captures SQL statements. The unlock_notify
+	// targets pre-register FIRST: a `set unlocked 0` reset can precede the
+	// registration in the same body (notify1-6.2.1).
+	i.preRegisterNotifyTargets(bodyWord.Text)
 	if bodyWord.Braced {
 		i.execScript(bodyWord.Text, localVars)
 	} else {

@@ -114,35 +114,73 @@ func (e *Engine) execSharedCacheGate(stmt sql.Stmt) *Result {
 	for _, ref := range append(append([]sharedTableRef{}, writes...), reads...) {
 		e.ensureSharedFile(refKey(ref))
 	}
+	// BTS_EXCLUSIVE (another member's BEGIN EXCLUSIVE): every new
+	// transaction on the file fails at the schema lock (btree.c:3658's
+	// SCHEMA_ROOT read-lock request) — "database schema is locked: <db>".
+	for _, ref := range append(append([]sharedTableRef{}, writes...), reads...) {
+		key := refKey(ref)
+		if key != "" && lockreg.Global.SharedExclusiveByOther(key, e.connID) {
+			name := "main"
+			if ref.ctx.Name != "" {
+				name = ref.ctx.Name
+			}
+			return &Result{Error: fmt.Errorf("database schema is locked: %s", name)}
+		}
+	}
 	// A failed gate undoes ONLY this statement's acquisitions (a failed
 	// OP_TableLock ends the statement; the transaction's earlier locks —
 	// writer registration and prior BtLock entries — persist, btree.c's
-	// trans_begun / setSharedCacheTableLock split).
+	// trans_begun / setSharedCacheTableLock split). The writer registration
+	// of an IN-TRANSACTION statement persists too: the transaction opened
+	// successfully and only the statement failed (notify1-9.3's db stays
+	// the pending writer).
 	type gateLock struct {
 		key  lockreg.TableLockKey
 		name string
 	}
 	var held []gateLock
-	beginKey := ""
-	beginRegistered := false
+	beginKeys := make(map[string]bool)
+	readMarks := make(map[string]bool)
 	undo := func(err error) *Result {
 		for _, l := range held {
 			lockreg.Global.ReleaseTableLock(l.key, e.connID)
 		}
-		if beginRegistered {
-			lockreg.Global.SharedWriteTxEnd(beginKey, e.connID)
+		if !e.tx.inTransaction {
+			for key := range beginKeys {
+				lockreg.Global.SharedWriteTxEnd(key, e.connID)
+			}
+			for key := range readMarks {
+				lockreg.Global.SharedReadTxEnd(key, e.connID)
+			}
+			// Everything this statement registered is undone: nothing is
+			// left for the statement-end release to do.
+			e.tx.sharedCacheLocked = false
 		}
 		return &Result{Error: err}
 	}
 	if len(writes) > 0 {
 		writeKey := refKey(writes[0])
 		if writeKey != "" {
-			beginRegistered = !lockreg.Global.SharedWriteTxHeld(writeKey, e.connID)
 			if err := lockreg.Global.SharedWriteTxBegin(writeKey, e.connID); err != nil {
 				// The begin-transaction path carries no table name.
 				return undo(err)
 			}
-			beginKey = writeKey
+			beginKeys[writeKey] = true
+			e.tx.sharedCacheLocked = true
+		}
+	} else {
+		// Reads open their own transaction on each file (btree.c
+		// begin_trans with wrflag=0): BTS_PENDING blocks them too.
+		for _, ref := range reads {
+			key := refKey(ref)
+			if key == "" || beginKeys[key] {
+				continue
+			}
+			if err := lockreg.Global.SharedReadTxBegin(key, e.connID); err != nil {
+				return undo(err)
+			}
+			readMarks[key] = true
+			e.tx.sharedCacheLocked = true
 		}
 	}
 	for _, ref := range writes {
@@ -167,7 +205,7 @@ func (e *Engine) execSharedCacheGate(stmt sql.Stmt) *Result {
 		}
 		held = append(held, gateLock{key: lk, name: ref.name})
 	}
-	if len(held) > 0 || beginRegistered {
+	if len(held) > 0 || len(beginKeys) > 0 {
 		e.tx.sharedCacheLocked = true
 	}
 	return nil

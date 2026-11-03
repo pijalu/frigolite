@@ -181,6 +181,11 @@ func (e *Engine) registerWriteTx(on bool) {
 func (e *Engine) BeginExclusive() {
 	for _, k := range e.allLockKeys() {
 		lockreg.Global.SetExclusive(k, e.connID, true)
+		if e.sharable {
+			// BTS_EXCLUSIVE on the shared b-tree: other members'
+			// transactions fail at the schema lock until this ends.
+			lockreg.Global.SharedExclusiveSet(k, e.connID)
+		}
 	}
 	e.syncDotfileSentinel()
 }
@@ -190,6 +195,9 @@ func (e *Engine) BeginExclusive() {
 func (e *Engine) ReleaseExclusive() {
 	for _, k := range e.allLockKeys() {
 		lockreg.Global.SetExclusive(k, e.connID, false)
+		if e.sharable {
+			lockreg.Global.SharedExclusiveClear(k, e.connID)
+		}
 	}
 	e.syncDotfileSentinel()
 }

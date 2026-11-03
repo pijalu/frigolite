@@ -6,6 +6,57 @@ import (
 	"strings"
 )
 
+// commandSQLite3UnlockNotify records `sqlite3_unlock_notify DB` (test1.c):
+// the registered callback evaluates the fixed "unlock_notify" proc on the
+// named connection when the blocker's transaction ends.
+func commandSQLite3UnlockNotify(i *Interp, _ []rawWord, args []string, _ map[string]string) error {
+	if len(args) < 1 {
+		return nil
+	}
+	step := Stmt{Type: "unlock_notify", Database: strings.TrimPrefix(args[0], "::"), TestName: i.curTest, FunctionScript: "unlock_notify"}
+	step.CallbackProcs = i.notifyScriptProcs("unlock_notify")
+	i.stmts = append(i.stmts, step)
+	i.vars[""] = "SQLITE_OK"
+	return nil
+}
+
+// NotifyScriptVarTargets lists the variables a callback script writes: the
+// object of each set/lappend/append/incr command head. The unlock-notify
+// machinery uses it both to track the globals a fired callback maintains
+// (conversion) and to sync the writes back into the runtime variables
+// (harness).
+func NotifyScriptVarTargets(script string) []string {
+	var names []string
+	seen := make(map[string]bool)
+	fields := strings.Fields(script)
+	for i := 0; i+1 < len(fields); i++ {
+		switch fields[i] {
+		case "set", "lappend", "append", "incr":
+			name := strings.TrimPrefix(fields[i+1], "::")
+			if name != "" && !seen[name] {
+				seen[name] = true
+				names = append(names, name)
+			}
+		}
+	}
+	return names
+}
+
+// commandEnableSharedCache records the sqlite3_enable_shared_cache C-API
+// call (notify1.test's file-level setup): the harness toggles the
+// process-global shared-cache flag; connections opened after "1" join their
+// file's shared-cache group.
+func commandEnableSharedCache(i *Interp, _ []rawWord, args []string, _ map[string]string) error {
+	flag := "1"
+	if len(args) > 0 && strings.TrimSpace(args[0]) == "0" {
+		flag = "0"
+	}
+	i.stmts = append(i.stmts, Stmt{Type: "enable_shared_cache", SQL: flag, TestName: i.curTest})
+	i.vars[""] = "SQLITE_OK"
+	return nil
+}
+
+// commandCacheFlush captures `sqlite3_db_cacheflush`.
 func commandCacheFlush(i *Interp, _ []rawWord, args []string, _ map[string]string) error {
 	database := ""
 	if len(args) > 0 && args[0] != "db" {
@@ -198,4 +249,61 @@ func (i *Interp) stmtCollectWhileShape(cond, body rawWord, localVars map[string]
 		return stmtCollectShape{}, false
 	}
 	return stmtCollectShape{handle: handle, column: column, listVar: listVar}, true
+}
+
+// notifyScriptProcs collects the user procedures an unlock-notify callback
+// script invokes (notify1-7.4's `db2 unlock_notify unlock_notify` — the
+// file-level `proc unlock_notify {}` is what fires): the harness loads them
+// into the script interpreter.
+func (i *Interp) notifyScriptProcs(script string) []Proc {
+	var procs []Proc
+	for _, word := range strings.Fields(script) {
+		name := strings.TrimPrefix(strings.TrimPrefix(strings.TrimSpace(word), "$"), "::")
+		proc, ok := i.procs[name]
+		if !ok {
+			continue
+		}
+		dup := false
+		for _, p := range procs {
+			if p.Name == name {
+				dup = true
+			}
+		}
+		if !dup {
+			procs = append(procs, *proc)
+		}
+	}
+	return procs
+}
+
+// preRegisterNotifyTargets seeds the tracked/dynamic variable sets with the
+// variables an unlock_notify callback script in THIS body writes, BEFORE the
+// body executes — notify1-6.2.1's `set unlocked 0` reset precedes the
+// `db unlock_notify {set unlocked 1}` registration in the body, and the
+// reset must still reach the harness as a runtime_expr.
+func (i *Interp) preRegisterNotifyTargets(bodyText string) {
+	for _, cmd := range parseCommands(bodyText) {
+		var script string
+		switch {
+		case len(cmd) >= 2 && cmd[0].Text == "sqlite3_unlock_notify":
+			// No script argument (the C callback evals the fixed proc).
+			continue
+		case len(cmd) >= 3 && cmd[1].Text == "unlock_notify":
+			script = cmd[2].Text
+		case len(cmd) >= 3 && cmd[0].Text == "unlock_notify":
+			script = cmd[2].Text
+		default:
+			continue
+		}
+		if i.trackedVars == nil {
+			i.trackedVars = make(map[string]bool)
+		}
+		if i.dynamicVars == nil {
+			i.dynamicVars = make(map[string]bool)
+		}
+		for _, name := range NotifyScriptVarTargets(script) {
+			i.trackedVars[name] = true
+			i.dynamicVars[name] = true
+		}
+	}
 }

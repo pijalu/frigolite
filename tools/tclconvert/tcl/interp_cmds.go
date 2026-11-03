@@ -52,14 +52,16 @@ func init() {
 		"join":        commandJoin,
 		"split":       commandSplit,
 
-		"format":            commandFormat,
-		"binary":            commandBinary,
-		"sqlite3_bind_text": commandBindText,
-		"sqlite3_bind_blob": commandBindBlob,
-		"strftime":          commandStrftime,
-		"string":            commandString,
-		"regexp":            commandRegexp,
-		"regsub":            commandRegsub,
+		"format":                      commandFormat,
+		"binary":                      commandBinary,
+		"sqlite3_bind_text":           commandBindText,
+		"sqlite3_enable_shared_cache": commandEnableSharedCache,
+		"sqlite3_unlock_notify":       commandSQLite3UnlockNotify,
+		"sqlite3_bind_blob":           commandBindBlob,
+		"strftime":                    commandStrftime,
+		"string":                      commandString,
+		"regexp":                      commandRegexp,
+		"regsub":                      commandRegsub,
 
 		"catch":   commandCatch,
 		"error":   commandError,
@@ -158,9 +160,38 @@ func (i *Interp) dispatchCommand(cmd string, rawWords []rawWord, args []string, 
 		}
 		return nil
 	}
-	if len(args) > 0 && (args[0] == "eval" || args[0] == "close") {
+	if len(args) > 0 && (args[0] == "eval" || args[0] == "close" || args[0] == "unlock_notify") {
 		if args[0] == "close" {
 			i.stmts = append(i.stmts, Stmt{Type: "close_named_db", Database: cmd, TestName: i.curTest})
+			return nil
+		}
+		if args[0] == "unlock_notify" {
+			// sqlite3_unlock_notify on a named connection (notify1.test):
+			// with a script, the callback fires when the blocking
+			// connection's transaction ends (or immediately when none);
+			// with no script, the pending callback is cancelled. The
+			// script's write targets are globals the callbacks maintain
+			// (lappend lUnlock db) — a later `set lUnlock` body value is a
+			// runtime_var assertion against them.
+			step := Stmt{Type: "unlock_notify", Database: cmd, TestName: i.curTest}
+			if len(args) > 1 {
+				step.CallbackProcs = i.notifyScriptProcs(args[1])
+				step.FunctionScript = args[1]
+				if i.trackedVars == nil {
+					i.trackedVars = make(map[string]bool)
+				}
+				if i.dynamicVars == nil {
+					i.dynamicVars = make(map[string]bool)
+				}
+				for _, name := range NotifyScriptVarTargets(args[1]) {
+					i.trackedVars[name] = true
+					// A `set NAME <value>` reset before the next callback
+					// run is a runtime_expr (notify1-6.2.1's
+					// `set unlocked 0` must reach the harness).
+					i.dynamicVars[name] = true
+				}
+			}
+			i.stmts = append(i.stmts, step)
 			return nil
 		}
 		if len(rawWords) > 2 {
@@ -222,6 +253,17 @@ func noopCommand(i *Interp, rawWords []rawWord, args []string, localVars map[str
 func commandEval(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
 	if len(args) == 0 {
 		return nil
+	}
+	// `eval $var` whose value exists only at run time (notify1-1.5's
+	// zScript, written by the unlock-notify callback): the conversion-time
+	// value is empty, so nothing can execute here — record an eval_script
+	// step and the harness evaluates the variable's script with a db
+	// adapter. A conversion-time-known script keeps executing here.
+	if len(args) == 1 && len(rawWords) >= 2 && strings.TrimSpace(args[0]) == "" {
+		if name, ok := runtimeVarRef(strings.TrimSpace(rawWords[1].Text)); ok {
+			i.stmts = append(i.stmts, Stmt{Type: "eval_script", Variable: strings.TrimPrefix(name, "::"), TestName: i.curTest})
+			return nil
+		}
 	}
 	return i.execScript(strings.Join(args, " "), localVars)
 }

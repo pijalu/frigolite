@@ -1756,6 +1756,14 @@ func (i *Interp) cmdRegsub(args []string, localVars map[string]string) error {
 }
 
 func (i *Interp) setVar(name, val string, localVars map[string]string) {
+	if strings.HasPrefix(name, "::") {
+		// A ::-prefixed reference targets the GLOBAL namespace even inside
+		// a proc body (TCL: a callback proc's `incr ::unlock_notify`
+		// updates the interpreter global). getVar reads the bare name for
+		// both forms, so the write lands under the bare key.
+		i.vars[name[2:]] = val
+		return
+	}
 	if localVars != nil {
 		localVars[name] = val
 		// A name declared by the body's `global` command aliases the

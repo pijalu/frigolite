@@ -26,6 +26,7 @@ import (
 	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/vtab"
+	"github.com/pijalu/frigolite/tools/tclconvert/tcl"
 )
 
 type callbackProc struct {
@@ -1945,6 +1946,59 @@ func decodeSQLiteExecHex(sql string) string {
 	return out.String()
 }
 
+// runNotifyScript evaluates an unlock-notify callback script (notify1.test's
+// `set zScript "db2 eval {...}"` / `lappend unlock_notify db2`) with the
+// converter's Tcl interpreter seeded from the runtime variables, then syncs
+// the variables the script WRITES back into the runtime set (the fired
+// callback's writes are how notify1-1.5's later `eval $zScript` sees the
+// script).
+func runNotifyScript(script string, runtimeVars map[string]string, procs []callbackProc, targets []string) {
+	interp := tcl.NewInterp()
+	if len(procs) > 0 {
+		loaded := make([]tcl.Proc, 0, len(procs))
+		for _, proc := range procs {
+			loaded = append(loaded, tcl.Proc{Name: strings.TrimPrefix(proc.Name, "::"), Args: proc.Args, Body: proc.Body})
+		}
+		interp.LoadProcedures(loaded)
+	}
+	for name, value := range runtimeVars {
+		interp.SetVariable(name, value)
+	}
+	_ = interp.Execute(script)
+	// Sync back the CURRENT value of every variable the callback wrote
+	// (script words and proc bodies): notify1-1.5's later `eval $zScript`
+	// reads the script the callback stored, and 7.6's assertion reads the
+	// counter the proc incremented.
+	for _, name := range targets {
+		if v, ok := interp.Variable(name); ok {
+			runtimeVars[name] = v
+			continue
+		}
+		// A proc body writes the ::-prefixed global form (`incr
+		// ::unlock_notify`); read that key too.
+		if v, ok := interp.Variable("::" + name); ok {
+			runtimeVars[name] = v
+		}
+	}
+}
+
+// splitNotifyEvalScript parses the notify1 eval_script shape "<conn> eval
+// {SQL}" (the script an unlock-notify callback stored). ok is false for any
+// other shape.
+func splitNotifyEvalScript(script string) (conn, sqlText string, ok bool) {
+	trimmed := strings.TrimSpace(script)
+	open := strings.IndexByte(trimmed, '{')
+	closePos := strings.LastIndexByte(trimmed, '}')
+	if open < 0 || closePos <= open {
+		return "", "", false
+	}
+	head := strings.Fields(trimmed[:open])
+	if len(head) != 2 || head[1] != "eval" {
+		return "", "", false
+	}
+	return head[0], strings.TrimSpace(trimmed[open+1 : closePos]), true
+}
+
 func runSQLite3Exec(db *DB, sql string) (string, error) {
 	sql = decodeSQLiteExecHex(sql)
 	trimmed := strings.TrimSpace(sql)
@@ -3848,6 +3902,79 @@ func TestSQLiteSuite(t *testing.T) {
 								// "database is locked".
 								continue
 							}
+						case "enable_shared_cache":
+							// sqlite3_enable_shared_cache (notify1's file-level
+							// setup): the process-global flag decides whether
+							// the NEXT Open joins a shared-cache group.
+							EnableSharedCache(strings.TrimSpace(step.SQL) != "0")
+						case "unlock_notify":
+							// sqlite3_unlock_notify on the step's connection:
+							// with a script, the callback fires when the
+							// blocking transaction ends (or immediately when
+							// the connection is not blocked); with no script
+							// the pending callback is cancelled.
+							notifyDB := execDB
+							// ONE sqlite3_unlock_notify call per invocation: a
+							// NULL registration (no script) CANCELS the pending
+							// callback — calling it before the real registration
+							// would wipe the blocked state and fire immediately.
+							var notifyErr error
+							if step.FunctionScript != "" {
+								script := step.FunctionScript
+								// The callback's observable writes include the
+								// loaded procs' bodies (notify1-7.4's proc runs
+								// `incr ::unlock_notify`).
+								targets := tcl.NotifyScriptVarTargets(script)
+								for _, proc := range step.CallbackProcs {
+									targets = append(targets, tcl.NotifyScriptVarTargets(proc.Body)...)
+								}
+								notifyErr = notifyDB.UnlockNotify(func() {
+									runNotifyScript(script, runtimeVars, step.CallbackProcs, targets)
+								})
+							} else {
+								notifyErr = notifyDB.UnlockNotify(nil)
+							}
+							if notifyErr != nil {
+								if step.CatchResult && step.Variable != "" {
+									runtimeVars[step.Variable] = "1"
+									if step.CatchMessage != "" {
+										runtimeVars[step.CatchMessage] = notifyErr.Error()
+									}
+								} else {
+									t.Errorf("unlock_notify: %v", notifyErr)
+								}
+								continue
+							}
+							if step.CatchResult && step.Variable != "" {
+								runtimeVars[step.Variable] = "0"
+							}
+						case "eval_script":
+							// `eval $var` over a runtime script (notify1-1.5's
+							// zScript, stored by the unlock-notify callback):
+							// "<conn> eval {SQL}" executes on the named
+							// connection.
+							script := runtimeVars[step.Variable]
+							if strings.TrimSpace(script) == "" {
+								// Tcl's eval of "" is a no-op (notify1-1.15's
+								// cancelled callback leaves zScript empty).
+								continue
+							}
+							conn, sqlText, ok := splitNotifyEvalScript(script)
+							if !ok {
+								t.Errorf("eval_script: unsupported script %q", script)
+								continue
+							}
+							scriptDB := db
+							if conn != "" && conn != "db" {
+								scriptDB = namedDBs[conn]
+								if scriptDB == nil {
+									t.Errorf("eval_script: named database %q is not open", conn)
+									continue
+								}
+							}
+							if res := scriptDB.Exec(sqlText); res.Error != nil {
+								t.Errorf("eval_script: %v\n  sql: %s", res.Error, sqlText)
+							}
 						case "cacheflush":
 							flushErr := execDB.CacheFlush()
 							got := "SQLITE_OK"
@@ -4506,7 +4633,16 @@ func TestSQLiteSuite(t *testing.T) {
 							// Converted bodies whose final command is `expr`
 							// over runtime-captured values (date.test:545-548):
 							// evaluate the expression against the values the
-							// earlier query_assign steps captured.
+							// earlier query_assign steps captured. An empty
+							// expression is the empty-string reset (notify1's
+							// `set zScript ""` — bakeKnownExprVars strips the
+							// quoted literal), not an evaluation error.
+							if strings.TrimSpace(step.SQL) == "" {
+								if step.Variable != "" {
+									runtimeVars[step.Variable] = ""
+								}
+								continue
+							}
 							got, evalErr := evalHarnessTclExpr(step.SQL, runtimeVars)
 							if evalErr != nil {
 								t.Errorf("runtime expression error: %v\n  expr: %s", evalErr, step.SQL)
