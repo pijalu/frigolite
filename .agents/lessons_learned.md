@@ -633,3 +633,31 @@ The per-family statement budget hides them: the conversion looked fine, the
 - **`sqlite3 tmp ""` (empty filename) is an OPEN, not a close**: sqlite3_open("") creates a private temporary database on the named connection — the converter's empty-filename branch must open for non-"db" names, and the harness maps the empty name to a private db (normalizeFixtureDBName renumbers empty inputs — guard on the RAW step SQL).
 - **The temp db C contract (temptable2-4.x)**: temp_store=0/1 is FILE-BACKED with cache_size-driven spill — PRAGMA temp.page_count reports the SPILLED FILE's page count (9 after a 10-row insert at cache_size=10). Our in-memory temp pager cannot express this; carded as the temp-spill pager unit (file backing + cache-cap eviction with pcache1 order).
 - **Sweep discipline held**: the setVar ::-normalization and the runtime_expr filter change touched ALL conversions — the 33-family sweep after the shared-cache work and the vtab sweep after RV5 both compared leaf-exact against HEAD stashes; every delta was explained (func's 5 = func6's carded leaves via the substring match; like2's like-3.2 pre-existing at HEAD).
+
+## P-C1 S1 round lessons (2026-11-03c, testvfs)
+
+- **WAL commits never bump the FILE header change counter**: C's
+  sqlite3PagerCommitPhaseOne returns through the pagerWalFrames path BEFORE
+  the counter block — page 1 enters the WAL only when the b-tree dirtied it
+  (schema cookies). Verified byte-exact with the WAL frame decoder
+  (walview.go) — the frame page numbers ARE the diagnostic.
+- **The WAL sync-event contract** (walvfs): WAL_SYNC_FLAGS(x)=x&3 (commit —
+  FULL only), CKPT_SYNC_FLAGS(x)=(x>>2)&3 (header/checkpoint — NORMAL+FULL).
+  The WAL header sync fires when the first frame of a RESTARTED log is
+  written, gated on IOCAP_SEQUENTIAL and synchronous=OFF. A full PASSIVE
+  checkpoint + the writer's next commit = the header rewrite.
+- **The writer must pin READ_LOCK(0)** (C's pagerSharedLock): walFrames'
+  walRestartLog gate (wal.c:4056) requires readLock==0 at frame-write time —
+  without the pin the fully-backfilled log never restarts. This one pin
+  fixed 19 e_walckpt leaves.
+- **A hook fired INSIDE the pager's locked section must not take the
+  mutex** (self-deadlock on Go RWMutex) — read the hook field directly
+  (installed once at setup) and keep the fixture callback pager-free.
+- **Fixture callback interps are per-install; the harness's runtimeVars are
+  authoritative** — re-seed the interp from runtimeVars before each fire or
+  the file-level `set ::sync_count 0` resets never reach the counter.
+- **TCL late binding in fixtures**: `tvfs script xSync` precedes `proc
+  xSync {...}` — seed the script's write targets BOTH at config time and at
+  proc-definition time (a post-pass attaches the proc body to the step).
+- **`tvfs delete FILE` is xDelete** — e_walckpt's section reset idiom; a
+  no-op config step silently broke 23 leaves with "table t1 already exists".
