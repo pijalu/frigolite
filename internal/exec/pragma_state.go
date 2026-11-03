@@ -364,6 +364,14 @@ func (e *Engine) WalCheckpoint(schema, value string) *execpragma.Result {
 	if err != nil {
 		return &execpragma.Result{Error: err}
 	}
+	// sqlite3_interrupt() DURING the checkpoint (a fixture xWrite callback
+	// calling it mid-copyback — walvfs-3.1): the checkpoint completes but
+	// the VDBE's opcode loop observes the interrupt at the next opcode and
+	// the statement fails with SQLITE_INTERRUPT, discarding the result row.
+	if e.IsInterrupted() {
+		e.interrupted = false
+		return &execpragma.Result{Error: fmt.Errorf("interrupted")}
+	}
 	return &execpragma.Result{Rows: [][]interface{}{{
 		int64(busy), int64(nLog), int64(nCkpt),
 	}}}

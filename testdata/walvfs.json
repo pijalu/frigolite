@@ -39,6 +39,11 @@
           "database": "tvfs"
         },
         {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "sync_count"
+        },
+        {
           "type": "reopen_db",
           "sql": "test.db",
           "vfs": "tvfs"
@@ -225,6 +230,11 @@
           ],
           "functionProc": "xWrite",
           "database": "tvfs"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "2",
+          "variable": "cnt"
         }
       ]
     },

@@ -895,6 +895,11 @@ func (p *Pager) backfillFrameRangeLocked(frames []WalFrame, nFrom, nTo, mxFrame,
 			break
 		}
 		pgno := fr.PageNumber
+		// testvfs's xWrite fires per main-file page write (walvfs-3.1's
+		// interrupt counter counts the checkpoint's copyback writes).
+		if err := p.vfsCall("xWrite", p.path); err != nil {
+			return nPage, err
+		}
 		pg := &Page{PageNum: pgno, Data: append([]byte(nil), fr.PageData...)}
 		p.pages[pgno] = pg
 		if pgno > nPage {

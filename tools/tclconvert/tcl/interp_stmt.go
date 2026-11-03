@@ -400,3 +400,23 @@ func (i *Interp) AttachLateCallbackProcs() {
 		}
 	}
 }
+
+// PreScanCallbackTargets seeds the callback write-target sets from the whole
+// source BEFORE execution: a file-level `set ::cnt 2` reset can precede BOTH
+// the `tvfs script xWrite` binding and the `proc xWrite {...}` definition
+// (walvfs-3.x), so neither in-flight seeding point sees it.
+func (i *Interp) PreScanCallbackTargets(src string) {
+	bodies := make(map[string]string)
+	for _, cmd := range parseCommands(src) {
+		if len(cmd) >= 4 && cmd[0].Text == "proc" {
+			bodies[strings.TrimPrefix(cmd[1].Text, "::")] = cmd[3].Text
+		}
+	}
+	for _, cmd := range parseCommands(src) {
+		if len(cmd) >= 3 && cmd[1].Text == "script" {
+			if body, ok := bodies[strings.TrimPrefix(cmd[2].Text, "::")]; ok {
+				i.seedCallbackTargets(body)
+			}
+		}
+	}
+}

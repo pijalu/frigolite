@@ -301,6 +301,7 @@ func runInterpreter(src []byte) (stmts []tcl.Stmt, nullToken string, tclPrecisio
 			stmts, nullToken, tclPrecision, tclPrecisionSeen, err = nil, "", 0, false, fmt.Errorf("panic: %v", r)
 		}
 	}()
+	interp.PreScanCallbackTargets(string(src))
 	if execErr := interp.Execute(string(src)); execErr != nil {
 		return nil, "", 0, false, execErr
 	}

@@ -3523,7 +3523,7 @@ func TestSQLiteSuite(t *testing.T) {
 						}
 						if step.VFS != "" {
 							if fx := testvfsFixtures[step.VFS]; fx != nil {
-								execDB.engine.InstallVFSHook(fx.hook(runtimeVars), fx.devcharBits)
+								execDB.engine.InstallVFSHook(fx.hook(runtimeVars, execDB), fx.devcharBits)
 							}
 						}
 						if step.Type == "auth_analyze_deny" {
@@ -3639,7 +3639,7 @@ func TestSQLiteSuite(t *testing.T) {
 							registerTest1Functions(t, db)
 							if step.VFS != "" {
 								if fx := testvfsFixtures[step.VFS]; fx != nil {
-									db.engine.InstallVFSHook(fx.hook(runtimeVars), fx.devcharBits)
+									db.engine.InstallVFSHook(fx.hook(runtimeVars, db), fx.devcharBits)
 								}
 							}
 							continue
@@ -5739,24 +5739,36 @@ func (fx *testvfsFixture) configure(t *testing.T, step TestStep, runtimeVars map
 // hook builds the observational VFS callback: invoke the script proc for
 // filtered methods, then sync the proc's written variables back into the
 // runtime set (the xSync body's `incr ::sync_count`).
-func (fx *testvfsFixture) hook(runtimeVars map[string]string) func(op, path string) error {
+func (fx *testvfsFixture) hook(runtimeVars map[string]string, db *DB) func(op, path string) error {
 	if fx.scriptProc == "" {
 		return nil
 	}
-	if len(fx.filters) > 0 && !fx.filters["xSync"] && !fx.filters["xShmMap"] && !fx.filters["xShmLock"] {
-		return nil
-	}
+	// No generic gate here: the filter list is per-METHOD (C's tvfs filter
+	// restricts which x-methods invoke the script) — the closure checks the
+	// op per call.
 	interp := tcl.NewInterp()
 	loaded := make([]tcl.Proc, 0, len(fx.procs))
 	for _, proc := range fx.procs {
 		loaded = append(loaded, tcl.Proc{Name: strings.TrimPrefix(proc.Name, "::"), Args: proc.Args, Body: proc.Body})
 	}
 	interp.LoadProcedures(loaded)
+	// The fixture script's C-API calls run against this connection
+	// (walvfs-3.1's `sqlite3_interrupt db` inside the xWrite callback).
+	interp.RegisterCallbackCommand("sqlite3_interrupt", func(args []string) (string, error) {
+		if os.Getenv("FRIGOLITE_WALTRACE") != "" {
+			fmt.Fprintf(os.Stderr, "TVFSDBG interrupt fired\n")
+		}
+		db.engine.Interrupt()
+		return "SQLITE_OK", nil
+	})
 	var targets []string
 	for _, proc := range fx.procs {
 		targets = append(targets, tcl.NotifyScriptVarTargets(proc.Body)...)
 	}
 	return func(op, path string) error {
+		if len(fx.filters) > 0 && !fx.filters[op] {
+			return nil
+		}
 		base := strings.TrimPrefix(fx.scriptProc, "::")
 		if !interp.HasProcedure(base) {
 			return nil
