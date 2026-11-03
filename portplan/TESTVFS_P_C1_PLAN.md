@@ -85,7 +85,32 @@ full-copy log restart to reproduce this.
   S3 fault machinery's connection-lifecycle events). The `shm` subcommand +
   vfs_set_readmark (test_vfs.c:1637 — aShm[25+slot] read/write) remain for
   the readmark-dependent leaves.
-- **S3**: ioerr fault injection (pagerfault 58, e_walckpt 272, the
+- **S3 — DESIGN COMPLETE (survey 2026-11-03d)**: pagerfault does NOT use
+  testvfs for ioerr — it uses malloc_common.tcl's `do_faultsim_test`
+  framework over the GLOBAL `::sqlite_io_error_*` counters (os_unix.c's
+  TEST block), plus tester.tcl's file-snapshot pairs.
+  - **ioerr injector**: process-global counters — `ioerr_injectstart(persist,
+    iFail)` sets ::sqlite_io_error_persist and ::sqlite_io_error_pending=iFail;
+    EVERY OS-layer I/O (read/write/sync/truncate/open) decrements pending and
+    fails with SQLITE_IOERR ("disk I/O error") when it reaches 0 — once
+    (transient) or until reset (persistent). Port: a package-level injector
+    in internal/pager consulted by every pagerFile I/O site.
+  - **The faultsim trial loop** (malloc_common.tcl:326-390): for iFail=1,2,…
+    — prep → injectstart → body → injectstop (nfail = the hit count) → the
+    harness asserts `{rc res} == {0 ok}` (the engine must swallow each fault
+    via retry/recovery) — **stop at the first trial whose nfail==0**.
+  - **faultsim_save/restore** (tester.tcl:2463): file copies of test.db*
+    (all sidecars) ↔ sv_test.db* taken in -prep and before each trial.
+  - **The -test script** (faultsim_test_result_int): the (rc, result) pair
+    must be in the -injecterrlist patterns; nfail==0 requires the CLEAN
+    result.
+  - **Port shape**: converter `do_faultsim_test` → one dynamic step
+    {type: "faultsim_test", Faults, Prep []TestStep, Body []TestStep, Test
+    patterns} (the trial count is a RUNTIME property — the harness owns the
+    loop); harness faultsim_save/restore via file copies; the injector as a
+    global pager hook (like the walFault precedent) with the same counter
+    semantics. e_walckpt's per-fault sections layer the same injector over
+    the checkpoint modes.
   *fault families) — test_vfs.c's ioerr counters + the harness fault steps.
 - **S4**: fullerr/cantopenerr/sectorsize/delete + the remaining option
   surface.
