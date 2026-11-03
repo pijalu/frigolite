@@ -1253,10 +1253,14 @@ func (i *Interp) cmdIf(rawWords []rawWord, localVars map[string]string) error {
 		}
 		next, done := i.advancePastFalseBranch(rawWords, idx, localVars)
 		if done {
+			// No branch ran: an `if` without else returns "" (TCL), not the
+			// condition evaluation's leftover result.
+			i.vars[""] = ""
 			return nil
 		}
 		idx = next
 	}
+	i.vars[""] = ""
 	return nil
 }
 

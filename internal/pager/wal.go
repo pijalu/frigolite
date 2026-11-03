@@ -101,6 +101,12 @@ const walMagicLE = WalMagic // 0x377f0682
 // Pager.readPageLocked).
 func openWal(p *Pager, dbPath string, pageSize uint32) (*walWriter, error) {
 	walPath := dbPath + "-wal"
+	// The WAL open maps the -shm region (C's xShmMap): a fixture callback
+	// returning SQLITE_READONLY fails the access with the readonly-db
+	// message (walvfs-5.5's db2 SELECT).
+	if err := p.vfsCall("xShmMap", walPath+"-shm"); err != nil {
+		return nil, translateVFSHookError(err)
+	}
 	f, err := os.OpenFile(walPath, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return nil, fmt.Errorf("pager: open wal %s: %w", walPath, err)

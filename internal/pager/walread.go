@@ -70,6 +70,15 @@ func (w *walWriter) walBeginReadTxn() (bool, error) {
 	if w.readLock >= 0 {
 		return false, nil // read transaction already open: snapshot frozen
 	}
+	// The fixture VFS installed after the pager's eager WAL attach: the
+	// first WAL access maps the -shm (C's lazy xShmMap) — a callback
+	// returning SQLITE_READONLY fails the access (walvfs-5.5).
+	if w.p.vfsShmMapPending {
+		w.p.vfsShmMapPending = false
+		if err := w.p.vfsCall("xShmMap", w.path+"-shm"); err != nil {
+			return false, translateVFSHookError(err)
+		}
+	}
 	var deadline time.Time
 	if w.busyTimeout > 0 {
 		deadline = time.Now().Add(w.busyTimeout)

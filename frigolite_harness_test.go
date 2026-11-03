@@ -24,6 +24,7 @@ import (
 
 	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/function"
+	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/vtab"
 	"github.com/pijalu/frigolite/tools/tclconvert/tcl"
@@ -5742,7 +5743,7 @@ func (fx *testvfsFixture) hook(runtimeVars map[string]string) func(op, path stri
 	if fx.scriptProc == "" {
 		return nil
 	}
-	if fx.filters != nil && !fx.filters["xSync"] {
+	if len(fx.filters) > 0 && !fx.filters["xSync"] && !fx.filters["xShmMap"] && !fx.filters["xShmLock"] {
 		return nil
 	}
 	interp := tcl.NewInterp()
@@ -5769,12 +5770,21 @@ func (fx *testvfsFixture) hook(runtimeVars map[string]string) func(op, path stri
 				interp.SetVariable(name, v)
 			}
 		}
-		_, _ = interp.InvokeProcedure(base, op, path)
+		answer, _ := interp.InvokeProcedure(base, op, path)
 		for _, name := range targets {
 			if v, ok := interp.Variable(name); ok {
 				runtimeVars[name] = v
 			} else if v, ok := interp.Variable("::" + name); ok {
 				runtimeVars[name] = v
+			}
+		}
+		// The shm methods' returns are their RESULT (test_vfs.c maps the
+		// script's return to the xShmMap/xShmLock result code) — xSync is
+		// observational.
+		if op == "xShmMap" || op == "xShmLock" {
+			code := strings.TrimSpace(answer)
+			if strings.HasPrefix(code, "SQLITE_") && code != "SQLITE_OK" {
+				return &pager.VFSHookError{Code: code}
 			}
 		}
 		return nil
