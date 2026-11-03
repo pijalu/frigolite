@@ -59,6 +59,7 @@ func BuildVtabIndexInfoWithInstance(opts *VtabScanOptions, tableName string, col
 	}
 	addVtabLimitConstraints(b, opts, cols, tableName)
 	ii.Usage = make([]vtab.ConstraintUsage, len(ii.Constraints)) // zeroed
+	opts.SyntheticOrigins = b.origins
 	return ii, b.conjuncts, nil
 }
 
@@ -74,6 +75,17 @@ type vtabPlanBuilder struct {
 	outerRow   RowMap
 	// currentQualifies tracks the conjunct being classified.
 	currentQualifies bool
+	// origins maps synthetic split terms to their original conjuncts.
+	origins map[sql.Expr]sql.Expr
+}
+
+// rememberOrigin records that synthetic was carved out of original (the
+// row-value split's residual bookkeeping).
+func (b *vtabPlanBuilder) rememberOrigin(synthetic, original sql.Expr) {
+	if b.origins == nil {
+		b.origins = make(map[sql.Expr]sql.Expr)
+	}
+	b.origins[synthetic] = original
 }
 
 // newVtabPlanBuilder pre-sizes the constraint and conjunct slices.
@@ -209,8 +221,58 @@ func classifyVtabInList(b *vtabPlanBuilder, conjunct sql.Expr, t *sql.InList, ta
 	if t.Negated {
 		return
 	}
+	// A ROW-VALUE operand splits into per-column EQ terms (wherecode.c's
+	// row-value IN split): `(a, b) IN (SELECT x, y)` offers one EQ per
+	// row-value column, each binding that column's element of the value
+	// side (rowvalue5-1.11/1.12).
+	if lRow, ok := unwrapParenExpr(t.Operand).(*sql.RowValue); ok && len(lRow.Values) > 0 {
+		classifyVtabRowValueIn(b, conjunct, lRow, t, tableName, cols)
+		return
+	}
 	if col, ok := cols.resolve(t.Operand, tableName); ok {
 		b.add(conjunct, col, vtab.IndexConstraintEq, b.usable(t.List...), true)
+	}
+}
+
+// classifyVtabRowValueIn splits a row-value IN conjunct: each row-value
+// column offers one EQ/IsIn term whose value side is that column's element
+// of the value row (a paren'd row value) or of the subquery (narrowed to
+// that column). Omitting the split terms omits the whole IN conjunct.
+func classifyVtabRowValueIn(b *vtabPlanBuilder, conjunct sql.Expr, lRow *sql.RowValue, t *sql.InList, tableName string, cols vtabColumnIndex) {
+	var rElems []sql.Expr
+	var rSub *sql.Subquery
+	if len(t.List) == 1 {
+		if rRow, ok := unwrapParenExpr(t.List[0]).(*sql.RowValue); ok {
+			rElems = rRow.Values
+		} else if sub, ok := unwrapParenExpr(t.List[0]).(*sql.Subquery); ok {
+			rSub = sub
+		}
+	}
+	if rSub == nil && rElems == nil {
+		return
+	}
+	if rSub != nil && len(rSub.Select.Columns) != len(lRow.Values) {
+		return
+	}
+	for i, operand := range lRow.Values {
+		col, ok := cols.resolve(operand, tableName)
+		if !ok {
+			continue
+		}
+		var value sql.Expr
+		if rSub != nil {
+			narrowed := *rSub.Select
+			narrowed.Columns = []sql.SelectColumn{rSub.Select.Columns[i]}
+			value = &sql.Subquery{Select: &narrowed}
+		} else {
+			value = rElems[i]
+		}
+		if !b.usable(value) {
+			continue
+		}
+		synthetic := &sql.InList{Operand: operand, List: []sql.Expr{value}}
+		b.rememberOrigin(synthetic, conjunct)
+		b.add(synthetic, col, vtab.IndexConstraintEq, b.usable(value), true)
 	}
 }
 
@@ -494,7 +556,8 @@ func classifyVtabRowValue(b *vtabPlanBuilder, conjunct sql.Expr, bo *sql.BinaryO
 		return false
 	}
 	terms := len(lRow.Values)
-	if op != "=" && op != "==" {
+	eqSplit := op == "=" || op == "=="
+	if !eqSplit {
 		terms = 1 // ordering: the first-difference prefix only
 	}
 	offered := 0
@@ -515,7 +578,26 @@ func classifyVtabRowValue(b *vtabPlanBuilder, conjunct sql.Expr, bo *sql.BinaryO
 			continue
 		}
 		synthetic := &sql.BinaryOp{Left: lRow.Values[i], Right: value, Operator: bo.Operator}
-		b.add(synthetic, col, vtabOpFor(op), b.usable(value), false)
+		if eqSplit {
+			// The per-element EQ terms FULLY implement the comparison —
+			// omitting them omits the original conjunct from the residual.
+			// An ordering split is only the first-difference PREFIX: the
+			// residual keeps the full row-value comparison (rowvalue5-1.16:
+			// (a,b) < ('a','b') must still filter the vtab's row).
+			b.rememberOrigin(synthetic, conjunct)
+		}
+		offeredOp := op
+		if !eqSplit {
+			// The first-difference prefix of `(a, b) < (x, y)` is `a <= x`
+			// (a < x OR (a = x AND b < y)); the strict operators widen.
+			switch op {
+			case "<":
+				offeredOp = "<="
+			case ">":
+				offeredOp = ">="
+			}
+		}
+		b.add(synthetic, col, vtabOpFor(offeredOp), b.usable(value), false)
 		offered++
 	}
 	return offered > 0

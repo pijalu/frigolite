@@ -33,6 +33,12 @@ type VtabScanOptions struct {
 	// WHERE clause that remains after constraints the virtual table consumed
 	// are omitted (series.c argvConsumed/omit parity).
 	Residual *sql.Expr
+	// SyntheticOrigins maps the split row-value constraint terms (the
+	// synthetic per-element BinaryOps BuildVtabIndexInfo offers for
+	// `(a, b) = (9, 10)`) back to the ORIGINAL conjunct: omitting every
+	// split term omits the whole row-value comparison from the residual
+	// (wherecode.c omits the original term its splits came from).
+	SyntheticOrigins map[sql.Expr]sql.Expr
 
 	// OrderBy is the query's ORDER BY terms; GroupBy the GROUP BY
 	// expressions; Having the HAVING expression; Distinct the DISTINCT flag;

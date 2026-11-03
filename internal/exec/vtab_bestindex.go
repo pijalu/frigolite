@@ -2,6 +2,7 @@ package exec
 
 import (
 	"errors"
+	"github.com/pijalu/frigolite/internal/util"
 
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/sql"
@@ -193,7 +194,10 @@ func (e *Engine) buildVtabFilterArgv(ii *vtab.IndexInfo, conjuncts []sql.Expr, o
 		if err != nil {
 			continue // bind nil
 		}
-		argv[pos] = v
+		// A single-column subquery value arrives wrapped in the affinity
+		// carrier; xFilter's argv holds the raw sqlite3_value (C binds the
+		// unwrapped value — rowvalue5's arglist rendering asserts on it).
+		argv[pos] = util.UnwrapColumnValue(v)
 	}
 	return argv
 }
@@ -222,7 +226,9 @@ func (e *Engine) vtabInSlots(ii *vtab.IndexInfo, conjuncts []sql.Expr, slots []i
 				vals = append(vals, nil)
 				continue
 			}
-			vals = append(vals, v)
+			// Single-column subquery elements arrive in the affinity
+			// carrier; xFilter's argv holds the raw value.
+			vals = append(vals, util.UnwrapColumnValue(v))
 		}
 		ins = append(ins, vtabInSlot{slot: pos, values: vals})
 	}
@@ -277,6 +283,12 @@ func vtabResidualAfterOmit(opts *execquery.VtabScanOptions, ii *vtab.IndexInfo, 
 		}
 		if conj := vtabConjunct(conjuncts, ii.Constraints[i].TermOffset); conj != nil {
 			drop[conj] = true
+			// A split row-value term omits its ORIGINAL conjunct: the vtab
+			// enforced the whole comparison through the split's per-element
+			// bindings (wherecode.c omits the term its splits came from).
+			if orig, ok := opts.SyntheticOrigins[conj]; ok {
+				drop[orig] = true
+			}
 		}
 	}
 	if len(drop) == 0 {
