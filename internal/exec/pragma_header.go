@@ -108,6 +108,15 @@ func (e *Engine) updateFileChangeCounter(ctx *DatabaseContext) {
 	if ctx == nil || ctx.Pager == nil || ctx.Pager.IsMemory() {
 		return
 	}
+	// WAL mode never bumps the FILE header change counter: C's
+	// sqlite3PagerCommitPhaseOne returns through the pagerWalFrames path
+	// before the change-counter block (pager.c:6496 — `if( pagerUseWal(...))
+	// { ...pagerWalFrames... }`), so a WAL commit leaves the db header's
+	// counter stale. Page 1 enters the WAL only when the b-tree itself
+	// dirtied it (a schema-cookie change) — walvfs-1.0's 5 frames, not 8.
+	if ctx.Pager.WALMode() {
+		return
+	}
 	if count, ok, err := e.bumpFileChangeCounterFast(ctx); ok {
 		if err == nil && ctx.Schema != nil {
 			// Record the counter this connection wrote so external-mod
