@@ -4019,7 +4019,7 @@
         },
         {
           "type": "enable_shared_cache",
-          "sql": "1"
+          "sql": "0"
         }
       ]
     }

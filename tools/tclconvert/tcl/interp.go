@@ -126,6 +126,7 @@ type Interp struct {
 	condDepth         int             // nesting level of if-condition evaluation (command substitutions there run in condition context)
 	runtimeProbeCount int             // fresh probe variables for exprs embedding a query substitution (rewriteEmbeddedQueryExpr)
 	lastCollectVar    string          // the while-shape's collected runtime list (func-13.7)
+	sharedCacheFlag   bool            // the sqlite3_enable_shared_cache conversion-time flag (the restore bakes the previous value)
 	deletedFiles      map[string]bool // files removed via forcedelete/file delete
 	fileWrites        map[string]*tclFileWrite
 	nextFileHandle    int

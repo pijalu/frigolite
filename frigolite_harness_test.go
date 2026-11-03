@@ -3198,6 +3198,11 @@ func TestSQLiteSuite(t *testing.T) {
 			collationDestructors := make(map[*DB]map[string]string)
 			prepared := make(map[string]*Stmt)
 			stmtCode := make(map[string]string)
+			// The process-global shared-cache flag belongs to the family that
+			// set it (C runs each test file in its own process): reset it at
+			// every family boundary so it cannot leak into the next file's
+			// connections. notify1's setup group re-enables it per family.
+			EnableSharedCache(false)
 			for _, tc := range td.Tests {
 				for _, step := range expandRepeatedSteps(tc.Steps) {
 					if step.Type == "reopen_db" || step.Type == "alter_table" || step.Type == "header_format" || step.Type == "copy_file" {

@@ -52,7 +52,14 @@ func commandEnableSharedCache(i *Interp, _ []rawWord, args []string, _ map[strin
 		flag = "0"
 	}
 	i.stmts = append(i.stmts, Stmt{Type: "enable_shared_cache", SQL: flag, TestName: i.curTest})
-	i.vars[""] = "SQLITE_OK"
+	// The previous flag travels to `set ::enable_shared_cache [...]` so the
+	// file's closing restore records the value it restores TO ("0").
+	previous := "0"
+	if i.sharedCacheFlag {
+		previous = "1"
+	}
+	i.sharedCacheFlag = flag == "1"
+	i.vars[""] = previous
 	return nil
 }
 
