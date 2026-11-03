@@ -14,10 +14,21 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "a_string_counter": "1",
-            "testdir": ""
+            "testdir": "."
           },
+          "callbackProcs": [
+            {
+              "Name": "a_string",
+              "Args": [
+                "n"
+              ],
+              "Body": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "a_string",
           "functionArgs": [
             "n"
@@ -34,12 +45,73 @@
         {
           "type": "exec",
           "sql": "PRAGMA journal_mode = DELETE;\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    BEGIN;\n      INSERT INTO t1 SELECT a_string(201), a_string(301) FROM t1;\n      INSERT INTO t1 SELECT a_string(202), a_string(302) FROM t1;\n      INSERT INTO t1 SELECT a_string(203), a_string(303) FROM t1;\n      INSERT INTO t1 SELECT a_string(204), a_string(304) FROM t1;"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-1",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-1",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "SELECT count(*) FROM t1"
+            }
+          ],
+          "testPatterns": [
+            "0 4"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-2-pre1",
+      "steps": [
+        {
+          "type": "register_testvfs",
+          "sql": "default",
+          "variable": "tv"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xSync",
+          "database": "tv"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "xSyncCb",
+          "callbackProcs": [
+            {
+              "Name": "xSyncCb",
+              "Args": [
+                "filename",
+                "args"
+              ],
+              "Body": "\n    if {[string match *journal filename]==0} faultsim_save\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "xSyncCb",
+          "database": "tv"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-2-pre1",
@@ -54,8 +126,67 @@
       ]
     },
     {
+      "name": "pagerfault-2",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-2",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "SELECT * FROM abc"
+            }
+          ],
+          "testPatterns": [
+            "[list 0 $answer]"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-3-pre1",
+      "steps": [
+        {
+          "type": "register_testvfs",
+          "sql": "default",
+          "variable": "tstvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xDelete",
+          "database": "tstvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "xDeleteCallback",
+          "callbackProcs": [
+            {
+              "Name": "xDeleteCallback",
+              "Args": [
+                "method",
+                "file",
+                "args"
+              ],
+              "Body": "\n    set file [file tail $file]\n    if { [string match *mj* $file] } { faultsim_save }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "xDeleteCallback",
+          "database": "tstvfs"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-3-pre1",
@@ -68,10 +199,21 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "a_string_counter": "1",
-            "testdir": ""
+            "testdir": "."
           },
+          "callbackProcs": [
+            {
+              "Name": "a_string",
+              "Args": [
+                "n"
+              ],
+              "Body": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "a_string",
           "functionArgs": [
             "n"
@@ -90,8 +232,57 @@
       ]
     },
     {
+      "name": "pagerfault-3",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-3",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "ATTACH 'test.db2' AS aux;\n    SELECT count(*) FROM t2;\n    SELECT count(*) FROM t1;"
+            }
+          ],
+          "testPatterns": [
+            "0 {4 4}",
+            "1 {unable to open database: test.db2}"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-4",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-4",
+          "prep": [
+            {
+              "type": "reset_db"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "CREATE TABLE x(y);\n    INSERT INTO x VALUES('z');\n    SELECT * FROM x;"
+            }
+          ],
+          "testPatterns": [
+            "0 z"
+          ]
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-5-pre1",
@@ -104,10 +295,21 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "a_string_counter": "1",
-            "testdir": ""
+            "testdir": "."
           },
+          "callbackProcs": [
+            {
+              "Name": "a_string",
+              "Args": [
+                "n"
+              ],
+              "Body": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "a_string",
           "functionArgs": [
             "n"
@@ -119,12 +321,174 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-5.1",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-5.1",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "register_function",
+              "functionName": "a_string",
+              "callbackVars": {
+                "": "",
+                "SQLITE_MAX_ATTACHED": "10",
+                "SQLITE_MAX_COLUMN": "2000",
+                "SQLITE_MAX_LENGTH": "1000000000",
+                "SQLITE_MAX_PAGE_SIZE": "65536",
+                "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+                "a_string_counter": "1",
+                "testdir": "."
+              },
+              "functionProc": "a_string",
+              "functionArgs": [
+                "n"
+              ],
+              "functionBody": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "minArgs": 1,
+              "maxArgs": -1
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA journal_mode = PERSIST"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1"
+            }
+          ],
+          "testPatterns": [
+            "0 {}"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-5.2",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-5.2",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "register_function",
+              "functionName": "a_string",
+              "callbackVars": {
+                "": "",
+                "SQLITE_MAX_ATTACHED": "10",
+                "SQLITE_MAX_COLUMN": "2000",
+                "SQLITE_MAX_LENGTH": "1000000000",
+                "SQLITE_MAX_PAGE_SIZE": "65536",
+                "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+                "a_string_counter": "1",
+                "testdir": "."
+              },
+              "functionProc": "a_string",
+              "functionArgs": [
+                "n"
+              ],
+              "functionBody": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "minArgs": 1,
+              "maxArgs": -1
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA journal_mode = PERSIST;\n    PRAGMA journal_size_limit = 2048;"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1"
+            }
+          ],
+          "testPatterns": [
+            "0 {}"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-5.3",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "oom-transient",
+          "variable": "pagerfault-5.3",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "register_function",
+              "functionName": "a_string",
+              "callbackVars": {
+                "": "",
+                "SQLITE_MAX_ATTACHED": "10",
+                "SQLITE_MAX_COLUMN": "2000",
+                "SQLITE_MAX_LENGTH": "1000000000",
+                "SQLITE_MAX_PAGE_SIZE": "65536",
+                "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+                "a_string_counter": "1",
+                "testdir": "."
+              },
+              "functionProc": "a_string",
+              "functionArgs": [
+                "n"
+              ],
+              "functionBody": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "minArgs": 1,
+              "maxArgs": -1
+            },
+            {
+              "type": "delete_file",
+              "sql": "test2.db"
+            },
+            {
+              "type": "delete_file",
+              "sql": "test2.db-journal"
+            },
+            {
+              "type": "delete_file",
+              "sql": "test2.db-wal"
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA journal_mode = PERSIST;\n    ATTACH 'test2.db' AS aux;\n    PRAGMA aux.journal_mode = PERSIST;\n    PRAGMA aux.journal_size_limit = 0;"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "BEGIN;\n      INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n      CREATE TABLE aux.t2 AS SELECT * FROM t1;\n    COMMIT;"
+            }
+          ],
+          "testPatterns": [
+            "0 {}"
+          ]
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-6-pre1",
@@ -137,10 +501,21 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "a_string_counter": "1",
-            "testdir": ""
+            "testdir": "."
           },
+          "callbackProcs": [
+            {
+              "Name": "a_string",
+              "Args": [
+                "n"
+              ],
+              "Body": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "a_string",
           "functionArgs": [
             "n"
@@ -152,12 +527,121 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-6.1",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-6.1",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "register_function",
+              "functionName": "a_string",
+              "callbackVars": {
+                "": "",
+                "SQLITE_MAX_ATTACHED": "10",
+                "SQLITE_MAX_COLUMN": "2000",
+                "SQLITE_MAX_LENGTH": "1000000000",
+                "SQLITE_MAX_PAGE_SIZE": "65536",
+                "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+                "a_string_counter": "1",
+                "testdir": "."
+              },
+              "functionProc": "a_string",
+              "functionArgs": [
+                "n"
+              ],
+              "functionBody": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "minArgs": 1,
+              "maxArgs": -1
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA journal_mode = TRUNCATE"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1"
+            },
+            {
+              "type": "exec",
+              "sql": "INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1"
+            }
+          ],
+          "testPatterns": [
+            "0 {}"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-6.2",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "cantopen-*",
+          "variable": "pagerfault-6.2",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "register_function",
+              "functionName": "a_string",
+              "callbackVars": {
+                "": "",
+                "SQLITE_MAX_ATTACHED": "10",
+                "SQLITE_MAX_COLUMN": "2000",
+                "SQLITE_MAX_LENGTH": "1000000000",
+                "SQLITE_MAX_PAGE_SIZE": "65536",
+                "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+                "a_string_counter": "1",
+                "testdir": "."
+              },
+              "functionProc": "a_string",
+              "functionArgs": [
+                "n"
+              ],
+              "functionBody": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "minArgs": 1,
+              "maxArgs": -1
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA journal_mode = TRUNCATE"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1"
+            },
+            {
+              "type": "exec",
+              "sql": "INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1"
+            }
+          ],
+          "testPatterns": [
+            "0 {}"
+          ]
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-7-pre1",
@@ -165,12 +649,47 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n    BEGIN;\n      INSERT INTO t2 VALUES(NULL, randomblob(1500));\n      INSERT INTO t2 VALUES(NULL, randomblob(1500));\n      INSERT INTO t2 SELECT NULL, randomblob(1500) FROM t2;    --  4\n      INSERT INTO t2 SELECT NULL, randomblob(1500) FROM t2;    --  8\n      INSERT INTO t2 SELECT NULL, randomblob(1500) FROM t2;    -- 16\n      INSERT INTO t2 SELECT NULL, randomblob(1500) FROM t2;    -- 32\n      INSERT INTO t2 SELECT NULL, randomblob(1500) FROM t2;    -- 64\n    COMMIT;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 SELECT * FROM t2;\n    DROP TABLE t2;"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-7",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-7",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA cache_size = 10;\n    BEGIN;\n      UPDATE t1 SET b = randomblob(1500);"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "UPDATE t1 SET a = 65, b = randomblob(1500) WHERE (a+1)\u003e200"
+            },
+            {
+              "type": "exec",
+              "sql": "COMMIT"
+            }
+          ],
+          "testPatterns": [
+            "0 {}"
+          ]
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-8-pre1",
@@ -178,12 +697,18 @@
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    BEGIN;\n      INSERT INTO t1 VALUES(NULL, randomblob(1500));\n      INSERT INTO t1 VALUES(NULL, randomblob(1500));\n      INSERT INTO t1 SELECT NULL, randomblob(1500) FROM t1;    --  4\n      INSERT INTO t1 SELECT NULL, randomblob(1500) FROM t1;    --  8\n      INSERT INTO t1 SELECT NULL, randomblob(1500) FROM t1;    -- 16\n      INSERT INTO t1 SELECT NULL, randomblob(1500) FROM t1;    -- 32\n      INSERT INTO t1 SELECT NULL, randomblob(1500) FROM t1;    -- 64\n    COMMIT;"
+        },
+        {
+          "type": "faultsim_save_close"
         }
       ]
     },
     {
       "name": "pagerfault-8-pre2",
       "steps": [
+        {
+          "type": "faultsim_restore_reopen"
+        },
         {
           "type": "exec",
           "sql": "DELETE FROM t1 WHERE a\u003e32",
@@ -192,8 +717,36 @@
       ]
     },
     {
+      "name": "pagerfault-8",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-8",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "exec",
+              "sql": "BEGIN;\n    DELETE FROM t1 WHERE a\u003e32;"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "COMMIT"
+            }
+          ],
+          "testPatterns": [
+            "0 {}"
+          ]
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-9-pre1",
@@ -201,12 +754,145 @@
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum = incremental;\n    CREATE TABLE t1(x);\n    CREATE TABLE t2(y);\n    CREATE TABLE t3(z);\n\n    INSERT INTO t1 VALUES(randomblob(900));\n    INSERT INTO t1 VALUES(randomblob(900));\n    DELETE FROM t1;"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-9.1",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-9.1",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "exec",
+              "sql": "BEGIN;\n      INSERT INTO t1 VALUES(randomblob(900));\n      INSERT INTO t1 VALUES(randomblob(900));\n      DROP TABLE t3;\n      DROP TABLE t2;\n      SAVEPOINT abc;\n        PRAGMA incremental_vacuum;"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "ROLLBACK TO abc;\n    COMMIT;\n    PRAGMA freelist_count"
+            }
+          ],
+          "testPatterns": [
+            "0 2"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-10a",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-10a",
+          "prep": [
+            {
+              "type": "open_empty_db"
+            },
+            {
+              "type": "register_function",
+              "functionName": "a_string",
+              "callbackVars": {
+                "": "",
+                "SQLITE_MAX_ATTACHED": "10",
+                "SQLITE_MAX_COLUMN": "2000",
+                "SQLITE_MAX_LENGTH": "1000000000",
+                "SQLITE_MAX_PAGE_SIZE": "65536",
+                "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+                "a_string_counter": "1",
+                "filesize": "",
+                "testdir": ".",
+                "v": "a"
+              },
+              "functionProc": "a_string",
+              "functionArgs": [
+                "n"
+              ],
+              "functionBody": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "minArgs": 1,
+              "maxArgs": -1
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA cache_size = 10;\n      BEGIN;\n        CREATE TABLE xx(a, b, UNIQUE(a, b));\n        INSERT INTO xx VALUES(a_string(200), a_string(200));\n        INSERT INTO xx SELECT a_string(200), a_string(200) FROM xx;\n        INSERT INTO xx SELECT a_string(200), a_string(200) FROM xx;\n        INSERT INTO xx SELECT a_string(200), a_string(200) FROM xx;\n        INSERT INTO xx SELECT a_string(200), a_string(200) FROM xx;\n      COMMIT;"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "UPDATE xx SET a = a_string(300)"
+            }
+          ],
+          "testPatterns": [
+            "0 {}"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-10b",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-10b",
+          "prep": [
+            {
+              "type": "open_empty_db"
+            },
+            {
+              "type": "register_function",
+              "functionName": "a_string",
+              "callbackVars": {
+                "": "",
+                "SQLITE_MAX_ATTACHED": "10",
+                "SQLITE_MAX_COLUMN": "2000",
+                "SQLITE_MAX_LENGTH": "1000000000",
+                "SQLITE_MAX_PAGE_SIZE": "65536",
+                "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+                "a_string_counter": "1",
+                "filesize": "",
+                "testdir": ".",
+                "v": "b"
+              },
+              "functionProc": "a_string",
+              "functionArgs": [
+                "n"
+              ],
+              "functionBody": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "minArgs": 1,
+              "maxArgs": -1
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA cache_size = 10;\n      BEGIN;\n        CREATE TABLE xx(a, b, UNIQUE(a, b));\n        INSERT INTO xx VALUES(a_string(200), a_string(200));\n        INSERT INTO xx SELECT a_string(200), a_string(200) FROM xx;\n        INSERT INTO xx SELECT a_string(200), a_string(200) FROM xx;\n        INSERT INTO xx SELECT a_string(200), a_string(200) FROM xx;\n        INSERT INTO xx SELECT a_string(200), a_string(200) FROM xx;\n      COMMIT;"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "UPDATE xx SET a = a_string(300)"
+            }
+          ],
+          "testPatterns": [
+            "0 {}"
+          ]
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-9-pre1",
@@ -219,12 +905,23 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "a_string_counter": "1",
             "filesize": "",
-            "testdir": "",
+            "testdir": ".",
             "v": "b"
           },
+          "callbackProcs": [
+            {
+              "Name": "a_string",
+              "Args": [
+                "n"
+              ],
+              "Body": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "a_string",
           "functionArgs": [
             "n"
@@ -236,12 +933,59 @@
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum = on;\n    CREATE TABLE t1(x UNIQUE);\n    CREATE TABLE t2(y UNIQUE);\n    CREATE TABLE t3(z UNIQUE);\n    BEGIN;\n      INSERT INTO t1 VALUES(a_string(202));\n      INSERT INTO t2 VALUES(a_string(203));\n      INSERT INTO t3 VALUES(a_string(204));\n      INSERT INTO t1 SELECT a_string(202) FROM t1;\n      INSERT INTO t1 SELECT a_string(203) FROM t1;\n      INSERT INTO t1 SELECT a_string(204) FROM t1;\n      INSERT INTO t1 SELECT a_string(205) FROM t1;\n      INSERT INTO t2 SELECT a_string(length(x)) FROM t1;\n      INSERT INTO t3 SELECT a_string(length(x)) FROM t1;\n    COMMIT;"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-11",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-11",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA cache_size = 10"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "SAVEPOINT trans;\n      UPDATE t2 SET y = y||'2';\n      INSERT INTO t3 SELECT * FROM t2;\n      DELETE FROM t1;\n    ROLLBACK TO trans;\n    UPDATE t1 SET x = x||'3';\n    INSERT INTO t2 SELECT * FROM t1;\n    DELETE FROM t3;\n    RELEASE trans;"
+            }
+          ],
+          "testPatterns": [
+            "0 {}"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-12-pre1",
+      "steps": [
+        {
+          "type": "register_testvfs",
+          "sql": "default",
+          "variable": "ss_layer"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "sectorsize",
+          "variable": "4096",
+          "database": "ss_layer"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-12-pre1",
@@ -254,12 +998,23 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "a_string_counter": "1",
             "filesize": "",
-            "testdir": "",
+            "testdir": ".",
             "v": "b"
           },
+          "callbackProcs": [
+            {
+              "Name": "a_string",
+              "Args": [
+                "n"
+              ],
+              "Body": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "a_string",
           "functionArgs": [
             "n"
@@ -271,6 +1026,60 @@
         {
           "type": "exec",
           "sql": "PRAGMA page_size = 1024;\n    PRAGMA journal_mode = PERSIST;\n    PRAGMA cache_size = 10;\n    BEGIN;\n      CREATE TABLE t1(x, y UNIQUE);\n      INSERT INTO t1 VALUES(a_string(333), a_string(444));\n      INSERT INTO t1 SELECT a_string(333+rowid), a_string(444+rowid) FROM t1;\n      INSERT INTO t1 SELECT a_string(333+rowid), a_string(444+rowid) FROM t1;\n      INSERT INTO t1 SELECT a_string(333+rowid), a_string(444+rowid) FROM t1;\n      INSERT INTO t1 SELECT a_string(333+rowid), a_string(444+rowid) FROM t1;\n      INSERT INTO t1 SELECT a_string(44), a_string(55) FROM t1 LIMIT 13;\n    COMMIT;"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-12a",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-12a",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA cache_size = 10"
+            },
+            {
+              "type": "register_function",
+              "functionName": "a_string",
+              "callbackVars": {
+                "": "",
+                "SQLITE_MAX_ATTACHED": "10",
+                "SQLITE_MAX_COLUMN": "2000",
+                "SQLITE_MAX_LENGTH": "1000000000",
+                "SQLITE_MAX_PAGE_SIZE": "65536",
+                "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+                "a_string_counter": "1",
+                "filesize": "",
+                "testdir": ".",
+                "v": "b"
+              },
+              "functionProc": "a_string",
+              "functionArgs": [
+                "n"
+              ],
+              "functionBody": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "minArgs": 1,
+              "maxArgs": -1
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "UPDATE t1 SET x = a_string(length(x)), y = a_string(length(y));"
+            }
+          ],
+          "testPatterns": [
+            "0 {}"
+          ]
         }
       ]
     },
@@ -278,8 +1087,65 @@
       "name": "pagerfault-12-pre2",
       "steps": [
         {
+          "type": "faultsim_restore_reopen"
+        },
+        {
           "type": "exec",
           "sql": "CREATE TABLE t2 AS SELECT * FROM t1 LIMIT 10;"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-12b",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-12b",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "register_function",
+              "functionName": "a_string",
+              "callbackVars": {
+                "": "",
+                "SQLITE_MAX_ATTACHED": "10",
+                "SQLITE_MAX_COLUMN": "2000",
+                "SQLITE_MAX_LENGTH": "1000000000",
+                "SQLITE_MAX_PAGE_SIZE": "65536",
+                "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+                "a_string_counter": "1",
+                "filesize": "",
+                "testdir": ".",
+                "v": "b"
+              },
+              "functionProc": "a_string",
+              "functionArgs": [
+                "n"
+              ],
+              "functionBody": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "minArgs": 1,
+              "maxArgs": -1
+            },
+            {
+              "type": "exec",
+              "sql": "SELECT * FROM t1"
+            }
+          ],
+          "body": [
+            {
+              "type": "query",
+              "sql": "SELECT rowid FROM t1 LIMIT 2"
+            }
+          ],
+          "testPatterns": [
+            "0 {}"
+          ]
         }
       ]
     },
@@ -293,7 +1159,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-13-pre1",
@@ -306,12 +1172,25 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "a_string_counter": "1",
             "filesize": "",
-            "testdir": "",
+            "sql(1)": " UPDATE t2 SET x = a_string(280) ",
+            "sql(2)": " UPDATE t1 SET x = a_string(280) WHERE rowid = 5 ",
+            "testdir": ".",
             "v": "b"
           },
+          "callbackProcs": [
+            {
+              "Name": "a_string",
+              "Args": [
+                "n"
+              ],
+              "Body": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "a_string",
           "functionArgs": [
             "n"
@@ -339,8 +1218,40 @@
       ]
     },
     {
+      "name": "pagerfault-13-pre1",
+      "steps": [
+        {
+          "type": "faultsim_save"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-13",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-13",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "CREATE TABLE xx(a, b)"
+            }
+          ],
+          "testPatterns": [
+            "0 {}"
+          ]
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-14-pre1",
@@ -353,12 +1264,25 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "a_string_counter": "1",
             "filesize": "",
-            "testdir": "",
+            "sql(1)": " UPDATE t2 SET x = a_string(280) ",
+            "sql(2)": " UPDATE t1 SET x = a_string(280) WHERE rowid = 5 ",
+            "testdir": ".",
             "v": "b"
           },
+          "callbackProcs": [
+            {
+              "Name": "a_string",
+              "Args": [
+                "n"
+              ],
+              "Body": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "a_string",
           "functionArgs": [
             "n"
@@ -370,12 +1294,100 @@
         {
           "type": "exec",
           "sql": "PRAGMA journal_mode = PERSIST;\n    ATTACH 'test.db2' AS two;\n    BEGIN;\n      CREATE TABLE t1(x, y UNIQUE);\n      CREATE TABLE two.t2(x, y UNIQUE);\n      INSERT INTO t1 VALUES(a_string(333), a_string(444));\n      INSERT INTO t2 VALUES(a_string(333), a_string(444));\n    COMMIT;"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-14a",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-14a",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            }
+          ],
+          "testPatterns": [
+            "0 {}",
+            "1 {}",
+            "1 {SQL logic error}"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-14b",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-14b",
+          "prep": [
+            {
+              "type": "close_named_db",
+              "database": "db2"
+            },
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "open_named_db",
+              "database": "db2"
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA page_size = 4096; CREATE TABLE xx(a)",
+              "database": "db2"
+            }
+          ],
+          "testPatterns": [
+            "1 {attempt to write a readonly database}",
+            "1 {sqlite3_backup_init() failed}"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-14c",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-14c",
+          "prep": [
+            {
+              "type": "close_named_db",
+              "database": "db2"
+            },
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "open_named_db",
+              "sql": "test.db2",
+              "database": "db2"
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA synchronous = off; \n    PRAGMA page_size = 4096; \n    CREATE TABLE xx(a);",
+              "database": "db2"
+            }
+          ],
+          "testPatterns": [
+            "0 {}",
+            "1 {sqlite3_backup_init() failed}"
+          ]
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-15-pre1",
@@ -388,12 +1400,26 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "a_string_counter": "1",
             "filesize": "",
-            "testdir": "",
+            "rc": "",
+            "sql(1)": " UPDATE t2 SET x = a_string(280) ",
+            "sql(2)": " UPDATE t1 SET x = a_string(280) WHERE rowid = 5 ",
+            "testdir": ".",
             "v": "b"
           },
+          "callbackProcs": [
+            {
+              "Name": "a_string",
+              "Args": [
+                "n"
+              ],
+              "Body": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "a_string",
           "functionArgs": [
             "n"
@@ -405,12 +1431,65 @@
         {
           "type": "exec",
           "sql": "BEGIN;\n      CREATE TABLE t1(x, y UNIQUE);\n      INSERT INTO t1 VALUES(a_string(11), a_string(22));\n      INSERT INTO t1 VALUES(a_string(11), a_string(22));\n    COMMIT;"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-15",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-15",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "register_function",
+              "functionName": "a_string",
+              "callbackVars": {
+                "": "",
+                "SQLITE_MAX_ATTACHED": "10",
+                "SQLITE_MAX_COLUMN": "2000",
+                "SQLITE_MAX_LENGTH": "1000000000",
+                "SQLITE_MAX_PAGE_SIZE": "65536",
+                "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+                "a_string_counter": "1",
+                "filesize": "",
+                "rc": "",
+                "sql(1)": " UPDATE t2 SET x = a_string(280) ",
+                "sql(2)": " UPDATE t1 SET x = a_string(280) WHERE rowid = 5 ",
+                "testdir": ".",
+                "v": "b"
+              },
+              "functionProc": "a_string",
+              "functionArgs": [
+                "n"
+              ],
+              "functionBody": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "minArgs": 1,
+              "maxArgs": -1
+            }
+          ],
+          "body": [
+            {
+              "type": "query",
+              "sql": "SELECT * FROM t1 LIMIT 1"
+            }
+          ],
+          "testPatterns": [
+            "0 {}"
+          ]
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-16-pre1",
@@ -418,12 +1497,39 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(x, y UNIQUE)"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-16",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-16",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "PRAGMA locking_mode = exclusive;\n    PRAGMA journal_mode = wal;\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n    PRAGMA journal_mode = delete;\n    INSERT INTO t1 VALUES(4, 5);\n    PRAGMA journal_mode = wal;\n    INSERT INTO t1 VALUES(6, 7);\n    PRAGMA journal_mode = persist;\n    INSERT INTO t1 VALUES(8, 9);"
+            }
+          ],
+          "testPatterns": [
+            "0 {exclusive wal delete wal persist}"
+          ]
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-17-pre1",
@@ -431,12 +1537,182 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1862, 'Botha');\n    INSERT INTO t1 VALUES(1870, 'Smuts');\n    INSERT INTO t1 VALUES(1866, 'Hertzog');"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-17a",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-17a",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "PRAGMA journal_mode = wal;\n    PRAGMA journal_mode = delete;"
+            }
+          ],
+          "testPatterns": [
+            "0 {wal delete}"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-17b",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-17b",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA synchronous = OFF"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "PRAGMA journal_mode = wal;\n    INSERT INTO t1 VALUES(22, 'Clarke');\n    PRAGMA journal_mode = delete;"
+            }
+          ],
+          "testPatterns": [
+            "0 {wal delete}"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-17c",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-17c",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA locking_mode = exclusive;\n    PRAGMA journal_mode = wal;"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "PRAGMA journal_mode = delete"
+            }
+          ],
+          "testPatterns": [
+            "0 delete"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-17d",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-17d",
+          "prep": [
+            {
+              "type": "close_named_db",
+              "database": "db2"
+            },
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "open_named_db",
+              "sql": "test.db",
+              "database": "db2"
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA journal_mode = delete"
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA journal_mode = wal"
+            },
+            {
+              "type": "exec",
+              "sql": "INSERT INTO t1 VALUES(99, 'Bradman')",
+              "database": "db2"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "PRAGMA journal_mode = delete"
+            }
+          ],
+          "testPatterns": [
+            "1 {database is locked}"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-17e",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-17e",
+          "prep": [
+            {
+              "type": "close_named_db",
+              "database": "db2"
+            },
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "open_named_db",
+              "sql": "test.db",
+              "database": "db2"
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA journal_mode = delete"
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA journal_mode = wal"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "PRAGMA journal_mode = delete"
+            }
+          ],
+          "testPatterns": [
+            "0 delete"
+          ]
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-18-pre1",
@@ -444,12 +1720,98 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE qq(x);\n    INSERT INTO qq VALUES('Herbert');\n    INSERT INTO qq VALUES('Macalister');\n    INSERT INTO qq VALUES('Mackenzie');\n    INSERT INTO qq VALUES('Lilley');\n    INSERT INTO qq VALUES('Palmer');"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-18",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-18",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA journal_mode = PERSIST;\n    INSERT INTO qq VALUES('Beatty');"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "PRAGMA journal_mode = delete"
+            }
+          ],
+          "testPatterns": [
+            "0 delete"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-19a",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-19a",
+          "prep": [
+            {
+              "type": "open_empty_db"
+            },
+            {
+              "type": "register_function",
+              "functionName": "a_string",
+              "callbackVars": {
+                "": "",
+                "SQLITE_MAX_ATTACHED": "10",
+                "SQLITE_MAX_COLUMN": "2000",
+                "SQLITE_MAX_LENGTH": "1000000000",
+                "SQLITE_MAX_PAGE_SIZE": "65536",
+                "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+                "a_string_counter": "1",
+                "chan": "",
+                "filesize": "",
+                "rc": "",
+                "sql(1)": " UPDATE t2 SET x = a_string(280) ",
+                "sql(2)": " UPDATE t1 SET x = a_string(280) WHERE rowid = 5 ",
+                "testdir": ".",
+                "v": "b"
+              },
+              "functionProc": "a_string",
+              "functionArgs": [
+                "n"
+              ],
+              "functionBody": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "minArgs": 1,
+              "maxArgs": -1
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA auto_vacuum = FULL;\n    BEGIN;\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(a_string(5000), a_string(6000));\n    COMMIT;"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "CREATE TABLE t2(a, b);\n    INSERT INTO t2 SELECT * FROM t1; \n    DELETE FROM t1;"
+            }
+          ],
+          "testPatterns": [
+            "0 {}"
+          ]
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-19-pre1",
@@ -457,12 +1819,39 @@
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum = FULL;\n    CREATE TABLE t1(x); INSERT INTO t1 VALUES(1);\n    CREATE TABLE t2(x); INSERT INTO t2 VALUES(2);\n    CREATE TABLE t3(x); INSERT INTO t3 VALUES(3);\n    CREATE TABLE t4(x); INSERT INTO t4 VALUES(4);\n    CREATE TABLE t5(x); INSERT INTO t5 VALUES(5);\n    CREATE TABLE t6(x); INSERT INTO t6 VALUES(6);"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-19b",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-19b",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "BEGIN;\n      UPDATE t4 SET x = x+1;\n      UPDATE t6 SET x = x+1;\n      SAVEPOINT one;\n        UPDATE t3 SET x = x+1;\n        SAVEPOINT two;\n          DROP TABLE t2;\n      ROLLBACK TO one;\n    COMMIT;\n    SELECT * FROM t3;\n    SELECT * FROM t4;\n    SELECT * FROM t6;"
+            }
+          ],
+          "testPatterns": [
+            "0 {3 5 7}"
+          ]
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-20-pre1",
@@ -470,12 +1859,39 @@
         {
           "type": "exec",
           "sql": "PRAGMA cache_size = 10;\n    PRAGMA auto_vacuum = FULL;\n    CREATE TABLE t0(a, b);"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-20",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-20",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "BEGIN;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n      DROP TABLE t1;\n    COMMIT;"
+            }
+          ],
+          "testPatterns": [
+            "0 {}"
+          ]
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-21-pre1",
@@ -483,12 +1899,39 @@
         {
           "type": "exec",
           "sql": "PRAGMA cache_size = 10;\n    CREATE TABLE t0(a PRIMARY KEY, b);\n    INSERT INTO t0 VALUES(1, 2);"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-21",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-21",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            }
+          ],
+          "body": [
+            {
+              "type": "query",
+              "sql": "SELECT * FROM t0 LIMIT 1"
+            }
+          ],
+          "testPatterns": [
+            "0 {}"
+          ]
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-21-pre1",
@@ -526,12 +1969,27 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "a_string_counter": "1",
+            "chan": "",
             "filesize": "",
-            "testdir": "",
+            "rc": "",
+            "sql(1)": " UPDATE t2 SET x = a_string(280) ",
+            "sql(2)": " UPDATE t1 SET x = a_string(280) WHERE rowid = 5 ",
+            "testdir": ".",
             "v": "b"
           },
+          "callbackProcs": [
+            {
+              "Name": "a_string",
+              "Args": [
+                "n"
+              ],
+              "Body": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "a_string",
           "functionArgs": [
             "n"
@@ -543,12 +2001,39 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t0(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t0 VALUES(a_string(222), a_string(333));\n    INSERT INTO t0 VALUES(a_string(223), a_string(334));\n    INSERT INTO t0 VALUES(a_string(224), a_string(335));\n    INSERT INTO t0 VALUES(a_string(225), a_string(336));"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-21",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-21",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "INSERT INTO t0 SELECT a||'x', b||'x' FROM t0"
+            }
+          ],
+          "testPatterns": [
+            "0 {}"
+          ]
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "setup_2",
@@ -586,12 +2071,27 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "a_string_counter": "1",
+            "chan": "",
             "filesize": "",
-            "testdir": "",
+            "rc": "",
+            "sql(1)": " UPDATE t2 SET x = a_string(280) ",
+            "sql(2)": " UPDATE t1 SET x = a_string(280) WHERE rowid = 5 ",
+            "testdir": ".",
             "v": "b"
           },
+          "callbackProcs": [
+            {
+              "Name": "a_string",
+              "Args": [
+                "n"
+              ],
+              "Body": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "a_string",
           "functionArgs": [
             "n"
@@ -603,6 +2103,9 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t0(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t0 VALUES(a_string(222), a_string(333));\n    INSERT INTO t0 VALUES(a_string(223), a_string(334));"
+        },
+        {
+          "type": "faultsim_save_close"
         }
       ]
     },
@@ -1686,7 +3189,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-22-pre1",
@@ -1699,13 +3202,28 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "a_string_counter": "1",
+            "chan": "",
             "filesize": "",
             "iTest": "50",
-            "testdir": "",
+            "rc": "",
+            "sql(1)": " UPDATE t2 SET x = a_string(280) ",
+            "sql(2)": " UPDATE t1 SET x = a_string(280) WHERE rowid = 5 ",
+            "testdir": ".",
             "v": "b"
           },
+          "callbackProcs": [
+            {
+              "Name": "a_string",
+              "Args": [
+                "n"
+              ],
+              "Body": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "a_string",
           "functionArgs": [
             "n"
@@ -1720,12 +3238,104 @@
         },
         {
           "type": "close_db"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-22",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-22",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "INSERT INTO t2 VALUES(2)"
+            },
+            {
+              "type": "exec",
+              "sql": "SELECT * FROM t2"
+            }
+          ],
+          "testPatterns": [
+            "0 {1 2}"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-23",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-23",
+          "prep": [
+            {
+              "type": "open_empty_db"
+            },
+            {
+              "type": "exec",
+              "sql": "ATTACH 'test.db2' AS aux;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE aux.t2(a, b);"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "BEGIN;\n      INSERT INTO t1 VALUES(1,2);\n      INSERT INTO t2 VALUES(3,4); \n    COMMIT;"
+            }
+          ],
+          "testPatterns": [
+            "0 {}"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-24",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-24",
+          "prep": [
+            {
+              "type": "reset_db"
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA temp_store = file"
+            },
+            {
+              "type": "exec",
+              "sql": "CREATE TABLE x(a, b)"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "CREATE TEMP TABLE t1(a, b)"
+            }
+          ],
+          "testPatterns": [
+            "0 {}",
+            "1 {unable to open a temporary database file for storing temporary tables}"
+          ]
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-25-pre1",
@@ -1738,13 +3348,28 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "a_string_counter": "1",
+            "chan": "",
             "filesize": "",
             "iTest": "50",
-            "testdir": "",
+            "rc": "",
+            "sql(1)": " UPDATE t2 SET x = a_string(280) ",
+            "sql(2)": " UPDATE t1 SET x = a_string(280) WHERE rowid = 5 ",
+            "testdir": ".",
             "v": "b"
           },
+          "callbackProcs": [
+            {
+              "Name": "a_string",
+              "Args": [
+                "n"
+              ],
+              "Body": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "a_string",
           "functionArgs": [
             "n"
@@ -1756,12 +3381,99 @@
         {
           "type": "exec",
           "sql": "PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(a_string(500));\n    INSERT INTO t1 SELECT a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(500) FROM t1;"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-25",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-25",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "register_function",
+              "functionName": "a_string",
+              "callbackVars": {
+                "": "",
+                "SQLITE_MAX_ATTACHED": "10",
+                "SQLITE_MAX_COLUMN": "2000",
+                "SQLITE_MAX_LENGTH": "1000000000",
+                "SQLITE_MAX_PAGE_SIZE": "65536",
+                "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+                "a_string_counter": "1",
+                "chan": "",
+                "filesize": "",
+                "iTest": "50",
+                "rc": "",
+                "sql(1)": " UPDATE t2 SET x = a_string(280) ",
+                "sql(2)": " UPDATE t1 SET x = a_string(280) WHERE rowid = 5 ",
+                "testdir": ".",
+                "v": "b"
+              },
+              "functionProc": "a_string",
+              "functionArgs": [
+                "n"
+              ],
+              "functionBody": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "minArgs": 1,
+              "maxArgs": -1
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA cache_size = 10;\n    BEGIN;\n      INSERT INTO t1 VALUES(a_string(3000));\n      INSERT INTO t1 VALUES(a_string(3000));"
+            }
+          ],
+          "body": [
+            {
+              "type": "query",
+              "sql": "SELECT * FROM t1 WHERE oid = 30"
+            }
+          ],
+          "testPatterns": [
+            "0 {}"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-26",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-26",
+          "prep": [
+            {
+              "type": "reset_db"
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA page_size = 1024;\n    PRAGMA journal_mode = truncate;\n    PRAGMA auto_vacuum = full;\n    PRAGMA locking_mode=exclusive;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA page_size = 4096;"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "VACUUM;"
+            }
+          ],
+          "testPatterns": [
+            "0 {}"
+          ]
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-27-pre",
@@ -1774,13 +3486,29 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "a_string_counter": "1",
+            "chan": "",
+            "channel": "",
             "filesize": "",
             "iTest": "50",
-            "testdir": "",
+            "rc": "",
+            "sql(1)": " UPDATE t2 SET x = a_string(280) ",
+            "sql(2)": " UPDATE t1 SET x = a_string(280) WHERE rowid = 5 ",
+            "testdir": ".",
             "v": "b"
           },
+          "callbackProcs": [
+            {
+              "Name": "a_string",
+              "Args": [
+                "n"
+              ],
+              "Body": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "a_string",
           "functionArgs": [
             "n"
@@ -1792,12 +3520,63 @@
         {
           "type": "exec",
           "sql": "PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t2 VALUES( a_string(800), a_string(800) );\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t1 VALUES (a_string(20000), a_string(20000));"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-27",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-persistent",
+          "variable": "pagerfault-27",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "register_function",
+              "functionName": "a_string",
+              "callbackVars": {
+                "": "",
+                "SQLITE_MAX_ATTACHED": "10",
+                "SQLITE_MAX_COLUMN": "2000",
+                "SQLITE_MAX_LENGTH": "1000000000",
+                "SQLITE_MAX_PAGE_SIZE": "65536",
+                "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+                "a_string_counter": "1",
+                "chan": "",
+                "channel": "",
+                "filesize": "",
+                "iTest": "50",
+                "rc": "",
+                "sql(1)": " UPDATE t2 SET x = a_string(280) ",
+                "sql(2)": " UPDATE t1 SET x = a_string(280) WHERE rowid = 5 ",
+                "testdir": ".",
+                "v": "b"
+              },
+              "functionProc": "a_string",
+              "functionArgs": [
+                "n"
+              ],
+              "functionBody": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "minArgs": 1,
+              "maxArgs": -1
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA cache_size = 10;\n    BEGIN EXCLUSIVE;"
+            }
+          ]
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-28-pre",
@@ -1806,17 +3585,33 @@
           "type": "register_function",
           "functionName": "a_string",
           "callbackVars": {
-            "": "",
+            "": "abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "a_string_counter": "1",
+            "chan": "",
+            "channel": "",
             "filesize": "",
             "iTest": "50",
-            "testdir": "",
+            "rc": "",
+            "sql(1)": " UPDATE t2 SET x = a_string(280) ",
+            "sql(2)": " UPDATE t1 SET x = a_string(280) WHERE rowid = 5 ",
+            "testdir": ".",
             "v": "b"
           },
+          "callbackProcs": [
+            {
+              "Name": "a_string",
+              "Args": [
+                "n"
+              ],
+              "Body": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "a_string",
           "functionArgs": [
             "n"
@@ -1836,6 +3631,95 @@
       "name": "setup_52",
       "steps": [
         {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-28a",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "oom*",
+          "variable": "pagerfault-28a",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA mmap_size=0"
+            },
+            {
+              "type": "open_named_db",
+              "sql": "test.db",
+              "database": "db2"
+            },
+            {
+              "type": "query",
+              "sql": "SELECT count(*) FROM t2",
+              "database": "db2"
+            },
+            {
+              "type": "register_function",
+              "functionName": "a_string",
+              "callbackVars": {
+                "": "",
+                "SQLITE_MAX_ATTACHED": "10",
+                "SQLITE_MAX_COLUMN": "2000",
+                "SQLITE_MAX_LENGTH": "1000000000",
+                "SQLITE_MAX_PAGE_SIZE": "65536",
+                "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+                "a_string_counter": "1",
+                "chan": "",
+                "channel": "",
+                "filesize": "",
+                "iTest": "50",
+                "rc": "",
+                "sql(1)": " UPDATE t2 SET x = a_string(280) ",
+                "sql(2)": " UPDATE t1 SET x = a_string(280) WHERE rowid = 5 ",
+                "testdir": ".",
+                "v": "b"
+              },
+              "functionProc": "a_string",
+              "functionArgs": [
+                "n"
+              ],
+              "functionBody": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "minArgs": 1,
+              "maxArgs": -1
+            },
+            {
+              "type": "exec",
+              "sql": "BEGIN;\n      INSERT INTO t1 VALUES(a_string(2000), a_string(2000));\n      INSERT INTO t1 VALUES(a_string(2000), a_string(2000));"
+            },
+            {
+              "type": "prepare_stmt",
+              "sql": "SELECT * FROM t1 ORDER BY a",
+              "variable": "stmt_1"
+            },
+            {
+              "type": "stmt_step",
+              "sql": "SELECT * FROM t1 ORDER BY a",
+              "variable": "stmt_1"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "ROLLBACK"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "setup_53",
+      "steps": [
+        {
+          "type": "faultsim_restore_reopen"
+        },
+        {
           "type": "open_named_db",
           "sql": "test.db",
           "database": "db2"
@@ -1847,7 +3731,37 @@
         },
         {
           "type": "close_db"
-        },
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-28b",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "oom*",
+          "variable": "pagerfault-28b",
+          "prep": [
+            {
+              "type": "reopen_db",
+              "sql": "test.db"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "SELECT count(*) FROM t2"
+            }
+          ],
+          "testPatterns": [
+            "0 2048"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "setup_54",
+      "steps": [
         {
           "type": "close_named_db",
           "database": "db2"
@@ -1856,7 +3770,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-29-pre",
@@ -1866,17 +3780,34 @@
           "functionName": "a_string",
           "callbackVars": {
             "": "-injectinstall custom_injectinstall -injectstart custom_injectstart -injectstop custom_injectstop -injecterrlist {{1 {disk I/O error}}} -injectuninstall custom_injectuninstall",
-            "::FAULTSIM(custom)": "-injectinstall custom_injectinstall -injectstart custom_injectstart -injectstop custom_injectstop -injecterrlist {{1 {disk I/O error}}} -injectuninstall custom_injectuninstall",
+            "FAULTSIM(custom)": "-injectinstall custom_injectinstall -injectstart custom_injectstart -injectstop custom_injectstop -injecterrlist {{1 {disk I/O error}}} -injectuninstall custom_injectuninstall",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "STMT": "stmt_1",
             "a_string_counter": "1",
+            "chan": "",
+            "channel": "",
             "filesize": "",
             "iTest": "50",
-            "testdir": "",
+            "rc": "",
+            "sql(1)": " UPDATE t2 SET x = a_string(280) ",
+            "sql(2)": " UPDATE t1 SET x = a_string(280) WHERE rowid = 5 ",
+            "testdir": ".",
             "v": "b"
           },
+          "callbackProcs": [
+            {
+              "Name": "a_string",
+              "Args": [
+                "n"
+              ],
+              "Body": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "a_string",
           "functionArgs": [
             "n"
@@ -1893,8 +3824,172 @@
       ]
     },
     {
+      "name": "setup_55",
+      "steps": [
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-29",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "custom",
+          "variable": "pagerfault-29",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "register_function",
+              "functionName": "a_string",
+              "callbackVars": {
+                "": "",
+                "FAULTSIM(custom)": "-injectinstall custom_injectinstall -injectstart custom_injectstart -injectstop custom_injectstop -injecterrlist {{1 {disk I/O error}}} -injectuninstall custom_injectuninstall",
+                "SQLITE_MAX_ATTACHED": "10",
+                "SQLITE_MAX_COLUMN": "2000",
+                "SQLITE_MAX_LENGTH": "1000000000",
+                "SQLITE_MAX_PAGE_SIZE": "65536",
+                "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+                "STMT": "stmt_1",
+                "a_string_counter": "1",
+                "chan": "",
+                "channel": "",
+                "filesize": "",
+                "iTest": "50",
+                "rc": "",
+                "sql(1)": " UPDATE t2 SET x = a_string(280) ",
+                "sql(2)": " UPDATE t1 SET x = a_string(280) WHERE rowid = 5 ",
+                "testdir": ".",
+                "tn": "29",
+                "tt": " catchsql ROLLBACK ",
+                "v": "b"
+              },
+              "functionProc": "a_string",
+              "functionArgs": [
+                "n"
+              ],
+              "functionBody": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "minArgs": 1,
+              "maxArgs": -1
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA cache_size = 5;\n        BEGIN;\n        UPDATE t2 SET a = a_string(799);"
+            }
+          ],
+          "body": [
+            {
+              "type": "catch",
+              "sql": "ROLLBACK"
+            },
+            {
+              "type": "catch",
+              "sql": "ROLLBACK"
+            },
+            {
+              "type": "catch",
+              "sql": "ROLLBACK"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-30",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "custom",
+          "variable": "pagerfault-30",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "register_function",
+              "functionName": "a_string",
+              "callbackVars": {
+                "": "",
+                "FAULTSIM(custom)": "-injectinstall custom_injectinstall -injectstart custom_injectstart -injectstop custom_injectstop -injecterrlist {{1 {disk I/O error}}} -injectuninstall custom_injectuninstall",
+                "SQLITE_MAX_ATTACHED": "10",
+                "SQLITE_MAX_COLUMN": "2000",
+                "SQLITE_MAX_LENGTH": "1000000000",
+                "SQLITE_MAX_PAGE_SIZE": "65536",
+                "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+                "STMT": "stmt_1",
+                "a_string_counter": "1",
+                "chan": "",
+                "channel": "",
+                "filesize": "",
+                "iTest": "50",
+                "rc": "",
+                "sql(1)": " UPDATE t2 SET x = a_string(280) ",
+                "sql(2)": " UPDATE t1 SET x = a_string(280) WHERE rowid = 5 ",
+                "testdir": ".",
+                "tn": "30",
+                "tt": " db close ; sqlite3 db test.db ",
+                "v": "b"
+              },
+              "functionProc": "a_string",
+              "functionArgs": [
+                "n"
+              ],
+              "functionBody": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "minArgs": 1,
+              "maxArgs": -1
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA cache_size = 5;\n        BEGIN;\n        UPDATE t2 SET a = a_string(799);"
+            }
+          ],
+          "body": [
+            {
+              "type": "catch",
+              "sql": "ROLLBACK"
+            },
+            {
+              "type": "catch",
+              "sql": "ROLLBACK"
+            },
+            {
+              "type": "catch",
+              "sql": "ROLLBACK"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-31",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "oom*",
+          "variable": "pagerfault-31",
+          "body": [
+            {
+              "type": "reopen_db",
+              "sql": "one"
+            },
+            {
+              "type": "exec",
+              "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1;"
+            }
+          ],
+          "testPatterns": [
+            "0 1",
+            "1 {}"
+          ]
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-32-pre",
@@ -1906,8 +4001,100 @@
       ]
     },
     {
+      "name": "setup_56",
+      "steps": [
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-32",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-32",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "query",
+              "sql": "SELECT * FROM t1;"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "SELECT * FROM t1;"
+            }
+          ],
+          "testPatterns": [
+            "0 one"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-33a",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-33a",
+          "prep": [
+            {
+              "type": "open_empty_db"
+            },
+            {
+              "type": "exec",
+              "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "VACUUM"
+            }
+          ],
+          "testPatterns": [
+            "0 {}"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-33b",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-33b",
+          "prep": [
+            {
+              "type": "open_empty_db"
+            },
+            {
+              "type": "exec",
+              "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "VACUUM"
+            }
+          ],
+          "testPatterns": [
+            "0 {}"
+          ]
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-34-pre",
@@ -1919,8 +4106,44 @@
       ]
     },
     {
+      "name": "setup_57",
+      "steps": [
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-34",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-34",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "exec",
+              "sql": "BEGIN;\n      INSERT INTO t1 VALUES( randomblob(4000) );\n      DELETE FROM t1;"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "COMMIT"
+            }
+          ],
+          "testPatterns": [
+            "0 {}"
+          ]
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-35-pre",
@@ -1928,11 +4151,59 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(x PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(randomblob(200), randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;"
+        },
+        {
+          "type": "faultsim_save_close"
         }
       ]
     },
     {
-      "name": "setup_53",
+      "name": "setup_58",
+      "steps": [
+        {
+          "type": "register_testvfs",
+          "sql": "default",
+          "variable": "tv"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "sectorsize",
+          "variable": "8192",
+          "database": "tv"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "devchar",
+          "database": "tv"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-35",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-35",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "UPDATE t1 SET x=randomblob(200)"
+            }
+          ],
+          "testPatterns": [
+            "0 {}"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "setup_59",
       "steps": [
         {
           "type": "close_db"
@@ -1941,7 +4212,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "pagerfault-36-pre",
@@ -1949,6 +4220,51 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(x PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(randomblob(200), randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "pagerfault-36",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "pagerfault-36",
+          "prep": [
+            {
+              "type": "faultsim_restore"
+            },
+            {
+              "type": "reopen_db",
+              "sql": "test.db"
+            },
+            {
+              "type": "open_named_db",
+              "sql": "file:test.db?cache=shared",
+              "database": "db2"
+            },
+            {
+              "type": "exec",
+              "sql": "BEGIN;\n    SELECT count(*) FROM sqlite_master;",
+              "database": "db2"
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA cache_size = 1;\n    BEGIN;\n      UPDATE t1 SET x = randomblob(200);"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "ROLLBACK"
+            }
+          ],
+          "testPatterns": [
+            "0 {}"
+          ]
         }
       ]
     }

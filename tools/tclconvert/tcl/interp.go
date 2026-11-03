@@ -39,6 +39,12 @@ type Stmt struct {
 	SearchCount bool   // the body also reads ::sqlite_search_count (where8's execsql_status2): reset the counter before the query, append it after
 	Condition   string // the step runs only when this Tcl expression is true
 	VFS         string // the -vfs option of the opening sqlite3 command
+	// faultsim_test (malloc_common.tcl): the Prep/Body step trees replay per
+	// trial with the ioerr injector armed at the trial index; TestPatterns
+	// are the (rc, result) pairs the -test script accepts.
+	Prep         []Stmt
+	Body         []Stmt
+	TestPatterns []string
 	// stmt_bind: the C-API bind the step performs (sqlite3_bind_text/blob).
 	BindIndex int
 	BindValue string

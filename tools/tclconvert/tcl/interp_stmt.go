@@ -328,7 +328,16 @@ func commandTestVFS(i *Interp, _ []rawWord, args []string, _ map[string]string) 
 		i.testvfsNames = make(map[string]bool)
 	}
 	i.testvfsNames[name] = true
-	i.stmts = append(i.stmts, Stmt{Type: "register_testvfs", Variable: name, TestName: i.curTest})
+	// `-default 1` makes the wrapper the process DEFAULT VFS: every
+	// connection opened afterwards (db and the named handles) routes its
+	// I/O through it (pagerfault's faultsim fixtures).
+	option := ""
+	for k := 1; k+1 < len(args); k += 2 {
+		if args[k] == "-default" && strings.TrimSpace(args[k+1]) != "0" {
+			option = "default"
+		}
+	}
+	i.stmts = append(i.stmts, Stmt{Type: "register_testvfs", Variable: name, SQL: option, TestName: i.curTest})
 	return nil
 }
 
@@ -419,4 +428,98 @@ func (i *Interp) PreScanCallbackTargets(src string) {
 			}
 		}
 	}
+}
+
+// faultsimCaptureScript executes script and returns the statements it
+// captured (pulled out of the main stream): the faultsim -prep/-body bodies
+// become the step trees the harness replays per trial.
+func (i *Interp) faultsimCaptureScript(script string, localVars map[string]string) []Stmt {
+	mark := len(i.stmts)
+	i.execScript(script, localVars)
+	captured := append([]Stmt(nil), i.stmts[mark:]...)
+	i.stmts = i.stmts[:mark]
+	return captured
+}
+
+// faultsimTestPatterns extracts the (rc, result) pattern list from the -test
+// script: the `faultsim_test_result <list>...` call's arguments (each a
+// braced two-element list). The class's own injected-error list is appended
+// by the harness (faultsim_test_result_int prepends -injecterrlist).
+func faultsimTestPatterns(testScript string) []string {
+	for _, cmd := range parseCommands(testScript) {
+		if len(cmd) >= 2 && cmd[0].Text == "faultsim_test_result" {
+			patterns := make([]string, 0, len(cmd)-1)
+			for _, w := range cmd[1:] {
+				patterns = append(patterns, strings.TrimSpace(w.Text))
+			}
+			return patterns
+		}
+	}
+	return nil
+}
+
+// commandDoFaultsimTest records do_faultsim_test NAME ?-faults LIST?
+// -prep {..} -body {..} -test {..} (malloc_common.tcl): ONE dynamic step —
+// the harness owns the trial loop (the trial count is a runtime property:
+// stop at the first trial whose injected-fault count is zero).
+func commandDoFaultsimTest(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
+	if len(args) < 1 {
+		return nil
+	}
+	name := args[0]
+	faults := "ioerr-transient ioerr-persistent full"
+	prepRaw, bodyRaw, testRaw := "", "", ""
+	// args excludes the command name: the option sits at args[k] (rawWords
+	// [k+1]) and its braced value at args[k+1] (rawWords[k+2]).
+	for k := 1; k+1 < len(args); k += 2 {
+		switch args[k] {
+		case "-faults":
+			faults = args[k+1]
+		case "-prep":
+			prepRaw = rawWords[k+2].Text
+		case "-body":
+			bodyRaw = rawWords[k+2].Text
+		case "-test":
+			testRaw = rawWords[k+2].Text
+		}
+	}
+	previous := i.curTest
+	i.curTest = name
+	prep := i.faultsimCaptureScript(prepRaw, localVars)
+	body := i.faultsimCaptureScript(bodyRaw, localVars)
+	i.curTest = previous
+	i.stmts = append(i.stmts, Stmt{
+		Type:         "faultsim_test",
+		Variable:     name,
+		SQL:          faults,
+		Prep:         prep,
+		Body:         body,
+		TestPatterns: faultsimTestPatterns(testRaw),
+		TestName:     name,
+	})
+	return nil
+}
+
+// commandFaultsimSave records the faultsim snapshot steps: the file pair
+// copies of test.db* (tester.tcl's db_save/db_restore family).
+func commandFaultsimSave(i *Interp, rawWords []rawWord, args []string, _ map[string]string) error {
+	step := Stmt{Type: "faultsim_save", TestName: i.curTest}
+	i.stmts = append(i.stmts, step)
+	return nil
+}
+
+func commandFaultsimSaveClose(i *Interp, rawWords []rawWord, args []string, _ map[string]string) error {
+	i.stmts = append(i.stmts, Stmt{Type: "faultsim_save_close", TestName: i.curTest})
+	i.vars[""] = ""
+	return nil
+}
+
+func commandFaultsimRestore(i *Interp, rawWords []rawWord, args []string, _ map[string]string) error {
+	i.stmts = append(i.stmts, Stmt{Type: "faultsim_restore", TestName: i.curTest})
+	return nil
+}
+
+func commandFaultsimRestoreReopen(i *Interp, rawWords []rawWord, args []string, _ map[string]string) error {
+	i.stmts = append(i.stmts, Stmt{Type: "faultsim_restore_reopen", TestName: i.curTest})
+	return nil
 }

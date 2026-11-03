@@ -236,6 +236,12 @@ type TestStep struct {
 	// VFS names the testvfs wrapper the opening command requested
 	// (walvfs.test's `sqlite3 db test.db -vfs tvfs`).
 	VFS string `json:"vfs,omitempty"`
+	// faultsim_test (malloc_common.tcl): the -prep/-body step trees replay
+	// per trial with the ioerr injector armed at the trial index;
+	// TestPatterns are the accepted (rc, result) pairs.
+	Prep         []TestStep `json:"prep,omitempty"`
+	Body         []TestStep `json:"body,omitempty"`
+	TestPatterns []string   `json:"testPatterns,omitempty"`
 }
 
 // patchFileHexBytes writes the hex-decoded DATA at OFFSET in path, mirroring
@@ -3200,6 +3206,7 @@ func TestSQLiteSuite(t *testing.T) {
 			nullToken := td.NullToken
 			runtimeVars := make(map[string]string)
 			testvfsFixtures := make(map[string]*testvfsFixture)
+			testvfsDefault := ""
 			collationDestructors := make(map[*DB]map[string]string)
 			prepared := make(map[string]*Stmt)
 			stmtCode := make(map[string]string)
@@ -3233,6 +3240,7 @@ func TestSQLiteSuite(t *testing.T) {
 				if err != nil {
 					t.Fatalf("open lifecycle database: %v", err)
 				}
+				installDefaultVFS(t, testvfsFixtures, testvfsDefault, db, runtimeVars, fixtureDBDir)
 				if base != "vtab1" && base != "altertab" && base != "alterlegacy" {
 					db.RegisterEchoModule()
 				}
@@ -3504,6 +3512,7 @@ func TestSQLiteSuite(t *testing.T) {
 								t.Fatalf("open named database %q: %v", step.Database, openErr)
 							}
 							namedDBs[step.Database] = opened
+							installDefaultVFS(t, testvfsFixtures, testvfsDefault, opened, runtimeVars, fixtureDBDir)
 							continue
 						}
 						if step.Type == "close_named_db" {
@@ -3523,7 +3532,7 @@ func TestSQLiteSuite(t *testing.T) {
 						}
 						if step.VFS != "" {
 							if fx := testvfsFixtures[step.VFS]; fx != nil {
-								execDB.engine.InstallVFSHook(fx.hook(runtimeVars, execDB), fx.devcharBits)
+								execDB.engine.InstallVFSHook(fx.hook(runtimeVars, execDB, fixtureDBDir), fx.devcharBits)
 							}
 						}
 						if step.Type == "auth_analyze_deny" {
@@ -3582,6 +3591,7 @@ func TestSQLiteSuite(t *testing.T) {
 							// testfixture registers the test-only SQL functions
 							// on every connection it opens.
 							registerTest1Functions(t, db)
+							installDefaultVFS(t, testvfsFixtures, testvfsDefault, db, runtimeVars, fixtureDBDir)
 							if fixture, ok := harnessCollationFixtures[base]; ok {
 								fixture(db)
 							}
@@ -3637,9 +3647,10 @@ func TestSQLiteSuite(t *testing.T) {
 							// testfixture registers the test-only SQL functions
 							// on every connection it opens.
 							registerTest1Functions(t, db)
+							installDefaultVFS(t, testvfsFixtures, testvfsDefault, db, runtimeVars, fixtureDBDir)
 							if step.VFS != "" {
 								if fx := testvfsFixtures[step.VFS]; fx != nil {
-									db.engine.InstallVFSHook(fx.hook(runtimeVars, db), fx.devcharBits)
+									db.engine.InstallVFSHook(fx.hook(runtimeVars, db, fixtureDBDir), fx.devcharBits)
 								}
 							}
 							continue
@@ -3658,6 +3669,7 @@ func TestSQLiteSuite(t *testing.T) {
 								}
 							}
 							db, err = Open(":memory:")
+							installDefaultVFS(t, testvfsFixtures, testvfsDefault, db, runtimeVars, fixtureDBDir)
 							if err != nil {
 								// Report and fall back to an empty database (see the
 								// reopen_db comment above).
@@ -3927,7 +3939,13 @@ func TestSQLiteSuite(t *testing.T) {
 								continue
 							}
 						case "register_testvfs":
-							testvfsFixtures[step.Variable] = &testvfsFixture{name: step.Variable}
+							testvfsFixtures[step.Variable] = &testvfsFixture{name: step.Variable, isDefault: step.SQL == "default"}
+							if step.SQL == "default" {
+								testvfsDefault = step.Variable
+								// The -default fixture governs the connection
+								// already open at registration too.
+								installDefaultVFS(t, testvfsFixtures, testvfsDefault, db, runtimeVars, fixtureDBDir)
+							}
 						case "testvfs_config":
 							fx := testvfsFixtures[step.Database]
 							if fx == nil {
@@ -3950,6 +3968,47 @@ func TestSQLiteSuite(t *testing.T) {
 								continue
 							}
 							fx.configure(t, step, runtimeVars)
+							if fx.isDefault && step.SQL == "script" {
+								// The script config completes the hook: the
+								// -default registration installed a nil hook
+								// (the proc body follows the binding).
+								installDefaultVFS(t, testvfsFixtures, fx.name, db, runtimeVars, fixtureDBDir)
+							}
+						case "faultsim_save", "faultsim_save_close", "faultsim_restore", "faultsim_restore_reopen":
+							// tester.tcl's db_save/db_restore family: file
+							// copies of the main database and its sidecars
+							// between test.db* and sv_test.db* (the faultsim
+							// trial restore point).
+							faultsimFileOp(t, step.Type, db, fixtureDBDir, base)
+							if step.Type == "faultsim_save_close" {
+								if !db.closedFlag {
+									runCollationDestructors(db, collationDestructors, runtimeVars)
+									db.UnregisterEchoModule()
+									if err := db.Close(); err != nil {
+										t.Errorf("faultsim_save_and_close: %v", err)
+										return
+									}
+								}
+							}
+							if step.Type == "faultsim_restore_reopen" {
+								lifecycle := filepath.Join(fixtureDBDir, "test.db")
+								if base := filepath.Base(db.path); base != "test.db" {
+									lifecycle = filepath.Join(fixtureDBDir, base)
+								}
+								reopened, oerr := Open(lifecycle)
+								if oerr != nil {
+									t.Errorf("faultsim_restore_and_reopen: %v", oerr)
+									return
+								}
+								registerTest1Functions(t, reopened)
+								if !db.closedFlag {
+									db.UnregisterEchoModule()
+									_ = db.Close()
+								}
+								db = reopened
+							}
+						case "faultsim_test":
+							runFaultsimTest(t, step, db, fixtureDBDir, runtimeVars)
 						case "enable_shared_cache":
 							// sqlite3_enable_shared_cache (notify1's file-level
 							// setup): the process-global flag decides whether
@@ -5700,6 +5759,7 @@ func hexEncodeBytes(data []byte) string {
 // script proc, the method filter list, and the devchar override.
 type testvfsFixture struct {
 	name        string
+	isDefault   bool // `testvfs tv -default 1`: every later Open routes through it
 	scriptProc  string
 	filters     map[string]bool
 	devcharBits int
@@ -5739,7 +5799,7 @@ func (fx *testvfsFixture) configure(t *testing.T, step TestStep, runtimeVars map
 // hook builds the observational VFS callback: invoke the script proc for
 // filtered methods, then sync the proc's written variables back into the
 // runtime set (the xSync body's `incr ::sync_count`).
-func (fx *testvfsFixture) hook(runtimeVars map[string]string, db *DB) func(op, path string) error {
+func (fx *testvfsFixture) hook(runtimeVars map[string]string, db *DB, fixtureDBDir string) func(op, path string) error {
 	if fx.scriptProc == "" {
 		return nil
 	}
@@ -5755,11 +5815,18 @@ func (fx *testvfsFixture) hook(runtimeVars map[string]string, db *DB) func(op, p
 	// The fixture script's C-API calls run against this connection
 	// (walvfs-3.1's `sqlite3_interrupt db` inside the xWrite callback).
 	interp.RegisterCallbackCommand("sqlite3_interrupt", func(args []string) (string, error) {
-		if os.Getenv("FRIGOLITE_WALTRACE") != "" {
-			fmt.Fprintf(os.Stderr, "TVFSDBG interrupt fired\n")
-		}
 		db.engine.Interrupt()
 		return "SQLITE_OK", nil
+	})
+	// The fixture callbacks invoke the faultsim snapshot pair (pagerfault's
+	// xSyncCb saves on every journal I/O).
+	interp.RegisterCallbackCommand("faultsim_save", func(args []string) (string, error) {
+		faultsimFileOp(nil, "faultsim_save", db, fixtureDBDir, "pagerfault")
+		return "", nil
+	})
+	interp.RegisterCallbackCommand("faultsim_restore", func(args []string) (string, error) {
+		faultsimFileOp(nil, "faultsim_restore", db, fixtureDBDir, "pagerfault")
+		return "", nil
 	})
 	var targets []string
 	for _, proc := range fx.procs {
@@ -5801,4 +5868,212 @@ func (fx *testvfsFixture) hook(runtimeVars map[string]string, db *DB) func(op, p
 		}
 		return nil
 	}
+}
+
+// installDefaultVFS routes a newly opened connection through the family's
+// default testvfs fixture (`testvfs tv -default 1`): the hook, the devchar
+// override, and the snapshot/intercept commands the fixture's callbacks use.
+func installDefaultVFS(t *testing.T, fixtures map[string]*testvfsFixture, name string, db *DB, runtimeVars map[string]string, fixtureDBDir string) {
+	t.Helper()
+	if name == "" || db == nil {
+		return
+	}
+	fx := fixtures[name]
+	if fx == nil {
+		return
+	}
+	db.engine.InstallVFSHook(fx.hook(runtimeVars, db, fixtureDBDir), fx.devcharBits)
+}
+
+// faultsimSidecarSuffixes lists the sidecar files the snapshot pair copies
+// alongside the main database (tester.tcl's `glob test.db*`).
+var faultsimSidecarSuffixes = []string{"", "-wal", "-journal", "-shm"}
+
+// faultsimFileOp implements one faultsim snapshot operation over db's main
+// file (tester.tcl db_save/db_restore: test.db* ↔ sv_test.db*).
+func faultsimFileOp(t *testing.T, op string, db *DB, fixtureDBDir, base string) {
+	t.Helper()
+	main := db.path
+	if main == "" || main == ":memory:" {
+		main = filepath.Join(fixtureDBDir, "test.db")
+	}
+	for _, suffix := range faultsimSidecarSuffixes {
+		src := main + suffix
+		sv := filepath.Join(filepath.Dir(src), "sv_"+filepath.Base(src))
+		switch op {
+		case "faultsim_save", "faultsim_save_close":
+			if data, err := os.ReadFile(src); err == nil {
+				if werr := os.WriteFile(sv, data, 0o644); werr != nil {
+					t.Errorf("faultsim_save %s: %v", sv, werr)
+				}
+			} else if !os.IsNotExist(err) {
+				t.Errorf("faultsim_save read %s: %v", src, err)
+			} else {
+				_ = os.Remove(sv)
+			}
+		case "faultsim_restore", "faultsim_restore_reopen":
+			if data, err := os.ReadFile(sv); err == nil {
+				if werr := os.WriteFile(src, data, 0o644); werr != nil {
+					t.Errorf("faultsim_restore %s: %v", src, werr)
+				}
+			} else {
+				// The snapshot lacks this file: the restore point had none.
+				_ = os.Remove(src)
+			}
+		}
+	}
+}
+
+// runFaultsimStep executes one Prep/Body step of a faultsim test. It handles
+// the shapes the faultsim bodies use (execsql/catchsql/db eval and the
+// snapshot/reopen pair); anything else is a fixture gap and errors the trial.
+// Returns (rc, result, handled): rc 1 + the error message on a caught
+// failure, 0 + the rendered result on success.
+func runFaultsimStep(t *testing.T, dbp **DB, step TestStep, runtimeVars map[string]string, fixtureDBDir string, base string) (int, string, bool) {
+	t.Helper()
+	step.SQL = expandTCLRuntimeVarsSQL(step.SQL, runtimeVars)
+	step.Expect = expandTCLRuntimeVars(step.Expect, runtimeVars)
+	switch step.Type {
+	case "faultsim_save", "faultsim_save_close", "faultsim_restore", "faultsim_restore_reopen":
+		faultsimFileOp(t, step.Type, *dbp, fixtureDBDir, base)
+		if step.Type == "faultsim_save_close" {
+			if !(*dbp).closedFlag {
+				_ = (*dbp).Close()
+			}
+		}
+		if step.Type == "faultsim_restore_reopen" {
+			lifecycle := (*dbp).path
+			if lifecycle == "" || lifecycle == ":memory:" {
+				lifecycle = filepath.Join(fixtureDBDir, "test.db")
+			}
+			reopened, oerr := Open(lifecycle)
+			if oerr != nil {
+				return 1, oerr.Error(), true
+			}
+			registerTest1Functions(t, reopened)
+			if !(*dbp).closedFlag {
+				_ = (*dbp).Close()
+			}
+			*dbp = reopened
+		}
+		return 0, "", true
+	case "reopen_db":
+		path := step.SQL
+		if !filepath.IsAbs(path) {
+			path = filepath.Join(fixtureDBDir, path)
+		}
+		reopened, oerr := Open(path)
+		if oerr != nil {
+			return 1, oerr.Error(), true
+		}
+		registerTest1Functions(t, reopened)
+		if !(*dbp).closedFlag {
+			_ = (*dbp).Close()
+		}
+		*dbp = reopened
+		return 0, "", true
+	case "exec":
+		upper := strings.ToUpper(strings.TrimSpace(step.SQL))
+		if strings.HasPrefix(upper, "SELECT") || strings.HasPrefix(upper, "WITH") || strings.HasPrefix(upper, "VALUES") {
+			// A row-returning body value (db eval): render the rows.
+			return renderFaultsimQuery(t, *dbp, step, runtimeVars, base)
+		}
+		res := (*dbp).Exec(step.SQL)
+		if res.Error != nil {
+			return 1, res.Error.Error(), true
+		}
+		return 0, "", true
+	case "catch":
+		res := (*dbp).Exec(step.SQL)
+		if res.Error != nil {
+			return 1, res.Error.Error(), true
+		}
+		return 0, "0", true
+	case "query":
+		return renderFaultsimQuery(t, *dbp, step, runtimeVars, base)
+	}
+	return 0, "", false
+}
+
+// renderFaultsimQuery runs a row-returning faultsim body step, captures the
+// query_assign variable, and renders the rows as the body value.
+func renderFaultsimQuery(t *testing.T, db *DB, step TestStep, runtimeVars map[string]string, base string) (int, string, bool) {
+	t.Helper()
+	res := db.Query(step.SQL)
+	if res.Error != nil {
+		return 1, res.Error.Error(), true
+	}
+	rows := make([]string, 0, len(res.Rows)*len(res.Columns))
+	for _, row := range res.Rows {
+		for _, cell := range row {
+			rows = append(rows, formatHarnessValue(base, cell))
+		}
+	}
+	if step.Variable != "" {
+		runtimeVars[step.Variable] = tclListString(rows)
+	}
+	return 0, tclListString(rows), true
+}
+
+// runFaultsimTest ports do_one_faultsim_test's trial loop: for iFail = 1, 2,
+// … — restore the snapshot, run the prep, arm the ioerr injector at iFail,
+// run the body, stop the injector (nfail = whether any I/O failed), and
+// assert the (rc, result) pair against the -test patterns. The loop stops at
+// the first trial whose nfail is 0.
+func runFaultsimTest(t *testing.T, step TestStep, db *DB, fixtureDBDir string, runtimeVars map[string]string) {
+	t.Helper()
+	persist := strings.Contains(step.SQL, "persistent")
+	full := strings.Contains(step.SQL, "full")
+	_ = full
+	patterns := append([]string{}, step.TestPatterns...)
+	if len(patterns) == 0 {
+		t.Errorf("faultsim %s: no test patterns", step.Variable)
+		return
+	}
+	for iFail := int64(1); iFail <= 512; iFail++ {
+		// The prep rebuilds the trial's starting state (its own
+		// faultsim_save/restore pair drives the snapshot files).
+		for _, prepStep := range step.Prep {
+			if rc, res, handled := runFaultsimStep(t, &db, prepStep, runtimeVars, fixtureDBDir, "pagerfault"); !handled {
+				t.Errorf("faultsim %s trial %d: unhandled prep step %s (%s)", step.Variable, iFail, prepStep.Type, prepStep.SQL)
+				return
+			} else if rc != 0 {
+				t.Errorf("faultsim %s trial %d: prep failed: %s", step.Variable, iFail, res)
+				return
+			}
+		}
+		pager.IOErrInjectStart(persist, iFail)
+		rc, result := 0, ""
+		for _, bodyStep := range step.Body {
+			if r, res, handled := runFaultsimStep(t, &db, bodyStep, runtimeVars, fixtureDBDir, "pagerfault"); !handled {
+				pager.IOErrInjectStop()
+				t.Errorf("faultsim %s trial %d: unhandled body step %s (%s)", step.Variable, iFail, bodyStep.Type, bodyStep.SQL)
+				return
+			} else if r != 0 {
+				rc, result = r, res
+				break
+			} else {
+				rc, result = r, res
+			}
+		}
+		nfail := pager.IOErrInjectStop()
+		pair := "{" + strconv.Itoa(rc) + " " + result + "}"
+		matched := false
+		for _, p := range patterns {
+			if matchExpectation(pair, p) == "" {
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			t.Errorf("faultsim %s trial %d: got %s, want one of %v", step.Variable, iFail, pair, patterns)
+			return
+		}
+		if !nfail {
+			// The trial ran clean: the injector never fired — the body no
+			// longer touches I/O — the test is finished.
+			return
+		}
+	}
+	t.Errorf("faultsim %s: the trial loop hit the 512-trial cap", step.Variable)
 }

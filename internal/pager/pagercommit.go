@@ -307,6 +307,18 @@ func (p *Pager) CacheFlush() error {
 		p.fileSize = maxEnd
 	}
 	p.refreshKnownFileStampAfterFlush(flushedPage1)
+	// C's CommitPhaseOne tail: the database file sync (xSync) after the
+	// dirty pages reach the file, when the synchronous level is not OFF
+	// (pager.c:6595's syncJournal + sqlite3OsSync(db, syncFlags)). The
+	// fixture VFS's xSync callback observes it (pagerfault-2's faultsim
+	// save fires on the first non-journal sync).
+	if os.Getenv("FRIGOLITE_WALTRACE") != "" {
+		fmt.Fprintf(os.Stderr, "FAULTDBG flush tail jm=%s flags=%d dirty=%d\n", p.journalMode, p.walSyncFlags, len(p.dirty))
+	}
+	if p.journalMode != "wal" && p.walSyncFlags != walSyncOff {
+		fmt.Fprintf(os.Stderr, "FAULTDBG dbsync event on %s\n", p.path)
+		p.vfsSync(p.path, 1)
+	}
 	return nil
 }
 
@@ -337,6 +349,9 @@ func (p *Pager) flushAll() error {
 // (the "super-journal" path in pager.c, which forces PERSIST-mode
 // journals to truncate to 0 instead of honouring journal_size_limit).
 func (p *Pager) flushAllCtx(multiDB bool) error {
+	if os.Getenv("FRIGOLITE_WALTRACE") != "" {
+		fmt.Fprintf(os.Stderr, "FAULTDBG flushAllCtx path=%s jm=%s wal=%v dirty=%d\n", p.path, p.journalMode, p.wal != nil, len(p.dirty))
+	}
 	// WAL mode: route the commit through the WAL writer (frames go to the
 	// "-wal" file; the main database is updated only by Checkpoint). The
 	// legacy direct-flush path below is used for every other journal mode.
@@ -453,6 +468,14 @@ func (p *Pager) flushFilePagesLocked(multiDB bool) error {
 	// the bytes just written (the header mirror in flushPage guarantees
 	// pg1.Data carries the final header) — no Stat+ReadAt pair.
 	p.refreshKnownFileStampAfterFlush(flushedPage1)
+	// C's CommitPhaseOne tail: the database file sync (xSync) after the
+	// dirty pages reach the file, when the synchronous level is not OFF
+	// (pager.c:6595's syncJournal + sqlite3OsSync(db, syncFlags)). The
+	// fixture VFS's xSync callback observes it (pagerfault-2's faultsim
+	// save fires on the first non-journal sync).
+	if p.journalMode != "wal" && p.walSyncFlags != walSyncOff {
+		p.vfsSync(p.path, 1)
+	}
 	return nil
 }
 
