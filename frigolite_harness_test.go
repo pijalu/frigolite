@@ -3474,7 +3474,11 @@ func TestSQLiteSuite(t *testing.T) {
 						if step.Type == "open_named_db" {
 							normalized := normalizeFixtureDBName(step.SQL)
 							path := filepath.Join(fixtureDBDir, normalized)
-							if normalized == ":memory:" {
+							if strings.TrimSpace(step.SQL) == "" || normalized == ":memory:" {
+								// An empty filename (sqlite3_open("")) is a
+								// private temporary database (temptable2-8.2's
+								// `sqlite3 tmp ""`): the temp file's location
+								// is unobservable to the tests.
 								path = ":memory:"
 							}
 							if lifecycleDBPath != "" && filepath.Base(lifecycleDBPath) == normalized && normalized != ":memory:" {

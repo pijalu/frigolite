@@ -1362,8 +1362,13 @@ func commandSQLite3(i *Interp, rawWords []rawWord, args []string, localVars map[
 			i.stmts = append(i.stmts, Stmt{Type: "open_empty_db", TestName: i.curTest})
 		} else if filename == ":memory:" {
 			i.stmts = append(i.stmts, Stmt{Type: "open_named_db", SQL: filename, Database: name, TestName: i.curTest})
-		} else {
+		} else if name == "db" {
 			i.stmts = append(i.stmts, Stmt{Type: "close_named_db", Database: name})
+		} else {
+			// `sqlite3 tmp ""` (temptable2-8.2): an empty filename opens a
+			// private temporary database on the named connection — NOT a
+			// close. The harness maps the empty name to a private db.
+			i.stmts = append(i.stmts, Stmt{Type: "open_named_db", SQL: "", Database: name, TestName: i.curTest})
 		}
 		return nil
 	}
