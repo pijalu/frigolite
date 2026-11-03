@@ -58,12 +58,18 @@ full-copy log restart to reproduce this.
 
 ## Slices
 
-- **S1 (walvfs)**: converter (`testvfs <name>`, `<name> script|filter|devchar
-  <arg>`, `-vfs <name>` opens), harness VFS registry + the pagerFile
-  decorator + DeviceCharacteristics, the WAL sync-event model above, and the
-  passive-checkpoint log restart. Re-measure walvfs-1.2 ([0 4 4] vs our
-  oracle-verified [0 2 2] — the tvfs environment may change the frame
-  accounting; re-derive under the real machinery).
+- **S1 (walvfs) — LANDED (commit "P-C1 S1")**: converter (`testvfs <name>`,
+  `<name> script|filter|devchar|delete <arg>`, `-vfs <name>` opens, file
+  tail/dirname/extension, the late-proc post-pass, callback-target seeding),
+  the pager hook layer (vfshooks.go: the observational xSync hook + devchar
+  + the WAL sync-flag level), the sync events at C's four sites, and the
+  writer's READ_LOCK(0) pin (walFrames' walRestartLog gate — without it the
+  fully-backfilled log never restarts and the header sync never fires).
+  walvfs 1.0/1.1/1.3 pass; e_walckpt 272->253 ('tvfs delete' = xDelete is
+  the section reset); wal 482->463. OPEN: walvfs-1.2 ([0 2 2] matches the
+  system-sqlite oracle; the fixture's [0 4 4] is a tvfs-environment frame
+  contract), 3.x/4.x (synchronous=off/psow sync points), 5.5/5.6 = S2's
+  xShm surface, 6.x-9.x = checkpoint/shm/protocol contracts.
 - **S2**: xShm callbacks + the `shm` subcommand (notify/wal observation
   families).
 - **S3**: ioerr fault injection (pagerfault 58, e_walckpt 272, the
