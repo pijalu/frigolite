@@ -661,3 +661,29 @@ The per-family statement budget hides them: the conversion looked fine, the
   proc-definition time (a post-pass attaches the proc body to the step).
 - **`tvfs delete FILE` is xDelete** — e_walckpt's section reset idiom; a
   no-op config step silently broke 23 leaves with "table t1 already exists".
+
+## P-C1 S2 round lessons (2026-11-03d)
+
+- **The interp's if-without-else must return ""**: the no-branch path left
+  vars[""] at the LAST CONDITION-EVALUATION value (a `file tail` result) —
+  the fixture proc then "returned" a file path as its result code. Always
+  clear i.vars[""] when no branch runs.
+- **tvfs filter semantics**: `tvfs filter {xShmLock xShmMap}` is a PER-METHOD
+  whitelist — the gate must test the CURRENT op inside the callback closure,
+  not pre-gate the hook installation (an xWrite-filtered fixture with a
+  three-method pre-gate got NO calls at all). `tvfs filter {}` = reset (an
+  empty map = no filtering).
+- **C maps the -shm LAZILY at the first transaction**; our pager attaches
+  eagerly at OPEN — before the fixture installs. SetVFSHook arms a pending
+  xShmMap check that the first post-install WAL access consumes — that is
+  where a SQLITE_READONLY callback fails (walvfs-5.5).
+- **A fixture's counter choreography spans CONNECTIONS**: walvfs-3.x's
+  `::cnt` decrements during the CLOSE-time checkpoint of the previous
+  connection (the hook fires there too) and the interrupt lands on that
+  discarded connection — the 3.1-4.1 leaves need the S3 connection-lifecycle
+  events, not more S2 plumbing. Engine-pointer tracing (%p at both ends of
+  the interrupt) found it in minutes.
+- **File-level resets can precede BOTH the script binding and the proc
+  definition** — seed the callback write-targets from a whole-source
+  pre-scan (PreScanCallbackTargets) before execution, in addition to the
+  in-flight seeding points.
