@@ -104,13 +104,27 @@ full-copy log restart to reproduce this.
   - **The -test script** (faultsim_test_result_int): the (rc, result) pair
     must be in the -injecterrlist patterns; nfail==0 requires the CLEAN
     result.
-  - **Port shape**: converter `do_faultsim_test` → one dynamic step
-    {type: "faultsim_test", Faults, Prep []TestStep, Body []TestStep, Test
-    patterns} (the trial count is a RUNTIME property — the harness owns the
-    loop); harness faultsim_save/restore via file copies; the injector as a
-    global pager hook (like the walFault precedent) with the same counter
-    semantics. e_walckpt's per-fault sections layer the same injector over
-    the checkpoint modes.
+  - **Port shape — IMPLEMENTED (commit 2a6d4f03a)**: converter
+    `do_faultsim_test` → one dynamic step {type: "faultsim_test", Faults,
+    Prep []TestStep, Body []TestStep, Test patterns}; the harness's
+    runFaultsimTest owns the loop; faultsimFileOp does the snapshot pairs.
+  - **The next session's identified fixes** (from the engine-pointer
+    tracing): (1) the driver's reopens (faultsim_restore_reopen, reopen_db
+    inside runFaultsimStep) and the reset path must install the DEFAULT
+    fixture — the naive threading of installDefaultVFS into the driver took
+    pagerfault 73→103 (the hook's events disturbed other trial steps) and
+    was reverted; the correct shape: the driver's executor must install the
+    default fixture ONLY on the connection the -default fixture governed at
+    the recording point (the fixture's per-connection choreography needs a
+    recorded install-context, not a global default). (2) pagerfault-2's
+    "no such table: abc": the trial's prep restores the snapshot saved by
+    the -pre1's xSyncCb (the cb fires on the journal-mode writes of the
+    -default connection) — verify the save fires on the RESET connection
+    (the reset_db install was wired but the traced dbsyncs still showed
+    hook=false on the trial's connection). (3) the pattern expressions
+    (`[list 0 $answer]`) need per-trial evaluation against the body's
+    runtime variables (the interp machinery exists via runNotifyScript's
+    pattern).
   *fault families) — test_vfs.c's ioerr counters + the harness fault steps.
 - **S4**: fullerr/cantopenerr/sectorsize/delete + the remaining option
   surface.
