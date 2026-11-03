@@ -70,8 +70,21 @@ full-copy log restart to reproduce this.
   system-sqlite oracle; the fixture's [0 4 4] is a tvfs-environment frame
   contract), 3.x/4.x (synchronous=off/psow sync points), 5.5/5.6 = S2's
   xShm surface, 6.x-9.x = checkpoint/shm/protocol contracts.
-- **S2**: xShm callbacks + the `shm` subcommand (notify/wal observation
-  families).
+- **S2 — LANDED (commits "P-C1 S2" + "P-C1 S2b")**: the xShmMap/xShmLock
+  callback surface — hook returns map to pager.VFSHookError and translate to
+  C's errstr (SQLITE_READONLY -> "attempt to write a readonly database");
+  the pending post-install xShmMap check (C maps the -shm lazily at the
+  first transaction, our pager attaches at OPEN); 'tvfs filter {}' resets;
+  xWrite events at the copyback/frame writes + the fixture's
+  sqlite3_interrupt; the whole-source PreScanCallbackTargets (file-level
+  resets precede both the binding and the definition); the interp's
+  if-without-else returns "". walvfs 12->5 (5.5/5.6/6.2/7.1/8.3/9.1 pass).
+  REMAINING walvfs: 1.2 (tvfs frame contract), 3.1-4.1 (the interrupt
+  counter choreography spans the close-time checkpoint of the PREVIOUS
+  connection — the fixture's ::cnt carries across connections; needs the
+  S3 fault machinery's connection-lifecycle events). The `shm` subcommand +
+  vfs_set_readmark (test_vfs.c:1637 — aShm[25+slot] read/write) remain for
+  the readmark-dependent leaves.
 - **S3**: ioerr fault injection (pagerfault 58, e_walckpt 272, the
   *fault families) — test_vfs.c's ioerr counters + the harness fault steps.
 - **S4**: fullerr/cantopenerr/sectorsize/delete + the remaining option
