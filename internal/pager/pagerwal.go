@@ -48,7 +48,25 @@ func (p *Pager) walBeginWriteLocked(cacheDroppable bool) (bool, error) {
 			// header (walvfs-1.1's sync count).
 			if w.readLock == -1 {
 				_ = w.wi.WriterSection(func() error {
+					// READ_LOCK(0) is the "ignore the log" mark: legitimate
+					// only when the shared log is empty or fully
+					// backfilled. The gate reads the LIVE shared header —
+					// the connection's cached w.hdr may still be zero on a
+					// connection whose first refresh has not adopted (the
+					// vacuous 0==0 pinned mark 0 beside a non-empty log and
+					// the writer then read WAL-only pages from the main
+					// file — wal-14's db2 insert saw zeroed page images).
 					info := w.wi.ckptInfoLocked()
+					pin := w.hdr
+					liveMxFrame := uint32(0)
+					if _, ok := w.wi.tryRefreshLocked(&pin); ok {
+						liveMxFrame = pin.MxFrame
+					} else {
+						liveMxFrame = info.NBackfill // unparsable: fall back
+					}
+					if liveMxFrame != info.NBackfill {
+						return nil // a non-empty, un-backfilled log: no mark-0 pin
+					}
 					if w.tryLockZeroHeld(&info) == rdPinRetry {
 						info = w.wi.ckptInfoLocked()
 						w.tryLockZeroHeld(&info)

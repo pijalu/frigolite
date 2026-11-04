@@ -10,6 +10,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"os"
 
 	"github.com/pijalu/frigolite/internal/storage"
 )
@@ -64,11 +65,50 @@ func (p *Pager) CheckExternalFile() bool {
 	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	if vers == p.knownFileVers && size == p.knownFileSize {
-		return false
+	changed := false
+	if vers != p.knownFileVers || size != p.knownFileSize {
+		p.applyExternalChangeLocked(vers, size)
+		changed = true
 	}
-	p.applyExternalChangeLocked(vers, size)
-	return true
+	// C's pagerOpenWalIfPresent (pager.c:3337) runs on EVERY shared-lock
+	// acquisition, after the change-version compare: a "-wal" beside a
+	// non-empty database opens this connection's WAL — a pager that
+	// attached no log at open (the file was empty then, or another
+	// connection's journal_mode=wal switch happened later) observes the
+	// switch at its next statement (wal-14's db2, opened on a 0-byte
+	// database). A "-wal" beside an EMPTY database is garbage: C deletes
+	// it (sqlite3OsDelete(zWal)).
+	if p.wal == nil {
+		if _, err := os.Stat(p.path + "-wal"); err == nil {
+			// C's pagerPagecount: the main file's page count (caller
+			// holds p.mu; FilePageCount would re-lock).
+			nPages := int64(0)
+			if info, serr := p.file.Stat(); serr == nil && p.pageSize > 0 {
+				nPages = info.Size() / int64(p.pageSize)
+			}
+			if nPages == 0 {
+				_ = os.Remove(p.path + "-wal")
+			} else if w, werr := openWal(p, p.path, p.pageSize); werr == nil {
+				p.wal = w
+				p.journalMode = "wal"
+				// attachWalAtOpen's post-attach adoption: the committed
+				// page count comes from the wal-index header, the cache
+				// drops, and page 1 is re-read through the log.
+				if n := w.hdr.NPage; n > 0 {
+					p.numPages = n
+				}
+				p.pages = make(map[uint32]*Page)
+				p.header = nil
+				if p.numPages > 0 {
+					if _, rerr := p.readPageLocked(1); rerr != nil {
+						return false
+					}
+				}
+				changed = true
+			}
+		}
+	}
+	return changed
 }
 
 // applyExternalChangeLocked adopts an externally-modified database file: the

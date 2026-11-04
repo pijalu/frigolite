@@ -484,6 +484,16 @@ func (p *Pager) enableWALModeLocked() error {
 	if p.journalFile != nil && (prev == "persist" || prev == "truncate") {
 		p.discardJournalSidecarLocked()
 	}
+	// C's OP_JournalMode (vdbe.c:8069) runs sqlite3BtreeSetVersion(pBt, 2)
+	// BEFORE the mode switch (btree.c:11465): the version bytes (18/19 = 2)
+	// are written through a ROLLBACK-mode transaction, so page 1 lands in
+	// the MAIN file — a connection that opened while the database file was
+	// empty (its pager attached no -wal) sees the non-empty file at its
+	// next shared lock and attaches the log (pager.c pagerOpenWalIfPresent,
+	// wal-14's db2).
+	if err := p.writeWALVersionBytesLocked(); err != nil {
+		return err
+	}
 	w, err := openWal(p, p.path, p.pageSize)
 	if err != nil {
 		return err
@@ -491,6 +501,26 @@ func (p *Pager) enableWALModeLocked() error {
 	p.wal = w
 	p.journalMode = "wal"
 	return nil
+}
+
+// writeWALVersionBytesLocked stamps the WAL file-format bytes (18/19 = 2)
+// into page 1's image and flushes them through the rollback path — C's
+// sqlite3BtreeSetVersion write transaction (btree.c:11485). The stamp must
+// reach the main file BEFORE the "-wal" opens, or the switch would emit it
+// as a WAL frame instead. Caller holds p.mu.
+func (p *Pager) writeWALVersionBytesLocked() error {
+	if p.file == nil {
+		return nil
+	}
+	if len(p.header) >= 20 {
+		p.header[18], p.header[19] = 2, 2
+	}
+	pg1 := p.grabPageLocked(1)
+	if len(pg1.Data) >= 20 {
+		pg1.Data[18], pg1.Data[19] = 2, 2
+	}
+	p.markDirtyLocked(1)
+	return p.flushAllCtx(false)
 }
 
 // setLegacyJournalModeLocked applies one of the legacy rollback-journal
@@ -503,6 +533,17 @@ func (p *Pager) setLegacyJournalModeLocked(m string) error {
 	if p.wal != nil {
 		p.wal.Close()
 		p.wal = nil
+		// CARD (the sidecar-lifecycle unit): C's WAL→rollback switch
+		// (pager.c walModeChange → sqlite3WalClose) checkpoints the log
+		// and DELETES the "-wal"/"-shm" while sqlite3BtreeSetVersion(pBt, 1)
+		// (vdbe.c:8069) returns the version bytes to 1/1. Ours leaves the
+		// sidecars and the 2/2 bytes — a surviving "-wal" beside a
+		// rollback-mode database re-attaches at the next shared lock
+		// (pagerOpenWalIfPresent) and resurrects WAL mode (walbak-4.3.1's
+		// db2 CREATE after journal_mode=delete). The naive port
+		// (checkpoint + os.Remove + a 1/1 version flush) broke the wal-24.x
+		// reopens ("file is not a database") — the checkpoint/flush
+		// ordering needs its own planned unit.
 	}
 	// Switching journal modes may need to close + unlink an
 	// already-open journal file (the previous mode opened it under
