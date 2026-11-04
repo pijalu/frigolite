@@ -140,6 +140,28 @@ func (p *Pager) allocateExtendLocked() *Page {
 	if p.numPages == 1 && p.header != nil {
 		copy(pg.Data[:HeaderSize], p.header)
 	}
+	// btree.c allocateBtreePage's append branch (src/btree.c:6737+6761)
+	// makes page 1 writable and writes ONLY the new nPage (bytes 28-31)
+	// into its header image at every allocation-from-end: the commit's
+	// frame list then carries a page-1 frame whenever the file grew
+	// (walvfs-5.3/8.3's frame-count parity — C's WAL has one more frame
+	// than a page list without it). WAL-mode commits only: the stamp must
+	// not lead the physical file — C's allocateBtreePage never runs
+	// outside a write transaction, while this pager's open-time
+	// initialization allocates page 1 on a fresh (0-byte) database and a
+	// stamp would survive cache resets with no commit to flush it
+	// (HeaderBeyondFile would then report the healthy image as truncated).
+	// Rollback-mode commits keep the flush-time header stamp (flushPage).
+	// The write is size-bytes-only, in place on the cached image: a
+	// full-header mirror here would clobber page 1's fresher in-progress
+	// meta bytes (btree writes those directly into the page buffer).
+	if p.wal != nil {
+		p.markDirtyLocked(1)
+		binary.BigEndian.PutUint32(p.header[28:32], p.numPages)
+		if pg1, ok := p.pages[1]; ok && pg1 != nil && len(pg1.Data) >= 32 {
+			binary.BigEndian.PutUint32(pg1.Data[28:32], p.numPages)
+		}
+	}
 	p.pages[pg.PageNum] = pg
 	p.markDirtyLocked(pg.PageNum)
 	return pg
