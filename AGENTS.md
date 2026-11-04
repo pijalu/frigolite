@@ -8,6 +8,17 @@ dependencies.
 
 ## Planning (authoritative)
 
+- **`TODO.md`** (repo root) — **START HERE on every session**: the live
+  restart index (current goal state, the immediate next action, the unit
+  queue, and the working rules that violations of have cost hours). It
+  points into the dated handoff documents for full context.
+- **`portplan/HANDOFF_*.md`** — dated deep-context handoffs (the current
+  one: HANDOFF_2026-11-04_WAL_RESIDUE.md — the WAL residue slice, its
+  restart point, and the census methodology). Write a new one whenever a
+  session ends mid-unit.
+- **`portplan/RESIDUE_CENSUS_2026-11-04.md`** — the per-family residue
+  census (the functional-gap backlog the goal targets) + the substring-
+  filter caveat.
 - **`PORTPLAN.md`** (repo root) — the authoritative implementation plan:
   phases G0…G8, task index, definition of done, commit cadence.
 - **`portplan/DESIGN.md`** — the engineering design/analysis behind the plan:
