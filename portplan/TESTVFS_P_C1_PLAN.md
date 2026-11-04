@@ -259,3 +259,29 @@ full-copy log restart to reproduce this.
   deletes them; BtreeSetVersion(pBt, 1) resets them) — the naive port
   broke the wal-24.x reopens; needs its own planned checkpoint/flush
   unit (walbak-4.3.1/4.3.3).
+- **S7 — LANDED (2026-11-04f, commit 6b6403735)**: the
+  sqlite3_wal_checkpoint{,_v2} command surface — the checkpoint procs
+  execute. e_walckpt's three foreach-script checkpoint procs inlined
+  except their tails: `eval wal_checkpoint_v2 ...` /
+  `eval sqlite3_wal_checkpoint ...` hit unknown commands and the whole
+  checkpoint call dropped — no checkpoint ran, the xShmLock callback
+  recorders never saw the CKPT lock (86x seen_checkpoint_lock got 0 want
+  1), and the mode-sweep db copies held no checkpointed content. The
+  converter gains the two command handlers (test1.c:7615's
+  sqlite3_wal_checkpoint_v2 — the {busy nLog nCkpt} triple; the simple
+  form — the result-code name; the schema rides FileTarget because the
+  catch wrapper stamps Variable), emitting wal_checkpoint_v2/
+  wal_checkpoint_rc steps; the harness cases reuse the engine's
+  WalCheckpoint pragma path (the same {0 -1 -1} non-WAL contract the
+  passing e_walckpt-2.2.b exercises). The do_test promotion attaches an
+  expectation ONLY to a DIRECTLY-trailing checkpoint call, and the
+  catch-all never stamps these steps — a trailing compare_db_hashes
+  leaves the checkpoint's placeholder in the anonymous variable and its
+  value belongs to the db-hash surface. 47 checkpoint steps execute in
+  the regenerated fixture. e_walckpt 139→136, 0 new failure names,
+  wal -2. **CARD (Phase B)**: the db-hash body-value surface —
+  save_db_hashes/compare_db_hashes (md5file) and the
+  `list [catch {...} msg] $msg` shapes own the 1.x/2.1.x/3.1.x/5.x
+  expectations. **Follow-up**: e_walauto/interrupt2/wal5 also call
+  sqlite3_wal_checkpoint — their committed fixtures predate the handler
+  and regenerate under the same drift card when triaged.
