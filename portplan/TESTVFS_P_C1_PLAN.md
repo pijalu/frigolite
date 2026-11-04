@@ -285,3 +285,25 @@ full-copy log restart to reproduce this.
   expectations. **Follow-up**: e_walauto/interrupt2/wal5 also call
   sqlite3_wal_checkpoint — their committed fixtures predate the handler
   and regenerate under the same drift card when triaged.
+- **S7b — LANDED (2026-11-04g, commit aa264ba33)**: the db-hash
+  body-value surface (Phase B). Four pieces: commandCatch executes a
+  QUOTED body (TCL's catch runs its first argument as a script either
+  way — the foreach-baked `catch "wal_checkpoint_v2 db $mode" msg`);
+  the catch-list rc reference resolves to the carrier the body actually
+  stamped (a nested wrapper's named rc wins over __catchrc_<msg>) and
+  the harness's checkpoint step records rc/msg on both paths; the
+  engine's WalCheckpoint mirrors main.c — an unknown zDb returns
+  SQLITE_ERROR ("unknown database: <name>"; pragmaDBCtx's main fallback
+  masked it), a NULL zDb checkpoints EVERY attached database with the
+  triple reporting the FIRST checkpointed db (the C nulls its
+  out-params after the first iteration), BUSY accumulates, non-WAL
+  leaves the -1s — and the harness rejects a MODE outside
+  passive/full/restart/truncate with SQLITE_MISUSE ("not an error"),
+  composing the wrapper's [sqlite3_errcode] - msg prefix into the catch
+  message; the save_db_hashes/compare_db_hashes helpers emit
+  purpose-built steps (md5 of the fixture databases, the changed list
+  as the do_test value). e_walckpt 136→129, 7 fixed, 0 new names; the
+  1.1.x/2.1.x db-hash cases pass end-to-end. **Remaining classes**: the
+  mode-sweep choreography (no-such-table/COMMIT — 1.full/restart/
+  truncate.x), the busy-handler/xWrite/sync callback counters
+  (1.passive.1.6-8, 1.3.2.2).
