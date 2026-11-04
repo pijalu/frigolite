@@ -68,6 +68,7 @@ type TestStep struct {
 	VFS               string            `json:"vfs,omitempty"`
 	Prep              []TestStep        `json:"prep,omitempty"`
 	Body              []TestStep        `json:"body,omitempty"`
+	TestScript        string            `json:"testScript,omitempty"`
 	TestPatterns      []string          `json:"testPatterns,omitempty"`
 	CollectVar        string            `json:"collectVar,omitempty"`
 	FunctionArgs      []string          `json:"functionArgs,omitempty"`
@@ -566,6 +567,7 @@ func stepFromStmt(s tcl.Stmt) TestStep {
 		CollectColumn:     s.CollectColumn,
 		Prep:              stmtsToSteps(s.Prep),
 		Body:              stmtsToSteps(s.Body),
+		TestScript:        tcl.StripRuntimeValues(s.TestScript),
 		TestPatterns:      s.TestPatterns,
 		VFS:               s.VFS,
 		CollectVar:        s.CollectVar,

@@ -40,10 +40,12 @@ type Stmt struct {
 	Condition   string // the step runs only when this Tcl expression is true
 	VFS         string // the -vfs option of the opening sqlite3 command
 	// faultsim_test (malloc_common.tcl): the Prep/Body step trees replay per
-	// trial with the ioerr injector armed at the trial index; TestPatterns
-	// are the (rc, result) pairs the -test script accepts.
-	Prep         []Stmt
-	Body         []Stmt
+	// trial with the ioerr injector armed at the trial index; TestScript is
+	// the -test script evaluated per trial (faultsim_test_result's pattern
+	// list + the integrity/content checks).
+	Prep        []Stmt
+	Body        []Stmt
+	TestScript  string
 	TestPatterns []string
 	// stmt_bind: the C-API bind the step performs (sqlite3_bind_text/blob).
 	BindIndex int
@@ -976,6 +978,16 @@ func (i *Interp) cmdForeach(rawWords []rawWord, localVars map[string]string) err
 		i.stmts = append(i.stmts, Stmt{Type: "drop_all_tables"})
 		return nil
 	}
+	if body.Braced {
+		if pattern, ok := isGlobForceDeleteLoop(body.Text, listRaw.Text); ok {
+			// `foreach f [glob -nocomplain test.db*] { forcedelete $f }`
+			// (the fault-snapshot cleanup idiom): the loop's file set is a
+			// RUNTIME glob, so the converter records the pattern and the
+			// harness expands it per execution.
+			i.stmts = append(i.stmts, Stmt{Type: "delete_glob", SQL: pattern})
+			return nil
+		}
+	}
 	pairs, iterations, err := i.parseForeachPairs(rawWords, localVars)
 	if err != nil {
 		return err
@@ -1046,6 +1058,37 @@ func isDropAllTablesLoop(body, listExpr string) bool {
 		strings.Contains(listLower, "select name from sqlite_master where type = 'table'") &&
 		strings.Contains(bodyLower, "db eval") &&
 		strings.Contains(bodyLower, "drop table $")
+}
+
+// isGlobForceDeleteLoop recognizes the snapshot-cleanup idiom
+// `foreach <var> [glob ?-nocomplain? <pattern>] { forcedelete $<var> }`:
+// the body must be exactly one forcedelete of the loop variable. Returns
+// the glob pattern the harness expands at execution time.
+func isGlobForceDeleteLoop(body, listExpr string) (string, bool) {
+	list := strings.TrimSpace(listExpr)
+	list = strings.TrimPrefix(strings.TrimSuffix(list, "]"), "[")
+	if !strings.HasPrefix(list, "glob ") && list != "glob" {
+		return "", false
+	}
+	args := strings.Fields(strings.TrimPrefix(list, "glob"))
+	if len(args) == 0 {
+		return "", false
+	}
+	if args[0] == "-nocomplain" {
+		args = args[1:]
+	}
+	if len(args) != 1 {
+		return "", false
+	}
+	bodyFields := strings.Fields(strings.TrimSpace(body))
+	if len(bodyFields) != 2 || !strings.EqualFold(bodyFields[0], "forcedelete") {
+		return "", false
+	}
+	v := strings.TrimPrefix(bodyFields[1], "$")
+	if v == "" || v == bodyFields[1] {
+		return "", false
+	}
+	return args[0], true
 }
 
 func (i *Interp) cmdWhile(rawWords []rawWord, localVars map[string]string) error {

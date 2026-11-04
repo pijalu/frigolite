@@ -494,6 +494,7 @@ func commandDoFaultsimTest(i *Interp, rawWords []rawWord, args []string, localVa
 		SQL:          faults,
 		Prep:         prep,
 		Body:         body,
+		TestScript:   testRaw,
 		TestPatterns: faultsimTestPatterns(testRaw),
 		TestName:     name,
 	})

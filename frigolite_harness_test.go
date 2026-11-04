@@ -241,6 +241,7 @@ type TestStep struct {
 	// TestPatterns are the accepted (rc, result) pairs.
 	Prep         []TestStep `json:"prep,omitempty"`
 	Body         []TestStep `json:"body,omitempty"`
+	TestScript   string     `json:"testScript,omitempty"`
 	TestPatterns []string   `json:"testPatterns,omitempty"`
 }
 
@@ -3298,6 +3299,13 @@ func TestSQLiteSuite(t *testing.T) {
 					db.Close()
 					if lifecycleDBPath != "" {
 						_ = os.Remove(lifecycleDBPath)
+						// db_delete_and_reopen deletes the whole test.db*
+						// glob (tester.tcl:2490): a surviving stale -wal or
+						// -journal is recovered over the fresh file and the
+						// first statement reports a corrupt image.
+						for _, name := range faultsimGlobFiles(lifecycleDBPath) {
+							_ = os.Remove(filepath.Join(filepath.Dir(lifecycleDBPath), name))
+						}
 						db, err = Open(lifecycleDBPath)
 						if err != nil {
 							// Report and fall back to an empty database (see the
@@ -3511,6 +3519,13 @@ func TestSQLiteSuite(t *testing.T) {
 							if openErr != nil {
 								t.Fatalf("open named database %q: %v", step.Database, openErr)
 							}
+							// TCL `sqlite3 <name> <file>` on an existing
+							// command deletes the old command first (closing
+							// its connection): an unclosed predecessor holds
+							// its locks for the rest of the suite.
+							if prior := namedDBs[step.Database]; prior != nil && !prior.closedFlag {
+								_ = prior.Close()
+							}
 							namedDBs[step.Database] = opened
 							installDefaultVFS(t, testvfsFixtures, testvfsDefault, opened, runtimeVars, fixtureDBDir)
 							continue
@@ -3570,12 +3585,19 @@ func TestSQLiteSuite(t *testing.T) {
 							// A database reset captured INSIDE a test (pager1's
 							// `faultsim_delete_and_reopen`): the database is
 							// closed, its file removed and a fresh one opened,
-							// at this point in the statement order.
+							// at this point in the statement order. C's
+							// db_delete_and_reopen force-deletes the whole
+							// test.db* glob (tester.tcl:2490) — a surviving
+							// stale -wal/-journal would be recovered over the
+							// fresh file.
 							runCollationDestructors(db, collationDestructors, runtimeVars)
 							db.UnregisterEchoModule()
 							_ = db.Close()
 							if lifecycleDBPath != "" {
 								_ = os.Remove(lifecycleDBPath)
+								for _, name := range faultsimGlobFiles(lifecycleDBPath) {
+									_ = os.Remove(filepath.Join(filepath.Dir(lifecycleDBPath), name))
+								}
 								db, err = Open(lifecycleDBPath)
 								if err != nil {
 									// Report and fall back to an empty database (see the
@@ -3979,7 +4001,37 @@ func TestSQLiteSuite(t *testing.T) {
 							// copies of the main database and its sidecars
 							// between test.db* and sv_test.db* (the faultsim
 							// trial restore point).
-							faultsimFileOp(t, step.Type, db, fixtureDBDir, base)
+							//
+							// db_restore_and_reopen closes the connection
+							// FIRST (tester.tcl:2482): the old connection
+							// finalizes against its own file image, then the
+							// files are replaced, then the reopen. Restoring
+							// under a live connection lets its Close flush
+							// stale dirty pages over the fresh snapshot —
+							// the freelist-corruption seed the trial loop
+							// hung on.
+							if step.Type == "faultsim_restore_reopen" {
+								lifecycle := filepath.Join(fixtureDBDir, "test.db")
+								if b := filepath.Base(db.path); b != "test.db" {
+									lifecycle = filepath.Join(fixtureDBDir, b)
+								}
+								main := db.path
+								runCollationDestructors(db, collationDestructors, runtimeVars)
+								if !db.closedFlag {
+									db.UnregisterEchoModule()
+									_ = db.Close()
+								}
+								faultsimFileOp(t, step.Type, main, fixtureDBDir)
+								reopened, oerr := Open(lifecycle)
+								if oerr != nil {
+									t.Errorf("faultsim_restore_and_reopen: %v", oerr)
+									return
+								}
+								registerTest1Functions(t, reopened)
+								db = reopened
+								continue
+							}
+							faultsimFileOp(t, step.Type, faultsimMainPath(db, fixtureDBDir), fixtureDBDir)
 							if step.Type == "faultsim_save_close" {
 								if !db.closedFlag {
 									runCollationDestructors(db, collationDestructors, runtimeVars)
@@ -3990,25 +4042,8 @@ func TestSQLiteSuite(t *testing.T) {
 									}
 								}
 							}
-							if step.Type == "faultsim_restore_reopen" {
-								lifecycle := filepath.Join(fixtureDBDir, "test.db")
-								if base := filepath.Base(db.path); base != "test.db" {
-									lifecycle = filepath.Join(fixtureDBDir, base)
-								}
-								reopened, oerr := Open(lifecycle)
-								if oerr != nil {
-									t.Errorf("faultsim_restore_and_reopen: %v", oerr)
-									return
-								}
-								registerTest1Functions(t, reopened)
-								if !db.closedFlag {
-									db.UnregisterEchoModule()
-									_ = db.Close()
-								}
-								db = reopened
-							}
 						case "faultsim_test":
-							runFaultsimTest(t, step, db, fixtureDBDir, runtimeVars)
+							runFaultsimTest(t, step, &db, namedDBs, fixtureDBDir, runtimeVars)
 						case "enable_shared_cache":
 							// sqlite3_enable_shared_cache (notify1's file-level
 							// setup): the process-global flag decides whether
@@ -5821,11 +5856,11 @@ func (fx *testvfsFixture) hook(runtimeVars map[string]string, db *DB, fixtureDBD
 	// The fixture callbacks invoke the faultsim snapshot pair (pagerfault's
 	// xSyncCb saves on every journal I/O).
 	interp.RegisterCallbackCommand("faultsim_save", func(args []string) (string, error) {
-		faultsimFileOp(nil, "faultsim_save", db, fixtureDBDir, "pagerfault")
+		faultsimFileOp(nil, "faultsim_save", faultsimMainPath(db, fixtureDBDir), fixtureDBDir)
 		return "", nil
 	})
 	interp.RegisterCallbackCommand("faultsim_restore", func(args []string) (string, error) {
-		faultsimFileOp(nil, "faultsim_restore", db, fixtureDBDir, "pagerfault")
+		faultsimFileOp(nil, "faultsim_restore", faultsimMainPath(db, fixtureDBDir), fixtureDBDir)
 		return "", nil
 	})
 	var targets []string
@@ -5885,40 +5920,93 @@ func installDefaultVFS(t *testing.T, fixtures map[string]*testvfsFixture, name s
 	db.engine.InstallVFSHook(fx.hook(runtimeVars, db, fixtureDBDir), fx.devcharBits)
 }
 
-// faultsimSidecarSuffixes lists the sidecar files the snapshot pair copies
-// alongside the main database (tester.tcl's `glob test.db*`).
-var faultsimSidecarSuffixes = []string{"", "-wal", "-journal", "-shm"}
+// faultsimMainPath resolves the main database file a faultsim snapshot pair
+// operates on (the connection's path, or the fixture's test.db for
+// private-temporary databases).
+func faultsimMainPath(db *DB, fixtureDBDir string) string {
+	if db != nil && db.path != "" && db.path != ":memory:" {
+		return db.path
+	}
+	return filepath.Join(fixtureDBDir, "test.db")
+}
 
-// faultsimFileOp implements one faultsim snapshot operation over db's main
-// file (tester.tcl db_save/db_restore: test.db* ↔ sv_test.db*).
-func faultsimFileOp(t *testing.T, op string, db *DB, fixtureDBDir, base string) {
+// faultsimGlobFiles enumerates tester.tcl's `glob <base>*` scope in main's
+// directory: every file whose name carries the main basename as a prefix
+// (test.db, test.db-journal, test.db-wal, test.db-shm, AND ATTACH'd
+// siblings like test.db2 — pagerfault-14's snapshots ride on the glob),
+// excluding the sv_ snapshot images themselves.
+func faultsimGlobFiles(main string) []string {
+	dir := filepath.Dir(main)
+	base := filepath.Base(main)
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil
+	}
+	var names []string
+	for _, e := range entries {
+		name := e.Name()
+		if e.IsDir() || name == base || !strings.HasPrefix(name, base) || strings.HasPrefix(name, "sv_") {
+			continue
+		}
+		names = append(names, name)
+	}
+	return names
+}
+
+// faultsimFileOp implements one faultsim snapshot operation over main (the
+// main database file path; tester.tcl db_save/db_restore: test.db* ↔
+// sv_test.db*). The scope is the test.db* glob: ATTACH'd sibling files
+// travel with the snapshot.
+func faultsimFileOp(t *testing.T, op string, main, fixtureDBDir string) {
 	t.Helper()
-	main := db.path
-	if main == "" || main == ":memory:" {
+	if main == "" {
 		main = filepath.Join(fixtureDBDir, "test.db")
 	}
-	for _, suffix := range faultsimSidecarSuffixes {
-		src := main + suffix
-		sv := filepath.Join(filepath.Dir(src), "sv_"+filepath.Base(src))
-		switch op {
-		case "faultsim_save", "faultsim_save_close":
-			if data, err := os.ReadFile(src); err == nil {
-				if werr := os.WriteFile(sv, data, 0o644); werr != nil {
-					t.Errorf("faultsim_save %s: %v", sv, werr)
-				}
-			} else if !os.IsNotExist(err) {
-				t.Errorf("faultsim_save read %s: %v", src, err)
-			} else {
-				_ = os.Remove(sv)
+	dir := filepath.Dir(main)
+	base := filepath.Base(main)
+	switch op {
+	case "faultsim_save", "faultsim_save_close":
+		// db_save: forcedelete every sv_test.db* image, then copy each
+		// current test.db* file. A file the state no longer has (13-pre1's
+		// deleted zero-size main) leaves NO snapshot image.
+		svEntries, _ := os.ReadDir(dir)
+		for _, e := range svEntries {
+			if !e.IsDir() && strings.HasPrefix(e.Name(), "sv_"+base) {
+				_ = os.Remove(filepath.Join(dir, e.Name()))
 			}
-		case "faultsim_restore", "faultsim_restore_reopen":
-			if data, err := os.ReadFile(sv); err == nil {
-				if werr := os.WriteFile(src, data, 0o644); werr != nil {
-					t.Errorf("faultsim_restore %s: %v", src, werr)
+		}
+		for _, name := range append([]string{base}, faultsimGlobFiles(main)...) {
+			data, err := os.ReadFile(filepath.Join(dir, name))
+			if err != nil {
+				if !os.IsNotExist(err) {
+					t.Errorf("faultsim_save read %s: %v", name, err)
 				}
-			} else {
-				// The snapshot lacks this file: the restore point had none.
-				_ = os.Remove(src)
+				continue
+			}
+			if werr := os.WriteFile(filepath.Join(dir, "sv_"+name), data, 0o644); werr != nil {
+				t.Errorf("faultsim_save %s: %v", name, werr)
+			}
+		}
+	case "faultsim_restore", "faultsim_restore_reopen":
+		// db_restore: forcedelete every current test.db* file, then copy
+		// each sv_test.db* image back. Files the restore point lacked stay
+		// absent — the restore defines the full visible state.
+		for _, name := range append([]string{base}, faultsimGlobFiles(main)...) {
+			_ = os.Remove(filepath.Join(dir, name))
+		}
+		svEntries, _ := os.ReadDir(dir)
+		for _, e := range svEntries {
+			name := e.Name()
+			if e.IsDir() || !strings.HasPrefix(name, "sv_"+base) {
+				continue
+			}
+			data, err := os.ReadFile(filepath.Join(dir, name))
+			if err != nil {
+				t.Errorf("faultsim_restore read %s: %v", name, err)
+				continue
+			}
+			if werr := os.WriteFile(filepath.Join(dir, strings.TrimPrefix(name, "sv_")), data, 0o644); werr != nil {
+				t.Errorf("faultsim_restore %s: %v", name, werr)
 			}
 		}
 	}
@@ -5929,32 +6017,41 @@ func faultsimFileOp(t *testing.T, op string, db *DB, fixtureDBDir, base string) 
 // snapshot/reopen pair); anything else is a fixture gap and errors the trial.
 // Returns (rc, result, handled): rc 1 + the error message on a caught
 // failure, 0 + the rendered result on success.
-func runFaultsimStep(t *testing.T, dbp **DB, step TestStep, runtimeVars map[string]string, fixtureDBDir string, base string) (int, string, bool) {
+func runFaultsimStep(t *testing.T, dbp **DB, namedDBs map[string]*DB, prepared map[string]*Stmt, stmtCode map[string]string, step TestStep, runtimeVars map[string]string, fixtureDBDir string, base string) (int, string, bool) {
 	t.Helper()
 	step.SQL = expandTCLRuntimeVarsSQL(step.SQL, runtimeVars)
 	step.Expect = expandTCLRuntimeVars(step.Expect, runtimeVars)
 	switch step.Type {
 	case "faultsim_save", "faultsim_save_close", "faultsim_restore", "faultsim_restore_reopen":
-		faultsimFileOp(t, step.Type, *dbp, fixtureDBDir, base)
-		if step.Type == "faultsim_save_close" {
-			if !(*dbp).closedFlag {
-				_ = (*dbp).Close()
-			}
-		}
 		if step.Type == "faultsim_restore_reopen" {
+			// C's db_restore_and_reopen (tester.tcl:2482): close FIRST
+			// (the old connection finalizes against its own file image),
+			// then replace the files, then reopen. Restoring under a live
+			// connection lets its Close flush stale dirty pages over the
+			// fresh snapshot — the freelist-corruption seed the trial
+			// loop hung on.
 			lifecycle := (*dbp).path
 			if lifecycle == "" || lifecycle == ":memory:" {
 				lifecycle = filepath.Join(fixtureDBDir, "test.db")
 			}
+			main := (*dbp).path
+			if !(*dbp).closedFlag {
+				_ = (*dbp).Close()
+			}
+			faultsimFileOp(t, step.Type, main, fixtureDBDir)
 			reopened, oerr := Open(lifecycle)
 			if oerr != nil {
 				return 1, oerr.Error(), true
 			}
 			registerTest1Functions(t, reopened)
+			*dbp = reopened
+			return 0, "", true
+		}
+		faultsimFileOp(t, step.Type, faultsimMainPath(*dbp, fixtureDBDir), fixtureDBDir)
+		if step.Type == "faultsim_save_close" {
 			if !(*dbp).closedFlag {
 				_ = (*dbp).Close()
 			}
-			*dbp = reopened
 		}
 		return 0, "", true
 	case "reopen_db":
@@ -5972,25 +6069,195 @@ func runFaultsimStep(t *testing.T, dbp **DB, step TestStep, runtimeVars map[stri
 		}
 		*dbp = reopened
 		return 0, "", true
+	case "reset_db":
+		// faultsim_delete_and_reopen (malloc_common.tcl): close the
+		// connection, force-delete every test.db* file (the glob covers
+		// ATTACH'd siblings like test.db2), and open a fresh empty
+		// database. The -default VFS fixture is NOT threaded here: the
+		// traced regression (pagerfault 73→103) showed the hook's events
+		// disturb other trial steps — the fixture's per-connection
+		// choreography needs a recorded install-context
+		// (TESTVFS_P_C1_PLAN.md, next-session fix 1).
+		old := *dbp
+		main := old.path
+		if main == "" || main == ":memory:" {
+			main = filepath.Join(fixtureDBDir, "test.db")
+		}
+		if !old.closedFlag {
+			_ = old.Close()
+		}
+		dir := filepath.Dir(main)
+		base := filepath.Base(main)
+		for _, name := range append([]string{base}, faultsimGlobFiles(main)...) {
+			_ = os.Remove(filepath.Join(dir, name))
+		}
+		reopened, oerr := Open(main)
+		if oerr != nil {
+			return 1, oerr.Error(), true
+		}
+		registerTest1Functions(t, reopened)
+		*dbp = reopened
+		return 0, "", true
+	case "register_function":
+		// The registration carries the Tcl scope the proc was defined in
+		// (the main executor's contract): a function that reads a global
+		// sees it through the runtime variables.
+		for name, value := range step.CallbackVars {
+			name = strings.TrimPrefix(name, "::")
+			if name != "" {
+				if _, exists := runtimeVars[name]; !exists {
+					runtimeVars[name] = value
+				}
+			}
+		}
+		registerTCLIdentityFunction(t, *dbp, step, runtimeVars)
+		return 0, "", true
+	case "delete_file":
+		// forcedelete (pagerfault-5.3's test2.db family): remove the named
+		// file; a missing file is not an error.
+		filename := step.SQL
+		if !filepath.IsAbs(filename) {
+			filename = filepath.Join(fixtureDBDir, filename)
+		}
+		if err := os.Remove(filename); err != nil && !os.IsNotExist(err) {
+			return 1, err.Error(), true
+		}
+		return 0, "", true
+	case "delete_glob":
+		// `foreach f [glob -nocomplain test.db*] { forcedelete $f }`
+		// (pagerfault-23): remove every file the basename glob matches.
+		pattern := step.SQL
+		if !filepath.IsAbs(pattern) {
+			pattern = filepath.Join(fixtureDBDir, pattern)
+		}
+		matches, gerr := filepath.Glob(pattern)
+		if gerr != nil {
+			return 1, gerr.Error(), true
+		}
+		for _, m := range matches {
+			if err := os.Remove(m); err != nil && !os.IsNotExist(err) {
+				return 1, err.Error(), true
+			}
+		}
+		return 0, "", true
+	case "open_empty_db":
+		// `sqlite3 db ""` / `sqlite3 db :memory:` swaps main for a NEW
+		// EMPTY private database (interp_cmds.go's contract): the fixture's
+		// lifecycle file stays on disk.
+		if !(*dbp).closedFlag {
+			_ = (*dbp).Close()
+		}
+		reopened, oerr := Open(":memory:")
+		if oerr != nil {
+			return 1, oerr.Error(), true
+		}
+		registerTest1Functions(t, reopened)
+		*dbp = reopened
+		return 0, "", true
+	case "open_named_db":
+		// sqlite3 <name> <file> (pagerfault-28a's db2 test.db, -36's
+		// shared-cache URI): a named connection in the trial's scope, with
+		// the main executor's path/URI semantics.
+		normalized := normalizeFixtureDBName(step.SQL)
+		path := filepath.Join(fixtureDBDir, normalized)
+		if strings.TrimSpace(step.SQL) == "" || normalized == ":memory:" {
+			path = ":memory:"
+		}
+		if _, shared := sharedMemURI(step.SQL); shared {
+			path = step.SQL
+		} else if name, _ := sharedMemURI(step.SQL); name != "" {
+			path = step.SQL
+		}
+		opened, oerr := Open(path)
+		if oerr != nil {
+			return 1, oerr.Error(), true
+		}
+		registerTest1Functions(t, opened)
+		if namedDBs != nil {
+			// TCL `sqlite3 <name> <file>` on an existing command deletes the
+			// old command first (closing its connection): an unclosed
+			// predecessor holds its locks for the rest of the suite.
+			if prior := namedDBs[step.Database]; prior != nil && !prior.closedFlag {
+				_ = prior.Close()
+			}
+			namedDBs[step.Database] = opened
+		}
+		return 0, "", true
+	case "close_named_db":
+		if namedDBs != nil {
+			if opened := namedDBs[step.Database]; opened != nil {
+				_ = opened.Close()
+				delete(namedDBs, step.Database)
+			}
+		}
+		return 0, "", true
+	case "prepare_stmt":
+		// The C-API prepare inside a faultsim prep (pagerfault-28a): the
+		// prepared handle lives for the trial; a failed prepare errors the
+		// trial (no finalize to leak).
+		stmt, prepErr := (*dbp).Prepare(step.SQL)
+		if prepErr != nil {
+			return 1, prepErr.Error(), true
+		}
+		prepared[step.Variable] = stmt
+		return 0, "", true
+	case "stmt_step":
+		stmt := prepared[step.Variable]
+		if stmt == nil {
+			return 1, fmt.Sprintf("unknown prepared statement %q", step.Variable), true
+		}
+		row, stepErr := stmt.Step()
+		if stepErr != nil {
+			return 1, stepErr.Error(), true
+		}
+		stmtCode[step.Variable] = "SQLITE_DONE"
+		if row {
+			stmtCode[step.Variable] = "SQLITE_ROW"
+		}
+		return 0, "", true
 	case "exec":
+		// Named-connection routing (the main executor's execDB contract):
+		// a step addressed to db2 runs on that connection, not on main.
+		execDB := *dbp
+		if step.Database != "" && step.Database != "db" && namedDBs != nil {
+			if named := namedDBs[step.Database]; named != nil {
+				execDB = named
+			}
+		}
 		upper := strings.ToUpper(strings.TrimSpace(step.SQL))
 		if strings.HasPrefix(upper, "SELECT") || strings.HasPrefix(upper, "WITH") || strings.HasPrefix(upper, "VALUES") {
 			// A row-returning body value (db eval): render the rows.
-			return renderFaultsimQuery(t, *dbp, step, runtimeVars, base)
+			return renderFaultsimQuery(t, execDB, step, runtimeVars, base)
 		}
-		res := (*dbp).Exec(step.SQL)
+		// Route relative external-file operands through the fixture
+		// directory (the main executor's ATTACH contract): a trial's
+		// ATTACH 'test.db2' must hit the isolated fixture copy, not the
+		// process working directory.
+		res := execDB.Exec(routeFixtureAttachPaths(step.SQL, fixtureDBDir))
 		if res.Error != nil {
 			return 1, res.Error.Error(), true
 		}
 		return 0, "", true
 	case "catch":
-		res := (*dbp).Exec(step.SQL)
+		execDB := *dbp
+		if step.Database != "" && step.Database != "db" && namedDBs != nil {
+			if named := namedDBs[step.Database]; named != nil {
+				execDB = named
+			}
+		}
+		res := execDB.Exec(routeFixtureAttachPaths(step.SQL, fixtureDBDir))
 		if res.Error != nil {
 			return 1, res.Error.Error(), true
 		}
 		return 0, "0", true
 	case "query":
-		return renderFaultsimQuery(t, *dbp, step, runtimeVars, base)
+		execDB := *dbp
+		if step.Database != "" && step.Database != "db" && namedDBs != nil {
+			if named := namedDBs[step.Database]; named != nil {
+				execDB = named
+			}
+		}
+		return renderFaultsimQuery(t, execDB, step, runtimeVars, base)
 	}
 	return 0, "", false
 }
@@ -6019,22 +6286,47 @@ func renderFaultsimQuery(t *testing.T, db *DB, step TestStep, runtimeVars map[st
 // … — restore the snapshot, run the prep, arm the ioerr injector at iFail,
 // run the body, stop the injector (nfail = whether any I/O failed), and
 // assert the (rc, result) pair against the -test patterns. The loop stops at
-// the first trial whose nfail is 0.
-func runFaultsimTest(t *testing.T, step TestStep, db *DB, fixtureDBDir string, runtimeVars map[string]string) {
+// the first trial whose nfail is 0. The trial's reopens flow back through
+// dbp: the fixture's `db` command follows the last trial's connection
+// (leaving the pre-trial connection orphaned would leak its locks).
+func runFaultsimTest(t *testing.T, step TestStep, dbp **DB, namedDBs map[string]*DB, fixtureDBDir string, runtimeVars map[string]string) {
 	t.Helper()
 	persist := strings.Contains(step.SQL, "persistent")
 	full := strings.Contains(step.SQL, "full")
 	_ = full
 	patterns := append([]string{}, step.TestPatterns...)
-	if len(patterns) == 0 {
+	if len(patterns) == 0 && step.TestScript == "" {
 		t.Errorf("faultsim %s: no test patterns", step.Variable)
 		return
 	}
+	// The trial's prepared-statement scope resets per trial: each trial's
+	// prep re-prepares on the fresh connection (the C faultsim loop re-runs
+	// -prep verbatim). Leftovers finalize first: an abandoned prepared read
+	// keeps its read transaction registered and blocks every other
+	// connection's writes.
+	prepared := make(map[string]*Stmt)
+	stmtCode := make(map[string]string)
+	// Every exit path finalizes leftovers: an abandoned prepared read
+	// keeps its read transaction registered and blocks every other
+	// connection's writes for the rest of the fixture (the early-error
+	// returns below would otherwise leak it).
+	defer func() {
+		for name, stmt := range prepared {
+			_ = stmt.Finalize()
+			delete(prepared, name)
+			delete(stmtCode, name)
+		}
+	}()
 	for iFail := int64(1); iFail <= 512; iFail++ {
+		for name, stmt := range prepared {
+			_ = stmt.Finalize()
+			delete(prepared, name)
+			delete(stmtCode, name)
+		}
 		// The prep rebuilds the trial's starting state (its own
 		// faultsim_save/restore pair drives the snapshot files).
 		for _, prepStep := range step.Prep {
-			if rc, res, handled := runFaultsimStep(t, &db, prepStep, runtimeVars, fixtureDBDir, "pagerfault"); !handled {
+			if rc, res, handled := runFaultsimStep(t, dbp, namedDBs, prepared, stmtCode, prepStep, runtimeVars, fixtureDBDir, "pagerfault"); !handled {
 				t.Errorf("faultsim %s trial %d: unhandled prep step %s (%s)", step.Variable, iFail, prepStep.Type, prepStep.SQL)
 				return
 			} else if rc != 0 {
@@ -6045,7 +6337,7 @@ func runFaultsimTest(t *testing.T, step TestStep, db *DB, fixtureDBDir string, r
 		pager.IOErrInjectStart(persist, iFail)
 		rc, result := 0, ""
 		for _, bodyStep := range step.Body {
-			if r, res, handled := runFaultsimStep(t, &db, bodyStep, runtimeVars, fixtureDBDir, "pagerfault"); !handled {
+			if r, res, handled := runFaultsimStep(t, dbp, namedDBs, prepared, stmtCode, bodyStep, runtimeVars, fixtureDBDir, "pagerfault"); !handled {
 				pager.IOErrInjectStop()
 				t.Errorf("faultsim %s trial %d: unhandled body step %s (%s)", step.Variable, iFail, bodyStep.Type, bodyStep.SQL)
 				return
@@ -6057,17 +6349,31 @@ func runFaultsimTest(t *testing.T, step TestStep, db *DB, fixtureDBDir string, r
 			}
 		}
 		nfail := pager.IOErrInjectStop()
-		pair := "{" + strconv.Itoa(rc) + " " + result + "}"
-		matched := false
-		for _, p := range patterns {
-			if matchExpectation(pair, p) == "" {
-				matched = true
-				break
+		// The -test script evaluates per trial (faultsim_test_proc): the
+		// body's rc/result/nfail bind as testrc/testresult/testnfail, the
+		// `db` command runs against the trial's connection, and the script's
+		// own error (faultsim_test_result_int's `error` on a mismatch) fails
+		// the trial. The class's injected-error list appends to the pattern
+		// arguments (faultsim_test_result_int appends -injecterrlist).
+		if step.TestScript != "" {
+			if err := evalFaultsimTestScript(step.TestScript, rc, result, nfail, dbp, namedDBs, prepared, stmtCode, fixtureDBDir); err != nil {
+				t.Errorf("faultsim %s trial %d: %v\n  got rc=%d result=%q nfail=%v", step.Variable, iFail, err, rc, result, nfail)
+				return
 			}
-		}
-		if !matched {
-			t.Errorf("faultsim %s trial %d: got %s, want one of %v", step.Variable, iFail, pair, patterns)
-			return
+		} else {
+			// No -test script: fall back to the parsed pattern list.
+			pair := "{" + strconv.Itoa(rc) + " " + result + "}"
+			matched := false
+			for _, p := range patterns {
+				if matchExpectation(pair, p) == "" {
+					matched = true
+					break
+				}
+			}
+			if !matched {
+				t.Errorf("faultsim %s trial %d: got %s, want one of %v", step.Variable, iFail, pair, patterns)
+				return
+			}
 		}
 		if !nfail {
 			// The trial ran clean: the injector never fired — the body no
@@ -6076,4 +6382,141 @@ func runFaultsimTest(t *testing.T, step TestStep, db *DB, fixtureDBDir string, r
 		}
 	}
 	t.Errorf("faultsim %s: the trial loop hit the 512-trial cap", step.Variable)
+}
+
+// evalFaultsimTestScript runs one trial's -test script: the C
+// faultsim_test_proc with testrc/testresult/testnfail bound, `db`/named
+// connection command adapters over the trial's connections, catchsql,
+// sqlite3_finalize, faultsim_test_result (the pattern assertion), and
+// faultsim_integrity_check.
+func evalFaultsimTestScript(testScript string, rc int, result string, nfail bool, dbp **DB, namedDBs map[string]*DB, trialPrepared map[string]*Stmt, trialStmtCode map[string]string, fixtureDBDir string) error {
+	interp := tcl.NewInterp()
+	interp.SetVariable("testrc", strconv.Itoa(rc))
+	interp.SetVariable("testresult", result)
+	if nfail {
+		interp.SetVariable("testnfail", "1")
+	} else {
+		interp.SetVariable("testnfail", "0")
+	}
+	dbpLocal := dbp
+	// dbConnAdapter renders one connection-command over db: eval (the row
+	// list), one (the first cell of the first row), and close.
+	dbConnAdapter := func(db *DB) func(args []string) (string, error) {
+		return func(args []string) (string, error) {
+			if len(args) >= 2 && args[0] == "eval" {
+				res := db.Query(routeFixtureAttachPaths(args[1], fixtureDBDir))
+				if res.Error != nil {
+					return "", res.Error
+				}
+				rows := make([]string, 0, len(res.Rows)*len(res.Columns))
+				for _, row := range res.Rows {
+					for _, cell := range row {
+						rows = append(rows, formatHarnessValue("pagerfault", cell))
+					}
+				}
+				return tclListString(rows), nil
+			}
+			if len(args) >= 2 && args[0] == "one" {
+				res := db.Query(routeFixtureAttachPaths(args[1], fixtureDBDir))
+				if res.Error != nil {
+					return "", res.Error
+				}
+				if len(res.Rows) == 0 || len(res.Rows[0]) == 0 {
+					return "", nil
+				}
+				return formatHarnessValue("pagerfault", res.Rows[0][0]), nil
+			}
+			if len(args) >= 1 && args[0] == "close" {
+				if !db.closedFlag {
+					return "", db.Close()
+				}
+				return "", nil
+			}
+			return "", fmt.Errorf("db: unsupported subcommand %v", args)
+		}
+	}
+	interp.RegisterCallbackCommand("db", dbConnAdapter(*dbpLocal))
+	if namedDBs != nil {
+		for name, conn := range namedDBs {
+			if name == "" || conn == nil {
+				continue
+			}
+			named := conn
+			adapter := dbConnAdapter(named)
+			interp.RegisterCallbackCommand(name, func(args []string) (string, error) {
+				if len(args) >= 1 && args[0] == "close" {
+					if !named.closedFlag {
+						_ = named.Close()
+					}
+					delete(namedDBs, name)
+					return "", nil
+				}
+				return adapter(args)
+			})
+		}
+	}
+	// catchsql { SQL }: TCL's catch around one statement — "0 {}" on
+	// success, "1 {the error message}" on failure (pagerfault-28a's
+	// scripted ROLLBACK probe).
+	interp.RegisterCallbackCommand("catchsql", func(args []string) (string, error) {
+		if len(args) < 1 {
+			return "", fmt.Errorf("catchsql: missing SQL")
+		}
+		res := (*dbpLocal).Exec(routeFixtureAttachPaths(args[0], fixtureDBDir))
+		if res.Error != nil {
+			return "1 {" + res.Error.Error() + "}", nil
+		}
+		return "0 {}", nil
+	})
+	// sqlite3_finalize $handle: the script's $::STMT names the trial's
+	// prepared statement (the converter records the handle as stmt_N).
+	// Finalizing must be REAL — an unfinished prepared read keeps its read
+	// transaction registered and blocks every other connection's writes
+	// ("database is locked") for the rest of the fixture.
+	interp.RegisterCallbackCommand("sqlite3_finalize", func(args []string) (string, error) {
+		for name, stmt := range trialPrepared {
+			if err := stmt.Finalize(); err != nil {
+				return "", err
+			}
+			delete(trialPrepared, name)
+			delete(trialStmtCode, name)
+		}
+		return "SQLITE_OK", nil
+	})
+	interp.RegisterCallbackCommand("faultsim_integrity_check", func(args []string) (string, error) {
+		res := (*dbpLocal).Query("PRAGMA integrity_check")
+		if res.Error != nil {
+			return "", res.Error
+		}
+		if len(res.Rows) == 0 || fmt.Sprint(res.Rows[0][0]) != "ok" {
+			return "", fmt.Errorf("Integrity check: %v", res.Rows)
+		}
+		return "", nil
+	})
+	// The class's injected-error list (malloc_common.tcl's -injecterrlist):
+	// the ioerr/full classes' tolerated failure shape.
+	errlist := "{1 {disk I/O error}}"
+	if strings.Contains(testScript, "faultsim_test_result") {
+		// faultsim_test_result_int appends -injecterrlist to the caller's
+		// arguments; the registered command models the whole comparison.
+	}
+	interp.RegisterCallbackCommand("faultsim_test_result", func(args []string) (string, error) {
+		t := "{" + strconv.Itoa(rc) + " " + result + "}"
+		all := append(append([]string{}, args...), errlist)
+		if nfail {
+			// nfail>0: the pair must appear in the tolerated list.
+			for _, p := range all {
+				if matchExpectation(t, p) == "" {
+					return "", nil
+				}
+			}
+			return "", fmt.Errorf("nfail=%d rc=%d result=%s list=%v", 1, rc, t, all)
+		}
+		// nfail==0: the pair must equal the FIRST pattern (the clean result).
+		if len(args) > 0 && matchExpectation(t, args[0]) == "" {
+			return "", nil
+		}
+		return "", fmt.Errorf("nfail=0 rc=%d result=%s want %s", rc, t, args[0])
+	})
+	return interp.Execute(testScript)
 }

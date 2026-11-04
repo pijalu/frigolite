@@ -233,26 +233,7 @@ func (p *Pager) loadPageFromDiskLocked(pg *Page, pageNum uint32) error {
 		// wal-index or the checkpointed main file (readPageWALLocked).
 		return p.readPageWALLocked(pg, pageNum)
 	}
-	if p.file == nil {
-		return nil
-	}
-	off := int64(pageNum-1) * int64(p.pageSize)
-	_, err := p.file.ReadAt(pg.Data, off)
-	if err == io.EOF {
-		// A short final page (file size not a multiple of the page size,
-		// e.g. a deserialized/hexio-crafted image truncated mid-page) is
-		// not a read error: SQLite's pager zero-fills the remainder
-		// (pager.c sqlite3PagerGet's short-read memset). The corruption
-		// detection happens in the btree/schema layers on the resulting
-		// content, not in the I/O layer. io.EOF here means "fewer bytes
-		// than requested", which ReadAt may deliver together with a
-		// partial fill; pg.Data already holds what was read.
-		err = nil
-	}
-	if err != nil {
-		return fmt.Errorf("pager: read page %d: %w", pageNum, err)
-	}
-	return nil
+	return p.readFilePageLocked(pg, pageNum)
 }
 
 // readPageWALLocked fills pg from the connection's WAL snapshot: the newest
@@ -278,13 +259,27 @@ func (p *Pager) readPageWALLocked(pg *Page, pageNum uint32) error {
 }
 
 // readFilePageLocked fills pg from the main database file (pager.c
-// readDbPage). Caller holds p.mu for writing.
+// readDbPage). A short read (page beyond EOF — a truncated or still-empty
+// main file under WAL mode) zero-fills the remainder and succeeds:
+// SQLITE_IOERR_SHORT_READ is swallowed by readDbPage, and pages above
+// dbSize come back zeroed without I/O in getPageNormal. The corruption
+// detection happens in the btree/schema layers on the content, not in the
+// I/O layer. Caller holds p.mu for writing.
 func (p *Pager) readFilePageLocked(pg *Page, pageNum uint32) error {
 	if p.file == nil {
 		return nil
 	}
 	off := int64(pageNum-1) * int64(p.pageSize)
-	if _, err := p.file.ReadAt(pg.Data, off); err != nil {
+	n, err := p.file.ReadAt(pg.Data, off)
+	if err == io.EOF || (err == nil && n < len(pg.Data)) {
+		// Short read: zero the unread tail (ReadAt may deliver a partial
+		// fill together with io.EOF, and a reused buffer holds stale bytes).
+		for i := n; i < len(pg.Data); i++ {
+			pg.Data[i] = 0
+		}
+		return nil
+	}
+	if err != nil {
 		return fmt.Errorf("pager: read page %d: %w", pageNum, err)
 	}
 	return nil

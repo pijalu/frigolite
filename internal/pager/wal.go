@@ -263,8 +263,12 @@ func (w *walWriter) busyToRetryOrRecovery(busy error) error {
 }
 
 // walFileHeaderSaltsMatchLocked reports whether the -wal file carries a valid
-// header whose salts match the shared wal-index header. Caller holds the
-// wal-index writer section.
+// header whose salts match the shared wal-index header, AND holds every frame
+// the shared header maps (wal.c's walIndexRecover is the only writer of
+// MxFrame and it never maps frames the file lacks — a shared header that
+// claims frames beyond the file's capacity outlived its -wal file, e.g. a
+// snapshot pair restored a wal-index beside a restarted WAL — and the -wal is
+// the authority: rebuild). Caller holds the wal-index writer section.
 func (w *walWriter) walFileHeaderSaltsMatchLocked() bool {
 	buf := make([]byte, WalHdrSize)
 	n, err := w.file.ReadAt(buf, 0)
@@ -272,8 +276,17 @@ func (w *walWriter) walFileHeaderSaltsMatchLocked() bool {
 		return false
 	}
 	h, derr := DecodeWalHeader(buf)
-	return derr == nil && h.HeaderCksumOK &&
-		h.Salt1 == w.hdr.ASalt[0] && h.Salt2 == w.hdr.ASalt[1]
+	if derr == nil && h.HeaderCksumOK &&
+		h.Salt1 == w.hdr.ASalt[0] && h.Salt2 == w.hdr.ASalt[1] {
+		if info, serr := w.file.Stat(); serr == nil {
+			frameSize := int64(w.pageSize) + WalFrameHdrSize
+			if (info.Size()-WalHdrSize)/frameSize < int64(w.hdr.MxFrame) {
+				return false
+			}
+		}
+		return true
+	}
+	return false
 }
 
 // syncChainFromWalFileLocked seeds the writer's frame-checksum chain from the

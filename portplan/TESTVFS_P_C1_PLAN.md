@@ -126,6 +126,56 @@ full-copy log restart to reproduce this.
     runtime variables (the interp machinery exists via runNotifyScript's
     pattern).
   *fault families) — test_vfs.c's ioerr counters + the harness fault steps.
+- **S3 — LANDED (2026-11-04)**: pagerfault 73→**0** (all 36 sections), the
+  driver's `-test` script evaluation, and the four structural fixes the
+  trial loop needed. e_walckpt 253→141, aggregate wal 456→351 (the ioerr
+  classes unlock); walvfs steady at 5 (S1/S2 residue unchanged); pagerfault2/
+  pagerfault3 green; pager* aggregate 303→104. Battery regression-free
+  (journal2 5, delete 9, insert 2, conflict 2, where 102, select1 1 — all
+  identical to the pre-session HEAD baseline). The landed pieces:
+  (a) converter `do_faultsim_test` records TestScript; the harness
+  `evalFaultsimTestScript` runs the C faultsim_test_proc per trial
+  (testrc/testresult/testnfail bound; `db`/named-connection adapters with
+  eval/one/close; catchsql; a REAL sqlite3_finalize over the trial's
+  prepared statements — a no-op finalize left the read transaction
+  registered and blocked every later write with "database is locked").
+  (b) the driver's `runFaultsimStep` handles reset_db (glob delete),
+  register_function, open_empty_db, open_named_db/close_named_db (with
+  TCL's replace-closes-the-old-command semantics), delete_file, delete_glob,
+  prepare_stmt/stmt_step (per-trial scope, deferred finalize), and
+  named-connection routing for exec/catch/query (step.Database).
+  (c) C-order restore: db_restore_and_reopen closes the connection FIRST
+  (tester.tcl:2482) — restoring under a live connection let its Close flush
+  stale dirty pages over the fresh snapshot (the freelist-corruption seed
+  behind the incremental-vacuum hang).
+  (d) the snapshot pair is the test.db* GLOB (tester.tcl db_save/db_restore):
+  ATTACH'd siblings (test.db2) travel with snapshots; db_restore
+  force-deletes the whole glob first — hardcoded 4-suffix lists missed both.
+  (e) the __RESET_DB__/reset_db handlers delete the whole test.db* glob
+  (tester.tcl:2490) — a surviving stale -wal was recovered over the fresh
+  file and poisoned the reopened header.
+  (f) engine: readFilePageLocked zero-fills short reads (C readDbPage's
+  SQLITE_IOERR_SHORT_READ swallow; the WAL-mode 0-byte-main path), and
+  walFileHeaderSaltsMatchLocked also treats "MxFrame beyond the WAL file's
+  frame capacity" as stale → rebuild from the -wal (a restored wal-index
+  beside a restarted WAL claimed frames the file lacks).
+  (g) converter: the foreach-glob-forcedelete idiom (`foreach f [glob
+  -nocomplain test.db*] { forcedelete $f }` → delete_glob step); the trial
+  exec paths route relative ATTACH operands through the fixture directory.
+  (h) the trial loop propagates the last trial's connection back to the
+  fixture (`db` follows the reopen) and the "no test patterns" check defers
+  to the TestScript path (dynamic pattern cases).
+  **REMAINING (S4)**: e_walckpt's 141 = the tvfs callback-counter classes
+  (runtime_var mismatches from the xShm/xSync/xWrite observation surface),
+  the `shm` subcommand + vfs_set_readmark (test_vfs.c:1637), walvfs 1.2/
+  3.x-4.1 (the interrupt counter choreography across the close-time
+  checkpoint of the previous connection), and the open_named_db shared-cache
+  URI case inside trials (pagerfault-36's db2 — passes via the plain-URI
+  path today). The pre-existing TestWalCheckpoint unit failure (internal/
+  pager/wal_test.go:347, main file 0 bytes after checkpoint) is TEST DRIFT:
+  it drives AllocatePage/WritePage/Flush directly, a path that no longer
+  appends the commit frame; the engine's real commit path is exercised green
+  by the WAL families — card queued, no engine change.
 - **S4**: fullerr/cantopenerr/sectorsize/delete + the remaining option
   surface.
 
