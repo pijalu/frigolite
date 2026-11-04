@@ -268,3 +268,13 @@ exist as a class (the earlier atof1 observation was load flake).
 
 Sweep artifacts: /tmp/s5-families.txt (family list), /tmp/s5-sweep-results.txt
 (isolated counts), /tmp/frigolite-full-suite-S5.log (the full run).
+
+**Caveat (S6, 2026-11-04e)**: FRIGOLITE_TEST matches by SUBSTRING
+(strings.Contains on the family base name), so every wal-substring family's
+sweep row measured the GROUP total — "wal | 36 | 460" is wal+wal2+wal3+
+walvfs+walbak+e_wal+e_walckpt+... combined. The full-run column (parsed
+from the per-family test paths) is the correct per-family attribution; use
+it for prioritization. Post-S6 (commit 9afec942b) the WAL-group residue:
+wal3 112→5, walbak 22 (the carded sidecar pair), walhook 11→0,
+walvfs 9, wal2 61, wal 35 (group), e_walckpt 139 — the stale-fixture regen
+closed ~130 group-wide.
