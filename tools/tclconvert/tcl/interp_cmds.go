@@ -1122,7 +1122,22 @@ func commandCatch(i *Interp, rawWords []rawWord, args []string, localVars map[st
 					i.dynamicVars[msgVar] = true
 					i.dynamicVars[args[1]] = true
 					if len(i.stmts) > 0 {
-						i.stmts[len(i.stmts)-1].CatchMessage = msgVar
+						last := &i.stmts[len(i.stmts)-1]
+						last.CatchMessage = msgVar
+						// The catch's rc is consumed by the body's value
+						// (`list [catch {...} msg] $msg` — walvfs-5.5/5.6)
+						// without a named `set rc` binding: stamp the
+						// statement with a deterministic rc variable so the
+						// harness records it (the runtime_list element
+						// references $__catchrc_<msg>). A statement that
+						// already carries a Variable keeps its binding (the
+						// named `set rc [catch ...]` path re-stamps it).
+						if last.Variable == "" {
+							rcVar := "__catchrc_" + msgVar
+							last.Variable = rcVar
+							last.CatchResult = true
+							i.dynamicVars[rcVar] = true
+						}
 					}
 				}
 			} else {

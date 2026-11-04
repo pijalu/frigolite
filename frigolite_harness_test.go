@@ -3528,7 +3528,21 @@ func TestSQLiteSuite(t *testing.T) {
 								_ = prior.Close()
 							}
 							namedDBs[step.Database] = opened
-							installDefaultVFS(t, testvfsFixtures, testvfsDefault, opened, runtimeVars, fixtureDBDir)
+							// C's `sqlite3 <name> <file> -vfs <name>` installs
+							// THAT fixture for this connection (walvfs-5.5's
+							// db2 opens under tvfs with the xShmMap veto
+							// active). Without a -vfs, the family's -default
+							// fixture governs (tester.tcl's -default
+							// registration).
+							vfsName := step.VFS
+							if vfsName == "" {
+								vfsName = testvfsDefault
+							}
+							if vfsName != "" {
+								if fx := testvfsFixtures[vfsName]; fx != nil {
+									opened.engine.InstallVFSHook(fx.hook(runtimeVars, opened, fixtureDBDir), fx.devcharBits)
+								}
+							}
 							continue
 						}
 						if step.Type == "close_named_db" {

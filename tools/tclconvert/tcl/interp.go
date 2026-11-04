@@ -1462,6 +1462,19 @@ func (i *Interp) runtimeListValues(words []rawWord, localVars map[string]string)
 				continue
 			}
 		}
+		// A `[catch { BODY } varname]` element (walvfs-5.5/5.6's
+		// `list [catch { execsql ... } msg] $msg`): the catch's rc is a
+		// runtime fact the harness records on the already-emitted catch step
+		// (commandCatch stamped it `__catchrc_<varname>`) — reference it.
+		// The body is a braced word, so the varname is whatever follows the
+		// body's closing brace, not a whitespace field.
+		if !w.Braced && strings.HasPrefix(text, "[catch ") && strings.HasSuffix(text, "]") {
+			if varname, ok := catchElementVarname(text); ok {
+				values = append(values, "$__catchrc_"+varname)
+				runtime = true
+				continue
+			}
+		}
 		if !w.Braced {
 			if name, ok := runtimeVarRef(text); ok && i.dynamicVars[name] {
 				values = append(values, "$"+name)
@@ -1475,6 +1488,26 @@ func (i *Interp) runtimeListValues(words []rawWord, localVars map[string]string)
 		return nil, false
 	}
 	return values, true
+}
+
+// catchElementVarname extracts the message-variable name of a bracketed
+// `[catch { BODY } varname]` list element: the varname is whatever follows
+// the body's closing brace. ok is false for the unnamed form (`[catch {...}]`)
+// — it has no variable to anchor the rc reference to.
+func catchElementVarname(text string) (string, bool) {
+	inner := strings.TrimSpace(text[1 : len(text)-1]) // strip [ ]
+	if !strings.HasPrefix(inner, "catch ") {
+		return "", false
+	}
+	idx := strings.LastIndex(inner, "}")
+	if idx < 0 || idx == len(inner)-1 {
+		return "", false // no trailing varname after the body brace
+	}
+	varname := strings.TrimSpace(inner[idx+1:])
+	if varname == "" || strings.ContainsAny(varname, " {$[") {
+		return "", false
+	}
+	return strings.TrimPrefix(varname, "::"), true
 }
 
 // lappendBodyValues resolves a `lappend VAR VALUE...` body-value shape

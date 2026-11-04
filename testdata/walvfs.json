@@ -617,13 +617,15 @@
         {
           "type": "catch",
           "sql": "SELECT count(*) FROM t1",
+          "variable": "__catchrc_msg",
+          "catchResult": true,
           "catchMessage": "msg",
           "database": "db2"
         },
         {
           "type": "runtime_list",
           "listValues": [
-            "[catch { execsql { SELECT count(*) FROM t1 } db2 } msg]",
+            "$__catchrc_msg",
             "$msg"
           ],
           "expect": "1 {attempt to write a readonly database}"
@@ -652,13 +654,15 @@
         {
           "type": "catch",
           "sql": "SELECT count(*) FROM t1",
+          "variable": "__catchrc_msg",
+          "catchResult": true,
           "catchMessage": "msg",
           "database": "db2"
         },
         {
           "type": "runtime_list",
           "listValues": [
-            "[catch { execsql { SELECT count(*) FROM t1 } db2 } msg]",
+            "$__catchrc_msg",
             "$msg"
           ],
           "expect": "0 20"
