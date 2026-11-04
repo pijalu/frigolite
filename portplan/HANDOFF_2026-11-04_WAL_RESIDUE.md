@@ -1,0 +1,119 @@
+# Session handoff — the WAL residue slice (2026-11-04, through 3dc008e81)
+
+Restart point for the goal "close all gaps with sqlite — functional first,
+then performance". The working tree is CLEAN at 3dc008e81 (feature/perf,
+105+ commits ahead of origin). Everything below is verified state.
+
+## Where the corpus stands
+
+- **Residue census** (`portplan/RESIDUE_CENSUS_2026-11-04.md`, commits
+  c7e506320 + e80befc4f): the full-suite root package fails ~2475 subtests
+  in one run, but the TRUE family-level backlog is **4,162 isolated subtests
+  across 254 families** (every failing family fails harder isolated; zero
+  families pass isolated). The census table is the priority map. Known
+  caveat recorded there: `FRIGOLITE_TEST` matches by SUBSTRING
+  (strings.Contains) — "wal" runs the whole wal* group; per-family truth
+  comes from parsing `TestSQLiteSuite/<family>/<case>` paths in a run log.
+- Known pre-existing engine failure OUTSIDE the harness:
+  `TestWalCheckpoint` (internal/pager/wal_test.go:347) — TEST DRIFT, carded,
+  no engine change planned (it drives AllocatePage/WritePage/Flush
+  directly, a path that no longer appends the commit frame).
+
+## Landed this session (9 commits, oldest → newest)
+
+| commit | slice | effect |
+|---|---|---|
+| 6b1436b1a | S5: anonymous-catch rc surface (`__catchrc_<msg>`) + open_named_db installs the step's NAMED `-vfs` fixture (129 hook-less opens fixed) | walvfs 12→10 |
+| a633c3b5b | S5b: page-1 frame in WAL commits (C's allocateBtreePage append branch, btree.c:6737+6761 — WAL-mode-only, size-bytes-only into page 1) | walvfs 10→9; fresh-db WAL byte-exact [1..22] vs the C oracle |
+| 0bb49bb37 | S5c: checkpoint busy triple {1 -1 -1} (pragma initializers survive a WRITER/CKPT lock veto) | walvfs 9→8 (7.1) |
+| 2ec4b187f | S5d: second-connection WAL observation — pagerOpenWalIfPresent port (pager.c:3337) on every shared lock, BtreeSetVersion(2) before the -wal opens, the writer's READ_LOCK(0) pin gated on the LIVE shared header | wal-14 class + walbak-4.1/4.2 |
+| 9afec942b | S6: stale WAL-fixture regen (13 fixtures predated the converter's testvfs capture), xOpen-handle surface (test_vfs.c:638 — the script's return names the connection, passed as callback arg 3), main-path delete_glob | wal3 112→5, walhook 11→0 |
+| 6b6403735 | S7: sqlite3_wal_checkpoint{,_v2} command handlers → wal_checkpoint_v2/wal_checkpoint_rc steps; harness reuses the engine's WalCheckpoint pragma path; do_test promotion attaches expectations only to a DIRECTLY-trailing checkpoint call, the catch-all never stamps these steps | e_walckpt 139→136 |
+| aa264ba33 | S7b: db-hash surface — commandCatch executes QUOTED bodies; catch-list rc refs resolve to the carrier actually stamped; WalCheckpoint mirrors main.c (unknown zDb → SQLITE_ERROR "unknown database: <name>", NULL zDb → every attached db, the triple reports the FIRST checkpointed db, BUSY accumulates, non-WAL leaves -1s); harness rejects a bad MODE with SQLITE_MISUSE "not an error" and composes the wrapper's [sqlite3_errcode] - msg prefix; save_db_hashes/compare_db_hashes emit purpose-built md5 steps | e_walckpt 136→129; 1.1.x/2.1.x green end-to-end |
+| c7e506320/e80befc4f/cb5ac869b/d2de43985/1437fe2dd/c4a03b9ae/3dc008e81 | plan-doc + census + lessons records | — |
+
+## THE IMMEDIATE RESTART POINT — e_walckpt (129 isolated failures)
+
+The next unit was JUST STARTED: the mode-sweep choreography class. Triage
+state:
+- **1.full/restart/truncate.x (no-such-table + COMMIT classes, ~45)**:
+  e_walckpt-1.full.1.14 = copy test.db → abc.db, open db4 on abc.db,
+  `SELECT * FROM t1 UNION ALL SELECT * FROM t2` → "no such table: t1" (the
+  copied main file lacks the checkpointed content); 1.full.2.7/3.7 =
+  `COMMIT` "expected error but got success" (a second connection's read
+  snapshot should block the checkpoint/wrap). The C source region starts at
+  e_walckpt.test's `foreach {tn mode}` loop (the full/restart/truncate
+  sweeps) — the last command run before the pause was a malformed `sed -n`
+  on that grep, re-run with `grep -n "foreach {tn mode}" ../sqlite/test/e_walckpt.test`
+  and read the loop from there.
+- **1.passive.1.6-8 + 1.3.2.2 (callback counters, ~10)**:
+  busy_handler_counter got "" want 0; sync_counter got "0" want 1 (the
+  checkpoint's WAL-header sync callback); write_count got "" want 2 (the
+  checkpoint's copyback xWrite events) — the engine callback surfaces
+  (busy-handler invocation counting, xSync at the header sync under the
+  fixture VFS, xWrite during backfill) not wired to the harness's
+  callback-recorded runtime vars.
+- Failure-name-set baselines for diffing: /tmp/pb-before.txt (136-set),
+  /tmp/pb11.txt (the current 129-set) — REGENERATE both (the /tmp files may
+  not survive a restart): `FRIGOLITE_TEST=e_walckpt go test -run
+  "^TestSQLiteSuite$" -count=1 . | grep -oE "FAIL: TestSQLiteSuite/e_walckpt/[^ ]+" | sort -u`.
+- Verification protocol: fixture regen via
+  `mkdir -p /tmp/x && go run ./tools/tclconvert -testdir ../sqlite/test
+  -outdir /tmp/x -only e_walckpt && cp /tmp/x/e_walckpt.json testdata/`;
+  go test rebuilds the binary itself, but for /tmp/frigolite.test-style
+  runs `go test -c -o` FIRST and never trust an older binary (the
+  strings-grep check saved this session twice).
+
+## Queued units after e_walckpt (designs recorded in TESTVFS_P_C1_PLAN.md)
+
+1. **e_walckpt remainder** (the two classes above).
+2. **Regen-drift follow-up**: e_walauto/interrupt2/wal5 also call
+   sqlite3_wal_checkpoint — their committed fixtures predate the S7
+   handler; regenerate + battery per the S6 procedure.
+3. **wal2 (61) + wal3 (5) xShmLock trace residue** — post-regen triage
+   (the fixtures are now current; the residue is genuine).
+4. **wal-18.2.x interrupt choreography (24)** — sqlite3_interrupt +
+   sqlite3_memdebug_fail inside xWrite callbacks across close-time
+   checkpoints.
+5. **Fix B: padToSectorBoundary** — walvfs-5.3's 24 frames: `tvfs devchar
+   sequential` (set in walvfs.test:61, never reset) DROPS
+   POWERSAFE_OVERWRITE → walFrames repeats the last commit frame to the
+   4096-byte sector boundary at synchronous=FULL (22 pages + 2 padding).
+   Needs the PSO/sector-size devchar surface in vfshooks.go + the WAL
+   writer's padding loop (wal.c:4170-4188) + the tvfsGetDeviceCharacteristics
+   override semantics in the harness.
+6. **Sidecar lifecycle**: the WAL→rollback switch must delete -wal/-shm +
+   reset the version bytes to 1/1 (C's walModeChange + BtreeSetVersion(pBt,1)).
+   The naive port broke wal-24.x reopens ("file is not a database") — plan
+   the checkpoint/flush ORDER first. Unblocks walbak-4.3.1/4.3.3.
+7. **Then the census's non-WAL top families**: index 200, rtree 126,
+   tkt 124, where 111, expr 109, pager1 101 — triage each with the census
+   methodology (failure-class bucketing by message, C-source contract,
+   name-diff verification).
+8. **Performance phase** (the objective's second half): untouched. The
+   census gives the functional-completion gate; the perf lanes (F1c/F3 in
+   GAP_CLOSURE_PLAN_2026-10-31.md) follow.
+
+## Methodology (mandatory — violations cost hours this session)
+
+- **Failure-name-set diffs, never counts**: `grep -oE "FAIL:
+  TestSQLiteSuite/<fam>/[^ ]+" | sort -u` + comm both directions. Counts
+  swing ±35 under load (pure HEAD reproduces it).
+- **No stash roundtrips for baselines** — a pop takes stash@{0}, which
+  after any push isn't your baseline; pops conflict and reorder. Commit
+  each verified unit immediately; use a worktree for HEAD baselines.
+- **Binary-verify instrumentation**: `go build ./...` does NOT compile
+  _test.go files; a 0-failure grep can be a build error. `go test -c -o`
+  + `strings <bin> | grep <trace-tag>` before trusting trace silence.
+- **FRIGOLITE_TEST is Contains-based** — "wal" sweeps the whole group.
+- **The stale-fixture signature**: got [""] runtime-var mismatches +
+  cascading "file is not a database" reopens = regenerate the fixture
+  first (`-only <fam>` to a temp dir, diff against committed) before
+  root-causing engine behavior.
+- **The oracle**: ../sqlite/testfixture runs via a dylib shim —
+  `DYLD_LIBRARY_PATH=/tmp/tclshim` with libtcl9.0.dylib → 9.1 symlinked
+  (rebuild the shim dir if /tmp was cleared). ../sqlite is 3.51.0;
+  /usr/bin/sqlite3 is 3.54 — version-tag every oracle observation.
+- Lessons file: .agents/lessons_learned.md (reviewed/extended every unit).
+- Plan docs: portplan/TESTVFS_P_C1_PLAN.md (the WAL-slice log with per-slice
+  records), portplan/GAP_CLOSURE_PLAN_2026-10-31.md (progress rows).
