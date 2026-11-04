@@ -955,6 +955,33 @@ func (i *Interp) cmdDoTest(rawWords []rawWord, localVars map[string]string) erro
 		i.curTest = ""
 		return nil
 	}
+	// `checkpoint db <mode> ?SCHEMA?` as the body's last command
+	// (e_walckpt-2.2.b's {0 -1 -1}): the checkpoint triple exists only at
+	// run time — the expectation belongs to the emitted step. Only a DIRECT
+	// trailing checkpoint call qualifies: a trailing helper proc
+	// (compare_db_hashes) also leaves the checkpoint's placeholder in the
+	// anonymous variable, and its value belongs to that proc (the
+	// db-hash surface), not to the checkpoint step.
+	if last := i.runtimeValueStatement(i.vars[""]); last != nil &&
+		(last.Type == "wal_checkpoint_v2" || last.Type == "wal_checkpoint_rc") {
+		// Only a DIRECT trailing checkpoint call qualifies: a trailing
+		// helper proc (compare_db_hashes) also leaves the checkpoint's
+		// placeholder in the anonymous variable, and its value belongs to
+		// that proc (the db-hash surface), not to the checkpoint step.
+		lastCmds := parseCommands(bodyWord.Text)
+		direct := len(lastCmds) > 0
+		if direct {
+			if cmdName := lastCmds[len(lastCmds)-1][0].Text; cmdName != "checkpoint" && cmdName != "sqlite3_wal_checkpoint" {
+				direct = false
+			}
+		}
+		if direct {
+			last.Expected = expected
+			last.ExpectedExpr = expectedExpr
+			i.curTest = ""
+			return nil
+		}
+	}
 	// Global Tcl variable reads are runtime assertions; capture them explicitly
 	// so SQL callbacks can populate the value during earlier steps.
 	//
@@ -1073,7 +1100,11 @@ func (i *Interp) cmdDoTest(rawWords []rawWord, localVars map[string]string) erro
 	// rows with a scalar (rtree2: 1000 rows against "1").
 	if (expected != "" || expectedExpr != "") && len(i.stmts) > 0 && !bodyValueCaptured {
 		last := &i.stmts[len(i.stmts)-1]
-		if last.TestName == name && last.Expected == "" && last.ExpectedExpr == "" {
+		// A trailing checkpoint step never takes the catch-all: its triple
+		// belongs to a direct trailing call (the restricted branch above)
+		// or to a helper proc's runtime value (the db-hash surface).
+		if last.TestName == name && last.Expected == "" && last.ExpectedExpr == "" &&
+			last.Type != "wal_checkpoint_v2" && last.Type != "wal_checkpoint_rc" {
 			last.Expected = expected
 			last.ExpectedExpr = expectedExpr
 		}

@@ -108,6 +108,8 @@ func init() {
 		"sqlite3_finalize":            commandFinalizeStmt,
 		"sqlite3_limit":               commandSQLite3Limit,
 		"sqlite3_test_control":        commandSQLite3TestControl,
+		"sqlite3_wal_checkpoint_v2":   commandSQLite3WalCheckpointV2,
+		"sqlite3_wal_checkpoint":      commandSQLite3WalCheckpoint,
 		"sqlite3_db_cacheflush":       commandCacheFlush,
 		"vfs_set_readmark":            commandVfsSetReadmark,
 		"sqlite3_create_collation_v2": commandCreateCollation,
@@ -1145,6 +1147,49 @@ func commandCatch(i *Interp, rawWords []rawWord, args []string, localVars map[st
 			}
 		}
 	}
+	return nil
+}
+
+// commandSQLite3WalCheckpointV2 implements the testfixture command
+// `sqlite3_wal_checkpoint_v2 db MODE ?NAME?` (test1.c:7615): the checkpoint
+// runs at harness time on the named connection for the named schema (no
+// NAME — the C passes a NULL zDb — checkpoints every attached WAL
+// database), and the command returns the {busy nLog nCkpt} triple. The
+// fixture's wal_checkpoint_v2 wrapper (e_walckpt.test:57) calls this
+// through `uplevel` from the checkpoint procs the foreach-script unroll
+// inlines.
+func commandSQLite3WalCheckpointV2(i *Interp, _ []rawWord, args []string, _ map[string]string) error {
+	if len(args) < 2 {
+		return nil
+	}
+	step := Stmt{Type: "wal_checkpoint_v2", Database: args[0], SQL: args[1], TestName: i.curTest}
+	if len(args) >= 3 {
+		// The optional NAME argument (main/aux/aux2/...); the C's "-" value
+		// means NULL zDb (the fixture converts it to the no-arg form).
+		// FileTarget — not Variable — carries it: the `set rc [catch {...}
+		// msg]` wrapper stamps Variable with the catch's result variable.
+		step.FileTarget = args[2]
+	}
+	i.stmts = append(i.stmts, step)
+	i.vars[""] = catchResultPlaceholder
+	return nil
+}
+
+// commandSQLite3WalCheckpoint implements `sqlite3_wal_checkpoint db ?NAME?`
+// (test1.c): the PASSIVE checkpoint whose TCL result is the result-code
+// NAME ("SQLITE_OK"/"SQLITE_BUSY"/...) rather than the triple — the
+// fixture's script-3 checkpoint proc compares it against SQLITE_OK.
+func commandSQLite3WalCheckpoint(i *Interp, _ []rawWord, args []string, _ map[string]string) error {
+	if len(args) < 1 {
+		return nil
+	}
+	step := Stmt{Type: "wal_checkpoint_rc", Database: args[0], SQL: "passive", TestName: i.curTest}
+	if len(args) >= 2 {
+		// FileTarget carries the schema (see commandSQLite3WalCheckpointV2).
+		step.FileTarget = args[1]
+	}
+	i.stmts = append(i.stmts, step)
+	i.vars[""] = catchResultPlaceholder
 	return nil
 }
 

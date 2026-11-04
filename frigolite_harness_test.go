@@ -3569,6 +3569,67 @@ func TestSQLiteSuite(t *testing.T) {
 							db.SetAuthorizer(auth.NewActionFilterAuthorizer(auth.ActionAnalyze))
 							continue
 						}
+						if step.Type == "wal_checkpoint_v2" || step.Type == "wal_checkpoint_rc" {
+							// The testfixture commands `sqlite3_wal_checkpoint_v2
+							// db MODE ?NAME?` and `sqlite3_wal_checkpoint db ?NAME?`
+							// (test1.c): run the checkpoint on the step's
+							// connection for the schema (Variable — absent/empty
+							// means every attached WAL database), rendering the
+							// {busy nLog nCkpt} triple (v2) or the result-code
+							// name (simple).
+							conn := db
+							if step.Database != "" && step.Database != "db" {
+								if named := namedDBs[step.Database]; named != nil {
+									conn = named
+								}
+							}
+							schema := step.FileTarget
+							res := conn.engine.WalCheckpoint(schema, step.SQL)
+							if res.Error != nil {
+								resErr := res.Error.Error()
+								if !strings.Contains(resErr, "SQLITE_") {
+									resErr = "SQLITE_ERROR - " + resErr
+								}
+								if step.Expect != "" {
+									t.Errorf("wal_checkpoint %s.%s error: %s", step.Database, schema, resErr)
+								}
+								continue
+							}
+							if step.Type == "wal_checkpoint_rc" {
+								// test1.c renders t1ErrorName(rc): BUSY from the
+								// triple's busy flag, else SQLITE_OK.
+								busy := int64(0)
+								if len(res.Rows) == 1 && len(res.Rows[0]) == 3 {
+									if b, ok := res.Rows[0][0].(int64); ok {
+										busy = b
+									}
+								}
+								rc := "SQLITE_OK"
+								if busy != 0 {
+									rc = "SQLITE_BUSY"
+								}
+								if step.Expect != "" {
+									if diff := matchExpectation(rc, step.Expect); diff != "" {
+										t.Errorf("wal_checkpoint rc mismatch\n  got: [%s]\n  %s", rc, diff)
+									}
+								}
+								continue
+							}
+							rendered := ""
+							if len(res.Rows) == 1 {
+								parts := make([]string, 0, len(res.Rows[0]))
+								for _, v := range res.Rows[0] {
+									parts = append(parts, fmt.Sprintf("%v", v))
+								}
+								rendered = strings.Join(parts, " ")
+							}
+							if step.Expect != "" {
+								if diff := matchExpectation(rendered, cleanExpectedNull(step.Expect, nullToken)); diff != "" {
+									t.Errorf("wal_checkpoint triple mismatch\n  got: [%s]\n  %s", rendered, diff)
+								}
+							}
+							continue
+						}
 						if step.Type == "set_readmark" {
 							// vfs_set_readmark DB DBNAME SLOT ?VALUE? (test_vfs.c):
 							// the reader form returns the slot's current
