@@ -176,6 +176,39 @@ full-copy log restart to reproduce this.
   it drives AllocatePage/WritePage/Flush directly, a path that no longer
   appends the commit frame; the engine's real commit path is exercised green
   by the WAL families — card queued, no engine change.
+- **S4 — LANDED (2026-11-04b)**: the testvfs callback argument surface —
+  every fixture callback now receives (method, file, shmId, details)
+  exactly as C's tvfsExecTcl passes them (test_vfs.c:950-975): xSync's
+  sync-flag string, xShmMap's region size, xWrite's byte count, xShmLock's
+  "<ofst> <n> lock|unlock shared|exclusive"; a per-connection pShmId mints
+  the third argument. The xShmLock events route through the CONNECTION's
+  pager hook (every walWriter lock op fires it; vetoes propagate verbatim —
+  BUSY drives the protocol, other codes flow to the caller's mapping).
+  Filter semantics follow C's mask: only listed methods fire. The
+  SQLITE_READONLY_* extended codes map to the base errstr (main.c:1547).
+  The S2-era walvfs passes of 5.4-5.6/6.2/7.1/8.3/9.1 were ARTIFACTS of the
+  xShmLock scripts never firing — the C-faithful firing replaces them with
+  the real choreography gaps.
+- **S4b — LANDED (2026-11-04c)**: vfs_set_readmark end to end
+  (test_vfs.c:1637) — the pager ReadMarkSlot/WriteMarkSlot answer through
+  the wal-index ckpt-info region (aShm[25+iSlot]), firing the fixture's
+  xShmMap probe first; the converter captures both the statement form and
+  the `list [vfs_set_readmark ...]` body-value form; the do_test promotion
+  attaches the body expectation to the marked probe. walvfs-5.2 green.
+  **REMAINING walvfs (12, engine units)**: the frame-count divergence (5.3:
+  our 21 frames vs C's 24 for the same CTE insert — a multi-row INSERT's
+  per-page frame accounting), the secondary-connection xShmMap veto (5.5's
+  readonly-shm contract: db2's FIRST xShmMap must fail), the interrupt
+  counter choreography (1.2/3.x — spans the close-time checkpoint of the
+  previous connection), and the tvfs frame contract (1.2). **e_walckpt
+  residue (139)**: the `checkpoint db <mode>` USER-PROC calls inside do_test
+  bodies are dropped by the converter (proc capture + invocation for
+  body-level helper procs — the checkpoint procs eval
+  wal_checkpoint_v2/PRAGMA wal_checkpoint); the lock-counter classes then
+  follow. **Corpus drift card**: a full `tclconvert` regen showed the
+  committed corpus predates the converter state (null→[] serialization +
+  real new faultsim cases in aggfault et al, ~663 files) — reverted; the
+  regen + full battery is its own unit.
 - **S4**: fullerr/cantopenerr/sectorsize/delete + the remaining option
   surface.
 
