@@ -347,7 +347,31 @@ func (e *Engine) currentLockingMode(schema string) string {
 // PASSIVE / FULL keep the committed frames on disk; RESTART / TRUNCATE
 // fold the frames and reset the -wal to its header.
 func (e *Engine) WalCheckpoint(schema, value string) *execpragma.Result {
-	ctx := e.pragmaDBCtx(schema)
+	// main.c sqlite3_wal_checkpoint_v2: a zDb that names no attached
+	// database returns SQLITE_ERROR ("unknown database: <name>") — the
+	// e_walckpt-1.2.1/2.2.1 notadb cases. pragmaDBCtx falls back to MAIN
+	// for unknown names (other pragmas' tolerance), so the checkpoint
+	// resolves the context itself; an EMPTY schema (the C's NULL zDb)
+	// checkpoints every attached WAL database.
+	var ctx *DatabaseContext
+	if schema == "" {
+		ctx = e.pragmaDBCtx("")
+	} else {
+		switch strings.ToUpper(schema) {
+		case "MAIN":
+			ctx = e.mainDB
+		case "TEMP", "TEMPORARY":
+			ctx = e.getDB("TEMP")
+			if ctx == nil {
+				ctx = e.mainDB
+			}
+		default:
+			ctx = e.getDB(schema)
+			if ctx == nil {
+				return &execpragma.Result{Error: fmt.Errorf("unknown database: %s", schema)}
+			}
+		}
+	}
 	if ctx == nil || ctx.Pager == nil {
 		return &execpragma.Result{Rows: [][]interface{}{{0, 0, 0}}}
 	}
@@ -359,6 +383,39 @@ func (e *Engine) WalCheckpoint(schema, value string) *execpragma.Result {
 		mode = pager.WalCkptRestart
 	case "truncate":
 		mode = pager.WalCkptTruncate
+	}
+	if schema == "" {
+		// main.c sqlite3Checkpoint (L2626): a NULL zDb checkpoints every
+		// attached database; the output triple reports the FIRST
+		// checkpointed db's values (the out-params are nulled after the
+		// first iteration), BUSY accumulates across the loop, and a
+		// database with no WAL leaves the initial -1s standing.
+		busy := 0
+		nLog, nCkpt := -1, -1
+		first := true
+		for _, dbCtx := range e.dbList {
+			if dbCtx == nil || dbCtx.Pager == nil {
+				continue
+			}
+			b, l, c, err := dbCtx.Pager.CheckpointMode(mode)
+			if err != nil {
+				return &execpragma.Result{Error: err}
+			}
+			if b != 0 {
+				busy = 1
+			}
+			if first {
+				nLog, nCkpt = l, c
+				first = false
+			}
+		}
+		if e.IsInterrupted() {
+			e.interrupted = false
+			return &execpragma.Result{Error: fmt.Errorf("interrupted")}
+		}
+		return &execpragma.Result{Rows: [][]interface{}{{
+			int64(busy), int64(nLog), int64(nCkpt),
+		}}}
 	}
 	busy, nLog, nCkpt, err := ctx.Pager.CheckpointMode(mode)
 	if err != nil {

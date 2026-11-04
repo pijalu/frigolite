@@ -1464,13 +1464,29 @@ func (i *Interp) runtimeListValues(words []rawWord, localVars map[string]string)
 		}
 		// A `[catch { BODY } varname]` element (walvfs-5.5/5.6's
 		// `list [catch { execsql ... } msg] $msg`): the catch's rc is a
-		// runtime fact the harness records on the already-emitted catch step
-		// (commandCatch stamped it `__catchrc_<varname>`) — reference it.
-		// The body is a braced word, so the varname is whatever follows the
-		// body's closing brace, not a whitespace field.
+		// runtime fact the harness records on the already-emitted catch
+		// step — reference the variable that step actually carries. A
+		// NESTED wrapper (`set rc [catch { uplevel ... } msg]` inside the
+		// called proc — e_walckpt's wal_checkpoint_v2 wrapper) stamps its
+		// own named rc over the anonymous one, so the last catch-result
+		// carrier's Variable wins; a plain element catch keeps the
+		// deterministic __catchrc_<varname> stamp. The body is a braced
+		// word, so the varname is whatever follows the body's closing
+		// delimiter, not a whitespace field.
 		if !w.Braced && strings.HasPrefix(text, "[catch ") && strings.HasSuffix(text, "]") {
 			if varname, ok := catchElementVarname(text); ok {
-				values = append(values, "$__catchrc_"+varname)
+				rcRef := "$__catchrc_" + varname
+				for idx := len(i.stmts) - 1; idx >= 0; idx-- {
+					st := i.stmts[idx]
+					if st.CatchResult && st.Variable != "" {
+						rcRef = "$" + st.Variable
+						break
+					}
+					if st.TestName != i.curTest {
+						break // a different test's steps: stop scanning
+					}
+				}
+				values = append(values, rcRef)
 				runtime = true
 				continue
 			}
@@ -1499,9 +1515,17 @@ func catchElementVarname(text string) (string, bool) {
 	if !strings.HasPrefix(inner, "catch ") {
 		return "", false
 	}
+	// The body is a braced word (`[catch { STMT } msg]`) or a quoted
+	// command string whose braces were already substituted away
+	// (`[catch "wal_checkpoint_v2 db -1001" msg]` — e_walckpt-4.x's
+	// foreach-baked mode): the varname follows the body's closing
+	// delimiter.
 	idx := strings.LastIndex(inner, "}")
+	if idx < 0 {
+		idx = strings.LastIndex(inner, "\"")
+	}
 	if idx < 0 || idx == len(inner)-1 {
-		return "", false // no trailing varname after the body brace
+		return "", false // no trailing varname after the body
 	}
 	varname := strings.TrimSpace(inner[idx+1:])
 	if varname == "" || strings.ContainsAny(varname, " {$[") {

@@ -159,6 +159,21 @@ func (i *Interp) dispatchCommand(cmd string, rawWords []rawWord, args []string, 
 	if fn, ok := commandHandlers[cmd]; ok {
 		return fn(i, rawWords, args, localVars)
 	}
+	// e_walckpt's file-hash helpers (e_walckpt.test:27-44): the procs hash
+	// the fixture databases with md5file and report which files a
+	// checkpoint changed. Their bodies need a runtime md5file command and a
+	// runtime conditional — the semantics are fully pinned in the C, so the
+	// invocation emits the purpose-built step directly.
+	if cmd == "save_db_hashes" {
+		i.stmts = append(i.stmts, Stmt{Type: "save_db_hashes", SQL: "test.db test.db2 test.db3", TestName: i.curTest})
+		i.vars[""] = ""
+		return nil
+	}
+	if cmd == "compare_db_hashes" {
+		i.stmts = append(i.stmts, Stmt{Type: "compare_db_hashes", SQL: "test.db test.db2 test.db3", TestName: i.curTest})
+		i.vars[""] = catchResultPlaceholder
+		return nil
+	}
 	if len(args) > 0 && (args[0] == "func" || args[0] == "function") {
 		start := len(i.stmts)
 		if err := i.dbFunction(args); err != nil {
@@ -1096,10 +1111,17 @@ const catchResultPlaceholder = "$__catch_result"
 func commandCatch(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
 	if len(rawWords) >= 2 {
 		body := rawWords[1]
-		if body.Braced {
-			statementsBefore := len(i.stmts)
-			i.catchDepth++
-			err := i.execScript(body.Text, localVars)
+		// TCL's catch executes its first argument as a script whether it
+		// was a braced literal or a quoted string (the quoted form is
+		// substituted first — e_walckpt-4.x's
+		// `catch "wal_checkpoint_v2 db $mode" msg` with the foreach-baked
+		// mode): both shapes run through the same capture-and-stamp path.
+		statementsBefore := len(i.stmts)
+		i.catchDepth++
+		// A non-braced body was already substituted at word-evaluation
+		// time; TCL still executes the resulting string as a script.
+		err := i.execScript(body.Text, localVars)
+		{
 			i.catchDepth--
 			if err != nil {
 				i.vars[""] = "1"

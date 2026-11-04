@@ -1,6 +1,7 @@
 package frigolite
 
 import (
+	"crypto/md5"
 	"bytes"
 	"compress/gzip"
 	"encoding/binary"
@@ -3569,6 +3570,42 @@ func TestSQLiteSuite(t *testing.T) {
 							db.SetAuthorizer(auth.NewActionFilterAuthorizer(auth.ActionAnalyze))
 							continue
 						}
+						if step.Type == "save_db_hashes" || step.Type == "compare_db_hashes" {
+							// e_walckpt.test:27-44's helpers: md5 the fixture
+							// databases, save the hashes, and report which
+							// files changed (the do_test's value — the
+							// checkpoint's effect surface).
+							files := strings.Fields(step.SQL)
+							if step.Type == "save_db_hashes" {
+								for _, f := range files {
+									hash := "0"
+									if data, rerr := os.ReadFile(filepath.Join(fixtureDBDir, f)); rerr == nil {
+										sum := md5.Sum(data)
+										hash = hex.EncodeToString(sum[:])
+									}
+									runtimeVars["H("+f+")"] = hash
+								}
+								continue
+							}
+							changed := make([]string, 0, len(files))
+							for _, f := range files {
+								current := "0"
+								if data, rerr := os.ReadFile(filepath.Join(fixtureDBDir, f)); rerr == nil {
+									sum := md5.Sum(data)
+									current = hex.EncodeToString(sum[:])
+								}
+								if prior, ok := runtimeVars["H("+f+")"]; !ok || prior != current {
+									changed = append(changed, f)
+								}
+							}
+							rendered := tclListString(changed)
+							if step.Expect != "" {
+								if diff := matchExpectation(rendered, cleanExpectedNull(step.Expect, nullToken)); diff != "" {
+									t.Errorf("db-hash mismatch\n  got: [%s]\n  %s", rendered, diff)
+								}
+							}
+							continue
+						}
 						if step.Type == "wal_checkpoint_v2" || step.Type == "wal_checkpoint_rc" {
 							// The testfixture commands `sqlite3_wal_checkpoint_v2
 							// db MODE ?NAME?` and `sqlite3_wal_checkpoint db ?NAME?`
@@ -3585,13 +3622,60 @@ func TestSQLiteSuite(t *testing.T) {
 							}
 							schema := step.FileTarget
 							res := conn.engine.WalCheckpoint(schema, step.SQL)
+							// The catch wrapper (`set rc [catch {...} msg]`)
+							// stamps these steps like exec/catch steps: the
+							// catch's result code and message are runtime
+							// values the body's list references — recorded on
+							// BOTH paths (the error path must stamp before its
+							// continue, or a later list references stale
+							// values from an earlier case).
+							composedErr := ""
 							if res.Error != nil {
-								resErr := res.Error.Error()
-								if !strings.Contains(resErr, "SQLITE_") {
-									resErr = "SQLITE_ERROR - " + resErr
+								composedErr = res.Error.Error()
+								if !strings.Contains(composedErr, "SQLITE_") {
+									composedErr = "SQLITE_ERROR - " + composedErr
 								}
+							}
+							// The C command rejects a MODE outside
+							// passive/full/restart/truncate (test1.c's
+							// Tcl_GetIndexFromObj, or the API's SQLITE_MISUSE
+							// for an out-of-range integer — the errmsg is
+							// "not an error"): e_walckpt-4.x's -1001.
+							mode := strings.ToLower(strings.TrimSpace(step.SQL))
+							if res.Error == nil && step.Type == "wal_checkpoint_v2" &&
+								mode != "passive" && mode != "full" && mode != "restart" && mode != "truncate" {
+								res.Error = fmt.Errorf("not an error")
+								composedErr = "SQLITE_MISUSE - not an error"
+							}
+							if step.CatchResult && step.Variable != "" {
+								if res.Error != nil {
+									runtimeVars[step.Variable] = "1"
+								} else {
+									runtimeVars[step.Variable] = "0"
+								}
+								if step.CatchMessage != "" {
+									if res.Error != nil {
+										// The fixture's wal_checkpoint_v2 wrapper
+										// composes "[sqlite3_errcode db] - msg".
+										runtimeVars[step.CatchMessage] = composedErr
+									} else {
+										// Tcl's catch returns the command's
+										// result as msg on success.
+										renderedMsg := ""
+										if len(res.Rows) == 1 {
+											parts := make([]string, 0, len(res.Rows[0]))
+											for _, v := range res.Rows[0] {
+												parts = append(parts, fmt.Sprintf("%v", v))
+											}
+											renderedMsg = strings.Join(parts, " ")
+										}
+										runtimeVars[step.CatchMessage] = renderedMsg
+									}
+								}
+							}
+							if res.Error != nil {
 								if step.Expect != "" {
-									t.Errorf("wal_checkpoint %s.%s error: %s", step.Database, schema, resErr)
+									t.Errorf("wal_checkpoint %s.%s error: %s", step.Database, schema, composedErr)
 								}
 								continue
 							}

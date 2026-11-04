@@ -51,6 +51,10 @@
           "sql": "INSERT INTO t1 VALUES(1);\n        INSERT INTO t2 VALUES(2);\n        INSERT INTO t3 VALUES(3);"
         },
         {
+          "type": "save_db_hashes",
+          "sql": "test.db test.db2 test.db3"
+        },
+        {
           "type": "wal_checkpoint_v2",
           "sql": "passive",
           "variable": "rc",
@@ -58,6 +62,11 @@
           "catchMessage": "msg",
           "database": "db",
           "fileTarget": "main"
+        },
+        {
+          "type": "compare_db_hashes",
+          "sql": "test.db test.db2 test.db3",
+          "expect": "test.db"
         }
       ]
     },
@@ -69,6 +78,10 @@
           "sql": "INSERT INTO t1 VALUES(1);\n        INSERT INTO t2 VALUES(2);\n        INSERT INTO t3 VALUES(3);"
         },
         {
+          "type": "save_db_hashes",
+          "sql": "test.db test.db2 test.db3"
+        },
+        {
           "type": "wal_checkpoint_v2",
           "sql": "passive",
           "variable": "rc",
@@ -76,6 +89,11 @@
           "catchMessage": "msg",
           "database": "db",
           "fileTarget": "aux"
+        },
+        {
+          "type": "compare_db_hashes",
+          "sql": "test.db test.db2 test.db3",
+          "expect": "test.db2"
         }
       ]
     },
@@ -87,6 +105,10 @@
           "sql": "INSERT INTO t1 VALUES(1);\n        INSERT INTO t2 VALUES(2);\n        INSERT INTO t3 VALUES(3);"
         },
         {
+          "type": "save_db_hashes",
+          "sql": "test.db test.db2 test.db3"
+        },
+        {
           "type": "wal_checkpoint_v2",
           "sql": "passive",
           "variable": "rc",
@@ -94,6 +116,11 @@
           "catchMessage": "msg",
           "database": "db",
           "fileTarget": "aux2"
+        },
+        {
+          "type": "compare_db_hashes",
+          "sql": "test.db test.db2 test.db3",
+          "expect": "test.db3"
         }
       ]
     },
@@ -105,12 +132,21 @@
           "sql": "INSERT INTO t1 VALUES(1);\n        INSERT INTO t2 VALUES(2);\n        INSERT INTO t3 VALUES(3);"
         },
         {
+          "type": "save_db_hashes",
+          "sql": "test.db test.db2 test.db3"
+        },
+        {
           "type": "wal_checkpoint_v2",
           "sql": "passive",
           "variable": "rc",
           "catchResult": true,
           "catchMessage": "msg",
           "database": "db"
+        },
+        {
+          "type": "compare_db_hashes",
+          "sql": "test.db test.db2 test.db3",
+          "expect": "test.db test.db2 test.db3"
         }
       ]
     },
@@ -120,6 +156,10 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(1);\n        INSERT INTO t2 VALUES(2);\n        INSERT INTO t3 VALUES(3);"
+        },
+        {
+          "type": "save_db_hashes",
+          "sql": "test.db test.db2 test.db3"
         },
         {
           "type": "wal_checkpoint_v2",
@@ -139,6 +179,10 @@
           "sql": "INSERT INTO t1 VALUES(1);\n        INSERT INTO t2 VALUES(2);\n        INSERT INTO t3 VALUES(3);"
         },
         {
+          "type": "save_db_hashes",
+          "sql": "test.db test.db2 test.db3"
+        },
+        {
           "type": "wal_checkpoint_v2",
           "sql": "passive",
           "variable": "rc",
@@ -146,6 +190,10 @@
           "catchMessage": "msg",
           "database": "db",
           "fileTarget": "temp"
+        },
+        {
+          "type": "compare_db_hashes",
+          "sql": "test.db test.db2 test.db3"
         }
       ]
     },
@@ -164,7 +212,7 @@
         {
           "type": "runtime_list",
           "listValues": [
-            "$__catchrc_msg",
+            "$rc",
             "$msg"
           ],
           "expect": "1 {SQLITE_ERROR - unknown database: notadb}"
@@ -2893,11 +2941,19 @@
           "sql": "INSERT INTO t1 VALUES(1);\n        INSERT INTO t2 VALUES(2);\n        INSERT INTO t3 VALUES(3);"
         },
         {
+          "type": "save_db_hashes",
+          "sql": "test.db test.db2 test.db3"
+        },
+        {
           "type": "catch",
           "sql": "PRAGMA main.wal_checkpoint = passive",
           "variable": "rc",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "compare_db_hashes",
+          "sql": "test.db test.db2 test.db3",
           "expect": "test.db"
         }
       ]
@@ -2910,11 +2966,19 @@
           "sql": "INSERT INTO t1 VALUES(1);\n        INSERT INTO t2 VALUES(2);\n        INSERT INTO t3 VALUES(3);"
         },
         {
+          "type": "save_db_hashes",
+          "sql": "test.db test.db2 test.db3"
+        },
+        {
           "type": "catch",
           "sql": "PRAGMA aux.wal_checkpoint = passive",
           "variable": "rc",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "compare_db_hashes",
+          "sql": "test.db test.db2 test.db3",
           "expect": "test.db2"
         }
       ]
@@ -2927,11 +2991,19 @@
           "sql": "INSERT INTO t1 VALUES(1);\n        INSERT INTO t2 VALUES(2);\n        INSERT INTO t3 VALUES(3);"
         },
         {
+          "type": "save_db_hashes",
+          "sql": "test.db test.db2 test.db3"
+        },
+        {
           "type": "catch",
           "sql": "PRAGMA aux2.wal_checkpoint = passive",
           "variable": "rc",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "compare_db_hashes",
+          "sql": "test.db test.db2 test.db3",
           "expect": "test.db3"
         }
       ]
@@ -2944,11 +3016,19 @@
           "sql": "INSERT INTO t1 VALUES(1);\n        INSERT INTO t2 VALUES(2);\n        INSERT INTO t3 VALUES(3);"
         },
         {
+          "type": "save_db_hashes",
+          "sql": "test.db test.db2 test.db3"
+        },
+        {
           "type": "catch",
           "sql": "PRAGMA wal_checkpoint = passive",
           "variable": "rc",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "compare_db_hashes",
+          "sql": "test.db test.db2 test.db3",
           "expect": "test.db test.db2 test.db3"
         }
       ]
@@ -2961,11 +3041,19 @@
           "sql": "INSERT INTO t1 VALUES(1);\n        INSERT INTO t2 VALUES(2);\n        INSERT INTO t3 VALUES(3);"
         },
         {
+          "type": "save_db_hashes",
+          "sql": "test.db test.db2 test.db3"
+        },
+        {
           "type": "catch",
           "sql": "PRAGMA wal_checkpoint = passive",
           "variable": "rc",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "compare_db_hashes",
+          "sql": "test.db test.db2 test.db3",
           "expect": "test.db test.db2 test.db3"
         }
       ]
@@ -2978,11 +3066,19 @@
           "sql": "INSERT INTO t1 VALUES(1);\n        INSERT INTO t2 VALUES(2);\n        INSERT INTO t3 VALUES(3);"
         },
         {
+          "type": "save_db_hashes",
+          "sql": "test.db test.db2 test.db3"
+        },
+        {
           "type": "catch",
           "sql": "PRAGMA temp.wal_checkpoint = passive",
           "variable": "rc",
           "catchResult": true,
           "catchMessage": "msg"
+        },
+        {
+          "type": "compare_db_hashes",
+          "sql": "test.db test.db2 test.db3"
         }
       ]
     },
@@ -2999,7 +3095,7 @@
         {
           "type": "runtime_list",
           "listValues": [
-            "$__catchrc_msg",
+            "$rc",
             "$msg"
           ],
           "expect": "1 {SQLITE_ERROR - unknown database: notadb}"
@@ -5733,12 +5829,21 @@
           "sql": "INSERT INTO t1 VALUES(1);\n        INSERT INTO t2 VALUES(2);\n        INSERT INTO t3 VALUES(3);"
         },
         {
+          "type": "save_db_hashes",
+          "sql": "test.db test.db2 test.db3"
+        },
+        {
           "type": "wal_checkpoint_rc",
           "sql": "passive",
           "variable": "rc",
           "catchResult": true,
           "database": "db",
           "fileTarget": "main"
+        },
+        {
+          "type": "compare_db_hashes",
+          "sql": "test.db test.db2 test.db3",
+          "expect": "test.db"
         }
       ]
     },
@@ -5750,12 +5855,21 @@
           "sql": "INSERT INTO t1 VALUES(1);\n        INSERT INTO t2 VALUES(2);\n        INSERT INTO t3 VALUES(3);"
         },
         {
+          "type": "save_db_hashes",
+          "sql": "test.db test.db2 test.db3"
+        },
+        {
           "type": "wal_checkpoint_rc",
           "sql": "passive",
           "variable": "rc",
           "catchResult": true,
           "database": "db",
           "fileTarget": "aux"
+        },
+        {
+          "type": "compare_db_hashes",
+          "sql": "test.db test.db2 test.db3",
+          "expect": "test.db2"
         }
       ]
     },
@@ -5767,12 +5881,21 @@
           "sql": "INSERT INTO t1 VALUES(1);\n        INSERT INTO t2 VALUES(2);\n        INSERT INTO t3 VALUES(3);"
         },
         {
+          "type": "save_db_hashes",
+          "sql": "test.db test.db2 test.db3"
+        },
+        {
           "type": "wal_checkpoint_rc",
           "sql": "passive",
           "variable": "rc",
           "catchResult": true,
           "database": "db",
           "fileTarget": "aux2"
+        },
+        {
+          "type": "compare_db_hashes",
+          "sql": "test.db test.db2 test.db3",
+          "expect": "test.db3"
         }
       ]
     },
@@ -5784,11 +5907,20 @@
           "sql": "INSERT INTO t1 VALUES(1);\n        INSERT INTO t2 VALUES(2);\n        INSERT INTO t3 VALUES(3);"
         },
         {
+          "type": "save_db_hashes",
+          "sql": "test.db test.db2 test.db3"
+        },
+        {
           "type": "wal_checkpoint_rc",
           "sql": "passive",
           "variable": "rc",
           "catchResult": true,
           "database": "db"
+        },
+        {
+          "type": "compare_db_hashes",
+          "sql": "test.db test.db2 test.db3",
+          "expect": "test.db test.db2 test.db3"
         }
       ]
     },
@@ -5800,11 +5932,20 @@
           "sql": "INSERT INTO t1 VALUES(1);\n        INSERT INTO t2 VALUES(2);\n        INSERT INTO t3 VALUES(3);"
         },
         {
+          "type": "save_db_hashes",
+          "sql": "test.db test.db2 test.db3"
+        },
+        {
           "type": "wal_checkpoint_rc",
           "sql": "passive",
           "variable": "rc",
           "catchResult": true,
           "database": "db"
+        },
+        {
+          "type": "compare_db_hashes",
+          "sql": "test.db test.db2 test.db3",
+          "expect": "test.db test.db2 test.db3"
         }
       ]
     },
@@ -5816,12 +5957,20 @@
           "sql": "INSERT INTO t1 VALUES(1);\n        INSERT INTO t2 VALUES(2);\n        INSERT INTO t3 VALUES(3);"
         },
         {
+          "type": "save_db_hashes",
+          "sql": "test.db test.db2 test.db3"
+        },
+        {
           "type": "wal_checkpoint_rc",
           "sql": "passive",
           "variable": "rc",
           "catchResult": true,
           "database": "db",
           "fileTarget": "temp"
+        },
+        {
+          "type": "compare_db_hashes",
+          "sql": "test.db test.db2 test.db3"
         }
       ]
     },
@@ -5840,7 +5989,7 @@
         {
           "type": "runtime_list",
           "listValues": [
-            "$__catchrc_msg",
+            "$rc",
             "$msg"
           ],
           "expect": "1 {SQLITE_ERROR - unknown database: notadb}"
@@ -8555,9 +8704,17 @@
       "name": "e_walckpt-4.0",
       "steps": [
         {
+          "type": "wal_checkpoint_v2",
+          "sql": "-1001",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db"
+        },
+        {
           "type": "runtime_list",
           "listValues": [
-            "[catch \"wal_checkpoint_v2 db -1001\" msg]",
+            "$rc",
             "$msg"
           ],
           "expect": "1 {SQLITE_MISUSE - not an error}"
@@ -8568,9 +8725,17 @@
       "name": "e_walckpt-4.1",
       "steps": [
         {
+          "type": "wal_checkpoint_v2",
+          "sql": "-1",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db"
+        },
+        {
           "type": "runtime_list",
           "listValues": [
-            "[catch \"wal_checkpoint_v2 db -1\" msg]",
+            "$rc",
             "$msg"
           ],
           "expect": "1 {SQLITE_MISUSE - not an error}"
@@ -8581,9 +8746,17 @@
       "name": "e_walckpt-4.2",
       "steps": [
         {
+          "type": "wal_checkpoint_v2",
+          "sql": "0",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db"
+        },
+        {
           "type": "runtime_list",
           "listValues": [
-            "[catch \"wal_checkpoint_v2 db 0\" msg]",
+            "$rc",
             "$msg"
           ],
           "expect": "0 {0 -1 -1}"
@@ -8594,9 +8767,17 @@
       "name": "e_walckpt-4.3",
       "steps": [
         {
+          "type": "wal_checkpoint_v2",
+          "sql": "1",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db"
+        },
+        {
           "type": "runtime_list",
           "listValues": [
-            "[catch \"wal_checkpoint_v2 db 1\" msg]",
+            "$rc",
             "$msg"
           ],
           "expect": "0 {0 -1 -1}"
@@ -8607,9 +8788,17 @@
       "name": "e_walckpt-4.4",
       "steps": [
         {
+          "type": "wal_checkpoint_v2",
+          "sql": "2",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db"
+        },
+        {
           "type": "runtime_list",
           "listValues": [
-            "[catch \"wal_checkpoint_v2 db 2\" msg]",
+            "$rc",
             "$msg"
           ],
           "expect": "0 {0 -1 -1}"
@@ -8620,9 +8809,17 @@
       "name": "e_walckpt-4.5",
       "steps": [
         {
+          "type": "wal_checkpoint_v2",
+          "sql": "3",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db"
+        },
+        {
           "type": "runtime_list",
           "listValues": [
-            "[catch \"wal_checkpoint_v2 db 3\" msg]",
+            "$rc",
             "$msg"
           ],
           "expect": "0 {0 -1 -1}"
@@ -8633,9 +8830,17 @@
       "name": "e_walckpt-4.6",
       "steps": [
         {
+          "type": "wal_checkpoint_v2",
+          "sql": "4",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db"
+        },
+        {
           "type": "runtime_list",
           "listValues": [
-            "[catch \"wal_checkpoint_v2 db 4\" msg]",
+            "$rc",
             "$msg"
           ],
           "expect": "1 {SQLITE_MISUSE - not an error}"
@@ -8646,9 +8851,17 @@
       "name": "e_walckpt-4.7",
       "steps": [
         {
+          "type": "wal_checkpoint_v2",
+          "sql": "114",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db"
+        },
+        {
           "type": "runtime_list",
           "listValues": [
-            "[catch \"wal_checkpoint_v2 db 114\" msg]",
+            "$rc",
             "$msg"
           ],
           "expect": "1 {SQLITE_MISUSE - not an error}"
@@ -8659,9 +8872,17 @@
       "name": "e_walckpt-4.8",
       "steps": [
         {
+          "type": "wal_checkpoint_v2",
+          "sql": "1000000",
+          "variable": "rc",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db"
+        },
+        {
           "type": "runtime_list",
           "listValues": [
-            "[catch \"wal_checkpoint_v2 db 1000000\" msg]",
+            "$rc",
             "$msg"
           ],
           "expect": "1 {SQLITE_MISUSE - not an error}"
@@ -8928,7 +9149,7 @@
         {
           "type": "runtime_list",
           "listValues": [
-            "$__catchrc_msg",
+            "$rc",
             "$msg"
           ],
           "expect": "1 {SQLITE_IOERR - disk I/O error}"
