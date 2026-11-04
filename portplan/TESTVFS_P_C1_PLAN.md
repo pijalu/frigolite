@@ -218,3 +218,44 @@ full-copy log restart to reproduce this.
   early return) — walvfs-1.0's 5 frames byte-verified (+37 leaves across the
   WAL families).
 - The WAL frame decoder (walview.go) is the byte-exact verification tool.
+- **S5 — LANDED (2026-11-04d, commits 6b1436b1a/a633c3b5b/0bb49bb37/2ec4b187f)**:
+  four walvfs-unit commits. (a) The anonymous-catch runtime surface:
+  commandCatch stamps the emitted statement with a deterministic
+  __catchrc_<msg> variable and the runtime_list's `[catch {...} var]`
+  element references it brace-aware — the harness's existing CatchResult
+  capture records rc + message (5.5/5.6). (b) open_named_db installs the
+  fixture the step NAMES (-vfs tvfs) — the global default was installed for
+  every open, leaving 129 vfs-carrying opens hook-less. (c) The page-1
+  frame in WAL commits: C's allocateBtreePage append branch makes page 1
+  writable and writes nPage into its image at every allocation-from-end —
+  the commit frame list gains the page-1 frame (scratch WAL byte-page-exact
+  [1..22] vs the C oracle; 8.3's {0 5 5}). WAL-mode only (C's
+  allocateBtreePage never runs outside a write transaction — the open-time
+  init allocates page 1 on a 0-byte db and the stamp would lead the file;
+  HeaderBeyondFile would report the healthy image as truncated).
+  Size-bytes-only into the cached image (a full-header mirror clobbers
+  page 1's fresher meta bytes). (d) The checkpoint busy triple {1 -1 -1}:
+  the pragma's nLog/nCkpt initializers stay when walCheckpoint never ran
+  (a WRITER/CKPT lock veto precedes it — 7.1's WAL_CKPT_LOCK veto).
+  (e) The second-connection WAL observation (wal-14 class): the
+  pagerOpenWalIfPresent port runs on every shared lock (attach beside a
+  non-empty main file, delete the -wal beside an empty one);
+  OP_JournalMode's BtreeSetVersion(pBt, 2) stamps the version bytes into
+  page 1 through the ROLLBACK path before the -wal opens (the main file
+  becomes non-empty — what the attach check reads); the writer's
+  READ_LOCK(0) pin gates on the LIVE shared header (nBackfill == mxFrame)
+  — the eager pin's vacuous 0==0 on a zero cached header pinned
+  "ignore the log" beside a non-empty log and the writer read zeroed
+  WAL-only pages. walvfs 12→8; wal-14 + walbak-4.1.x/4.2.x green.
+  **REMAINING walvfs (8)**: 1.2 (tvfs frame contract), 3.1/3.2/3.2.2
+  (interrupt choreography), 4.2 (readonly-shm + lock counter), 5.3 (the
+  frame-count 24: `tvfs devchar sequential` persists from section 1.2,
+  DROPS POWERSAFE_OVERWRITE, and padToSectorBoundary repeats the last
+  commit frame to the 4096-byte sector boundary at synchronous=FULL —
+  22 page frames + 2 padding = 24; the S4 option surface needs
+  powersafe_overwrite/sector-size handling), 6.2 (locking protocol),
+  9.1 (CANTINIT class). **CARD**: the WAL→rollback switch leaves the
+  "-wal"/"-shm" sidecars and the 2/2 version bytes (C's walModeChange
+  deletes them; BtreeSetVersion(pBt, 1) resets them) — the naive port
+  broke the wal-24.x reopens; needs its own planned checkpoint/flush
+  unit (walbak-4.3.1/4.3.3).
