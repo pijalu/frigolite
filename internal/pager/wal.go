@@ -681,7 +681,11 @@ const (
 func (w *walWriter) checkpoint(mode WalCheckpointMode) (busy, nLog, nCkpt int, err error) {
 	if mode != WalCkptPassive && !w.writeLock {
 		if berr := w.walBusyLockExclusive(walLockWrite, 1); berr != nil {
-			return 1, 0, 0, nil
+			// C's {1 -1 -1}: the pragma's nLog/nCkpt initializers stay
+			// when walCheckpoint never ran (a lock failure happens before
+			// it) — sqlite3WalCheckpoint sets them only on OK/BUSY from
+			// walCheckpoint itself (walvfs-7.1's {1 -1 -1}).
+			return 1, -1, -1, nil
 		}
 		w.writeLock = true
 		defer func() {
@@ -693,7 +697,10 @@ func (w *walWriter) checkpoint(mode WalCheckpointMode) (busy, nLog, nCkpt int, e
 	}
 	if !w.ckptLock {
 		if berr := w.walBusyLockCkpt(mode != WalCkptPassive); berr != nil {
-			return 1, 0, 0, nil
+			// Same {1 -1 -1} contract: the CHECKPOINTER lock was vetoed
+			// before walCheckpoint ran (walvfs-7.1's xShmLock veto on
+			// "1 1 lock exclusive" = WAL_CKPT_LOCK).
+			return 1, -1, -1, nil
 		}
 		w.ckptLock = true
 		defer func() {
