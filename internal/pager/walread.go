@@ -339,7 +339,7 @@ func (w *walWriter) markTryLock(mark, n int, excl bool) error {
 	if w.exclusiveMode {
 		return nil
 	}
-	return w.wi.shmTryLockHeld(walReadLockIdx(mark), n, excl)
+	return w.shmTryLockHeld(walReadLockIdx(mark), n, excl)
 }
 
 // markUnlock is markTryLock's release.
@@ -347,7 +347,7 @@ func (w *walWriter) markUnlock(mark, n int, excl bool) {
 	if w.exclusiveMode {
 		return
 	}
-	w.wi.shmUnlockHeld(walReadLockIdx(mark), n, excl)
+	w.shmUnlockHeld(walReadLockIdx(mark), n, excl)
 }
 
 // walSelectReadMarkHeld ports walTryBeginRead's aReadMark[] scan: the index
@@ -383,7 +383,7 @@ func (w *walWriter) walEndReadTxn() {
 		return
 	}
 	if !w.exclusiveMode {
-		w.wi.shmUnlock(walReadLockIdx(w.readLock), 1, false)
+		w.shmUnlock(walReadLockIdx(w.readLock), 1, false)
 	}
 	w.readLock = -1
 	w.minFrame = 0

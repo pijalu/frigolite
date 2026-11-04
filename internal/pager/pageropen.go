@@ -6,6 +6,7 @@
 package pager
 
 import (
+	"sync/atomic"
 	"fmt"
 	"io"
 	"os"
@@ -83,6 +84,7 @@ func openPager(path string, pageSize uint32, forceReadOnly bool) (*Pager, error)
 		pages:        make(map[uint32]*Page),
 		dirty:        make(map[uint32]bool),
 		fileSize:     info.Size(),
+		shmID:        atomic.AddUint64(&theShmIDSeq, 1),
 		// pager.c lazy creation: a database opened empty (0 bytes) must
 		// stay untouched on disk until the first real write — opening and
 		// closing it never materializes the file.

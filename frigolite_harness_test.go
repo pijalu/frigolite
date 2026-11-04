@@ -5834,7 +5834,7 @@ func (fx *testvfsFixture) configure(t *testing.T, step TestStep, runtimeVars map
 // hook builds the observational VFS callback: invoke the script proc for
 // filtered methods, then sync the proc's written variables back into the
 // runtime set (the xSync body's `incr ::sync_count`).
-func (fx *testvfsFixture) hook(runtimeVars map[string]string, db *DB, fixtureDBDir string) func(op, path string) error {
+func (fx *testvfsFixture) hook(runtimeVars map[string]string, db *DB, fixtureDBDir string) func(op, path string, details []string) error {
 	if fx.scriptProc == "" {
 		return nil
 	}
@@ -5867,8 +5867,11 @@ func (fx *testvfsFixture) hook(runtimeVars map[string]string, db *DB, fixtureDBD
 	for _, proc := range fx.procs {
 		targets = append(targets, tcl.NotifyScriptVarTargets(proc.Body)...)
 	}
-	return func(op, path string) error {
-		if len(fx.filters) > 0 && !fx.filters[op] {
+	return func(op, path string, details []string) error {
+		// C's mask semantics (test_vfs.c): the script fires ONLY for the
+		// methods the filter listed — `tvfs filter {}` resets the mask to
+		// zero and NOTHING fires (an unset filter never fires either).
+		if !fx.filters[op] {
 			return nil
 		}
 		base := strings.TrimPrefix(fx.scriptProc, "::")
@@ -5884,7 +5887,15 @@ func (fx *testvfsFixture) hook(runtimeVars map[string]string, db *DB, fixtureDBD
 				interp.SetVariable(name, v)
 			}
 		}
-		answer, _ := interp.InvokeProcedure(base, op, path)
+		// C's tvfsExecTcl always invokes the callback as
+		// <proc> <method> <file> <shmId> <details...>: xSync's sync-flag
+		// string, xShmMap's region size, xWrite's byte count, xShmLock's
+		// "<ofst> <n> lock|unlock shared|exclusive". Procs declaring fewer
+		// parameters bind `args` (walvfs's xSyncCb {filename args}).
+		cbArgs := make([]string, 0, 3+len(details))
+		cbArgs = append(cbArgs, op, path, db.engine.PagerShmID())
+		cbArgs = append(cbArgs, details...)
+		answer, _ := interp.InvokeProcedure(base, cbArgs...)
 		for _, name := range targets {
 			if v, ok := interp.Variable(name); ok {
 				runtimeVars[name] = v

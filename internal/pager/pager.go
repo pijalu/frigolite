@@ -227,7 +227,8 @@ type Pager struct {
 	walHook func(nLog, nCkpt int) int
 	// testvfs hook layer (vfshooks.go): the fixture VFS's observable I/O
 	// events, the devchar override, and the WAL sync-flag level.
-	vfsHook               func(op, path string) error
+	vfsHook               func(op, path string, details []string) error
+	shmID                 uint64 // the connection's shm id (test_vfs.c pShmId)
 	vfsShmMapPending      bool
 	deviceCharacteristics int
 	walSyncFlags          uint8

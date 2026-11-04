@@ -746,13 +746,13 @@ func (w *walWriter) ckptPass1ReaderMarks(mxFrame uint32) (uint32, error) {
 		if mxSafeFrame <= y || y == ReadmarkNotUsed {
 			continue
 		}
-		if w.wi.shmTryLockHeld(walReadLockIdx(i), 1, true) == nil {
+		if w.shmTryLockHeld(walReadLockIdx(i), 1, true) == nil {
 			iMark := uint32(ReadmarkNotUsed)
 			if i == 1 {
 				iMark = mxSafeFrame
 			}
 			w.wi.setCkptInfoLocked(func(ci *WalCkptInfo) { ci.AReadMark[i] = iMark })
-			w.wi.shmUnlockHeld(walReadLockIdx(i), 1, true)
+			w.shmUnlockHeld(walReadLockIdx(i), 1, true)
 		} else {
 			// BUSY reader: stop the backfill short of its mark
 			// (and stop invoking the busy handler, wal.c xBusy=0).
@@ -772,7 +772,7 @@ func (w *walWriter) ckptBackfillPass(mxFrame, mxSafeFrame uint32) (uint32, error
 		return mxSafeFrame, nil
 	}
 	// Backfill under exclusive READ_LOCK(0) (wal.c walBusyLock).
-	if w.wi.shmTryLockHeld(walReadLockIdx(0), 1, true) != nil {
+	if w.shmTryLockHeld(walReadLockIdx(0), 1, true) != nil {
 		return nBackfill0, nil
 	}
 	// wal.c:2260 — sync the WAL before copying its frames into the db
@@ -785,7 +785,7 @@ func (w *walWriter) ckptBackfillPass(mxFrame, mxSafeFrame uint32) (uint32, error
 		// wal.c:2314 — sync the database file after copying pages.
 		w.p.vfsSync(w.p.path, walCkptSyncBits(w.p.walSyncFlags))
 	}
-	w.wi.shmUnlockHeld(walReadLockIdx(0), 1, true)
+	w.shmUnlockHeld(walReadLockIdx(0), 1, true)
 	if berr != nil {
 		return mxSafeFrame, berr
 	}
@@ -807,11 +807,11 @@ func (w *walWriter) ckptPass2(mode WalCheckpointMode) (int, error) {
 	if mode < WalCkptRestart {
 		return busy, nil
 	}
-	if w.wi.shmTryLockHeld(walReadLockIdx(1), WalNReader-1, true) != nil {
+	if w.shmTryLockHeld(walReadLockIdx(1), WalNReader-1, true) != nil {
 		return 1, nil
 	}
 	rerr := w.walRestartHdrLocked(true)
-	w.wi.shmUnlockHeld(walReadLockIdx(1), WalNReader-1, true)
+	w.shmUnlockHeld(walReadLockIdx(1), WalNReader-1, true)
 	if rerr != nil {
 		return busy, rerr
 	}

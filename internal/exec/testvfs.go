@@ -9,9 +9,12 @@ import (
 
 // InstallVFSHook wires the fixture's callback hook and devchar override
 // onto the connection's main pager. op is the VFS method name ("xSync"),
-// path the file the method ran on — the fixture script dispatches on the
-// file's tail (walvfs's xSync counts only test.db-wal syncs).
-func (e *Engine) InstallVFSHook(fn func(op, path string) error, devcharBits int) {
+// path the file the method ran on, details the method-specific trailing
+// arguments (test_vfs.c's tvfsExecTcl shapes) — the fixture script
+// dispatches on the file's tail (walvfs's xSync counts only test.db-wal
+// syncs) and reads the details for the lock/map/write shapes
+// (e_walckpt's "1 1 lock exclusive").
+func (e *Engine) InstallVFSHook(fn func(op, path string, details []string) error, devcharBits int) {
 	for _, ctx := range e.dbList {
 		if ctx != nil && ctx.Pager != nil {
 			ctx.Pager.SetVFSHook(fn)
@@ -25,4 +28,15 @@ func (e *Engine) InstallVFSHook(fn func(op, path string) error, devcharBits int)
 			}
 		}
 	}
+}
+
+// PagerShmID renders the connection's shm identifier (test_vfs.c's pShmId)
+// the fixture callbacks receive as their third argument.
+func (e *Engine) PagerShmID() string {
+	for _, ctx := range e.dbList {
+		if ctx != nil && ctx.Pager != nil {
+			return ctx.Pager.ShmID()
+		}
+	}
+	return "0"
 }

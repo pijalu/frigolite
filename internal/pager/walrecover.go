@@ -31,11 +31,11 @@ func (w *walWriter) walIndexRecoverLocked() error {
 	// iLock = WAL_ALL_BUT_WRITE + ckptLock = 1, n = WAL_READ_LOCK(0)-iLock = 2
 	// (slice 4's snapshot_recover caller, which pre-holds CKPT, will widen
 	// this to the C ckptLock form).
-	if err := w.wi.shmTryLockHeld(walLockCkpt, walLockRecover+1-walLockCkpt, true); err != nil {
+	if err := w.shmTryLockHeld(walLockCkpt, walLockRecover+1-walLockCkpt, true); err != nil {
 		return err
 	}
 	err := w.walIndexRecoverBodyLocked()
-	w.wi.shmUnlockHeld(walLockCkpt, walLockRecover+1-walLockCkpt, true)
+	w.shmUnlockHeld(walLockCkpt, walLockRecover+1-walLockCkpt, true)
 	return err
 }
 
@@ -183,7 +183,7 @@ func (w *walWriter) finishRecoveryLocked(aFrameCksum [2]uint32) error {
 		ci.AReadMark[0] = 0
 	})
 	for i := 1; i < WalNReader; i++ {
-		if w.wi.shmTryLockHeld(walReadLockIdx(i), 1, true) == nil {
+		if w.shmTryLockHeld(walReadLockIdx(i), 1, true) == nil {
 			w.wi.setCkptInfoLocked(func(ci *WalCkptInfo) {
 				if i == 1 && w.hdr.MxFrame != 0 {
 					ci.AReadMark[i] = w.hdr.MxFrame
@@ -191,7 +191,7 @@ func (w *walWriter) finishRecoveryLocked(aFrameCksum [2]uint32) error {
 					ci.AReadMark[i] = ReadmarkNotUsed
 				}
 			})
-			w.wi.shmUnlockHeld(walReadLockIdx(i), 1, true)
+			w.shmUnlockHeld(walReadLockIdx(i), 1, true)
 		}
 		// BUSY on the mark: leave the reader's value untouched (wal.c tolerates).
 	}

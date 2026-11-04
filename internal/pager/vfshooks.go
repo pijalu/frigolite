@@ -1,6 +1,9 @@
 package pager
 
-import "errors"
+import (
+	"errors"
+	"strconv"
+)
 
 // testvfs hook layer: the fixture VFS's observable I/O surface. C's testvfs
 // wraps the VFS and invokes the fixture script on the x-methods; our pager
@@ -11,6 +14,10 @@ import "errors"
 const (
 	IOCAPSequential = 0x00000100
 )
+
+// theShmIDSeq mints the per-connection shm identifiers (test_vfs.c's
+// pShmId: a stable integer per shm instance).
+var theShmIDSeq uint64
 
 // walSyncFlagBits are the WAL-mode sync flag levels (pager.c:3636-3650):
 // synchronous=OFF → 0, NORMAL → 0x08 (NORMAL<<2, commit bits zero), FULL →
@@ -49,10 +56,16 @@ type VFSHookError struct{ Code string }
 func (e *VFSHookError) Error() string { return e.Code }
 
 // SetVFSHook installs the fixture callback hook: op is the VFS method name
-// ("xSync", "xShmMap", "xShmLock"), path the file path the method ran on.
-// xSync is observational (S1); the shm methods' returns are the method
-// RESULT (S2) — VFSHookError values propagate as the mapped failure.
-func (p *Pager) SetVFSHook(fn func(op, path string) error) {
+// ("xSync", "xShmMap", "xShmLock", "xWrite"), path the file path the method
+// ran on, details the method-specific trailing arguments C's testvfs passes
+// (test_vfs.c tvfsExecTcl): the xSync sync-flag string ("normal"/"full"/
+// "normal|dataonly"/...), the xShmMap region size, the xWrite byte count,
+// the xShmLock "<ofst> <n> lock|unlock shared|exclusive" string. The
+// callback is always invoked with (op, path, shmID, details) — four
+// arguments — regardless of the method. xSync is observational (S1); the
+// shm methods' returns are the method RESULT (S2) — VFSHookError values
+// propagate as the mapped failure.
+func (p *Pager) SetVFSHook(fn func(op, path string, details []string) error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.vfsHook = fn
@@ -63,11 +76,14 @@ func (p *Pager) SetVFSHook(fn func(op, path string) error) {
 }
 
 // translateVFSHookError maps a fixture callback's result code to the C
-// error message the caller would see (sqlite3ErrStr).
+// error message the caller would see (sqlite3ErrStr). All the
+// SQLITE_READONLY_* extended codes share the base code's message
+// (main.c:1547's switch falls through to the primary name's errstr).
 func translateVFSHookError(err error) error {
 	if he, ok := err.(*VFSHookError); ok {
 		switch he.Code {
-		case "SQLITE_READONLY":
+		case "SQLITE_READONLY", "SQLITE_READONLY_CANTINIT", "SQLITE_READONLY_DIRECTORY",
+			"SQLITE_READONLY_RECOVERY", "SQLITE_READONLY_ROLLBACK", "SQLITE_READONLY_DBMOVED":
 			return errors.New("attempt to write a readonly database")
 		case "SQLITE_BUSY":
 			return errors.New("database is locked")
@@ -81,11 +97,41 @@ func translateVFSHookError(err error) error {
 // caller translates VFSHookError codes). The hook field is read without
 // the mutex (installed once at connection setup; the fixture callback must
 // not re-enter the pager).
-func (p *Pager) vfsCall(op, path string) error {
+func (p *Pager) vfsCall(op, path string, details ...string) error {
 	if p.vfsHook == nil {
 		return nil
 	}
-	return p.vfsHook(op, path)
+	return p.vfsHook(op, path, details)
+}
+
+// ShmID renders the connection's shm identifier (test_vfs.c's pShmId — a
+// stable per-connection integer the callbacks receive as their third
+// argument).
+func (p *Pager) ShmID() string { return strconv.FormatUint(p.shmID, 10) }
+
+// vfsShmLock fires the fixture's xShmLock callback (test_vfs.c tvfsShmLock):
+// details "<ofst> <n> lock|unlock shared|exclusive". The callback's return
+// code is the method result; unlock results are ignored (wal.c discards
+// them).
+func (p *Pager) vfsShmLock(idx, n int, op string, excl bool) error {
+	if p.vfsHook == nil {
+		return nil
+	}
+	details := strconv.Itoa(idx) + " " + strconv.Itoa(n) + " " + op + " shared"
+	if excl {
+		details = strconv.Itoa(idx) + " " + strconv.Itoa(n) + " " + op + " exclusive"
+	}
+	err := p.vfsHook("xShmLock", p.path, []string{details})
+	if err == nil || op != "lock" {
+		return nil
+	}
+	// wal.c's walLock* propagate the VFS result verbatim: BUSY drives the
+	// lock protocol's busy handling; other codes flow to the caller's
+	// mapping (walIndexRecover's READONLY_RECOVERY et al).
+	if he, ok := err.(*VFSHookError); ok && he.Code == "SQLITE_BUSY" {
+		return errWalBusy
+	}
+	return err
 }
 
 // SetDeviceCharacteristics overrides the IOCAP bits the fixture's devchar
@@ -114,15 +160,26 @@ func (p *Pager) SetWALSyncFlags(flags uint8) {
 
 // vfsSync emits one xSync event through the hook when the sync's bit group
 // is non-zero (C's sqlite3OsSync(walFd, flags) runs only when the flags say
-// so). Called from INSIDE the pager's locked sections (the wal writer runs
-// under p.mu): the hook field is read without locking — SetVFSHook installs
-// it once at connection setup, before any I/O — and the fixture hook must
-// not re-enter the pager.
+// so). The callback's details carry the sync-flag string test_vfs.c renders
+// ("normal", "full", "normal|dataonly", ...). Called from INSIDE the pager's
+// locked sections (the wal writer runs under p.mu): the hook field is read
+// without locking — SetVFSHook installs it once at connection setup, before
+// any I/O — and the fixture hook must not re-enter the pager.
 func (p *Pager) vfsSync(path string, bits uint8) {
 	if bits == 0 || p.vfsHook == nil {
 		return
 	}
-	_ = p.vfsHook("xSync", path)
+	// test_vfs.c tvfsSync's zFlags rendering (SQLITE_SYNC_NORMAL=0x02,
+	// SQLITE_SYNC_FULL=0x03, SQLITE_SYNC_DATAONLY=0x10 — the FULL
+	// discriminator is the low bit).
+	zFlags := "normal"
+	if bits&0x01 != 0 {
+		zFlags = "full"
+	}
+	if bits&0x10 != 0 {
+		zFlags += "|dataonly"
+	}
+	_ = p.vfsHook("xSync", path, []string{zFlags})
 }
 
 // walHeaderSyncAllowed reports whether the WAL header sync may run: false

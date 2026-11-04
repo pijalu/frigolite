@@ -239,12 +239,50 @@ func (w *WALIndex) shmUnlock(idx, n int, excl bool) {
 // (exclusiveMode) they are all no-ops, exactly as in C.
 // ---------------------------------------------------------------------------
 
+// shmLockHookFire emits the connection's xShmLock fixture event (test_vfs.c
+// tvfsShmLock fires for EVERY xShmLock the VFS sees). A veto maps to
+// SQLITE_BUSY (errWalBusy) for the lock protocol.
+func (w *walWriter) shmLockHookFire(idx, n int, op string, excl bool) error {
+	return w.p.vfsShmLock(idx, n, op, excl)
+}
+
+// shmTryLock takes shm locks on slots [idx, idx+n) after the fixture's
+// xShmLock hook (veto = busy).
+func (w *walWriter) shmTryLock(idx, n int, excl bool) error {
+	if err := w.shmLockHookFire(idx, n, "lock", excl); err != nil {
+		return err
+	}
+	return w.wi.shmTryLock(idx, n, excl)
+}
+
+// shmTryLockHeld is shmTryLock for callers already holding the wal-index
+// mutex; the hook fires under it (veto-only fixture callbacks).
+func (w *walWriter) shmTryLockHeld(idx, n int, excl bool) error {
+	if err := w.shmLockHookFire(idx, n, "lock", excl); err != nil {
+		return err
+	}
+	return w.wi.shmTryLockHeld(idx, n, excl)
+}
+
+// shmUnlock releases shm locks after the fixture's xShmLock hook (the
+// unlock result is observational — wal.c discards it).
+func (w *walWriter) shmUnlock(idx, n int, excl bool) {
+	_ = w.shmLockHookFire(idx, n, "unlock", excl)
+	w.wi.shmUnlock(idx, n, excl)
+}
+
+// shmUnlockHeld is shmUnlock for callers already holding the wal-index mutex.
+func (w *walWriter) shmUnlockHeld(idx, n int, excl bool) {
+	_ = w.shmLockHookFire(idx, n, "unlock", excl)
+	w.wi.shmUnlockHeld(idx, n, excl)
+}
+
 // walLockExclusive takes exclusive shm locks on slots [idx, idx+n).
 func (w *walWriter) walLockExclusive(idx, n int) error {
 	if w.exclusiveMode {
 		return nil
 	}
-	return w.wi.shmTryLock(idx, n, true)
+	return w.shmTryLock(idx, n, true)
 }
 
 // walUnlockExclusive releases exclusive shm locks on slots [idx, idx+n).
@@ -252,7 +290,7 @@ func (w *walWriter) walUnlockExclusive(idx, n int) {
 	if w.exclusiveMode {
 		return
 	}
-	w.wi.shmUnlock(idx, n, true)
+	w.shmUnlock(idx, n, true)
 }
 
 // walLockShared takes shared shm locks on slots [idx, idx+n).
@@ -260,7 +298,7 @@ func (w *walWriter) walLockShared(idx, n int) error {
 	if w.exclusiveMode {
 		return nil
 	}
-	return w.wi.shmTryLock(idx, n, false)
+	return w.shmTryLock(idx, n, false)
 }
 
 // walUnlockShared releases shared shm locks on slots [idx, idx+n).
@@ -268,7 +306,7 @@ func (w *walWriter) walUnlockShared(idx, n int) {
 	if w.exclusiveMode {
 		return
 	}
-	w.wi.shmUnlock(idx, n, false)
+	w.shmUnlock(idx, n, false)
 }
 
 // walBusyLock ports walBusyLock (wal.c L2101): try the exclusive lock; while
@@ -340,9 +378,9 @@ func (p *Pager) WALIndexLock(idx, n int, excl, lock bool) bool {
 		return false
 	}
 	if lock {
-		return w.wi.shmTryLock(idx, n, excl) == nil
+		return w.shmTryLock(idx, n, excl) == nil
 	}
-	w.wi.shmUnlock(idx, n, excl)
+	w.shmUnlock(idx, n, excl)
 	return true
 }
 
