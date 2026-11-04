@@ -3857,6 +3857,28 @@ func TestSQLiteSuite(t *testing.T) {
 							}
 							continue
 						}
+						if step.Type == "delete_glob" {
+							// `foreach f [glob -nocomplain test.db*] { forcedelete $f }`
+							// (tester.tcl's idiom, walbak-3.x): remove every
+							// file the basename glob matches — the same
+							// contract as the faultsim driver's handler.
+							pattern := step.SQL
+							if !filepath.IsAbs(pattern) {
+								pattern = filepath.Join(fixtureDBDir, pattern)
+							}
+							matches, gerr := filepath.Glob(pattern)
+							if gerr != nil {
+								t.Errorf("delete glob %q: %v", pattern, gerr)
+								return
+							}
+							for _, m := range matches {
+								if err := os.Remove(m); err != nil && !os.IsNotExist(err) {
+									t.Errorf("delete glob match %q: %v", m, err)
+									return
+								}
+							}
+							continue
+						}
 						if step.Type == "copy_file" {
 							source, sourceErr := fixtureLifecyclePath(fixtureDBDir, step.SQL)
 							target, targetErr := fixtureLifecyclePath(fixtureDBDir, step.FileTarget)
@@ -5928,6 +5950,35 @@ func (fx *testvfsFixture) hook(runtimeVars map[string]string, db *DB, fixtureDBD
 	for _, proc := range fx.procs {
 		targets = append(targets, tcl.NotifyScriptVarTargets(proc.Body)...)
 	}
+	// C's tvfsOpen (test_vfs.c:638-660) evaluates `SCRIPT xOpen FILENAME
+	// ...` at open time when the mask allows, and the script's RESULT —
+	// anything that is not an SQLITE_ error code — becomes the
+	// connection's handle (pFd->pShmId), which every later callback
+	// receives as its third argument ("reader" in wal3-7.1.x's $handle
+	// filters). Fire the event here (the harness installs the fixture
+	// right after the engine open — C fires it during) and capture the
+	// name; fixtures without an xOpen event keep the minted numeric id.
+	handle := db.engine.PagerShmID()
+	if fx.filters["xOpen"] {
+		if base := strings.TrimPrefix(fx.scriptProc, "::"); interp.HasProcedure(base) {
+			for _, name := range targets {
+				if v, ok := runtimeVars[name]; ok {
+					interp.SetVariable(name, v)
+				}
+			}
+			answer, _ := interp.InvokeProcedure(base, "xOpen", db.path, handle)
+			for _, name := range targets {
+				if v, ok := interp.Variable(name); ok {
+					runtimeVars[name] = v
+				} else if v, ok := interp.Variable("::" + name); ok {
+					runtimeVars[name] = v
+				}
+			}
+			if code := strings.TrimSpace(answer); code != "" && !strings.HasPrefix(code, "SQLITE_") {
+				handle = code
+			}
+		}
+	}
 	return func(op, path string, details []string) error {
 		// C's mask semantics (test_vfs.c): the script fires ONLY for the
 		// methods the filter listed — `tvfs filter {}` resets the mask to
@@ -5954,7 +6005,7 @@ func (fx *testvfsFixture) hook(runtimeVars map[string]string, db *DB, fixtureDBD
 		// "<ofst> <n> lock|unlock shared|exclusive". Procs declaring fewer
 		// parameters bind `args` (walvfs's xSyncCb {filename args}).
 		cbArgs := make([]string, 0, 3+len(details))
-		cbArgs = append(cbArgs, op, path, db.engine.PagerShmID())
+		cbArgs = append(cbArgs, op, path, handle)
 		cbArgs = append(cbArgs, details...)
 		answer, _ := interp.InvokeProcedure(base, cbArgs...)
 		for _, name := range targets {

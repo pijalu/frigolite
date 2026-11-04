@@ -21,6 +21,10 @@
       "name": "walhook-1.2",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "wal_hook"
+        },
+        {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(1, 'one')"
         },

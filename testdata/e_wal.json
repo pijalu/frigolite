@@ -24,8 +24,13 @@
       "name": "setup_1",
       "steps": [
         {
+          "type": "register_testvfs",
+          "variable": "oldvfs"
+        },
+        {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "oldvfs"
         }
       ]
     },
@@ -66,7 +71,8 @@
         },
         {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "oldvfs"
         },
         {
           "type": "catch",
@@ -97,7 +103,8 @@
         },
         {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "oldvfs"
         },
         {
           "type": "catch",
@@ -349,7 +356,8 @@
       "steps": [
         {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "oldvfs"
         },
         {
           "type": "catch",
@@ -380,7 +388,8 @@
       "steps": [
         {
           "type": "reopen_db",
-          "sql": "test.db2"
+          "sql": "test.db2",
+          "vfs": "oldvfs"
         },
         {
           "type": "catch",
@@ -399,7 +408,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "e_wal-4.1.1",

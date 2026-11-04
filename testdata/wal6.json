@@ -377,7 +377,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "setup_6",
@@ -489,12 +489,23 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "all_journal_modes": "delete persist truncate memory off",
             "jmode": "off",
-            "testdir": "",
+            "testdir": ".",
             "testprefix": "wal6"
           },
+          "callbackProcs": [
+            {
+              "Name": "test3",
+              "Args": [
+                "prefix"
+              ],
+              "Body": "\n  do_test $prefix.1 {\n    execsql { SELECT count(*) FROM t1 } \n  } {0}\n  do_test $prefix.2 {\n    execsql { INSERT INTO t1 VALUES('x', 'x') } db2\n  } {}\n  do_test $prefix.3 {\n    execsql { INSERT INTO t1 VALUES('y', 'y') }\n  } {}\n  do_test $prefix.4 {\n    execsql { SELECT count(*) FROM t1 } \n  } {2}\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "test3",
           "functionArgs": [
             "prefix"
@@ -534,7 +545,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "setup_9",
@@ -615,12 +626,23 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "all_journal_modes": "delete persist truncate memory off",
             "jmode": "off",
-            "testdir": "",
+            "testdir": ".",
             "testprefix": "wal6"
           },
+          "callbackProcs": [
+            {
+              "Name": "test4",
+              "Args": [
+                "prefix"
+              ],
+              "Body": "\n  do_test $prefix.1 {\n    catchsql { BEGIN IMMEDIATE }\n  } {1 {database is locked}}\n\n  do_test $prefix.2 {\n    execsql { COMMIT } db2\n  } {}\n\n  do_test $prefix.3 {\n    execsql { BEGIN IMMEDIATE }\n  } {}\n  do_test $prefix.4 {\n    execsql { COMMIT }\n  } {}\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "test4",
           "functionArgs": [
             "prefix"
@@ -661,7 +683,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "wal6-4.1",
@@ -757,7 +779,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "setup_13",

@@ -5,7 +5,40 @@
   "tests": [
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
+    },
+    {
+      "name": "walfault-1-pre-1",
+      "steps": [
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "walfault-1",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "walfault-1",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "PRAGMA main.journal_mode = WAL"
+            }
+          ],
+          "testScript": "\n\n  faultsim_test_result {0 wal}\n\n  # Test that the connection that encountered an error as part of \n  # \"PRAGMA journal_mode = WAL\" and a new connection use the same\n  # journal mode when accessing the database.\n  #\n  # If \"PRAGMA journal_mode\" is executed immediately, connection [db] (the \n  # one that hit the error in journal_mode=\"WAL\") might return \"wal\" even \n  # if it failed to switch the database to WAL mode. This is not considered \n  # a problem. When it tries to read the database, connection [db] correctly \n  # recognizes that it is a rollback database and switches back to a \n  # rollback compatible journal mode.\n  #\n  if {[permutation] != \"inmemory_journal\"} {\n    set jm  [db one  {SELECT * FROM sqlite_master ; PRAGMA main.journal_mode}]\n    sqlite3 db2 test.db\n    set jm2 [db2 one {SELECT * FROM sqlite_master ; PRAGMA main.journal_mode}]\n    db2 close\n  \n    if { $jm!=$jm2 } { error \"Journal modes do not match: $jm $jm2\" }\n    if { $testrc==0 \u0026\u0026 $jm!=\"wal\" } { error \"Journal mode is not WAL\" }\n  }\n",
+          "testPatterns": [
+            "0 wal"
+          ]
+        }
+      ]
     },
     {
       "name": "walfault-2-pre-1",
@@ -29,9 +62,40 @@
       "name": "walfault-2-pre-2",
       "steps": [
         {
+          "type": "faultsim_save_close"
+        },
+        {
+          "type": "faultsim_restore_reopen"
+        },
+        {
           "type": "exec",
           "sql": "SELECT count(*) FROM x",
           "expect": "8"
+        }
+      ]
+    },
+    {
+      "name": "walfault-2",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "walfault-2",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "SELECT count(*) FROM x"
+            }
+          ],
+          "testScript": "\n  faultsim_test_result {0 8}\n  faultsim_integrity_check\n",
+          "testPatterns": [
+            "0 8"
+          ]
         }
       ]
     },
@@ -48,16 +112,77 @@
         },
         {
           "type": "close_db"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "walfault-3",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "walfault-3",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "DELETE FROM abc;\n    PRAGMA wal_checkpoint;"
+            }
+          ],
+          "testScript": "\n  faultsim_test_result {0 {}}\n",
+          "testPatterns": [
+            "0 {}"
+          ]
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "walfault-4",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "walfault-4",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "PRAGMA auto_vacuum = 0;\n      PRAGMA journal_mode = WAL;\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES('a', 'b');\n      PRAGMA wal_checkpoint;\n      SELECT * FROM t1;"
+            }
+          ],
+          "testScript": "\n    # Update: The following changed from {0 {wal 0 7 7 a b}} as a result\n    # of PSOW being set by default.\n    faultsim_test_result {0 {wal 0 5 5 a b}}\n    faultsim_integrity_check\n  ",
+          "testPatterns": [
+            "0 {wal 0 5 5 a b}"
+          ]
+        }
+      ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "walfault-5-pre-1",
@@ -65,12 +190,44 @@
         {
           "type": "exec",
           "sql": "PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "walfault-5",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "shmerr*",
+          "variable": "walfault-5",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA wal_autocheckpoint = 0"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "CREATE TABLE t1(x);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(400));           /* 1 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 4 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 8 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 16 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 32 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 64 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 128 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 256 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 512 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 1024 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2048 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 4096 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 8192 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 16384 */\n    COMMIT;\n    SELECT count(*) FROM t1;"
+            }
+          ],
+          "testScript": "\n  faultsim_test_result {0 16384}\n  faultsim_integrity_check\n",
+          "testPatterns": [
+            "0 16384"
+          ]
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "walfault-6-pre-1",
@@ -78,12 +235,40 @@
         {
           "type": "exec",
           "sql": "PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    CREATE TABLE t1(x);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(400));           /* 1 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 4 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 8 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 16 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 32 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 64 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 128 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 256 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 512 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 1024 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2048 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 4096 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 8192 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 16384 */\n    COMMIT;"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "walfault-6",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "shmerr*",
+          "variable": "walfault-6",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "SELECT count(*) FROM t1"
+            }
+          ],
+          "testScript": "\n  faultsim_test_result {0 16384}\n  faultsim_integrity_check\n  set n [db one {SELECT count(*) FROM t1}]\n  if {$n != 16384 \u0026\u0026 $n != 0} { error \"Incorrect number of rows: $n\" }\n",
+          "testPatterns": [
+            "0 16384"
+          ]
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "walfault-7-pre-1",
@@ -91,12 +276,40 @@
         {
           "type": "exec",
           "sql": "PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    CREATE TABLE t1(x);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(400));           /* 1 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 4 */\n    COMMIT;"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "walfault-7",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "walfault-7",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "SELECT count(*) FROM t1"
+            }
+          ],
+          "testScript": "\n  faultsim_test_result {0 4}\n  set n [db one {SELECT count(*) FROM t1}]\n  if {$n != 4 \u0026\u0026 $n != 0} { error \"Incorrect number of rows: $n\" }\n",
+          "testPatterns": [
+            "0 4"
+          ]
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "walfault-8-pre-1",
@@ -104,12 +317,44 @@
         {
           "type": "exec",
           "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE abc(a PRIMARY KEY);\n    INSERT INTO abc VALUES(randomblob(900));"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "walfault-8",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "walfault-8",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA cache_size = 10"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "BEGIN;\n      INSERT INTO abc SELECT randomblob(900) FROM abc;    /* 1 */\n      --INSERT INTO abc SELECT randomblob(900) FROM abc;    /* 2 */\n      --INSERT INTO abc SELECT randomblob(900) FROM abc;    /* 4 */\n      --INSERT INTO abc SELECT randomblob(900) FROM abc;    /* 8 */\n    ROLLBACK;\n    SELECT count(*) FROM abc;"
+            }
+          ],
+          "testScript": "\n  faultsim_test_result {0 1}\n\n  faultsim_integrity_check\n  catch { db eval ROLLBACK }\n  faultsim_integrity_check\n\n  set n [db one {SELECT count(*) FROM abc}]\n  if {$n != 1} { error \"Incorrect number of rows: $n\" }\n",
+          "testPatterns": [
+            "0 1"
+          ]
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "walfault-9-pre-1",
@@ -117,12 +362,44 @@
         {
           "type": "exec",
           "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE abc(a PRIMARY KEY);\n    INSERT INTO abc VALUES(randomblob(900));"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "walfault-9",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "walfault-9",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA cache_size = 10"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "BEGIN;\n      INSERT INTO abc SELECT randomblob(900) FROM abc;    /* 1 */\n      SAVEPOINT spoint;\n        INSERT INTO abc SELECT randomblob(900) FROM abc;    /* 2 */\n        INSERT INTO abc SELECT randomblob(900) FROM abc;    /* 4 */\n        INSERT INTO abc SELECT randomblob(900) FROM abc;    /* 8 */\n      ROLLBACK TO spoint;\n    COMMIT;\n    SELECT count(*) FROM abc;"
+            }
+          ],
+          "testScript": "\n  faultsim_test_result {0 2}\n  faultsim_integrity_check\n\n  catch { db eval { ROLLBACK TO spoint } }\n  catch { db eval { COMMIT } }\n  set n [db one {SELECT count(*) FROM abc}]\n  if {$n != 1 \u0026\u0026 $n != 2} { error \"Incorrect number of rows: $n\" }\n",
+          "testPatterns": [
+            "0 2"
+          ]
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "walfault-10-pre1",
@@ -130,6 +407,48 @@
         {
           "type": "exec",
           "sql": "PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    CREATE TABLE z(zz INTEGER PRIMARY KEY, zzz BLOB);\n    CREATE INDEX zzzz ON z(zzz);\n    INSERT INTO z VALUES(NULL, randomblob(800));\n    INSERT INTO z VALUES(NULL, randomblob(800));\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "walfault-10",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "walfault-10",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA cache_size = 10;\n    BEGIN;\n      UPDATE z SET zzz = randomblob(799);"
+            },
+            {
+              "type": "prepare_stmt",
+              "sql": "SELECT zzz FROM z WHERE zz IN (1, 2, 3)",
+              "variable": "stmt_1"
+            },
+            {
+              "type": "stmt_step",
+              "sql": "SELECT zzz FROM z WHERE zz IN (1, 2, 3)",
+              "variable": "stmt_1"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "INSERT INTO z VALUES(NULL, NULL)"
+            }
+          ],
+          "testScript": "\n  sqlite3_finalize $::stmt\n  faultsim_integrity_check\n\n  faultsim_test_result {0 {}}\n  catch { db eval { ROLLBACK } }\n  faultsim_integrity_check\n\n  set n [db eval {SELECT count(*), sum(length(zzz)) FROM z}]\n  if {$n != \"64 51200\"} { error \"Incorrect data: $n\" }\n",
+          "testPatterns": [
+            "0 {}"
+          ]
         }
       ]
     },
@@ -143,12 +462,55 @@
         {
           "type": "exec",
           "sql": "PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --    4\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --    8\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --   16\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --   32\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --   64\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --  128\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --  256\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --  512\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   -- 1024\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   -- 2048\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   -- 4096\n    COMMIT;"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "walfault-11",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "shmerr*",
+          "variable": "walfault-11",
+          "prep": [
+            {
+              "type": "close_named_db",
+              "database": "db2"
+            },
+            {
+              "type": "faultsim_restore_reopen"
+            }
+          ],
+          "body": [
+            {
+              "type": "query",
+              "sql": "SELECT count(*) FROM abc"
+            },
+            {
+              "type": "open_named_db",
+              "sql": "test.db",
+              "vfs": "shmfault",
+              "database": "db2"
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA wal_checkpoint",
+              "database": "db2"
+            }
+          ],
+          "testScript": "\n  faultsim_test_result {0 {}}\n",
+          "testPatterns": [
+            "0 {}"
+          ]
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "walfault-12-pre-1",
@@ -156,12 +518,49 @@
         {
           "type": "exec",
           "sql": "PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "walfault-12",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "walfault-12",
+          "prep": [
+            {
+              "type": "register_testvfs",
+              "sql": "default",
+              "variable": "shmfault"
+            },
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "query",
+              "sql": "SELECT * FROM sqlite_master"
+            },
+            {
+              "type": "testvfs_config",
+              "sql": "shm",
+              "variable": "test.db",
+              "database": "shmfault"
+            }
+          ],
+          "testScript": "\n  db close\n  faultsim_test_result {0 {}}\n",
+          "testPatterns": [
+            "0 {}"
+          ]
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "walfault-13-pre-1",
@@ -169,12 +568,73 @@
         {
           "type": "exec",
           "sql": "PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "walfault-13.1",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "walfault-13.1",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "PRAGMA locking_mode = exclusive"
+            },
+            {
+              "type": "query",
+              "sql": "SELECT count(*) FROM abc"
+            }
+          ],
+          "testScript": "\n  faultsim_test_result {0 2}\n  if {[file exists test.db-shm]} { error \"Not using heap-memory mode\" }\n  faultsim_integrity_check\n",
+          "testPatterns": [
+            "0 2"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "walfault-13.2",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "walfault-13.2",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "exec",
+              "sql": "PRAGMA locking_mode = exclusive"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "PRAGMA journal_mode = delete"
+            }
+          ],
+          "testScript": "\n  faultsim_test_result {0 delete}\n  if {[file exists test.db-shm]} { error \"Not using heap-memory mode\" }\n  faultsim_integrity_check\n",
+          "testPatterns": [
+            "0 delete"
+          ]
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "walfault-13-pre-2",
@@ -182,12 +642,40 @@
         {
           "type": "exec",
           "sql": "BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "walfault-13.3",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "walfault-13.3",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "PRAGMA locking_mode = exclusive;\n    PRAGMA journal_mode = WAL;\n    INSERT INTO abc VALUES(randomblob(1500));"
+            }
+          ],
+          "testScript": "\n  faultsim_test_result {0 {exclusive wal}}\n  if {[file exists test.db-shm]} { error \"Not using heap-memory mode\" }\n  faultsim_integrity_check\n  set nRow [db eval {SELECT count(*) FROM abc}]\n  if {!(($nRow==2 \u0026\u0026 $testrc) || $nRow==3)} { error \"Bad db content\" }\n",
+          "testPatterns": [
+            "0 {exclusive wal}"
+          ]
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "walfault-14-pre",
@@ -195,12 +683,40 @@
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "walfault-14",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "walfault-14",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "PRAGMA wal_checkpoint = full;\n    INSERT INTO abc VALUES(randomblob(1500));"
+            }
+          ],
+          "testScript": "\n  faultsim_test_result {0 {0 9 9}}\n  faultsim_integrity_check\n  set nRow [db eval {SELECT count(*) FROM abc}]\n  if {!(($nRow==2 \u0026\u0026 $testrc) || $nRow==3)} { error \"Bad db content\" }\n",
+          "testPatterns": [
+            "0 {0 9 9}"
+          ]
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "walfault-15-pre",
@@ -208,6 +724,35 @@
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;"
+        },
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "walfault-15",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "ioerr-transient ioerr-persistent full",
+          "variable": "walfault-15",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "exec",
+              "sql": "SELECT count(*) FROM abc;\n    PRAGMA locking_mode = exclusive;\n    BEGIN;\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "PRAGMA locking_mode = normal;\n    BEGIN;\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;"
+            }
+          ],
+          "testScript": "\n  faultsim_integrity_check\n  set nRow [db eval {SELECT count(*) FROM abc}]\n  if {$nRow!=3 \u0026\u0026 $nRow!=4} { error \"Bad db content\" }\n"
         }
       ]
     }

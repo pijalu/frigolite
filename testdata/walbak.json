@@ -312,6 +312,10 @@
           "type": "close_db"
         },
         {
+          "type": "delete_glob",
+          "sql": "test.db*"
+        },
+        {
           "type": "reopen_db",
           "sql": "test.db"
         },
@@ -404,11 +408,15 @@
           "database": "db2"
         },
         {
+          "type": "delete_glob",
+          "sql": "test.db*"
+        },
+        {
           "type": "reopen_db",
           "sql": "test.db"
         },
         {
-          "type": "close_named_db",
+          "type": "open_named_db",
           "database": "db2"
         },
         {
@@ -493,6 +501,10 @@
         {
           "type": "close_named_db",
           "database": "db2"
+        },
+        {
+          "type": "delete_glob",
+          "sql": "test.db*"
         },
         {
           "type": "reopen_db",
@@ -585,6 +597,10 @@
         {
           "type": "close_named_db",
           "database": "db2"
+        },
+        {
+          "type": "delete_glob",
+          "sql": "test.db*"
         },
         {
           "type": "reopen_db",

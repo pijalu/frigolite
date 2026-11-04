@@ -7,12 +7,43 @@
       "name": "wal2-1.0",
       "steps": [
         {
+          "type": "register_testvfs",
+          "variable": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "tvfs_cb",
+          "callbackProcs": [
+            {
+              "Name": "tvfs_cb",
+              "Args": [
+                "method",
+                "filename",
+                "args"
+              ],
+              "Body": " \n    set ::filename $filename\n    return SQLITE_OK \n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "tvfs_cb",
+          "database": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmOpen",
+          "database": "tvfs"
+        },
+        {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "tvfs"
         },
         {
           "type": "open_named_db",
           "sql": "test.db",
+          "vfs": "tvfs",
           "database": "db2"
         },
         {
@@ -46,6 +77,12 @@
           "sql": "INSERT INTO t1 VALUES(5)"
         },
         {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock",
+          "database": "tvfs"
+        },
+        {
           "type": "exec",
           "sql": "SELECT count(a), sum(a) FROM t1",
           "expect": "5 15",
@@ -69,6 +106,16 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(6)"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock",
+          "database": "tvfs"
         },
         {
           "type": "exec",
@@ -96,6 +143,16 @@
           "sql": "INSERT INTO t1 VALUES(7)"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock",
+          "database": "tvfs"
+        },
+        {
           "type": "exec",
           "sql": "SELECT count(a), sum(a) FROM t1",
           "expect": "7 28",
@@ -119,6 +176,16 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(8)"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock",
+          "database": "tvfs"
         },
         {
           "type": "exec",
@@ -146,6 +213,16 @@
           "sql": "INSERT INTO t1 VALUES(9)"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock",
+          "database": "tvfs"
+        },
+        {
           "type": "exec",
           "sql": "SELECT count(a), sum(a) FROM t1",
           "expect": "9 45",
@@ -169,6 +246,16 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(10)"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock",
+          "database": "tvfs"
         },
         {
           "type": "exec",
@@ -196,6 +283,16 @@
           "sql": "INSERT INTO t1 VALUES(11)"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock",
+          "database": "tvfs"
+        },
+        {
           "type": "exec",
           "sql": "SELECT count(a), sum(a) FROM t1",
           "expect": "11 66",
@@ -219,6 +316,16 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(12)"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock",
+          "database": "tvfs"
         },
         {
           "type": "exec",
@@ -246,6 +353,16 @@
           "sql": "INSERT INTO t1 VALUES(13)"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock",
+          "database": "tvfs"
+        },
+        {
           "type": "exec",
           "sql": "SELECT count(a), sum(a) FROM t1",
           "expect": "13 91",
@@ -271,6 +388,16 @@
           "sql": "INSERT INTO t1 VALUES(14)"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock",
+          "database": "tvfs"
+        },
+        {
           "type": "exec",
           "sql": "SELECT count(a), sum(a) FROM t1",
           "expect": "14 105",
@@ -294,6 +421,16 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(15)"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock",
+          "database": "tvfs"
         },
         {
           "type": "exec",
@@ -356,12 +493,42 @@
       "name": "wal2-2.0",
       "steps": [
         {
+          "type": "register_testvfs",
+          "variable": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "tvfs_cb",
+          "callbackProcs": [
+            {
+              "Name": "tvfs_cb",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n      lappend ::locks [lindex $args 2]\n      return SQLITE_OK\n    ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "tvfs_cb",
+          "database": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmOpen",
+          "database": "tvfs"
+        },
+        {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "tvfs"
         },
         {
           "type": "open_named_db",
           "sql": "test.db",
+          "vfs": "tvfs",
           "database": "db2"
         },
         {
@@ -388,6 +555,17 @@
       ]
     },
     {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock",
+          "database": "tvfs"
+        }
+      ]
+    },
+    {
       "name": "wal2-2.2.1",
       "steps": [
         {
@@ -404,6 +582,10 @@
     {
       "name": "wal2-2.2.2",
       "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
         {
           "type": "exec",
           "sql": "SELECT count(a), sum(a) FROM t1",
@@ -426,10 +608,25 @@
       "name": "wal2-2.2.4",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
+        {
           "type": "exec",
           "sql": "SELECT count(a), sum(a) FROM t1",
           "expect": "5 15",
           "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock",
+          "database": "tvfs"
         }
       ]
     },
@@ -450,6 +647,10 @@
     {
       "name": "wal2-2.3.2",
       "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
         {
           "type": "exec",
           "sql": "SELECT count(a), sum(a) FROM t1",
@@ -472,10 +673,25 @@
       "name": "wal2-2.3.4",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
+        {
           "type": "exec",
           "sql": "SELECT count(a), sum(a) FROM t1",
           "expect": "6 21",
           "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock",
+          "database": "tvfs"
         }
       ]
     },
@@ -496,6 +712,10 @@
     {
       "name": "wal2-2.4.2",
       "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
         {
           "type": "exec",
           "sql": "SELECT count(a), sum(a) FROM t1",
@@ -518,10 +738,25 @@
       "name": "wal2-2.4.4",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
+        {
           "type": "exec",
           "sql": "SELECT count(a), sum(a) FROM t1",
           "expect": "7 28",
           "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock",
+          "database": "tvfs"
         }
       ]
     },
@@ -542,6 +777,10 @@
     {
       "name": "wal2-2.5.2",
       "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
         {
           "type": "exec",
           "sql": "SELECT count(a), sum(a) FROM t1",
@@ -564,10 +803,25 @@
       "name": "wal2-2.5.4",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
+        {
           "type": "exec",
           "sql": "SELECT count(a), sum(a) FROM t1",
           "expect": "8 36",
           "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock",
+          "database": "tvfs"
         }
       ]
     },
@@ -588,6 +842,10 @@
     {
       "name": "wal2-2.6.2",
       "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
         {
           "type": "exec",
           "sql": "SELECT count(a), sum(a) FROM t1",
@@ -610,10 +868,25 @@
       "name": "wal2-2.6.4",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
+        {
           "type": "exec",
           "sql": "SELECT count(a), sum(a) FROM t1",
           "expect": "9 45",
           "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock",
+          "database": "tvfs"
         }
       ]
     },
@@ -634,6 +907,10 @@
     {
       "name": "wal2-2.7.2",
       "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
         {
           "type": "exec",
           "sql": "SELECT count(a), sum(a) FROM t1",
@@ -656,10 +933,25 @@
       "name": "wal2-2.7.4",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
+        {
           "type": "exec",
           "sql": "SELECT count(a), sum(a) FROM t1",
           "expect": "10 55",
           "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock",
+          "database": "tvfs"
         }
       ]
     },
@@ -680,6 +972,10 @@
     {
       "name": "wal2-2.8.2",
       "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
         {
           "type": "exec",
           "sql": "SELECT count(a), sum(a) FROM t1",
@@ -702,10 +998,25 @@
       "name": "wal2-2.8.4",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
+        {
           "type": "exec",
           "sql": "SELECT count(a), sum(a) FROM t1",
           "expect": "11 66",
           "database": "db2"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock",
+          "database": "tvfs"
         }
       ]
     },
@@ -726,6 +1037,10 @@
     {
       "name": "wal2-2.9.2",
       "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
         {
           "type": "exec",
           "sql": "SELECT count(a), sum(a) FROM t1",
@@ -748,6 +1063,10 @@
       "name": "wal2-2.9.4",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
+        {
           "type": "exec",
           "sql": "SELECT count(a), sum(a) FROM t1",
           "expect": "12 78",
@@ -756,7 +1075,7 @@
       ]
     },
     {
-      "name": "setup_1",
+      "name": "setup_9",
       "steps": [
         {
           "type": "close_db"
@@ -815,8 +1134,13 @@
           "type": "close_db"
         },
         {
+          "type": "register_testvfs",
+          "variable": "tvfs"
+        },
+        {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "tvfs"
         },
         {
           "type": "catch",
@@ -832,8 +1156,13 @@
           "type": "close_db"
         },
         {
+          "type": "register_testvfs",
+          "variable": "tvfs"
+        },
+        {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "tvfs"
         },
         {
           "type": "catch",
@@ -843,7 +1172,7 @@
       ]
     },
     {
-      "name": "setup_2",
+      "name": "setup_10",
       "steps": [
         {
           "type": "close_db"
@@ -854,12 +1183,39 @@
       "name": "wal2-5.1",
       "steps": [
         {
+          "type": "register_testvfs",
+          "variable": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "tvfs_cb",
+          "callbackProcs": [
+            {
+              "Name": "tvfs_cb",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n    set ::shm_file [lindex $args 0]\n    if {$method == \"xShmLock\"} { lappend ::locks [lindex $args 2] }\n    return $::tvfs_cb_return\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "tvfs_cb",
+          "database": "tvfs"
+        },
+        {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "tvfs"
         },
         {
           "type": "exec",
           "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE x(y);\n    INSERT INTO x VALUES(1);"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "locks"
         },
         {
           "type": "exec",
@@ -873,7 +1229,7 @@
       ]
     },
     {
-      "name": "setup_3",
+      "name": "setup_11",
       "steps": [
         {
           "type": "close_db"
@@ -976,7 +1332,7 @@
       ]
     },
     {
-      "name": "setup_4",
+      "name": "setup_12",
       "steps": [
         {
           "type": "close_db"
@@ -1120,7 +1476,7 @@
       ]
     },
     {
-      "name": "setup_5",
+      "name": "setup_13",
       "steps": [
         {
           "type": "close_db"
@@ -1227,7 +1583,7 @@
       ]
     },
     {
-      "name": "setup_6",
+      "name": "setup_14",
       "steps": [
         {
           "type": "close_db"
@@ -1265,8 +1621,40 @@
       "name": "wal2-6.4.1",
       "steps": [
         {
+          "type": "register_testvfs",
+          "variable": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "tvfs_cb",
+          "callbackProcs": [
+            {
+              "Name": "tvfs_cb",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n    set ::shm_file [lindex $args 0]\n    if {$method == \"xShmLock\"} { lappend ::locks [lindex $args 2] }\n    return \"SQLITE_OK\"\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "tvfs_cb",
+          "database": "tvfs"
+        },
+        {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "tvfs"
+        }
+      ]
+    },
+    {
+      "name": "setup_15",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "locks"
         }
       ]
     },
@@ -1291,6 +1679,15 @@
       ]
     },
     {
+      "name": "setup_16",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        }
+      ]
+    },
+    {
       "name": "wal2-6.4.3.1",
       "steps": [
         {
@@ -1307,6 +1704,15 @@
           "type": "runtime_var",
           "variable": "locks",
           "expect": "{4 1 lock exclusive} {4 1 unlock exclusive} {4 1 lock shared} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "setup_17",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "locks"
         }
       ]
     },
@@ -1331,6 +1737,15 @@
       ]
     },
     {
+      "name": "setup_18",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        }
+      ]
+    },
+    {
       "name": "wal2-6.4.5.1",
       "steps": [
         {
@@ -1345,6 +1760,15 @@
       "steps": [
         {
           "type": "runtime_var",
+          "variable": "locks"
+        }
+      ]
+    },
+    {
+      "name": "setup_19",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
           "variable": "locks"
         }
       ]
@@ -1370,6 +1794,15 @@
       ]
     },
     {
+      "name": "setup_20",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        }
+      ]
+    },
+    {
       "name": "wal2-6.4.7.1",
       "steps": [
         {
@@ -1389,6 +1822,15 @@
       ]
     },
     {
+      "name": "setup_21",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        }
+      ]
+    },
+    {
       "name": "wal2-6.4.8.1",
       "steps": [
         {
@@ -1403,6 +1845,15 @@
       "steps": [
         {
           "type": "runtime_var",
+          "variable": "locks"
+        }
+      ]
+    },
+    {
+      "name": "setup_22",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
           "variable": "locks"
         }
       ]
@@ -1428,6 +1879,15 @@
       ]
     },
     {
+      "name": "setup_23",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        }
+      ]
+    },
+    {
       "name": "wal2-6.4.10.1",
       "steps": [
         {
@@ -1443,6 +1903,15 @@
           "type": "runtime_var",
           "variable": "locks",
           "expect": "{4 1 lock shared} {0 1 lock exclusive} {0 1 unlock exclusive} {4 1 unlock shared}"
+        }
+      ]
+    },
+    {
+      "name": "setup_24",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "locks"
         }
       ]
     },
@@ -1466,7 +1935,7 @@
       ]
     },
     {
-      "name": "setup_7",
+      "name": "setup_25",
       "steps": [
         {
           "type": "close_db"
@@ -1508,7 +1977,7 @@
       ]
     },
     {
-      "name": "setup_8",
+      "name": "setup_26",
       "steps": [
         {
           "type": "close_db"
@@ -1519,8 +1988,38 @@
       "name": "wal2-6.6.1",
       "steps": [
         {
+          "type": "register_testvfs",
+          "variable": "T"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "lock_control",
+          "callbackProcs": [
+            {
+              "Name": "lock_control",
+              "Args": [
+                "method",
+                "filename",
+                "handle",
+                "spec"
+              ],
+              "Body": "\n  foreach {start n op type} $spec break\n  if {$op == \"lock\"} { return SQLITE_IOERR }\n  return SQLITE_OK\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "lock_control",
+          "database": "T"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "database": "T"
+        },
+        {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "T"
         },
         {
           "type": "exec",
@@ -1544,6 +2043,12 @@
           "sql": "PRAGMA locking_mode = normal"
         },
         {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock",
+          "database": "T"
+        },
+        {
           "type": "exec",
           "sql": "INSERT INTO t2 VALUES('VII', 'VIII')"
         }
@@ -1555,6 +2060,7 @@
         {
           "type": "open_named_db",
           "sql": "test.db",
+          "vfs": "T",
           "database": "db2"
         },
         {
@@ -1573,6 +2079,11 @@
           "database": "db2"
         },
         {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "database": "T"
+        },
+        {
           "type": "exec",
           "sql": "INSERT INTO t2 VALUES('IX', 'X')"
         }
@@ -1584,6 +2095,7 @@
         {
           "type": "open_named_db",
           "sql": "test.db",
+          "vfs": "T",
           "database": "db2"
         },
         {
@@ -1595,7 +2107,7 @@
       ]
     },
     {
-      "name": "setup_9",
+      "name": "setup_27",
       "steps": [
         {
           "type": "close_db"
@@ -1691,7 +2203,7 @@
       ]
     },
     {
-      "name": "setup_10",
+      "name": "setup_28",
       "steps": [
         {
           "type": "close_db"
@@ -1776,7 +2288,7 @@
       ]
     },
     {
-      "name": "setup_11",
+      "name": "setup_29",
       "steps": [
         {
           "type": "close_named_db",
@@ -1784,6 +2296,34 @@
         },
         {
           "type": "close_db"
+        },
+        {
+          "type": "register_testvfs",
+          "variable": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "get_name",
+          "callbackProcs": [
+            {
+              "Name": "get_name",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": " set ::filename [lindex $args 0] ; tvfs filter {} ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "get_name",
+          "database": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmOpen",
+          "database": "tvfs"
         }
       ]
     },
@@ -1819,7 +2359,8 @@
       "steps": [
         {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "tvfs"
         },
         {
           "type": "exec",
@@ -1832,6 +2373,7 @@
         {
           "type": "open_named_db",
           "sql": "test.db",
+          "vfs": "tvfs",
           "database": "db2"
         },
         {
@@ -1909,7 +2451,7 @@
       ]
     },
     {
-      "name": "setup_12",
+      "name": "setup_30",
       "steps": [
         {
           "type": "close_named_db",
@@ -1922,7 +2464,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "wal2-10.1.1",
@@ -1930,6 +2472,9 @@
         {
           "type": "exec",
           "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);"
+        },
+        {
+          "type": "faultsim_save_close"
         }
       ]
     },
@@ -1937,9 +2482,21 @@
       "name": "wal2-10.1.2",
       "steps": [
         {
+          "type": "faultsim_restore_reopen"
+        },
+        {
           "type": "exec",
           "sql": "SELECT * FROM t1",
           "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "wal2-10.1.3",
+      "steps": [
+        {
+          "type": "faultsim_restore_reopen",
+          "expect": "3007000"
         }
       ]
     },
@@ -1954,8 +2511,21 @@
       ]
     },
     {
+      "name": "setup_31",
+      "steps": [
+        {
+          "type": "register_testvfs",
+          "sql": "default",
+          "variable": "tvfs"
+        }
+      ]
+    },
+    {
       "name": "wal2-10.2.1",
       "steps": [
+        {
+          "type": "faultsim_restore_reopen"
+        },
         {
           "type": "exec",
           "sql": "SELECT * FROM t1",
@@ -1974,16 +2544,21 @@
       ]
     },
     {
-      "name": "setup_13",
+      "name": "setup_32",
       "steps": [
         {
           "type": "close_db"
+        },
+        {
+          "type": "register_testvfs",
+          "sql": "default",
+          "variable": "tvfs"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "wal2-11.0",
@@ -2012,7 +2587,7 @@
       ]
     },
     {
-      "name": "setup_14",
+      "name": "setup_33",
       "steps": [
         {
           "type": "close_db"
@@ -2025,10 +2600,10 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
-      "name": "setup_15",
+      "name": "setup_34",
       "steps": [
         {
           "type": "exec",
@@ -2106,10 +2681,10 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
-      "name": "setup_16",
+      "name": "setup_35",
       "steps": [
         {
           "type": "exec",
@@ -2186,7 +2761,7 @@
       ]
     },
     {
-      "name": "setup_17",
+      "name": "setup_36",
       "steps": [
         {
           "type": "close_db"
@@ -2203,8 +2778,39 @@
       ]
     },
     {
-      "name": "setup_18",
+      "name": "setup_37",
       "steps": [
+        {
+          "type": "register_testvfs",
+          "sql": "default",
+          "variable": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xSync",
+          "database": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "xSyncCb",
+          "callbackProcs": [
+            {
+              "Name": "xSyncCb",
+              "Args": [
+                "method",
+                "file",
+                "fileid",
+                "flags"
+              ],
+              "Body": "\n    incr ::sync($flags)\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "xSyncCb",
+          "database": "tvfs"
+        },
         {
           "type": "reopen_db",
           "sql": "test.db"
@@ -2262,7 +2868,7 @@
       ]
     },
     {
-      "name": "setup_19",
+      "name": "setup_38",
       "steps": [
         {
           "type": "close_db"
@@ -2279,8 +2885,39 @@
       ]
     },
     {
-      "name": "setup_20",
+      "name": "setup_39",
       "steps": [
+        {
+          "type": "register_testvfs",
+          "sql": "default",
+          "variable": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xSync",
+          "database": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "xSyncCb",
+          "callbackProcs": [
+            {
+              "Name": "xSyncCb",
+              "Args": [
+                "method",
+                "file",
+                "fileid",
+                "flags"
+              ],
+              "Body": "\n    incr ::sync($flags)\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "xSyncCb",
+          "database": "tvfs"
+        },
         {
           "type": "reopen_db",
           "sql": "test.db"
@@ -2338,7 +2975,7 @@
       ]
     },
     {
-      "name": "setup_21",
+      "name": "setup_40",
       "steps": [
         {
           "type": "close_db"
@@ -2355,8 +2992,39 @@
       ]
     },
     {
-      "name": "setup_22",
+      "name": "setup_41",
       "steps": [
+        {
+          "type": "register_testvfs",
+          "sql": "default",
+          "variable": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xSync",
+          "database": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "xSyncCb",
+          "callbackProcs": [
+            {
+              "Name": "xSyncCb",
+              "Args": [
+                "method",
+                "file",
+                "fileid",
+                "flags"
+              ],
+              "Body": "\n    incr ::sync($flags)\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "xSyncCb",
+          "database": "tvfs"
+        },
         {
           "type": "reopen_db",
           "sql": "test.db"
@@ -2414,7 +3082,7 @@
       ]
     },
     {
-      "name": "setup_23",
+      "name": "setup_42",
       "steps": [
         {
           "type": "close_db"
@@ -2431,8 +3099,39 @@
       ]
     },
     {
-      "name": "setup_24",
+      "name": "setup_43",
       "steps": [
+        {
+          "type": "register_testvfs",
+          "sql": "default",
+          "variable": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xSync",
+          "database": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "xSyncCb",
+          "callbackProcs": [
+            {
+              "Name": "xSyncCb",
+              "Args": [
+                "method",
+                "file",
+                "fileid",
+                "flags"
+              ],
+              "Body": "\n    incr ::sync($flags)\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "xSyncCb",
+          "database": "tvfs"
+        },
         {
           "type": "reopen_db",
           "sql": "test.db"
@@ -2490,7 +3189,7 @@
       ]
     },
     {
-      "name": "setup_25",
+      "name": "setup_44",
       "steps": [
         {
           "type": "close_db"
@@ -2507,8 +3206,39 @@
       ]
     },
     {
-      "name": "setup_26",
+      "name": "setup_45",
       "steps": [
+        {
+          "type": "register_testvfs",
+          "sql": "default",
+          "variable": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xSync",
+          "database": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "xSyncCb",
+          "callbackProcs": [
+            {
+              "Name": "xSyncCb",
+              "Args": [
+                "method",
+                "file",
+                "fileid",
+                "flags"
+              ],
+              "Body": "\n    incr ::sync($flags)\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "xSyncCb",
+          "database": "tvfs"
+        },
         {
           "type": "reopen_db",
           "sql": "test.db"
@@ -2566,7 +3296,7 @@
       ]
     },
     {
-      "name": "setup_27",
+      "name": "setup_46",
       "steps": [
         {
           "type": "close_db"
@@ -2583,8 +3313,39 @@
       ]
     },
     {
-      "name": "setup_28",
+      "name": "setup_47",
       "steps": [
+        {
+          "type": "register_testvfs",
+          "sql": "default",
+          "variable": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xSync",
+          "database": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "xSyncCb",
+          "callbackProcs": [
+            {
+              "Name": "xSyncCb",
+              "Args": [
+                "method",
+                "file",
+                "fileid",
+                "flags"
+              ],
+              "Body": "\n    incr ::sync($flags)\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "xSyncCb",
+          "database": "tvfs"
+        },
         {
           "type": "reopen_db",
           "sql": "test.db"
@@ -2642,7 +3403,7 @@
       ]
     },
     {
-      "name": "setup_29",
+      "name": "setup_48",
       "steps": [
         {
           "type": "close_db"
@@ -2659,8 +3420,39 @@
       ]
     },
     {
-      "name": "setup_30",
+      "name": "setup_49",
       "steps": [
+        {
+          "type": "register_testvfs",
+          "sql": "default",
+          "variable": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xSync",
+          "database": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "xSyncCb",
+          "callbackProcs": [
+            {
+              "Name": "xSyncCb",
+              "Args": [
+                "method",
+                "file",
+                "fileid",
+                "flags"
+              ],
+              "Body": "\n    incr ::sync($flags)\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "xSyncCb",
+          "database": "tvfs"
+        },
         {
           "type": "reopen_db",
           "sql": "test.db"
@@ -2718,7 +3510,7 @@
       ]
     },
     {
-      "name": "setup_31",
+      "name": "setup_50",
       "steps": [
         {
           "type": "close_db"
@@ -2735,8 +3527,39 @@
       ]
     },
     {
-      "name": "setup_32",
+      "name": "setup_51",
       "steps": [
+        {
+          "type": "register_testvfs",
+          "sql": "default",
+          "variable": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xSync",
+          "database": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "xSyncCb",
+          "callbackProcs": [
+            {
+              "Name": "xSyncCb",
+              "Args": [
+                "method",
+                "file",
+                "fileid",
+                "flags"
+              ],
+              "Body": "\n    incr ::sync($flags)\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "xSyncCb",
+          "database": "tvfs"
+        },
         {
           "type": "reopen_db",
           "sql": "test.db"
@@ -2794,7 +3617,7 @@
       ]
     },
     {
-      "name": "setup_33",
+      "name": "setup_52",
       "steps": [
         {
           "type": "close_db"
@@ -2811,8 +3634,39 @@
       ]
     },
     {
-      "name": "setup_34",
+      "name": "setup_53",
       "steps": [
+        {
+          "type": "register_testvfs",
+          "sql": "default",
+          "variable": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xSync",
+          "database": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "xSyncCb",
+          "callbackProcs": [
+            {
+              "Name": "xSyncCb",
+              "Args": [
+                "method",
+                "file",
+                "fileid",
+                "flags"
+              ],
+              "Body": "\n    incr ::sync($flags)\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "xSyncCb",
+          "database": "tvfs"
+        },
         {
           "type": "reopen_db",
           "sql": "test.db"
@@ -2870,7 +3724,7 @@
       ]
     },
     {
-      "name": "setup_35",
+      "name": "setup_54",
       "steps": [
         {
           "type": "close_db"
@@ -2887,8 +3741,39 @@
       ]
     },
     {
-      "name": "setup_36",
+      "name": "setup_55",
       "steps": [
+        {
+          "type": "register_testvfs",
+          "sql": "default",
+          "variable": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xSync",
+          "database": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "xSyncCb",
+          "callbackProcs": [
+            {
+              "Name": "xSyncCb",
+              "Args": [
+                "method",
+                "file",
+                "fileid",
+                "flags"
+              ],
+              "Body": "\n    incr ::sync($flags)\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "xSyncCb",
+          "database": "tvfs"
+        },
         {
           "type": "reopen_db",
           "sql": "test.db"
@@ -2946,7 +3831,7 @@
       ]
     },
     {
-      "name": "setup_37",
+      "name": "setup_56",
       "steps": [
         {
           "type": "close_db"
@@ -2963,8 +3848,39 @@
       ]
     },
     {
-      "name": "setup_38",
+      "name": "setup_57",
       "steps": [
+        {
+          "type": "register_testvfs",
+          "sql": "default",
+          "variable": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xSync",
+          "database": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "xSyncCb",
+          "callbackProcs": [
+            {
+              "Name": "xSyncCb",
+              "Args": [
+                "method",
+                "file",
+                "fileid",
+                "flags"
+              ],
+              "Body": "\n    incr ::sync($flags)\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "xSyncCb",
+          "database": "tvfs"
+        },
         {
           "type": "reopen_db",
           "sql": "test.db"
@@ -3022,7 +3938,7 @@
       ]
     },
     {
-      "name": "setup_39",
+      "name": "setup_58",
       "steps": [
         {
           "type": "close_db"
@@ -3039,8 +3955,39 @@
       ]
     },
     {
-      "name": "setup_40",
+      "name": "setup_59",
       "steps": [
+        {
+          "type": "register_testvfs",
+          "sql": "default",
+          "variable": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xSync",
+          "database": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "xSyncCb",
+          "callbackProcs": [
+            {
+              "Name": "xSyncCb",
+              "Args": [
+                "method",
+                "file",
+                "fileid",
+                "flags"
+              ],
+              "Body": "\n    incr ::sync($flags)\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "xSyncCb",
+          "database": "tvfs"
+        },
         {
           "type": "reopen_db",
           "sql": "test.db"
@@ -3098,7 +4045,7 @@
       ]
     },
     {
-      "name": "setup_41",
+      "name": "setup_60",
       "steps": [
         {
           "type": "close_db"

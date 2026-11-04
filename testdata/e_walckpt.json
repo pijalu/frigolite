@@ -103,6 +103,19 @@
       ]
     },
     {
+      "name": "e_walckpt-1.2.1",
+      "steps": [
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$__catchrc_msg",
+            "\"sqlite3_errcode mismatch! (1) SQLITE_OK!=\""
+          ],
+          "expect": "1 {SQLITE_ERROR - unknown database: notadb}"
+        }
+      ]
+    },
+    {
       "name": "setup_1",
       "steps": [
         {
@@ -2701,7 +2714,7 @@
         {
           "type": "runtime_list",
           "listValues": [
-            "[catch { checkpoint db passive notadb } msg]",
+            "$__catchrc_msg",
             "$msg"
           ],
           "expect": "1 {SQLITE_ERROR - unknown database: notadb}"
@@ -5492,7 +5505,7 @@
         {
           "type": "runtime_list",
           "listValues": [
-            "[catch { checkpoint db passive notadb } msg]",
+            "$__catchrc_msg",
             "$msg"
           ],
           "expect": "1 {SQLITE_ERROR - unknown database: notadb}"
@@ -8295,7 +8308,7 @@
         {
           "type": "runtime_list",
           "listValues": [
-            "[catch { wal_checkpoint_v2 db truncate } msg]",
+            "$__catchrc_msg",
             "$msg"
           ],
           "expect": "1 {SQLITE_IOERR - disk I/O error}"

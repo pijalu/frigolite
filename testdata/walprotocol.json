@@ -17,8 +17,43 @@
       "name": "walprotocol-1.1",
       "steps": [
         {
+          "type": "register_testvfs",
+          "variable": "T"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock",
+          "database": "T"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "lock_callback",
+          "callbackProcs": [
+            {
+              "Name": "lock_callback",
+              "Args": [
+                "method",
+                "filename",
+                "handle",
+                "lock"
+              ],
+              "Body": "\n  lappend ::locks $lock\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "lock_callback",
+          "database": "T"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
+        {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "T"
         },
         {
           "type": "exec",
@@ -34,8 +69,13 @@
           "type": "close_db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
+        {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "T"
         },
         {
           "type": "exec",
@@ -51,8 +91,13 @@
           "type": "close_db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
+        {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "T"
         },
         {
           "type": "catch",
@@ -68,8 +113,13 @@
           "type": "close_db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
+        {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "T"
         },
         {
           "type": "catch",
@@ -85,8 +135,13 @@
           "type": "close_db"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "locks"
+        },
+        {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "T"
         },
         {
           "type": "catch",
@@ -173,7 +228,11 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM b",
+          "sql": "SELECT * FROM b"
+        },
+        {
+          "type": "runtime_var",
+          "variable": "r",
           "expect": "Tehran Qom Markazi Qazvin"
         }
       ]
@@ -193,6 +252,43 @@
         {
           "type": "close_named_db",
           "database": "db2"
+        },
+        {
+          "type": "faultsim_save_close"
+        },
+        {
+          "type": "register_testvfs",
+          "sql": "default",
+          "variable": "T"
+        },
+        {
+          "type": "faultsim_restore_reopen"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock",
+          "database": "T"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "lock_callback",
+          "callbackProcs": [
+            {
+              "Name": "lock_callback",
+              "Args": [
+                "method",
+                "filename",
+                "handle",
+                "lock"
+              ],
+              "Body": "\n  if {$lock == \"4 4 lock exclusive\"} { return SQLITE_BUSY }\n  return SQLITE_OK\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "lock_callback",
+          "database": "T"
         },
         {
           "type": "reopen_db",
@@ -236,9 +332,38 @@
           "database": "db2"
         },
         {
+          "type": "faultsim_restore_reopen"
+        },
+        {
           "type": "open_named_db",
           "sql": "test.db",
           "database": "db2"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock",
+          "database": "T"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "lock_callback",
+          "callbackProcs": [
+            {
+              "Name": "lock_callback",
+              "Args": [
+                "method",
+                "file",
+                "handle",
+                "spec"
+              ],
+              "Body": "\n  if {$spec == \"1 2 unlock exclusive\"} {\n    T filter {}\n    set ::r [catchsql { SELECT * FROM b } db2]\n  }\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "lock_callback",
+          "database": "T"
         }
       ]
     },

@@ -17,12 +17,46 @@
       "name": "setup_0",
       "steps": [
         {
-          "type": "reopen_db",
-          "sql": "test.db"
+          "type": "register_testvfs",
+          "variable": "tvfs"
         },
         {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "sleep_callback",
+          "callbackProcs": [
+            {
+              "Name": "sleep_callback",
+              "Args": [
+                "args"
+              ],
+              "Body": "\n  incr ::sleep_count\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "sleep_callback",
+          "database": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xSleep",
+          "database": "tvfs"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "sleep_count"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db",
+          "vfs": "tvfs"
         }
       ]
     },
@@ -51,6 +85,16 @@
       "steps": [
         {
           "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "walsetlk_recover-1.5.2",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "$::sleep_count\u003e0",
+          "expect": "1"
         }
       ]
     }

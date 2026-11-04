@@ -20,12 +20,44 @@
           "type": "close_db"
         },
         {
+          "type": "register_testvfs",
+          "variable": "T"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xShmLock",
+          "database": "T"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "lock_callback",
+          "callbackProcs": [
+            {
+              "Name": "lock_callback",
+              "Args": [
+                "method",
+                "filename",
+                "handle",
+                "lock"
+              ],
+              "Body": "\n  # puts \"$method $filename $handle $lock\"\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "lock_callback",
+          "database": "T"
+        },
+        {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "T"
         },
         {
           "type": "open_named_db",
           "sql": "test.db",
+          "vfs": "T",
           "database": "db2"
         }
       ]

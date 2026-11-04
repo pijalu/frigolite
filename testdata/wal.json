@@ -119,14 +119,25 @@
           "functionName": "blob",
           "callbackVars": {
             "": "db2",
-            "::blobcnt": "0",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
-            "testdir": "",
+            "blobcnt": "0",
+            "testdir": ".",
             "testprefix": "wal"
           },
+          "callbackProcs": [
+            {
+              "Name": "blob",
+              "Args": [
+                "nByte"
+              ],
+              "Body": "\n  incr ::blobcnt\n  return [string range [string repeat \"${::blobcnt}x\" $nByte] 1 $nByte]\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "blob",
           "functionArgs": [
             "nByte"
@@ -297,14 +308,25 @@
           "functionName": "blob",
           "callbackVars": {
             "": "",
-            "::blobcnt": "0",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
-            "testdir": "",
+            "blobcnt": "0",
+            "testdir": ".",
             "testprefix": "wal"
           },
+          "callbackProcs": [
+            {
+              "Name": "blob",
+              "Args": [
+                "nByte"
+              ],
+              "Body": "\n  incr ::blobcnt\n  return [string range [string repeat \"${::blobcnt}x\" $nByte] 1 $nByte]\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "blob",
           "functionArgs": [
             "nByte"
@@ -468,48 +490,43 @@
           "sql": "PRAGMA synchronous = normal"
         },
         {
-          "type": "register_function",
-          "functionName": "blob",
-          "callbackVars": {
-            "": "db",
-            "::blobcnt": "0",
-            "SQLITE_MAX_ATTACHED": "10",
-            "SQLITE_MAX_COLUMN": "2000",
-            "SQLITE_MAX_LENGTH": "1000000000",
-            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
-            "logsize": "",
-            "testdir": "",
-            "testprefix": "wal"
-          },
-          "functionProc": "blob",
-          "functionArgs": [
-            "nByte"
+          "repeatCount": 2,
+          "repeatBody": [
+            {
+              "type": "register_function",
+              "functionName": "blob",
+              "callbackVars": {
+                "": "db",
+                "SQLITE_MAX_ATTACHED": "10",
+                "SQLITE_MAX_COLUMN": "2000",
+                "SQLITE_MAX_LENGTH": "1000000000",
+                "SQLITE_MAX_PAGE_SIZE": "65536",
+                "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+                "blobcnt": "0",
+                "logsize": "",
+                "testdir": ".",
+                "testprefix": "wal"
+              },
+              "callbackProcs": [
+                {
+                  "Name": "blob",
+                  "Args": [
+                    "nByte"
+                  ],
+                  "Body": "\n  incr ::blobcnt\n  return [string range [string repeat \"${::blobcnt}x\" $nByte] 1 $nByte]\n",
+                  "Defaults": null
+                }
+              ],
+              "functionProc": "blob",
+              "functionArgs": [
+                "nByte"
+              ],
+              "functionBody": "\n  incr ::blobcnt\n  return [string range [string repeat \"${::blobcnt}x\" $nByte] 1 $nByte]\n",
+              "minArgs": 1,
+              "maxArgs": -1
+            }
           ],
-          "functionBody": "\n  incr ::blobcnt\n  return [string range [string repeat \"${::blobcnt}x\" $nByte] 1 $nByte]\n",
-          "minArgs": 1,
-          "maxArgs": -1
-        },
-        {
-          "type": "register_function",
-          "functionName": "blob",
-          "callbackVars": {
-            "": "db",
-            "::blobcnt": "0",
-            "SQLITE_MAX_ATTACHED": "10",
-            "SQLITE_MAX_COLUMN": "2000",
-            "SQLITE_MAX_LENGTH": "1000000000",
-            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
-            "logsize": "",
-            "testdir": "",
-            "testprefix": "wal"
-          },
-          "functionProc": "blob",
-          "functionArgs": [
-            "nByte"
-          ],
-          "functionBody": "\n  incr ::blobcnt\n  return [string range [string repeat \"${::blobcnt}x\" $nByte] 1 $nByte]\n",
-          "minArgs": 1,
-          "maxArgs": -1
+          "type": "repeat"
         },
         {
           "type": "exec",
@@ -524,15 +541,26 @@
           "functionName": "blob",
           "callbackVars": {
             "": "",
-            "::blobcnt": "0",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "blobcnt": "0",
             "logsize": "",
-            "testdir": "",
+            "testdir": ".",
             "testprefix": "wal"
           },
+          "callbackProcs": [
+            {
+              "Name": "blob",
+              "Args": [
+                "nByte"
+              ],
+              "Body": "\n  incr ::blobcnt\n  return [string range [string repeat \"${::blobcnt}x\" $nByte] 1 $nByte]\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "blob",
           "functionArgs": [
             "nByte"
@@ -714,15 +742,26 @@
           "functionName": "blob",
           "callbackVars": {
             "": "db",
-            "::blobcnt": "0",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "blobcnt": "0",
             "logsize": "",
-            "testdir": "",
+            "testdir": ".",
             "testprefix": "wal"
           },
+          "callbackProcs": [
+            {
+              "Name": "blob",
+              "Args": [
+                "nByte"
+              ],
+              "Body": "\n  incr ::blobcnt\n  return [string range [string repeat \"${::blobcnt}x\" $nByte] 1 $nByte]\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "blob",
           "functionArgs": [
             "nByte"
@@ -817,7 +856,8 @@
       "steps": [
         {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "devsym"
         },
         {
           "type": "exec",
@@ -856,7 +896,8 @@
       "steps": [
         {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "devsym"
         },
         {
           "type": "exec",
@@ -895,7 +936,8 @@
       "steps": [
         {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "devsym"
         },
         {
           "type": "exec",
@@ -934,7 +976,8 @@
       "steps": [
         {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "devsym"
         },
         {
           "type": "exec",
@@ -973,7 +1016,8 @@
       "steps": [
         {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "devsym"
         },
         {
           "type": "exec",
@@ -1012,7 +1056,8 @@
       "steps": [
         {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "devsym"
         },
         {
           "type": "exec",
@@ -1051,7 +1096,8 @@
       "steps": [
         {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "devsym"
         },
         {
           "type": "exec",
@@ -1090,7 +1136,8 @@
       "steps": [
         {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "devsym"
         },
         {
           "type": "exec",
@@ -1152,17 +1199,28 @@
           "functionName": "blob",
           "callbackVars": {
             "": "db",
-            "::blobcnt": "0",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "blobcnt": "0",
             "logsize": "",
             "pgsz": "4096",
             "sector": "4096",
-            "testdir": "",
+            "testdir": ".",
             "testprefix": "wal"
           },
+          "callbackProcs": [
+            {
+              "Name": "blob",
+              "Args": [
+                "nByte"
+              ],
+              "Body": "\n  incr ::blobcnt\n  return [string range [string repeat \"${::blobcnt}x\" $nByte] 1 $nByte]\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "blob",
           "functionArgs": [
             "nByte"
@@ -1251,17 +1309,28 @@
           "functionName": "blob",
           "callbackVars": {
             "": "db",
-            "::blobcnt": "0",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "blobcnt": "0",
             "logsize": "",
             "pgsz": "4096",
             "sector": "4096",
-            "testdir": "",
+            "testdir": ".",
             "testprefix": "wal"
           },
+          "callbackProcs": [
+            {
+              "Name": "blob",
+              "Args": [
+                "nByte"
+              ],
+              "Body": "\n  incr ::blobcnt\n  return [string range [string repeat \"${::blobcnt}x\" $nByte] 1 $nByte]\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "blob",
           "functionArgs": [
             "nByte"
@@ -1305,17 +1374,28 @@
           "functionName": "blob",
           "callbackVars": {
             "": "$__catch_result",
-            "::blobcnt": "0",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "blobcnt": "0",
             "logsize": "",
             "pgsz": "4096",
             "sector": "4096",
-            "testdir": "",
+            "testdir": ".",
             "testprefix": "wal"
           },
+          "callbackProcs": [
+            {
+              "Name": "blob",
+              "Args": [
+                "nByte"
+              ],
+              "Body": "\n  incr ::blobcnt\n  return [string range [string repeat \"${::blobcnt}x\" $nByte] 1 $nByte]\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "blob",
           "functionArgs": [
             "nByte"
@@ -1414,17 +1494,28 @@
           "functionName": "blob",
           "callbackVars": {
             "": "db",
-            "::blobcnt": "0",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "blobcnt": "0",
             "logsize": "",
             "pgsz": "4096",
             "sector": "4096",
-            "testdir": "",
+            "testdir": ".",
             "testprefix": "wal"
           },
+          "callbackProcs": [
+            {
+              "Name": "blob",
+              "Args": [
+                "nByte"
+              ],
+              "Body": "\n  incr ::blobcnt\n  return [string range [string repeat \"${::blobcnt}x\" $nByte] 1 $nByte]\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "blob",
           "functionArgs": [
             "nByte"
@@ -1473,17 +1564,28 @@
           "functionName": "blob",
           "callbackVars": {
             "": "db2",
-            "::blobcnt": "0",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "blobcnt": "0",
             "logsize": "",
             "pgsz": "4096",
             "sector": "4096",
-            "testdir": "",
+            "testdir": ".",
             "testprefix": "wal"
           },
+          "callbackProcs": [
+            {
+              "Name": "blob",
+              "Args": [
+                "nByte"
+              ],
+              "Body": "\n  incr ::blobcnt\n  return [string range [string repeat \"${::blobcnt}x\" $nByte] 1 $nByte]\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "blob",
           "functionArgs": [
             "nByte"
@@ -1562,17 +1664,28 @@
           "functionName": "blob",
           "callbackVars": {
             "": "db3",
-            "::blobcnt": "0",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "blobcnt": "0",
             "logsize": "",
             "pgsz": "4096",
             "sector": "4096",
-            "testdir": "",
+            "testdir": ".",
             "testprefix": "wal"
           },
+          "callbackProcs": [
+            {
+              "Name": "blob",
+              "Args": [
+                "nByte"
+              ],
+              "Body": "\n  incr ::blobcnt\n  return [string range [string repeat \"${::blobcnt}x\" $nByte] 1 $nByte]\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "blob",
           "functionArgs": [
             "nByte"
@@ -1640,17 +1753,28 @@
           "functionName": "blob",
           "callbackVars": {
             "": "db2",
-            "::blobcnt": "0",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "blobcnt": "0",
             "logsize": "",
             "pgsz": "4096",
             "sector": "4096",
-            "testdir": "",
+            "testdir": ".",
             "testprefix": "wal"
           },
+          "callbackProcs": [
+            {
+              "Name": "blob",
+              "Args": [
+                "nByte"
+              ],
+              "Body": "\n  incr ::blobcnt\n  return [string range [string repeat \"${::blobcnt}x\" $nByte] 1 $nByte]\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "blob",
           "functionArgs": [
             "nByte"
@@ -1747,17 +1871,28 @@
           "functionName": "blob",
           "callbackVars": {
             "": "db",
-            "::blobcnt": "0",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "blobcnt": "0",
             "logsize": "",
             "pgsz": "4096",
             "sector": "4096",
-            "testdir": "",
+            "testdir": ".",
             "testprefix": "wal"
           },
+          "callbackProcs": [
+            {
+              "Name": "blob",
+              "Args": [
+                "nByte"
+              ],
+              "Body": "\n  incr ::blobcnt\n  return [string range [string repeat \"${::blobcnt}x\" $nByte] 1 $nByte]\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "blob",
           "functionArgs": [
             "nByte"
@@ -1880,17 +2015,28 @@
           "functionName": "blob",
           "callbackVars": {
             "": "db",
-            "::blobcnt": "0",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "blobcnt": "0",
             "logsize": "",
             "pgsz": "4096",
             "sector": "4096",
-            "testdir": "",
+            "testdir": ".",
             "testprefix": "wal"
           },
+          "callbackProcs": [
+            {
+              "Name": "blob",
+              "Args": [
+                "nByte"
+              ],
+              "Body": "\n  incr ::blobcnt\n  return [string range [string repeat \"${::blobcnt}x\" $nByte] 1 $nByte]\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "blob",
           "functionArgs": [
             "nByte"
@@ -1994,18 +2140,29 @@
           "functionName": "blob",
           "callbackVars": {
             "": "db",
-            "::blobcnt": "0",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "blobcnt": "0",
             "logsize": "",
             "nWal": "34",
             "pgsz": "4096",
             "sector": "4096",
-            "testdir": "",
+            "testdir": ".",
             "testprefix": "wal"
           },
+          "callbackProcs": [
+            {
+              "Name": "blob",
+              "Args": [
+                "nByte"
+              ],
+              "Body": "\n  incr ::blobcnt\n  return [string range [string repeat \"${::blobcnt}x\" $nByte] 1 $nByte]\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "blob",
           "functionArgs": [
             "nByte"
@@ -2096,18 +2253,29 @@
           "functionName": "blob",
           "callbackVars": {
             "": "db2",
-            "::blobcnt": "0",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "blobcnt": "0",
             "logsize": "",
             "nWal": "34",
             "pgsz": "4096",
             "sector": "4096",
-            "testdir": "",
+            "testdir": ".",
             "testprefix": "wal"
           },
+          "callbackProcs": [
+            {
+              "Name": "blob",
+              "Args": [
+                "nByte"
+              ],
+              "Body": "\n  incr ::blobcnt\n  return [string range [string repeat \"${::blobcnt}x\" $nByte] 1 $nByte]\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "blob",
           "functionArgs": [
             "nByte"
@@ -2191,18 +2359,29 @@
           "functionName": "blob",
           "callbackVars": {
             "": "db2",
-            "::blobcnt": "0",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "blobcnt": "0",
             "logsize": "",
             "nWal": "34",
             "pgsz": "4096",
             "sector": "4096",
-            "testdir": "",
+            "testdir": ".",
             "testprefix": "wal"
           },
+          "callbackProcs": [
+            {
+              "Name": "blob",
+              "Args": [
+                "nByte"
+              ],
+              "Body": "\n  incr ::blobcnt\n  return [string range [string repeat \"${::blobcnt}x\" $nByte] 1 $nByte]\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "blob",
           "functionArgs": [
             "nByte"
@@ -2228,10 +2407,13 @@
           "database": "db2"
         },
         {
-          "type": "close_db"
-        },
-        {
-          "type": "close_db"
+          "repeatCount": 2,
+          "repeatBody": [
+            {
+              "type": "close_db"
+            }
+          ],
+          "type": "repeat"
         },
         {
           "type": "close_named_db",
@@ -3225,10 +3407,13 @@
       "name": "setup_26",
       "steps": [
         {
-          "type": "close_db"
-        },
-        {
-          "type": "close_db"
+          "repeatCount": 2,
+          "repeatBody": [
+            {
+              "type": "close_db"
+            }
+          ],
+          "type": "repeat"
         }
       ]
     },
@@ -3264,7 +3449,8 @@
       "steps": [
         {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "devsym"
         }
       ]
     },
@@ -3280,668 +3466,14 @@
           "sql": "BEGIN;\n      CREATE TABLE t(x);"
         },
         {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
+          "repeatCount": 166,
+          "repeatBody": [
+            {
+              "type": "exec",
+              "sql": "INSERT INTO t VALUES(randomblob(400))"
+            }
+          ],
+          "type": "repeat"
         },
         {
           "type": "exec",
@@ -3991,7 +3523,8 @@
       "steps": [
         {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "devsym"
         }
       ]
     },
@@ -4007,668 +3540,14 @@
           "sql": "BEGIN;\n      CREATE TABLE t(x);"
         },
         {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
+          "repeatCount": 166,
+          "repeatBody": [
+            {
+              "type": "exec",
+              "sql": "INSERT INTO t VALUES(randomblob(400))"
+            }
+          ],
+          "type": "repeat"
         },
         {
           "type": "exec",
@@ -4718,7 +3597,8 @@
       "steps": [
         {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "devsym"
         }
       ]
     },
@@ -4734,668 +3614,14 @@
           "sql": "BEGIN;\n      CREATE TABLE t(x);"
         },
         {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
+          "repeatCount": 166,
+          "repeatBody": [
+            {
+              "type": "exec",
+              "sql": "INSERT INTO t VALUES(randomblob(400))"
+            }
+          ],
+          "type": "repeat"
         },
         {
           "type": "exec",
@@ -5445,7 +3671,8 @@
       "steps": [
         {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "devsym"
         }
       ]
     },
@@ -5461,668 +3688,14 @@
           "sql": "BEGIN;\n      CREATE TABLE t(x);"
         },
         {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
+          "repeatCount": 166,
+          "repeatBody": [
+            {
+              "type": "exec",
+              "sql": "INSERT INTO t VALUES(randomblob(400))"
+            }
+          ],
+          "type": "repeat"
         },
         {
           "type": "exec",
@@ -6172,7 +3745,8 @@
       "steps": [
         {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "vfs": "devsym"
         }
       ]
     },
@@ -6188,668 +3762,14 @@
           "sql": "BEGIN;\n      CREATE TABLE t(x);"
         },
         {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t VALUES(randomblob(400))"
+          "repeatCount": 166,
+          "repeatBody": [
+            {
+              "type": "exec",
+              "sql": "INSERT INTO t VALUES(randomblob(400))"
+            }
+          ],
+          "type": "repeat"
         },
         {
           "type": "exec",
@@ -7213,24 +4133,6 @@
       ]
     },
     {
-      "name": "wal-18.2.1.1.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
       "name": "wal-18.2.1.1.5",
       "steps": [
         {
@@ -7269,24 +4171,6 @@
       "steps": [
         {
           "type": "delete_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
-      "name": "wal-18.2.1.2.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
           "sql": "test.db-wal"
         }
       ]
@@ -7335,24 +4219,6 @@
       ]
     },
     {
-      "name": "wal-18.2.1.3.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
       "name": "wal-18.2.1.3.5",
       "steps": [
         {
@@ -7391,24 +4257,6 @@
       "steps": [
         {
           "type": "delete_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
-      "name": "wal-18.2.2.1.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
           "sql": "test.db-wal"
         }
       ]
@@ -7457,24 +4305,6 @@
       ]
     },
     {
-      "name": "wal-18.2.2.2.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
       "name": "wal-18.2.2.2.5",
       "steps": [
         {
@@ -7513,24 +4343,6 @@
       "steps": [
         {
           "type": "delete_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
-      "name": "wal-18.2.2.3.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
           "sql": "test.db-wal"
         }
       ]
@@ -7579,24 +4391,6 @@
       ]
     },
     {
-      "name": "wal-18.2.3.1.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
       "name": "wal-18.2.3.1.5",
       "steps": [
         {
@@ -7635,24 +4429,6 @@
       "steps": [
         {
           "type": "delete_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
-      "name": "wal-18.2.3.2.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
           "sql": "test.db-wal"
         }
       ]
@@ -7701,24 +4477,6 @@
       ]
     },
     {
-      "name": "wal-18.2.3.3.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
       "name": "wal-18.2.3.3.5",
       "steps": [
         {
@@ -7757,24 +4515,6 @@
       "steps": [
         {
           "type": "delete_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
-      "name": "wal-18.2.4.1.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
           "sql": "test.db-wal"
         }
       ]
@@ -7823,24 +4563,6 @@
       ]
     },
     {
-      "name": "wal-18.2.4.2.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
       "name": "wal-18.2.4.2.5",
       "steps": [
         {
@@ -7879,24 +4601,6 @@
       "steps": [
         {
           "type": "delete_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
-      "name": "wal-18.2.4.3.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
           "sql": "test.db-wal"
         }
       ]
@@ -7945,24 +4649,6 @@
       ]
     },
     {
-      "name": "wal-18.2.5.1.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
       "name": "wal-18.2.5.1.5",
       "steps": [
         {
@@ -8001,24 +4687,6 @@
       "steps": [
         {
           "type": "delete_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
-      "name": "wal-18.2.5.2.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
           "sql": "test.db-wal"
         }
       ]
@@ -8067,24 +4735,6 @@
       ]
     },
     {
-      "name": "wal-18.2.5.3.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
       "name": "wal-18.2.5.3.5",
       "steps": [
         {
@@ -8123,24 +4773,6 @@
       "steps": [
         {
           "type": "delete_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
-      "name": "wal-18.2.6.1.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
           "sql": "test.db-wal"
         }
       ]
@@ -8189,24 +4821,6 @@
       ]
     },
     {
-      "name": "wal-18.2.6.2.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
       "name": "wal-18.2.6.2.5",
       "steps": [
         {
@@ -8245,24 +4859,6 @@
       "steps": [
         {
           "type": "delete_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
-      "name": "wal-18.2.6.3.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
           "sql": "test.db-wal"
         }
       ]
@@ -8311,24 +4907,6 @@
       ]
     },
     {
-      "name": "wal-18.2.7.1.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
       "name": "wal-18.2.7.1.5",
       "steps": [
         {
@@ -8367,24 +4945,6 @@
       "steps": [
         {
           "type": "delete_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
-      "name": "wal-18.2.7.2.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
           "sql": "test.db-wal"
         }
       ]
@@ -8433,24 +4993,6 @@
       ]
     },
     {
-      "name": "wal-18.2.7.3.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
       "name": "wal-18.2.7.3.5",
       "steps": [
         {
@@ -8489,24 +5031,6 @@
       "steps": [
         {
           "type": "delete_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
-      "name": "wal-18.2.8.1.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
           "sql": "test.db-wal"
         }
       ]
@@ -8555,24 +5079,6 @@
       ]
     },
     {
-      "name": "wal-18.2.8.2.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
       "name": "wal-18.2.8.2.5",
       "steps": [
         {
@@ -8611,24 +5117,6 @@
       "steps": [
         {
           "type": "delete_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
-      "name": "wal-18.2.8.3.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
           "sql": "test.db-wal"
         }
       ]
@@ -8677,24 +5165,6 @@
       ]
     },
     {
-      "name": "wal-18.2.9.1.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
       "name": "wal-18.2.9.1.5",
       "steps": [
         {
@@ -8733,24 +5203,6 @@
       "steps": [
         {
           "type": "delete_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
-      "name": "wal-18.2.9.2.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
           "sql": "test.db-wal"
         }
       ]
@@ -8799,24 +5251,6 @@
       ]
     },
     {
-      "name": "wal-18.2.9.3.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
       "name": "wal-18.2.9.3.5",
       "steps": [
         {
@@ -8855,24 +5289,6 @@
       "steps": [
         {
           "type": "delete_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
-      "name": "wal-18.2.10.1.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
           "sql": "test.db-wal"
         }
       ]
@@ -8921,24 +5337,6 @@
       ]
     },
     {
-      "name": "wal-18.2.10.2.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
       "name": "wal-18.2.10.2.5",
       "steps": [
         {
@@ -8977,24 +5375,6 @@
       "steps": [
         {
           "type": "delete_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
-      "name": "wal-18.2.10.3.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
           "sql": "test.db-wal"
         }
       ]
@@ -9043,24 +5423,6 @@
       ]
     },
     {
-      "name": "wal-18.2.11.1.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
       "name": "wal-18.2.11.1.5",
       "steps": [
         {
@@ -9099,24 +5461,6 @@
       "steps": [
         {
           "type": "delete_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
-      "name": "wal-18.2.11.2.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
           "sql": "test.db-wal"
         }
       ]
@@ -9165,24 +5509,6 @@
       ]
     },
     {
-      "name": "wal-18.2.11.3.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
       "name": "wal-18.2.11.3.5",
       "steps": [
         {
@@ -9221,24 +5547,6 @@
       "steps": [
         {
           "type": "delete_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
-      "name": "wal-18.2.11.1.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
           "sql": "test.db-wal"
         }
       ]
@@ -9287,24 +5595,6 @@
       ]
     },
     {
-      "name": "wal-18.2.11.2.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
       "name": "wal-18.2.11.2.5",
       "steps": [
         {
@@ -9343,24 +5633,6 @@
       "steps": [
         {
           "type": "delete_file",
-          "sql": "test.db-wal"
-        }
-      ]
-    },
-    {
-      "name": "wal-18.2.11.3.4",
-      "steps": [
-        {
-          "type": "open_named_db",
-          "sql": ":memory:",
-          "database": "rbdb"
-        },
-        {
-          "type": "close_named_db",
-          "database": "rbdb"
-        },
-        {
-          "type": "write_file",
           "sql": "test.db-wal"
         }
       ]
@@ -9576,7 +5848,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "wal-21.1",
@@ -9631,7 +5903,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "wal-23.1",
@@ -9639,6 +5911,9 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b);\n    PRAGMA journal_mode = WAL;\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);"
+        },
+        {
+          "type": "faultsim_save_close"
         },
         {
           "type": "reopen_db",
@@ -9665,6 +5940,9 @@
       "steps": [
         {
           "type": "close_db"
+        },
+        {
+          "type": "faultsim_restore_reopen"
         },
         {
           "type": "exec",
