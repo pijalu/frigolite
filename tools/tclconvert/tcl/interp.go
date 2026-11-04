@@ -59,6 +59,7 @@ type Stmt struct {
 	CatchMessage    string            // the variable the catch's error message is stored in
 	AuthProc        string            // the Tcl authorizer proc name (a `db auth <proc>` step)
 	ExpectedExpr    string            // the expectation is itself a runtime expression
+	WriteValue      string            // set_readmark's writer-form VALUE (empty = reader form)
 	ListValues      []string          // the step builds a Tcl list from these values
 	Expected        string            // empty = no expected result check
 	ResultTransform string            // Tcl postprocessing applied to query result
@@ -150,6 +151,7 @@ type Interp struct {
 	randSeed           int64     // expr rand() state (see tclRand)
 	randSeeded         bool
 	runtimeID          int             // counter for the runtime value markers
+	readmarkSeq        int             // counter for the vfs_set_readmark list-form collectors
 	runtimeVars        map[string]int  // variable name -> the runtime query id it holds
 	tclPrecision       int             // the last `set tcl_precision N`
 	tclPrecisionSeen   bool            // whether the source ever set tcl_precision
@@ -1437,6 +1439,25 @@ func (i *Interp) runtimeListValues(words []rawWord, localVars map[string]string)
 			inner := strings.TrimSpace(text[len("[string length ") : len(text)-1])
 			if _, name, ok := tclRuntimeRef(inner); ok && i.dynamicVars[name] {
 				values = append(values, "$__strlen("+name+")")
+				runtime = true
+				continue
+			}
+		}
+		// A `list [vfs_set_readmark db main N] ...` element (walvfs-5.3's
+		// mark probe): the marks exist only at run time — emit the
+		// set_readmark steps in order and reference each one's collected
+		// value.
+		if !w.Braced && strings.HasPrefix(text, "[vfs_set_readmark ") && strings.HasSuffix(text, "]") {
+			fields := strings.Fields(text[1 : len(text)-1])
+			if len(fields) >= 4 {
+				collect := fmt.Sprintf("readmark_%d", i.readmarkSeq)
+				i.readmarkSeq++
+				stmt := Stmt{Type: "set_readmark", Database: fields[1], SQL: fields[3], Variable: collect, TestName: i.curTest}
+				if len(fields) >= 5 {
+					stmt.WriteValue = fields[4]
+				}
+				i.stmts = append(i.stmts, stmt)
+				values = append(values, "$"+collect)
 				runtime = true
 				continue
 			}

@@ -221,6 +221,45 @@ func (p *Pager) CheckpointMode(mode WalCheckpointMode) (busy, nLog, nCkpt int, e
 	return p.wal.checkpoint(mode)
 }
 
+// ReadMarkSlot reads wal-index read-mark slot (0-based; C's aShm[25+iSlot],
+// the vfs_set_readmark reader form). ok=false when no WAL is attached. The
+// fixture's xShmMap callback fires first exactly as the C command's
+// xShmMap(0, 32*1024, 0) probe does — a veto surfaces as its error.
+func (p *Pager) ReadMarkSlot(slot int) (value uint32, ok bool, err error) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if p.wal == nil {
+		return 0, false, nil
+	}
+	if err := p.vfsCall("xShmMap", p.path+"-shm", walShmRegionBytes); err != nil {
+		return 0, true, err
+	}
+	p.wal.wi.WriterSection(func() error {
+		value = p.wal.wi.ckptInfoLocked().AReadMark[slot]
+		return nil
+	})
+	return value, true, nil
+}
+
+// WriteMarkSlot writes wal-index read-mark slot (0-based) and reports the
+// value now stored (test_vfs.c's vfs_set_readmark writer form — the command
+// returns aShm[iOff] either way). ok=false when no WAL is attached.
+func (p *Pager) WriteMarkSlot(slot int, v uint32) (uint32, bool, error) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if p.wal == nil {
+		return 0, false, nil
+	}
+	if err := p.vfsCall("xShmMap", p.path+"-shm", walShmRegionBytes); err != nil {
+		return 0, true, err
+	}
+	p.wal.wi.WriterSection(func() error {
+		p.wal.wi.setCkptInfoLocked(func(ci *WalCkptInfo) { ci.AReadMark[slot] = v })
+		return nil
+	})
+	return v, true, nil
+}
+
 // WalFileSize reports the current "-wal" file size in bytes (0 when not in
 // WAL mode). Used by tests to simulate a crash at a frame boundary.
 func (p *Pager) WalFileSize() int64 {

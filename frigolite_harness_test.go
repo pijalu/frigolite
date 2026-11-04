@@ -242,6 +242,7 @@ type TestStep struct {
 	Prep         []TestStep `json:"prep,omitempty"`
 	Body         []TestStep `json:"body,omitempty"`
 	TestScript   string     `json:"testScript,omitempty"`
+	WriteValue   string     `json:"writeValue,omitempty"`
 	TestPatterns []string   `json:"testPatterns,omitempty"`
 }
 
@@ -3552,6 +3553,52 @@ func TestSQLiteSuite(t *testing.T) {
 						}
 						if step.Type == "auth_analyze_deny" {
 							db.SetAuthorizer(auth.NewActionFilterAuthorizer(auth.ActionAnalyze))
+							continue
+						}
+						if step.Type == "set_readmark" {
+							// vfs_set_readmark DB DBNAME SLOT ?VALUE? (test_vfs.c):
+							// the reader form returns the slot's current
+							// wal-index read-mark value, the writer form stores
+							// VALUE first — both return the value now stored.
+							// The xShmMap probe fires the fixture callback; a
+							// veto errors the command (the C Tcl command errors
+							// with the code name).
+							target := db
+							if step.Database != "" && step.Database != "db" {
+								if named := namedDBs[step.Database]; named != nil {
+									target = named
+								}
+							}
+							slot, slotErr := strconv.Atoi(strings.TrimSpace(step.SQL))
+							if slotErr != nil || slot < 0 || slot > 4 {
+								t.Errorf("invalid read-mark slot %q", step.SQL)
+								continue
+							}
+							var value uint32
+							var markErr error
+							if step.WriteValue != "" {
+								w, werr := strconv.ParseUint(strings.TrimSpace(step.WriteValue), 10, 32)
+								if werr != nil {
+									t.Errorf("invalid read-mark value %q", step.WriteValue)
+									continue
+								}
+								value, _, markErr = target.engine.PagerForDB("main").WriteMarkSlot(slot, uint32(w))
+							} else {
+								value, _, markErr = target.engine.PagerForDB("main").ReadMarkSlot(slot)
+							}
+							if markErr != nil {
+								t.Errorf("vfs_set_readmark slot %d: %v", slot, markErr)
+								continue
+							}
+							markResult := strconv.FormatUint(uint64(value), 10)
+							if step.Variable != "" {
+								runtimeVars[step.Variable] = markResult
+							}
+							if step.Expect != "" {
+								if diff := matchExpectation(markResult, step.Expect); diff != "" {
+									t.Errorf("read-mark mismatch\n  got: [%s]\n  %s", markResult, diff)
+								}
+							}
 							continue
 						}
 						if step.Type == "set_limit" {

@@ -946,6 +946,15 @@ func (i *Interp) cmdDoTest(rawWords []rawWord, localVars map[string]string) erro
 		i.curTest = ""
 		return nil
 	}
+	// vfs_set_readmark's do_test form (walvfs-5.2's four mark stores): the
+	// body's last command is the probe whose value exists only at run time —
+	// the expectation belongs to the marked step.
+	if last := i.runtimeValueStatement(i.vars[""]); last != nil && last.Type == "set_readmark" {
+		last.Expected = expected
+		last.ExpectedExpr = expectedExpr
+		i.curTest = ""
+		return nil
+	}
 	// Global Tcl variable reads are runtime assertions; capture them explicitly
 	// so SQL callbacks can populate the value during earlier steps.
 	//

@@ -109,6 +109,7 @@ func init() {
 		"sqlite3_limit":               commandSQLite3Limit,
 		"sqlite3_test_control":        commandSQLite3TestControl,
 		"sqlite3_db_cacheflush":       commandCacheFlush,
+		"vfs_set_readmark":            commandVfsSetReadmark,
 		"sqlite3_create_collation_v2": commandCreateCollation,
 		"sqlite3_create_function":     commandSQLiteCreateFunction,
 		"sqlite_delete_collation":     commandDeleteCollation,
@@ -1204,6 +1205,28 @@ func commandSQLite3Limit(i *Interp, rawWords []rawWord, args []string, localVars
 // commandStepSQL captures SQL passed to tester.tcl's non-callback API.
 // Database handle argument is resolved by the Tcl script; `stepsql` in
 // SQLite's tester is invoked with the main connection's opaque pointer.
+// commandVfsSetReadmark captures vfs_set_readmark DB DBNAME SLOT ?VALUE?
+// (test_vfs.c test_vfs_set_readmark): the reader form returns the slot's
+// current wal-index read-mark value, the writer form stores VALUE first —
+// both return the value now stored. The harness answers through the named
+// connection's pager (the C command takes the connection pointer).
+func commandVfsSetReadmark(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
+	if len(args) < 4 {
+		return nil
+	}
+	stmt := Stmt{Type: "set_readmark", Database: args[0], SQL: args[2], TestName: i.curTest}
+	if len(args) >= 4 {
+		// The writer form: vfs_set_readmark DB DBNAME SLOT VALUE (the
+		// reader form stops at SLOT).
+		stmt.WriteValue = args[3]
+	}
+	i.stmts = append(i.stmts, stmt)
+	// The call's result is the value now stored — a runtime value the
+	// do_test promotion attaches the body expectation to.
+	i.vars[""] = i.markRuntimeValue(&i.stmts[len(i.stmts)-1])
+	return nil
+}
+
 func commandStepSQL(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
 	for _, word := range rawWords[1:] {
 		if !word.Braced || strings.TrimSpace(word.Text) == "" {

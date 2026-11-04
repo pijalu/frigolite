@@ -427,12 +427,76 @@
       ]
     },
     {
+      "name": "walvfs-5.2",
+      "steps": [
+        {
+          "type": "set_readmark",
+          "sql": "1",
+          "writeValue": "100",
+          "database": "db"
+        },
+        {
+          "type": "set_readmark",
+          "sql": "2",
+          "writeValue": "100",
+          "database": "db"
+        },
+        {
+          "type": "set_readmark",
+          "sql": "3",
+          "writeValue": "100",
+          "database": "db"
+        },
+        {
+          "type": "set_readmark",
+          "sql": "4",
+          "expect": "100",
+          "writeValue": "100",
+          "database": "db"
+        }
+      ]
+    },
+    {
       "name": "walvfs-5.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT count(*) FROM t1",
           "expect": "20"
+        },
+        {
+          "type": "set_readmark",
+          "sql": "1",
+          "variable": "readmark_0",
+          "database": "db"
+        },
+        {
+          "type": "set_readmark",
+          "sql": "2",
+          "variable": "readmark_1",
+          "database": "db"
+        },
+        {
+          "type": "set_readmark",
+          "sql": "3",
+          "variable": "readmark_2",
+          "database": "db"
+        },
+        {
+          "type": "set_readmark",
+          "sql": "4",
+          "variable": "readmark_3",
+          "database": "db"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$readmark_0",
+            "$readmark_1",
+            "$readmark_2",
+            "$readmark_3"
+          ],
+          "expect": "24 100 100 100"
         }
       ]
     },
@@ -476,6 +540,12 @@
       "name": "walvfs-5.4",
       "steps": [
         {
+          "type": "set_readmark",
+          "sql": "1",
+          "writeValue": "100",
+          "database": "db"
+        },
+        {
           "type": "exec",
           "sql": "SELECT count(*) FROM t1",
           "expect": "20"
@@ -485,6 +555,30 @@
     {
       "name": "setup_12",
       "steps": [
+        {
+          "type": "set_readmark",
+          "sql": "1",
+          "writeValue": "100",
+          "database": "db"
+        },
+        {
+          "type": "set_readmark",
+          "sql": "2",
+          "writeValue": "100",
+          "database": "db"
+        },
+        {
+          "type": "set_readmark",
+          "sql": "3",
+          "writeValue": "100",
+          "database": "db"
+        },
+        {
+          "type": "set_readmark",
+          "sql": "4",
+          "writeValue": "100",
+          "database": "db"
+        },
         {
           "type": "testvfs_config",
           "sql": "script",
@@ -543,6 +637,12 @@
           "type": "testvfs_config",
           "sql": "filter",
           "database": "tvfs"
+        },
+        {
+          "type": "set_readmark",
+          "sql": "1",
+          "writeValue": "1",
+          "database": "db"
         }
       ]
     },

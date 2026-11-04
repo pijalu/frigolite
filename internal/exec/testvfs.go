@@ -40,3 +40,14 @@ func (e *Engine) PagerShmID() string {
 	}
 	return "0"
 }
+
+// PagerForDB resolves a database name ("main" or an attached name) to its
+// pager — the vfs_set_readmark surface addresses a connection's wal-index
+// through the named database.
+func (e *Engine) PagerForDB(name string) *pager.Pager {
+	ctx := e.GetDB(name)
+	if ctx == nil {
+		return nil
+	}
+	return ctx.Pager
+}

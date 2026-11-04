@@ -19,6 +19,11 @@ const (
 // pShmId: a stable integer per shm instance).
 var theShmIDSeq uint64
 
+// walShmRegionBytes is the wal-index region size the C readmark command
+// probes through xShmMap (test_vfs.c test_vfs_set_readmark's
+// xShmMap(pFd, 0, 32*1024, 0, &pShm)).
+const walShmRegionBytes = "32768"
+
 // walSyncFlagBits are the WAL-mode sync flag levels (pager.c:3636-3650):
 // synchronous=OFF → 0, NORMAL → 0x08 (NORMAL<<2, commit bits zero), FULL →
 // 0x0F (NORMAL<<2|FULL). WAL_SYNC_FLAGS(x) = x&0x03 (the commit sync bits),
