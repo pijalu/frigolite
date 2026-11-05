@@ -318,6 +318,22 @@ func recoverJournalAtOpen(pr *Pager, cleanPath string) error {
 // empty (uncheckpointed) carries its page size only in the "-wal" header, so
 // prefer that when the main file did not yield a size.
 func attachWalAtOpen(pr *Pager, cleanPath string) error {
+	// C's pagerOpenWalIfPresent garbage rule (pager.c:3337, mirrored in
+	// CheckExternalFile's per-statement gate): a "-wal" beside an EMPTY
+	// database is garbage — its frames reference a database that does not
+	// exist. The check must run at OPEN (before the journal_mode switch's
+	// openWal adopts the log): a frames-bearing "-wal" survives a contended
+	// close (the RefCount gate skips the close-time deletion while another
+	// connection is attached) and would otherwise resurrect the old
+	// generation's schema at the next journal_mode=wal (e_walckpt's
+	// per-scenario forcedelete cycles: "table t1 already exists").
+	if fi, err := os.Stat(cleanPath); err == nil && fi.Size() == 0 {
+		if _, werr := os.Stat(cleanPath + "-wal"); werr == nil && !walIndexLiveEntry(cleanPath) {
+			_ = os.Remove(cleanPath + "-wal")
+			_ = os.Remove(cleanPath + "-shm")
+			return nil
+		}
+	}
 	if _, err := os.Stat(cleanPath + "-wal"); err != nil {
 		// C's lockBtree (btree.c:3329-3352): a NON-EMPTY database whose
 		// header says WAL (read/write version 2/2) is accessed in WAL mode

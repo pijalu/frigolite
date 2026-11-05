@@ -95,6 +95,21 @@ func acquireWALIndex(dbPath string) (*WALIndex, error) {
 	return wi, nil
 }
 
+// walIndexLiveEntry reports whether a live WALIndex (a connection still
+// attached) exists for dbPath. The open-time garbage rule consults it: a
+// "-wal" beside an empty database is garbage ONLY when no live connection
+// still holds the log (C's osLock-gated deletion; deleting a held log
+// orphans the holder's unlinked inode and corrupts the next generation).
+func walIndexLiveEntry(dbPath string) bool {
+	key, err := filepath.Abs(dbPath)
+	if err != nil {
+		key = filepath.Clean(dbPath)
+	}
+	walIndexRegistry.mu.Lock()
+	defer walIndexRegistry.mu.Unlock()
+	return walIndexRegistry.entries[key] != nil
+}
+
 // release drops one connection reference; the last detach closes the shm fd
 // and drops the registry entry (the next attach re-runs the DMS protocol).
 func (w *WALIndex) release() {

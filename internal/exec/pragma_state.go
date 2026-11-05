@@ -172,6 +172,13 @@ func (e *Engine) setJournalMode(ctx *DatabaseContext, schema, m string) *execpra
 		if strings.Contains(err.Error(), "in-memory") {
 			return journalModeResult(ctx.Pager.JournalMode())
 		}
+		// C's WAL→rollback switch under contention: sqlite3PagerCloseWal's
+		// EXCLUSIVE lock fails with SQLITE_BUSY and OP_JournalMode (vdbe.c:
+		// 8087) falls back to eNew = eOld — the PRAGMA SUCCEEDS reporting
+		// the CURRENT mode, no error (wal-25.x's contended DELETE).
+		if strings.Contains(err.Error(), "database is locked") {
+			return journalModeResult(ctx.Pager.JournalMode())
+		}
 		return &execpragma.Result{Error: err}
 	}
 	return journalModeResult(ctx.Pager.JournalMode())

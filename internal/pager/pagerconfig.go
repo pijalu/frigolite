@@ -535,13 +535,16 @@ func (p *Pager) leaveWALModeLocked() error {
 	// w.Close() — it sets w.file=nil itself; pre-closing w.file would make
 	// w.Close return the already-closed error AFTER releasing the
 	// wal-index reference, leaving p.wal pointing at a dead writer.
-	walPath := w.path
 	if err := w.Close(); err != nil {
 		return err
 	}
 	p.wal = nil
-	_ = os.Remove(walPath + "-wal")
-	_ = os.Remove(walPath + "-shm")
+	// w.path IS the "-wal" path: the log unlinks as w.path; the wal-index
+	// lives beside the DATABASE ("t.db-shm") — the first attempt removed
+	// "t.db-wal-wal"/"t.db-wal-shm", a silent no-op that left every
+	// sidecar in place, resurrecting the old generation at the next attach.
+	_ = os.Remove(w.path)
+	_ = os.Remove(strings.TrimSuffix(w.path, "-wal") + "-shm")
 	// sqlite3BtreeSetVersion(pBt, 1) — the version bytes 1/1 through the
 	// rollback path, now that no WAL can capture the change. The caller
 	// records the resulting journal mode.

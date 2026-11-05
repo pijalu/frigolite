@@ -14,6 +14,7 @@ import (
 	"encoding/binary"
 	"io/fs"
 	"os"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -422,9 +423,19 @@ func (p *Pager) walCloseCheckpoint() {
 	if err != nil || busy != 0 {
 		return
 	}
-	if w.file != nil {
-		_ = w.file.Truncate(0)
-	}
+	// PIECE 2 (BISECTION): wal.c's isDelete — the checkpoint completed and
+	// PERSIST_WAL is unset — unlink both sidecars. The version bytes stay
+	// 2/2; the reopen re-creates the log from the header (btree.c:3337,
+	// piece 3). A frames-bearing "-wal" can survive a contended close (the
+	// RefCount gate skips this whole body while another connection is
+	// attached) — the OPEN-time garbage rule below (attachWalAtOpen) keeps
+	// such a log from being adopted beside an empty database.
+	// w.path IS the "-wal" path: the log unlinks as w.path; the wal-index
+	// lives beside the DATABASE ("t.db-shm" = TrimSuffix(w.path, "-wal") +
+	// "-shm") — the first attempt removed "t.db-wal-wal"/"t.db-wal-shm",
+	// a silent no-op that left every sidecar in place.
+	_ = os.Remove(w.path)
+	_ = os.Remove(strings.TrimSuffix(w.path, "-wal") + "-shm")
 }
 
 // UsableSize returns the number of usable bytes per page (page size minus

@@ -792,3 +792,4 @@ func (e *Engine) BeginInternalWrites() (end func()) {
 	e.tx.internalWrites++
 	return func() { e.tx.internalWrites-- }
 }
+
