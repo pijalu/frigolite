@@ -82,9 +82,15 @@ type walWriter struct {
 	// so the snapshot cannot be destroyed by a later WAL wrap while the
 	// caller's transaction stays open (wal.c L3116).
 	bGetSnapshot bool
-	// exclusiveMode is locking_mode=EXCLUSIVE: every shm lock call becomes a
-	// no-op (wal.c walLockShared/walLockExclusive).
+	// exclusiveMode is locking_mode=EXCLUSIVE in effect: every shm lock call
+	// becomes a no-op (wal.c walLockShared/walLockExclusive). The flag FLIPS
+	// at the first write transaction under the pragma (wal.c
+	// sqlite3WalExclusiveMode op=1 via pager.c:5937) and back at the first
+	// transaction ending after locking_mode=normal (op=0 via pager.c:2159).
 	exclusiveMode bool
+	// exclusiveRequested is the PRAGMA locking_mode=EXCLUSIVE request
+	// (pPager->exclusiveMode): no shm state changes at pragma time.
+	exclusiveRequested bool
 	// busyTimeout is sqlite3_busy_timeout: contended shm lock acquisitions
 	// retry until the deadline, then report "database is locked".
 	busyTimeout time.Duration

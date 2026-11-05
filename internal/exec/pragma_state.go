@@ -236,7 +236,7 @@ func (e *Engine) lockingModeSetAll(m string) {
 	// locking_mode=EXCLUSIVE the shm lock calls become no-ops.
 	for _, dbCtx := range e.dbList {
 		if dbCtx != nil && dbCtx.Pager != nil {
-			dbCtx.Pager.SetWALExclusiveMode(m == "exclusive")
+			dbCtx.Pager.SetWALExclusiveRequested(m == "exclusive")
 		}
 	}
 	if m == "normal" {
@@ -258,7 +258,7 @@ func (e *Engine) lockingModeSetOne(schema, m string) {
 	}
 	e.setSchemaLockingMode(upper, m)
 	if ctx := e.GetDB(upper); ctx != nil && ctx.Pager != nil {
-		ctx.Pager.SetWALExclusiveMode(m == "exclusive")
+		ctx.Pager.SetWALExclusiveRequested(m == "exclusive")
 	}
 	if m == "normal" && upper == "MAIN" {
 		// Reverting MAIN to normal releases the never-unlocked

@@ -389,14 +389,28 @@ func (p *Pager) WALWriterProbe() error {
 	return nil
 }
 
+// SetWALExclusiveRequested records the PRAGMA locking_mode request
+// (pPager->exclusiveMode): NO shm state changes at pragma time — the WAL
+// flips to exclusive shm mode at the first write transaction (pager.c:5937)
+// and back at the first transaction ending after locking_mode=normal
+// (pager.c:2159).
+func (p *Pager) SetWALExclusiveRequested(excl bool) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if p.wal != nil {
+		p.wal.exclusiveRequested = excl
+	}
+}
+
 // SetWALExclusiveMode toggles locking_mode=EXCLUSIVE for the WAL writer
-// (wal.c: in exclusive mode every walLockShared/walLockExclusive is a no-op —
-// the shm locks are never taken, assuming single-process access).
+// (native-test seam): immediate exclusive shm mode — every walLockShared/
+// walLockExclusive is a no-op, the shm locks are never taken.
 func (p *Pager) SetWALExclusiveMode(excl bool) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if p.wal != nil {
 		p.wal.exclusiveMode = excl
+		p.wal.exclusiveRequested = excl
 	}
 }
 

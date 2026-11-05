@@ -156,7 +156,11 @@ func stmtSkipsWalReadPin(stmt sql.Stmt) bool {
 	case *sql.BeginStmt, *sql.CommitStmt, *sql.RollbackStmt, *sql.SavepointStmt:
 		return true
 	case *sql.PragmaStmt:
-		return strings.EqualFold(s.Name, "wal_checkpoint")
+		// wal_checkpoint takes its own locks (the pragma must run outside
+		// any read transaction) and locking_mode flips connection state
+		// only — pragma.c emits no OP_Transaction for either, so neither
+		// pins a WAL read mark (wal2-6.4.5/6.4.8's empty trace).
+		return strings.EqualFold(s.Name, "wal_checkpoint") || strings.EqualFold(s.Name, "locking_mode")
 	}
 	return false
 }

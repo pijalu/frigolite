@@ -168,6 +168,25 @@ func (p *Pager) WALBeginWrite() (bool, error) {
 		}
 		return changed, err
 	}
+	// C's sqlite3PagerBegin (pager.c:5928-5938): the first write transaction
+	// under locking_mode=EXCLUSIVE flips the WAL into exclusive shm mode —
+	// the reader's mark byte is released (the {N 1 unlock shared} trace
+	// event) and every later shm lock is a no-op until locking_mode=normal.
+	if p.wal.exclusiveRequested && !p.wal.exclusiveMode {
+		if p.wal.readLock >= 0 {
+			idx := walReadLockIdx(p.wal.readLock)
+			p.wal.wi.WriterSection(func() error {
+				p.wal.wi.unlockSlotsLocked(idx, 1, false)
+				p.wal.wi.reconcileFlockHeld(idx, 1)
+				return nil
+			})
+			// The mark-byte release through the connection's fixture hook
+			// (the pager channel — the wi-level global hook doesn't carry
+			// this connection's fixture script).
+			_ = p.vfsShmLock(idx, 1, "unlock", false)
+		}
+		p.wal.exclusiveMode = true
+	}
 	retryChanged, err := p.walBeginWriteLocked(!wasPinned)
 	if err != nil && !wasPinned {
 		p.wal.walEndReadTxn()
@@ -184,6 +203,26 @@ func (p *Pager) WALBeginWrite() (bool, error) {
 func (p *Pager) WALEndRead() {
 	p.mu.Lock()
 	if w := p.wal; w != nil {
+		// C's pager_end_transaction (pager.c:2158-2162): the first
+		// transaction ending under locking_mode=normal exits exclusive shm
+		// mode — the reader's mark byte is RE-ACQUIRED first (the
+		// {N 1 lock shared} trace event, through the connection's fixture
+		// hook); a failed re-acquire (a veto or an in-process conflict)
+		// silently remains exclusive (wal2-6.6). The transaction's own
+		// mark release follows (the {N 1 unlock shared} event).
+		if !w.exclusiveRequested && w.exclusiveMode {
+			if w.readLock < 0 {
+				w.exclusiveMode = false
+			} else if p.vfsShmLock(walReadLockIdx(w.readLock), 1, "lock", false) == nil {
+				idx := walReadLockIdx(w.readLock)
+				w.wi.WriterSection(func() error {
+					if w.wi.shmTryLockHeldNoHook(idx, 1, false) == nil {
+						w.exclusiveMode = false
+					}
+					return nil
+				})
+			}
+		}
 		w.walEndReadTxn()
 	}
 	p.mu.Unlock()
