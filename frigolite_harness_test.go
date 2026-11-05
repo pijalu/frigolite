@@ -6021,12 +6021,18 @@ func hexEncodeBytes(data []byte) string {
 // testvfsFixture is one named testvfs wrapper VFS (test_vfs.c): the fixture
 // script proc, the method filter list, and the devchar override.
 type testvfsFixture struct {
-	name        string
-	isDefault   bool // `testvfs tv -default 1`: every later Open routes through it
-	scriptProc  string
-	filters     map[string]bool
-	devcharBits int
-	procs       []callbackProc
+	name       string
+	isDefault  bool // `testvfs tv -default 1`: every later Open routes through it
+	scriptProc string
+	filters    map[string]bool
+	// filterConfigured distinguishes C's mask states (test_vfs.c:1574): the
+	// default mask is ALL methods (every one fires), `tvfs filter X`
+	// restricts to the listed set, and `tvfs filter {}` resets to zero
+	// (nothing fires). Before the first `filter` option the fixture is in
+	// the all-methods state (e_walckpt's tvfs_callback without any filter).
+	filterConfigured bool
+	devcharBits      int
+	procs            []callbackProc
 }
 
 // configure applies one testvfs_config step: script/filter/devchar.
@@ -6043,6 +6049,7 @@ func (fx *testvfsFixture) configure(t *testing.T, step TestStep, runtimeVars map
 		for _, m := range strings.Fields(step.Variable) {
 			fx.filters[m] = true
 		}
+		fx.filterConfigured = true
 	case "devchar":
 		bits := 0
 		for _, name := range strings.Fields(step.Variable) {
@@ -6062,74 +6069,93 @@ func (fx *testvfsFixture) configure(t *testing.T, step TestStep, runtimeVars map
 // hook builds the observational VFS callback: invoke the script proc for
 // filtered methods, then sync the proc's written variables back into the
 // runtime set (the xSync body's `incr ::sync_count`).
+//
+// C's testvfs object holds the script/mask state LIVE on the shared VFS
+// struct: a `tvfs script` configured AFTER a connection opened governs that
+// connection's later callbacks (e_walckpt opens db under tvfs, then binds
+// tvfs_callback). The callback interpreter is therefore built at install
+// time when the script is already bound — the xOpen event fires at open
+// then (wal3-7.1's handle capture) — and lazily at the first callback
+// otherwise (C skips the xOpen callback when no script is bound at open).
 func (fx *testvfsFixture) hook(runtimeVars map[string]string, db *DB, fixtureDBDir string) func(op, path string, details []string) error {
-	if fx.scriptProc == "" {
-		return nil
-	}
-	// No generic gate here: the filter list is per-METHOD (C's tvfs filter
-	// restricts which x-methods invoke the script) — the closure checks the
-	// op per call.
-	interp := tcl.NewInterp()
-	loaded := make([]tcl.Proc, 0, len(fx.procs))
-	for _, proc := range fx.procs {
-		loaded = append(loaded, tcl.Proc{Name: strings.TrimPrefix(proc.Name, "::"), Args: proc.Args, Body: proc.Body})
-	}
-	interp.LoadProcedures(loaded)
-	// The fixture script's C-API calls run against this connection
-	// (walvfs-3.1's `sqlite3_interrupt db` inside the xWrite callback).
-	interp.RegisterCallbackCommand("sqlite3_interrupt", func(args []string) (string, error) {
-		db.engine.Interrupt()
-		return "SQLITE_OK", nil
-	})
-	// The fixture callbacks invoke the faultsim snapshot pair (pagerfault's
-	// xSyncCb saves on every journal I/O).
-	interp.RegisterCallbackCommand("faultsim_save", func(args []string) (string, error) {
-		faultsimFileOp(nil, "faultsim_save", faultsimMainPath(db, fixtureDBDir), fixtureDBDir)
-		return "", nil
-	})
-	interp.RegisterCallbackCommand("faultsim_restore", func(args []string) (string, error) {
-		faultsimFileOp(nil, "faultsim_restore", faultsimMainPath(db, fixtureDBDir), fixtureDBDir)
-		return "", nil
-	})
-	var targets []string
-	for _, proc := range fx.procs {
-		targets = append(targets, tcl.NotifyScriptVarTargets(proc.Body)...)
-	}
-	// C's tvfsOpen (test_vfs.c:638-660) evaluates `SCRIPT xOpen FILENAME
-	// ...` at open time when the mask allows, and the script's RESULT —
-	// anything that is not an SQLITE_ error code — becomes the
-	// connection's handle (pFd->pShmId), which every later callback
-	// receives as its third argument ("reader" in wal3-7.1.x's $handle
-	// filters). Fire the event here (the harness installs the fixture
-	// right after the engine open — C fires it during) and capture the
-	// name; fixtures without an xOpen event keep the minted numeric id.
-	handle := db.engine.PagerShmID()
-	if fx.filters["xOpen"] {
-		if base := strings.TrimPrefix(fx.scriptProc, "::"); interp.HasProcedure(base) {
-			for _, name := range targets {
-				if v, ok := runtimeVars[name]; ok {
-					interp.SetVariable(name, v)
+	build := func(fireOpen bool) (*tcl.Interp, []string, string) {
+		interp := tcl.NewInterp()
+		loaded := make([]tcl.Proc, 0, len(fx.procs))
+		for _, proc := range fx.procs {
+			loaded = append(loaded, tcl.Proc{Name: strings.TrimPrefix(proc.Name, "::"), Args: proc.Args, Body: proc.Body})
+		}
+		interp.LoadProcedures(loaded)
+		// The fixture script's C-API calls run against this connection
+		// (walvfs-3.1's `sqlite3_interrupt db` inside the xWrite callback).
+		interp.RegisterCallbackCommand("sqlite3_interrupt", func(args []string) (string, error) {
+			db.engine.Interrupt()
+			return "SQLITE_OK", nil
+		})
+		// The fixture callbacks invoke the faultsim snapshot pair (pagerfault's
+		// xSyncCb saves on every journal I/O).
+		interp.RegisterCallbackCommand("faultsim_save", func(args []string) (string, error) {
+			faultsimFileOp(nil, "faultsim_save", faultsimMainPath(db, fixtureDBDir), fixtureDBDir)
+			return "", nil
+		})
+		interp.RegisterCallbackCommand("faultsim_restore", func(args []string) (string, error) {
+			faultsimFileOp(nil, "faultsim_restore", faultsimMainPath(db, fixtureDBDir), fixtureDBDir)
+			return "", nil
+		})
+		var targets []string
+		for _, proc := range fx.procs {
+			targets = append(targets, tcl.NotifyScriptVarTargets(proc.Body)...)
+		}
+		// C's tvfsOpen (test_vfs.c:638-660) evaluates `SCRIPT xOpen FILENAME
+		// ...` at open time when the mask allows, and the script's RESULT —
+		// anything that is not an SQLITE_ error code — becomes the
+		// connection's handle (pFd->pShmId), which every later callback
+		// receives as its third argument ("reader" in wal3-7.1.x's $handle
+		// filters). Fire the event here (the harness installs the fixture
+		// right after the engine open — C fires it during) and capture the
+		// name; fixtures without an xOpen event keep the minted numeric id.
+		handle := db.engine.PagerShmID()
+		if fireOpen && fx.filters["xOpen"] {
+			if base := strings.TrimPrefix(fx.scriptProc, "::"); interp.HasProcedure(base) {
+				for _, name := range targets {
+					if v, ok := runtimeVars[name]; ok {
+						interp.SetVariable(name, v)
+					}
 				}
-			}
-			answer, _ := interp.InvokeProcedure(base, "xOpen", db.path, handle)
-			for _, name := range targets {
-				if v, ok := interp.Variable(name); ok {
-					runtimeVars[name] = v
-				} else if v, ok := interp.Variable("::" + name); ok {
-					runtimeVars[name] = v
+				answer, _ := interp.InvokeProcedure(base, "xOpen", db.path, handle)
+				for _, name := range targets {
+					if v, ok := interp.Variable(name); ok {
+						runtimeVars[name] = v
+					} else if v, ok := interp.Variable("::" + name); ok {
+						runtimeVars[name] = v
+					}
 				}
-			}
-			if code := strings.TrimSpace(answer); code != "" && !strings.HasPrefix(code, "SQLITE_") {
-				handle = code
+				if code := strings.TrimSpace(answer); code != "" && !strings.HasPrefix(code, "SQLITE_") {
+					handle = code
+				}
 			}
 		}
+		return interp, targets, handle
+	}
+	var interp *tcl.Interp
+	var targets []string
+	handle := db.engine.PagerShmID()
+	if fx.scriptProc != "" {
+		interp, targets, handle = build(true)
 	}
 	return func(op, path string, details []string) error {
 		// C's mask semantics (test_vfs.c): the script fires ONLY for the
 		// methods the filter listed — `tvfs filter {}` resets the mask to
-		// zero and NOTHING fires (an unset filter never fires either).
-		if !fx.filters[op] {
+		// zero and NOTHING fires. With no `tvfs filter` option the default
+		// mask is ALL methods (test_vfs.c:1574 TESTVFS_ALL_MASK —
+		// e_walckpt's unfiltered tvfs_callback counts xSync/xWrite/xShmLock).
+		if fx.scriptProc == "" || (fx.filterConfigured && !fx.filters[op]) {
 			return nil
+		}
+		if interp == nil {
+			// The script was bound after the connection opened: build the
+			// interpreter from the fixture's proc set now (no xOpen replay —
+			// C fired none at open).
+			interp, targets, handle = build(false)
 		}
 		base := strings.TrimPrefix(fx.scriptProc, "::")
 		if !interp.HasProcedure(base) {

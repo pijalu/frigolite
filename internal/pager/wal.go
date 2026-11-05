@@ -923,8 +923,13 @@ func (w *walWriter) ckptBackfillPass(mxFrame, mxSafeFrame uint32, session *walBu
 			return berr
 		}
 		w.wi.setCkptInfoLocked(func(ci *WalCkptInfo) { ci.NBackfill = mxSafeFrame })
-		// wal.c:2314 — sync the database file after copying pages.
-		w.p.vfsSync(w.p.path, walCkptSyncBits(w.p.walSyncFlags))
+		// wal.c:2309-2316 — the database-file truncate and sync happen only
+		// when the backfill reached the log's end (a partial checkpoint —
+		// readers pinning mxSafeFrame below mxFrame — leaves the db file
+		// unsynced: e_walckpt-1.passive.1.5's sync_counter stays 0).
+		if mxSafeFrame == mxFrame {
+			w.p.vfsSync(w.p.path, walCkptSyncBits(w.p.walSyncFlags))
+		}
 		return nil
 	})
 	w.wi.shmUnlock(walReadLockIdx(0), 1, true)
