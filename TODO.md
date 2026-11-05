@@ -36,10 +36,12 @@ HANDOFF.
 
 ## Queue (in order)
 
-1. Sidecar lifecycle (unblocks e_walckpt-4.2-4.5 + walbak-4.3.1/4.3.3):
-   the WAL→rollback switch deletes -wal/-shm + resets the version bytes
-   to 1/1 (C's walModeChange + BtreeSetVersion(pBt,1)). PLAN THE
-   CHECKPOINT/FLUSH ORDER FIRST — the naive port broke wal-24.x.
+1. Sidecar lifecycle (unblocks walbak-4.3.1/4.3.3 + wal-24.2; NOTE:
+   e_walckpt-4.2-4.5 are DONE — superseded a33195076, the C source's own
+   expectations predate its 3.51 oracle). The plan + the three concrete
+   hazards from the reverted first attempt (the double-close trap, the
+   2/2-reopen readOnly trap, the e_walckpt scenario cascade) are in
+   portplan/PLAN_S7e_sidcar.md — bisect the three pieces ALONE.
 2. Regen-drift follow-up: e_walauto/interrupt2/wal5 fixtures predate the
    sqlite3_wal_checkpoint handler — regenerate + battery (S6 procedure).
 5. wal-18.2.x interrupt choreography (24).
