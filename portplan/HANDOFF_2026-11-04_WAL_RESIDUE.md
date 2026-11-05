@@ -32,6 +32,23 @@ then performance". The working tree is CLEAN at 3dc008e81 (feature/perf,
 | aa264ba33 | S7b: db-hash surface — commandCatch executes QUOTED bodies; catch-list rc refs resolve to the carrier actually stamped; WalCheckpoint mirrors main.c (unknown zDb → SQLITE_ERROR "unknown database: <name>", NULL zDb → every attached db, the triple reports the FIRST checkpointed db, BUSY accumulates, non-WAL leaves -1s); harness rejects a bad MODE with SQLITE_MISUSE "not an error" and composes the wrapper's [sqlite3_errcode] - msg prefix; save_db_hashes/compare_db_hashes emit purpose-built md5 steps | e_walckpt 136→129; 1.1.x/2.1.x green end-to-end |
 | c7e506320/e80befc4f/cb5ac869b/d2de43985/1437fe2dd/c4a03b9ae/3dc008e81 | plan-doc + census + lessons records | — |
 
+## S7d RECORD (2026-11-05, eec79677c + 935063d2d)
+
+- eec79677c: the locking_mode flip — the PRAGMA records the request only
+  (SetWALExclusiveRequested); the WAL flips to exclusive shm mode at the
+  first write (WALBeginWrite releases the reader's mark byte through the
+  PAGER hook channel — the wi-level global hook doesn't carry the
+  fixture) and back at the first transaction ending under normal
+  (WALEndRead re-acquires the byte first; a veto/conflict silently stays
+  exclusive). locking_mode/wal_checkpoint pragmas pin no read mark
+  (stmtSkipsWalReadPin).
+- 935063d2d: ATTACHed pagers route through the parent's fixture
+  (Engine.AttachedPagers + Pager.HasVFSHook); tvfsResultCode maps xWrite/
+  xSync script returns (test_vfs.c:381/453); wal_checkpoint_v2 composes
+  sqlite3ErrName " - " errmsg for bare VFS codes.
+- Results: wal2 57 -> 51 (the whole 6.4 block + three 6.6 exit tests),
+  e_walckpt 5 -> 4 (5.3.1 fixed), wal sweep 202 -> 201, 0 new throughout.
+
 ## S7c RECORD (2026-11-05, 834a5bef1) — e_walckpt 129 -> 5
 
 Three commits: eb2dc2f0e (engine: CKPT-first order, the busy-handler

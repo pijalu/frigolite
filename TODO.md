@@ -8,8 +8,13 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-Current state (2026-11-05, feature/perf @ 834a5bef1): S7c landed the
-checkpoint blocking choreography — the busy handler joins the WAL lock
+Current state (2026-11-05, feature/perf @ 935063d2d): S7d landed the
+locking_mode=EXCLUSIVE flip (silent PRAGMA, the WAL flips at the first
+write and back at the first normal-mode transaction end — the reader's
+mark byte choreography) plus fixture-VFS routing to ATTACHed pagers and
+the xWrite/xSync result-code mapping: **wal2 57 -> 51, e_walckpt 5 -> 4,
+wal sweep 202 -> 201** (0 new throughout). S7c had landed the checkpoint
+blocking choreography — the busy handler joins the WAL lock
 protocol (writer lock, read marks, restart blocking, demote-to-PASSIVE on
 give-up), the fixture-VFS callback dispatch drives live connections, and
 the transpiler emits `db busy`. **e_walckpt 129 → 5** (4.2-4.5 are the
@@ -31,20 +36,18 @@ HANDOFF.
 
 ## Queue (in order)
 
-1. wal2 exclusive-mode xShmLock traces (unmasked by S7c's filter fix).
-2. e_walckpt-4.2-4.5: the WAL→rollback header reset's downstream — the
-   sidecar-lifecycle unit itself (delete -wal/-shm + reset the version
-   bytes to 1/1; plan the checkpoint/flush ORDER first) unblocks them and
-   walbak-4.3.1/4.3.3.
-3. e_walckpt-5.3.1: the IOERR injection on an attached aux's copyback.
-4. Regen-drift follow-up: e_walauto/interrupt2/wal5 fixtures predate the
+1. Sidecar lifecycle (unblocks e_walckpt-4.2-4.5 + walbak-4.3.1/4.3.3):
+   the WAL→rollback switch deletes -wal/-shm + resets the version bytes
+   to 1/1 (C's walModeChange + BtreeSetVersion(pBt,1)). PLAN THE
+   CHECKPOINT/FLUSH ORDER FIRST — the naive port broke wal-24.x.
+2. Regen-drift follow-up: e_walauto/interrupt2/wal5 fixtures predate the
    sqlite3_wal_checkpoint handler — regenerate + battery (S6 procedure).
 5. wal-18.2.x interrupt choreography (24).
-6. Fix B: padToSectorBoundary + PSO/sector-size devchar surface
+5. Fix B: padToSectorBoundary + PSO/sector-size devchar surface
    (walvfs-5.3's 24-frame expectation; wal.c:4170-4188).
-7. Census top non-WAL families: index 200, rtree 126, tkt 124, where 111,
+6. Census top non-WAL families: index 200, rtree 126, tkt 124, where 111,
    expr 109, pager1 101 — triage per family with the census methodology.
-8. Performance phase (F1c/F3 lanes in GAP_CLOSURE_PLAN_2026-10-31.md) —
+7. Performance phase (F1c/F3 lanes in GAP_CLOSURE_PLAN_2026-10-31.md) —
    after functional gaps close.
 
 ## Working rules (violations cost hours — see .agents/lessons_learned.md)
