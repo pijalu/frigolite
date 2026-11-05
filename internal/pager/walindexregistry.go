@@ -170,7 +170,11 @@ func (w *WALIndex) persistAllLocked() {
 
 // WriterSection runs fn while holding the wal-index mutex — the slice-1
 // stand-in for the WRITER lock (the flock layer arrives in slice 2). All
-// header/hash mutations must happen inside one section.
+// header/hash mutations must happen inside one section. On exit it persists
+// the dirty pages, then fires the xShmLock hook events the section deferred
+// (see shmHookDeferLocked): fixture callbacks may re-enter the engine and
+// need this mutex themselves (wal3-6.2.x's script drives a connection from
+// the xShmLock callback).
 func (w *WALIndex) WriterSection(fn func() error) error {
 	w.mu.Lock()
 	defer w.mu.Unlock()

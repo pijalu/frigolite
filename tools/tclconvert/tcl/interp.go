@@ -124,6 +124,7 @@ type Interp struct {
 	trackedVars        map[string]bool // globals written by registered callbacks (runtime_var candidates)
 	internalFunctions  bool
 	callbackCommands   map[string]func([]string) (string, error)
+	defaultCallbackCmd func(name string, args []string) (string, error, bool)
 	currentLocalVars   map[string]string
 	procs              map[string]*Proc
 	stmts              []Stmt // captured SQL statements
@@ -427,6 +428,16 @@ func (i *Interp) BindSQLParams(value string) string {
 // RegisterCallbackCommand exposes a harness-owned Tcl command during callbacks.
 func (i *Interp) RegisterCallbackCommand(name string, fn func([]string) (string, error)) {
 	i.callbackCommands[name] = fn
+}
+
+// RegisterDefaultCallbackCommand installs a fallback for commands the
+// interpreter knows nothing about: the harness resolves fixture connection
+// names (db4, db5, ...) against its live set at CALL time — the callback
+// interp is built once per connection, but scenarios open and close named
+// connections afterwards (e_walckpt's tvfs_callback db5/db6). ok=false
+// leaves the command unknown (the converter's silent-drop semantics).
+func (i *Interp) RegisterDefaultCallbackCommand(fn func(name string, args []string) (string, error, bool)) {
+	i.defaultCallbackCmd = fn
 }
 
 // Execute parses and executes TCL source code. A top-level command that

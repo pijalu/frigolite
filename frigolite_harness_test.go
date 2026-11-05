@@ -3243,7 +3243,7 @@ func TestSQLiteSuite(t *testing.T) {
 				if err != nil {
 					t.Fatalf("open lifecycle database: %v", err)
 				}
-				installDefaultVFS(t, testvfsFixtures, testvfsDefault, db, runtimeVars, fixtureDBDir)
+				installDefaultVFS(t, testvfsFixtures, testvfsDefault, db, namedDBs, runtimeVars, fixtureDBDir)
 				if base != "vtab1" && base != "altertab" && base != "alterlegacy" {
 					db.RegisterEchoModule()
 				}
@@ -3415,6 +3415,14 @@ func TestSQLiteSuite(t *testing.T) {
 						t.Skip("expectation includes Tcl xFilter callback log unavailable in JSON; testgen/bestindex5 passes")
 						return
 					}
+					// catchResults accumulates this test group's catchsql
+					// results ("1 {message}" / "0 {}"): a do_test body of
+					// `list [catchsql A dbX] [catchsql B dbY]` emits one
+					// expect-less catch step per call plus a FINAL catch step
+					// whose Expect carries the COMBINED result list — the
+					// harness renders the last N results and compares that
+					// (e_walckpt-1.full.2.7's two COMMIT assertions).
+					var catchResults []string
 					for _, step := range expandRepeatedSteps(tc.Steps) {
 						// A statement's results are destroyed when the
 						// statement completes (test_func.c's result
@@ -3541,7 +3549,7 @@ func TestSQLiteSuite(t *testing.T) {
 							}
 							if vfsName != "" {
 								if fx := testvfsFixtures[vfsName]; fx != nil {
-									opened.engine.InstallVFSHook(fx.hook(runtimeVars, opened, fixtureDBDir), fx.devcharBits)
+									opened.engine.InstallVFSHook(fx.hook(runtimeVars, opened, namedDBs, fixtureDBDir), fx.devcharBits)
 								}
 							}
 							continue
@@ -3563,7 +3571,7 @@ func TestSQLiteSuite(t *testing.T) {
 						}
 						if step.VFS != "" {
 							if fx := testvfsFixtures[step.VFS]; fx != nil {
-								execDB.engine.InstallVFSHook(fx.hook(runtimeVars, execDB, fixtureDBDir), fx.devcharBits)
+								execDB.engine.InstallVFSHook(fx.hook(runtimeVars, execDB, namedDBs, fixtureDBDir), fx.devcharBits)
 							}
 						}
 						if step.Type == "auth_analyze_deny" {
@@ -3621,7 +3629,18 @@ func TestSQLiteSuite(t *testing.T) {
 								}
 							}
 							schema := step.FileTarget
-							res := conn.engine.WalCheckpoint(schema, step.SQL)
+							// test1.c parses MODE as an INTEGER first
+							// (Tcl_GetIntFromObj: 0..3 = passive..truncate),
+							// falling back to the name index; any other
+							// integer reaches sqlite3_wal_checkpoint_v2 and
+							// its out-of-range SQLITE_MISUSE (e_walckpt-4.x).
+							mode := strings.ToLower(strings.TrimSpace(step.SQL))
+							if mode != "passive" && mode != "full" && mode != "restart" && mode != "truncate" {
+								if n, perr := strconv.Atoi(mode); perr == nil && n >= 0 && n <= 3 {
+									mode = [...]string{"passive", "full", "restart", "truncate"}[n]
+								}
+							}
+							res := conn.engine.WalCheckpoint(schema, mode)
 							// The catch wrapper (`set rc [catch {...} msg]`)
 							// stamps these steps like exec/catch steps: the
 							// catch's result code and message are runtime
@@ -3637,11 +3656,11 @@ func TestSQLiteSuite(t *testing.T) {
 								}
 							}
 							// The C command rejects a MODE outside
-							// passive/full/restart/truncate (test1.c's
-							// Tcl_GetIndexFromObj, or the API's SQLITE_MISUSE
-							// for an out-of-range integer — the errmsg is
-							// "not an error"): e_walckpt-4.x's -1001.
-							mode := strings.ToLower(strings.TrimSpace(step.SQL))
+							// passive/full/restart/truncate (the API's
+							// SQLITE_MISUSE for an out-of-range integer —
+							// test1.c renders sqlite3ErrName(rc) " - " errmsg
+							// and MISUSE's errmsg is "not an error"):
+							// e_walckpt-4.x's -1001/-1/4/114/1000000.
 							if res.Error == nil && step.Type == "wal_checkpoint_v2" &&
 								mode != "passive" && mode != "full" && mode != "restart" && mode != "truncate" {
 								res.Error = fmt.Errorf("not an error")
@@ -3819,7 +3838,7 @@ func TestSQLiteSuite(t *testing.T) {
 							// testfixture registers the test-only SQL functions
 							// on every connection it opens.
 							registerTest1Functions(t, db)
-							installDefaultVFS(t, testvfsFixtures, testvfsDefault, db, runtimeVars, fixtureDBDir)
+							installDefaultVFS(t, testvfsFixtures, testvfsDefault, db, namedDBs, runtimeVars, fixtureDBDir)
 							if fixture, ok := harnessCollationFixtures[base]; ok {
 								fixture(db)
 							}
@@ -3875,10 +3894,10 @@ func TestSQLiteSuite(t *testing.T) {
 							// testfixture registers the test-only SQL functions
 							// on every connection it opens.
 							registerTest1Functions(t, db)
-							installDefaultVFS(t, testvfsFixtures, testvfsDefault, db, runtimeVars, fixtureDBDir)
+							installDefaultVFS(t, testvfsFixtures, testvfsDefault, db, namedDBs, runtimeVars, fixtureDBDir)
 							if step.VFS != "" {
 								if fx := testvfsFixtures[step.VFS]; fx != nil {
-									db.engine.InstallVFSHook(fx.hook(runtimeVars, db, fixtureDBDir), fx.devcharBits)
+									db.engine.InstallVFSHook(fx.hook(runtimeVars, db, namedDBs, fixtureDBDir), fx.devcharBits)
 								}
 							}
 							continue
@@ -3897,7 +3916,7 @@ func TestSQLiteSuite(t *testing.T) {
 								}
 							}
 							db, err = Open(":memory:")
-							installDefaultVFS(t, testvfsFixtures, testvfsDefault, db, runtimeVars, fixtureDBDir)
+							installDefaultVFS(t, testvfsFixtures, testvfsDefault, db, namedDBs, runtimeVars, fixtureDBDir)
 							if err != nil {
 								// Report and fall back to an empty database (see the
 								// reopen_db comment above).
@@ -4188,13 +4207,57 @@ func TestSQLiteSuite(t *testing.T) {
 								// "database is locked".
 								continue
 							}
+						case "register_busy_handler":
+							// `db busy [list busy_handler <fixed args>]`
+							// (tclsqlite.c DbBusyHandler): the handler invokes
+							// the fixture proc with its fixed arguments plus
+							// the invocation count; the script's integer
+							// result 0 retries the lock attempt, nonzero
+							// gives up. The proc's globals
+							// (busy_handler_counter) sync back into the
+							// runtime set per invocation.
+							var bproc *callbackProc
+							for i := range step.CallbackProcs {
+								if strings.TrimPrefix(step.CallbackProcs[i].Name, "::") == strings.TrimPrefix(step.FunctionProc, "::") {
+									bproc = &step.CallbackProcs[i]
+								}
+							}
+							if bproc == nil {
+								t.Errorf("register_busy_handler: proc %q missing", step.FunctionProc)
+								continue
+							}
+							busyInterp := tcl.NewInterp()
+							busyInterp.LoadProcedures([]tcl.Proc{{Name: strings.TrimPrefix(bproc.Name, "::"), Args: bproc.Args, Body: bproc.Body}})
+							registerInterpDBCommands(busyInterp, db, namedDBs, fixtureDBDir)
+							busyTargets := tcl.NotifyScriptVarTargets(bproc.Body)
+							busyFixedArgs := strings.Fields(step.SQL)
+							busyProcName := strings.TrimPrefix(bproc.Name, "::")
+							handlerConn := execDB
+							handlerConn.engine.SetBusyHandler(func(count int) bool {
+								for _, name := range busyTargets {
+									if v, ok := runtimeVars[name]; ok {
+										busyInterp.SetVariable(name, v)
+									}
+								}
+								args := append(append([]string{}, busyFixedArgs...), strconv.Itoa(count))
+								answer, _ := busyInterp.InvokeProcedure(busyProcName, args...)
+								for _, name := range busyTargets {
+									if v, ok := busyInterp.Variable(name); ok {
+										runtimeVars[name] = v
+									} else if v, ok := busyInterp.Variable("::" + name); ok {
+										runtimeVars[name] = v
+									}
+								}
+								return strings.TrimSpace(answer) == "0"
+							})
+							continue
 						case "register_testvfs":
 							testvfsFixtures[step.Variable] = &testvfsFixture{name: step.Variable, isDefault: step.SQL == "default"}
 							if step.SQL == "default" {
 								testvfsDefault = step.Variable
 								// The -default fixture governs the connection
 								// already open at registration too.
-								installDefaultVFS(t, testvfsFixtures, testvfsDefault, db, runtimeVars, fixtureDBDir)
+								installDefaultVFS(t, testvfsFixtures, testvfsDefault, db, namedDBs, runtimeVars, fixtureDBDir)
 							}
 						case "testvfs_config":
 							fx := testvfsFixtures[step.Database]
@@ -4222,7 +4285,7 @@ func TestSQLiteSuite(t *testing.T) {
 								// The script config completes the hook: the
 								// -default registration installed a nil hook
 								// (the proc body follows the binding).
-								installDefaultVFS(t, testvfsFixtures, fx.name, db, runtimeVars, fixtureDBDir)
+								installDefaultVFS(t, testvfsFixtures, fx.name, db, namedDBs, runtimeVars, fixtureDBDir)
 							}
 						case "faultsim_save", "faultsim_save_close", "faultsim_restore", "faultsim_restore_reopen":
 							// tester.tcl's db_save/db_restore family: file
@@ -4533,6 +4596,17 @@ func TestSQLiteSuite(t *testing.T) {
 						// step without an expectation tolerates an error.
 						case "exec", "catch":
 							res := execDB.Exec(step.SQL)
+							if step.Type == "catch" {
+								// The catchsql result travels as its TCL
+								// rendering: "1 {message}" on failure, "0 {}"
+								// on success (the combined-list comparison
+								// below consumes the tail of this list).
+								if res.Error != nil {
+									catchResults = append(catchResults, "1 {"+res.Error.Error()+"}")
+								} else {
+									catchResults = append(catchResults, "0 {}")
+								}
+							}
 							if step.CatchResult && step.Variable != "" {
 								// `set rc [catch { <sql> }]`: the harness
 								// knows the outcome, so the result code is
@@ -4541,9 +4615,18 @@ func TestSQLiteSuite(t *testing.T) {
 									runtimeVars[step.Variable] = "1"
 									// `catch { ... } msg` also captures the
 									// error message (tester.tcl's
-									// do_ioerr_test compares it).
+									// do_ioerr_test compares it). The
+									// wal_checkpoint wrapper (e_walckpt.test's
+									// checkpoint proc variant 2) re-raises as
+									// "[sqlite3_errcode db] - msg" — the raw
+									// message gains its SQLITE_ERROR prefix
+									// there (2.2.1's "unknown database").
 									if step.CatchMessage != "" {
-										runtimeVars[step.CatchMessage] = res.Error.Error()
+										msg := res.Error.Error()
+										if strings.Contains(strings.ToUpper(step.SQL), "WAL_CHECKPOINT") && !strings.Contains(msg, "SQLITE_") {
+											msg = "SQLITE_ERROR - " + msg
+										}
+										runtimeVars[step.CatchMessage] = msg
 									}
 								} else {
 									runtimeVars[step.Variable] = "0"
@@ -4606,6 +4689,29 @@ func TestSQLiteSuite(t *testing.T) {
 							}
 							if got, ok := runtimeVars["TRIGGER"]; ok && step.Expect == got {
 								delete(runtimeVars, "TRIGGER")
+								continue
+							}
+							// A combined catchsql list (N rc-msg pairs in the
+							// expect): render the last N catch results and
+							// compare the concatenation.
+							expectElems := tcl.SplitList(strings.TrimSpace(step.Expect))
+							// A combined catchsql list carries rc-msg PAIRS —
+							// each parsed element keeps its inner message
+							// braces ("1 {msg}"); a bare triple ("0 -1 -1")
+							// is a pragma result, not a pair list.
+							if step.Type == "catch" && len(expectElems) > 1 && strings.Contains(expectElems[0], "{") {
+								n := len(tcl.SplitList(strings.TrimSpace(step.Expect)))
+								if len(catchResults) < n {
+									t.Errorf("catch list mismatch: only %d catch results for %d pairs\n  got: %s\n  want: %s\n  sql: %s", len(catchResults), n, strings.Join(catchResults, " "), step.Expect, step.SQL)
+									return
+								}
+								// TCL's list rendering braces elements that
+								// contain spaces ("{1 {cannot commit ...}}").
+								got := tcl.TclList(catchResults[len(catchResults)-n:])
+								if diff := matchExpectation(got, step.Expect); diff != "" {
+									t.Errorf("catch list mismatch\n  got: %s\n  want: %s\n  sql: %s", got, step.Expect, step.SQL)
+									return
+								}
 								continue
 							}
 							expect := cleanExpectedNull(step.Expect, nullToken)
@@ -6077,7 +6183,7 @@ func (fx *testvfsFixture) configure(t *testing.T, step TestStep, runtimeVars map
 // time when the script is already bound — the xOpen event fires at open
 // then (wal3-7.1's handle capture) — and lazily at the first callback
 // otherwise (C skips the xOpen callback when no script is bound at open).
-func (fx *testvfsFixture) hook(runtimeVars map[string]string, db *DB, fixtureDBDir string) func(op, path string, details []string) error {
+func (fx *testvfsFixture) hook(runtimeVars map[string]string, db *DB, namedDBs map[string]*DB, fixtureDBDir string) func(op, path string, details []string) error {
 	build := func(fireOpen bool) (*tcl.Interp, []string, string) {
 		interp := tcl.NewInterp()
 		loaded := make([]tcl.Proc, 0, len(fx.procs))
@@ -6085,8 +6191,11 @@ func (fx *testvfsFixture) hook(runtimeVars map[string]string, db *DB, fixtureDBD
 			loaded = append(loaded, tcl.Proc{Name: strings.TrimPrefix(proc.Name, "::"), Args: proc.Args, Body: proc.Body})
 		}
 		interp.LoadProcedures(loaded)
-		// The fixture script's C-API calls run against this connection
-		// (walvfs-3.1's `sqlite3_interrupt db` inside the xWrite callback).
+		// The fixture script's connection commands drive the LIVE
+		// connections: tvfs_callback BEGINs db6's reader and probes db5's
+		// write during the checkpoint's copyback (e_walckpt), walvfs-3.1's
+		// `sqlite3_interrupt db` interrupts inside the xWrite callback.
+		registerInterpDBCommands(interp, db, namedDBs, fixtureDBDir)
 		interp.RegisterCallbackCommand("sqlite3_interrupt", func(args []string) (string, error) {
 			db.engine.Interrupt()
 			return "SQLITE_OK", nil
@@ -6202,7 +6311,7 @@ func (fx *testvfsFixture) hook(runtimeVars map[string]string, db *DB, fixtureDBD
 // installDefaultVFS routes a newly opened connection through the family's
 // default testvfs fixture (`testvfs tv -default 1`): the hook, the devchar
 // override, and the snapshot/intercept commands the fixture's callbacks use.
-func installDefaultVFS(t *testing.T, fixtures map[string]*testvfsFixture, name string, db *DB, runtimeVars map[string]string, fixtureDBDir string) {
+func installDefaultVFS(t *testing.T, fixtures map[string]*testvfsFixture, name string, db *DB, namedDBs map[string]*DB, runtimeVars map[string]string, fixtureDBDir string) {
 	t.Helper()
 	if name == "" || db == nil {
 		return
@@ -6211,7 +6320,7 @@ func installDefaultVFS(t *testing.T, fixtures map[string]*testvfsFixture, name s
 	if fx == nil {
 		return
 	}
-	db.engine.InstallVFSHook(fx.hook(runtimeVars, db, fixtureDBDir), fx.devcharBits)
+	db.engine.InstallVFSHook(fx.hook(runtimeVars, db, namedDBs, fixtureDBDir), fx.devcharBits)
 }
 
 // faultsimMainPath resolves the main database file a faultsim snapshot pair
@@ -6678,6 +6787,90 @@ func runFaultsimTest(t *testing.T, step TestStep, dbp **DB, namedDBs map[string]
 	t.Errorf("faultsim %s: the trial loop hit the 512-trial cap", step.Variable)
 }
 
+// dbConnCommandAdapter renders one connection command: eval (the row list),
+// one (the first cell of the first row), and close.
+func dbConnCommandAdapter(fixtureDBDir string) func(*DB, []string) (string, error) {
+	return func(db *DB, args []string) (string, error) {
+		if len(args) >= 2 && args[0] == "eval" {
+			res := db.Query(routeFixtureAttachPaths(args[1], fixtureDBDir))
+			if res.Error != nil {
+				return "", res.Error
+			}
+			rows := make([]string, 0, len(res.Rows)*len(res.Columns))
+			for _, row := range res.Rows {
+				for _, cell := range row {
+					rows = append(rows, formatHarnessValue("pagerfault", cell))
+				}
+			}
+			return tclListString(rows), nil
+		}
+		if len(args) >= 2 && args[0] == "one" {
+			res := db.Query(routeFixtureAttachPaths(args[1], fixtureDBDir))
+			if res.Error != nil {
+				return "", res.Error
+			}
+			if len(res.Rows) == 0 || len(res.Rows[0]) == 0 {
+				return "", nil
+			}
+			return formatHarnessValue("pagerfault", res.Rows[0][0]), nil
+		}
+		if len(args) >= 1 && args[0] == "close" {
+			if !db.closedFlag {
+				return "", db.Close()
+			}
+			return "", nil
+		}
+		return "", fmt.Errorf("db: unsupported subcommand %v", args)
+	}
+}
+
+// registerInterpDBCommands binds `db` and the named connection commands over
+// the fixture's live connections, plus a per-call default resolver: the
+// callback interp is built once per connection, but scenarios open and close
+// named connections afterwards (e_walckpt's tvfs_callback BEGINs db6's
+// reader and probes db5's write during the checkpoint's copyback; the
+// busy_handler commits db2/db3 at their invocation counts). The default
+// resolves the connection against the live set at CALL time.
+func registerInterpDBCommands(interp *tcl.Interp, mainDB *DB, namedDBs map[string]*DB, fixtureDBDir string) {
+	adapter := dbConnCommandAdapter(fixtureDBDir)
+	interp.RegisterCallbackCommand("db", func(args []string) (string, error) {
+		return adapter(mainDB, args)
+	})
+	if namedDBs != nil {
+		for name := range namedDBs {
+			if name == "" {
+				continue
+			}
+			n := name
+			interp.RegisterCallbackCommand(n, func(args []string) (string, error) {
+				conn := namedDBs[n]
+				if conn == nil {
+					return "", fmt.Errorf("database %s is not open", n)
+				}
+				if len(args) >= 1 && args[0] == "close" {
+					if !conn.closedFlag {
+						_ = conn.Close()
+					}
+					delete(namedDBs, n)
+					return "", nil
+				}
+				return adapter(conn, args)
+			})
+		}
+	}
+	interp.RegisterDefaultCallbackCommand(func(name string, args []string) (string, error, bool) {
+		if namedDBs == nil || name == "" || name == "db" {
+			return "", nil, false
+		}
+		conn, ok := namedDBs[name]
+		if !ok || conn == nil {
+			return "", nil, false
+		}
+		res, err := adapter(conn, args)
+		return res, err, true
+	})
+}
+
 // evalFaultsimTestScript runs one trial's -test script: the C
 // faultsim_test_proc with testrc/testresult/testnfail bound, `db`/named
 // connection command adapters over the trial's connections, catchsql,
@@ -6693,62 +6886,7 @@ func evalFaultsimTestScript(testScript string, rc int, result string, nfail bool
 		interp.SetVariable("testnfail", "0")
 	}
 	dbpLocal := dbp
-	// dbConnAdapter renders one connection-command over db: eval (the row
-	// list), one (the first cell of the first row), and close.
-	dbConnAdapter := func(db *DB) func(args []string) (string, error) {
-		return func(args []string) (string, error) {
-			if len(args) >= 2 && args[0] == "eval" {
-				res := db.Query(routeFixtureAttachPaths(args[1], fixtureDBDir))
-				if res.Error != nil {
-					return "", res.Error
-				}
-				rows := make([]string, 0, len(res.Rows)*len(res.Columns))
-				for _, row := range res.Rows {
-					for _, cell := range row {
-						rows = append(rows, formatHarnessValue("pagerfault", cell))
-					}
-				}
-				return tclListString(rows), nil
-			}
-			if len(args) >= 2 && args[0] == "one" {
-				res := db.Query(routeFixtureAttachPaths(args[1], fixtureDBDir))
-				if res.Error != nil {
-					return "", res.Error
-				}
-				if len(res.Rows) == 0 || len(res.Rows[0]) == 0 {
-					return "", nil
-				}
-				return formatHarnessValue("pagerfault", res.Rows[0][0]), nil
-			}
-			if len(args) >= 1 && args[0] == "close" {
-				if !db.closedFlag {
-					return "", db.Close()
-				}
-				return "", nil
-			}
-			return "", fmt.Errorf("db: unsupported subcommand %v", args)
-		}
-	}
-	interp.RegisterCallbackCommand("db", dbConnAdapter(*dbpLocal))
-	if namedDBs != nil {
-		for name, conn := range namedDBs {
-			if name == "" || conn == nil {
-				continue
-			}
-			named := conn
-			adapter := dbConnAdapter(named)
-			interp.RegisterCallbackCommand(name, func(args []string) (string, error) {
-				if len(args) >= 1 && args[0] == "close" {
-					if !named.closedFlag {
-						_ = named.Close()
-					}
-					delete(namedDBs, name)
-					return "", nil
-				}
-				return adapter(args)
-			})
-		}
-	}
+	registerInterpDBCommands(interp, *dbpLocal, namedDBs, fixtureDBDir)
 	// catchsql { SQL }: TCL's catch around one statement — "0 {}" on
 	// success, "1 {the error message}" on failure (pagerfault-28a's
 	// scripted ROLLBACK probe).

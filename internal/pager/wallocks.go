@@ -369,6 +369,26 @@ func (p *Pager) SetBusyHandler(fn func(count int) bool) {
 // RESERVED/EXCLUSIVE upgrade model.
 func (p *Pager) WALMode() bool { return p.walRef() }
 
+// WALWriterProbe takes and immediately releases the WAL WRITER shm byte,
+// reporting another connection's hold as "database is locked" (the shared
+// byte lives in the wal-index registry, so the probe runs against the same
+// registry the checkpointer and regular writers lock). The engine's BEGIN
+// IMMEDIATE/EXCLUSIVE gate calls it (sqlite3BtreeBeginTrans parity: C's
+// BEGIN takes the WRITER byte at begin; frigolite's write path re-acquires
+// it at the first dirty page).
+func (p *Pager) WALWriterProbe() error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if p.wal == nil || p.wal.writeLock {
+		return nil
+	}
+	if err := p.wal.walBusyLockExclusive(walLockWrite, 1); err != nil {
+		return err
+	}
+	p.wal.walUnlockExclusive(walLockWrite, 1)
+	return nil
+}
+
 // SetWALExclusiveMode toggles locking_mode=EXCLUSIVE for the WAL writer
 // (wal.c: in exclusive mode every walLockShared/walLockExclusive is a no-op —
 // the shm locks are never taken, assuming single-process access).

@@ -126,6 +126,56 @@ func (i *Interp) cmdDB(rawWords []rawWord, args []string, localVars map[string]s
 		}
 		i.stmts = append(i.stmts, step)
 		return nil
+	case "busy":
+		// `db busy [list busy_handler $mode $busy_handler_mode]` — the
+		// connection's busy handler (tclsqlite.c DbBusyHandler): the proc is
+		// invoked with its fixed arguments plus the invocation count, and
+		// the script's integer result 0 retries the lock attempt while a
+		// nonzero result gives up. The fixed words travel with the step;
+		// the harness appends the count and syncs the proc's globals
+		// (busy_handler_counter) back into the runtime set. The [list ...]
+		// word may arrive unevaluated (the bracket form is not expanded
+		// through the generic word evaluation) — strip it and resolve the
+		// loop-bound fixed arguments from the unrolled locals here.
+		if len(args) >= 2 {
+			inner := strings.TrimSpace(args[1])
+			if strings.HasPrefix(inner, "[") && strings.HasSuffix(inner, "]") {
+				inner = strings.TrimSpace(inner[1 : len(inner)-1])
+			}
+			words := strings.Fields(inner)
+			procName := ""
+			fixed := []string{}
+			if len(words) >= 2 && words[0] == "list" {
+				procName = strings.TrimPrefix(words[1], "::")
+				fixed = words[2:]
+			} else if len(words) >= 1 {
+				// An evaluated [list ...] ("busy_handler $mode $bm") whose
+				// $-words were not substituted through the bracket run.
+				procName = strings.TrimPrefix(words[0], "::")
+				fixed = words[1:]
+			}
+			for j, w := range fixed {
+				if strings.HasPrefix(w, "$") {
+					if v, ok := i.getVar(strings.TrimPrefix(w, "$"), localVars); ok {
+						fixed[j] = v
+					}
+				}
+			}
+			if procName != "" && !strings.ContainsAny(procName, "$[") {
+				step := Stmt{
+					Type:         "register_busy_handler",
+					SQL:          strings.Join(fixed, " "),
+					FunctionProc: procName,
+					TestName:     i.curTest,
+				}
+				if proc, ok := i.procs[procName]; ok {
+					step.CallbackProcs = []Proc{{Name: proc.Name, Args: proc.Args, Body: proc.Body}}
+					i.seedCallbackTargets(proc.Body)
+				}
+				i.stmts = append(i.stmts, step)
+			}
+		}
+		return nil
 	case "eval":
 		return i.dbEval(rawWords, args, localVars)
 	case "changes":

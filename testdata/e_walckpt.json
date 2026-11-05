@@ -515,9 +515,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "passive 1",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -785,9 +807,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "full 1",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -1017,9 +1061,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "full 2",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -1270,9 +1336,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "full 3",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -1523,9 +1611,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "restart 1",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -1755,9 +1865,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "restart 2",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -2008,9 +2140,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "restart 3",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -2261,9 +2415,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "truncate 1",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -2493,9 +2669,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "truncate 2",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -2746,9 +2944,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "truncate 3",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -3409,9 +3629,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "passive 1",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -3691,9 +3933,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "full 1",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -3921,9 +4185,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "full 2",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -4172,9 +4458,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "full 3",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -4423,9 +4731,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "restart 1",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -4653,9 +4983,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "restart 2",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -4904,9 +5256,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "restart 3",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -5155,9 +5529,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "truncate 1",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -5385,9 +5781,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "truncate 2",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -5636,9 +6054,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "truncate 3",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -6304,9 +6744,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "passive 1",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -6588,9 +7050,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "full 1",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -6820,9 +7304,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "full 2",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -7073,9 +7579,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "full 3",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -7326,9 +7854,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "restart 1",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -7558,9 +8108,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "restart 2",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -7811,9 +8383,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "restart 3",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -8064,9 +8658,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "truncate 1",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -8296,9 +8912,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "truncate 2",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",
@@ -8549,9 +9187,31 @@
           "database": "db6"
         },
         {
+          "type": "register_busy_handler",
+          "sql": "truncate 3",
+          "callbackProcs": [
+            {
+              "Name": "busy_handler",
+              "Args": [
+                "mode",
+                "busy_handler_mode",
+                "n"
+              ],
+              "Body": "\n    incr ::busy_handler_counter\n    switch -- $busy_handler_mode {\n      1 {\n        # Do nothing. Do not block.\n        return 1\n      }\n\n      2 {\n        # Close first the reader, then later the writer. Give up before\n        # closing the [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { return 1 }\n        return 0\n      }\n\n      3 {\n        # Close first the writer, then later the reader. And finally the \n        # [db6] reader.\n        if {$n==5}  { catch {db2 eval commit} }\n        if {$n==10} { catch {db3 eval commit} }\n        if {$n==15} { catch {db6 eval commit} }\n        return 0\n      }\n    }\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "busy_handler"
+        },
+        {
           "type": "runtime_expr",
           "sql": "0",
           "variable": "sync_counter"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "busy_handler_counter"
         },
         {
           "type": "runtime_expr",

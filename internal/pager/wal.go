@@ -27,6 +27,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"sort"
 	"time"
 )
 
@@ -704,8 +705,15 @@ const (
 // (R-44699-57140). The result is the PRAGMA wal_checkpoint triple
 // (busy, nLog, nCkpt) — walprotocol-2.1 expects {0 5 5} for PASSIVE.
 func (w *walWriter) checkpoint(mode WalCheckpointMode) (busy, nLog, nCkpt int, err error) {
-	// One busy-handler count session per checkpoint statement.
+	// One busy-handler count session per checkpoint statement. PASSIVE
+	// checkpoints carry NO busy handler at all: the pager passes xBusy=0
+	// for eMode<=PASSIVE (pager.c sqlite3PagerCheckpoint) and the handler
+	// is never invoked in passive mode (wal.c EVIDENCE-OF R-62920-47450 —
+	// e_walckpt-1.passive.1.6's busy_handler_counter stays 0).
 	session := &walBusySession{handler: w.busyHandler}
+	if mode == WalCkptPassive {
+		session.handler = nil
+	}
 	if !w.ckptLock {
 		// wal.c:4319 — the CKPT lock is taken directly.
 		if berr := w.walLockExclusive(walLockCkpt, 1); berr != nil {
@@ -848,9 +856,13 @@ func (w *walWriter) ckptPass1ReaderMarks(mxFrame uint32, session *walBusySession
 			}
 			w.wi.WriterSection(func() error {
 				w.wi.setCkptInfoLocked(func(ci *WalCkptInfo) { ci.AReadMark[i] = iMark })
-				w.wi.shmUnlockHeld(walReadLockIdx(i), 1, true)
 				return nil
 			})
+			// The unlock's xShmLock hook fires OUTSIDE the wal-index mutex
+			// (shmUnlock takes it for the slot state): the fixture script
+			// may re-enter the engine (wal3-6.2.x drives a connection from
+			// the xShmLock callback).
+			w.wi.shmUnlock(walReadLockIdx(i), 1, true)
 		} else if errors.Is(err, errWalBusy) {
 			// BUSY reader: stop the backfill short of its mark
 			// (and stop invoking the busy handler, wal.c xBusy=0).
@@ -917,21 +929,27 @@ func (w *walWriter) ckptBackfillPass(mxFrame, mxSafeFrame uint32, session *walBu
 	// wal.c:2260 — sync the WAL before copying its frames into the db
 	// (CKPT_SYNC_FLAGS run at synchronous=NORMAL and FULL).
 	w.p.vfsSync(w.path, walCkptSyncBits(w.p.walSyncFlags))
-	berr := w.wi.WriterSection(func() error {
-		w.wi.setCkptInfoLocked(func(ci *WalCkptInfo) { ci.NBackfillAttempted = mxSafeFrame })
-		if berr := w.backfillLocked(nBackfill0, mxSafeFrame, mxFrame); berr != nil {
-			return berr
+	// wal.c:2257 — nBackfillAttempted before the copyback.
+	w.wi.setCkptInfoLocked(func(ci *WalCkptInfo) { ci.NBackfillAttempted = mxSafeFrame })
+	// The copyback itself holds NO wal-index writer section: C's backfill
+	// runs under the READ_LOCK(0) shm byte only, and its xWrite/xSync
+	// callbacks re-enter OTHER connections (e_walckpt's tvfs_callback
+	// BEGINs db6's reader and probes db5's write mid-copyback) — they need
+	// the wal-index mutex themselves. The pager state the loop mutates is
+	// guarded by p.mu (held by CheckpointMode throughout).
+	berr := w.backfillLocked(nBackfill0, mxSafeFrame, mxFrame)
+	w.wi.setCkptInfoLocked(func(ci *WalCkptInfo) {
+		if berr == nil {
+			ci.NBackfill = mxSafeFrame
 		}
-		w.wi.setCkptInfoLocked(func(ci *WalCkptInfo) { ci.NBackfill = mxSafeFrame })
+	})
+	if berr == nil && mxSafeFrame == mxFrame {
 		// wal.c:2309-2316 — the database-file truncate and sync happen only
 		// when the backfill reached the log's end (a partial checkpoint —
 		// readers pinning mxSafeFrame below mxFrame — leaves the db file
 		// unsynced: e_walckpt-1.passive.1.5's sync_counter stays 0).
-		if mxSafeFrame == mxFrame {
-			w.p.vfsSync(w.p.path, walCkptSyncBits(w.p.walSyncFlags))
-		}
-		return nil
-	})
+		w.p.vfsSync(w.p.path, walCkptSyncBits(w.p.walSyncFlags))
+	}
 	w.wi.shmUnlock(walReadLockIdx(0), 1, true)
 	return berr
 }
@@ -990,7 +1008,8 @@ func (w *walWriter) ckptPass2(mode WalCheckpointMode, session *walBusySession) (
 // database file (walCheckpoint's iterator loop), updating the pager's page
 // cache, header and page count. When nTo == mxFrame the main file is
 // truncated to nPage*pageSize (wal.c's szDb truncate). Caller holds p.mu
-// (via Pager.CheckpointMode) and the wal-index writer section.
+// (via Pager.CheckpointMode) — NO wal-index writer section: the copyback's
+// VFS callbacks re-enter other connections (e_walckpt's copyback probes).
 func (w *walWriter) backfillLocked(nFrom, nTo, mxFrame uint32) error {
 	p := w.p
 	if nTo <= nFrom {
@@ -1050,24 +1069,38 @@ func (w *walWriter) readCheckpointFrames() ([]WalFrame, bool, error) {
 }
 
 // backfillFrameRangeLocked copies the frames in (nFrom, nTo] into the main
-// database file (walCheckpoint's iterator loop), extending the file page by
-// page and updating the pager's page cache. nPage starts at the recorded
-// commit size and tracks the highest page seen. Caller holds p.mu and the
-// wal-index writer section.
+// database file, extending the file page by page and updating the pager's
+// page cache. nPage starts at the recorded commit size and tracks the highest
+// page seen. C's walIterator (wal.c walIteratorBuild/walIteratorNext) walks
+// ONE entry per DISTINCT page — the frame carrying its latest content — in
+// ascending page order, so a page committed several times is written ONCE
+// (e_walckpt-1.3.2.2's write_count counts the checkpoint's xWrite events:
+// two pages, two writes). Caller holds p.mu and the wal-index writer section.
 func (p *Pager) backfillFrameRangeLocked(frames []WalFrame, nFrom, nTo, mxFrame, nPage uint32) (uint32, error) {
-	for _, fr := range frames {
+	// Latest frame per page (a later frame's image wins).
+	byPage := make(map[uint32]int)
+	for i, fr := range frames {
 		if fr.Number > int(nTo) || fr.Number <= int(nFrom) {
 			continue
 		}
 		if !fr.Valid || fr.Number > int(mxFrame) {
 			break
 		}
-		pgno := fr.PageNumber
+		byPage[fr.PageNumber] = i
+	}
+	pgnos := make([]int, 0, len(byPage))
+	for pgno := range byPage {
+		pgnos = append(pgnos, int(pgno))
+	}
+	sort.Ints(pgnos)
+	for _, pgnoInt := range pgnos {
+		pgno := uint32(pgnoInt)
 		// testvfs's xWrite fires per main-file page write (walvfs-3.1's
 		// interrupt counter counts the checkpoint's copyback writes).
 		if err := p.vfsCall("xWrite", p.path); err != nil {
 			return nPage, err
 		}
+		fr := frames[byPage[pgno]]
 		pg := &Page{PageNum: pgno, Data: append([]byte(nil), fr.PageData...)}
 		p.pages[pgno] = pg
 		if pgno > nPage {

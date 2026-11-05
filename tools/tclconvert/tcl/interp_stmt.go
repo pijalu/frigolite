@@ -427,7 +427,31 @@ func (i *Interp) PreScanCallbackTargets(src string) {
 				i.seedCallbackTargets(body)
 			}
 		}
+		// `db busy [list busy_handler $mode $bm]` — the busy-handler proc is
+		// a callback writer too (e_walckpt's busy_handler_counter: the
+		// `set ::busy_handler_counter 0` reset can precede nothing but the
+		// binding, and the proc body is defined before it).
+		if len(cmd) >= 3 && cmd[0].Text == "db" && cmd[1].Text == "busy" {
+			if procName := busyHandlerProcName(cmd[2].Text); procName != "" {
+				if body, ok := bodies[procName]; ok {
+					i.seedCallbackTargets(body)
+				}
+			}
+		}
 	}
+}
+
+// busyHandlerProcName extracts the proc name from a `db busy <script>` word:
+// the script is `[list <proc> <fixed args>]` — the first word after "list".
+func busyHandlerProcName(script string) string {
+	fields := strings.Fields(strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(strings.TrimSpace(script), "["), "]")))
+	if len(fields) >= 2 && fields[0] == "list" {
+		return strings.TrimPrefix(fields[1], "::")
+	}
+	if len(fields) >= 1 && fields[0] != "list" {
+		return strings.TrimPrefix(fields[0], "::")
+	}
+	return ""
 }
 
 // faultsimCaptureScript executes script and returns the statements it

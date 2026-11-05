@@ -3,6 +3,11 @@ package tcl
 
 import "strings"
 
+// SplitList is the exported form of splitList: the harness's combined
+// catchsql-list assertions count the expectation list's top-level elements
+// (e_walckpt-1.full.2.7's two-pair COMMIT expectation).
+func SplitList(s string) []string { return splitList(s) }
+
 // splitList parses a TCL list string into elements.
 // TCL lists are whitespace-separated, with {} or "" grouping.
 // Example: "a b {c d} e" → ["a", "b", "c d", "e"]
@@ -126,6 +131,11 @@ func readListPlain(s string, pos int) (string, int) {
 // tclList converts a Go string slice to a TCL list string.
 // Elements containing spaces are wrapped in braces.
 // Example: ["a", "b c", "d"] → "a {b c} d"
+// TclList is the exported form of tclList: the harness renders combined
+// catchsql-list results the way TCL's `list` command does (brace-quoting
+// elements that contain spaces).
+func TclList(elements []string) string { return tclList(elements) }
+
 func tclList(items []string) string {
 	parts := make([]string, len(items))
 	for idx, item := range items {

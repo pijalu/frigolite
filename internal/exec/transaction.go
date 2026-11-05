@@ -381,6 +381,23 @@ func (e *Engine) beginLockError(stmt sql.Stmt, exclusive bool) error {
 // (only the reader-blocked EXCLUSIVE upgrade qualifies).
 func (e *Engine) beginLockCheck(stmt sql.Stmt, exclusive bool) (err error, invoke bool) {
 	walMode := e.stmtWALMode(stmt, "main")
+	// WAL mode: BEGIN IMMEDIATE/EXCLUSIVE takes the WRITER shm byte at
+	// BEGIN (sqlite3BtreeBeginTrans → sqlite3WalBeginWriteTransaction's
+	// walLockExclusive(WAL_WRITE_LOCK)) and fails when another connection
+	// holds it — a regular writer or the checkpointer for the duration of a
+	// non-passive checkpoint (wal.c:4337; e_walckpt-1.full.2.11's
+	// write_ok=0: db5's BEGIN IMMEDIATE inside the checkpoint's copyback
+	// xWrite callback fails). The probe takes and immediately releases the
+	// shared byte: frigolite's write path re-acquires it at the first dirty
+	// page, and the contention signal is what BEGIN's contract needs.
+	for _, ctx := range e.dbList {
+		if ctx == nil || ctx.Pager == nil || !ctx.Pager.WALMode() {
+			continue
+		}
+		if err := ctx.Pager.WALWriterProbe(); err != nil {
+			return fmt.Errorf("database is locked"), false
+		}
+	}
 	for _, k := range e.allLockKeys() {
 		if e.lockStyle == LockStyleExclusive || e.lockStyle == LockStyleDotfile {
 			if lockreg.Global.ConnLockedByOther(k, e.connID) {

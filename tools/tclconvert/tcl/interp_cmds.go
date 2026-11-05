@@ -156,6 +156,18 @@ func init() {
 // dispatchCommand runs cmd via the command-handler map, falling back to
 // user-defined procs and finally silently ignoring unknown commands.
 func (i *Interp) dispatchCommand(cmd string, rawWords []rawWord, args []string, localVars map[string]string) error {
+	// A callback interp's registered commands (the harness binds `db` and
+	// the named connection adapters) drive LIVE connections — they precede
+	// every converter branch: e_walckpt's busy_handler `db2 eval commit`
+	// at the invocation count commits db2's transaction, and the tvfs
+	// callbacks' db5/db6 reads run against the live connections. The
+	// converter itself never registers callback commands, so conversion
+	// time is unaffected.
+	if fn, ok := i.callbackCommands[cmd]; ok {
+		result, err := fn(args)
+		i.vars[""] = result
+		return err
+	}
 	if fn, ok := commandHandlers[cmd]; ok {
 		return fn(i, rawWords, args, localVars)
 	}
@@ -173,6 +185,17 @@ func (i *Interp) dispatchCommand(cmd string, rawWords []rawWord, args []string, 
 		i.stmts = append(i.stmts, Stmt{Type: "compare_db_hashes", SQL: "test.db test.db2 test.db3", TestName: i.curTest})
 		i.vars[""] = catchResultPlaceholder
 		return nil
+	}
+	// The harness's per-call default: resolve fixture connection names
+	// against the live set — BEFORE the converter's named-db capture, which
+	// would silently swallow a callback interp's `db5 eval` (the adapters
+	// were bound at interp build time, before later scenarios opened their
+	// connections).
+	if i.defaultCallbackCmd != nil {
+		if result, err, ok := i.defaultCallbackCmd(cmd, args); ok {
+			i.vars[""] = result
+			return err
+		}
 	}
 	if len(args) > 0 && (args[0] == "func" || args[0] == "function") {
 		start := len(i.stmts)
@@ -232,11 +255,6 @@ func (i *Interp) dispatchCommand(cmd string, rawWords []rawWord, args []string, 
 		if _, ok := testvfsOptionArity(args[0]); ok {
 			return commandTestVFSConfig(i, args, cmd)
 		}
-	}
-	if fn, ok := i.callbackCommands[cmd]; ok {
-		result, err := fn(args)
-		i.vars[""] = result
-		return err
 	}
 	if proc, ok := i.procs[cmd]; ok {
 		return i.callProc(proc, args, localVars)

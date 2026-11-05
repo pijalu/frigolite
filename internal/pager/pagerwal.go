@@ -234,7 +234,11 @@ func (p *Pager) CheckpointMode(mode WalCheckpointMode) (busy, nLog, nCkpt int, e
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if p.wal == nil {
-		return 0, 0, 0, nil
+		// C's sqlite3PagerCheckpoint: pPager->pWal==0 runs nothing and the
+		// pragma's -1 initializers survive (sqlite3_wal_checkpoint_v2 fills
+		// the outs only from walCheckpoint) — a checkpoint on a database
+		// not in WAL mode reports {0 -1 -1} (e_walckpt-2.2.2.b/4.x).
+		return 0, -1, -1, nil
 	}
 	return p.wal.checkpoint(mode)
 }

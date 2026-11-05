@@ -373,7 +373,9 @@ func (e *Engine) WalCheckpoint(schema, value string) *execpragma.Result {
 		}
 	}
 	if ctx == nil || ctx.Pager == nil {
-		return &execpragma.Result{Rows: [][]interface{}{{0, 0, 0}}}
+		// C's sqlite3PagerCheckpoint: pPager->pWal==0 runs nothing and the
+		// pragma's -1 initializers survive ({0 -1 -1}).
+		return &execpragma.Result{Rows: [][]interface{}{{int64(0), int64(-1), int64(-1)}}}
 	}
 	mode := pager.WalCkptPassive
 	switch strings.ToLower(strings.TrimSpace(value)) {

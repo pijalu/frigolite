@@ -335,19 +335,34 @@ func (w *walWriter) walBumpOrSelectHeld(info *WalCkptInfo, mxFrame uint32) (mxI 
 // locking_mode=EXCLUSIVE short-circuits every shm lock to a no-op (wal.c
 // walLockShared/walLockExclusive) — the held lock helpers must honor it the
 // same way.
+// markTryLock takes the read-mark shm lock. Callers hold the wal-index
+// mutex; the xShmLock hook fires INLINE with the mutex released and the
+// mutex retaken for the slot mutation — C fires the callback synchronously
+// and re-enters sqlite freely (no process mutex; wal3-6.2.x's script drives
+// another connection from the xShmLock callback).
 func (w *walWriter) markTryLock(mark, n int, excl bool) error {
 	if w.exclusiveMode {
 		return nil
 	}
-	return w.shmTryLockHeld(walReadLockIdx(mark), n, excl)
+	w.wi.mu.Unlock()
+	herr := w.p.vfsShmLock(walReadLockIdx(mark), n, "lock", excl)
+	w.wi.mu.Lock()
+	if herr != nil {
+		return errWalBusy
+	}
+	return w.wi.shmTryLockHeldNoHook(walReadLockIdx(mark), n, excl)
 }
 
-// markUnlock is markTryLock's release.
+// markUnlock is markTryLock's release (the hook fires inline the same way).
 func (w *walWriter) markUnlock(mark, n int, excl bool) {
 	if w.exclusiveMode {
 		return
 	}
-	w.shmUnlockHeld(walReadLockIdx(mark), n, excl)
+	w.wi.mu.Unlock()
+	_ = w.p.vfsShmLock(walReadLockIdx(mark), n, "unlock", excl)
+	w.wi.mu.Lock()
+	w.wi.unlockSlotsLocked(walReadLockIdx(mark), n, excl)
+	w.wi.reconcileFlockHeld(walReadLockIdx(mark), n)
 }
 
 // walSelectReadMarkHeld ports walTryBeginRead's aReadMark[] scan: the index
