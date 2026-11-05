@@ -503,6 +503,72 @@ func (p *Pager) enableWALModeLocked() error {
 	return nil
 }
 
+// leaveWALModeLocked ports the WAL→rollback switch: C's sqlite3WalClose
+// (wal.c:2488-2549, via sqlite3PagerCloseWal) takes the sole-connection
+// gate (the EXCLUSIVE file lock; a second attached connection makes the
+// switch fail BUSY and eNew falls back to eOld — vdbe.c:8087), runs the
+// PASSIVE checkpoint (the sole connection guarantees full backfill),
+// deletes the -shm and -wal, and — after the log is gone —
+// sqlite3BtreeSetVersion(pBt, 1) returns the version bytes to 1/1 through
+// a ROLLBACK-journal transaction. The flush happens LAST with p.wal
+// already nil: a version flush while the WAL is attached would append the
+// header change as a frame the deletion then destroys. Caller holds p.mu.
+// Does NOT touch the close-time behavior or the reopen path (separate
+// bisect pieces).
+func (p *Pager) leaveWALModeLocked() error {
+	w := p.wal
+	// C's EXCLUSIVE file lock: the switch is the sole connection's
+	// privilege (pager.c sqlite3PagerCloseWal's pagerExclusiveLock).
+	if w.wi == nil || w.wi.RefCount() != 1 {
+		return fmt.Errorf("database is locked")
+	}
+	// Release this connection's read snapshot first: a pinned read mark
+	// would shrink the checkpoint's backfill window.
+	w.walEndReadTxn()
+	if _, _, _, err := w.checkpoint(WalCkptPassive); err != nil {
+		// A failed checkpoint keeps the log (C's isDelete stays 0) — the
+		// switch fails and the journal mode is unchanged.
+		return err
+	}
+	// Detach and delete the sidecars: walIndexClose(isDelete) removes the
+	// "-shm"; sqlite3OsDelete unlinks the "-wal" (wal.c:2540-2548). ONE
+	// w.Close() — it sets w.file=nil itself; pre-closing w.file would make
+	// w.Close return the already-closed error AFTER releasing the
+	// wal-index reference, leaving p.wal pointing at a dead writer.
+	walPath := w.path
+	if err := w.Close(); err != nil {
+		return err
+	}
+	p.wal = nil
+	_ = os.Remove(walPath + "-wal")
+	_ = os.Remove(walPath + "-shm")
+	// sqlite3BtreeSetVersion(pBt, 1) — the version bytes 1/1 through the
+	// rollback path, now that no WAL can capture the change. The caller
+	// records the resulting journal mode.
+	p.writeRollbackVersionBytesLocked()
+	return nil
+}
+
+// writeRollbackVersionBytesLocked stamps the rollback file-format bytes
+// (18/19 = 1) into page 1's image and flushes them through the rollback
+// path — the mirror of writeWALVersionBytesLocked for the WAL→rollback
+// switch (vdbe.c:8069's sqlite3BtreeSetVersion(pBt, 1)). Caller holds p.mu
+// with p.wal already nil.
+func (p *Pager) writeRollbackVersionBytesLocked() {
+	if p.file == nil {
+		return
+	}
+	if len(p.header) >= 20 {
+		p.header[18], p.header[19] = 1, 1
+	}
+	pg1 := p.grabPageLocked(1)
+	if len(pg1.Data) >= 20 {
+		pg1.Data[18], pg1.Data[19] = 1, 1
+	}
+	p.markDirtyLocked(1)
+	_ = p.flushAllCtx(false)
+}
+
 // writeWALVersionBytesLocked stamps the WAL file-format bytes (18/19 = 2)
 // into page 1's image and flushes them through the rollback path — C's
 // sqlite3BtreeSetVersion write transaction (btree.c:11485). The stamp must
@@ -531,19 +597,18 @@ func (p *Pager) writeWALVersionBytesLocked() error {
 // keeps the legacy direct-flush path. Caller holds p.mu.
 func (p *Pager) setLegacyJournalModeLocked(m string) error {
 	if p.wal != nil {
-		p.wal.Close()
-		p.wal = nil
-		// CARD (the sidecar-lifecycle unit): C's WAL→rollback switch
-		// (pager.c walModeChange → sqlite3WalClose) checkpoints the log
-		// and DELETES the "-wal"/"-shm" while sqlite3BtreeSetVersion(pBt, 1)
-		// (vdbe.c:8069) returns the version bytes to 1/1. Ours leaves the
-		// sidecars and the 2/2 bytes — a surviving "-wal" beside a
-		// rollback-mode database re-attaches at the next shared lock
-		// (pagerOpenWalIfPresent) and resurrects WAL mode (walbak-4.3.1's
-		// db2 CREATE after journal_mode=delete). The naive port
-		// (checkpoint + os.Remove + a 1/1 version flush) broke the wal-24.x
-		// reopens ("file is not a database") — the checkpoint/flush
-		// ordering needs its own planned unit.
+		// BISECT PIECE 1 (PLAN_S7e_sidcar.md): the WAL→rollback switch
+		// ALONE — C's vdbe.c:8040-8095 OP_JournalMode: sqlite3PagerCloseWal
+		// → sqlite3WalClose (wal.c:2488) checkpoints the log (the
+		// sole-connection gate) and DELETES the "-wal"/"-shm"; then
+		// sqlite3BtreeSetVersion(pBt, 1) (vdbe.c:8069) returns the version
+		// bytes to 1/1 through a ROLLBACK-journal transaction — AFTER the
+		// log is gone. The close-time deletion and the 2/2-reopen
+		// re-attach are SEPARATE pieces (the first attempt cascaded when
+		// all three landed together).
+		if err := p.leaveWALModeLocked(); err != nil {
+			return err
+		}
 	}
 	// Switching journal modes may need to close + unlink an
 	// already-open journal file (the previous mode opened it under
