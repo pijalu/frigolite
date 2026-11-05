@@ -970,6 +970,19 @@ var slowTestFiles = map[string]string{
 // select1.test-9.x assertions inspect Tcl db eval callback variable r(*),
 // not SQL rows. Equivalent engine column metadata is pinned natively.
 var harnessSkipSubtests = map[string]string{
+	// e_walckpt-4.2..4.5: the C test file's expectations predate its own
+	// 3.51 testfixture build. The oracle (testfixture, ../sqlite 3.51.0)
+	// itself FAILS these four with got [0 {0 0 0}] vs expected [0 {0 -1 -1}]
+	// (verified 2026-11-05 with an instrumented oracle run — PROBE-A at 4.x:
+	// mode=wal, the -wal present at 0 bytes). The 2/2-header reopen
+	// re-attaches the WAL (btree.c:3337 sqlite3PagerOpenWal), so a PASSIVE
+	// checkpoint on the fresh connection reports the live {0 0 0} triple —
+	// exactly what frigolite produces. The -1 -1 shape describes a
+	// pPager->pWal==0 connection, which the oracle does not produce here.
+	"e_walckpt/e_walckpt-4.2": "stale C-source expectation — the 3.51 oracle itself returns {0 0 0} (frigolite matches)",
+	"e_walckpt/e_walckpt-4.3": "stale C-source expectation — the 3.51 oracle itself returns {0 0 0} (frigolite matches)",
+	"e_walckpt/e_walckpt-4.4": "stale C-source expectation — the 3.51 oracle itself returns {0 0 0} (frigolite matches)",
+	"e_walckpt/e_walckpt-4.5": "stale C-source expectation — the 3.51 oracle itself returns {0 0 0} (frigolite matches)",
 	// close.test's sqlite3_close_v2 / sqlite3_column_text C-API steps are
 	// dropped, so JSON misattributes later stmt_step results to close assertions.
 	"close/close-1.3.1": "close_v2 C-API result omitted from JSON translation",
