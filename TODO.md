@@ -8,33 +8,40 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-Current state (2026-11-04, feature/perf @ 8499ebbd2): the residue census
-([portplan/RESIDUE_CENSUS_2026-11-04.md](portplan/RESIDUE_CENSUS_2026-11-04.md))
-puts the functional backlog at **4,162 isolated subtests across 254
-families**; the WAL slice (S5–S7b, 9 commits) landed walvfs 12→8, wal3
-112→5, e_walckpt 139→129.
+Current state (2026-11-05, feature/perf @ 834a5bef1): S7c landed the
+checkpoint blocking choreography — the busy handler joins the WAL lock
+protocol (writer lock, read marks, restart blocking, demote-to-PASSIVE on
+give-up), the fixture-VFS callback dispatch drives live connections, and
+the transpiler emits `db busy`. **e_walckpt 129 → 5** (4.2-4.5 are the
+queued WAL→rollback header reset's downstream; 5.3.1 = IOERR injection on
+an attached aux); wal sweep 306 → 214; wal3 residue = its pre-C3 set
+(5, queued). Verification details + the exact remaining classes:
+portplan/PLAN_e_walckpt_S7c.md §OUTCOME.
 
 ## Immediate next action
 
-**e_walckpt (129)** — the mode-sweep choreography + callback counters.
-Triage state, failing-case shapes, C source anchors, and the fixture-regen
-procedure are in HANDOFF §"THE IMMEDIATE RESTART POINT". Verify by
-failure-name-set diff against regenerated baselines (procedure in HANDOFF).
+**Wal-group residue triage, post-S7c** — regenerate baselines
+(/tmp baselines are gone), then: (1) wal2 exclusive-mode xShmLock traces
+(wal2-6.4.5.2/6.4.8.2, unmasked by the S7c filter fix —
+sqlite3WalExclusiveMode enter/exit choreography); (2) e_walckpt-4.2-4.5 +
+5.3.1 (the WAL→rollback header reset's downstream — plan the
+checkpoint/flush ORDER first, the naive port broke wal-24.x; and the
+IOERR-on-aux injection). Fixture-regen + name-set-diff procedure in the
+HANDOFF.
 
 ## Queue (in order)
 
-1. e_walckpt remainder: mode-sweep choreography (1.full/restart/truncate.x
-   no-such-table/COMMIT — checkpoint-busy vs a second connection) + the
-   busy-handler/xWrite/sync callback counters (1.passive.1.6-8, 1.3.2.2).
-2. Regen-drift follow-up: e_walauto/interrupt2/wal5 fixtures predate the
+1. wal2 exclusive-mode xShmLock traces (unmasked by S7c's filter fix).
+2. e_walckpt-4.2-4.5: the WAL→rollback header reset's downstream — the
+   sidecar-lifecycle unit itself (delete -wal/-shm + reset the version
+   bytes to 1/1; plan the checkpoint/flush ORDER first) unblocks them and
+   walbak-4.3.1/4.3.3.
+3. e_walckpt-5.3.1: the IOERR injection on an attached aux's copyback.
+4. Regen-drift follow-up: e_walauto/interrupt2/wal5 fixtures predate the
    sqlite3_wal_checkpoint handler — regenerate + battery (S6 procedure).
-3. wal2 (61) / wal3 (5) xShmLock trace residue — post-regen triage.
-4. wal-18.2.x interrupt choreography (24).
-5. Fix B: padToSectorBoundary + PSO/sector-size devchar surface
+5. wal-18.2.x interrupt choreography (24).
+6. Fix B: padToSectorBoundary + PSO/sector-size devchar surface
    (walvfs-5.3's 24-frame expectation; wal.c:4170-4188).
-6. Sidecar lifecycle: the WAL→rollback switch deletes -wal/-shm + resets
-   the version bytes to 1/1 (unblocks walbak-4.3.1/4.3.3; plan the
-   checkpoint/flush ORDER first — the naive port broke wal-24.x).
 7. Census top non-WAL families: index 200, rtree 126, tkt 124, where 111,
    expr 109, pager1 101 — triage per family with the census methodology.
 8. Performance phase (F1c/F3 lanes in GAP_CLOSURE_PLAN_2026-10-31.md) —

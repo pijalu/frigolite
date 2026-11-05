@@ -32,7 +32,23 @@ then performance". The working tree is CLEAN at 3dc008e81 (feature/perf,
 | aa264ba33 | S7b: db-hash surface — commandCatch executes QUOTED bodies; catch-list rc refs resolve to the carrier actually stamped; WalCheckpoint mirrors main.c (unknown zDb → SQLITE_ERROR "unknown database: <name>", NULL zDb → every attached db, the triple reports the FIRST checkpointed db, BUSY accumulates, non-WAL leaves -1s); harness rejects a bad MODE with SQLITE_MISUSE "not an error" and composes the wrapper's [sqlite3_errcode] - msg prefix; save_db_hashes/compare_db_hashes emit purpose-built md5 steps | e_walckpt 136→129; 1.1.x/2.1.x green end-to-end |
 | c7e506320/e80befc4f/cb5ac869b/d2de43985/1437fe2dd/c4a03b9ae/3dc008e81 | plan-doc + census + lessons records | — |
 
-## THE IMMEDIATE RESTART POINT — e_walckpt (129 isolated failures)
+## S7c RECORD (2026-11-05, 834a5bef1) — e_walckpt 129 -> 5
+
+Three commits: eb2dc2f0e (engine: CKPT-first order, the busy-handler
+counting session per statement, demote-to-PASSIVE on writer-lock give-up
+with the demoted triple {1, mxFrame, nBackfill}, per-phase handler loops,
+mini WriterSections — nested sections self-deadlocked once, caught by the
+goroutine dump), f91bd0c5f (harness: unset-filter = ALL methods per
+test_vfs.c:1574; the tvfs interp builds lazily when the script binds after
+the open; the db-file sync gated on mxSafeFrame==mxFrame), 834a5bef1 (the
+register_busy_handler step + the callback-dispatch precedence +
+WALWriterProbe BEGIN gate + page-deduped backfill + catch-list/mode-parse
+fixes). The full story: portplan/PLAN_e_walckpt_S7c.md §OUTCOME.
+Remaining e_walckpt: 4.2-4.5 (sidecar lifecycle downstream), 5.3.1
+(IOERR-on-aux). NEW LESSONS: the empty-failure-set trap (timeout/build
+kill) bit four times — see .agents/lessons_learned.md.
+
+## THE PREVIOUS RESTART POINT — e_walckpt (129 isolated failures)
 
 The next unit was JUST STARTED: the mode-sweep choreography class. Triage
 state:
