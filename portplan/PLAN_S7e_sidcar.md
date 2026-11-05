@@ -86,3 +86,24 @@ The switch itself (leaveWALModeLocked minus the double-close) was never
 isolated — bisect it ALONE first next time, then the close-time deletion,
 then the open-time re-attach, each behind the e_walckpt + wal-24 + walbak
 diffs.
+
+## BISECTION RESULT (2026-11-06)
+
+- **Piece 1 — the switch — LANDED (1ab97052c)**: leaveWALModeLocked with
+  ONE w.Close() call (no pre-close). walbak 22 → 17 (4.3.1/4.3.3 +
+  4.1.1-3); wal sweep 201 → 178 (23 fixed, 0 new); e_walckpt stays 0;
+  pager unchanged.
+- **Piece 3 — the 2/2-reopen re-attach — LANDED (5d9f97c3f)**: attachWal
+  AtOpen creates the WAL for a 2/2-header file without a -wal (btree.c:
+  3337 parity). Innocent and C-faithful; e_walckpt stays 0.
+- **Piece 2 — the close-time deletion — STILL QUEUED (reverted twice)**:
+  with deletion + re-attach together, e_walckpt's mode-sweep cascades at
+  setup_9 ("cannot commit - no transaction is active" on db2 — the
+  reader's transaction is lost across the per-scenario reopen boundary —
+  and then "table t1 already exists"). With deletion-off + re-attach-on
+  everything is green, so the deletion itself changes state the sweep's
+  reader choreography depends on. Next attempt: debug setup_9's db2
+  transaction lifecycle at the harness level with the deletion ON
+  (which step ends the txn — the close-time path runs INSIDE Pager.Close
+  after flushAll; the -shm removal races the wi registry entry?) before
+  touching the deletion again.

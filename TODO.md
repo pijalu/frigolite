@@ -36,12 +36,14 @@ HANDOFF.
 
 ## Queue (in order)
 
-1. Sidecar lifecycle (unblocks walbak-4.3.1/4.3.3 + wal-24.2; NOTE:
-   e_walckpt-4.2-4.5 are DONE — superseded a33195076, the C source's own
-   expectations predate its 3.51 oracle). The plan + the three concrete
-   hazards from the reverted first attempt (the double-close trap, the
-   2/2-reopen readOnly trap, the e_walckpt scenario cascade) are in
-   portplan/PLAN_S7e_sidcar.md — bisect the three pieces ALONE.
+1. Sidecar lifecycle REMAINDER — piece 2 only (the close-time deletion;
+   pieces 1+3 LANDED: 1ab97052c the switch — walbak-4.3.1/4.3.3 + 4.1.x
+   fixed, wal sweep 23 fixed; 5d9f97c3f the 2/2-reopen re-attach).
+   walbak-4.3.5/4.4.5 + wal-24.2 still fail. The deletion cascades
+   e_walckpt's mode-sweep (setup_9's db2 COMMIT loses its transaction
+   across the per-scenario reopen) — debug that reader-transaction
+   lifecycle at the harness level first; details in
+   portplan/PLAN_S7e_sidcar.md §BISECTION RESULT.
 2. Regen-drift follow-up: e_walauto/interrupt2/wal5 fixtures predate the
    sqlite3_wal_checkpoint handler — regenerate + battery (S6 procedure).
 5. wal-18.2.x interrupt choreography (24).
