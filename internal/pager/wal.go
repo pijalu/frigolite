@@ -87,6 +87,24 @@ type walWriter struct {
 	// busyTimeout is sqlite3_busy_timeout: contended shm lock acquisitions
 	// retry until the deadline, then report "database is locked".
 	busyTimeout time.Duration
+	// busyHandler is the connection's sqlite3_busy_handler callback
+	// (main.c sqlite3_busy_handler): invoked between contended checkpoint
+	// lock attempts, it receives the number of previous invocations for the
+	// current locked event and returns true to retry the attempt. It
+	// replaces the busy timeout for the checkpoint locks (registering a
+	// handler zeroes busy_timeout — main.c:1788).
+	busyHandler func(count int) bool
+}
+
+// walBusySession is one busy-handler counting session for a checkpoint
+// statement (main.c:2576 resets nBusy at each statement execution, so one
+// checkpoint — writer lock, read marks, restart blocking — is ONE session:
+// the handler receives the current count starting at 0 and the count
+// advances only on a retry answer; a give-up disables the handler for the
+// rest of the statement, like wal.c's local xBusy=0).
+type walBusySession struct {
+	handler func(count int) bool
+	count   int
 }
 
 // walMagicLE is the little-endian-checksum WAL magic (WalMagic); the LSB 0
@@ -667,40 +685,34 @@ const (
 	WalCkptTruncate WalCheckpointMode = 3
 )
 
-// checkpoint ports sqlite3WalCheckpoint + walCheckpoint (wal.c L2193) for the
-// single-process registry model. Lock acquisition follows C: non-PASSIVE
-// modes take the WRITER lock first (busy handler honored), then every mode
-// takes the exclusive CKPT lock (PASSIVE never invokes the busy handler —
-// EVIDENCE-OF R-62920-47450). PASS1 computes mxSafeFrame stepping over active
-// readers' read marks, backfills (nBackfill, mxSafeFrame] under exclusive
-// READ_LOCK(0) and updates nBackfill; PASS2 (eMode != PASSIVE) reports busy
-// when the log is not fully backfilled, and RESTART/TRUNCATE reset the log
-// under exclusive READ_LOCK(1..4) — TRUNCATE truncates the -wal to ZERO
-// bytes (R-44699-57140). The result is the PRAGMA wal_checkpoint triple
+// checkpoint ports sqlite3WalCheckpoint + walCheckpoint (wal.c L4290, L2193)
+// for the single-process registry model. Lock acquisition follows C: every
+// mode takes the exclusive CKPT lock first — directly, the busy handler is
+// never invoked for it (R-53820-33897, and a veto there keeps the pragma's
+// {1 -1 -1} initializers: wal.c's outer if(rc==SQLITE_OK) guard skips the
+// triple assignment). Non-PASSIVE modes then take the WRITER lock via
+// walBusyLock (R-60642-04082: the busy handler is invoked between attempts
+// until it returns 0 or the lock is obtained). SQLITE_BUSY there DEMOTES
+// the checkpoint to PASSIVE (wal.c:4339 eMode2=PASSIVE, xBusy2=0): the
+// backfill still runs below the readers' marks and the whole call reports
+// busy (eMode != eMode2) with the demoted run's triple. PASS1 computes
+// mxSafeFrame stepping over active readers' read marks, backfills
+// (nBackfill, mxSafeFrame] under exclusive READ_LOCK(0) and updates
+// nBackfill; PASS2 (eMode != PASSIVE) reports busy when the log is not
+// fully backfilled, and RESTART/TRUNCATE reset the log under exclusive
+// READ_LOCK(1..4) — TRUNCATE truncates the -wal to ZERO bytes
+// (R-44699-57140). The result is the PRAGMA wal_checkpoint triple
 // (busy, nLog, nCkpt) — walprotocol-2.1 expects {0 5 5} for PASSIVE.
 func (w *walWriter) checkpoint(mode WalCheckpointMode) (busy, nLog, nCkpt int, err error) {
-	if mode != WalCkptPassive && !w.writeLock {
-		if berr := w.walBusyLockExclusive(walLockWrite, 1); berr != nil {
-			// C's {1 -1 -1}: the pragma's nLog/nCkpt initializers stay
-			// when walCheckpoint never ran (a lock failure happens before
-			// it) — sqlite3WalCheckpoint sets them only on OK/BUSY from
-			// walCheckpoint itself (walvfs-7.1's {1 -1 -1}).
-			return 1, -1, -1, nil
-		}
-		w.writeLock = true
-		defer func() {
-			if w.writeLock {
-				w.walUnlockExclusive(walLockWrite, 1)
-				w.writeLock = false
-			}
-		}()
-	}
+	// One busy-handler count session per checkpoint statement.
+	session := &walBusySession{handler: w.busyHandler}
 	if !w.ckptLock {
-		if berr := w.walBusyLockCkpt(mode != WalCkptPassive); berr != nil {
-			// Same {1 -1 -1} contract: the CHECKPOINTER lock was vetoed
-			// before walCheckpoint ran (walvfs-7.1's xShmLock veto on
-			// "1 1 lock exclusive" = WAL_CKPT_LOCK).
-			return 1, -1, -1, nil
+		// wal.c:4319 — the CKPT lock is taken directly.
+		if berr := w.walLockExclusive(walLockCkpt, 1); berr != nil {
+			if errors.Is(berr, errWalBusy) {
+				return 1, -1, -1, nil
+			}
+			return 0, 0, 0, berr
 		}
 		w.ckptLock = true
 		defer func() {
@@ -710,18 +722,77 @@ func (w *walWriter) checkpoint(mode WalCheckpointMode) (busy, nLog, nCkpt int, e
 			}
 		}()
 	}
-	err = w.wi.WriterSection(func() error {
-		if err := w.writerRefreshLocked(); err != nil {
-			return err
+	// wal.c:4334-4343 — the WRITER lock for non-PASSIVE modes, the busy
+	// handler invoked between contended attempts. SQLITE_BUSY demotes the
+	// whole run to PASSIVE with the handler disabled.
+	mode2 := mode
+	if mode != WalCkptPassive && !w.writeLock {
+		if berr := w.walBusyLockHandler(walLockWrite, 1, session); berr != nil {
+			if errors.Is(berr, errWalBusy) {
+				mode2 = WalCkptPassive
+				session.handler = nil
+			} else {
+				return 0, 0, 0, berr
+			}
+		} else {
+			w.writeLock = true
+			defer func() {
+				if w.writeLock {
+					w.walUnlockExclusive(walLockWrite, 1)
+					w.writeLock = false
+				}
+			}()
 		}
-		busy, err = w.checkpointPasses(mode)
+	}
+	// The wal-index header refresh and every pass state mutation run in
+	// their own WriterSections (the checkpoint's lock attempts may invoke
+	// the busy handler between them — its script drives other connections'
+	// transactions, which need the mutex too; C's walBusyLock likewise
+	// never runs inside a wal-index critical section).
+	if err := w.wi.WriterSection(func() error {
+		return w.writerRefreshLocked()
+	}); err != nil {
+		return busy, nLog, nCkpt, err
+	}
+	busy, err = w.checkpointPasses(mode2, session)
+	err2 := w.wi.WriterSection(func() error {
 		// Result triple from the final state (sqlite3WalCheckpoint tail):
 		// nLog = mxFrame, nCkpt = nBackfill — both 0 after a RESTART reset.
 		nLog = int(w.hdr.MxFrame)
 		nCkpt = int(w.wi.ckptInfoLocked().NBackfill)
-		return err
+		return nil
 	})
+	if err == nil {
+		err = err2
+	}
+	if mode2 != mode {
+		// wal.c:4407 — the demoted run still reports SQLITE_BUSY.
+		busy = 1
+	}
 	return busy, nLog, nCkpt, err
+}
+
+// walBusyLockHandler ports walBusyLock (wal.c L2101) with the checkpoint's
+// busy-handler session: try the exclusive lock; while busy and the handler
+// says retry, invoke it (main.c sqlite3InvokeBusyHandler counting: the
+// handler sees the current count, the count advances only on retry) and
+// retry. With no live handler this falls back to the busy-timeout loop
+// (a single attempt when no timeout is configured), matching a C build
+// whose only handler is the sqlite3_busy_timeout callback.
+func (w *walWriter) walBusyLockHandler(idx, n int, session *walBusySession) error {
+	if session == nil || session.handler == nil {
+		return w.walBusyLockExclusive(idx, n)
+	}
+	for {
+		err := w.walLockExclusive(idx, n)
+		if err == nil || !errors.Is(err, errWalBusy) {
+			return err
+		}
+		if !session.handler(session.count) {
+			return err
+		}
+		session.count++
+	}
 }
 
 // checkpointPasses runs walCheckpoint's two passes. PASS1 computes
@@ -729,96 +800,173 @@ func (w *walWriter) checkpoint(mode WalCheckpointMode) (busy, nLog, nCkpt int, e
 // (nBackfill, mxSafeFrame] under exclusive READ_LOCK(0); PASS2 (eMode !=
 // PASSIVE) reports busy when the log is not fully backfilled, and
 // RESTART/TRUNCATE reset the log under exclusive READ_LOCK(1..4). Caller
-// holds the WRITER (non-PASSIVE) and CKPT locks and the wal-index writer
-// section.
-func (w *walWriter) checkpointPasses(mode WalCheckpointMode) (busy int, err error) {
+// holds the WRITER (non-PASSIVE) and CKPT locks. Lock attempts that may
+// invoke the busy handler use the non-held shm primitives (the hook and
+// the handler run OUTSIDE the wal-index mutex — the handler's script
+// drives other connections' transactions which need the mutex themselves;
+// C's walBusyLock likewise runs outside any wal-index critical section),
+// with mini WriterSections around the state mutations.
+func (w *walWriter) checkpointPasses(mode WalCheckpointMode, session *walBusySession) (busy int, err error) {
 	// PASS1: compute mxSafeFrame, stepping over active readers' marks, and
 	// backfill (nBackfill, mxSafeFrame] under exclusive READ_LOCK(0).
-	if _, err := w.ckptPass1ReaderMarks(w.hdr.MxFrame); err != nil {
+	mxSafeFrame, err := w.ckptPass1ReaderMarks(w.hdr.MxFrame, session)
+	if err != nil {
 		return busy, err
 	}
-	return w.ckptPass2(mode)
+	if err := w.ckptBackfillPass(w.hdr.MxFrame, mxSafeFrame, session); err != nil {
+		return busy, err
+	}
+	return w.ckptPass2(mode, session)
 }
 
 // ckptPass1ReaderMarks ports walCheckpoint's PASS1 reader-mark loop: try an
 // exclusive READ_LOCK(i) under every mark below mxSafeFrame, re-initializing
 // the mark when granted; a BUSY reader (a mark left in place) stops the
 // backfill short of it and disables the busy handler (wal.c xBusy=0).
-// Caller holds the wal-index writer section.
-func (w *walWriter) ckptPass1ReaderMarks(mxFrame uint32) (uint32, error) {
+func (w *walWriter) ckptPass1ReaderMarks(mxFrame uint32, session *walBusySession) (uint32, error) {
 	mxSafeFrame := mxFrame
-	info := w.wi.ckptInfoLocked()
+	var marks [WalNReader]uint32
+	err := w.wi.WriterSection(func() error {
+		info := w.wi.ckptInfoLocked()
+		copy(marks[:], info.AReadMark[:])
+		return nil
+	})
+	if err != nil {
+		return mxSafeFrame, err
+	}
 	for i := 1; i < WalNReader; i++ {
-		y := info.AReadMark[i]
+		y := marks[i]
 		if mxSafeFrame <= y || y == ReadmarkNotUsed {
 			continue
 		}
-		if w.shmTryLockHeld(walReadLockIdx(i), 1, true) == nil {
+		// wal.c:2233 — walBusyLock(WAL_READ_LOCK(i), 1): the busy handler
+		// is invoked between contended attempts.
+		if err := w.walBusyShmLock(walReadLockIdx(i), 1, session); err == nil {
 			iMark := uint32(ReadmarkNotUsed)
 			if i == 1 {
 				iMark = mxSafeFrame
 			}
-			w.wi.setCkptInfoLocked(func(ci *WalCkptInfo) { ci.AReadMark[i] = iMark })
-			w.shmUnlockHeld(walReadLockIdx(i), 1, true)
-		} else {
+			w.wi.WriterSection(func() error {
+				w.wi.setCkptInfoLocked(func(ci *WalCkptInfo) { ci.AReadMark[i] = iMark })
+				w.wi.shmUnlockHeld(walReadLockIdx(i), 1, true)
+				return nil
+			})
+		} else if errors.Is(err, errWalBusy) {
 			// BUSY reader: stop the backfill short of its mark
 			// (and stop invoking the busy handler, wal.c xBusy=0).
 			mxSafeFrame = y
+			session = walBusySessionNone(session)
+		} else {
+			return mxSafeFrame, err
 		}
 	}
-	return w.ckptBackfillPass(mxFrame, mxSafeFrame)
+	return mxSafeFrame, nil
+}
+
+// walBusyShmLock ports walBusyLock for a shm slot range: try the exclusive
+// lock (the xShmLock hook fires before the wal-index mutex is taken);
+// while busy and the session's handler says retry, invoke it and retry.
+func (w *walWriter) walBusyShmLock(idx, n int, session *walBusySession) error {
+	if session == nil || session.handler == nil {
+		return w.wi.shmTryLock(idx, n, true)
+	}
+	for {
+		err := w.wi.shmTryLock(idx, n, true)
+		if err == nil || !errors.Is(err, errWalBusy) {
+			return err
+		}
+		if !session.handler(session.count) {
+			return err
+		}
+		session.count++
+	}
+}
+
+// walBusySessionNone disables the session's handler (wal.c's local
+// xBusy=0 after a contended read mark).
+func walBusySessionNone(session *walBusySession) *walBusySession {
+	if session != nil {
+		session.handler = nil
+	}
+	return session
 }
 
 // ckptBackfillPass backfills (nBackfill, mxSafeFrame] under exclusive
 // READ_LOCK(0) (wal.c walBusyLock) and stores nBackfillAttempted/nBackfill.
 // On a contended lock the backfill window collapses to nBackfill (the
 // caller's fallback); an I/O error aborts the checkpoint.
-func (w *walWriter) ckptBackfillPass(mxFrame, mxSafeFrame uint32) (uint32, error) {
-	nBackfill0 := w.wi.ckptInfoLocked().NBackfill
+func (w *walWriter) ckptBackfillPass(mxFrame, mxSafeFrame uint32, session *walBusySession) error {
+	var nBackfill0 uint32
+	err := w.wi.WriterSection(func() error {
+		nBackfill0 = w.wi.ckptInfoLocked().NBackfill
+		return nil
+	})
+	if err != nil {
+		return err
+	}
 	if nBackfill0 >= mxSafeFrame {
-		return mxSafeFrame, nil
+		return nil
 	}
 	// Backfill under exclusive READ_LOCK(0) (wal.c walBusyLock).
-	if w.shmTryLockHeld(walReadLockIdx(0), 1, true) != nil {
-		return nBackfill0, nil
+	if err := w.walBusyShmLock(walReadLockIdx(0), 1, session); err != nil {
+		if errors.Is(err, errWalBusy) {
+			return nil
+		}
+		return err
 	}
 	// wal.c:2260 — sync the WAL before copying its frames into the db
 	// (CKPT_SYNC_FLAGS run at synchronous=NORMAL and FULL).
 	w.p.vfsSync(w.path, walCkptSyncBits(w.p.walSyncFlags))
-	w.wi.setCkptInfoLocked(func(ci *WalCkptInfo) { ci.NBackfillAttempted = mxSafeFrame })
-	berr := w.backfillLocked(nBackfill0, mxSafeFrame, mxFrame)
-	if berr == nil {
+	berr := w.wi.WriterSection(func() error {
+		w.wi.setCkptInfoLocked(func(ci *WalCkptInfo) { ci.NBackfillAttempted = mxSafeFrame })
+		if berr := w.backfillLocked(nBackfill0, mxSafeFrame, mxFrame); berr != nil {
+			return berr
+		}
 		w.wi.setCkptInfoLocked(func(ci *WalCkptInfo) { ci.NBackfill = mxSafeFrame })
 		// wal.c:2314 — sync the database file after copying pages.
 		w.p.vfsSync(w.p.path, walCkptSyncBits(w.p.walSyncFlags))
-	}
-	w.shmUnlockHeld(walReadLockIdx(0), 1, true)
-	if berr != nil {
-		return mxSafeFrame, berr
-	}
-	return mxSafeFrame, nil
+		return nil
+	})
+	w.wi.shmUnlock(walReadLockIdx(0), 1, true)
+	return berr
 }
 
 // ckptPass2 ports walCheckpoint's PASS2 (eMode != PASSIVE): the log must be
 // fully backfilled, else report busy; RESTART/TRUNCATE reset the log under
 // exclusive READ_LOCK(1..4) — TRUNCATE truncates the -wal to ZERO bytes
-// (R-44699-57140). Caller holds the wal-index writer section.
-func (w *walWriter) ckptPass2(mode WalCheckpointMode) (int, error) {
+// (R-44699-57140).
+func (w *walWriter) ckptPass2(mode WalCheckpointMode, session *walBusySession) (int, error) {
 	busy := 0
 	if mode == WalCkptPassive {
 		return busy, nil
 	}
-	if w.wi.ckptInfoLocked().NBackfill < w.hdr.MxFrame {
+	var nBackfill, mxFrame uint32
+	err := w.wi.WriterSection(func() error {
+		nBackfill = w.wi.ckptInfoLocked().NBackfill
+		mxFrame = w.hdr.MxFrame
+		return nil
+	})
+	if err != nil {
+		return busy, err
+	}
+	if nBackfill < mxFrame {
 		return 1, nil
 	}
 	if mode < WalCkptRestart {
 		return busy, nil
 	}
-	if w.shmTryLockHeld(walReadLockIdx(1), WalNReader-1, true) != nil {
-		return 1, nil
+	// wal.c:2347 — block until all readers are off the WAL (the busy
+	// handler is invoked between contended attempts).
+	if err := w.walBusyShmLock(walReadLockIdx(1), WalNReader-1, session); err != nil {
+		if errors.Is(err, errWalBusy) {
+			return 1, nil
+		}
+		return busy, err
 	}
-	rerr := w.walRestartHdrLocked(true)
-	w.shmUnlockHeld(walReadLockIdx(1), WalNReader-1, true)
+	rerr := w.wi.WriterSection(func() error {
+		return w.walRestartHdrLocked(true)
+	})
+	w.wi.shmUnlock(walReadLockIdx(1), WalNReader-1, true)
 	if rerr != nil {
 		return busy, rerr
 	}
@@ -831,16 +979,6 @@ func (w *walWriter) ckptPass2(mode WalCheckpointMode) (int, error) {
 		}
 	}
 	return busy, nil
-}
-
-// walBusyLockCkpt takes the exclusive CKPT lock. It honors the busy timeout
-// only for the non-PASSIVE modes (the PASSIVE checkpoint's busy handler is
-// never invoked — wal.c EVIDENCE-OF R-62920-47450).
-func (w *walWriter) walBusyLockCkpt(retry bool) error {
-	if !retry {
-		return w.walLockExclusive(walLockCkpt, 1)
-	}
-	return w.walBusyLockExclusive(walLockCkpt, 1)
 }
 
 // backfillLocked copies frames (nFrom, nTo] of the -wal into the main

@@ -347,6 +347,21 @@ func (p *Pager) SetBusyTimeout(d time.Duration) {
 	}
 }
 
+// SetBusyHandler registers the connection's busy handler
+// (sqlite3_busy_handler parity) on the WAL writer: the checkpoint locks
+// (WRITER, read marks, restart blocking) invoke it between contended
+// attempts with the count of previous invocations for the locked event;
+// a true result retries, false gives up with "database is locked". The
+// handler replaces the busy timeout for those locks (main.c:1788 —
+// sqlite3_busy_handler zeroes busy_timeout).
+func (p *Pager) SetBusyHandler(fn func(count int) bool) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if p.wal != nil {
+		p.wal.busyHandler = fn
+	}
+}
+
 // WALMode reports whether the pager runs in WAL mode (a walWriter is
 // attached). The engine consults it for the cross-connection lock matrix:
 // in WAL mode readers never block writers and writers never block readers

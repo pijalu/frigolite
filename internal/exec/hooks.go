@@ -90,9 +90,16 @@ func (e *Engine) fireRollbackHook() {
 // invocations for the current locked event and returns true to retry the
 // lock attempt or false to return "database is locked" to the caller
 // (main.c sqlite3BusyHandler: a non-zero handler result retries). A nil
-// callback clears the handler.
+// callback clears the handler. The handler reaches the pager's WAL
+// checkpoint locks too (sqlite3PagerCheckpoint passes the pager's busy
+// dispatch down to sqlite3WalCheckpoint).
 func (e *Engine) SetBusyHandler(fn func(count int) bool) {
 	e.busyHandler = fn
+	for _, dbCtx := range e.dbList {
+		if dbCtx != nil && dbCtx.Pager != nil {
+			dbCtx.Pager.SetBusyHandler(fn)
+		}
+	}
 }
 
 // SetBusyTimeout sets the connection's busy timeout in milliseconds
