@@ -319,6 +319,29 @@ func recoverJournalAtOpen(pr *Pager, cleanPath string) error {
 // prefer that when the main file did not yield a size.
 func attachWalAtOpen(pr *Pager, cleanPath string) error {
 	if _, err := os.Stat(cleanPath + "-wal"); err != nil {
+		// C's lockBtree (btree.c:3329-3352): a NON-EMPTY database whose
+		// header says WAL (read/write version 2/2) is accessed in WAL mode
+		// even when the "-wal" is absent — sqlite3PagerOpenWal CREATES the
+		// log. This keeps journal_mode=wal across close/reopen once the
+		// close deletes the sidecars (sqlite3WalClose's isDelete; the
+		// version bytes stay 2/2 at close — C never resets them there).
+		// Open-time only: the per-statement gate must not re-attach (the
+		// first attempt's per-statement variant cascaded e_walckpt).
+		if len(pr.header) >= 20 && pr.header[18] == 2 && pr.header[19] == 2 && !pr.openedEmpty {
+			if w, werr := openWal(pr, cleanPath, pr.pageSize); werr == nil {
+				pr.wal = w
+				pr.journalMode = "wal"
+				if n := w.hdr.NPage; n > 0 {
+					pr.numPages = n
+				}
+				pr.header = nil
+				if pr.numPages > 0 {
+					if _, rerr := pr.readPageLocked(1); rerr != nil {
+						return rerr
+					}
+				}
+			}
+		}
 		return nil
 	}
 	if pr.pageSize == 0 {
