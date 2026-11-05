@@ -3210,6 +3210,10 @@ func TestSQLiteSuite(t *testing.T) {
 			runtimeVars := make(map[string]string)
 			testvfsFixtures := make(map[string]*testvfsFixture)
 			testvfsDefault := ""
+			// connVFS remembers each connection's fixture name (C's ATTACH
+			// inherits the parent connection's VFS — btree.c passes the
+			// parent's sqlite3_vfs to the attached database).
+			connVFS := make(map[*DB]string)
 			collationDestructors := make(map[*DB]map[string]string)
 			prepared := make(map[string]*Stmt)
 			stmtCode := make(map[string]string)
@@ -3653,6 +3657,15 @@ func TestSQLiteSuite(t *testing.T) {
 								composedErr = res.Error.Error()
 								if !strings.Contains(composedErr, "SQLITE_") {
 									composedErr = "SQLITE_ERROR - " + composedErr
+								} else if he, ok := res.Error.(*pager.VFSHookError); ok {
+									// test1.c renders sqlite3ErrName(rc) " - "
+									// sqlite3_errmsg(db): a bare VFS result code
+									// composes with the errmsg default
+									// (e_walckpt-5.3.1's "SQLITE_IOERR - disk
+									// I/O error").
+									if msg, ok := walVfsCodeErrMsg(he.Code); ok {
+										composedErr = he.Code + " - " + msg
+									}
 								}
 							}
 							// The C command rejects a MODE outside
@@ -3896,6 +3909,7 @@ func TestSQLiteSuite(t *testing.T) {
 							registerTest1Functions(t, db)
 							installDefaultVFS(t, testvfsFixtures, testvfsDefault, db, namedDBs, runtimeVars, fixtureDBDir)
 							if step.VFS != "" {
+								connVFS[db] = step.VFS
 								if fx := testvfsFixtures[step.VFS]; fx != nil {
 									db.engine.InstallVFSHook(fx.hook(runtimeVars, db, namedDBs, fixtureDBDir), fx.devcharBits)
 								}
@@ -4596,6 +4610,22 @@ func TestSQLiteSuite(t *testing.T) {
 						// step without an expectation tolerates an error.
 						case "exec", "catch":
 							res := execDB.Exec(step.SQL)
+							// C's ATTACH inherits the parent connection's
+							// VFS (btree.c sqlite3BtreeOpen passes the
+							// parent's sqlite3_vfs): route the newly attached
+							// pagers through the same fixture
+							// (e_walckpt-5.3's inject_ioerr vetoes aux2's
+							// copyback xWrite).
+							if strings.HasPrefix(strings.ToUpper(strings.TrimSpace(step.SQL)), "ATTACH") {
+								if fx := testvfsFixtures[connVFS[execDB]]; fx != nil {
+									for _, ctxPager := range execDB.engine.AttachedPagers() {
+										if !ctxPager.IsMemory() && !ctxPager.HasVFSHook() {
+											ctxPager.SetVFSHook(fx.hook(runtimeVars, execDB, namedDBs, fixtureDBDir))
+											ctxPager.SetDeviceCharacteristics(fx.devcharBits)
+										}
+									}
+								}
+							}
 							if step.Type == "catch" {
 								// The catchsql result travels as its TCL
 								// rendering: "1 {message}" on failure, "0 {}"
@@ -5570,6 +5600,31 @@ func tclEscapeChar(c byte) byte {
 	}
 }
 
+// walVfsCodeErrMsg maps the VFS result codes test1.c's wal_checkpoint_v2
+// renders to sqlite3_errmsg's default texts (sqlite3.c sqlite3ErrStr — a
+// bare IOERR's message is "disk I/O error", BUSY's "database is locked", ...).
+func walVfsCodeErrMsg(code string) (string, bool) {
+	switch code {
+	case "SQLITE_IOERR":
+		return "disk I/O error", true
+	case "SQLITE_BUSY":
+		return "database is locked", true
+	case "SQLITE_MISUSE":
+		return "not an error", true
+	case "SQLITE_CORRUPT":
+		return "database disk image is malformed", true
+	case "SQLITE_FULL":
+		return "database or disk is full", true
+	case "SQLITE_NOMEM":
+		return "out of memory", true
+	case "SQLITE_READONLY":
+		return "attempt to write a readonly database", true
+	case "SQLITE_INTERRUPT":
+		return "interrupted", true
+	}
+	return "", false
+}
+
 func splitExpect(expect string) []string {
 	expect = strings.TrimSpace(expect)
 	parts := strings.SplitN(expect, " ", 2)
@@ -6295,10 +6350,12 @@ func (fx *testvfsFixture) hook(runtimeVars map[string]string, db *DB, namedDBs m
 				runtimeVars[name] = v
 			}
 		}
-		// The shm methods' returns are their RESULT (test_vfs.c maps the
-		// script's return to the xShmMap/xShmLock result code) — xSync is
-		// observational.
-		if op == "xShmMap" || op == "xShmLock" {
+		// The script's return is the method RESULT: tvfsResultCode maps it
+		// for xShmMap/xShmLock (their only channel) AND for xWrite/xSync
+		// (test_vfs.c:381/453 — an SQLITE_ error code vetoes the I/O:
+		// e_walckpt-5.3.1's inject_ioerr on the copyback xWrite). xSync's
+		// fixtures return non-codes, which both models treat as OK.
+		if op == "xShmMap" || op == "xShmLock" || op == "xWrite" || op == "xSync" {
 			code := strings.TrimSpace(answer)
 			if strings.HasPrefix(code, "SQLITE_") && code != "SQLITE_OK" {
 				return &pager.VFSHookError{Code: code}

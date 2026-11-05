@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/fts5"
+	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -932,4 +933,18 @@ func (e *Engine) externalSchemaChanged(ctx *DatabaseContext) bool {
 		}
 	}
 	return true
+}
+
+// AttachedPagers returns the pager of every attached database in attach
+// order (main first, TEMP last when registered) — the harness's
+// ATTACH-fixture routing uses it (C's ATTACH inherits the parent
+// connection's VFS, btree.c sqlite3BtreeOpen).
+func (e *Engine) AttachedPagers() []*pager.Pager {
+	pagers := make([]*pager.Pager, 0, len(e.dbList))
+	for _, ctx := range e.dbList {
+		if ctx != nil && ctx.Pager != nil {
+			pagers = append(pagers, ctx.Pager)
+		}
+	}
+	return pagers
 }

@@ -70,6 +70,15 @@ func (e *VFSHookError) Error() string { return e.Code }
 // arguments — regardless of the method. xSync is observational (S1); the
 // shm methods' returns are the method RESULT (S2) — VFSHookError values
 // propagate as the mapped failure.
+// HasVFSHook reports whether a fixture callback hook is installed (the
+// harness's ATTACH handler uses it to route newly attached pagers through
+// the parent connection's fixture exactly once).
+func (p *Pager) HasVFSHook() bool {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return p.vfsHook != nil
+}
+
 func (p *Pager) SetVFSHook(fn func(op, path string, details []string) error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
