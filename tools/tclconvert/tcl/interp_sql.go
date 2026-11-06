@@ -126,6 +126,20 @@ func (i *Interp) cmdDB(rawWords []rawWord, args []string, localVars map[string]s
 		}
 		i.stmts = append(i.stmts, step)
 		return nil
+	case "backup":
+		// `db backup FILE` (test1.c's DbBackupCmd over sqlite3_backup_init):
+		// the whole main database backs up into the FILE — a new step; the
+		// harness opens the file as the destination connection and runs the
+		// backup to completion (walbak-4's `db backup test.db2`).
+		if len(args) >= 2 {
+			i.stmts = append(i.stmts, Stmt{
+				Type:     "backup_file",
+				SQL:      args[1],
+				Database: "",
+				TestName: i.curTest,
+			})
+		}
+		return nil
 	case "busy":
 		// `db busy [list busy_handler $mode $busy_handler_mode]` — the
 		// connection's busy handler (tclsqlite.c DbBusyHandler): the proc is

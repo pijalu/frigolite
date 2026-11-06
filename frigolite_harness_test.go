@@ -4234,6 +4234,42 @@ func TestSQLiteSuite(t *testing.T) {
 								// "database is locked".
 								continue
 							}
+						case "backup_file":
+							// `db backup FILE` (test1.c's DbBackupCmd): the
+							// whole main database backs up into the FILE
+							// through a fresh destination connection
+							// (walbak-4's `db backup test.db2`). C's
+							// backup.c:430 gives the destination the
+							// source's journal-mode identity: a WAL source
+							// leaves the destination in WAL mode (the
+							// copied page 1 carries 2/2).
+							dstPath := step.SQL
+							if !filepath.IsAbs(dstPath) {
+								dstPath = filepath.Join(fixtureDBDir, dstPath)
+							} else {
+								dstPath = routeFixtureAttachPaths(dstPath, fixtureDBDir)
+							}
+							dstConn, derr := Open(dstPath)
+							if derr != nil {
+								t.Errorf("backup destination open: %v", derr)
+								continue
+							}
+							bk, berr := execDB.NewBackup(dstConn, "main", "main")
+							if berr != nil {
+								dstConn.Close()
+								t.Errorf("backup init: %v", berr)
+								continue
+							}
+							if rc := bk.Finish(); rc != "SQLITE_OK" && bk.lastErr != "" {
+								t.Errorf("backup finish: %s %s", rc, bk.lastErr)
+							}
+							if srcPager := execDB.engine.GetDB("main").Pager; srcPager.WALMode() {
+								if dstPager := dstConn.engine.GetDB("main").Pager; dstPager != nil && !dstPager.WALMode() {
+									_ = dstPager.SetJournalMode("wal")
+								}
+							}
+							_ = dstConn.Close()
+							continue
 						case "register_busy_handler":
 							// `db busy [list busy_handler <fixed args>]`
 							// (tclsqlite.c DbBusyHandler): the handler invokes
