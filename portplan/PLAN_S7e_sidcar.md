@@ -130,3 +130,19 @@ divergence — the copied -wal/hash interaction under the leaked-
 connection wi; needs a frame-level dump), walbak-4.3.5/4.4.5 (the BACKUP
 unit: backup.c:430 sqlite3BtreeSetVersion(p->pDest, 2) — the backup
 destination's journal-mode handling, a separate slice).
+
+## S7f: THE BACKUP JOURNAL-MODE UNIT (2026-11-06, 47e9165de)
+
+The walbak-4.x block's real gap: the converter DROPPED `db backup
+test.db2` — no backup step existed, so the destination never received the
+copy (every 4.x.5 "no such table: t1"). Landed: the backup_file step
+(tclconvert) + the harness runner (a fresh destination connection,
+NewBackup+Finish, the source's journal-mode identity to the destination —
+backup.c:430's destMode==WAL/SetVersion(2) contract).
+
+walbak 23 -> 9 (the ENTIRE 4.x block: 4.1.1-4.1.5, 4.2.5, 4.3.1/4.3.3/
+4.3.5, 4.4.5); wal sweep 201 -> 156; the pager sweep unchanged.
+Residue: walbak-3.x (8, pre-existing), wal-12.4 (the copied-pair case:
+the 12.2 close skipped the close-time checkpoint under the refs=2
+leaked-connection close, so the copied main file lacked the schema pages
+— the leak's source needs the harness connection-lifecycle audit).
