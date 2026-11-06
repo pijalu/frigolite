@@ -107,3 +107,26 @@ diffs.
   (which step ends the txn — the close-time path runs INSIDE Pager.Close
   after flushAll; the -shm removal races the wi registry entry?) before
   touching the deletion again.
+
+## PIECE 2 LANDED (2026-11-06, b72123592) — the root cause was a PATH BUG
+
+The setup_9 question resolved: the transaction was never lost — the
+DELETION was a silent no-op. w.path IS the "-wal" path; the first attempt
+removed "t.db-wal-wal"/"t.db-wal-shm" (nothing), so every sidecar
+survived, the journal_mode switches resurrected the old generation at the
+next attach (the stale-hash reads: "table t1 already exists" /
+"no such table: t2"), and the -shm/-wal paths derive from the DATABASE
+path ("t.db-shm" = TrimSuffix(w.path, "-wal")+"-shm").
+
+Landed: the close-time deletion (correct paths), the garbage rule at OPEN
+gated on the registry (walIndexLiveEntry — a held log is never deleted),
+the BUSY-echo for the contended journal_mode switch (vdbe.c:8087), and
+TestWalCloseCheckpointSidecars (the native lifecycle pin).
+
+Results: wal sweep 201 -> 165 (36 net fixed; wal-24.2 passes), walbak 17
+-> 15, e_walckpt 0, pager sweep unchanged, 0 regressions.
+Residue: wal-12.4 (ONE case: the copied-pair scenario's frame-level
+divergence — the copied -wal/hash interaction under the leaked-
+connection wi; needs a frame-level dump), walbak-4.3.5/4.4.5 (the BACKUP
+unit: backup.c:430 sqlite3BtreeSetVersion(p->pDest, 2) — the backup
+destination's journal-mode handling, a separate slice).

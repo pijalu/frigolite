@@ -36,15 +36,17 @@ HANDOFF.
 
 ## Queue (in order)
 
-1. Sidecar lifecycle REMAINDER — piece 2 only (the close-time deletion;
-   pieces 1+3 LANDED: 1ab97052c the switch — walbak-4.3.1/4.3.3 + 4.1.x
-   fixed, wal sweep 23 fixed; 5d9f97c3f the 2/2-reopen re-attach).
-   walbak-4.3.5/4.4.5 + wal-24.2 still fail. The deletion cascades
-   e_walckpt's mode-sweep (setup_9's db2 COMMIT loses its transaction
-   across the per-scenario reopen) — debug that reader-transaction
-   lifecycle at the harness level first; details in
-   portplan/PLAN_S7e_sidcar.md §BISECTION RESULT.
-2. Regen-drift follow-up: e_walauto/interrupt2/wal5 fixtures predate the
+1. Sidecar lifecycle COMPLETE (pieces 1/2/3: 1ab97052c, b72123592,
+   5d9f97c3f) — wal-24.2 passes, walbak-4.3.1/4.3.3 pass, e_walckpt 0.
+   The root cause of the first attempt's cascade: a PATH BUG (w.path IS
+   the -wal path; the first attempt removed "t.db-wal-wal" — a no-op).
+   Residue: wal-12.4 (one copied-pair frame case) + walbak-4.3.5/4.4.5
+   (the BACKUP unit: backup.c:430 SetVersion(p->pDest, 2) — the backup
+   destination's journal-mode handling — a separate slice).
+2. Backup journal-mode unit (walbak-4.3.5/4.4.5 + the rest of the
+   backup-mode table): the destination's journal mode follows the source
+   (backup.c:430).
+3. Regen-drift follow-up: e_walauto/interrupt2/wal5 fixtures predate the
    sqlite3_wal_checkpoint handler — regenerate + battery (S6 procedure).
 5. wal-18.2.x interrupt choreography (24).
 5. Fix B: padToSectorBoundary + PSO/sector-size devchar surface
