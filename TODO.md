@@ -43,9 +43,11 @@ HANDOFF.
    Residue: wal-12.4 (one copied-pair frame case) + walbak-4.3.5/4.4.5
    (the BACKUP unit: backup.c:430 SetVersion(p->pDest, 2) — the backup
    destination's journal-mode handling — a separate slice).
-2. Backup journal-mode unit (walbak-4.3.5/4.4.5 + the rest of the
-   backup-mode table): the destination's journal mode follows the source
-   (backup.c:430).
+2. Backup unit LANDED (47e9165de — the backup_file step + the
+   destination-mode parity): walbak 23 -> 9 (the whole 4.x block).
+   walbak-3.x residue (8) + wal-12.4 (the copied-pair case: the 12.2
+   close skipped the close-time checkpoint under a refs=2 leak — audit
+   the harness connection lifecycle for the leaked test.db connection).
 3. Regen-drift follow-up: e_walauto/interrupt2/wal5 fixtures predate the
    sqlite3_wal_checkpoint handler — regenerate + battery (S6 procedure).
 5. wal-18.2.x interrupt choreography (24).
