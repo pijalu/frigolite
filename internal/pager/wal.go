@@ -1101,6 +1101,14 @@ func (p *Pager) backfillFrameRangeLocked(frames []WalFrame, nFrom, nTo, mxFrame,
 	sort.Ints(pgnos)
 	for _, pgnoInt := range pgnos {
 		pgno := uint32(pgnoInt)
+		// wal.c:2289-2292: the copyback checks the connection's interrupt
+		// flag per page and breaks with SQLITE_INTERRUPT — the szDb
+		// truncate and the nBackfill advance are skipped (the SQLITE_OK
+		// gate at wal.c:2308 covers both), so the interrupted checkpoint
+		// leaves the log's frames standing for the next attempt.
+		if p.interruptFired() {
+			return nPage, ErrCheckpointInterrupted
+		}
 		// testvfs's xWrite fires per main-file page write (walvfs-3.1's
 		// interrupt counter counts the checkpoint's copyback writes).
 		if err := p.vfsCall("xWrite", p.path); err != nil {

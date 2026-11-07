@@ -990,6 +990,7 @@ func NewEngine(pg *pager.Pager) *Engine {
 		},
 		pragmas: execpragma.New(),
 	}
+	e.bindInterruptProbe(mainCtx.Pager)
 	e.expr = execexpr.New(e)
 	e.selectEngine = execquery.NewSelectEngine(e)
 	// Function implementations that render BLOB values as text must decode

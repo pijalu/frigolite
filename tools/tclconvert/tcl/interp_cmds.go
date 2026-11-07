@@ -97,6 +97,14 @@ func init() {
 		"faultsim_restore":            commandFaultsimRestore,
 		"faultsim_restore_and_reopen": commandFaultsimRestoreReopen,
 		"db_delete_and_reopen":        commandResetDB,
+		// malloc_common.tcl:169-172 — faultsim_save IS db_save (and the
+		// restore pair): tester.tcl's snapshot helpers share the exact
+		// implementation, so the interrupt2 section-3 rounds trip through
+		// the same save-image steps.
+		"db_save":                     commandFaultsimSave,
+		"db_save_and_close":           commandFaultsimSaveClose,
+		"db_restore":                  commandFaultsimRestore,
+		"db_restore_and_reopen":       commandFaultsimRestoreReopen,
 		"sqlite3":                     commandSQLite3,
 		"sqlite3_backup":              commandSqlite3Backup,
 		"testvfs":                     commandTestVFS,

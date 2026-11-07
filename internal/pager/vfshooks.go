@@ -89,6 +89,27 @@ func (p *Pager) SetVFSHook(fn func(op, path string, details []string) error) {
 	p.vfsShmMapPending = true
 }
 
+// SetInterruptProbe installs the owning connection's interrupt probe (the
+// engine's IsInterrupted) for the checkpoint copyback's per-page check
+// (wal.c:2289-2292 reads db->u1.isInterrupted between page writes; the
+// pager layer holds no engine reference, so the flag arrives as a closure
+// — the same shape as the busy handler).
+func (p *Pager) SetInterruptProbe(fn func() bool) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.interruptProbe = fn
+}
+
+// interruptFired reports whether the owning connection's interrupt flag is
+// set. A nil probe (a raw pager without an engine binding) is never
+// interrupted.
+func (p *Pager) interruptFired() bool {
+	if p.interruptProbe == nil {
+		return false
+	}
+	return p.interruptProbe()
+}
+
 // translateVFSHookError maps a fixture callback's result code to the C
 // error message the caller would see (sqlite3ErrStr). All the
 // SQLITE_READONLY_* extended codes share the base code's message

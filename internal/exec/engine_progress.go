@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/util"
 )
 
@@ -52,6 +53,18 @@ func (e *Engine) IsInterrupted() bool {
 // statement (used by the TCL harness after a db-eval callback aborts).
 func (e *Engine) ClearInterrupt() {
 	e.interrupted = false
+}
+
+// bindInterruptProbe gives a pager the connection's interrupt flag
+// (wal.c:2289-2292 reads db->u1.isInterrupted between the checkpoint
+// copyback's page writes; the pager layer holds no engine reference, so
+// the flag arrives as a closure — the same shape as the busy handler).
+// Called at engine construction for the main pager and at AppendDBList
+// for every ATTACHed pager.
+func (e *Engine) bindInterruptProbe(pg *pager.Pager) {
+	if pg != nil {
+		pg.SetInterruptProbe(e.IsInterrupted)
+	}
 }
 
 // checkProgress counts engine operations and, every progressPeriod calls,

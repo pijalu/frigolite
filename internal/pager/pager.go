@@ -229,6 +229,11 @@ type Pager struct {
 	// testvfs hook layer (vfshooks.go): the fixture VFS's observable I/O
 	// events, the devchar override, and the WAL sync-flag level.
 	vfsHook               func(op, path string, details []string) error
+	// interruptProbe reports the owning connection's interrupt flag
+	// (sqlite3_interrupt): wal.c's checkpoint copyback consults it between
+	// page writes (wal.c:2289-2292). Installed once at engine binding; nil
+	// on a raw pager (never interrupted).
+	interruptProbe        func() bool
 	shmID                 uint64 // the connection's shm id (test_vfs.c pShmId)
 	vfsShmMapPending      bool
 	deviceCharacteristics int

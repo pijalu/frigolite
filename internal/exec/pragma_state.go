@@ -2,6 +2,7 @@ package exec
 
 import (
 	"fmt"
+	"errors"
 	"strconv"
 	"strings"
 
@@ -408,6 +409,13 @@ func (e *Engine) WalCheckpoint(schema, value string) *execpragma.Result {
 			}
 			b, l, c, err := dbCtx.Pager.CheckpointMode(mode)
 			if err != nil {
+				// wal.c:2289-2292: the copyback aborts SQLITE_INTERRUPT when
+				// the connection's interrupt flag is observed between page
+				// writes — OP_Checkpoint fails the statement.
+				if errors.Is(err, pager.ErrCheckpointInterrupted) {
+					e.interrupted = false
+					return &execpragma.Result{Error: fmt.Errorf("interrupted")}
+				}
 				return &execpragma.Result{Error: err}
 			}
 			if b != 0 {
@@ -428,6 +436,10 @@ func (e *Engine) WalCheckpoint(schema, value string) *execpragma.Result {
 	}
 	busy, nLog, nCkpt, err := ctx.Pager.CheckpointMode(mode)
 	if err != nil {
+		if errors.Is(err, pager.ErrCheckpointInterrupted) {
+			e.interrupted = false
+			return &execpragma.Result{Error: fmt.Errorf("interrupted")}
+		}
 		return &execpragma.Result{Error: err}
 	}
 	// sqlite3_interrupt() DURING the checkpoint (a fixture xWrite callback

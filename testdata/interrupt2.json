@@ -10,6 +10,40 @@
           "type": "close_db"
         },
         {
+          "type": "register_testvfs",
+          "sql": "default",
+          "variable": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xWrite",
+          "database": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "write_cb",
+          "callbackProcs": [
+            {
+              "Name": "write_cb",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n  set filename [lindex $args 0]\n  if {[file tail $filename]==\"test.db\" \u0026\u0026 $::trigger_interrupt} {\n    if {$::trigger_interrupt} {\n      incr ::trigger_interrupt -1\n      if {$::trigger_interrupt==0} { sqlite3_interrupt db }\n    }\n  }\n  return 0\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "write_cb",
+          "database": "tvfs"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "trigger_interrupt"
+        },
+        {
           "type": "reopen_db",
           "sql": "test.db"
         }
@@ -22,6 +56,16 @@
           "type": "query",
           "sql": "CREATE TABLE t1(a, b);\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b);\n  PRAGMA journal_mode = wal;\n\n  WITH ii(i) AS ( VALUES(1) UNION ALL SELECT i+1 FROM ii WHERE i\u003c1000 )\n  INSERT INTO t1 SELECT i, i FROM ii;",
           "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "5",
+          "variable": "trigger_interrupt"
         }
       ]
     },
@@ -46,12 +90,53 @@
       ]
     },
     {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "5",
+          "variable": "trigger_interrupt"
+        }
+      ]
+    },
+    {
+      "name": "interrupt2-1.5.3",
+      "steps": [
+        {
+          "type": "wal_checkpoint_v2",
+          "sql": "truncate",
+          "variable": "__catchrc_msg",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$__catchrc_msg",
+            "$msg"
+          ],
+          "expect": "1 {SQLITE_INTERRUPT - interrupted}"
+        }
+      ]
+    },
+    {
       "name": "interrupt2-1.5.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT count(*) FROM t1",
           "expect": "1000"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "10",
+          "variable": "trigger_interrupt"
         }
       ]
     },
@@ -76,12 +161,53 @@
       ]
     },
     {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "10",
+          "variable": "trigger_interrupt"
+        }
+      ]
+    },
+    {
+      "name": "interrupt2-1.10.3",
+      "steps": [
+        {
+          "type": "wal_checkpoint_v2",
+          "sql": "truncate",
+          "variable": "__catchrc_msg",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$__catchrc_msg",
+            "$msg"
+          ],
+          "expect": "1 {SQLITE_INTERRUPT - interrupted}"
+        }
+      ]
+    },
+    {
       "name": "interrupt2-1.10.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT count(*) FROM t1",
           "expect": "1000"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "15",
+          "variable": "trigger_interrupt"
         }
       ]
     },
@@ -106,12 +232,53 @@
       ]
     },
     {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "15",
+          "variable": "trigger_interrupt"
+        }
+      ]
+    },
+    {
+      "name": "interrupt2-1.15.3",
+      "steps": [
+        {
+          "type": "wal_checkpoint_v2",
+          "sql": "truncate",
+          "variable": "__catchrc_msg",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$__catchrc_msg",
+            "$msg"
+          ],
+          "expect": "1 {SQLITE_INTERRUPT - interrupted}"
+        }
+      ]
+    },
+    {
       "name": "interrupt2-1.15.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT count(*) FROM t1",
           "expect": "1000"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "20",
+          "variable": "trigger_interrupt"
         }
       ]
     },
@@ -132,6 +299,37 @@
           "type": "query",
           "sql": "SELECT count(*) FROM t1",
           "expect": "1000"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "20",
+          "variable": "trigger_interrupt"
+        }
+      ]
+    },
+    {
+      "name": "interrupt2-1.20.3",
+      "steps": [
+        {
+          "type": "wal_checkpoint_v2",
+          "sql": "truncate",
+          "variable": "__catchrc_msg",
+          "catchResult": true,
+          "catchMessage": "msg",
+          "database": "db"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$__catchrc_msg",
+            "$msg"
+          ],
+          "expect": "1 {SQLITE_INTERRUPT - interrupted}"
         }
       ]
     },
@@ -160,6 +358,8 @@
         {
           "type": "query",
           "sql": "SELECT * FROM z1",
+          "variable": "__catchrc_msg",
+          "catchResult": true,
           "catchMessage": "msg",
           "expect": "{1 {SQLITE_INTERRUPT - interrupted}} {1 interrupted}"
         }
@@ -176,14 +376,38 @@
       ]
     },
     {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "faultsim_save_close"
+        },
+        {
+          "type": "faultsim_restore_reopen"
+        }
+      ]
+    },
+    {
       "name": "interrupt2-3.1.1",
       "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "10",
+          "variable": "trigger_interrupt"
+        },
         {
           "type": "query",
           "sql": "SELECT * FROM sqlite_master"
         },
         {
           "type": "close_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "faultsim_restore_reopen"
         }
       ]
     },
@@ -200,11 +424,24 @@
       ]
     },
     {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "faultsim_restore_reopen"
+        }
+      ]
+    },
+    {
       "name": "interrupt2-4.0",
       "steps": [
         {
           "type": "exec",
           "sql": "PRAGMA wal_autocheckpoint = 10"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "10",
+          "variable": "trigger_interrupt"
         },
         {
           "type": "exec",

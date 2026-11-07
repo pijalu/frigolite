@@ -538,3 +538,33 @@ appending.
   per-reopen close-time checkpoints multiply the fault-injection
   schedule. Same residue class as the wal-3 xShmLock hook-callback
   surplus; carded, not a functional gap.
+
+## The checkpoint copyback interrupt check (S8)
+
+- **wal.c:2289-2292 is a per-page check INSIDE the copyback loop**: after
+  each main-db page write, `db->u1.isInterrupted` is consulted and the
+  loop breaks with SQLITE_INTERRUPT — the szDb truncate and the nBackfill
+  advance are skipped (the SQLITE_OK gate at wal.c:2308), so the
+  interrupted attempt leaves the log's frames standing for the next
+  attempt. Without the check the copyback drains the WAL despite the
+  interrupt, and every later interrupt-during-checkpoint trial becomes a
+  no-op (interrupt2's delay=10/15/20 trials saw success).
+- **Plumbing**: `Pager.interruptProbe func() bool` (set once, read
+  without the mutex like vfsHook — no engine reference in the pager
+  layer) bound at NewEngine + AppendDBList via
+  `Engine.bindInterruptProbe(pg.SetInterruptProbe(e.IsInterrupted))`.
+  The sentinel `pager.ErrCheckpointInterrupted` maps to the pragma's
+  "interrupted" Result error; the harness's wal_checkpoint_v2 composition
+  renders "SQLITE_INTERRUPT - interrupted" (test1.c's
+  sqlite3ErrName(rc) " - " errmsg).
+- **Passive-checkpoint triples after a full backfill stay {0 36 36}** —
+  C keeps the frames in the log until a RESET/TRUNCATE (don't pin
+  {0 0 0} after a PASSIVE checkpoint; only TRUNCATE zeroes the log).
+- **tester.tcl's snapshot pair aliases the faultsim pair**
+  (malloc_common.tcl:169-172: `faultsim_save` IS `db_save`): the
+  converter maps db_save/db_save_and_close/db_restore/
+  db_restore_and_reopen to the faultsim step handlers — one line each.
+- **interrupt2-2.1 residue**: a per-row `db eval` callback that arms an
+  interrupt and interleaves a checkpoint MID-SCAN needs an interleaved
+  row-callback step surface (the body was dropped; the query degenerates
+  to a full-row render).

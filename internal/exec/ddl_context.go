@@ -31,6 +31,7 @@ func (e *Engine) AppendDBList(ctx *DatabaseContext) {
 		// The attached pager needs the DML write-tree invalidation hook like
 		// every other database pager (see setPagerLayoutHook).
 		e.setPagerLayoutHook(ctx.Pager)
+		e.bindInterruptProbe(ctx.Pager)
 	}
 }
 

@@ -52,6 +52,12 @@ import (
 var (
 	// errWalBusy is SQLITE_BUSY: the lock byte is held by another connection.
 	errWalBusy = errors.New("database is locked")
+	// ErrCheckpointInterrupted is SQLITE_INTERRUPT observed between the
+	// checkpoint copyback's page writes (wal.c:2289-2292): the connection's
+	// interrupt flag (sqlite3_interrupt) aborts the copyback with the log's
+	// frames standing. Exported so the engine's checkpoint surface maps it
+	// to the statement's "interrupted" failure.
+	ErrCheckpointInterrupted = errors.New("pager: checkpoint interrupted")
 	// errWalBusyRecovery is SQLITE_BUSY_RECOVERY: another connection is
 	// running wal-index recovery (RECOVER lock held).
 	errWalBusyRecovery = errors.New("database is locked")

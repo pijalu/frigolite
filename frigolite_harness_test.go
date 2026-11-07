@@ -1497,8 +1497,8 @@ var unsupportedTestFiles = map[string]string{
 	"cksumvfs":      "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
 	"fallocate":     "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
 	"filectrl":      "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
+	"e_walauto":     "Reads the -shm file's bytes directly (read_nbackfill/read_mxframe binary scans) - not expressible as engine steps",
 	"interrupt":     "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
-	"interrupt2":    "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
 	"journal1":      "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
 	"jrnlmode":      "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
 	"jrnlmode2":     "Tests custom VFS / OS layer - frigolite uses Go I/O directly",
@@ -3682,7 +3682,12 @@ func TestSQLiteSuite(t *testing.T) {
 							composedErr := ""
 							if res.Error != nil {
 								composedErr = res.Error.Error()
-								if !strings.Contains(composedErr, "SQLITE_") {
+								if composedErr == "interrupted" {
+									// OP_Checkpoint's SQLITE_INTERRUPT (the
+									// copyback's wal.c:2289 abort): test1.c
+									// renders sqlite3ErrName(rc) " - " errmsg.
+									composedErr = "SQLITE_INTERRUPT - interrupted"
+								} else if !strings.Contains(composedErr, "SQLITE_") {
 									composedErr = "SQLITE_ERROR - " + composedErr
 								} else if he, ok := res.Error.(*pager.VFSHookError); ok {
 									// test1.c renders sqlite3ErrName(rc) " - "
