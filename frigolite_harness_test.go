@@ -3553,6 +3553,17 @@ func TestSQLiteSuite(t *testing.T) {
 							if prior := namedDBs[step.Database]; prior != nil && !prior.closedFlag {
 								_ = prior.Close()
 							}
+							if prev := namedDBs[step.Database]; prev != nil {
+								// The TCL sqlite3 command replacement closes the
+								// previous connection (SqliteDb deletion →
+								// sqlite3_close) — mirror it so a re-opened name
+								// does not leak its wal-index reference.
+								runCollationDestructors(prev, collationDestructors, runtimeVars)
+								prev.UnregisterEchoModule()
+								if perr := prev.Close(); perr != nil && !prev.closedFlag {
+									t.Errorf("close replaced named database %q: %v", step.Database, perr)
+								}
+							}
 							namedDBs[step.Database] = opened
 							// C's `sqlite3 <name> <file> -vfs <name>` installs
 							// THAT fixture for this connection (walvfs-5.5's
@@ -3898,6 +3909,19 @@ func TestSQLiteSuite(t *testing.T) {
 							path, pathErr := fixtureLifecyclePath(fixtureDBDir, step.SQL)
 							if pathErr != nil {
 								t.Fatal(pathErr)
+							}
+							// C's reopen_db closes the previous connection first
+							// (tester.tcl's `catch {db close}`): the replacement
+							// must not leak the old engine's pager — a leaked
+							// wal-index reference keeps RefCount above 1 and the
+							// next close skips the close-time checkpoint
+							// (wal-12.2's un-backfilled main file).
+							if !db.closedFlag {
+								runCollationDestructors(db, collationDestructors, runtimeVars)
+								db.UnregisterEchoModule()
+								if cerr := db.Close(); cerr != nil {
+									t.Errorf("close lifecycle database for reopen: %v", cerr)
+								}
 							}
 							db, err = Open(path)
 							if err == nil {
