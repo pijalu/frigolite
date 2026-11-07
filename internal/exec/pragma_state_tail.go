@@ -6,6 +6,7 @@ package exec
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/execpragma"
@@ -272,6 +273,25 @@ func tempDirAcceptable(path string) bool {
 		return false
 	}
 	return info.IsDir()
+}
+
+// WalAutoCheckpoint implements PRAGMA wal_autocheckpoint (pragma.c
+// PragTyp_WAL_AUTOCHECKPOINT:2409). The setter stores the page threshold
+// (sqlite3Atoi semantics: a non-numeric value such as OFF is 0) and both
+// forms returnSingleInt the effective value: the stored threshold while the
+// default wal hook is installed, 0 once a custom sqlite3_wal_hook replaced
+// it (the pragma reads db->pWalArg only through the
+// xWalCallback==sqlite3WalDefaultHook gate).
+func (e *Engine) WalAutoCheckpoint(value string) *execpragma.Result {
+	if value != "" {
+		n, _ := strconv.ParseInt(strings.TrimSpace(value), 10, 64)
+		e.settings.walAutoCheckpoint = n
+	}
+	cur := e.settings.walAutoCheckpoint
+	if e.walHook != nil {
+		cur = 0
+	}
+	return &execpragma.Result{Rows: [][]interface{}{{cur}}}
 }
 
 // Synchronous implements PRAGMA synchronous (pragma.c

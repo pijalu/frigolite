@@ -89,6 +89,13 @@ type EngineState interface {
 	// TRUNCATE): it folds the WAL into the main database and resets the WAL.
 	WalCheckpoint(schema, value string) *Result
 
+	// WalAutoCheckpoint implements PRAGMA wal_autocheckpoint (pragma.c
+	// PragTyp_WAL_AUTOCHECKPOINT): the setter stores the page threshold and
+	// both forms return a single row with the effective value — the stored
+	// threshold while the default hook is installed, 0 once a custom
+	// sqlite3_wal_hook replaced it.
+	WalAutoCheckpoint(value string) *Result
+
 	// PageCount returns the current number of pages in the named schema's
 	// database (PRAGMA page_count).
 	PageCount(schema string) int64
@@ -566,6 +573,14 @@ var pragmaHandlers = map[string]Handler{
 	// (getSafetyLevel+1)&3; the getter reports safety_level-1.
 	"SYNCHRONOUS": func(st EngineState, s *sql.PragmaStmt) *Result {
 		return st.Synchronous(s.Schema, s.Value)
+	},
+	// PRAGMA wal_autocheckpoint — mirrors src/pragma.c
+	// PragTyp_WAL_AUTOCHECKPOINT (line 2409): the setter stores the
+	// threshold (sqlite3Atoi semantics — junk is 0, so =OFF stores 0) and
+	// both forms returnSingleInt the effective value (the stored threshold
+	// under the default hook, 0 under a custom sqlite3_wal_hook).
+	"WAL_AUTOCHECKPOINT": func(st EngineState, s *sql.PragmaStmt) *Result {
+		return st.WalAutoCheckpoint(s.Value)
 	},
 	// PRAGMA temp_store — mirrors src/pragma.c PragTyp_TEMP_STORE /
 	// sqlite3PragmaTempStore: an actual value change invalidates the temp
