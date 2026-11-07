@@ -179,3 +179,31 @@ state:
 e_walauto/interrupt2/wal5 fixtures predate the sqlite3_wal_checkpoint
 handler), then the census families. The wal-sweep failure baseline is
 portplan/baseline_wal_sweep_2026-11-07_S7g.txt (138 names).
+
+## S8 RECORD (2026-11-07, 351936d39) — the regen-drift battery + the copyback interrupt check
+
+- The regen-drift battery (queue item 3): interrupt2.json regenerated
+  (the converter captures the testvfs surface) and UNSKIPPED — 35
+  subtests, 8 failures, all one engine root cause. e_walauto carded
+  unsupported (its core reads the -shm bytes via read_nbackfill/
+  read_mxframe binary scans — not expressible as engine steps; the old
+  fixture was internally broken). wal5: the converter captures nothing
+  (lock_common primitives) — the old green fixture stands.
+- ENGINE (wal.c:2289-2292): the checkpoint copyback checks the
+  connection's interrupt flag PER PAGE and aborts SQLITE_INTERRUPT with
+  the log's frames standing. Pager.interruptProbe (closure, like the
+  busy handler) bound at NewEngine + AppendDBList;
+  ErrCheckpointInterrupted → the pragma's "interrupted"; the harness's
+  checkpoint_v2 composition renders "SQLITE_INTERRUPT - interrupted".
+  Native pin: TestCheckpointInterruptPin.
+- Converter: db_save/db_save_and_close/db_restore/db_restore_and_reopen
+  alias the faultsim snapshot pair (malloc_common.tcl:169-172).
+- Results: interrupt2 36/37 (residue 2.1: the per-row callback that
+  arms an interrupt and interleaves a checkpoint mid-scan — needs an
+  interleaved row-callback step surface); walvfs = the exact S7g
+  baseline set; wal sweep 136 = 138 − 2 (e_walauto's card), zero new.
+  Baseline: portplan/baseline_wal_sweep_2026-11-07_S8.txt.
+
+**Restart point**: TODO.md's queue item 6 (the census families) or the
+wal2/wal3 xShmLock trace residue (§Queued item 3). Detail:
+portplan/PLAN_S8_interrupt.md.

@@ -8,12 +8,17 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-Current state (2026-11-07, feature/perf @ bc722d011): the WAL residue
-slice's last two units are closed — the harness refs=2 connection leak
-(bc722d011: reopen_db/open_named_db close the replaced engine; wal sweep
-156 → 147, wal-12.4 + the wal-24.2/setup_78-86 class fixed; walfault-11 =
-carded faultsim trial-cap residue) and the S7g sqlite3_backup command
-object (walbak 9 → 0 — the whole fixture family green). Earlier: S7d landed the
+Current state (2026-11-07, feature/perf @ 351936d39): S8 landed the
+checkpoint copyback interrupt check (wal.c:2289-2292 — the per-page
+flag check aborts the backfill, frames stay standing) + the regen-drift
+battery: interrupt2 UNSKIPPED and 36/37 (the whole 1.x interrupt-during-
+checkpoint block green; residue 2.1 = the per-row callback that
+interleaves a checkpoint mid-scan needs a row-callback surface), the
+snapshot aliases (db_save/db_restore ≡ faultsim) landed, e_walauto
+carded unsupported (-shm byte introspection), wal5 carded
+(lock_common primitives). wal sweep 136 (baseline S8). Earlier: S7g
+landed the sqlite3_backup command object (walbak 9 → 0) and bc722d011
+the harness refs=2 leak (wal sweep 156 → 147). S7d landed the
 locking_mode=EXCLUSIVE flip (silent PRAGMA, the WAL flips at the first
 write and back at the first normal-mode transaction end — the reader's
 mark byte choreography) plus fixture-VFS routing to ATTACHed pagers and
@@ -30,14 +35,12 @@ portplan/PLAN_e_walckpt_S7c.md §OUTCOME.
 
 ## Immediate next action
 
-**Continue the queue below item 3** (regen-drift: e_walauto/interrupt2/wal5
-fixtures predate the sqlite3_wal_checkpoint handler — regenerate + battery
-per the S6 procedure), then the census families. The WAL slice's two open
-units (the refs=2 leak audit, the walbak-3.x sqlite3_backup triage) are
-CLOSED: bc722d011 (the harness close fix, wal sweep 156 → 147) and the
-S7g backup_db unit (walbak 9 → 0). Residues: wal-12.4 fixed by the leak
-fix; walfault-11 is the carded faultsim 512-trial-cap cost of the
-per-reopen close-time checkpoints (see lessons_learned.md).
+**Continue the queue below item 3** — the regen-drift battery (item 3)
+is DONE (S8: interrupt2 unblocked 36/37, e_walauto/wal5 carded; residue
+interrupt2-2.1 needs an interleaved row-callback step surface). Next:
+the census families (item 6) or the wal2/wal3 xShmLock trace residue
+(item 4 in HANDOFF §Queued). Baselines:
+portplan/baseline_wal_sweep_2026-11-07_S8.txt (136 names).
 
 ## Queue (in order)
 
@@ -53,8 +56,11 @@ per-reopen close-time checkpoints (see lessons_learned.md).
    The converter now supports both backup constructs; other dropped-step
    fixtures (backup*.test, pagerfault.test, multiplex3.test) can be
    regenerated in their own units.
-3. Regen-drift follow-up: e_walauto/interrupt2/wal5 fixtures predate the
-   sqlite3_wal_checkpoint handler — regenerate + battery (S6 procedure).
+3. Regen-drift follow-up DONE (S8, 351936d39): interrupt2 unskipped +
+   36/37 (the copyback interrupt check, wal.c:2289-2292); e_walauto
+   carded unsupported (-shm byte introspection); wal5 carded
+   (lock_common primitives). Residue: interrupt2-2.1 (the per-row
+   callback interleaving a checkpoint — needs a row-callback surface).
 5. wal-18.2.x interrupt choreography (24).
 5. Fix B: padToSectorBoundary + PSO/sector-size devchar surface
    (walvfs-5.3's 24-frame expectation; wal.c:4170-4188).
