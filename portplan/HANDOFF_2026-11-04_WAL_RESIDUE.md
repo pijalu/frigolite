@@ -150,3 +150,32 @@ state:
 - Lessons file: .agents/lessons_learned.md (reviewed/extended every unit).
 - Plan docs: portplan/TESTVFS_P_C1_PLAN.md (the WAL-slice log with per-slice
   records), portplan/GAP_CLOSURE_PLAN_2026-10-31.md (progress rows).
+
+## S7e/S7f/S7g RECORDS (2026-11-06/07) — the WAL residue slice is CLOSED
+
+- S7e (1ab97052c, b72123592, 5d9f97c3f): the sidecar lifecycle — the
+  WAL→rollback switch (leaveWALModeLocked, ONE w.Close()), the close-time
+  sidecar deletion (w.path IS the -wal path; the first attempt removed
+  "t.db-wal-wal"), the 2/2-header reopen re-attach + the open-time
+  garbage rule. wal-24.2, walbak-4.3.1/4.3.3 pass. Detail:
+  PLAN_S7e_sidcar.md.
+- S7f (47e9165de): the backup_file step (`db backup FILE`) +
+  backup.c:430's destination journal-mode parity. walbak 23 → 9.
+- bc722d011: the harness refs=2 connection leak — reopen_db /
+  open_named_db now CLOSE the replaced engine (C's tester.tcl
+  semantics). wal sweep 156 → 147 (wal-12.4 + the wal-24.2/setup_78-86
+  class fixed). NEW residue: walfault-11 — the per-reopen close-time
+  checkpoints multiply faultsim's fault-injection schedule → the
+  512-trial cap (874.71s in the S7g sweep). Carded, same class as the
+  wal-3 xShmLock surplus.
+- S7g (f85b1f905): the sqlite3_backup command object (test_backup.c) —
+  the backup_db step, the harness runner over Backup.Step with honest
+  return-code expectations, Finish's BUSY guard (backup.c:599-603).
+  **walbak 9 → 0** (96 subtests). Other dropped-step fixtures
+  (backup*.test, pagerfault.test, multiplex3.test) can regenerate in
+  their own units.
+
+**Restart point**: continue TODO.md's queue from item 3 (regen-drift:
+e_walauto/interrupt2/wal5 fixtures predate the sqlite3_wal_checkpoint
+handler), then the census families. The wal-sweep failure baseline is
+portplan/baseline_wal_sweep_2026-11-07_S7g.txt (138 names).
