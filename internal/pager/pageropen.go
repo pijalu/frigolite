@@ -77,7 +77,11 @@ func openPager(path string, pageSize uint32, forceReadOnly bool) (*Pager, error)
 	}
 
 	pr := &Pager{
-		walSyncFlags: WALSyncNormal, // SQLITE_DEFAULT_SYNCHRONOUS=2 (NORMAL)
+		// SQLITE_DEFAULT_SYNCHRONOUS=2 in the PRAGMA numbering (0=off,
+		// 1=normal, 2=full) — btree.c's safety_level default is 3 (pager
+		// numbering) = FULL: the commit sync bits are set until a PRAGMA
+		// synchronous lowers them.
+		walSyncFlags: WALSyncFull,
 		pageSize:     pageSize,
 		file:         newFaultFile(file), // the TEST io-error injector seam
 		mux:          mux,
@@ -85,6 +89,12 @@ func openPager(path string, pageSize uint32, forceReadOnly bool) (*Pager, error)
 		dirty:        make(map[uint32]bool),
 		fileSize:     info.Size(),
 		shmID:        atomic.AddUint64(&theShmIDSeq, 1),
+		// The unix VFS's default device characteristics (os_unix.c: "This
+		// VFS is set up to return SQLITE_IOCAP_POWERSAFE_OVERWRITE by
+		// default") — walOpen reads them once to clear padToSectorBoundary
+		// and syncHeader (wal.c:1731-1734). A fixture devchar option
+		// REPLACES the whole mask (test_vfs.c tvfsDeviceCharacteristics).
+		deviceCharacteristics: IOCAPPowerSafeOverwrite,
 		// pager.c lazy creation: a database opened empty (0 bytes) must
 		// stay untouched on disk until the first real write — opening and
 		// closing it never materializes the file.
@@ -429,13 +439,16 @@ func OpenInMemory(pageSize uint32) *Pager {
 	}
 	dh := storage.DefaultHeader(pageSize)
 	return &Pager{
-		walSyncFlags: WALSyncNormal, // SQLITE_DEFAULT_SYNCHRONOUS=2 (NORMAL)
-		pageSize:     pageSize,
-		file:         nil,
-		pages:        make(map[uint32]*Page),
-		dirty:        make(map[uint32]bool),
-		numPages:     0,
-		header:       dh.Encode(),
+		// SQLITE_DEFAULT_SYNCHRONOUS=2 (pragma numbering) = FULL — see the
+		// file-pager literal above.
+		walSyncFlags:          WALSyncFull,
+		pageSize:              pageSize,
+		file:                  nil,
+		pages:                 make(map[uint32]*Page),
+		dirty:                 make(map[uint32]bool),
+		numPages:              0,
+		header:                dh.Encode(),
+		deviceCharacteristics: IOCAPPowerSafeOverwrite,
 	}
 }
 

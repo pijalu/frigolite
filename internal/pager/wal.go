@@ -632,6 +632,32 @@ func (w *walWriter) commitLocked(pages []*Page, appended *int) error {
 			return err
 		}
 	}
+	// wal.c:4172-4190 — pad the transaction out to the next sector boundary
+	// when the device lacks POWERSAFE_OVERWRITE and the commit sync bits are
+	// non-zero (synchronous=FULL): the last frame is repeated (with its
+	// commit mark) until the file offset crosses the sync point. The
+	// padding frames join the wal-index like real frames — mxFrame and
+	// aFrameCksum include them; the commit's single xSync still fires once
+	// (C's walWriteToLog syncs at the sync point).
+	extra := 0
+	if walCommitSyncBits(w.p.walSyncFlags) != 0 &&
+		w.p.deviceCharacteristics&IOCAPPowerSafeOverwrite == 0 {
+		const sectorSize = 4096 // SQLITE_DEFAULT_SECTOR_SIZE (os.h:53)
+		frameSize := int64(w.pageSize) + WalFrameHdrSize
+		off := WalHdrSize + int64(w.nFrame)*frameSize
+		syncPoint := (off + sectorSize - 1) / sectorSize * sectorSize
+		pLast := pages[len(pages)-1]
+		for off < syncPoint {
+			if err := w.appendFrame(pLast, true, dbSize); err != nil {
+				return err
+			}
+			if err := w.wi.appendLocked(uint32(w.nFrame), pLast.PageNum, w.hdr.MxFrame); err != nil {
+				return err
+			}
+			off += frameSize
+			extra++
+		}
+	}
 	// Publish the new header (wal.c walFrames isCommit branch).
 	w.hdr.MxFrame = uint32(w.nFrame)
 	w.hdr.NPage = dbSize
@@ -639,7 +665,7 @@ func (w *walWriter) commitLocked(pages []*Page, appended *int) error {
 	w.hdr.AFrameCksum = [2]uint32{w.cksum1, w.cksum2}
 	setPageSizeForHdr(&w.hdr, w.pageSize)
 	w.wi.writeHdrLocked(&w.hdr)
-	*appended = len(pages)
+	*appended = len(pages) + extra
 	return nil
 }
 

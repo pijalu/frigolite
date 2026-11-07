@@ -4455,7 +4455,7 @@ func TestSQLiteSuite(t *testing.T) {
 							})
 							continue
 						case "register_testvfs":
-							testvfsFixtures[step.Variable] = &testvfsFixture{name: step.Variable, isDefault: step.SQL == "default"}
+							testvfsFixtures[step.Variable] = &testvfsFixture{name: step.Variable, isDefault: step.SQL == "default", devcharBits: -1}
 							if step.SQL == "default" {
 								testvfsDefault = step.Variable
 								// The -default fixture governs the connection
@@ -4810,7 +4810,9 @@ func TestSQLiteSuite(t *testing.T) {
 									for _, ctxPager := range execDB.engine.AttachedPagers() {
 										if !ctxPager.IsMemory() && !ctxPager.HasVFSHook() {
 											ctxPager.SetVFSHook(fx.hook(runtimeVars, execDB, namedDBs, fixtureDBDir))
-											ctxPager.SetDeviceCharacteristics(fx.devcharBits)
+											if fx.devcharBits >= 0 {
+												ctxPager.SetDeviceCharacteristics(fx.devcharBits)
+											}
 										}
 									}
 								}
@@ -6381,8 +6383,11 @@ type testvfsFixture struct {
 	// (nothing fires). Before the first `filter` option the fixture is in
 	// the all-methods state (e_walckpt's tvfs_callback without any filter).
 	filterConfigured bool
-	devcharBits      int
-	procs            []callbackProc
+	// devcharBits models test_vfs.c's iDevchar: -1 = passthrough (the real
+	// file's characteristics — the unix default POWERSAFE_OVERWRITE), any
+	// other value REPLACES the whole mask (`tvfs devchar sequential`).
+	devcharBits int
+	procs       []callbackProc
 }
 
 // configure applies one testvfs_config step: script/filter/devchar.
@@ -6401,15 +6406,31 @@ func (fx *testvfsFixture) configure(t *testing.T, step TestStep, runtimeVars map
 		}
 		fx.filterConfigured = true
 	case "devchar":
+		// test_vfs.c CMD_DEVCHAR: no arguments READS the current mask (a
+		// no-op for the fixture's state); "default" resets iDevchar to the
+		// -1 passthrough; a name list REPLACES the whole mask with the
+		// real SQLITE_IOCAP_* bits (sqlite.h.in:671-686).
+		if step.Variable == "" {
+			return
+		}
 		bits := 0
 		for _, name := range strings.Fields(step.Variable) {
 			switch strings.TrimPrefix(name, "+") {
+			case "default":
+				fx.devcharBits = -1
+				return
 			case "sequential":
-				bits |= 0x100 // SQLITE_IOCAP_SEQUENTIAL
+				bits |= 0x400 // SQLITE_IOCAP_SEQUENTIAL
 			case "atomic":
-				bits |= 0x4
+				bits |= 0x1 // SQLITE_IOCAP_ATOMIC
+			case "safe_append":
+				bits |= 0x200 // SQLITE_IOCAP_SAFE_APPEND
+			case "undeletable_when_open":
+				bits |= 0x800 // SQLITE_IOCAP_UNDELETABLE_WHEN_OPEN
 			case "powersafe_overwrite":
-				bits |= 0x800
+				bits |= 0x1000 // SQLITE_IOCAP_POWERSAFE_OVERWRITE
+			case "immutable":
+				bits |= 0x2000 // SQLITE_IOCAP_IMMUTABLE
 			}
 		}
 		fx.devcharBits = bits

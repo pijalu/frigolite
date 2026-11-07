@@ -13,18 +13,24 @@ import (
 // arguments (test_vfs.c's tvfsExecTcl shapes) — the fixture script
 // dispatches on the file's tail (walvfs's xSync counts only test.db-wal
 // syncs) and reads the details for the lock/map/write shapes
-// (e_walckpt's "1 1 lock exclusive").
+// (e_walckpt's "1 1 lock exclusive"). devcharBits < 0 is test_vfs.c's
+// iDevchar=-1 passthrough state — the pager keeps the unix-VFS default
+// mask (POWERSAFE_OVERWRITE) and the fixture never overrides it.
 func (e *Engine) InstallVFSHook(fn func(op, path string, details []string) error, devcharBits int) {
 	for _, ctx := range e.dbList {
 		if ctx != nil && ctx.Pager != nil {
 			ctx.Pager.SetVFSHook(fn)
-			ctx.Pager.SetDeviceCharacteristics(devcharBits)
+			if devcharBits >= 0 {
+				ctx.Pager.SetDeviceCharacteristics(devcharBits)
+			}
 			// A fixture opening AFTER the pragmas ran still needs the
-			// stored synchronous level (the pager default is NORMAL).
+			// stored synchronous level; with none stored the C default
+			// applies (SQLITE_DEFAULT_SYNCHRONOUS=2, pragma numbering =
+			// FULL — commit sync bits set).
 			if lvl, ok := e.settings.synchronousLevels["MAIN"]; ok {
 				ctx.Pager.SetWALSyncFlags(walSyncFlagsForLevel(lvl))
 			} else {
-				ctx.Pager.SetWALSyncFlags(pager.WALSyncNormal)
+				ctx.Pager.SetWALSyncFlags(pager.WALSyncFull)
 			}
 		}
 	}

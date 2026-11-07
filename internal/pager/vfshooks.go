@@ -10,9 +10,13 @@ import (
 // emits the same events through hooks at the identical call sites. The
 // events are observational (S3's ioerr layer adds fault injection).
 
-// SQLITE_IOCAP_* bits (sqlite.h) the fixture's devchar option models.
+// SQLITE_IOCAP_* bits (sqlite.h.in:671-686) the fixture's devchar option
+// models. The zero mask is a legitimate fixture value (testvfs devchar
+// sequential); the unix-VFS default (POWERSAFE_OVERWRITE) is set at Pager
+// construction.
 const (
-	IOCAPSequential = 0x00000100
+	IOCAPSequential         = 0x00000400
+	IOCAPPowerSafeOverwrite = 0x00001000
 )
 
 // theShmIDSeq mints the per-connection shm identifiers (test_vfs.c's
