@@ -1,9 +1,9 @@
 package frigolite
 
 import (
-	"crypto/md5"
 	"bytes"
 	"compress/gzip"
+	"crypto/md5"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
@@ -1210,6 +1210,43 @@ var harnessSkipSubtests = map[string]string{
 	// installs the collA/collB registrations and best-effort deletes).
 	"e_reindex/e_reindex-2.0":   "ATTACH 'test.db2' hits the file another parallel JSON file keeps attached (shared-filename race); the REINDEX-subset contracts (collA/collB registrations installed) are pinned by TestPinReindexRebuildsUnderChangedCollation and TestPinReindexSecondConnectionMissingCollation",
 	"e_reindex/e_reindex-2.6.0": "cascades from 2.0's failed ATTACH (aux schema state)",
+
+	// wal.test 18.2 (the WAL log page-size validation): the crafting do_test
+	// body (wal.test:1172-1208) needs `binary format`/`binary scan` (the
+	// logcksum proc) and the open/puts/close file write — the converter
+	// cannot express them, so the crafted -wal never exists and the valid
+	// page-size assertions (which expect a corrupt database) run against
+	// nothing. The engine contract (a header page-size that is a power of 2
+	// in [512,65536] is recovered and corrupts the db; 128/256/131072/1016
+	// is ignored and integrity_check stays ok) is pinned natively by
+	// TestWalLogPageSizeValidation (frigolite_wal18pgsz_pin_test.go). The
+	// 12 invalid-page-size .5 assertions pass and stay live; the 24
+	// valid-page-size ones are skipped here (binary-format converter class:
+	// 43 ../sqlite test files, carded in TODO.md).
+	"wal/wal-18.2.3.1.5":  "binary-format WAL crafting not expressible in JSON; contract pinned by TestWalLogPageSizeValidation",
+	"wal/wal-18.2.3.2.5":  "binary-format WAL crafting not expressible in JSON; contract pinned by TestWalLogPageSizeValidation",
+	"wal/wal-18.2.3.3.5":  "binary-format WAL crafting not expressible in JSON; contract pinned by TestWalLogPageSizeValidation",
+	"wal/wal-18.2.4.1.5":  "binary-format WAL crafting not expressible in JSON; contract pinned by TestWalLogPageSizeValidation",
+	"wal/wal-18.2.4.2.5":  "binary-format WAL crafting not expressible in JSON; contract pinned by TestWalLogPageSizeValidation",
+	"wal/wal-18.2.4.3.5":  "binary-format WAL crafting not expressible in JSON; contract pinned by TestWalLogPageSizeValidation",
+	"wal/wal-18.2.5.1.5":  "binary-format WAL crafting not expressible in JSON; contract pinned by TestWalLogPageSizeValidation",
+	"wal/wal-18.2.5.2.5":  "binary-format WAL crafting not expressible in JSON; contract pinned by TestWalLogPageSizeValidation",
+	"wal/wal-18.2.5.3.5":  "binary-format WAL crafting not expressible in JSON; contract pinned by TestWalLogPageSizeValidation",
+	"wal/wal-18.2.6.1.5":  "binary-format WAL crafting not expressible in JSON; contract pinned by TestWalLogPageSizeValidation",
+	"wal/wal-18.2.6.2.5":  "binary-format WAL crafting not expressible in JSON; contract pinned by TestWalLogPageSizeValidation",
+	"wal/wal-18.2.6.3.5":  "binary-format WAL crafting not expressible in JSON; contract pinned by TestWalLogPageSizeValidation",
+	"wal/wal-18.2.7.1.5":  "binary-format WAL crafting not expressible in JSON; contract pinned by TestWalLogPageSizeValidation",
+	"wal/wal-18.2.7.2.5":  "binary-format WAL crafting not expressible in JSON; contract pinned by TestWalLogPageSizeValidation",
+	"wal/wal-18.2.7.3.5":  "binary-format WAL crafting not expressible in JSON; contract pinned by TestWalLogPageSizeValidation",
+	"wal/wal-18.2.8.1.5":  "binary-format WAL crafting not expressible in JSON; contract pinned by TestWalLogPageSizeValidation",
+	"wal/wal-18.2.8.2.5":  "binary-format WAL crafting not expressible in JSON; contract pinned by TestWalLogPageSizeValidation",
+	"wal/wal-18.2.8.3.5":  "binary-format WAL crafting not expressible in JSON; contract pinned by TestWalLogPageSizeValidation",
+	"wal/wal-18.2.9.1.5":  "binary-format WAL crafting not expressible in JSON; contract pinned by TestWalLogPageSizeValidation",
+	"wal/wal-18.2.9.2.5":  "binary-format WAL crafting not expressible in JSON; contract pinned by TestWalLogPageSizeValidation",
+	"wal/wal-18.2.9.3.5":  "binary-format WAL crafting not expressible in JSON; contract pinned by TestWalLogPageSizeValidation",
+	"wal/wal-18.2.10.1.5": "binary-format WAL crafting not expressible in JSON; contract pinned by TestWalLogPageSizeValidation",
+	"wal/wal-18.2.10.2.5": "binary-format WAL crafting not expressible in JSON; contract pinned by TestWalLogPageSizeValidation",
+	"wal/wal-18.2.10.3.5": "binary-format WAL crafting not expressible in JSON; contract pinned by TestWalLogPageSizeValidation",
 }
 
 // harnessStaleAssertSubtests holds cases whose ASSERTION is stale but whose

@@ -6,12 +6,12 @@
 package pager
 
 import (
-	"sync/atomic"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 
 	"github.com/pijalu/frigolite/internal/multiplex"
 	"github.com/pijalu/frigolite/internal/quota"
@@ -124,6 +124,17 @@ func openPager(path string, pageSize uint32, forceReadOnly bool) (*Pager, error)
 	}
 	if err := attachWalAtOpen(pr, cleanPath); err != nil {
 		file.Close()
+		if pr.wal != nil {
+			// The attach succeeded but the post-attach page-1 read failed (a
+			// corrupt page-1 frame): the WAL's wal-index reference must be
+			// released here. C's open-failure path closes the pager and
+			// sqlite3WalClose drops the shm reference; dropping the Pager
+			// without closing the WAL would leak the registry entry and pin
+			// a stale shared header over every later open of the same path.
+			w := pr.wal
+			pr.wal = nil
+			_ = w.Close()
+		}
 		return nil, err
 	}
 
