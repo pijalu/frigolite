@@ -198,9 +198,25 @@
       "name": "walbak-2.3",
       "steps": [
         {
+          "type": "backup_db",
+          "sql": "50",
+          "database": "db2",
+          "destDb": "main",
+          "srcConn": "db",
+          "srcDb": "main"
+        },
+        {
           "type": "exec",
-          "sql": "UPDATE t1 SET b = randomblob(500)",
-          "expect": "SQLITE_DONE SQLITE_OK"
+          "sql": "UPDATE t1 SET b = randomblob(500)"
+        },
+        {
+          "type": "backup_db",
+          "sql": "1000",
+          "expect": "SQLITE_DONE SQLITE_OK",
+          "database": "db2",
+          "destDb": "main",
+          "srcConn": "db",
+          "srcDb": "main"
         }
       ]
     },
@@ -234,9 +250,31 @@
           "sql": "PRAGMA cache_size = 10"
         },
         {
+          "type": "backup_db",
+          "sql": "50",
+          "database": "db2",
+          "destDb": "main",
+          "srcConn": "db",
+          "srcDb": "main"
+        },
+        {
           "type": "exec",
           "sql": "BEGIN;\n      UPDATE t1 SET b = randomblob(500);",
           "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "walbak-2.6",
+      "steps": [
+        {
+          "type": "backup_db",
+          "sql": "1000",
+          "expect": "SQLITE_BUSY",
+          "database": "db2",
+          "destDb": "main",
+          "srcConn": "db",
+          "srcDb": "main"
         }
       ]
     },
@@ -245,8 +283,16 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT",
-          "expect": "SQLITE_DONE SQLITE_OK"
+          "sql": "COMMIT"
+        },
+        {
+          "type": "backup_db",
+          "sql": "1000",
+          "expect": "SQLITE_DONE SQLITE_OK",
+          "database": "db2",
+          "destDb": "main",
+          "srcConn": "db",
+          "srcDb": "main"
         }
       ]
     },
@@ -280,9 +326,31 @@
           "sql": "PRAGMA cache_size = 10"
         },
         {
+          "type": "backup_db",
+          "sql": "50",
+          "database": "db2",
+          "destDb": "main",
+          "srcConn": "db",
+          "srcDb": "main"
+        },
+        {
           "type": "exec",
           "sql": "BEGIN;\n      UPDATE t1 SET b = randomblob(500);",
           "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "walbak-2.10",
+      "steps": [
+        {
+          "type": "backup_db",
+          "sql": "1000",
+          "expect": "SQLITE_BUSY",
+          "database": "db2",
+          "destDb": "main",
+          "srcConn": "db",
+          "srcDb": "main"
         }
       ]
     },
@@ -295,8 +363,16 @@
         },
         {
           "type": "exec",
-          "sql": "PRAGMA integrity_check;\n    SELECT md5sum(a, b) FROM t1;",
-          "expect": "SQLITE_DONE SQLITE_OK"
+          "sql": "PRAGMA integrity_check;\n    SELECT md5sum(a, b) FROM t1;"
+        },
+        {
+          "type": "backup_db",
+          "sql": "1000",
+          "expect": "SQLITE_DONE SQLITE_OK",
+          "database": "db2",
+          "destDb": "main",
+          "srcConn": "db",
+          "srcDb": "main"
         }
       ]
     },
@@ -363,6 +439,14 @@
       "name": "walbak-3.1.2",
       "steps": [
         {
+          "type": "backup_db",
+          "sql": "10000",
+          "database": "db2",
+          "destDb": "main",
+          "srcConn": "db",
+          "srcDb": "main"
+        },
+        {
           "type": "exec",
           "sql": "SELECT * FROM t1",
           "expect": "1 2 3 4",
@@ -384,6 +468,14 @@
     {
       "name": "walbak-3.1.4",
       "steps": [
+        {
+          "type": "backup_db",
+          "sql": "10000",
+          "database": "db",
+          "destDb": "main",
+          "srcConn": "db2",
+          "srcDb": "main"
+        },
         {
           "type": "exec",
           "sql": "SELECT * FROM t1",
@@ -458,6 +550,14 @@
       "name": "walbak-3.2.2",
       "steps": [
         {
+          "type": "backup_db",
+          "sql": "10000",
+          "database": "db2",
+          "destDb": "main",
+          "srcConn": "db",
+          "srcDb": "main"
+        },
+        {
           "type": "exec",
           "sql": "SELECT * FROM t1",
           "expect": "1 2 3 4",
@@ -479,6 +579,14 @@
     {
       "name": "walbak-3.2.4",
       "steps": [
+        {
+          "type": "backup_db",
+          "sql": "10000",
+          "database": "db",
+          "destDb": "main",
+          "srcConn": "db2",
+          "srcDb": "main"
+        },
         {
           "type": "exec",
           "sql": "SELECT * FROM t1",
@@ -554,6 +662,14 @@
       "name": "walbak-3.3.2",
       "steps": [
         {
+          "type": "backup_db",
+          "sql": "10000",
+          "database": "db2",
+          "destDb": "main",
+          "srcConn": "db",
+          "srcDb": "main"
+        },
+        {
           "type": "exec",
           "sql": "SELECT * FROM t1",
           "expect": "1 2 3 4",
@@ -575,6 +691,14 @@
     {
       "name": "walbak-3.3.4",
       "steps": [
+        {
+          "type": "backup_db",
+          "sql": "10000",
+          "database": "db",
+          "destDb": "main",
+          "srcConn": "db2",
+          "srcDb": "main"
+        },
         {
           "type": "exec",
           "sql": "SELECT * FROM t1",
@@ -650,6 +774,14 @@
       "name": "walbak-3.4.2",
       "steps": [
         {
+          "type": "backup_db",
+          "sql": "10000",
+          "database": "db2",
+          "destDb": "main",
+          "srcConn": "db",
+          "srcDb": "main"
+        },
+        {
           "type": "exec",
           "sql": "SELECT * FROM t1",
           "expect": "1 2 3 4",
@@ -671,6 +803,14 @@
     {
       "name": "walbak-3.4.4",
       "steps": [
+        {
+          "type": "backup_db",
+          "sql": "10000",
+          "database": "db",
+          "destDb": "main",
+          "srcConn": "db2",
+          "srcDb": "main"
+        },
         {
           "type": "exec",
           "sql": "SELECT * FROM t1",

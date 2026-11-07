@@ -98,6 +98,7 @@ func init() {
 		"faultsim_restore_and_reopen": commandFaultsimRestoreReopen,
 		"db_delete_and_reopen":        commandResetDB,
 		"sqlite3":                     commandSQLite3,
+		"sqlite3_backup":              commandSqlite3Backup,
 		"testvfs":                     commandTestVFS,
 		"sqlite3_exec":                commandSQLite3Exec,
 		"sqlite3_prepare_v2":          commandPrepareStmt,
@@ -256,10 +257,54 @@ func (i *Interp) dispatchCommand(cmd string, rawWords []rawWord, args []string, 
 			return commandTestVFSConfig(i, args, cmd)
 		}
 	}
+	if len(args) > 0 {
+		if _, ok := i.backupHandles[cmd]; ok {
+			if _, known := backupHandleArity(args[0]); known {
+				return i.backupHandleMethod(cmd, args)
+			}
+		}
+	}
 	if proc, ok := i.procs[cmd]; ok {
 		return i.callProc(proc, args, localVars)
 	}
 	// Unknown command — silently ignore (many TCL commands are not needed)
+	return nil
+}
+
+// backupHandleMethod dispatches a sqlite3_backup command object's method
+// (test_backup.c's backupTestCmd). `step N` emits the backup_db step — the
+// harness runs the logical copy to completion, matching C's step when the
+// page budget covers the source (walbak-3's `B step 10000`); `finish`
+// releases the backup and DELETES the command object, and C's finish copies
+// nothing itself, so a finish with no preceding step emits no step.
+// remaining/pagecount report progress — no converted script consumes them.
+func (i *Interp) backupHandleMethod(cmd string, args []string) error {
+	info := i.backupHandles[cmd]
+	switch args[0] {
+	case "step":
+		pages := ""
+		if len(args) >= 2 {
+			pages = args[1]
+		}
+		i.stmts = append(i.stmts, Stmt{
+			Type:     "backup_db",
+			SQL:      pages,
+			Database: info.dest,
+			DestDB:   info.destDB,
+			SrcConn:  info.src,
+			SrcDB:    info.srcDB,
+			TestName: i.curTest,
+		})
+		info.stepped = true
+		i.backupHandles[cmd] = info
+		// C returns sqlite3ErrName: DONE once the budget covers the source.
+		i.vars[""] = "SQLITE_DONE"
+	case "finish":
+		delete(i.backupHandles, cmd)
+		i.vars[""] = "SQLITE_OK"
+	case "remaining", "pagecount":
+		i.vars[""] = "0"
+	}
 	return nil
 }
 

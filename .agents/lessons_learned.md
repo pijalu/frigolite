@@ -490,3 +490,51 @@ appending.
   the BRACED pair list — the harness concatenates the last N catch
   results rendered with tcl.TclList (brace style); distinguish from a
   pragma triple ("0 -1 -1") by the pair's inner message braces.
+
+## Backup: the sqlite3_backup command object (S7g)
+
+- **test_backup.c's object contract**: `sqlite3_backup CMD DEST DESTDB SRC
+  SRCDB` (init) copies NOTHING; methods `step N` / `finish` /
+  `remaining` / `pagecount`; `finish` DELETES the command and ROLLS BACK
+  the destination (backup.c:599-603 — finish never copies), returning the
+  last step's code (DONE→OK). A BUSY step (source write txn / other-conn
+  lock) is resumable, not terminal. frigolite: `Backup.Step` exists in
+  frigolite_backup_step.go (page budget + setDestPgsz + restart rule) —
+  don't re-add a duplicate; Finish's copy-remaining path needs the BUSY
+  guard (added, backup.c-faithful) so a finish after a BUSY step doesn't
+  read the source's uncommitted state.
+- **Converter named-object fallthrough**: the backup handle dispatches
+  like `i.testvfsNames[cmd]` (before `i.procs[cmd]`); `step N` emits one
+  `backup_db` step (the harness runs NewBackup+Step(n)+Finish per
+  emission), `finish` emits nothing and deletes the handle. The harness
+  expect compare renders srcRC alone (single-code expect, walbak-2.6's
+  SQLITE_BUSY) or `srcRC+" "+dstRC` (a `list [B step N] [B finish]`
+  body).
+- **Regenerating a fixture after teaching the converter a construct
+  converts vacuous-green tests into real assertions** (walbak-2.x gained
+  expects incl. SQLITE_BUSY) — the failure-name-set diff stays the
+  arbiter, and recovered steps may fix previously-failing tests for free
+  (walbak 9 → 0).
+- **WAL-source backup page-1-image parity**: a WAL source leaves a
+  file-backed rollback destination reporting WAL (the copied page 1
+  carries 2/2 — walbak-3.x.7); mirror with SetJournalMode("wal") on the
+  live dest, skipped for IsMemory() destinations (memory dbs have no
+  file to carry version bytes).
+
+## Harness connection lifecycle (the wal-12.2 refs=2 leak)
+
+- **C's reopen_db (tester.tcl) runs `catch {db close}` first**, and a
+  `sqlite3 <name> ...` replacement deletes the old command (closing its
+  connection). The harness's reopen_db/open_named_db handlers kept the
+  replaced engine alive: its wal-index reference kept RefCount at 2, the
+  next close skipped the close-time checkpoint, and the copied main file
+  lost the schema pages (wal-12.2/12.4 class). Fix: run the collation
+  destructors, unregister the echo module and Close the replaced engine
+  in BOTH handlers (wal sweep 156 → 147).
+- **The close-time checkpoints make the wal group slower**: every reopen
+  now checkpoints+fsyncs at the next close, so the wal sweep needs
+  -test.timeout 25m (~1400s wall). faultsim families pay a bigger price:
+  walfault-11's trial loop now hits the 512-trial cap (713.77s) — the
+  per-reopen close-time checkpoints multiply the fault-injection
+  schedule. Same residue class as the wal-3 xShmLock hook-callback
+  surplus; carded, not a functional gap.

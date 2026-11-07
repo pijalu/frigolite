@@ -341,6 +341,37 @@ func commandTestVFS(i *Interp, _ []rawWord, args []string, _ map[string]string) 
 	return nil
 }
 
+// commandSqlite3Backup records `sqlite3_backup CMDNAME DESTHANDLE DESTNAME
+// SRCHANDLE SRCNAME` (test_backup.c's backupTestInit): the command object's
+// method calls dispatch through the named-object fallthrough in
+// dispatchCommand. C's sqlite3_backup_init copies nothing — no step is
+// emitted here.
+func commandSqlite3Backup(i *Interp, _ []rawWord, args []string, _ map[string]string) error {
+	if len(args) != 5 {
+		return nil
+	}
+	name := args[0]
+	if i.backupHandles == nil {
+		i.backupHandles = make(map[string]backupHandleInfo)
+	}
+	i.backupHandles[name] = backupHandleInfo{dest: args[1], destDB: args[2], src: args[3], srcDB: args[4]}
+	// C sets the command name as the result (objv[1]).
+	i.vars[""] = name
+	return nil
+}
+
+// backupHandleArity reports the argument count each sqlite3_backup method
+// takes (false = the method is not recognized here).
+func backupHandleArity(method string) (int, bool) {
+	switch method {
+	case "step":
+		return 1, true
+	case "finish", "remaining", "pagecount":
+		return 0, true
+	}
+	return 0, false
+}
+
 // testvfsOptionArity reports the argument count each testvfs option takes
 // (false = the option is not recognized here).
 func testvfsOptionArity(opt string) (int, bool) {

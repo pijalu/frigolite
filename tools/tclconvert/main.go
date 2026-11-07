@@ -80,6 +80,9 @@ type TestStep struct {
 	Innocuous         bool              `json:"innocuous,omitempty"`
 	DirectOnly        bool              `json:"directOnly,omitempty"`
 	Database          string            `json:"database,omitempty"`
+	DestDB            string            `json:"destDb,omitempty"`
+	SrcConn           string            `json:"srcConn,omitempty"`
+	SrcDB             string            `json:"srcDb,omitempty"`
 	TableName         string            `json:"tableName,omitempty"`
 	FileFormat        int               `json:"fileFormat,omitempty"`
 	SchemaSQL         string            `json:"schemaSQL,omitempty"`
@@ -471,7 +474,7 @@ func groupToTestCase(g *stmtGroup) TestCase {
 	tc := TestCase{Name: tcl.StripRuntimeValues(g.name)}
 	for _, s := range g.stmts {
 		step := stepFromStmt(s)
-		if step.SQL != "" || step.Type == "runtime_loop" || step.Type == "runtime_list" || step.Type == "drop_all_indexes" || step.Type == "register_function" || step.Type == "register_collation" || step.Type == "delete_collation" || step.Type == "runtime_var" || step.Type == "register_echo_module" || step.Type == "register_tcl_module" || step.Type == "register_test_funcs" || step.Type == "defensive" || step.Type == "auth_analyze_deny" || step.Type == "auth_proc" || step.Type == "close_db" || step.Type == "reopen_db" || step.Type == "open_empty_db" || step.Type == "open_named_db" || step.Type == "close_named_db" || step.Type == "nullvalue" || step.Type == "set_current_time" || step.Type == "set_limit" || step.Type == "alter_table" || step.Type == "header_format" || step.Type == "write_file" || step.Type == "copy_file" || step.Type == "prepare_stmt" || step.Type == "stmt_step" || step.Type == "stmt_reset" || step.Type == "stmt_finalize" || step.Type == "runtime_assert" || step.Type == "db_status" || step.Type == "runtime_var_reset" || step.Type == "xferopt_reset" || step.Type == "cacheflush" || step.Type == "unlock_notify" || step.Type == "eval_script" || step.Type == "enable_shared_cache" || step.Type == "runtime_expr" || step.Type == "register_testvfs" || step.Type == "testvfs_config" || step.Type == "register_busy_handler" || step.Type == "backup_file" || step.Type == "faultsim_test" || step.Type == "faultsim_save" || step.Type == "faultsim_save_close" || step.Type == "faultsim_restore" || step.Type == "faultsim_restore_reopen" {
+		if step.SQL != "" || step.Type == "runtime_loop" || step.Type == "runtime_list" || step.Type == "drop_all_indexes" || step.Type == "register_function" || step.Type == "register_collation" || step.Type == "delete_collation" || step.Type == "runtime_var" || step.Type == "register_echo_module" || step.Type == "register_tcl_module" || step.Type == "register_test_funcs" || step.Type == "defensive" || step.Type == "auth_analyze_deny" || step.Type == "auth_proc" || step.Type == "close_db" || step.Type == "reopen_db" || step.Type == "open_empty_db" || step.Type == "open_named_db" || step.Type == "close_named_db" || step.Type == "nullvalue" || step.Type == "set_current_time" || step.Type == "set_limit" || step.Type == "alter_table" || step.Type == "header_format" || step.Type == "write_file" || step.Type == "copy_file" || step.Type == "prepare_stmt" || step.Type == "stmt_step" || step.Type == "stmt_reset" || step.Type == "stmt_finalize" || step.Type == "runtime_assert" || step.Type == "db_status" || step.Type == "runtime_var_reset" || step.Type == "xferopt_reset" || step.Type == "cacheflush" || step.Type == "unlock_notify" || step.Type == "eval_script" || step.Type == "enable_shared_cache" || step.Type == "runtime_expr" || step.Type == "register_testvfs" || step.Type == "testvfs_config" || step.Type == "register_busy_handler" || step.Type == "backup_file" || step.Type == "backup_db" || step.Type == "faultsim_test" || step.Type == "faultsim_save" || step.Type == "faultsim_save_close" || step.Type == "faultsim_restore" || step.Type == "faultsim_restore_reopen" {
 			tc.Steps = append(tc.Steps, step)
 		}
 	}
@@ -551,6 +554,9 @@ func stepFromStmt(s tcl.Stmt) TestStep {
 		ListValues:        s.ListValues,
 		InternalFunctions: s.Type == "internal_functions" && s.SQL == "enable",
 		Database:          s.Database,
+		DestDB:            s.DestDB,
+		SrcConn:           s.SrcConn,
+		SrcDB:             s.SrcDB,
 		ResultTransform:   s.ResultTransform,
 		FunctionName:      s.FunctionName,
 		CollationName:     s.CollationName,

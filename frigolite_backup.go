@@ -109,6 +109,12 @@ func (b *Backup) Finish() string {
 	if b.rc == "SQLITE_READONLY" || b.rc == "SQLITE_ERROR" {
 		return b.rc
 	}
+	if b.rc == "SQLITE_BUSY" {
+		// backup.c:599-603 finish: the destination transaction rolls back
+		// (nothing is copied) and the last step's code is returned when the
+		// backup did not complete — a BUSY step leaves the copy mid-flight.
+		return b.rc
+	}
 	if b.done {
 		b.rc = "SQLITE_OK"
 		return b.rc

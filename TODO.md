@@ -8,7 +8,12 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-Current state (2026-11-05, feature/perf @ 935063d2d): S7d landed the
+Current state (2026-11-07, feature/perf @ bc722d011): the WAL residue
+slice's last two units are closed — the harness refs=2 connection leak
+(bc722d011: reopen_db/open_named_db close the replaced engine; wal sweep
+156 → 147, wal-12.4 + the wal-24.2/setup_78-86 class fixed; walfault-11 =
+carded faultsim trial-cap residue) and the S7g sqlite3_backup command
+object (walbak 9 → 0 — the whole fixture family green). Earlier: S7d landed the
 locking_mode=EXCLUSIVE flip (silent PRAGMA, the WAL flips at the first
 write and back at the first normal-mode transaction end — the reader's
 mark byte choreography) plus fixture-VFS routing to ATTACHed pagers and
@@ -25,14 +30,14 @@ portplan/PLAN_e_walckpt_S7c.md §OUTCOME.
 
 ## Immediate next action
 
-**Wal-group residue triage, post-S7c** — regenerate baselines
-(/tmp baselines are gone), then: (1) wal2 exclusive-mode xShmLock traces
-(wal2-6.4.5.2/6.4.8.2, unmasked by the S7c filter fix —
-sqlite3WalExclusiveMode enter/exit choreography); (2) e_walckpt-4.2-4.5 +
-5.3.1 (the WAL→rollback header reset's downstream — plan the
-checkpoint/flush ORDER first, the naive port broke wal-24.x; and the
-IOERR-on-aux injection). Fixture-regen + name-set-diff procedure in the
-HANDOFF.
+**Continue the queue below item 3** (regen-drift: e_walauto/interrupt2/wal5
+fixtures predate the sqlite3_wal_checkpoint handler — regenerate + battery
+per the S6 procedure), then the census families. The WAL slice's two open
+units (the refs=2 leak audit, the walbak-3.x sqlite3_backup triage) are
+CLOSED: bc722d011 (the harness close fix, wal sweep 156 → 147) and the
+S7g backup_db unit (walbak 9 → 0). Residues: wal-12.4 fixed by the leak
+fix; walfault-11 is the carded faultsim 512-trial-cap cost of the
+per-reopen close-time checkpoints (see lessons_learned.md).
 
 ## Queue (in order)
 
@@ -40,14 +45,14 @@ HANDOFF.
    5d9f97c3f) — wal-24.2 passes, walbak-4.3.1/4.3.3 pass, e_walckpt 0.
    The root cause of the first attempt's cascade: a PATH BUG (w.path IS
    the -wal path; the first attempt removed "t.db-wal-wal" — a no-op).
-   Residue: wal-12.4 (one copied-pair frame case) + walbak-4.3.5/4.4.5
-   (the BACKUP unit: backup.c:430 SetVersion(p->pDest, 2) — the backup
-   destination's journal-mode handling — a separate slice).
-2. Backup unit LANDED (47e9165de — the backup_file step + the
-   destination-mode parity): walbak 23 -> 9 (the whole 4.x block).
-   walbak-3.x residue (8) + wal-12.4 (the copied-pair case: the 12.2
-   close skipped the close-time checkpoint under a refs=2 leak — audit
-   the harness connection lifecycle for the leaked test.db connection).
+   Residue RESOLVED: wal-12.4 (the refs=2 leak — bc722d011 closes the
+   replaced connection in reopen_db/open_named_db).
+2. Backup unit COMPLETE: 47e9165de (the backup_file step + the
+   destination-mode parity) + the S7g sqlite3_backup command object
+   (backup_db step; PLAN_S7g_backupdb.md): **walbak 0 failures** (was 23).
+   The converter now supports both backup constructs; other dropped-step
+   fixtures (backup*.test, pagerfault.test, multiplex3.test) can be
+   regenerated in their own units.
 3. Regen-drift follow-up: e_walauto/interrupt2/wal5 fixtures predate the
    sqlite3_wal_checkpoint handler — regenerate + battery (S6 procedure).
 5. wal-18.2.x interrupt choreography (24).

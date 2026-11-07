@@ -146,3 +146,35 @@ Residue: walbak-3.x (8, pre-existing), wal-12.4 (the copied-pair case:
 the 12.2 close skipped the close-time checkpoint under the refs=2
 leaked-connection close, so the copied main file lacked the schema pages
 — the leak's source needs the harness connection-lifecycle audit).
+
+## S7f+1: THE REFS=2 LEAK (2026-11-07, bc722d011)
+
+The harness connection-lifecycle audit found the leaked test.db
+connection: C's reopen_db (tester.tcl) runs `catch {db close}` before the
+replacement, and a `sqlite3 <name>` replacement deletes the old command
+— the harness kept the replaced engine alive in BOTH reopen_db and
+open_named_db. Its wal-index reference held RefCount at 2, wal-12.2's
+close skipped the close-time checkpoint, and the copied main file kept no
+schema pages (wal-12.4's symptom). Fix: close the replaced engine (the
+collation destructors + echo unregister + Close) in both handlers.
+
+wal sweep 156 -> 147 (wal-12.4 + the wal-24.2/setup_78-86 class fixed,
+10 subtests); NEW: walfault-11 — the per-reopen close-time checkpoints
+add shm/fsync I/O that multiplies faultsim's fault-injection schedule, so
+the trial loop hits the 512-trial cap (713.77s). Documented residue, same
+class as the wal-3 xShmLock hook-callback surplus.
+
+## S7g: THE sqlite3_backup COMMAND OBJECT (2026-11-07)
+
+walbak-3.x's 8 failures were all one converter artifact: the
+`sqlite3_backup B <dest> <destdb> <src> <srcdb>; B step 10000; B finish`
+blocks (test_backup.c's command object) were dropped — the setups
+survived (db2 opens :memory:"/""/test.db2 with the pragmas) so every
+3.x.2 SELECT / 3.x.3 INSERT failed "no such table: t1". Landed the
+backup_db step (converter named-object fallthrough + the harness runner
+over the existing Backup.Step machinery) + Finish's BUSY guard
+(backup.c:599-603). Full detail: PLAN_S7g_backupdb.md.
+
+**walbak 9 -> 0** (96 subtests; the regeneration also recovered walbak-2.x
+dropped steps, incl. walbak-2.6/2.10's SQLITE_BUSY expectations against a
+real busy gate). The S7e/S7f residue list is fully closed.

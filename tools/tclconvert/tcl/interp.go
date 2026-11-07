@@ -90,6 +90,13 @@ type Stmt struct {
 	FileTarget      string // destination path for copy_file markers
 	AuxSQL          string // second query for runtime result comparisons (compare_query)
 	FileOffset      int    // byte offset for hexio_write patches
+	// backup_db: the sqlite3_backup command object (test_backup.c's
+	// backupTestInit). Database is the destination connection, DestDB its
+	// schema, SrcConn/SrcDB the source connection and schema; SQL carries
+	// the step's page count.
+	DestDB  string
+	SrcConn string
+	SrcDB   string
 
 	// Runtime loop: a Tcl `for` whose bounds are only known at run time
 	// (the start comes from a query result). The harness evaluates
@@ -140,6 +147,7 @@ type Interp struct {
 	sharedCacheFlag    bool            // the sqlite3_enable_shared_cache conversion-time flag (the restore bakes the previous value)
 	testvfsNames       map[string]bool // the named testvfs wrapper VFSes (test_vfs.c)
 	testvfsScriptProcs map[string]bool // proc names bound as testvfs callback scripts
+	backupHandles      map[string]backupHandleInfo // the sqlite3_backup command objects (test_backup.c)
 	pendingVFS         string          // the -vfs option of the sqlite3 open being converted
 	deletedFiles       map[string]bool // files removed via forcedelete/file delete
 	fileWrites         map[string]*tclFileWrite
@@ -159,6 +167,17 @@ type Interp struct {
 	statusFlagged      *Stmt           // the statement the last `db status` substitution flagged (render-style detection)
 	searchCountReset   bool            // a `set ::sqlite_search_count ...` ran in the current test body (where8's execsql_status2)
 	procGlobals        map[string]bool // names the current proc body declared `global` (write-through in setVar)
+}
+
+// backupHandleInfo records one sqlite3_backup command object
+// (test_backup.c's backupTestInit): the connections and schemas the copy
+// runs between, and whether a step was already emitted for the handle.
+type backupHandleInfo struct {
+	dest    string
+	destDB  string
+	src     string
+	srcDB   string
+	stepped bool
 }
 
 // TCL's random number generator (TclRand in tclBasic.c): a Park-Miller LCG

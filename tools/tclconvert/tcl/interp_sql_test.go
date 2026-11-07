@@ -143,6 +143,44 @@ func TestSQLite3NamedMemoryOpenEmitsOpenMarker(t *testing.T) {
 	}
 }
 
+func TestSQLite3BackupCommandObjectEmitsBackupDB(t *testing.T) {
+	// walbak-3.1.2's object sequence: init copies nothing, `step 10000`
+	// emits the backup_db step the harness runs to completion, `finish`
+	// releases (and deletes the handle — a later step emits nothing).
+	i := NewInterp()
+	if err := i.Execute(`sqlite3_backup B db2 main db main
+B step 10000
+B finish
+B step 1`); err != nil {
+		t.Fatal(err)
+	}
+	stmts := i.Stmts()
+	if len(stmts) != 1 {
+		t.Fatalf("backup object steps = %#v, want one backup_db step", stmts)
+	}
+	s := stmts[0]
+	if s.Type != "backup_db" || s.SQL != "10000" || s.Database != "db2" || s.DestDB != "main" || s.SrcConn != "db" || s.SrcDB != "main" {
+		t.Fatalf("backup_db step = %#v, want dest db2/main, src db/main, pages 10000", s)
+	}
+}
+
+func TestSQLite3BackupHandleSurvivesAcrossSteps(t *testing.T) {
+	// walbak-2.3's shape: two step calls on one handle each emit their own
+	// backup_db step (the harness copies per emission; the source-change
+	// restart is C's backup.c behavior across the steps).
+	i := NewInterp()
+	if err := i.Execute(`sqlite3_backup B db2 main db main
+B step 50
+B step 1000
+B finish`); err != nil {
+		t.Fatal(err)
+	}
+	stmts := i.Stmts()
+	if len(stmts) != 2 || stmts[0].SQL != "50" || stmts[1].SQL != "1000" {
+		t.Fatalf("backup steps = %#v, want two backup_db steps with pages 50 and 1000", stmts)
+	}
+}
+
 func TestNamedDBFunctionRegistrationEmitsDatabaseMarker(t *testing.T) {
 	i := NewInterp()
 	if err := i.Execute(`proc myfunc {x} {expr $x < 10}

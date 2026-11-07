@@ -194,6 +194,9 @@ type TestStep struct {
 	LoopBody             []TestStep        `json:"loopBody,omitempty"`
 	InternalFunctions    bool              `json:"internalFunctions,omitempty"`
 	Database             string            `json:"database,omitempty"`
+	DestDB               string            `json:"destDb,omitempty"`
+	SrcConn              string            `json:"srcConn,omitempty"`
+	SrcDB                string            `json:"srcDb,omitempty"`
 	SQL2                 string            `json:"sql2,omitempty"`
 	Expect               string            `json:"expect,omitempty"`
 	ResultTransform      string            `json:"resultTransform,omitempty"`
@@ -4293,6 +4296,77 @@ func TestSQLiteSuite(t *testing.T) {
 								}
 							}
 							_ = dstConn.Close()
+							continue
+						case "backup_db":
+							// test_backup.c's command object (`sqlite3_backup B
+							// db2 main db main` + `B step 10000` + `B finish`):
+							// the copy runs between two LIVE connections — the
+							// destination stays open (walbak-3's db2 INSERTs
+							// follow the backup). backup.c's page-1 image
+							// carries the source's version bytes: a WAL source
+							// leaves a file-backed rollback destination
+							// reporting WAL (walbak-3.x.7), while an in-memory
+							// destination has no file to carry them.
+							dstConn := db
+							if step.Database != "" && step.Database != "db" && namedDBs != nil {
+								if named := namedDBs[step.Database]; named != nil {
+									dstConn = named
+								}
+							}
+							srcConn := db
+							if step.SrcConn != "" && step.SrcConn != "db" && namedDBs != nil {
+								if named := namedDBs[step.SrcConn]; named != nil {
+									srcConn = named
+								}
+							}
+							dstSchema := step.DestDB
+							if dstSchema == "" {
+								dstSchema = "main"
+							}
+							srcSchema := step.SrcDB
+							if srcSchema == "" {
+								srcSchema = "main"
+							}
+							bk, berr := srcConn.NewBackup(dstConn, dstSchema, srcSchema)
+							if berr != nil {
+								t.Errorf("backup init: %v", berr)
+								continue
+							}
+							// The C script consumes the object's returns where
+							// the fixture expects them (walbak-2.6's
+							// `B step 1000` → SQLITE_BUSY while the source
+							// holds a write transaction; walbak-2.3's
+							// `list [B step 1000] [B finish]` → both codes).
+							stepPages := -1
+							if p, perr := strconv.Atoi(strings.TrimSpace(step.SQL)); perr == nil {
+								stepPages = p
+							}
+							srcRC := bk.Step(stepPages)
+							dstRC := bk.Finish()
+							if step.Expect != "" {
+								got := srcRC
+								if strings.Contains(step.Expect, " ") {
+									got = srcRC + " " + dstRC
+								}
+								if got != step.Expect {
+									t.Errorf("backup result: got %q want %q", got, step.Expect)
+									continue
+								}
+							} else if srcRC != "SQLITE_DONE" && srcRC != "SQLITE_OK" {
+								t.Errorf("backup step: %s %s", srcRC, bk.lastErr)
+								continue
+							}
+							// The copy's page-1 image carries the source's
+							// version bytes: a WAL source leaves a file-backed
+							// destination reporting WAL. A failed step commits
+							// nothing (C rolls the destination back).
+							if srcRC == "SQLITE_DONE" {
+								if srcPager := srcConn.engine.GetDB(srcSchema).Pager; srcPager.WALMode() {
+									if dstPager := dstConn.engine.GetDB(dstSchema).Pager; dstPager != nil && !dstPager.WALMode() && !dstPager.IsMemory() {
+										_ = dstPager.SetJournalMode("wal")
+									}
+								}
+							}
 							continue
 						case "register_busy_handler":
 							// `db busy [list busy_handler <fixed args>]`
