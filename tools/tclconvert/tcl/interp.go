@@ -43,9 +43,9 @@ type Stmt struct {
 	// trial with the ioerr injector armed at the trial index; TestScript is
 	// the -test script evaluated per trial (faultsim_test_result's pattern
 	// list + the integrity/content checks).
-	Prep        []Stmt
-	Body        []Stmt
-	TestScript  string
+	Prep         []Stmt
+	Body         []Stmt
+	TestScript   string
 	TestPatterns []string
 	// stmt_bind: the C-API bind the step performs (sqlite3_bind_text/blob).
 	BindIndex int
@@ -140,16 +140,16 @@ type Interp struct {
 	curTest            string // current test name (from do_test/do_execsql_test)
 	depth              int    // call stack depth guard
 	selectGroup        int
-	catchDepth         int             // nesting level of `catch { ... }` blocks
-	condDepth          int             // nesting level of if-condition evaluation (command substitutions there run in condition context)
-	runtimeProbeCount  int             // fresh probe variables for exprs embedding a query substitution (rewriteEmbeddedQueryExpr)
-	lastCollectVar     string          // the while-shape's collected runtime list (func-13.7)
-	sharedCacheFlag    bool            // the sqlite3_enable_shared_cache conversion-time flag (the restore bakes the previous value)
-	testvfsNames       map[string]bool // the named testvfs wrapper VFSes (test_vfs.c)
-	testvfsScriptProcs map[string]bool // proc names bound as testvfs callback scripts
+	catchDepth         int                         // nesting level of `catch { ... }` blocks
+	condDepth          int                         // nesting level of if-condition evaluation (command substitutions there run in condition context)
+	runtimeProbeCount  int                         // fresh probe variables for exprs embedding a query substitution (rewriteEmbeddedQueryExpr)
+	lastCollectVar     string                      // the while-shape's collected runtime list (func-13.7)
+	sharedCacheFlag    bool                        // the sqlite3_enable_shared_cache conversion-time flag (the restore bakes the previous value)
+	testvfsNames       map[string]bool             // the named testvfs wrapper VFSes (test_vfs.c)
+	testvfsScriptProcs map[string]bool             // proc names bound as testvfs callback scripts
 	backupHandles      map[string]backupHandleInfo // the sqlite3_backup command objects (test_backup.c)
-	pendingVFS         string          // the -vfs option of the sqlite3 open being converted
-	deletedFiles       map[string]bool // files removed via forcedelete/file delete
+	pendingVFS         string                      // the -vfs option of the sqlite3 open being converted
+	deletedFiles       map[string]bool             // files removed via forcedelete/file delete
 	fileWrites         map[string]*tclFileWrite
 	nextFileHandle     int
 	nullToken          string    // "db null TOKEN": rendering of SQL NULLs in results

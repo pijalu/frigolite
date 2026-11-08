@@ -108,6 +108,8 @@ func init() {
 		"sqlite3":                     commandSQLite3,
 		"sqlite3_backup":              commandSqlite3Backup,
 		"testvfs":                     commandTestVFS,
+		"register_circle_geom":        commandRegisterCircleGeom,
+		"register_box_geom":           commandRegisterBoxGeom,
 		"sqlite3_exec":                commandSQLite3Exec,
 		"sqlite3_prepare_v2":          commandPrepareStmt,
 		"sqlite3_prepare_v3":          commandPrepareStmt,

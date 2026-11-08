@@ -27,12 +27,16 @@ import (
 // QueryFn is nil the marker drives the 1st-generation xGeom contract;
 // otherwise it drives the 2nd-generation xQueryFunc (RtreeQueryInfo) one.
 type RtreeGeometry struct {
-	Name      string         // registered SQL function name ("cube", "circle")
-	Params    []float64      // numeric arguments, sqlite3_rtree_geometry.aParam
-	SqlParams []interface{}  // raw arguments (apSqlParam analogue)
-	QueryFn   RtreeQueryFunc // xQueryFunc (nil for 1st-generation callbacks)
-	fn        RtreeGeomFunc  // xGeom
-	user      interface{}    // per-statement cache slot (pUser/xDelUser analogue)
+	Name      string        // registered SQL function name ("cube", "circle")
+	Params    []float64     // numeric arguments, sqlite3_rtree_geometry.aParam
+	SqlParams []interface{} // raw arguments (apSqlParam analogue)
+	// OnCell observes every callback invocation (the test_rtreedoc.c
+	// invokeTclGeomCb hook: the fixture's trace recorder runs even on the
+	// parameter-mismatch error path).
+	OnCell  func(nParam int, aCoord []float64)
+	QueryFn RtreeQueryFunc // xQueryFunc (nil for 1st-generation callbacks)
+	fn      RtreeGeomFunc  // xGeom
+	user    interface{}    // per-statement cache slot (pUser/xDelUser analogue)
 }
 
 // eWithin / eParentWithin values (rtree.c NOT_WITHIN / PARTLY_WITHIN /
@@ -290,6 +294,54 @@ func circleStateFromParams(g *RtreeGeometry, nCoord int, aCoord []float64) (*rtr
 	st.aBox[0] = [4]float64{st.centerx, st.centerx, st.centery + st.radius, st.centery - st.radius}
 	st.aBox[1] = [4]float64{st.centerx + st.radius, st.centerx - st.radius, st.centery, st.centery}
 	return st, nil
+}
+
+// ---- box callback (ext/rtree/test_rtreedoc.c box_geom) ----
+
+// rtreeBoxGeom ports test_rtreedoc.c's box_geom: the box parameters are
+// (min,max) coordinate pairs; a cell overlaps when every pair intersects.
+// The nParam != nCoord mismatch invokes the observer once with the cell's
+// coordinates and then fails the query with "SQL logic error" (the C
+// wrapper maps the callback's SQLITE_ERROR onto the MATCH).
+func rtreeBoxGeom(g *RtreeGeometry, nCoord int, aCoord []float64) (int, error) {
+	if g.OnCell != nil {
+		g.OnCell(len(g.Params), append([]float64(nil), aCoord...))
+	}
+	if len(g.Params) != nCoord {
+		return 0, fmt.Errorf("SQL logic error")
+	}
+	for ii := 0; ii+1 < nCoord; ii += 2 {
+		if aCoord[ii] > g.Params[ii+1] || aCoord[ii+1] < g.Params[ii] {
+			return 0, nil
+		}
+	}
+	return 1, nil
+}
+
+// RegisterRTreeBoxGeometry installs test_rtreedoc.c's register_box_geom
+// bundle: the 1st-generation 2-D "box(min,max,...)" intersection callback.
+// OnCell, when set, observes every callback invocation (the fixture's
+// ::box_geom trace recorder — the C invokeTclGeomCb runs even on the
+// parameter-mismatch error path).
+func RegisterRTreeBoxGeometry(db Database, onCell func(nParam int, aCoord []float64)) {
+	rtreeGeomMu.Lock()
+	prev := rtreeGeomRegistry["box"]
+	rtreeGeomMu.Unlock()
+	RegisterRTreeGeometry(db, "box", rtreeBoxGeom)
+	if onCell == nil {
+		return
+	}
+	// Rebuild the factory so every marker carries the observer (the
+	// registry is global; the previous factory's markers had none).
+	rtreeGeomMu.Lock()
+	base := rtreeGeomRegistry["box"]
+	_ = prev
+	rtreeGeomRegistry["box"] = func(args []interface{}) *RtreeGeometry {
+		g := base(args)
+		g.OnCell = onCell
+		return g
+	}
+	rtreeGeomMu.Unlock()
 }
 
 // ---- 2nd-generation callbacks (test_rtree.c circle_query_func / bfs_query_func) ----

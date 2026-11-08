@@ -14,6 +14,16 @@
       ]
     },
     {
+      "name": "rtreedoc2-1-1.1",
+      "steps": [
+        {
+          "type": "register_rtgeom",
+          "sql": "circle",
+          "expect": "SQLITE_OK"
+        }
+      ]
+    },
+    {
       "name": "rtreedoc2-1-1.1.2",
       "steps": [
         {
@@ -79,7 +89,25 @@
           "type": "query",
           "sql": "SELECT id FROM demo_index WHERE id MATCH qcircle(45.3, 22.9, 5.0, 1)",
           "expect": "10 30"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "register_rtgeom",
+          "sql": "box"
         },
+        {
+          "type": "runtime_var_reset",
+          "variable": "box_geom"
+        }
+      ]
+    },
+    {
+      "name": "rtreedoc2-1-1.3.2",
+      "steps": [
         {
           "type": "query",
           "sql": "SELECT id FROM demo_index WHERE id MATCH box(43,46, 21,25);",
@@ -107,6 +135,15 @@
       ]
     },
     {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "box_geom"
+        }
+      ]
+    },
+    {
       "name": "rtreedoc2-2-1.1.1",
       "steps": [
         {
@@ -117,12 +154,30 @@
       ]
     },
     {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "box_geom"
+        }
+      ]
+    },
+    {
       "name": "rtreedoc2-2-1.2.1",
       "steps": [
         {
           "type": "catch",
           "sql": "SELECT id FROM rt2 WHERE id MATCH box();",
           "expect": "1 {SQL logic error}"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "box_geom"
         }
       ]
     },
@@ -156,11 +211,29 @@
       ]
     },
     {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "ptr_list"
+        }
+      ]
+    },
+    {
       "name": "rtreedoc2-2-3.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM rt1 WHERE id MATCH box(1,1);"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "box_geom"
         }
       ]
     },
@@ -186,7 +259,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "rtreedoc2-2-4.0",
@@ -194,6 +267,19 @@
         {
           "type": "query",
           "sql": "CREATE VIRTUAL TABLE r1 USING rtree(id, minX,maxX, minY,maxY);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i\u003c120\n  )\n  INSERT INTO r1 SELECT i,i,i+1,  200,201 FROM s;"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "register_rtgeom",
+          "sql": "box"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "box_geom"
         }
       ]
     },
@@ -340,6 +426,15 @@
           "type": "query",
           "sql": "SELECT count(*) FROM xyz_node",
           "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "box_geom_calls"
         }
       ]
     },

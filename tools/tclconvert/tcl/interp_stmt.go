@@ -386,6 +386,28 @@ func testvfsOptionArity(opt string) (int, bool) {
 // (`tvfs script xSync`, `tvfs devchar sequential`, `tvfs filter xSync`):
 // SQL carries the option, FunctionProc the script proc (option "script"),
 // Variable the option's value.
+// commandRegisterCircleGeom records test_rtree.c's `register_circle_geom db`
+// (the circle/Qcircle/breadthfirstsearch bundle): the harness installs the
+// engine's geometry callbacks on the named connection.
+func commandRegisterCircleGeom(i *Interp, _ []rawWord, args []string, _ map[string]string) error {
+	if len(args) < 1 {
+		return nil
+	}
+	i.stmts = append(i.stmts, Stmt{Type: "register_rtgeom", SQL: "circle", TestName: i.curTest})
+	return nil
+}
+
+// commandRegisterBoxGeom records ext/rtree/test_rtreedoc.c's
+// `register_box_geom db proc`: the harness installs the box overlap callback
+// (the proc-recording observer is the S19 second slice).
+func commandRegisterBoxGeom(i *Interp, _ []rawWord, args []string, _ map[string]string) error {
+	if len(args) < 2 {
+		return nil
+	}
+	i.stmts = append(i.stmts, Stmt{Type: "register_rtgeom", SQL: "box", TestName: i.curTest})
+	return nil
+}
+
 func commandTestVFSConfig(i *Interp, args []string, cmd string) error {
 	if len(args) < 2 {
 		return nil

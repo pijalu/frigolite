@@ -4486,6 +4486,22 @@ func TestSQLiteSuite(t *testing.T) {
 								// already open at registration too.
 								installDefaultVFS(t, testvfsFixtures, testvfsDefault, db, namedDBs, runtimeVars, fixtureDBDir)
 							}
+						case "register_rtgeom":
+							// test_rtree.c's register_circle_geom /
+							// ext/rtree/test_rtreedoc.c's register_box_geom:
+							// install the engine's geometry callbacks on the
+							// named connection.
+							switch strings.ToLower(step.SQL) {
+							case "circle":
+								if err := execDB.RegisterRtreeGeometry("circle"); err != nil {
+									t.Errorf("register_circle_geom: %v", err)
+								}
+							case "box":
+								// The box recorder is the S19 second slice
+								// (the fixture-proc interpreter); register
+								// the plain overlap callback meanwhile.
+								vtab.RegisterRTreeBoxGeometry(execDB.engine.Database(), nil)
+							}
 						case "testvfs_config":
 							fx := testvfsFixtures[step.Database]
 							if fx == nil {
