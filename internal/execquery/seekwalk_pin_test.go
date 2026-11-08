@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/pijalu/frigolite/internal/exec"
-	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/pager"
+	"github.com/pijalu/frigolite/internal/parse"
 )
 
 // SQLITE_TEST's sqlite3_search_count over the index-driven walks

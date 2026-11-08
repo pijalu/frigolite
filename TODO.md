@@ -57,15 +57,21 @@ generation — re-derive family truth from the case paths before scoping.
   protocol; the query-end finalizer; the runtime-var sync). **rtreedoc2
   0 failures** — the whole 46-case family green.
 
+- **S20** (680e725fd): the search-count surfaces — whereD's
+  do_searchcount_test helper (the labeled SearchStyle), the unique-scan
+  plan shape (a unique fully-bound equality scan has NO Next loop in
+  C's bytecode), and the OR-plan's covering-aware movetos. The where
+  census 102 -> 94 leaves, zero new. The remaining where classes:
+  subquery-in-WHERE search accounting (whereD 3.4.2-3.5.x,
+  6.3.2-6.6.4), where8-3.x's db-status-step counter, the whereD
+  index-cycle shapes.
+
 ## Immediate next action
 
-The census families **where 111, expr 109, pager1 101** (triage per
-family with the census methodology: bucket by message, C-source
-contract, name-diff verification), then the WAL residue classes
-(the xShmLock trace / -shm byte introspection, walvfs error-injection,
-walfault-11, interrupt2-2.1) and the carded converter classes
-(binary-format 43 files, the per-row foreach surface). Baselines:
-/tmp/full_S15_fails.txt, /tmp/tkt_s18_fails.txt, /tmp/rd2j.txt.
+The where census's remaining classes (S20's records), then **expr 109,
+pager1 101**, the WAL residue classes, and the carded converter classes.
+Baselines: /tmp/full_S15_fails.txt, /tmp/where_run3.log (the S20
+where-sweep state), /tmp/tkt_s18_fails.txt.
 
 ## Queue (in order)
 

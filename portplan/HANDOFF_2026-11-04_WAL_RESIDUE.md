@@ -354,3 +354,23 @@ rtree class map (the previous record), where 111, expr 109, pager1 101.
 
 **Restart point**: the census families where 111 / expr 109 / pager1
 101, then the WAL residue classes.
+
+## S20 RECORD (2026-11-08) — the search-count surfaces (where 102 -> 94)
+
+- The whereD do_searchcount_test helper: the converter emits the query
+  with SearchCount + the labeled SearchStyle (" search N"; where8's
+  execsql_status2 stays bare " N").
+- The unique-scan plan shape: a UNIQUE index fully bound by equality has
+  NO Next loop in C's bytecode — the seek path's Next counting is
+  suppressed for that shape (whereD-3.4.1 = seek + row fetch = 2).
+- The OR-plan's movetos are covering-aware: orPlanCovered checks every
+  column the SELECT references against the branches' key columns; a
+  covered query counts seeks + arm Nexts only (whereD-3.1 = 4),
+  uncovered adds one moveto per row (3.2 = 6).
+- C source pins: vdbe.c:4973 (the seek family), vdbe.c:6530
+  (OP_Next/OP_Prev's next_tail), vdbeaux.c:3809 (sqlite3VdbeFinishMoveto
+  — the deferred row fetch DOES count).
+
+**Restart point**: the remaining where classes (subquery-in-WHERE
+search accounting whereD 3.4.2-3.5.x/6.3.2-6.6.4; where8-3.x's
+db-status-step counter), then expr 109 / pager1 101.

@@ -38,6 +38,7 @@ type TestStep struct {
 	StmtStatus        bool              `json:"stmtStatus,omitempty"`
 	StatusStyle       string            `json:"statusStyle,omitempty"` // "bare" renders the counters as "N M" (where8's execsql_status)
 	SearchCount       bool              `json:"searchCount,omitempty"` // reset + append SQLITE_TEST's search counter (where8's execsql_status2)
+	SearchStyle       string            `json:"searchStyle,omitempty"` // "" = bare " N"; "search" = labeled " search N" (whereD's do_searchcount_test)
 	SortMarker        bool              `json:"sortMarker,omitempty"`
 	TransformProc     string            `json:"transformProc,omitempty"`
 	TransformBody     string            `json:"transformBody,omitempty"`
@@ -542,6 +543,7 @@ func stepFromStmt(s tcl.Stmt) TestStep {
 		StmtStatus:        s.StmtStatus,
 		StatusStyle:       s.StatusStyle,
 		SearchCount:       s.SearchCount,
+		SearchStyle:       s.SearchStyle,
 		SortMarker:        s.SortMarker,
 		TransformProc:     s.TransformProc,
 		TransformBody:     s.TransformBody,

@@ -323,4 +323,3 @@ func vtabBigNullOrdering(term sql.OrderByTerm) bool {
 	}
 	return term.NullsFirst && term.Desc
 }
-
