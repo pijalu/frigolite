@@ -886,9 +886,20 @@ func (i *Interp) cmdDoExecSQL(rawWords []rawWord, localVars map[string]string) e
 		AuxSQL:       aux,
 		TestName:     name,
 		Database:     database,
+		SearchCount:  i.searchCountLabeled,
+		SearchStyle:  i.searchCountStyle(),
 	})
 	i.curTest = previous
 	return nil
+}
+
+// searchCountStyle reports the appended-counter rendering: whereD's
+// do_searchcount_test label ("search N") vs where8's bare form.
+func (i *Interp) searchCountStyle() string {
+	if i.searchCountLabeled {
+		return "search"
+	}
+	return ""
 }
 
 // cmdDoCatchSQL handles do_catchsql_test name { SQL } { expected_error }

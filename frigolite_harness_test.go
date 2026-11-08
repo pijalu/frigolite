@@ -308,6 +308,7 @@ type TestStep struct {
 	StmtStatus           bool              `json:"stmtStatus,omitempty"`
 	StatusStyle          string            `json:"statusStyle,omitempty"` // "bare" renders the counters as "N M" (where8's execsql_status); "" renders "scan N sort M" (where7)
 	SearchCount          bool              `json:"searchCount,omitempty"` // reset SQLITE_TEST's search counter before the query and append it after (where8's execsql_status2)
+	SearchStyle          string            `json:"searchStyle,omitempty"` // "" = bare " N"; "search" = labeled " search N" (whereD's do_searchcount_test)
 	SortMarker           bool              `json:"sortMarker,omitempty"`
 	TransformProc        string            `json:"transformProc,omitempty"`
 	TransformBody        string            `json:"transformBody,omitempty"`
@@ -4944,6 +4945,9 @@ func TestSQLiteSuite(t *testing.T) {
 								// SQLITE_TEST's sqlite3_search_count (vdbe.c):
 								// reset before the probe (above), read after.
 								searchSuffix := " " + fmt.Sprint(execDB.engine.SearchCount())
+								if step.SearchStyle == "search" {
+									searchSuffix = " search " + fmt.Sprint(execDB.engine.SearchCount())
+								}
 								statusSuffix = statusSuffix + searchSuffix
 								value = value + searchSuffix
 							}
@@ -5234,7 +5238,11 @@ func TestSQLiteSuite(t *testing.T) {
 							if step.SearchCount {
 								// SQLITE_TEST's sqlite3_search_count (vdbe.c):
 								// reset before the probe (above), read after.
-								got = got + " " + fmt.Sprint(execDB.engine.SearchCount())
+								suffix := fmt.Sprint(execDB.engine.SearchCount())
+								if step.SearchStyle == "search" {
+									suffix = "search " + suffix
+								}
+								got = got + " " + suffix
 							}
 							if step.SortMarker {
 								// The testfixture's cksort helper (collate4.test)

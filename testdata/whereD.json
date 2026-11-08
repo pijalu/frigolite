@@ -205,6 +205,8 @@
         {
           "type": "query",
           "sql": "SELECT a, b FROM t3 WHERE (a=1 AND b='one') OR (a=2 AND b='two')",
+          "searchCount": true,
+          "searchStyle": "search",
           "expect": "1 one 2 two search 4"
         }
       ]
@@ -215,6 +217,8 @@
         {
           "type": "query",
           "sql": "SELECT a, c FROM t3 WHERE (a=1 AND b='one') OR (a=2 AND b='two')",
+          "searchCount": true,
+          "searchStyle": "search",
           "expect": "1 i 2 ii search 6"
         }
       ]
@@ -225,6 +229,8 @@
         {
           "type": "query",
           "sql": "SELECT y FROM t4 WHERE x='a'",
+          "searchCount": true,
+          "searchStyle": "search",
           "expect": "one search 2"
         }
       ]
@@ -235,6 +241,8 @@
         {
           "type": "query",
           "sql": "SELECT a, b FROM t3 WHERE \n        (a=1 AND b=(SELECT y FROM t4 WHERE x='a')) \n     OR (a=2 AND b='two')",
+          "searchCount": true,
+          "searchStyle": "search",
           "expect": "1 one 2 two search 6"
         }
       ]
@@ -245,6 +253,8 @@
         {
           "type": "query",
           "sql": "SELECT a, b FROM t3 WHERE \n        (a=2 AND b='two')\n     OR (a=1 AND b=(SELECT y FROM t4 WHERE x='a'))",
+          "searchCount": true,
+          "searchStyle": "search",
           "expect": "2 two 1 one search 6"
         }
       ]
@@ -255,6 +265,8 @@
         {
           "type": "query",
           "sql": "SELECT a, b FROM t3 WHERE \n        (a=2 AND b=(SELECT y FROM t4 WHERE x='b')) \n     OR (a=1 AND b=(SELECT y FROM t4 WHERE x='a'))",
+          "searchCount": true,
+          "searchStyle": "search",
           "expect": "2 two 1 one search 8"
         }
       ]
@@ -265,6 +277,8 @@
         {
           "type": "query",
           "sql": "SELECT a, b FROM t3 WHERE (a=1 AND b='one') OR rowid=4",
+          "searchCount": true,
+          "searchStyle": "search",
           "expect": "1 one 2 two search 2"
         }
       ]
@@ -275,6 +289,8 @@
         {
           "type": "query",
           "sql": "SELECT a, c FROM t3 WHERE (a=1 AND b='one') OR rowid=4",
+          "searchCount": true,
+          "searchStyle": "search",
           "expect": "1 i 2 ii search 3"
         }
       ]
@@ -394,6 +410,8 @@
         {
           "type": "query",
           "sql": "SELECT e FROM x1 WHERE b=2 OR c=7;",
+          "searchCount": true,
+          "searchStyle": "search",
           "expect": "A B search 6"
         }
       ]
@@ -404,6 +422,8 @@
         {
           "type": "query",
           "sql": "SELECT c FROM x1 WHERE b=2 OR c=7;",
+          "searchCount": true,
+          "searchStyle": "search",
           "expect": "3 7 search 4"
         }
       ]
@@ -414,6 +434,8 @@
         {
           "type": "query",
           "sql": "SELECT e FROM x1 WHERE a=1 OR b=10;",
+          "searchCount": true,
+          "searchStyle": "search",
           "expect": "A C search 6"
         }
       ]
@@ -424,6 +446,8 @@
         {
           "type": "query",
           "sql": "SELECT c FROM x1 WHERE a=1 OR b=10;",
+          "searchCount": true,
+          "searchStyle": "search",
           "expect": "3 11 search 5"
         }
       ]
@@ -434,6 +458,8 @@
         {
           "type": "query",
           "sql": "SELECT rowid FROM x1 WHERE a=1 OR b=10;",
+          "searchCount": true,
+          "searchStyle": "search",
           "expect": "1 3 search 4"
         }
       ]
@@ -444,6 +470,8 @@
         {
           "type": "query",
           "sql": "SELECT a FROM x1 WHERE b BETWEEN 1 AND 4 OR c BETWEEN 8 AND 12",
+          "searchCount": true,
+          "searchStyle": "search",
           "expect": "1 9 search 6"
         }
       ]
@@ -454,6 +482,8 @@
         {
           "type": "query",
           "sql": "SELECT b, c FROM x1 WHERE b BETWEEN 1 AND 4 OR c BETWEEN 8 AND 12",
+          "searchCount": true,
+          "searchStyle": "search",
           "expect": "2 3 10 11 search 5"
         }
       ]
@@ -464,6 +494,8 @@
         {
           "type": "query",
           "sql": "SELECT rowid, c FROM x1 WHERE b BETWEEN 1 AND 4 OR c BETWEEN 8 AND 12",
+          "searchCount": true,
+          "searchStyle": "search",
           "expect": "1 3 3 11 search 4"
         }
       ]
@@ -474,6 +506,8 @@
         {
           "type": "query",
           "sql": "SELECT a FROM x1 WHERE rowid = 2 OR c=11",
+          "searchCount": true,
+          "searchStyle": "search",
           "expect": "5 9 search 3"
         }
       ]
@@ -484,6 +518,8 @@
         {
           "type": "query",
           "sql": "SELECT d FROM x1 WHERE rowid = 2 OR c=11",
+          "searchCount": true,
+          "searchStyle": "search",
           "expect": "8 12 search 2"
         }
       ]
@@ -494,6 +530,8 @@
         {
           "type": "query",
           "sql": "SELECT d FROM x1 WHERE c=11 OR rowid = 2",
+          "searchCount": true,
+          "searchStyle": "search",
           "expect": "12 8 search 2"
         }
       ]
@@ -504,6 +542,8 @@
         {
           "type": "query",
           "sql": "SELECT a FROM x1 WHERE c=11 OR rowid = 2",
+          "searchCount": true,
+          "searchStyle": "search",
           "expect": "9 5 search 3"
         }
       ]
@@ -514,6 +554,8 @@
         {
           "type": "query",
           "sql": "SELECT rowid FROM x1 WHERE a=1 OR b=6 OR c=11",
+          "searchCount": true,
+          "searchStyle": "search",
           "expect": "1 2 3 search 6"
         }
       ]
@@ -524,6 +566,8 @@
         {
           "type": "query",
           "sql": "SELECT c FROM x1 WHERE a=1 OR b=6 OR c=11",
+          "searchCount": true,
+          "searchStyle": "search",
           "expect": "3 7 11 search 7"
         }
       ]
@@ -534,6 +578,8 @@
         {
           "type": "query",
           "sql": "SELECT c FROM x1 WHERE c=11 OR a=1 OR b=6",
+          "searchCount": true,
+          "searchStyle": "search",
           "expect": "11 3 7 search 7"
         }
       ]
@@ -544,6 +590,8 @@
         {
           "type": "query",
           "sql": "SELECT c FROM x1 WHERE b=6 OR c=11 OR a=1",
+          "searchCount": true,
+          "searchStyle": "search",
           "expect": "7 11 3 search 7"
         }
       ]

@@ -37,6 +37,7 @@ type Stmt struct {
 	StmtStatus  bool   // append the stmt-status counters ("scan N sort M") to the value
 	StatusStyle string // "" = labeled ("scan N sort M", where7's count_steps_sort); "bare" = bare counters ("N M", where8's execsql_status)
 	SearchCount bool   // the body also reads ::sqlite_search_count (where8's execsql_status2): reset the counter before the query, append it after
+	SearchStyle string // "" = bare " N" (where8); "search" = labeled " search N" (whereD's do_searchcount_test)
 	Condition   string // the step runs only when this Tcl expression is true
 	VFS         string // the -vfs option of the opening sqlite3 command
 	// faultsim_test (malloc_common.tcl): the Prep/Body step trees replay per
@@ -167,6 +168,7 @@ type Interp struct {
 	tclPrecisionSeen   bool            // whether the source ever set tcl_precision
 	statusFlagged      *Stmt           // the statement the last `db status` substitution flagged (render-style detection)
 	searchCountReset   bool            // a `set ::sqlite_search_count ...` ran in the current test body (where8's execsql_status2)
+	searchCountLabeled bool            // the do_searchcount_test helper: the appended counter carries the "search" label (whereD)
 	procGlobals        map[string]bool // names the current proc body declared `global` (write-through in setVar)
 }
 

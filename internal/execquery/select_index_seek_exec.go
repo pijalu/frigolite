@@ -35,6 +35,11 @@ type indexSeekRun struct {
 	startStrict bool
 	stopProbe   *btree.UnpackedIndexKey // nil = no stored-order stop
 	stopStrict  bool
+	// uniqueScan marks a unique index fully bound by equality: C's plan
+	// shape for it has NO Next loop — the single entry is read and the
+	// loop exits (whereD-3.4.1's contract: the search count is exactly
+	// seek + the row fetch, the terminating Next never runs).
+	uniqueScan bool
 }
 
 func (e *SelectEngine) selectIndexSeekRows(s *sql.SelectStmt, tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef, tree *btree.BTree, feed *simpleAggFeed) (allRows [][]interface{}, allRowMaps []RowMap, handled bool, err error) {
@@ -56,6 +61,7 @@ func (e *SelectEngine) selectIndexSeekRows(s *sql.SelectStmt, tableEntry *schema
 		return nil, nil, false, nil
 	}
 	defer idxTree.Close()
+	run.uniqueScan = e.indexIsUnique(plan.index) && len(plan.eq) >= len(e.indexColumns(plan.index))
 	// The per-row offset sources are scan-local: a nested scan (a correlated
 	// subquery inside this row's evaluation) must not leave its rows'
 	// offsets behind for the enclosing scan's remaining expressions.
@@ -306,8 +312,11 @@ func (e *SelectEngine) indexSeekForwardRows(s *sql.SelectStmt, tableEntry *schem
 		}
 		// SQLITE_TEST's sqlite3_search_count: +1 per successful OP_Next
 		// positioning (vdbe.c next_tail); the final step onto EOF fails and
-		// is not counted.
-		e.ctx.IncSearchCount(1)
+		// is not counted. A unique fully-bound equality scan has NO Next in
+		// C's plan — the single entry is read and the loop exits.
+		if !run.uniqueScan {
+			e.ctx.IncSearchCount(1)
+		}
 	}
 	return allRows, allRowMaps, true
 }
@@ -338,7 +347,9 @@ func (e *SelectEngine) indexSeekReverseRows(s *sql.SelectStmt, tableEntry *schem
 			break
 		}
 		// +1 per successful OP_Next/OP_Prev positioning (next_tail).
-		e.ctx.IncSearchCount(1)
+		if !run.uniqueScan {
+			e.ctx.IncSearchCount(1)
+		}
 	}
 	var allRows [][]interface{}
 	var allRowMaps []RowMap
@@ -396,9 +407,9 @@ func indexSeekCurrentRowid(run *indexSeekRun, cursor *btree.Cursor) (rowid int64
 // the row's output (or steps the statement's aggregate feed).
 func (e *SelectEngine) indexSeekRowOutput(s *sql.SelectStmt, tree *btree.BTree, colDefs []sql.ColumnDef, rowid int64, needMaps bool, feed *simpleAggFeed) ([][]interface{}, []RowMap, bool) {
 	// SQLITE_TEST's sqlite3_search_count: +1 per deferred table-row moveto
-	// (sqlite3VdbeFinishMoveto — the index-driven row fetch). SQLite issues
-	// OP_DeferredSeek per candidate entry BEFORE the residual WHERE runs, so
-	// every candidate counts, the rows the filter drops included.
+	// (vdbeaux.c:3809 sqlite3VdbeFinishMoveto — the index-driven row fetch).
+	// The fetch happens per candidate entry BEFORE the residual WHERE runs,
+	// so every candidate counts, the rows the filter drops included.
 	e.ctx.IncSearchCount(1)
 	cursor, srow, found, ok := e.fetchSeekStructRow(s, tree, rowid, colDefs, needMaps, false, feed != nil)
 	if !ok {

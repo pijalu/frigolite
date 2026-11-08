@@ -768,7 +768,15 @@ func (e *DMLExecutor) execSelectWithOrPlan(s *sql.SelectStmt, tableEntry *schema
 	// per consumed entry except the branch range's EOF step, one deferred
 	// row fetch per emitted row, and a second (blob-pass) seek for each
 	// LIKE/GLOB branch (vdbe.c:4973, 6530; wherecode.c's LIKE loop).
-	searchDelta := int64(len(ordered))
+	// The movetos model C's deferred row fetches: a query COVERED by the OR
+	// arms' indexes (every referenced column is an index key) fetches no
+	// table rows — whereD-3.1 (a,b covered) counts 4 = 2 seeks + 2 arm
+	// Nexts, while 3.2 (c uncovered) adds one moveto per row.
+	movetos := int64(len(ordered))
+	if e.orPlanCovered(s, branches) {
+		movetos = 0
+	}
+	searchDelta := movetos
 	for bi, br := range branches {
 		searchDelta++ // the branch seek
 		if n := len(matches[bi]); n > 0 {
@@ -1182,4 +1190,60 @@ func compareValueLists(a, b []interface{}) int {
 		}
 	}
 	return len(a) - len(b)
+}
+
+// orPlanCovered reports whether every column the OR-planned SELECT
+// references (its output columns and its WHERE columns) lives in one of the
+// branch indexes' key columns — the query then runs as a covering index scan
+// and C's plan performs no deferred table-row fetches.
+func (e *DMLExecutor) orPlanCovered(s *sql.SelectStmt, branches []orBranchPlan) bool {
+	indexCols := map[string]bool{}
+	for _, br := range branches {
+		for _, c := range br.IndexCols {
+			indexCols[strings.ToLower(c)] = true
+		}
+	}
+	if len(indexCols) == 0 {
+		return false
+	}
+	ok := true
+	check := func(expr sql.Expr) {
+		if !ok {
+			return
+		}
+		walkSelectExprs(expr, func(x sql.Expr) {
+			if ref, isRef := x.(*sql.ColumnRef); isRef {
+				if !indexCols[strings.ToLower(ref.Name)] {
+					ok = false
+				}
+			}
+		})
+	}
+	for _, col := range s.Columns {
+		check(col.Expr)
+	}
+	if s.Where != nil {
+		check(s.Where)
+	}
+	return ok
+}
+
+// walkSelectExprs walks one expression tree.
+func walkSelectExprs(expr sql.Expr, fn func(sql.Expr)) {
+	if expr == nil {
+		return
+	}
+	fn(expr)
+	switch v := expr.(type) {
+	case *sql.BinaryOp:
+		walkSelectExprs(v.Left, fn)
+		walkSelectExprs(v.Right, fn)
+	case *sql.UnaryOp:
+		walkSelectExprs(v.Operand, fn)
+	case *sql.InList:
+		walkSelectExprs(v.Operand, fn)
+		for _, item := range v.List {
+			walkSelectExprs(item, fn)
+		}
+	}
 }

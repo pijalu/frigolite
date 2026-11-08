@@ -83,6 +83,7 @@ func init() {
 		"catchsql":                    commandCatchSQL,
 		"db":                          commandDB,
 		"do_execsql_test":             commandDoExecSQL,
+		"do_searchcount_test":         commandDoSearchCount,
 		"do_test":                     commandDoTest,
 		"do_catchsql_test":            commandDoCatchSQL,
 		"do_select_tests":             commandDoSelectTests,
@@ -1417,6 +1418,16 @@ func commandDB(i *Interp, rawWords []rawWord, args []string, localVars map[strin
 // commandDoExecSQL implements `do_execsql_test` and friends.
 func commandDoExecSQL(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
 	defer func() { i.curTest = "" }()
+	return i.cmdDoExecSQL(rawWords, localVars)
+}
+
+// commandDoSearchCount implements whereD.test's do_searchcount_test helper
+// (a do_execsql_test whose body resets SQLITE_TEST's search counter and
+// appends it with the "search" label): emit the query with SearchCount plus
+// the labeled style.
+func commandDoSearchCount(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
+	i.searchCountLabeled = true
+	defer func() { i.searchCountLabeled = false }()
 	return i.cmdDoExecSQL(rawWords, localVars)
 }
 
