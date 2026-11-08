@@ -58,7 +58,7 @@
         },
         {
           "type": "exec",
-          "sql": "DROP TABLE "
+          "sql": "DROP TABLE t5;\n     DROP TABLE t4;\n     DROP TABLE t3;\n     DROP TABLE t2;\n     DROP TABLE t1"
         },
         {
           "type": "exec",
