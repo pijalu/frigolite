@@ -3268,6 +3268,7 @@ func TestSQLiteSuite(t *testing.T) {
 			collationDestructors := make(map[*DB]map[string]string)
 			prepared := make(map[string]*Stmt)
 			stmtCode := make(map[string]string)
+			stmtFinCode := make(map[string]string)
 			// The process-global shared-cache flag belongs to the family that
 			// set it (C runs each test file in its own process): reset it at
 			// every family boundary so it cannot leak into the next file's
@@ -4263,7 +4264,11 @@ func TestSQLiteSuite(t *testing.T) {
 							}
 							row, stepErr := stmt.Step()
 							if stepErr != nil {
-								t.Errorf("step: %v", stepErr)
+								// sqlite3_step's error return is observable
+								// C-API state, not a harness failure: record
+								// the code for the trailing runtime_assert
+								// (tkt1644's SQLITE_ERROR step).
+								stmtCode[step.Variable] = execDB.ErrorCodeFor(stepErr)
 								continue
 							}
 							stmtCode[step.Variable] = "SQLITE_DONE"
@@ -4286,9 +4291,15 @@ func TestSQLiteSuite(t *testing.T) {
 								t.Errorf("unknown prepared statement %q", step.Variable)
 								continue
 							}
-							if finalErr := stmt.Finalize(); finalErr != nil {
-								t.Errorf("finalize: %v", finalErr)
-								continue
+							finalErr := stmt.Finalize()
+							// sqlite3_finalize's return code is observable
+							// C-API state: record it for __FIN_<handle>__
+							// expansions (tkt1644's SQLITE_SCHEMA) instead of
+							// failing the case.
+							if finalErr != nil {
+								stmtFinCode[step.Variable] = execDB.ErrorCodeFor(finalErr)
+							} else {
+								stmtFinCode[step.Variable] = "SQLITE_OK"
 							}
 							delete(prepared, step.Variable)
 						case "runtime_assert":
@@ -4301,6 +4312,9 @@ func TestSQLiteSuite(t *testing.T) {
 							}
 							for handle, code := range stmtCode {
 								actual = strings.ReplaceAll(actual, "__STEP_"+handle+"__", code)
+							}
+							for handle, code := range stmtFinCode {
+								actual = strings.ReplaceAll(actual, "__FIN_"+handle+"__", code)
 							}
 							for varName, value := range runtimeVars {
 								actual = strings.ReplaceAll(actual, "__COLLECT_"+varName+"__", value)

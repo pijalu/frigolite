@@ -845,8 +845,19 @@ func (e *Engine) execCreateStmt(stmt sql.Stmt) *Result {
 	return e.ddl.CreateStmt(stmt)
 }
 
-// execDropStmt dispatches a DROP statement to its executor.
+// execDropStmt dispatches a DROP statement to its executor. A started
+// prepared statement that reads sqlite_master (every DDL rewrites it) or the
+// drop's target table holds its b-tree cursors: the DROP fails SQLITE_LOCKED
+// "database table is locked" and the schema entry persists (tkt2820).
 func (e *Engine) execDropStmt(stmt sql.Stmt) *Result {
+	target := ""
+	switch s := stmt.(type) {
+	case *sql.DropTableStmt:
+		target = s.Name
+	}
+	if e.DDLBlockedByActiveStmt(target) {
+		return &Result{Error: fmt.Errorf("database table is locked")}
+	}
 	return e.ddl.DropStmt(stmt)
 }
 

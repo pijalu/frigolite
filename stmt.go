@@ -58,6 +58,11 @@ type Stmt struct {
 	closed   bool
 	readLock bool
 	readStmt bool
+	// activeReadsID is the engine registry id of this statement's read-table
+	// set while its cursors are open (from the first Step until Reset, run-
+	// to-completion, or finalize); 0 when not registered. The same-connection
+	// DDL lock consults it (tkt2820).
+	activeReadsID uint64
 	// paramNames holds one entry per parameter slot (index i is parameter
 	// i+1; "" for unnamed), assigned per resolve.c sqlite3ExprAssignVarNumber.
 	paramNames []string
@@ -77,6 +82,14 @@ type Stmt struct {
 	// immutable); both are released at Close.
 	ast  []sql.Stmt
 	plan *exec.BindPlan
+	// prepareStamp snapshots the connection's schema mutation stamp at
+	// Prepare; a Step that fails after the stamp moved is the tkt1644
+	// shape: sqlite3_step fails SQLITE_ERROR (the auto-reprepare found the
+	// table gone) and sqlite3_finalize reports SQLITE_SCHEMA.
+	prepareStamp   uint64
+	schemaChanged  bool
+	finalizeCodeOV string
+
 	// bound mirrors args as a slot-indexed table (bound[i] = parameter i+1)
 	// so the per-call fast path projects bindings without iterating the
 	// Bind-API map; maintained by Bind/BindNamed/ClearBindings and the
@@ -124,6 +137,9 @@ func (db *DB) Prepare(sqlText string) (*Stmt, error) {
 	}
 	stmt := &Stmt{db: db, sql: sqlText, args: make(map[int]interface{}), named: make(map[string]interface{})}
 	_, stmt.readStmt = parsed[0].(*sql.SelectStmt)
+	if stmt.db.engine != nil {
+		stmt.prepareStamp = stmt.db.engine.SchemaMutationStamp()
+	}
 	// CollectParameterNames already validated the statement inside
 	// Engine.Prepare; a failure here mirrors that prepare error.
 	names, err := exec.CollectParameterNames(sqlText)
@@ -288,6 +304,9 @@ func (s *Stmt) Step() (bool, error) {
 		if s.readStmt && !s.readLock {
 			s.db.engine.SetPreparedReadLock("main", true)
 			s.readLock = true
+			// The cursors are open from this step onward: register the
+			// statement's read-table set for the same-connection DDL lock.
+			s.activeReadsID = s.db.engine.RegisterStmtReadTables(collectStmtReadTables(s.ast))
 		}
 		var r *Result
 		if s.readStmt {
@@ -298,6 +317,9 @@ func (s *Stmt) Step() (bool, error) {
 		if r.Error != nil {
 			s.releaseReadLock()
 			s.lastErr = r.Error
+			if s.prepareStamp != 0 && s.db.engine.SchemaMutationStamp() != s.prepareStamp {
+				s.schemaChanged = true
+			}
 			s.vmState = vmPoisoned
 			// Classify the error message so sqlite3_errcode emulation
 			// reports the proper code (e.g. malformed → SQLITE_CORRUPT).
@@ -315,6 +337,12 @@ func (s *Stmt) Step() (bool, error) {
 	}
 	if s.row >= len(s.result.Rows) {
 		s.releaseReadLock()
+		if s.activeReadsID != 0 {
+			// Run to completion: the cursors closed (vdbe resets them at
+			// OP_Halt's done path) — the DDL lock lifts.
+			s.db.engine.UnregisterStmtReadTables(s.activeReadsID)
+			s.activeReadsID = 0
+		}
 		s.vmState = vmDone
 		return false, nil
 	}
@@ -348,12 +376,20 @@ func (s *Stmt) StepResult() *Result {
 	return s.result
 }
 
+// schemaChangedError marks a finalize whose statement failed after a schema
+// change: sqlite3_errcode reports SQLITE_SCHEMA (tkt1644).
+type schemaChangedError struct{ err error }
+
+func (e schemaChangedError) Error() string { return e.err.Error() }
+func (e schemaChangedError) Unwrap() error { return e.err }
+
 // Reset allows statement execution again, retaining bindings.
 func (s *Stmt) Reset() error {
 	if s == nil || s.closed {
 		return fmt.Errorf("statement is closed")
 	}
 	s.releaseReadLock()
+	s.schemaChanged = false
 	s.result = nil
 	s.row = 0
 	s.vmState = vmReady
@@ -399,6 +435,13 @@ func (s *Stmt) Finalize() error {
 	if s == nil {
 		return nil
 	}
+	if s.lastErr != nil && s.schemaChanged {
+		// vdbeaux.c sqlite3VdbeFinalize: a statement whose re-prepare found
+		// the schema changed reports SQLITE_SCHEMA from finalize
+		// (tkt1644: the dropped table's stale statement).
+		s.schemaChanged = false
+		s.lastErr = schemaChangedError{err: s.lastErr}
+	}
 	err := s.lastErr
 	if cerr := s.Close(); cerr != nil && err == nil {
 		err = cerr
@@ -417,6 +460,10 @@ func (s *Stmt) releaseReadLock() {
 	if s.readLock {
 		s.db.engine.SetPreparedReadLock("main", false)
 		s.readLock = false
+	}
+	if s.activeReadsID != 0 {
+		s.db.engine.UnregisterStmtReadTables(s.activeReadsID)
+		s.activeReadsID = 0
 	}
 }
 
@@ -530,4 +577,72 @@ func stmtSQLLiteral(v interface{}) string {
 	default:
 		return fmt.Sprint(x)
 	}
+}
+
+// collectStmtReadTables walks a prepared statement's AST and returns the
+// lower-cased FROM table names its cursors open (sqlite_master included):
+// the same-connection DDL lock's read-set (tkt2820). Subqueries recurse —
+// their cursors open during evaluation.
+func collectStmtReadTables(stmts []sql.Stmt) []string {
+	var out []string
+	seen := map[string]bool{}
+	add := func(name string) {
+		if name == "" {
+			return
+		}
+		lt := strings.ToLower(name)
+		if dot := strings.LastIndexByte(lt, '.'); dot >= 0 {
+			lt = lt[dot+1:]
+		}
+		if !seen[lt] {
+			seen[lt] = true
+			out = append(out, lt)
+		}
+	}
+	var walkSelect func(sel *sql.SelectStmt)
+	walkTableRef := func(ref sql.TableRef) {
+		add(ref.Name)
+		if ref.Subquery != nil {
+			walkSelect(ref.Subquery)
+		}
+	}
+	walkSelect = func(sel *sql.SelectStmt) {
+		if sel == nil {
+			return
+		}
+		walkTableRef(sel.From)
+		for _, j := range sel.Joins {
+			walkTableRef(j.Table)
+		}
+		// A WHERE/ON/subquery expression's nested selects open cursors too.
+		var walkExpr func(x sql.Expr)
+		walkExpr = func(x sql.Expr) {
+			switch v := x.(type) {
+			case *sql.Subquery:
+				walkSelect(v.Select)
+			case *sql.ExistsExpr:
+				walkSelect(v.Select)
+			case *sql.InList:
+				walkExpr(v.Operand)
+				for _, item := range v.List {
+					walkExpr(item)
+				}
+			case *sql.BinaryOp:
+				walkExpr(v.Left)
+				walkExpr(v.Right)
+			case *sql.UnaryOp:
+				walkExpr(v.Operand)
+			}
+		}
+		if sel.Where != nil {
+			walkExpr(sel.Where)
+		}
+	}
+	for _, st := range stmts {
+		switch v := st.(type) {
+		case *sql.SelectStmt:
+			walkSelect(v)
+		}
+	}
+	return out
 }

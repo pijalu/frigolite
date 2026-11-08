@@ -74,7 +74,7 @@
         },
         {
           "type": "runtime_assert",
-          "sql": "__STEP_stmt_1__ SQLITE_OK",
+          "sql": "__STEP_stmt_1__ __FIN_stmt_1__",
           "expect": "SQLITE_ERROR SQLITE_SCHEMA"
         }
       ]
@@ -107,7 +107,7 @@
         },
         {
           "type": "runtime_assert",
-          "sql": "__STEP_stmt_2__ SQLITE_OK",
+          "sql": "__STEP_stmt_2__ __FIN_stmt_1__",
           "expect": "SQLITE_ERROR SQLITE_SCHEMA"
         }
       ]
@@ -140,7 +140,7 @@
         },
         {
           "type": "runtime_assert",
-          "sql": "__STEP_stmt_3__ SQLITE_OK",
+          "sql": "__STEP_stmt_3__ __FIN_stmt_1__",
           "expect": "SQLITE_ERROR SQLITE_SCHEMA"
         }
       ]

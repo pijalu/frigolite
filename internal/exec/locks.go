@@ -487,6 +487,79 @@ func (e *Engine) SetPreparedReadLock(name string, on bool) {
 	}
 }
 
+// RegisterStmtReadTables records a started prepared statement's read-table
+// set (lower-cased FROM names) and returns its registry id. The statement
+// stays registered until UnregisterStmtReadTables (Reset/Close/DONE) — the
+// window its b-tree cursors are open (vdbeapi.c: a stepped statement holds
+// its cursors; DDL over a read table fails SQLITE_LOCKED).
+func (e *Engine) RegisterStmtReadTables(tables []string) uint64 {
+	e.activeStmtReadsMu.Lock()
+	defer e.activeStmtReadsMu.Unlock()
+	if e.activeStmtReads == nil {
+		e.activeStmtReads = make(map[uint64]map[string]bool)
+	}
+	e.nextActiveStmtID++
+	id := e.nextActiveStmtID
+	set := make(map[string]bool, len(tables))
+	for _, t := range tables {
+		if t == "" {
+			continue
+		}
+		lt := strings.ToLower(t)
+		if dot := strings.LastIndexByte(lt, '.'); dot >= 0 {
+			lt = lt[dot+1:]
+		}
+		set[lt] = true
+	}
+	e.activeStmtReads[id] = set
+	return id
+}
+
+// UnregisterStmtReadTables drops one statement's read-set (its cursors
+// closed: Reset, run-to-completion, or finalize).
+func (e *Engine) UnregisterStmtReadTables(id uint64) {
+	e.activeStmtReadsMu.Lock()
+	defer e.activeStmtReadsMu.Unlock()
+	delete(e.activeStmtReads, id)
+}
+
+// DDLBlockedByActiveStmt reports whether a started prepared statement reads
+// sqlite_master (every DDL rewrites it) or the named target table — the
+// same-connection "database table is locked" rule of tkt2820.
+func (e *Engine) DDLBlockedByActiveStmt(targetTable string) bool {
+	e.activeStmtReadsMu.Lock()
+	defer e.activeStmtReadsMu.Unlock()
+	target := strings.ToLower(targetTable)
+	if dot := strings.LastIndexByte(target, '.'); dot >= 0 {
+		target = target[dot+1:]
+	}
+	for _, set := range e.activeStmtReads {
+		if set["sqlite_master"] {
+			return true
+		}
+		if target != "" && set[target] {
+			return true
+		}
+	}
+	return false
+}
+
+// SchemaMutationStamp folds every database's schema fingerprint: any DDL on
+// any attached schema moves it. The C-API emulation uses it to detect the
+// schema change between prepare and a failed step (tkt1644: a statement
+// whose table was dropped under it fails SQLITE_ERROR at step and reports
+// SQLITE_SCHEMA from finalize).
+func (e *Engine) SchemaMutationStamp() uint64 {
+	fp := uint64(0x9E3779B97F4A7C15)
+	for _, ctx := range e.dbList {
+		if ctx == nil || ctx.Schema == nil {
+			continue
+		}
+		fp = fp*0x9E3779B97F4A7C15 ^ ctx.Schema.SchemaFingerprint()
+	}
+	return fp
+}
+
 // WriteBlockedByPreparedRead reports whether stmt is a write blocked by a
 // prepared SELECT on another connection. With no foreign marks in the lock
 // registry no other connection can hold a prepared read, so the key

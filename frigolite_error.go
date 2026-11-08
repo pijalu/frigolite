@@ -37,6 +37,10 @@ func (db *DB) specialErrorCode(err error) (string, bool) {
 	if errors.As(err, &halt) {
 		return "SQLITE_ERROR", true
 	}
+	var schemaChanged schemaChangedError
+	if errors.As(err, &schemaChanged) {
+		return "SQLITE_SCHEMA", true
+	}
 	return "", false
 }
 

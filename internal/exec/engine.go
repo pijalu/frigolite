@@ -70,6 +70,16 @@ type Engine struct {
 	sharable    bool
 	sharedFiles map[string]bool
 
+	// activeStmtReads tracks this connection's live prepared statements'
+	// read-table sets (lower-cased FROM names, sqlite_master included): the
+	// same-connection DDL lock. C's DROP TABLE fails SQLITE_LOCKED
+	// "database table is locked" while an unfinalized, started statement
+	// reads the table (or reads sqlite_master — every DDL rewrites it);
+	// tkt2820.
+	activeStmtReadsMu sync.Mutex
+	nextActiveStmtID  uint64
+	activeStmtReads   map[uint64]map[string]bool
+
 	// fullScanSteps and sortOps mirror SQLite's sqlite3_stmt_status
 	// counters: fullScanSteps counts the rows stepped by a full table scan
 	// (SQLITE_STMTSTATUS_FULLSCAN_STEP) and sortOps counts the sorter
