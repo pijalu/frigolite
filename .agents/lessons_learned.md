@@ -660,3 +660,17 @@ appending.
   attributing the counters to the wrong helper fabricates "scan N sort
   M" tails the oracle never emitted. `lsort [execsql_status ...]`
   postprocesses are result transforms, not expectations.
+
+## S17 record (2026-11-08)
+
+- **A dropped per-row foreach cascades into misleading validator errors**:
+  tkt-31338-3.1's `foreach x [db eval {SELECT name FROM sqlite_master...}]
+  { db eval "DROP TABLE $x" }` emitted a bare `DROP TABLE ` ("incomplete
+  input"), left every table in place, and the following section's
+  LEFT-JOIN queries ran against the PREVIOUS section's same-named tables
+  — the ON-clause validator's "references tables to its right" was a
+  cascade artifact, not an engine gap (the real shape passes natively).
+  When a validator error looks wrong, check the fixture's SETUP state
+  first (the stale-fixture lesson generalized to mid-file state).
+- At a deterministic-schema point, a dropped foreach over sqlite_master
+  names hand-pins as explicit DROP TABLE statements (S17).
