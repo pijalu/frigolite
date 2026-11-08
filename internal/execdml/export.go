@@ -46,6 +46,13 @@ func ParseIndexColumns(sqlStr string) []string {
 	return parseIndexColumns(sqlStr)
 }
 
+// ParseIndexColumnCollations extracts per-column COLLATE names from a CREATE
+// INDEX column list ("CREATE INDEX i ON t(a, b COLLATE rtrim)" ->
+// ["", "rtrim"]).
+func ParseIndexColumnCollations(sqlStr string) []string {
+	return sql.ParseIndexColumnCollations(sqlStr)
+}
+
 // ParseSchemaName splits a possibly schema-qualified name into its schema
 // prefix and object name.
 func ParseSchemaName(name string) (schema string, object string) {

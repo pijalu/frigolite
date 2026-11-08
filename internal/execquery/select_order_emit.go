@@ -10,6 +10,7 @@ package execquery
 
 import (
 	"github.com/pijalu/frigolite/internal/btree"
+	"github.com/pijalu/frigolite/internal/pager"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/schema"
@@ -139,7 +140,16 @@ func simpleOrderedScanShape(s *sql.SelectStmt) bool {
 // orderScanIndexForCols finds an index over cols for the select's FROM table
 // that the WHERE clause does not defeat with non-indexable constraints.
 func (e *SelectEngine) orderScanIndexForCols(s *sql.SelectStmt, cols []string) (string, bool) {
-	idxName := e.findIndexOnColsForQuery(s.From.Name, cols, s.Where)
+	// Collation-aware first: the terms' explicit COLLATE names participate
+	// in the match (where.c compares the term's collation with the index's
+	// azColl array). Terms the term-matcher cannot represent fall back to
+	// the name-only path.
+	idxName := ""
+	if terms := orderByTermColls(s); terms != nil {
+		idxName = e.findIndexForOrderTerms(s.From.Name, terms, s.Where)
+	} else {
+		idxName = e.findIndexOnColsForQuery(s.From.Name, cols, s.Where)
+	}
 	if idxName == "" {
 		return "", false
 	}
@@ -188,7 +198,7 @@ func orderByTermColumnsWithDirs(orderBy []sql.OrderByTerm) (cols []string, descs
 // index (true = DESC). Autoindexes are always ascending. ok is false when the
 // index has no schema entry.
 func (e *SelectEngine) indexColumnDescFlags(tableName, idxName string) ([]bool, bool) {
-	entry := e.schemaIndexEntry(indexSchemaName(idxName))
+	entry := e.schemaIndexEntryForTable(tableName, indexSchemaName(idxName))
 	if entry == nil {
 		return nil, false
 	}
@@ -213,6 +223,26 @@ func (e *SelectEngine) indexColumnDescFlags(tableName, idxName string) ([]bool, 
 }
 
 // schemaIndexEntry finds an index's schema entry by name.
+// indexEntryAndPager resolves an index entry in the OWNING schema of the
+// named FROM table (possibly schema-qualified: an attached database's
+// same-named index is a separate b-tree over its own pager) plus that
+// context's pager. The engine's default context serves when the table does
+// not resolve.
+func (e *SelectEngine) indexEntryAndPager(tableName, idxName string) (*schema.Entry, *pager.Pager) {
+	if _, tblCtx, err := e.ctx.FindTable(tableName); err == nil && tblCtx != nil {
+		entries, gerr := tblCtx.Schema.GetEntries("")
+		if gerr == nil {
+			for _, entry := range entries {
+				if entry.Type == "index" && entry.Name == idxName {
+					return entry, tblCtx.Pager
+				}
+			}
+			return nil, nil
+		}
+	}
+	return e.schemaIndexEntry(idxName), e.ctx.Pager()
+}
+
 func (e *SelectEngine) schemaIndexEntry(idxName string) *schema.Entry {
 	entries, err := e.ctx.Schema().GetEntries("")
 	if err != nil {
@@ -224,6 +254,13 @@ func (e *SelectEngine) schemaIndexEntry(idxName string) *schema.Entry {
 		}
 	}
 	return nil
+}
+
+// schemaIndexEntryForTable resolves an index entry within the FROM table's
+// owning schema (falling back to the engine's default context).
+func (e *SelectEngine) schemaIndexEntryForTable(tableName, idxName string) *schema.Entry {
+	entry, _ := e.indexEntryAndPager(tableName, idxName)
+	return entry
 }
 
 // emitRowsInIndexOrder reorders the scan's output into the index b-tree's
@@ -335,8 +372,8 @@ func indexOrderPermutation(rowids []int64, posByRowid map[int64]int, n int) []in
 // trailing rowid in stored key order (index records carry the rowid as their
 // last element).
 func (e *SelectEngine) indexStoredRowidOrder(tableName, idxName string) ([]int64, bool) {
-	entry := e.schemaIndexEntry(indexSchemaName(idxName))
-	if entry == nil || entry.RootPage == 0 {
+	entry, pager := e.indexEntryAndPager(tableName, indexSchemaName(idxName))
+	if entry == nil || entry.RootPage == 0 || pager == nil {
 		return nil, false
 	}
 	// The index b-tree is built directly over the context's pager at the
@@ -344,7 +381,7 @@ func (e *SelectEngine) indexStoredRowidOrder(tableName, idxName string) ([]int64
 	// through the TABLE's tracked-root map, which would substitute the
 	// table's root and misread the tree (an index walk must use the index's
 	// own rootpage).
-	tree := btree.NewBTree(e.ctx.Pager(), entry.RootPage, false)
+	tree := btree.NewBTree(pager, entry.RootPage, false)
 	defer tree.Close() // tree and its scan cursor are function-local
 	cursor, err := tree.OpenCursor()
 	if err != nil {

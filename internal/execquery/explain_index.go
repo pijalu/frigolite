@@ -260,28 +260,116 @@ func (e *SelectEngine) findIndexOnColsForQuery(tableName string, cols []string, 
 	if len(cols) == 0 {
 		return ""
 	}
-	entries, err := e.ctx.Schema().GetEntries("")
+	terms := make([]orderTermCol, len(cols))
+	for i, c := range cols {
+		terms[i] = orderTermCol{col: c}
+	}
+	return e.findIndexForOrderTerms(tableName, terms, where)
+}
+
+// findIndexForOrderTerms resolves the index whose leading columns match the
+// ORDER BY terms under where.c's collation rule: each term's EFFECTIVE
+// collation (the term's explicit COLLATE, else the table column's declared
+// COLLATE, else BINARY) must equal the index column's DECLARED collation
+// (the index definition's explicit COLLATE, else the table column's
+// declared COLLATE, else BINARY) by NAME. The current registration of a
+// collation is irrelevant — a stale stored order (an index last rebuilt
+// under a different registration) still satisfies the ORDER BY (e_reindex
+// 2.3.x's contract). Partial indexes are only used when the query WHERE
+// implies the partial-index predicate.
+func (e *SelectEngine) findIndexForOrderTerms(tableName string, terms []orderTermCol, where sql.Expr) string {
+	if len(terms) == 0 {
+		return ""
+	}
+	// The candidate indexes come from the FROM table's OWNING schema: an
+	// attached database's same-named indexes are separate b-trees with
+	// their own stored orders (e_reindex 2.4.x: REINDEX main.t1 must not
+	// plan aux.t1's index walk through main's entry).
+	_, tblCtx, err := e.ctx.FindTable(tableName)
+	if err != nil || tblCtx == nil {
+		return ""
+	}
+	entries, err := tblCtx.Schema.GetEntries("")
 	if err != nil {
 		return ""
 	}
+	// Schema-qualified FROM names ("aux.t1") match entries by the bare
+	// object name; the collation lookups resolve the qualified spelling.
+	objName := unqualifiedObjectName(tableName)
+	// The table's declared per-column collations (the fallback both sides
+	// resolve through when neither the term nor the index declares one).
+	tableColls := map[string]string{}
 	for _, entry := range entries {
-		if entry.Type != "index" || entry.TblName != tableName || e.indexIsUnordered(entry.Name) {
+		if entry.Type == "table" && strings.EqualFold(entry.Name, objName) {
+			for _, def := range e.ctx.ParseColumnDefs(tableName, entry.SQL) {
+				tableColls[strings.ToLower(def.Name)] = def.Collate
+			}
+			break
+		}
+	}
+	declared := func(explicit, col string) string {
+		if explicit != "" {
+			return explicit
+		}
+		if c := tableColls[strings.ToLower(col)]; c != "" {
+			return c
+		}
+		return "BINARY"
+	}
+	for _, entry := range entries {
+		if entry.Type != "index" || !strings.EqualFold(entry.TblName, objName) || e.indexIsUnordered(entry.Name) {
 			continue
 		}
 		indexCols := e.indexEntryColumns(entry)
-		if len(indexCols) >= len(cols) && colsPrefixMatch(indexCols, cols) {
-			if where != nil && !e.partialIndexImplied(entry, where) {
-				continue
-			}
-			return indexLookupToken(entry.Name)
+		if len(indexCols) < len(terms) || !colsPrefixMatch(indexCols, orderTermNames(terms)) {
+			continue
 		}
+		// The index definition's explicit per-column COLLATE; autoindex
+		// entries (empty SQL) carry the table constraint's collations —
+		// resolved through the table column's declared collation below.
+		explicit := sql.ParseIndexColumnCollations(entry.SQL)
+		match := true
+		for i, term := range terms {
+			idxExplicit := ""
+			if i < len(explicit) {
+				idxExplicit = explicit[i]
+			}
+			if !strings.EqualFold(declared(idxExplicit, indexCols[i]), declared(term.coll, term.col)) {
+				match = false
+				break
+			}
+		}
+		if !match {
+			continue
+		}
+		if where != nil && !e.partialIndexImplied(entry, where) {
+			continue
+		}
+		return indexLookupToken(entry.Name)
 	}
 	// Also check the implicit PRIMARY KEY index of a WITHOUT ROWID table,
 	// which has no separate schema index entry.
-	if pkCols := e.withoutRowidPKCols(tableName); len(pkCols) >= len(cols) && colsPrefixMatch(pkCols, cols) {
+	if pkCols := e.withoutRowidPKCols(tableName); len(pkCols) >= len(terms) && colsPrefixMatch(pkCols, orderTermNames(terms)) {
 		return "PRIMARY KEY"
 	}
 	return ""
+}
+
+// unqualifiedObjectName strips a leading schema prefix ("aux.t1" -> "t1").
+func unqualifiedObjectName(name string) string {
+	if i := strings.LastIndexByte(name, '.'); i >= 0 {
+		return name[i+1:]
+	}
+	return name
+}
+
+// orderTermNames renders a term list as plain column names.
+func orderTermNames(terms []orderTermCol) []string {
+	out := make([]string, len(terms))
+	for i, t := range terms {
+		out[i] = t.col
+	}
+	return out
 }
 
 // indexEntryColumns returns the key column names of a schema index entry,

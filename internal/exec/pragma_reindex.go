@@ -108,34 +108,106 @@ type reindexIndexTarget struct {
 	index *schema.Entry
 }
 
-// reindexTargets resolves a REINDEX target to the index entries to rebuild:
-// every index in every schema for an empty target, the named index, the
-// table's indexes, or — when the target names a collation — every index
-// whose keys use that collation (build.c sqlite3Reindex resolution).
+// reindexTargets resolves a REINDEX target to the index entries to rebuild
+// (build.c sqlite3Reindex): the target is resolved ONCE, by mode —
+//
+//  1. an empty target rebuilds every index in every schema;
+//  2. a registered collation name (its match takes precedence over
+//     index/table names, R-35892-30289; build.c probes sqlite3FindCollation
+//     first) rebuilds every index whose keys use it in EVERY schema;
+//  3. a table or index name rebuilds the ONE object
+//     sqlite3LocateTable/sqlite3FindIndex resolve — temp, main, then the
+//     attached schemas in order for an unqualified name (never a same-named
+//     shadow in another schema: e_reindex-2.4.6/2.5.x); a schema-qualified
+//     name resolves within that schema;
+//  4. nothing matched — the no-index fallback decides success-no-op vs
+//     "unable to identify the object to be reindexed".
 func (e *Engine) reindexTargets(target string) ([]reindexIndexTarget, error) {
 	target = strings.TrimSpace(target)
-	var out []reindexIndexTarget
-	matched := false
-	for _, ctx := range e.databases {
-		m, targets := e.reindexTargetsInDb(ctx, target)
-		out = append(out, targets...)
-		matched = matched || m
+	if target == "" {
+		return e.reindexSchemasTargets(""), nil
 	}
-	if target != "" && !matched {
-		return e.reindexTargetNoIndexFallback(target)
+	obj := reindexTargetObject(target)
+	schemaQualified := strings.ContainsRune(target, '.')
+	if !schemaQualified && e.collationExists(obj) {
+		return e.reindexSchemasTargets(obj), nil
 	}
-	return out, nil
+	for _, ctx := range e.reindexOrderedContexts(schemaQualified, target) {
+		out := e.reindexNamedTargetsInDb(ctx, obj, target)
+		if len(out) > 0 {
+			return out, nil
+		}
+	}
+	return e.reindexTargetNoIndexFallback(target)
 }
 
-// reindexTargetsInDb collects one database context's rebuildable index
-// targets. matched reports whether any entry matched the target.
-func (e *Engine) reindexTargetsInDb(ctx *DatabaseContext, target string) (matched bool, out []reindexIndexTarget) {
+// reindexSchemasTargets collects the rebuild targets across every database
+// context: every index for an empty collation name, or — for a collation
+// target — every index whose keys use it.
+func (e *Engine) reindexSchemasTargets(collation string) []reindexIndexTarget {
+	var out []reindexIndexTarget
+	for _, ctx := range e.databases {
+		indexEntries, err := ctx.Schema.GetEntries(schema.TypeIndex)
+		if err != nil {
+			continue
+		}
+		for _, idxEnt := range indexEntries {
+			if collation != "" && !e.indexUsesCollation(ctx, idxEnt, collation) {
+				continue
+			}
+			tblEnt, err := ctx.Schema.FindTable(idxEnt.TblName)
+			if err != nil || tblEnt == nil {
+				continue
+			}
+			out = append(out, reindexIndexTarget{ctx: ctx, table: tblEnt, index: idxEnt})
+		}
+	}
+	return out
+}
+
+// reindexOrderedContexts returns the contexts a table/index target resolves
+// against: the named schema only when qualified, else temp, main, then the
+// attached schemas in attach order (sqlite3LocateTable's search).
+func (e *Engine) reindexOrderedContexts(schemaQualified bool, target string) []*DatabaseContext {
+	if !schemaQualified {
+		var out []*DatabaseContext
+		if tc := e.getDB("temp"); tc != nil && tc != e.mainDB {
+			out = append(out, tc)
+		}
+		if e.mainDB != nil {
+			out = append(out, e.mainDB)
+		}
+		for _, ctx := range e.dbList {
+			if ctx == nil || ctx == e.mainDB {
+				continue
+			}
+			out = append(out, ctx)
+		}
+		return out
+	}
+	for _, ctx := range e.databases {
+		if e.targetSchemaMatches(ctx, target) {
+			return []*DatabaseContext{ctx}
+		}
+	}
+	return nil
+}
+
+// reindexNamedTargetsInDb collects one context's index targets for a
+// TABLE- or INDEX-named target (the target's mode was resolved before this
+// runs — no collation fallback here): a table name selects all its indexes,
+// an index name selects the index.
+func (e *Engine) reindexNamedTargetsInDb(ctx *DatabaseContext, obj, target string) []reindexIndexTarget {
+	var out []reindexIndexTarget
 	indexEntries, err := ctx.Schema.GetEntries(schema.TypeIndex)
 	if err != nil {
-		return false, nil
+		return nil
 	}
 	for _, idxEnt := range indexEntries {
-		if target != "" && !e.reindexEntryMatchesTarget(ctx, idxEnt, target) {
+		if !e.targetSchemaMatches(ctx, target) {
+			continue
+		}
+		if !strings.EqualFold(idxEnt.Name, obj) && !strings.EqualFold(idxEnt.TblName, obj) {
 			continue
 		}
 		tblEnt, err := ctx.Schema.FindTable(idxEnt.TblName)
@@ -143,30 +215,8 @@ func (e *Engine) reindexTargetsInDb(ctx *DatabaseContext, target string) (matche
 			continue
 		}
 		out = append(out, reindexIndexTarget{ctx: ctx, table: tblEnt, index: idxEnt})
-		matched = true
 	}
-	return matched, out
-}
-
-// reindexEntryMatchesTarget applies build.c sqlite3Reindex's target match for
-// one index entry: a schema-qualified target matches only within its schema;
-// a target naming the index or its table selects it; any other target is a
-// collation name the index's keys must use.
-func (e *Engine) reindexEntryMatchesTarget(ctx *DatabaseContext, idxEnt *schema.Entry, target string) bool {
-	obj := reindexTargetObject(target)
-	schemaQualified := strings.ContainsRune(target, '.')
-	namedIndex := strings.EqualFold(idxEnt.Name, obj)
-	namedTable := strings.EqualFold(idxEnt.TblName, obj)
-	schemaOK := !schemaQualified || e.targetSchemaMatches(ctx, target)
-	switch {
-	case namedIndex && schemaOK:
-		// named index
-	case namedTable && schemaOK:
-		// named table: all its indexes
-	default:
-		return e.indexUsesCollation(ctx, idxEnt, obj)
-	}
-	return true
+	return out
 }
 
 // targetSchemaMatches reports whether a schema-qualified REINDEX target

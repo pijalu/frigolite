@@ -1208,8 +1208,6 @@ var harnessSkipSubtests = map[string]string{
 	// JSON files using the same shared filename (the converter lost the TCL
 	// `forcedelete test.db2` + reopen boundary; harnessCollationFixtures
 	// installs the collA/collB registrations and best-effort deletes).
-	"e_reindex/e_reindex-2.0":   "ATTACH 'test.db2' hits the file another parallel JSON file keeps attached (shared-filename race); the REINDEX-subset contracts (collA/collB registrations installed) are pinned by TestPinReindexRebuildsUnderChangedCollation and TestPinReindexSecondConnectionMissingCollation",
-	"e_reindex/e_reindex-2.6.0": "cascades from 2.0's failed ATTACH (aux schema state)",
 
 	// wal.test 18.2 (the WAL log page-size validation): the crafting do_test
 	// body (wal.test:1172-1208) needs `binary format`/`binary scan` (the
@@ -4036,7 +4034,19 @@ func TestSQLiteSuite(t *testing.T) {
 								}
 							}
 							collationName := step.CollationName
-							if strings.Contains(step.CollationBody, "compare -nocase") {
+							if strings.Contains(step.CollationBody, "[string length $lhs] - [string length $rhs]") {
+								// e_reindex.test's sort_by_length: compare by
+								// string length first, tie-break by binary
+								// compare — the body's trailing
+								// `string compare $lhs $rhs` is only the
+								// tie-break, never the whole comparator.
+								execDB.RegisterCollation(collationName, sortByLengthCollate)
+							} else if strings.Contains(step.CollationBody, "$V($lhs) - $V($rhs)") {
+								// e_reindex.test's sort_by_value: compare by
+								// the V(name) array values (the `global V`
+								// lookup table), tie-break by binary compare.
+								execDB.RegisterCollation(collationName, sortByValueCollate)
+							} else if strings.Contains(step.CollationBody, "compare -nocase") {
 								execDB.RegisterCollation(collationName, func(a, b string) int { return strings.Compare(strings.ToLower(a), strings.ToLower(b)) })
 							} else if strings.Contains(step.CollationBody, "string compare") {
 								switch {

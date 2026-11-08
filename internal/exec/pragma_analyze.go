@@ -698,7 +698,7 @@ func (e *Engine) computeIndexStat(tableEntry *schema.Entry, idxEntry *schema.Ent
 	// Effective collation per index column: an explicit COLLATE in the index
 	// SQL wins; otherwise the table column's declared collation applies
 	// (SQLite: "CREATE INDEX t2a ON t2(a)" inherits a's COLLATE nocase).
-	explicitColls := parseIndexColumnCollations(idxEntry.SQL)
+	explicitColls := sql.ParseIndexColumnCollations(idxEntry.SQL)
 	colls := indexStatCollations(colIdx, colDefs, explicitColls)
 
 	// A PARTIAL index's stat row counts only rows satisfying the partial

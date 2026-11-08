@@ -597,7 +597,8 @@ func (e *SelectEngine) walkCollationAgree(t queryTable, token string, col string
 	if termColl == "" {
 		termColl = e.declaredColumnCollation(t.real, tr.col)
 	}
-	return strings.EqualFold(termColl, e.indexColumnCollation(t.real, token, col))
+	idxColl := e.indexColumnCollation(t.real, token, col)
+	return strings.EqualFold(termColl, idxColl)
 }
 
 // walkNullsAgree applies the t33 NULLS placement rule to one matched term: a
@@ -895,13 +896,15 @@ func (e *SelectEngine) emitIndexOrderedRows(result *Result, rowMaps []RowMap, s 
 		return true
 	}
 
-	if idxName, backward, ok := e.indexOrderedScanForOrderBy(s, orderBy); ok &&
-		e.emitRowsInIndexOrder(result, rowMaps, s.From.Name, idxName, backward) {
-		return true
+	if idxName, backward, ok := e.indexOrderedScanForOrderBy(s, orderBy); ok {
+		if e.emitRowsInIndexOrder(result, rowMaps, s.From.Name, idxName, backward) {
+			return true
+		}
 	}
-	if idxName, backward, ok := e.loopOrderedEmission(s); ok &&
-		e.emitRowsInIndexOrder(result, rowMaps, s.From.Name, idxName, backward) {
-		return true
+	if idxName, backward, ok := e.loopOrderedEmission(s); ok {
+		if e.emitRowsInIndexOrder(result, rowMaps, s.From.Name, idxName, backward) {
+			return true
+		}
 	}
 	return false
 }

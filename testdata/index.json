@@ -120,8 +120,17 @@
         },
         {
           "type": "exec",
-          "sql": "DROP TABLE test1",
-          "expect": "1 {no such column: f4}"
+          "sql": "DROP TABLE test1"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "$v",
+          "expect": "1"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "$msg",
+          "expect": "no such column: f4"
         }
       ]
     },
@@ -1156,7 +1165,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM t1 WHERE b\u003e2;\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;",
+          "sql": "DELETE FROM t1 WHERE b>2;\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;",
           "expect": "1"
         }
       ]
@@ -1419,7 +1428,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT a FROM t4 WHERE a\u003c0.5 ORDER BY b",
+          "sql": "SELECT a FROM t4 WHERE a<0.5 ORDER BY b",
           "expect": "0 0 -1 0 0"
         }
       ]
@@ -1429,7 +1438,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT a FROM t4 WHERE a\u003e-0.5 ORDER BY b",
+          "sql": "SELECT a FROM t4 WHERE a>-0.5 ORDER BY b",
           "expect": "0 0 abc 1 0 0"
         }
       ]
@@ -1449,7 +1458,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT a FROM t4 WHERE a\u003c0.5 ORDER BY b",
+          "sql": "SELECT a FROM t4 WHERE a<0.5 ORDER BY b",
           "expect": "0 0 -1 0 0"
         }
       ]
@@ -1459,7 +1468,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT a FROM t4 WHERE a\u003e-0.5 ORDER BY b",
+          "sql": "SELECT a FROM t4 WHERE a>-0.5 ORDER BY b",
           "expect": "0 0 abc 1 0 0"
         }
       ]
@@ -1482,7 +1491,7 @@
           "sql": "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='t5';",
           "variable": "idxlist",
           "resultAll": true,
-          "expect": "3"
+          "expect": "sqlite_autoindex_t5_1 sqlite_autoindex_t5_2 sqlite_autoindex_t5_3"
         }
       ]
     },
@@ -1541,7 +1550,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT c FROM t6 WHERE a\u003e'';",
+          "sql": "SELECT c FROM t6 WHERE a>'';",
           "expect": "4"
         }
       ]
@@ -1551,7 +1560,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT c FROM t6 WHERE a\u003e='';",
+          "sql": "SELECT c FROM t6 WHERE a>='';",
           "expect": "2 1 4"
         }
       ]
@@ -1561,7 +1570,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT c FROM t6 WHERE a\u003e123;",
+          "sql": "SELECT c FROM t6 WHERE a>123;",
           "expect": "2 1 4"
         }
       ]
@@ -1571,7 +1580,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT c FROM t6 WHERE a\u003e=123;",
+          "sql": "SELECT c FROM t6 WHERE a>=123;",
           "expect": "5 2 1 4"
         }
       ]
@@ -1581,7 +1590,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT c FROM t6 WHERE a\u003c'abc';",
+          "sql": "SELECT c FROM t6 WHERE a<'abc';",
           "expect": "5 2 1"
         }
       ]
@@ -1591,7 +1600,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT c FROM t6 WHERE a\u003c='abc';",
+          "sql": "SELECT c FROM t6 WHERE a<='abc';",
           "expect": "5 2 1 4"
         }
       ]
@@ -1601,7 +1610,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT c FROM t6 WHERE a\u003c='';",
+          "sql": "SELECT c FROM t6 WHERE a<='';",
           "expect": "5 2 1"
         }
       ]
@@ -1611,7 +1620,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT c FROM t6 WHERE a\u003c'';",
+          "sql": "SELECT c FROM t6 WHERE a<'';",
           "expect": "5"
         }
       ]

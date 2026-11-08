@@ -270,7 +270,7 @@ func compareIndexPrefix(a, b []interface{}, n int, indexSQL string, defs []sql.C
 			colIdx = append(colIdx, x)
 		}
 	}
-	colls := indexStatCollations(colIdx, defs, parseIndexColumnCollations(indexSQL))
+	colls := indexStatCollations(colIdx, defs, sql.ParseIndexColumnCollations(indexSQL))
 	for i := 0; i < n && i < len(a) && i < len(b); i++ {
 		coll := "BINARY"
 		if i < len(colls) && i < len(cols) {

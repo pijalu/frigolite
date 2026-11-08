@@ -127,13 +127,21 @@ func (e *SelectEngine) indexScanDetail(t queryTable, loop scanLoop, s *sql.Selec
 // qualifies. Partial indexes are only used when the query WHERE implies the
 // partial-index predicate. When the query has WHERE constraints on columns
 // outside the index, SQLite prefers a full scan + temp sort rather than an
-// index scan with post-filtering.
+// index scan with post-filtering. Collation-aware: each term's effective
+// collation must equal the index column's declared collation by name
+// (findIndexForOrderTerms) — terms the matcher cannot represent fall back
+// to the name-only path.
 func (e *SelectEngine) orderByIndexToken(t queryTable, s *sql.SelectStmt) (string, bool) {
-	obCols := orderByCols(s)
-	if len(obCols) == 0 {
-		return "", false
+	var idxName string
+	if terms := orderByTermColls(s); terms != nil {
+		idxName = e.findIndexForOrderTerms(t.display, terms, s.Where)
+	} else {
+		obCols := orderByCols(s)
+		if len(obCols) == 0 {
+			return "", false
+		}
+		idxName = e.findIndexOnColsForQuery(t.display, obCols, s.Where)
 	}
-	idxName := e.findIndexOnColsForQuery(t.display, obCols, s.Where)
 	if idxName == "" {
 		return "", false
 	}

@@ -446,6 +446,31 @@ func orderByCols(s *sql.SelectStmt) []string {
 	return cols
 }
 
+// orderTermCol is one ORDER BY term the index matcher can represent: a bare
+// column reference with its explicit COLLATE name ("" when the term carries
+// none).
+type orderTermCol struct {
+	col  string
+	coll string
+}
+
+// orderByTermColls returns the ORDER BY terms an index can satisfy: a bare
+// column reference, optionally wrapped in one COLLATE operator
+// (splitCollateOperand). It returns nil when any term is anything else —
+// the index walk cannot represent expressions.
+func orderByTermColls(s *sql.SelectStmt) []orderTermCol {
+	var out []orderTermCol
+	for _, ob := range s.OrderBy {
+		expr, coll := splitCollateOperand(ob.Expr)
+		cr, ok := expr.(*sql.ColumnRef)
+		if !ok {
+			return nil
+		}
+		out = append(out, orderTermCol{col: cr.Name, coll: coll})
+	}
+	return out
+}
+
 // groupByCols returns the plain column references of a SELECT's GROUP BY
 // terms. Returns nil when any term is not a bare column.
 func groupByCols(s *sql.SelectStmt) []string {
