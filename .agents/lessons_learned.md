@@ -625,3 +625,38 @@ appending.
   converter migrates a do_test body's value onto a non-value step (the
   lappend composition), hand-edit the JSON to express the C contract and
   cite the shape in the commit — a regen would re-emit the defect.
+
+## S13-S16 records (2026-11-08, the tkt census slice)
+
+- **Old-generation duplicate fixtures inflate the census**: 48 tkt
+  underscore-named fixtures (plus fts_9fd058691/fuzz_oss1/vacuum_into)
+  were stale-converter duplicates of dash-named siblings — truncated
+  content (missing CREATE TABLE setups, missing UDF registrations,
+  missing set_fts3_parens steps) double-running every source under two
+  family names. Scan testdata for `name`/`name-with-dashes` pairs;
+  verify the dash one against a fresh regeneration; delete the stale
+  one. After S14/S15 the tkt census 124 -> 55 with ZERO new failures.
+- **The set_fts3_parens machinery is end-to-end** (converter
+  special-case -> set_fts3_parens step -> harness TclVarSet ->
+  fts3ParenthesesEnabled): a family whose MATCH expectations need the
+  paren grammar but whose fixture lacks the step is a STALE fixture —
+  regenerate before diagnosing the engine (tkt-bdc6bbbb38's 16 got []
+  were exactly this).
+- **A `catch {<probe query>}` whose query errors IS the captured
+  result**: the harness query arm stamps the catch carriers (rc=1 +
+  message) and continues when the step carries catchResult — it
+  previously failed the case before the capture (fts3expr5 2.2's
+  "Error parsing expression").
+- **UNIQUE-index NULL semantics void the order-distinct mark-off**
+  (where.c isOrderDistinct): an `X IS NULL` equality over a nullable
+  unique-prefix column matches several rows sharing the visible key
+  (NULLs are distinct entries in a UNIQUE index) — the remaining ORDER
+  BY term still needs its sorter (tkt3824-2.x returned index-ordered
+  rows). `c IS NULL` parses as IS over a NULL literal — both conjunct
+  shapes must be checked.
+- **Sort-marker-only helpers are not counter helpers**: tkt3824's
+  execsql_status appends only "sort"/"nosort" (where7's count_steps is
+  the labeled-counter variant, where8's execsql_status2 the bare one) —
+  attributing the counters to the wrong helper fabricates "scan N sort
+  M" tails the oracle never emitted. `lsort [execsql_status ...]`
+  postprocesses are result transforms, not expectations.

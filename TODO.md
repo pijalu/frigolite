@@ -8,36 +8,37 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-Current state (2026-11-08, feature/perf @ S12): the wal group's residue
-is down to the callback/byte-manipulation classes and the census's
-index-sweep lost its two biggest families. Landed this session:
-- **S9** (73bee149a): the wal-18.2 page-size-validation pin (the TODO's
-  old "interrupt choreography" label was stale — the failures were the
-  converter's missing `binary format` crafting surface) + the
-  open-failure wal-index ref leak (a failed open pinned a stale shared
-  header over every later open of the same path). wal 136 → 112.
-- **S10**: walFrames padToSectorBoundary (wal.c:4172-4190) + the real
-  sqlite.h IOCAP values + testvfs iDevchar passthrough + the FULL
-  sync-flag default. walvfs-5.3 green; wal sweep 112 → 111.
-- **S11** (c96cf0782): PRAGMA wal_autocheckpoint (pragma.c:2409's row
-  surface). wal2 37 → 23.
-- **S12**: where.c's ORDER BY collation-aware index matcher + build.c's
-  REINDEX mode resolution (collation precedence R-35892-30289,
-  single-object table/index resolution, per-schema emission) + the
-  collation shape fixes in the harness (sort_by_length/sort_by_value
-  bodies) + the e_reindex skip removals. **e_reindex 95 → 0, index 2 →
-  0**; the index census sweep 200 → 101, zero new. The full-suite run
-  gates the commit.
+Current state (2026-11-08, feature/perf @ S16): the census's tkt slice
+is largely a STALE-GENERATION artifact. Landed this session:
+- **S9** (73bee149a): wal-18.2 pin + the open-failure wal-index ref leak.
+- **S10** (b4d2817a5): padToSectorBoundary + IOCAP/devchar/sync defaults.
+- **S11** (c96cf0782): PRAGMA wal_autocheckpoint. wal2 37 -> 23.
+- **S12** (d084ca3af): the ORDER BY collation-aware index matcher +
+  build.c REINDEX mode resolution. e_reindex 95 -> 0, index 2 -> 0.
+- **S13** (74c173e27): the stale fts3-parentheses fixtures regenerated
+  (tkt-bdc6bbbb38 16 -> 0; the set_fts3_parens machinery existed) + the
+  query catch-capture path. fts3 sweep 121 -> 118.
+- **S14** (7a37980ba): the tkt fixture generation refresh — 48
+  underscore-named old-generation duplicate fixtures deleted (the same
+  sources ran TWICE under two family names, the stale ones truncated:
+  missing setups, missing UDFs). tkt census 124 -> 55.
+- **S15** (ecfdf622c): the corpus-wide duplicate scan found 3 more
+  (fts_9fd058691, fuzz_oss1, vacuum_into) — removed.
+- **S16** (f81066ddf): the order-distinct mark-off honors UNIQUE-index
+  NULL semantics (an IS NULL equality over a nullable unique-prefix
+  column voids the mark-off — duplicate NULL keys). tkt3824 6 -> 0.
+Full-suite gates: S12 2014 -> S15 1929 failing subtests, no family
+worse at either gate. THE CENSUS NUMBERS WERE INFLATED by the duplicate
+generation — re-derive family truth from the case paths before scoping.
 
 ## Immediate next action
 
-Verify the S12 full-suite run (per-family failure counts vs the census —
-a count INCREASE in any family is a regression), then commit S12. After
-that, continue the census families in size order: **rtree 126, tkt 124,
-where 111, expr 109, pager1 101**, then bestindexF 35 / index9 20 /
-indexexpr2 10 in the index sweep. Baselines: /tmp/index_fails.txt (the
-pre-S12 index sweep), portplan/baseline_wal_sweep_2026-11-07_S8.txt, the
-S10/S12 sweep logs in /tmp (regenerate as needed).
+The remaining tkt classes: **tkt-31338dca7e 8** (LEFT JOIN chains +
+"unable to identify" DROP TABLE), tkt2820 4, tkt1644 3 (C-API finalize
+surfaces), then the census families **rtree** (the per-unit class map in
+HANDOFF's RTREE SWEEP TRIAGE), **where 111, expr 109, pager1 101**.
+Baselines: /tmp/full_S15_fails.txt (the true full-run name set),
+/tmp/tkt_after_fails.txt, portplan/baseline_wal_sweep_2026-11-07_S8.txt.
 
 ## Queue (in order)
 
