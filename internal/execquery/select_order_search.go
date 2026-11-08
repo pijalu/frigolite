@@ -372,6 +372,39 @@ func (e *SelectEngine) termEqBoundByConjunct(t queryTable, conj sql.Expr, tr *or
 	return false
 }
 
+// eqPrefixMayHoldDistinctNulls reports whether any equality-bound prefix
+// column of the loop is fixed by an `X IS NULL` constraint while the column
+// itself is nullable: UNIQUE-index semantics make each row's NULL key a
+// distinct entry, so the loop can emit several rows sharing the visible key.
+func (e *SelectEngine) eqPrefixMayHoldDistinctNulls(t queryTable, where sql.Expr, prefixCols []string) bool {
+	if where == nil {
+		return false
+	}
+	for _, col := range prefixCols {
+		for _, conj := range splitAnd(where) {
+			isNullConjunct := false
+			if isn, ok := conj.(*sql.IsNull); ok {
+				if ref, isRef := isn.Operand.(*sql.ColumnRef); isRef && termColumnMatches(ref, t, col) {
+					isNullConjunct = true
+				}
+			} else if b, ok := conj.(*sql.BinaryOp); ok && (b.Operator == "IS" || b.Operator == "IS NOT") {
+				// `c IS NULL` parses as IS over a NULL literal in some
+				// shapes (the eq-bound pre-pass's IS handling treats it
+				// as an equality).
+				if ref, isRef := b.Left.(*sql.ColumnRef); isRef && termColumnMatches(ref, t, col) {
+					if _, isNull := b.Right.(*sql.NullLit); isNull {
+						isNullConjunct = true
+					}
+				}
+			}
+			if isNullConjunct && !e.columnNotNull(t.real, col) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // eqConjunctBound reports whether one equality conjunct (X = c, X == c, or
 // X IS c) fixes the term's column under an agreeing collation.
 func (e *SelectEngine) eqConjunctBound(t queryTable, v *sql.BinaryOp, tr *orderTerm) bool {
@@ -445,7 +478,7 @@ func (e *SelectEngine) indexLoopOrderSatisfied(t queryTable, loop scanLoop, s *s
 	if loop.seek {
 		nEq = e.indexEqPrefixLen(t, loop.token, s.Where)
 	}
-	backward, allSat := e.walkIndexOrderTerms(t, loop.token, idxCols, nEq, terms)
+	backward, allSat := e.walkIndexOrderTerms(t, loop.token, idxCols, nEq, terms, s.Where)
 	return backward, allSat
 }
 
@@ -467,13 +500,21 @@ type walkCtx struct {
 // duplicate key rows (a unique index whose walk consumed every key column),
 // which lets any remaining term of the table be marked off afterwards.
 // Returns the scan direction and whether every term is satisfied.
-func (e *SelectEngine) walkIndexOrderTerms(t queryTable, token string, idxCols []string, nEq int, terms []orderTerm) (backward, allSat bool) {
+func (e *SelectEngine) walkIndexOrderTerms(t queryTable, token string, idxCols []string, nEq int, terms []orderTerm, where sql.Expr) (backward, allSat bool) {
 	idxDescs, known := e.indexColumnDescFlags(t.real, token)
 	if !known || len(idxDescs) < len(idxCols) {
 		return false, false
 	}
 	ctx := &walkCtx{t: t, token: token, ipkAlias: e.ipkAliasColumn(t.real)}
 	orderDistinct := e.indexIsUnique(token)
+	if orderDistinct && nEq > 0 && e.eqPrefixMayHoldDistinctNulls(t, where, idxCols[:nEq]) {
+		// A UNIQUE index treats NULL keys as distinct entries: an
+		// `X IS NULL` equality over a nullable prefix column can match
+		// several rows sharing the visible key, so the loop's output is
+		// NOT provably duplicate-free (tkt3824 2.x: b=2 AND c IS NULL
+		// over UNIQUE(b,c) yields two (2,NULL) rows).
+		orderDistinct = false
+	}
 	for j := 0; j <= len(idxCols); j++ {
 		if j < nEq {
 			continue // equality-bound prefix: its terms were marked by the pre-pass

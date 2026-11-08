@@ -15,8 +15,8 @@
           "sql": "SELECT a FROM t1 WHERE b IS NULL ORDER BY a;",
           "variable": "result",
           "resultAll": true,
-          "stmtStatus": true,
-          "expect": "-10 1 5 9 123 sort"
+          "expect": "-10 1 5 9 123 sort",
+          "sortMarker": true
         }
       ]
     },
@@ -28,8 +28,8 @@
           "sql": "SELECT a FROM t1 WHERE b IS NULL ORDER BY b, a;",
           "variable": "result",
           "resultAll": true,
-          "stmtStatus": true,
-          "expect": "-10 1 5 9 123 sort"
+          "expect": "-10 1 5 9 123 sort",
+          "sortMarker": true
         }
       ]
     },
@@ -45,8 +45,8 @@
           "sql": "SELECT a FROM t2 WHERE b=2 AND c IS NULL ORDER BY a;",
           "variable": "result",
           "resultAll": true,
-          "stmtStatus": true,
-          "expect": "5 9 sort"
+          "expect": "5 9 sort",
+          "sortMarker": true
         }
       ]
     },
@@ -58,8 +58,8 @@
           "sql": "SELECT a FROM t2 WHERE b=2 AND c IS NULL ORDER BY b, a;",
           "variable": "result",
           "resultAll": true,
-          "stmtStatus": true,
-          "expect": "5 9 sort"
+          "expect": "5 9 sort",
+          "sortMarker": true
         }
       ]
     },
@@ -71,8 +71,9 @@
           "sql": "SELECT a FROM t2 WHERE b=2 AND c IS NULL ORDER BY b;",
           "variable": "result",
           "resultAll": true,
-          "stmtStatus": true,
-          "expect": "5 9 nosort"
+          "expect": "5 9 nosort",
+          "sortMarker": true,
+          "resultTransform": "lsort:ascii"
         }
       ]
     },
