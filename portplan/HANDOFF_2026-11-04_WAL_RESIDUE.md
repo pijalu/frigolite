@@ -207,3 +207,36 @@ portplan/baseline_wal_sweep_2026-11-07_S7g.txt (138 names).
 **Restart point**: TODO.md's queue item 6 (the census families) or the
 wal2/wal3 xShmLock trace residue (§Queued item 3). Detail:
 portplan/PLAN_S8_interrupt.md.
+
+## S9-S12 RECORDS (2026-11-07/08) — the census's index slice opens
+
+- S9 (73bee149a): wal-18.2.x's failures were the converter's missing
+  binary-format crafting surface, NOT interrupt choreography. Native pin
+  TestWalLogPageSizeValidation + 24 skips; the ENGINE fix the pin
+  exposed: openPager's error path dropped the attached WAL without
+  closing it — the wal-index ref leak pinned a stale shared header over
+  every later open of the same path. wal 136 → 112, zero new.
+- S10: walFrames padToSectorBoundary (wal.c:4172-4190) — the padding
+  frames are real frames (mxFrame/aFrameCksum include them); the
+  unix-VFS PSO default; the REAL sqlite.h IOCAP values (0x400/0x1000);
+  the pager's WAL sync-flag default FULL (SQLITE_DEFAULT_SYNCHRONOUS=2
+  is PRAGMA-numbering). walvfs-5.3 green; sweep 112 → 111, zero new.
+  Detail: portplan/PLAN_S10_padtosector.md.
+- S11 (c96cf0782): PRAGMA wal_autocheckpoint (pragma.c:2409 — the row
+  surface; the default-hook/custom-hook gate). wal2 37 → 23.
+- S12: the ORDER BY collation-aware index matcher (where.c azColl name
+  rule; the stale stored order delivers — e_reindex 2.3.x) + build.c's
+  REINDEX mode resolution (collation precedence R-35892-30289; the
+  single-object table/index resolution temp→main→attached; per-schema
+  emission b-trees) + the harness collation shape fixes
+  (sort_by_length/sort_by_value) + the e_reindex-2.0/2.6.0 skip removals
+  (the skips starved the whole section-2 setup) + two hand-pinned
+  index.json cases. **e_reindex 95 → 0, index 2 → 0; the index census
+  sweep 200 → 101, zero new.** Detail:
+  portplan/PLAN_S12_orderby_collation_index.md.
+
+**Restart point**: verify the S12 full-suite run (per-family counts vs
+the census — an increase is a regression), commit S12, then the census
+families rtree 126 / tkt 124 / where 111 / expr 109 / pager1 101. The
+WAL residue is the carded callback/byte-manipulation classes (see
+TODO.md's queue item 7).

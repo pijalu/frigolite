@@ -568,3 +568,60 @@ appending.
   interrupt and interleaves a checkpoint MID-SCAN needs an interleaved
   row-callback step surface (the body was dropped; the query degenerates
   to a full-row render).
+
+## S9-S12 records (2026-11-07/08)
+
+- **The census's per-family counts can be substring artifacts**: "index
+  200" was FRIGOLITE_TEST=index sweeping bestindex*/index9/e_reindex/...
+  — the TRUE index family had 2 failures. Re-derive family truth from
+  the `TestSQLiteSuite/<family>/<case>` paths before scoping a unit.
+- **An Open failure after a WAL attach must release the wal-index ref**
+  (pageropen.go openPager's error path now closes the WAL): a leaked ref
+  keeps the registry entry live forever, the DMS first-attach truncate
+  never runs, and every later open of the same path ADOPTS the stale
+  shared header (matching salts make the staleness check blind) instead
+  of recovering — the "isolated passes, sequence fails" signature.
+- **wal-18.2's label was stale** ("interrupt choreography"): the source
+  is WAL-recovery page-size validation, and the failures were the
+  converter dropping the `binary format`+file-write crafting body. The
+  binary-format class spans 43 ../sqlite test files (carded). The
+  engine's recovery gate (walrecover.go) already matched C exactly.
+- **IOCAP bit values**: SEQUENTIAL=0x400, POWERSAFE_OVERWRITE=0x1000
+  (sqlite.h.in:671-686) — the old engine/harness pair (0x100/0x800) was
+  consistently wrong with itself. testvfs iDevchar semantics: -1 =
+  passthrough (the unix default PSO stands), a name list REPLACES the
+  mask, an argument-less `devchar` is the C read (no-op).
+- **SQLITE_DEFAULT_SYNCHRONOUS=2 is PRAGMA-numbering (2=FULL)**; the
+  pager's WAL sync-flag default must be FULL (commit sync bits set) —
+  the old NORMAL default disagreed with the SQL layer's FULL and quietly
+  disabled walFrames' padding gate.
+- **DeviceCharacteristics' RLock self-deadlocks inside the commit path**
+  (the commit holds p.mu) — read the field directly in locked sections
+  (the vfsHook/walSyncFlags style).
+- **padToSectorBoundary (wal.c:4172-4190)**: pad when the commit sync
+  bits are non-zero AND the device lacks PSO; the padding frames are
+  real frames (mxFrame/aFrameCksum/iCallback include them); the
+  observable is walvfs-5.3's read mark {24 100 100 100}.
+- **where.c's ORDER BY index rule**: a term's EFFECTIVE collation
+  (explicit COLLATE, else the column's declared, else BINARY) must equal
+  the index column's DECLARED collation (index SQL's explicit COLLATE,
+  else the column's declared, else BINARY) by NAME — the current
+  registration is irrelevant (a stale stored order still delivers,
+  e_reindex 2.3.x). The executor has TWO delivery gates: gate1
+  (indexOrderedScanForOrderBy) STRIPS the COLLATE before its matcher —
+  pass the terms (orderByTermColls) through instead; gate2
+  (loopOrderedEmission) requires a WHERE clause by design. Both gates
+  and the b-tree read must resolve the FROM table's OWNING schema
+  (aux.t1's index is a different b-tree over a different pager).
+- **REINDEX target resolution (build.c sqlite3Reindex)**: resolve the
+  MODE once, per target — collation FIRST (R-35892-30289: the collation
+  match takes precedence over index/table names), then table (all its
+  indexes), then index; a table/index target rebuilds the ONE object
+  LocateTable/FindIndex resolve (temp, main, then attached — never a
+  same-named shadow in another schema). The old per-entry switch
+  conflated the modes (a table target rebuilt collation-matching indexes
+  elsewhere; a collation target rebuilt same-named tables' indexes).
+- **Hand-pinning fixture assertions** (index.json 2.2/13.2): when the
+  converter migrates a do_test body's value onto a non-value step (the
+  lappend composition), hand-edit the JSON to express the C contract and
+  cite the shape in the commit — a regen would re-emit the defect.
