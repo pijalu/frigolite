@@ -293,3 +293,30 @@ The rtree census family (126 isolated) decomposes into per-unit classes
 **Restart point**: the remaining tkt classes (tkt-31338dca7e 8 — LEFT
 JOIN chains, tkt2820 4, tkt1644 3 — C-API finalize surfaces), then the
 rtree class map (the previous record), where 111, expr 109, pager1 101.
+
+## S18-S19 RECORDS (2026-11-08, continued)
+
+- S18 (215dd7ae1): the same-connection active-statement DDL lock —
+  Engine.RegisterStmtReadTables tracks each started statement's read
+  tables (registered at the first Step, dropped at Reset/DONE/finalize —
+  the C cursor window) and execDropStmt fails SQLITE_LOCKED "database
+  table is locked" when sqlite_master or the target is being read
+  (tkt2820). The C-API emulation records step/finalize RESULT CODES
+  (__STEP_/__FIN_ expansion) — a step error is observable state, not a
+  harness failure — and a statement whose step failed after the
+  connection's SchemaMutationStamp moved reports SQLITE_SCHEMA from
+  finalize (tkt1644). tkt 41 -> 33.
+- S19 slice 1 (42ec0f866): the engine's geometry-callback machinery
+  (rtree_geom.go) ALREADY existed — the converter dropped the
+  register_circle_geom/register_box_geom commands. The box callback
+  ported (rtreeBoxGeom: (min,max) pair overlap; the OnCell observer runs
+  even on the nParam!=nCoord error path), the converter emits
+  register_rtgeom steps, the harness installs the bundles. rtreedoc2
+  29 -> 11 (the fixture refreshed to 46 cases).
+- **S19 slice 2 (carded)**: the 11 remaining rtreedoc2 failures are the
+  ::box_geom/::ptr_list trace assertions — the fixture-proc interpreter
+  must drive the box callback's OnCell observer (per-case `proc
+  box_geom` redefinitions rebind; the recorder executes the CURRENT
+  proc: lappend the trace / error / return "zero"|"user" per
+  test_rtreedoc.c's result protocol), and the trace elements render
+  floats through the TCL formatting.

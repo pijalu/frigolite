@@ -8,7 +8,17 @@
 
 `close all gaps with sqlite — functional first, then performance.`
 
-Current state (2026-11-08, feature/perf @ S16): the census's tkt slice
+Current state (2026-11-08, feature/perf @ S19): *S18** (215dd7ae1): the same-connection active-statement DDL lock
+  (Engine.RegisterStmtReadTables; a started statement's cursors block
+  DROP with SQLITE_LOCKED) + the C-API step/finalize code surfaces
+  (__FIN_ expansion; the schema-change finalize reports SQLITE_SCHEMA).
+  tkt2820 4 -> 0, tkt1644 3 -> 0; tkt 41 -> 33.
+- **S19 slice 1** (42ec0f866): the rtree geometry REGISTRATION surface
+  (the engine machinery existed; the converter dropped the
+  register_circle_geom/register_box_geom commands). The box callback
+  ported with the OnCell observer hook. rtreedoc2 29 -> 11 (the fixture
+  refreshed to 46 cases).
+the census's tkt slice
 is largely a STALE-GENERATION artifact. Landed this session:
 - **S9** (73bee149a): wal-18.2 pin + the open-failure wal-index ref leak.
 - **S10** (b4d2817a5): padToSectorBoundary + IOCAP/devchar/sync defaults.
@@ -31,14 +41,27 @@ Full-suite gates: S12 2014 -> S15 1929 failing subtests, no family
 worse at either gate. THE CENSUS NUMBERS WERE INFLATED by the duplicate
 generation — re-derive family truth from the case paths before scoping.
 
+- **S18** (215dd7ae1): the same-connection active-statement DDL lock
+  (Engine.RegisterStmtReadTables) + the C-API step/finalize code
+  surfaces (__FIN_ expansion; the schema-change finalize reports
+  SQLITE_SCHEMA). tkt2820 4 -> 0, tkt1644 3 -> 0; tkt 41 -> 33.
+- **S19 slice 1** (42ec0f866): the rtree geometry REGISTRATION surface
+  (the engine machinery existed; the converter dropped the
+  register_circle_geom/register_box_geom commands). The box callback
+  ported with the OnCell observer hook. rtreedoc2 29 -> 11 (the
+  fixture refreshed to 46 cases).
+
 ## Immediate next action
 
-The remaining tkt classes: **tkt-31338dca7e 8** (LEFT JOIN chains +
-"unable to identify" DROP TABLE), tkt2820 4, tkt1644 3 (C-API finalize
-surfaces), then the census families **rtree** (the per-unit class map in
-HANDOFF's RTREE SWEEP TRIAGE), **where 111, expr 109, pager1 101**.
-Baselines: /tmp/full_S15_fails.txt (the true full-run name set),
-/tmp/tkt_after_fails.txt, portplan/baseline_wal_sweep_2026-11-07_S8.txt.
+The **rtree box_geom trace recorder** (S19 slice 2): the 11 remaining
+rtreedoc2 failures are the ::box_geom/::ptr_list runtime-var assertions,
+which need the fixture-proc interpreter wired to the box callback's
+OnCell observer (the per-case `proc box_geom` redefinitions rebind; the
+trace elements are TCL-rendered {name {params} {coords}} with the
+TCL float formatting). Then the census families **where 111,
+expr 109, pager1 101** and the WAL residue classes. Baselines:
+/tmp/full_S15_fails.txt (the true full-run name set),
+/tmp/tkt_s18_fails.txt, /tmp/rd2.txt.
 
 ## Queue (in order)
 
