@@ -22,6 +22,15 @@
       ]
     },
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "set_fts3_parens",
+          "sql": "1"
+        }
+      ]
+    },
+    {
       "name": "fts3query-2.1",
       "steps": [
         {
@@ -49,6 +58,15 @@
       ]
     },
     {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "set_fts3_parens",
+          "sql": "0"
+        }
+      ]
+    },
+    {
       "name": "fts3query-3.1",
       "steps": [
         {
@@ -67,7 +85,7 @@
       ]
     },
     {
-      "name": "setup_0",
+      "name": "setup_2",
       "steps": [
         {
           "type": "register_function",
@@ -78,11 +96,22 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "sqlite_fts3_enable_parentheses": "0",
-            "testdir": "",
+            "testdir": ".",
             "testprefix": "fts3query"
           },
+          "callbackProcs": [
+            {
+              "Name": "mit",
+              "Args": [
+                "blob"
+              ],
+              "Body": "\n  set scan(littleEndian) i*\n  set scan(bigEndian) I*\n  binary scan $blob $scan($::tcl_platform(byteOrder)) r\n  return $r\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "mit",
           "functionArgs": [
             "blob"
@@ -198,7 +227,7 @@
       ]
     },
     {
-      "name": "setup_1",
+      "name": "setup_3",
       "steps": [
         {
           "type": "defensive",
@@ -721,404 +750,14 @@
           "sql": "INSERT INTO ft4(rowid, x) VALUES(99, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(99, 'x y z');"
         },
         {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
+          "repeatCount": 100,
+          "repeatBody": [
+            {
+              "type": "exec",
+              "sql": "INSERT INTO ft4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES(-9.223372036854776e+18, 'x y z');"
+            }
+          ],
+          "type": "repeat"
         },
         {
           "type": "exec",
@@ -1523,7 +1162,7 @@
       ]
     },
     {
-      "name": "setup_2",
+      "name": "setup_4",
       "steps": [
         {
           "type": "query_assign",
@@ -1544,7 +1183,7 @@
       ]
     },
     {
-      "name": "setup_3",
+      "name": "setup_5",
       "steps": [
         {
           "type": "query_assign",
@@ -1565,7 +1204,7 @@
       ]
     },
     {
-      "name": "setup_4",
+      "name": "setup_6",
       "steps": [
         {
           "type": "query_assign",
@@ -1586,7 +1225,7 @@
       ]
     },
     {
-      "name": "setup_5",
+      "name": "setup_7",
       "steps": [
         {
           "type": "query_assign",
@@ -1607,7 +1246,7 @@
       ]
     },
     {
-      "name": "setup_6",
+      "name": "setup_8",
       "steps": [
         {
           "type": "query_assign",
@@ -1628,7 +1267,7 @@
       ]
     },
     {
-      "name": "setup_7",
+      "name": "setup_9",
       "steps": [
         {
           "type": "query_assign",
@@ -1649,7 +1288,7 @@
       ]
     },
     {
-      "name": "setup_8",
+      "name": "setup_10",
       "steps": [
         {
           "type": "query_assign",
@@ -1670,7 +1309,7 @@
       ]
     },
     {
-      "name": "setup_9",
+      "name": "setup_11",
       "steps": [
         {
           "type": "query_assign",
@@ -1691,7 +1330,7 @@
       ]
     },
     {
-      "name": "setup_10",
+      "name": "setup_12",
       "steps": [
         {
           "type": "query_assign",
@@ -1712,7 +1351,7 @@
       ]
     },
     {
-      "name": "setup_11",
+      "name": "setup_13",
       "steps": [
         {
           "type": "query_assign",
@@ -1733,7 +1372,7 @@
       ]
     },
     {
-      "name": "setup_12",
+      "name": "setup_14",
       "steps": [
         {
           "type": "query_assign",
@@ -1754,7 +1393,7 @@
       ]
     },
     {
-      "name": "setup_13",
+      "name": "setup_15",
       "steps": [
         {
           "type": "query_assign",
@@ -1775,7 +1414,7 @@
       ]
     },
     {
-      "name": "setup_14",
+      "name": "setup_16",
       "steps": [
         {
           "type": "query_assign",
@@ -1796,7 +1435,7 @@
       ]
     },
     {
-      "name": "setup_15",
+      "name": "setup_17",
       "steps": [
         {
           "type": "query_assign",
@@ -1817,7 +1456,7 @@
       ]
     },
     {
-      "name": "setup_16",
+      "name": "setup_18",
       "steps": [
         {
           "type": "query_assign",
@@ -1838,7 +1477,7 @@
       ]
     },
     {
-      "name": "setup_17",
+      "name": "setup_19",
       "steps": [
         {
           "type": "query_assign",
@@ -1859,15 +1498,17 @@
       ]
     },
     {
-      "name": "setup_18",
+      "name": "setup_20",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT rowid FROM t4"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT rowid FROM t4"
+          "repeatCount": 2,
+          "repeatBody": [
+            {
+              "type": "query",
+              "sql": "SELECT rowid FROM t4"
+            }
+          ],
+          "type": "repeat"
         },
         {
           "type": "query_assign",

@@ -9,6 +9,10 @@
         {
           "type": "reopen_db",
           "sql": "test.db"
+        },
+        {
+          "type": "set_fts3_parens",
+          "sql": "1"
         }
       ]
     },

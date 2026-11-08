@@ -4995,6 +4995,21 @@ func TestSQLiteSuite(t *testing.T) {
 							}
 							res := execDB.Query(step.SQL)
 							if res.Error != nil {
+								if step.CatchResult {
+									// `catch {<query>}` composition: the error
+									// IS the captured result (fts3expr5 2.2's
+									// "Error parsing expression" — the catch
+									// wraps an fts3_exprtest probe). Stamp the
+									// rc/message carriers and continue; the
+									// trailing runtime_list asserts them.
+									if step.Variable != "" {
+										runtimeVars[step.Variable] = "1"
+									}
+									if step.CatchMessage != "" {
+										runtimeVars[step.CatchMessage] = res.Error.Error()
+									}
+									continue
+								}
 								t.Errorf("query error: %v\n  sql: %s", res.Error, step.SQL)
 								return
 							}

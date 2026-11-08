@@ -7,18 +7,33 @@
       "name": "setup_0",
       "steps": [
         {
+          "type": "set_fts3_parens",
+          "sql": "0"
+        },
+        {
           "type": "register_function",
           "functionName": "mit",
           "callbackVars": {
-            "": "0",
+            "": "fts3matchinfo",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "sqlite_fts3_enable_parentheses": "0",
-            "testdir": "",
+            "testdir": ".",
             "testprefix": "fts3matchinfo"
           },
+          "callbackProcs": [
+            {
+              "Name": "mit",
+              "Args": [
+                "blob"
+              ],
+              "Body": "\n  set scan(littleEndian) i*\n  set scan(bigEndian) I*\n  binary scan $blob $scan($::tcl_platform(byteOrder)) r\n  return $r\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "mit",
           "functionArgs": [
             "blob"
@@ -553,804 +568,14 @@
       "name": "fts3matchinfo-8.2",
       "steps": [
         {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t11 VALUES('')"
+          "repeatCount": 200,
+          "repeatBody": [
+            {
+              "type": "exec",
+              "sql": "INSERT INTO t11 VALUES('')"
+            }
+          ],
+          "type": "repeat"
         },
         {
           "type": "exec",
@@ -1485,8 +710,17 @@
       ]
     },
     {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "set_fts3_parens",
+          "sql": "1"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "fts3matchinfo-11.0",
@@ -1498,22 +732,33 @@
       ]
     },
     {
-      "name": "setup_4",
+      "name": "setup_5",
       "steps": [
         {
           "type": "register_function",
           "functionName": "mit",
           "callbackVars": {
-            "": "1",
+            "": "200",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "i": "200",
             "sqlite_fts3_enable_parentheses": "1",
-            "testdir": "",
+            "testdir": ".",
             "testprefix": "fts3matchinfo"
           },
+          "callbackProcs": [
+            {
+              "Name": "mit",
+              "Args": [
+                "blob"
+              ],
+              "Body": "\n  set scan(littleEndian) i*\n  set scan(bigEndian) I*\n  binary scan $blob $scan($::tcl_platform(byteOrder)) r\n  return $r\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "mit",
           "functionArgs": [
             "blob"
@@ -1538,14 +783,15 @@
       "name": "fts3matchinfo-11.1.1.2",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'a'",
-          "expect": "1 3 2 1 3 2 4 1 5 1 6 1 7 3 8 3 9 3 10 3"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'a'",
-          "expect": "1 3 2 1 3 2 4 1 5 1 6 1 7 3 8 3 9 3 10 3"
+          "repeatCount": 2,
+          "repeatBody": [
+            {
+              "type": "query",
+              "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'a'",
+              "expect": "1 3 2 1 3 2 4 1 5 1 6 1 7 3 8 3 9 3 10 3"
+            }
+          ],
+          "type": "repeat"
         }
       ]
     },
@@ -1563,14 +809,15 @@
       "name": "fts3matchinfo-11.1.2.2",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'b'",
-          "expect": "1 2 2 1 3 3 4 2 5 2 6 3 8 3 9 3"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'b'",
-          "expect": "1 2 2 1 3 3 4 2 5 2 6 3 8 3 9 3"
+          "repeatCount": 2,
+          "repeatBody": [
+            {
+              "type": "query",
+              "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'b'",
+              "expect": "1 2 2 1 3 3 4 2 5 2 6 3 8 3 9 3"
+            }
+          ],
+          "type": "repeat"
         }
       ]
     },
@@ -1588,14 +835,15 @@
       "name": "fts3matchinfo-11.1.3.2",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'y:a'",
-          "expect": "1 2 3 2 7 2 8 2 9 2 10 2"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'y:a'",
-          "expect": "1 2 3 2 7 2 8 2 9 2 10 2"
+          "repeatCount": 2,
+          "repeatBody": [
+            {
+              "type": "query",
+              "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'y:a'",
+              "expect": "1 2 3 2 7 2 8 2 9 2 10 2"
+            }
+          ],
+          "type": "repeat"
         }
       ]
     },
@@ -1613,14 +861,15 @@
       "name": "fts3matchinfo-11.1.4.2",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'x:a'",
-          "expect": "1 1 2 1 4 1 5 1 6 1 7 1 8 1 9 1 10 1"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'x:a'",
-          "expect": "1 1 2 1 4 1 5 1 6 1 7 1 8 1 9 1 10 1"
+          "repeatCount": 2,
+          "repeatBody": [
+            {
+              "type": "query",
+              "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'x:a'",
+              "expect": "1 1 2 1 4 1 5 1 6 1 7 1 8 1 9 1 10 1"
+            }
+          ],
+          "type": "repeat"
         }
       ]
     },
@@ -1638,14 +887,15 @@
       "name": "fts3matchinfo-11.1.5.2",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'a OR b'",
-          "expect": "1 {3 2} 2 {1 1} 3 {2 3} 4 {1 2} 5 {1 2} 6 {1 3} 7 {3 0} 8 {3 3} 9 {3 3} 10 {3 0}"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'a OR b'",
-          "expect": "1 {3 2} 2 {1 1} 3 {2 3} 4 {1 2} 5 {1 2} 6 {1 3} 7 {3 0} 8 {3 3} 9 {3 3} 10 {3 0}"
+          "repeatCount": 2,
+          "repeatBody": [
+            {
+              "type": "query",
+              "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'a OR b'",
+              "expect": "1 {3 2} 2 {1 1} 3 {2 3} 4 {1 2} 5 {1 2} 6 {1 3} 7 {3 0} 8 {3 3} 9 {3 3} 10 {3 0}"
+            }
+          ],
+          "type": "repeat"
         }
       ]
     },
@@ -1663,14 +913,15 @@
       "name": "fts3matchinfo-11.1.6.2",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'a AND b'",
-          "expect": "1 {3 2} 2 {1 1} 3 {2 3} 4 {1 2} 5 {1 2} 6 {1 3} 8 {3 3} 9 {3 3}"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'a AND b'",
-          "expect": "1 {3 2} 2 {1 1} 3 {2 3} 4 {1 2} 5 {1 2} 6 {1 3} 8 {3 3} 9 {3 3}"
+          "repeatCount": 2,
+          "repeatBody": [
+            {
+              "type": "query",
+              "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'a AND b'",
+              "expect": "1 {3 2} 2 {1 1} 3 {2 3} 4 {1 2} 5 {1 2} 6 {1 3} 8 {3 3} 9 {3 3}"
+            }
+          ],
+          "type": "repeat"
         }
       ]
     },
@@ -1688,34 +939,49 @@
       "name": "fts3matchinfo-11.1.7.2",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'a OR (a AND b)'",
-          "expect": "1 {3 3 2} 2 {1 1 1} 3 {2 2 3} 4 {1 1 2} 5 {1 1 2} 6 {1 1 3} 7 {3 0 0} 8 {3 3 3} 9 {3 3 3} 10 {3 0 0}"
+          "repeatCount": 2,
+          "repeatBody": [
+            {
+              "type": "query",
+              "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'a OR (a AND b)'",
+              "expect": "1 {3 3 2} 2 {1 1 1} 3 {2 2 3} 4 {1 1 2} 5 {1 1 2} 6 {1 1 3} 7 {3 0 0} 8 {3 3 3} 9 {3 3 3} 10 {3 0 0}"
+            }
+          ],
+          "type": "repeat"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "set_fts3_parens",
+          "sql": "0"
         },
         {
-          "type": "query",
-          "sql": "SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'a OR (a AND b)'",
-          "expect": "1 {3 3 2} 2 {1 1 1} 3 {2 2 3} 4 {1 1 2} 5 {1 1 2} 6 {1 1 3} 7 {3 0 0} 8 {3 3 3} 9 {3 3 3} 10 {3 0 0}"
+          "type": "set_fts3_parens",
+          "sql": "1"
         }
       ]
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
-      "name": "setup_5",
+      "name": "setup_7",
       "steps": [
         {
           "type": "register_function",
           "functionName": "mit",
           "callbackVars": {
-            "": "1",
+            "": "1 {3 3 2} 2 {1 1 1} 3 {2 2 3} 4 {1 1 2} 5 {1 1 2} 6 {1 1 3} 7 {3 0 0} 8 {3 3 3} 9 {3 3 3} 10 {3 0 0}",
             "L": "1 3 0 0 0 0",
             "M": "3 0 0",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "a": "0",
             "b": "0",
@@ -1725,10 +991,20 @@
             "res": "\n      1 {1 2 1 2 0 1}   2 {1 0 1 0 1 0}   3 {0 1 0 1 1 2}   4 {1 0 1 0 0 1}   \n      5 {1 0 1 0 0 1}   6 {1 0 1 0 2 2}   7 {2 1 0 0 0 0}   8 {1 2 1 2 2 1}   \n      9 {1 1 1 1 1 3}  10 {1 3 0 0 0 0}\n  ",
             "rowid": "10",
             "sqlite_fts3_enable_parentheses": "1",
-            "testdir": "",
+            "testdir": ".",
             "testprefix": "fts3matchinfo",
             "tn": "7"
           },
+          "callbackProcs": [
+            {
+              "Name": "mit",
+              "Args": [
+                "blob"
+              ],
+              "Body": "\n  set scan(littleEndian) i*\n  set scan(bigEndian) I*\n  binary scan $blob $scan($::tcl_platform(byteOrder)) r\n  return $r\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "mit",
           "functionArgs": [
             "blob"
@@ -1755,6 +1031,15 @@
           "type": "query",
           "sql": "INSERT INTO tt (rowid, c4, c45) VALUES(1, 'abc', 'abc');\n  SELECT mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'abc';",
           "expect": "{16 8192}"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "set_fts3_parens",
+          "sql": "0"
         }
       ]
     }

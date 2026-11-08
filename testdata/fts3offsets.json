@@ -7,18 +7,34 @@
       "name": "setup_0",
       "steps": [
         {
+          "type": "set_fts3_parens",
+          "sql": "1"
+        },
+        {
           "type": "register_function",
           "functionName": "extract",
           "callbackVars": {
-            "": "1",
+            "": "fts3offsets",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "sqlite_fts3_enable_parentheses": "1",
-            "testdir": "",
+            "testdir": ".",
             "testprefix": "fts3offsets"
           },
+          "callbackProcs": [
+            {
+              "Name": "extract",
+              "Args": [
+                "offsets",
+                "text"
+              ],
+              "Body": "\n  set res \"\"\n\n  set off [list]\n  foreach {t i s n} $offsets {\n    lappend off [list $s $n]\n  }\n  set off [lsort -integer -index 0 $off]\n\n  set iOff 0\n  foreach e $off {\n    foreach {s n} $e {}\n    append res [string range $text $iOff $s-1]\n    append res \"(\"\n    append res [string range $text $s [expr $s+$n-1]]\n    append res \")\"\n    set iOff [expr $s+$n]\n  }\n  append res [string range $text $iOff end]\n  \n  set res\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "extract",
           "functionArgs": [
             "offsets",
@@ -122,6 +138,15 @@
           "type": "query",
           "sql": "SELECT offsets(x1) FROM x1 WHERE x1 MATCH 'a OR b AND c NEAR d'",
           "expect": "\n  {0 0 0 1 0 0 2 1 0 0 4 1} \n  {0 0 0 1 0 0 2 1 0 0 4 1}\n"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "set_fts3_parens",
+          "sql": "0"
         }
       ]
     }

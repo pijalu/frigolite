@@ -58,6 +58,15 @@
       ]
     },
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "set_fts3_parens",
+          "sql": "1"
+        }
+      ]
+    },
+    {
       "name": "fts3expr5-2.0",
       "steps": [
         {
@@ -83,7 +92,17 @@
         {
           "type": "query",
           "sql": "SELECT fts3_exprtest('simple', '\"123\" AND ( )', 'a', 'b', 'c')",
+          "variable": "__catchrc_msg",
+          "catchResult": true,
           "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$__catchrc_msg",
+            "$msg"
+          ],
+          "expect": "1 {Error parsing expression}"
         }
       ]
     }

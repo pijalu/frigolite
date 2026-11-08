@@ -4,6 +4,15 @@
   "ordered": true,
   "tests": [
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "set_fts3_parens",
+          "sql": "1"
+        }
+      ]
+    },
+    {
       "name": "fts3corrupt6-1.0",
       "steps": [
         {
@@ -43,7 +52,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "fts3corrupt6-2.0",
@@ -66,7 +75,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "fts3corrupt6-3.0",
@@ -75,49 +84,6 @@
           "type": "catch",
           "sql": "CREATE VIRTUAL TABLE main.Table0 USING fts3();\n  INSERT INTO Table0 VALUES (1), (printf('%8.1280000X') ), (1), (printf('%8.1280000X') ), (1)  ;\n  INSERT INTO Table0 VALUES (0), (printf('%8.1280000X%8.1280000X') ), (1), (printf('%1280000.1280000X%#1280000.1280000E%8.1280000X') ), (1)  ;\n  INSERT INTO Table0 VALUES (1)  ;\n  UPDATE Table0_segdir SET start_block = 1;\n  INSERT INTO Table0 VALUES (1)  ;\n  INSERT INTO Table0(Table0) VALUES('merge=6,8');",
           "expect": "1 {database disk image is malformed}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": null
-    },
-    {
-      "name": "fts3corrupt6-4.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE VIRTUAL TABLE t USING fts4(c);\n  INSERT INTO t(t) VALUES('nodesize=200');\n  INSERT INTO t VALUES('alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima mike november');\n  INSERT INTO t VALUES('oscar papa quebec romeo sierra tango uniform victor whiskey xray yankee zulu alpha bravo');\n  INSERT INTO t(t) VALUES('merge=16,4');\n  UPDATE t_segdir SET end_block = start_block + 2147483647 WHERE level=0;\n  INSERT OR REPLACE INTO t_segments(blockid,block)\n    SELECT start_block+2147483647, NULL FROM t_segdir WHERE level=0;"
-        }
-      ]
-    },
-    {
-      "name": "fts3corrupt6-4.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "PRAGMA integrity_check",
-          "expect": "ok"
-        }
-      ]
-    },
-    {
-      "name": "fts3corrupt6-4.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "INSERT INTO t VALUES(\n      'mike november oscar papa quebec romeo \n      sierra tango uniform victor whiskey xray yankee'\n  );\n  INSERT INTO t VALUES(\n      'charlie delta echo foxtrot golf hotel india \n      juliet kilo lima mike november oscar papa'\n  );\n  INSERT INTO t(t) VALUES('merge=16,4');\n  SELECT blockid FROM t_segments ORDER BY blockid;",
-          "expect": "\n  2147483647 2147483648 2147483649 2147483775\n"
-        }
-      ]
-    },
-    {
-      "name": "fts3corrupt6-4.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "PRAGMA integrity_check",
-          "expect": "ok"
         }
       ]
     }

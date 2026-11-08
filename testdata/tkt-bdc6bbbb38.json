@@ -7,6 +7,10 @@
       "name": "setup_0",
       "steps": [
         {
+          "type": "set_fts3_parens",
+          "sql": "1"
+        },
+        {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS t2"
         }
@@ -304,6 +308,15 @@
           "type": "query",
           "sql": "SELECT snippet(t3,'[',']') FROM t3 WHERE t3 MATCH 'a AND d OR b'\n      ORDER BY docid DESC",
           "expect": "\n    {[a] [b] c}\n    {[a] c [d]}\n  "
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "set_fts3_parens",
+          "sql": "0"
         }
       ]
     }

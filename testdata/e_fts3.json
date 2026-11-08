@@ -49,10 +49,21 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "enc": "utf-8",
-            "testdir": ""
+            "testdir": "."
           },
+          "callbackProcs": [
+            {
+              "Name": "mit",
+              "Args": [
+                "blob"
+              ],
+              "Body": "\n  set scan(littleEndian) i*\n  set scan(bigEndian) I*\n  binary scan $blob $scan($::tcl_platform(byteOrder)) r\n  return $r\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "mit",
           "functionArgs": [
             "blob"
@@ -62,16 +73,34 @@
           "maxArgs": -1
         },
         {
+          "repeatCount": 2,
+          "repeatBody": [
+            {
+              "type": "query_assign",
+              "sql": "SELECT * FROM docs WHERE 1",
+              "variable": "res",
+              "resultAll": true
+            }
+          ],
+          "type": "repeat"
+        },
+        {
           "type": "query_assign",
-          "sql": "SELECT * FROM docs WHERE 1",
+          "sql": "SELECT * FROM docs WHERE 0",
           "variable": "res",
           "resultAll": true
         },
         {
-          "type": "query_assign",
-          "sql": "SELECT * FROM docs WHERE 1",
-          "variable": "res",
-          "resultAll": true
+          "repeatCount": 3,
+          "repeatBody": [
+            {
+              "type": "query_assign",
+              "sql": "SELECT * FROM docs WHERE 1",
+              "variable": "res",
+              "resultAll": true
+            }
+          ],
+          "type": "repeat"
         },
         {
           "type": "query_assign",
@@ -80,28 +109,20 @@
           "resultAll": true
         },
         {
-          "type": "query_assign",
-          "sql": "SELECT * FROM docs WHERE 1",
-          "variable": "res",
-          "resultAll": true
+          "type": "set_fts3_parens",
+          "sql": "1"
         },
         {
-          "type": "query_assign",
-          "sql": "SELECT * FROM docs WHERE 1",
-          "variable": "res",
-          "resultAll": true
+          "type": "set_fts3_parens",
+          "sql": "0"
         },
         {
-          "type": "query_assign",
-          "sql": "SELECT * FROM docs WHERE 1",
-          "variable": "res",
-          "resultAll": true
+          "type": "set_fts3_parens",
+          "sql": "1"
         },
         {
-          "type": "query_assign",
-          "sql": "SELECT * FROM docs WHERE 0",
-          "variable": "res",
-          "resultAll": true
+          "type": "set_fts3_parens",
+          "sql": "0"
         },
         {
           "type": "close_db"
@@ -156,6 +177,7 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "body": "to be seen",
             "content": "sqlite is a database",
@@ -166,10 +188,20 @@
             "query": "SELECT * FROM docs WHERE docs MATCH 'acid NEAR/2 sqlite NEAR/2 relational'",
             "res": "$res",
             "sqlite_fts3_enable_parentheses": "0",
-            "testdir": "",
+            "testdir": ".",
             "title": "no L I N",
             "tn": "4"
           },
+          "callbackProcs": [
+            {
+              "Name": "mit",
+              "Args": [
+                "blob"
+              ],
+              "Body": "\n  set scan(littleEndian) i*\n  set scan(bigEndian) I*\n  binary scan $blob $scan($::tcl_platform(byteOrder)) r\n  return $r\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "mit",
           "functionArgs": [
             "blob"
@@ -179,16 +211,34 @@
           "maxArgs": -1
         },
         {
+          "repeatCount": 2,
+          "repeatBody": [
+            {
+              "type": "query_assign",
+              "sql": "SELECT * FROM docs WHERE 1",
+              "variable": "res",
+              "resultAll": true
+            }
+          ],
+          "type": "repeat"
+        },
+        {
           "type": "query_assign",
-          "sql": "SELECT * FROM docs WHERE 1",
+          "sql": "SELECT * FROM docs WHERE 0",
           "variable": "res",
           "resultAll": true
         },
         {
-          "type": "query_assign",
-          "sql": "SELECT * FROM docs WHERE 1",
-          "variable": "res",
-          "resultAll": true
+          "repeatCount": 3,
+          "repeatBody": [
+            {
+              "type": "query_assign",
+              "sql": "SELECT * FROM docs WHERE 1",
+              "variable": "res",
+              "resultAll": true
+            }
+          ],
+          "type": "repeat"
         },
         {
           "type": "query_assign",
@@ -197,28 +247,20 @@
           "resultAll": true
         },
         {
-          "type": "query_assign",
-          "sql": "SELECT * FROM docs WHERE 1",
-          "variable": "res",
-          "resultAll": true
+          "type": "set_fts3_parens",
+          "sql": "1"
         },
         {
-          "type": "query_assign",
-          "sql": "SELECT * FROM docs WHERE 1",
-          "variable": "res",
-          "resultAll": true
+          "type": "set_fts3_parens",
+          "sql": "0"
         },
         {
-          "type": "query_assign",
-          "sql": "SELECT * FROM docs WHERE 1",
-          "variable": "res",
-          "resultAll": true
+          "type": "set_fts3_parens",
+          "sql": "1"
         },
         {
-          "type": "query_assign",
-          "sql": "SELECT * FROM docs WHERE 0",
-          "variable": "res",
-          "resultAll": true
+          "type": "set_fts3_parens",
+          "sql": "0"
         },
         {
           "type": "close_db"
@@ -273,6 +315,7 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "body": "to be seen",
             "content": "sqlite is a database",
@@ -283,10 +326,20 @@
             "query": "SELECT * FROM docs WHERE docs MATCH 'acid NEAR/2 sqlite NEAR/2 relational'",
             "res": "$res",
             "sqlite_fts3_enable_parentheses": "0",
-            "testdir": "",
+            "testdir": ".",
             "title": "no L I N",
             "tn": "4"
           },
+          "callbackProcs": [
+            {
+              "Name": "mit",
+              "Args": [
+                "blob"
+              ],
+              "Body": "\n  set scan(littleEndian) i*\n  set scan(bigEndian) I*\n  binary scan $blob $scan($::tcl_platform(byteOrder)) r\n  return $r\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "mit",
           "functionArgs": [
             "blob"
@@ -296,16 +349,34 @@
           "maxArgs": -1
         },
         {
+          "repeatCount": 2,
+          "repeatBody": [
+            {
+              "type": "query_assign",
+              "sql": "SELECT * FROM docs WHERE 1",
+              "variable": "res",
+              "resultAll": true
+            }
+          ],
+          "type": "repeat"
+        },
+        {
           "type": "query_assign",
-          "sql": "SELECT * FROM docs WHERE 1",
+          "sql": "SELECT * FROM docs WHERE 0",
           "variable": "res",
           "resultAll": true
         },
         {
-          "type": "query_assign",
-          "sql": "SELECT * FROM docs WHERE 1",
-          "variable": "res",
-          "resultAll": true
+          "repeatCount": 3,
+          "repeatBody": [
+            {
+              "type": "query_assign",
+              "sql": "SELECT * FROM docs WHERE 1",
+              "variable": "res",
+              "resultAll": true
+            }
+          ],
+          "type": "repeat"
         },
         {
           "type": "query_assign",
@@ -314,28 +385,20 @@
           "resultAll": true
         },
         {
-          "type": "query_assign",
-          "sql": "SELECT * FROM docs WHERE 1",
-          "variable": "res",
-          "resultAll": true
+          "type": "set_fts3_parens",
+          "sql": "1"
         },
         {
-          "type": "query_assign",
-          "sql": "SELECT * FROM docs WHERE 1",
-          "variable": "res",
-          "resultAll": true
+          "type": "set_fts3_parens",
+          "sql": "0"
         },
         {
-          "type": "query_assign",
-          "sql": "SELECT * FROM docs WHERE 1",
-          "variable": "res",
-          "resultAll": true
+          "type": "set_fts3_parens",
+          "sql": "1"
         },
         {
-          "type": "query_assign",
-          "sql": "SELECT * FROM docs WHERE 0",
-          "variable": "res",
-          "resultAll": true
+          "type": "set_fts3_parens",
+          "sql": "0"
         },
         {
           "type": "close_db"
@@ -390,6 +453,7 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "body": "to be seen",
             "content": "sqlite is a database",
@@ -400,10 +464,20 @@
             "query": "SELECT * FROM docs WHERE docs MATCH 'acid NEAR/2 sqlite NEAR/2 relational'",
             "res": "$res",
             "sqlite_fts3_enable_parentheses": "0",
-            "testdir": "",
+            "testdir": ".",
             "title": "no L I N",
             "tn": "4"
           },
+          "callbackProcs": [
+            {
+              "Name": "mit",
+              "Args": [
+                "blob"
+              ],
+              "Body": "\n  set scan(littleEndian) i*\n  set scan(bigEndian) I*\n  binary scan $blob $scan($::tcl_platform(byteOrder)) r\n  return $r\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "mit",
           "functionArgs": [
             "blob"
@@ -413,16 +487,34 @@
           "maxArgs": -1
         },
         {
+          "repeatCount": 2,
+          "repeatBody": [
+            {
+              "type": "query_assign",
+              "sql": "SELECT * FROM docs WHERE 1",
+              "variable": "res",
+              "resultAll": true
+            }
+          ],
+          "type": "repeat"
+        },
+        {
           "type": "query_assign",
-          "sql": "SELECT * FROM docs WHERE 1",
+          "sql": "SELECT * FROM docs WHERE 0",
           "variable": "res",
           "resultAll": true
         },
         {
-          "type": "query_assign",
-          "sql": "SELECT * FROM docs WHERE 1",
-          "variable": "res",
-          "resultAll": true
+          "repeatCount": 3,
+          "repeatBody": [
+            {
+              "type": "query_assign",
+              "sql": "SELECT * FROM docs WHERE 1",
+              "variable": "res",
+              "resultAll": true
+            }
+          ],
+          "type": "repeat"
         },
         {
           "type": "query_assign",
@@ -431,28 +523,20 @@
           "resultAll": true
         },
         {
-          "type": "query_assign",
-          "sql": "SELECT * FROM docs WHERE 1",
-          "variable": "res",
-          "resultAll": true
+          "type": "set_fts3_parens",
+          "sql": "1"
         },
         {
-          "type": "query_assign",
-          "sql": "SELECT * FROM docs WHERE 1",
-          "variable": "res",
-          "resultAll": true
+          "type": "set_fts3_parens",
+          "sql": "0"
         },
         {
-          "type": "query_assign",
-          "sql": "SELECT * FROM docs WHERE 1",
-          "variable": "res",
-          "resultAll": true
+          "type": "set_fts3_parens",
+          "sql": "1"
         },
         {
-          "type": "query_assign",
-          "sql": "SELECT * FROM docs WHERE 0",
-          "variable": "res",
-          "resultAll": true
+          "type": "set_fts3_parens",
+          "sql": "0"
         }
       ]
     },
