@@ -5,7 +5,7 @@
   "tests": [
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "tkt-18458b1a-1.1.1",
@@ -48,7 +48,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "tkt-18458b1a-2.1.1",

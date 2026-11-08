@@ -19,13 +19,22 @@
           "type": "register_function",
           "functionName": "force_rollback",
           "callbackVars": {
-            "": "",
+            "": ".",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
-            "testdir": ""
+            "testdir": "."
           },
+          "callbackProcs": [
+            {
+              "Name": "force_rollback",
+              "Args": null,
+              "Body": "\n  catch {db eval {INSERT OR ROLLBACK INTO t1 VALUES(1)}}\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "force_rollback",
           "functionBody": "\n  catch {db eval {INSERT OR ROLLBACK INTO t1 VALUES(1)}}\n"
         }
@@ -84,9 +93,18 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
-            "testdir": ""
+            "testdir": "."
           },
+          "callbackProcs": [
+            {
+              "Name": "ins",
+              "Args": null,
+              "Body": " db eval {INSERT INTO t3 VALUES('hello')} ",
+              "Defaults": null
+            }
+          ],
           "functionProc": "ins",
           "functionBody": " db eval {INSERT INTO t3 VALUES('hello')} "
         }

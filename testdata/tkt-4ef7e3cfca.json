@@ -15,7 +15,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "tkt-4ef7e3cfca-2.1",
@@ -38,7 +38,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "tkt-4ef7e3cfca-3.1",

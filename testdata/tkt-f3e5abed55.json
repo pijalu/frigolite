@@ -4,6 +4,15 @@
   "ordered": true,
   "tests": [
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "delete_glob",
+          "sql": "test.db*mj*"
+        }
+      ]
+    },
+    {
       "name": "delete_file",
       "steps": [
         {
@@ -65,14 +74,48 @@
       ]
     },
     {
-      "name": "setup_0",
+      "name": "setup_1",
       "steps": [
+        {
+          "type": "delete_glob",
+          "sql": "test.db*mj*"
+        },
         {
           "type": "close_db"
         },
         {
           "type": "close_named_db",
           "database": "db2"
+        },
+        {
+          "type": "register_testvfs",
+          "sql": "default",
+          "variable": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "xDelete",
+          "callbackProcs": [
+            {
+              "Name": "xDelete",
+              "Args": [
+                "method",
+                "file",
+                "args"
+              ],
+              "Body": "\n    if {[file tail $file] == \"test.db-journal\"} {\n      faultsim_save\n      tvfs filter {}\n    }\n    return \"SQLITE_OK\"\n  ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "xDelete",
+          "database": "tvfs"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xDelete",
+          "database": "tvfs"
         },
         {
           "type": "reopen_db",
@@ -139,6 +182,9 @@
         {
           "type": "close_named_db",
           "database": "db2"
+        },
+        {
+          "type": "faultsim_restore_reopen"
         },
         {
           "type": "exec",

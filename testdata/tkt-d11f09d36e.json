@@ -14,10 +14,21 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
             "a_string_counter": "1",
-            "testdir": ""
+            "testdir": "."
           },
+          "callbackProcs": [
+            {
+              "Name": "a_string",
+              "Args": [
+                "n"
+              ],
+              "Body": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "a_string",
           "functionArgs": [
             "n"

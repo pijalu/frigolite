@@ -10,6 +10,10 @@
           "type": "close_db"
         },
         {
+          "type": "enable_shared_cache",
+          "sql": "1"
+        },
+        {
           "type": "open_named_db",
           "sql": "test.db",
           "database": "db1"
@@ -42,6 +46,15 @@
       ]
     },
     {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "HOOKS"
+        }
+      ]
+    },
+    {
       "name": "tkt-f7b4edec-2",
       "steps": [
         {
@@ -51,6 +64,15 @@
         },
         {
           "type": "runtime_var",
+          "variable": "HOOKS"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
           "variable": "HOOKS"
         }
       ]
@@ -71,7 +93,7 @@
       ]
     },
     {
-      "name": "setup_1",
+      "name": "setup_3",
       "steps": [
         {
           "type": "close_named_db",
@@ -80,6 +102,10 @@
         {
           "type": "close_named_db",
           "database": "db2"
+        },
+        {
+          "type": "enable_shared_cache",
+          "sql": "0"
         }
       ]
     }

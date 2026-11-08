@@ -47,12 +47,14 @@
       "name": "tkt-31338-3.1",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT name FROM sqlite_master WHERE type='table'"
-        },
-        {
-          "type": "query",
-          "sql": "SELECT name FROM sqlite_master WHERE type='table'"
+          "repeatCount": 2,
+          "repeatBody": [
+            {
+              "type": "query",
+              "sql": "SELECT name FROM sqlite_master WHERE type='table'"
+            }
+          ],
+          "type": "repeat"
         },
         {
           "type": "exec",

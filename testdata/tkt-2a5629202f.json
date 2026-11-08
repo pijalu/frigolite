@@ -59,7 +59,7 @@
           "sql": "SELECT * FROM t2 WHERE a = 10 ORDER BY a, b, c",
           "variable": "data",
           "resultAll": true,
-          "stmtStatus": true,
+          "sortMarker": true,
           "expect": "nosort"
         }
       ]
@@ -72,7 +72,7 @@
           "sql": "SELECT * FROM t2 WHERE b = 10 ORDER BY a, b, c",
           "variable": "data",
           "resultAll": true,
-          "stmtStatus": true,
+          "sortMarker": true,
           "expect": "sort"
         }
       ]
@@ -85,7 +85,7 @@
           "sql": "SELECT * FROM t2 WHERE a IS NULL ORDER BY a, b, c",
           "variable": "data",
           "resultAll": true,
-          "stmtStatus": true,
+          "sortMarker": true,
           "expect": "sort"
         }
       ]

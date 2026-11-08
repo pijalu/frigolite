@@ -23,7 +23,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "tkt-9f2eb3abac-2.0",
@@ -40,6 +40,43 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t2(x)"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
+      "name": "3",
+      "steps": [
+        {
+          "type": "faultsim_test",
+          "sql": "oom*",
+          "variable": "3",
+          "prep": [
+            {
+              "type": "faultsim_restore_reopen"
+            },
+            {
+              "type": "exec",
+              "sql": "SELECT 1 FROM sqlite_master"
+            }
+          ],
+          "body": [
+            {
+              "type": "exec",
+              "sql": "SELECT * FROM t1,t2 WHERE a=? AND b=? AND c=? AND d=? AND e=?"
+            }
+          ],
+          "testScript": "\n  faultsim_test_result {0 {}} \n",
+          "testPatterns": [
+            "0 {}"
+          ]
         }
       ]
     }

@@ -10,13 +10,24 @@
           "type": "register_function",
           "functionName": "s",
           "callbackVars": {
-            "": "",
+            "": ".",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
-            "testdir": ""
+            "testdir": "."
           },
+          "callbackProcs": [
+            {
+              "Name": "s",
+              "Args": [
+                "blob"
+              ],
+              "Body": "\n  set ret \"\"\n  binary scan $blob c* bytes\n  foreach b $bytes {\n    set t [binary format c $b]\n    if {[string is print $t]} {\n      append ret $t\n    } else {\n      append ret .\n    }\n  }\n  return $ret\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "s",
           "functionArgs": [
             "blob"

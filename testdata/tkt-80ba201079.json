@@ -87,7 +87,7 @@
     },
     {
       "name": "__DROP_ALL_TABLES__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "tkt-80ba201079-301",

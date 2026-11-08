@@ -43,7 +43,14 @@
           "sql": "SELECT rowid, x FROM t1 ORDER BY x",
           "variable": "rc",
           "catchResult": true,
-          "catchMessage": "msg",
+          "catchMessage": "msg"
+        },
+        {
+          "type": "runtime_list",
+          "listValues": [
+            "$rc",
+            "$msg"
+          ],
           "expect": "1 {attempt to write a readonly database}"
         }
       ]

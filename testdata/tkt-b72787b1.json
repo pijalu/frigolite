@@ -14,16 +14,24 @@
           "type": "register_function",
           "functionName": "runsql",
           "callbackVars": {
-            "": "",
+            "": ".",
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
-            "testdir": ""
+            "testdir": "."
           },
+          "callbackProcs": [
+            {
+              "Name": "runsql",
+              "Args": null,
+              "Body": "\n  db eval {CREATE TABLE IF NOT EXISTS t4(q)}\n  sqlite3_step $::STMT\n  set rc [sqlite3_column_int $::STMT 0]\n  sqlite3_reset $::STMT\n  return $rc\n",
+              "Defaults": null
+            }
+          ],
           "functionProc": "::runsql",
-          "minArgs": -1,
-          "maxArgs": -1
+          "functionBody": "\n  db eval {CREATE TABLE IF NOT EXISTS t4(q)}\n  sqlite3_step $::STMT\n  set rc [sqlite3_column_int $::STMT 0]\n  sqlite3_reset $::STMT\n  return $rc\n"
         },
         {
           "type": "prepare_stmt",
