@@ -726,6 +726,12 @@ func toString(v interface{}) string {
 // > 16, otherwise F format. F format always keeps a fractional part, so 2.0
 // prints as "2.0" (unlike Go's 'g' verb) and 1e16 as "10000000000000000.0"
 // (date5.test expects the TCL form for julianday() results).
+// FormatDouble renders x the way TCL prints a double: shortest
+// round-trip digits, F format with a guaranteed fractional part for
+// decimal exponents -4..16 ("43.0"), E format outside (expr.c's
+// Tcl_PrintDouble contract).
+func FormatDouble(x float64) string { return tclFormatDouble(x) }
+
 func tclFormatDouble(x float64) string {
 	if math.IsNaN(x) {
 		return "NaN"

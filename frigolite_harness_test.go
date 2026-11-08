@@ -20,6 +20,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -35,6 +36,136 @@ type callbackProc struct {
 	Name string   `json:"Name"`
 	Args []string `json:"Args"`
 	Body string   `json:"Body"`
+}
+
+// rtgeomBoxFixture drives the box-geometry callback's observer for one
+// registered connection: the fixture's `proc box_geom` redefinitions rebind
+// the recorder at call time (TCL name resolution), so the object holds the
+// CURRENT body and evaluates it through the callback interpreter on every
+// engine cell visit (test_rtreedoc.c's invokeTclGeomCb contract).
+type rtgeomBoxFixture struct {
+	caseName    string
+	mu          sync.Mutex
+	procs       map[string]*callbackProc // the CURRENT bodies (box_geom + the procs it calls)
+	runtimeVars map[string]string
+	interp      *tcl.Interp
+	finalizer   string // the "user" protocol's pUser script (query-end)
+	hadUser     bool
+}
+
+var rtgeomBox = &rtgeomBoxFixture{procs: map[string]*callbackProc{}}
+
+// rtgeomObserver is the engine-side OnCell hook: it evaluates the current
+// box_geom body with the C invokeTclGeomCb argument shape and applies the
+// result protocol ("zero" adjusts aParam, "user" arms the query-end
+// finalizer, "user_is_zero" errors when the finalizer is armed, a proc
+// error aborts the MATCH as "SQL logic error").
+func rtgeomObserver(g *vtab.RtreeGeometry, nParam int, aCoord []float64) {
+	rtgeomBox.mu.Lock()
+	defer rtgeomBox.mu.Unlock()
+	if len(rtgeomBox.procs) == 0 {
+		return
+	}
+	interp := rtgeomBox.interpFor()
+	if interp == nil {
+		return
+	}
+	params := make([]string, len(g.Params))
+	for i, v := range g.Params {
+		params[i] = tcl.FormatDouble(v)
+	}
+	coords := make([]string, len(aCoord))
+	for i, v := range aCoord {
+		coords[i] = tcl.FormatDouble(v)
+	}
+	ctxPtr := "0x1"                 // the BoxGeomCtx pointer (opaque to the procs)
+	geomPtr := fmt.Sprintf("%p", g) // the same geometry struct serves every call in one MATCH
+	answer, err := interp.InvokeProcedure("box_geom",
+		"box", ctxPtr, tcl.TclList(params), tcl.TclList(coords), geomPtr)
+	if err != nil {
+		// The TCL error propagates: C's invokeTclGeomCb returns
+		// SQLITE_ERROR and the r-tree query aborts with the generic
+		// SQLITE_ERROR message.
+		g.LastError = "SQL logic error"
+		return
+	}
+	fields := tcl.SplitTclList(answer)
+	if len(fields) > 0 {
+		switch strings.ToLower(fields[0]) {
+		case "zero":
+			g.Params = []float64{0}
+		case "user":
+			if rtgeomBox.hadUser {
+				g.LastError = "SQL logic error"
+				return
+			}
+			rtgeomBox.hadUser = true
+			rtgeomBox.finalizer = strings.Join(fields[1:], " ")
+		case "user_is_zero":
+			if rtgeomBox.hadUser {
+				g.LastError = "SQL logic error"
+				return
+			}
+		}
+	}
+	rtgeomBox.syncVars(interp)
+}
+
+// procName returns the current box_geom proc's body hash-ish tag (the debug
+// attribution: which body the recorder is executing).
+func (r *rtgeomBoxFixture) procName() string {
+	if p, ok := r.procs["box_geom"]; ok {
+		return fmt.Sprintf("%d:%s", len(p.Body), p.Body[:min(20, len(p.Body))])
+	}
+	return "none"
+}
+
+// interpFor builds the callback interpreter once and (re)loads the CURRENT
+// proc into it — the rebind point for every rtgeom_proc update step.
+func (r *rtgeomBoxFixture) interpFor() *tcl.Interp {
+	if r.interp == nil {
+		r.interp = tcl.NewInterp()
+	}
+	procs := make([]tcl.Proc, 0, len(r.procs))
+	for name, proc := range r.procs {
+		procs = append(procs, tcl.Proc{Name: name, Args: proc.Args, Body: proc.Body})
+	}
+	r.interp.LoadProcedures(procs)
+	return r.interp
+}
+
+// syncVars copies the callback interpreter's tracked globals back into the
+// runtime set (the ::box_geom / ::ptr_list / ::box_geom_calls traces).
+func (r *rtgeomBoxFixture) syncVars(interp *tcl.Interp) {
+	for _, name := range []string{"box_geom", "ptr_list", "box_geom_calls", "box_geom_finalizer", "cnt"} {
+		if v, ok := interp.Variable("::" + name); ok {
+			r.runtimeVars[name] = v
+		} else if v, ok := interp.Variable(name); ok {
+			r.runtimeVars[name] = v
+		}
+	}
+}
+
+// finishQuery runs the "user" protocol's query-end finalizer (C invokes
+// xDelUser after the query) and syncs the trace variables.
+func (r *rtgeomBoxFixture) finishQuery() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.interp == nil {
+		return
+	}
+	if r.finalizer != "" {
+		script := strings.TrimPrefix(strings.TrimSpace(r.finalizer), "::")
+		if r.interp.HasProcedure(script) {
+			_, _ = r.interp.InvokeProcedure(script)
+		} else {
+			if _, evalErr := r.interp.InvokeCommand("eval", script); evalErr != nil {
+				_ = evalErr
+			}
+		}
+		r.finalizer = ""
+	}
+	r.syncVars(r.interp)
 }
 
 func TestExpandRepeatedStepsPreservesOrderAndErrorSteps(t *testing.T) {
@@ -3503,7 +3634,10 @@ func TestSQLiteSuite(t *testing.T) {
 						// variables must be resolved by the evaluator
 						// itself; textual expansion would corrupt values
 						// containing spaces.
-						if step.Type != "runtime_expr" {
+						if step.Type != "runtime_expr" && step.Type != "tcl_expr" {
+							// tcl_expr's script resolves its $variables in
+							// the interpreter (a textual expansion would
+							// inline the list values and corrupt the parse).
 							step.SQL = expandTCLRuntimeVarsSQL(step.SQL, runtimeVars)
 							step.SQL = routeFixtureAttachPaths(step.SQL, fixtureDBDir)
 							step.Expect = expandTCLRuntimeVars(step.Expect, runtimeVars)
@@ -4203,6 +4337,14 @@ func TestSQLiteSuite(t *testing.T) {
 							// exactly as if the source lines had stayed comments.
 							continue
 						}
+						// The box-geometry callback's query-end protocol: a
+						// finished MATCH runs the "user" finalizer (C's
+						// xDelUser) and syncs the callback interpreter's
+						// trace variables into the runtime set.
+						if rtgeomBox.interp != nil {
+							rtgeomBox.finishQuery()
+						}
+						rtgeomBox.caseName = tc.Name
 						switch step.Type {
 						case "prepare_stmt":
 							stmt, prepErr := execDB.Prepare(step.SQL)
@@ -4497,10 +4639,21 @@ func TestSQLiteSuite(t *testing.T) {
 									t.Errorf("register_circle_geom: %v", err)
 								}
 							case "box":
-								// The box recorder is the S19 second slice
-								// (the fixture-proc interpreter); register
-								// the plain overlap callback meanwhile.
-								vtab.RegisterRTreeBoxGeometry(execDB.engine.Database(), nil)
+								rtgeomBox.runtimeVars = runtimeVars
+								if len(step.CallbackProcs) > 0 {
+									proc := step.CallbackProcs[0]
+									rtgeomBox.procs[strings.TrimPrefix(proc.Name, "::")] = &proc
+								}
+								vtab.RegisterRTreeBoxGeometry(execDB.engine.Database(), rtgeomObserver)
+							}
+						case "rtgeom_proc":
+							// A `proc box_geom {...}` (or a proc the
+							// callback calls) redefinition: the callback's
+							// TCL name resolution rebinds at call time, so
+							// replace the recorder's CURRENT body.
+							if len(step.CallbackProcs) > 0 {
+								proc := step.CallbackProcs[0]
+								rtgeomBox.procs[strings.TrimPrefix(proc.Name, "::")] = &proc
 							}
 						case "testvfs_config":
 							fx := testvfsFixtures[step.Database]
@@ -5353,8 +5506,34 @@ func TestSQLiteSuite(t *testing.T) {
 							// variable (e_droptrigger's droptrigger_reopen_db,
 							// e_expr's `set ::matchargs [list]`): the runtime
 							// list starts over, or the next callback append
-							// would see the whole history.
+							// would see the whole history. The rtgeom
+							// recorder's interpreter holds the same variable
+							// — reset it there too, or its next sync would
+							// resurrect the whole history.
 							runtimeVars[step.Variable] = ""
+							if rtgeomBox.interp != nil {
+								rtgeomBox.interp.SetVariable("::"+step.Variable, "")
+							}
+						case "tcl_expr":
+							// A do_test body whose value is plain TCL logic
+							// over callback-recorded globals (rtreedoc2
+							// 6.3's run-length compression of
+							// ::box_geom_calls): evaluate the script through
+							// the rtgeom recorder's interpreter — it holds
+							// the callback-written globals and the fixture's
+							// procs.
+							if rtgeomBox.interp == nil {
+								t.Errorf("tcl_expr without a live rtgeom recorder\n  script: %s", step.SQL)
+								continue
+							}
+							result, evalErr := rtgeomBox.interp.InvokeCommand("eval", step.SQL)
+							if evalErr != nil {
+								t.Errorf("tcl_expr: %v\n  script: %s", evalErr, step.SQL)
+								continue
+							}
+							if step.Variable != "" {
+								runtimeVars[step.Variable] = result
+							}
 						case "xferopt_reset":
 							// `set ::sqlite3_xferopt_count 0` (insert4.test):
 							// zero SQLITE_TEST's transfer counter before the
@@ -5405,6 +5584,12 @@ func TestSQLiteSuite(t *testing.T) {
 							// against that variable.
 							if step.Variable != "" {
 								runtimeVars[step.Variable] = got
+								// The box recorder's interpreter holds the
+								// same globals: a `set ::box_geom_calls 0`
+								// reset must reach it (rtreedoc2 5.1.x).
+								if rtgeomBox.interp != nil {
+									rtgeomBox.interp.SetVariable("::"+step.Variable, got)
+								}
 							}
 							// The expectation may itself be a runtime expression
 							// (`[expr {$nFree - $nFree2}]`, incrvacuum_ioerr):

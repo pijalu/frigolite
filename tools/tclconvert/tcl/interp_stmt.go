@@ -399,12 +399,27 @@ func commandRegisterCircleGeom(i *Interp, _ []rawWord, args []string, _ map[stri
 
 // commandRegisterBoxGeom records ext/rtree/test_rtreedoc.c's
 // `register_box_geom db proc`: the harness installs the box overlap callback
-// (the proc-recording observer is the S19 second slice).
+// whose observer executes the named proc (later redefinitions rebind —
+// commandProc emits rtgeom_proc update steps from here on).
 func commandRegisterBoxGeom(i *Interp, _ []rawWord, args []string, _ map[string]string) error {
 	if len(args) < 2 {
 		return nil
 	}
-	i.stmts = append(i.stmts, Stmt{Type: "register_rtgeom", SQL: "box", TestName: i.curTest})
+	if i.rtgeomBoxProcs == nil {
+		i.rtgeomBoxProcs = make(map[string]bool)
+	}
+	i.rtgeomBoxProcs[strings.TrimPrefix(args[1], "::")] = true
+	// The callback's write targets become runtime-tracked: the file-level
+	// `set ::box_geom_calls 0` resets between cases then emit reset steps
+	// (the tvfs script path's seeding, applied to the box bundle).
+	if proc, ok := i.procs[strings.TrimPrefix(args[1], "::")]; ok {
+		i.seedCallbackTargets(proc.Body)
+	}
+	step := Stmt{Type: "register_rtgeom", SQL: "box", FunctionProc: strings.TrimPrefix(args[1], "::"), TestName: i.curTest}
+	if proc, ok := i.procs[strings.TrimPrefix(args[1], "::")]; ok {
+		step.CallbackProcs = []Proc{*proc}
+	}
+	i.stmts = append(i.stmts, step)
 	return nil
 }
 
@@ -472,6 +487,20 @@ func (i *Interp) PreScanCallbackTargets(src string) {
 	for _, cmd := range parseCommands(src) {
 		if len(cmd) >= 4 && cmd[0].Text == "proc" {
 			bodies[strings.TrimPrefix(cmd[1].Text, "::")] = cmd[3].Text
+		}
+	}
+	// The box-geometry bundle's write targets (rtreedoc2's
+	// `set ::box_geom_calls 0` resets between the MATCH cases): the
+	// registered proc name and every later redefinition of it.
+	boxProcs := map[string]bool{}
+	for _, cmd := range parseCommands(src) {
+		if len(cmd) >= 3 && cmd[0].Text == "register_box_geom" {
+			boxProcs[strings.TrimPrefix(cmd[2].Text, "::")] = true
+		}
+	}
+	for name := range boxProcs {
+		if body, ok := bodies[name]; ok {
+			i.seedCallbackTargets(body)
 		}
 	}
 	for _, cmd := range parseCommands(src) {

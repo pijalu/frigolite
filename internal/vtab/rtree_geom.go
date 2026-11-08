@@ -30,10 +30,20 @@ type RtreeGeometry struct {
 	Name      string        // registered SQL function name ("cube", "circle")
 	Params    []float64     // numeric arguments, sqlite3_rtree_geometry.aParam
 	SqlParams []interface{} // raw arguments (apSqlParam analogue)
+	// EntryParams snapshots the parameters at the START of the current
+	// callback call (the OnCell observer may adjust Params mid-call; C's
+	// overlap loop then reads the stale tail of the original allocation).
+	EntryParams []float64
+	// LastError, when set by the OnCell observer, aborts the MATCH with
+	// that message (the C callback returning non-OK: the fixture's proc
+	// raised a TCL error → the query reports "SQL logic error").
+	LastError string
 	// OnCell observes every callback invocation (the test_rtreedoc.c
 	// invokeTclGeomCb hook: the fixture's trace recorder runs even on the
-	// parameter-mismatch error path).
-	OnCell  func(nParam int, aCoord []float64)
+	// parameter-mismatch error path). g is the marker instance — the same
+	// sqlite3_rtree_geometry structure serves every call within one MATCH
+	// (test_rtreedoc.c 3.1/3.2's pointer-identity contract).
+	OnCell  func(g *RtreeGeometry, nParam int, aCoord []float64)
 	QueryFn RtreeQueryFunc // xQueryFunc (nil for 1st-generation callbacks)
 	fn      RtreeGeomFunc  // xGeom
 	user    interface{}    // per-statement cache slot (pUser/xDelUser analogue)
@@ -304,14 +314,31 @@ func circleStateFromParams(g *RtreeGeometry, nCoord int, aCoord []float64) (*rtr
 // coordinates and then fails the query with "SQL logic error" (the C
 // wrapper maps the callback's SQLITE_ERROR onto the MATCH).
 func rtreeBoxGeom(g *RtreeGeometry, nCoord int, aCoord []float64) (int, error) {
+	// C's per-call order (test_rtreedoc.c box_geom): the nParam!=nCoord
+	// TOP CHECK runs BEFORE the observer invocation, so an observer-side
+	// parameter adjustment ("zero") takes effect on the NEXT call's check
+	// — the adjusting call itself completes with the pre-call parameters.
+	nParamAtEntry := len(g.Params)
+	g.EntryParams = append(g.EntryParams[:0], g.Params...)
 	if g.OnCell != nil {
-		g.OnCell(len(g.Params), append([]float64(nil), aCoord...))
+		g.OnCell(g, nParamAtEntry, append([]float64(nil), aCoord...))
+		if g.LastError != "" {
+			return 0, fmt.Errorf("%s", g.LastError)
+		}
 	}
-	if len(g.Params) != nCoord {
+	if nParamAtEntry != nCoord {
 		return 0, fmt.Errorf("SQL logic error")
 	}
+	// The overlap test reads the parameters as they stand now; when the
+	// observer changed the count mid-call, C reads the stale tail of the
+	// original aParam allocation — keep the pre-call values for those
+	// slots (the observable row decisions agree).
+	params := g.Params
+	if len(params) != nParamAtEntry {
+		params = g.EntryParams
+	}
 	for ii := 0; ii+1 < nCoord; ii += 2 {
-		if aCoord[ii] > g.Params[ii+1] || aCoord[ii+1] < g.Params[ii] {
+		if aCoord[ii] > params[ii+1] || aCoord[ii+1] < params[ii] {
 			return 0, nil
 		}
 	}
@@ -323,7 +350,7 @@ func rtreeBoxGeom(g *RtreeGeometry, nCoord int, aCoord []float64) (int, error) {
 // OnCell, when set, observes every callback invocation (the fixture's
 // ::box_geom trace recorder — the C invokeTclGeomCb runs even on the
 // parameter-mismatch error path).
-func RegisterRTreeBoxGeometry(db Database, onCell func(nParam int, aCoord []float64)) {
+func RegisterRTreeBoxGeometry(db Database, onCell func(g *RtreeGeometry, nParam int, aCoord []float64)) {
 	rtreeGeomMu.Lock()
 	prev := rtreeGeomRegistry["box"]
 	rtreeGeomMu.Unlock()

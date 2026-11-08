@@ -147,6 +147,7 @@ type Interp struct {
 	sharedCacheFlag    bool                        // the sqlite3_enable_shared_cache conversion-time flag (the restore bakes the previous value)
 	testvfsNames       map[string]bool             // the named testvfs wrapper VFSes (test_vfs.c)
 	testvfsScriptProcs map[string]bool             // proc names bound as testvfs callback scripts
+	rtgeomBoxProcs     map[string]bool             // proc names bound as box-geometry callback observers
 	backupHandles      map[string]backupHandleInfo // the sqlite3_backup command objects (test_backup.c)
 	pendingVFS         string                      // the -vfs option of the sqlite3 open being converted
 	deletedFiles       map[string]bool             // files removed via forcedelete/file delete
@@ -1707,6 +1708,15 @@ func (i *Interp) cmdProc(rawWords []rawWord) error {
 	}
 	argNames := splitList(argsStr)
 	proc := &Proc{Name: name, Args: argNames, Body: body}
+	// A (re)definition of a registered box-geometry callback proc — or of
+	// any proc after one exists (the callback body may CALL it: 5.1.3's
+	// box_geom_finalizer) — rebinds at call time (TCL name resolution):
+	// emit an update step so the harness's recorder executes the CURRENT
+	// definitions (rtreedoc2's per-case `proc box_geom {...}` wave).
+	if len(i.rtgeomBoxProcs) > 0 {
+		i.stmts = append(i.stmts, Stmt{Type: "rtgeom_proc", FunctionProc: strings.TrimPrefix(name, "::"), CallbackProcs: []Proc{*proc}, TestName: i.curTest})
+		i.seedCallbackTargets(body)
+	}
 	// A proc bound as a testvfs/unlock-notify callback script makes its
 	// write targets runtime-tracked globals (TCL late binding: the script
 	// config usually precedes the definition — walvfs's `tvfs script xSync`

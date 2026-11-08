@@ -97,7 +97,18 @@
       "steps": [
         {
           "type": "register_rtgeom",
-          "sql": "box"
+          "sql": "box",
+          "callbackProcs": [
+            {
+              "Name": "box_geom",
+              "Args": [
+                "args"
+              ],
+              "Body": "\n  lappend ::box_geom [concat [lindex $args 0] [lrange $args 2 end-1]]\n  return \"\"\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "box_geom"
         },
         {
           "type": "runtime_var_reset",
@@ -192,6 +203,25 @@
       ]
     },
     {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "rtgeom_proc",
+          "callbackProcs": [
+            {
+              "Name": "box_geom",
+              "Args": [
+                "args"
+              ],
+              "Body": "\n  error \"an error!\"\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "box_geom"
+        }
+      ]
+    },
+    {
       "name": "rtreedoc2-2-2.0",
       "steps": [
         {
@@ -211,8 +241,22 @@
       ]
     },
     {
-      "name": "setup_4",
+      "name": "setup_5",
       "steps": [
+        {
+          "type": "rtgeom_proc",
+          "callbackProcs": [
+            {
+              "Name": "box_geom",
+              "Args": [
+                "args"
+              ],
+              "Body": "\n  lappend ::ptr_list [lindex $args 4]\n  return 0\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "box_geom"
+        },
         {
           "type": "runtime_var_reset",
           "variable": "ptr_list"
@@ -229,8 +273,22 @@
       ]
     },
     {
-      "name": "setup_5",
+      "name": "setup_6",
       "steps": [
+        {
+          "type": "rtgeom_proc",
+          "callbackProcs": [
+            {
+              "Name": "box_geom",
+              "Args": [
+                "args"
+              ],
+              "Body": "\n  lappend ::box_geom [concat [lindex $args 0] [lrange $args 2 end-1]]\n  if {[llength $::box_geom]==3} {\n    return \"zero\"\n  }\n  return \"\"\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "box_geom"
+        },
         {
           "type": "runtime_var_reset",
           "variable": "box_geom"
@@ -266,20 +324,45 @@
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE VIRTUAL TABLE r1 USING rtree(id, minX,maxX, minY,maxY);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i\u003c120\n  )\n  INSERT INTO r1 SELECT i,i,i+1,  200,201 FROM s;"
+          "sql": "CREATE VIRTUAL TABLE r1 USING rtree(id, minX,maxX, minY,maxY);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<120\n  )\n  INSERT INTO r1 SELECT i,i,i+1,  200,201 FROM s;"
         }
       ]
     },
     {
-      "name": "setup_6",
+      "name": "setup_7",
       "steps": [
         {
           "type": "register_rtgeom",
-          "sql": "box"
+          "sql": "box",
+          "callbackProcs": [
+            {
+              "Name": "box_geom",
+              "Args": [
+                "args"
+              ],
+              "Body": "\n  lappend ::box_geom [concat [lindex $args 0] [lrange $args 2 end-1]]\n  if {[llength $::box_geom]==3} {\n    return \"zero\"\n  }\n  return \"\"\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "box_geom"
         },
         {
           "type": "runtime_var_reset",
           "variable": "box_geom"
+        },
+        {
+          "type": "rtgeom_proc",
+          "callbackProcs": [
+            {
+              "Name": "box_geom",
+              "Args": [
+                "args"
+              ],
+              "Body": "\n  lappend ::box_geom [lindex $args 1]\n  return \"\"\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "box_geom"
         }
       ]
     },
@@ -290,6 +373,25 @@
           "type": "query",
           "sql": "SELECT count(*) FROM r1 WHERE id MATCH box(0,150,199,201)",
           "expect": "120"
+        }
+      ]
+    },
+    {
+      "name": "setup_8",
+      "steps": [
+        {
+          "type": "rtgeom_proc",
+          "callbackProcs": [
+            {
+              "Name": "box_geom",
+              "Args": [
+                "args"
+              ],
+              "Body": "\n  set ::box_geom [lindex $args 2]\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "box_geom"
         }
       ]
     },
@@ -363,6 +465,30 @@
       ]
     },
     {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "box_geom_calls"
+        },
+        {
+          "type": "rtgeom_proc",
+          "callbackProcs": [
+            {
+              "Name": "box_geom",
+              "Args": [
+                "args"
+              ],
+              "Body": "\n  incr ::box_geom_calls\n  return user_is_zero\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "box_geom"
+        }
+      ]
+    },
+    {
       "name": "rtreedoc2-2-5.1.1",
       "steps": [
         {
@@ -378,6 +504,42 @@
           "type": "runtime_var",
           "variable": "box_geom_calls",
           "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "setup_10",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "box_geom_calls"
+        },
+        {
+          "type": "rtgeom_proc",
+          "callbackProcs": [
+            {
+              "Name": "box_geom",
+              "Args": [
+                "args"
+              ],
+              "Body": "\n  incr ::box_geom_calls\n  switch -- $::box_geom_calls {\n    1 {\n      return user_is_zero\n    }\n    2 {\n      return [list user box_geom_finalizer]\n    }\n  }\n  return \"\"\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "box_geom"
+        },
+        {
+          "type": "rtgeom_proc",
+          "callbackProcs": [
+            {
+              "Name": "box_geom_finalizer",
+              "Args": null,
+              "Body": "\n  set ::box_geom_finalizer \"::box_geom_calls is $::box_geom_calls\"\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "box_geom_finalizer"
         }
       ]
     },
@@ -415,7 +577,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE VIRTUAL TABLE xyz USING rtree(x, x1,x2, y1,y2);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i\u003c15\n  )\n  INSERT INTO xyz SELECT NULL, one.i,one.i+1,  two.i,two.i+1 FROM s one, s two;"
+          "sql": "CREATE VIRTUAL TABLE xyz USING rtree(x, x1,x2, y1,y2);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<15\n  )\n  INSERT INTO xyz SELECT NULL, one.i,one.i+1,  two.i,two.i+1 FROM s one, s two;"
         }
       ]
     },
@@ -430,8 +592,22 @@
       ]
     },
     {
-      "name": "setup_7",
+      "name": "setup_11",
       "steps": [
+        {
+          "type": "rtgeom_proc",
+          "callbackProcs": [
+            {
+              "Name": "box_geom",
+              "Args": [
+                "args"
+              ],
+              "Body": "\n  set coords [lindex $args 3]\n  set area [expr {\n    ([lindex $coords 1]-[lindex $coords 0]) * \n    ([lindex $coords 3]-[lindex $coords 2])\n  }]\n  if {$area==1} {\n    lappend ::box_geom_calls L\n  } else {\n    lappend ::box_geom_calls B\n  }\n",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "box_geom"
+        },
         {
           "type": "runtime_var_reset",
           "variable": "box_geom_calls"
@@ -451,6 +627,11 @@
     {
       "name": "rtreedoc2-2-6.3",
       "steps": [
+        {
+          "type": "tcl_expr",
+          "sql": "set prev \"\"\n  set box_calls [list]\n  foreach c $::box_geom_calls {\n    if {$c!=$prev} {\n      lappend box_calls $c\n      set prev $c\n    }\n  }\n  set box_calls",
+          "variable": "box_calls"
+        },
         {
           "type": "runtime_var",
           "variable": "box_calls",

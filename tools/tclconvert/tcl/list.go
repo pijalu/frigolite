@@ -11,6 +11,10 @@ func SplitList(s string) []string { return splitList(s) }
 // splitList parses a TCL list string into elements.
 // TCL lists are whitespace-separated, with {} or "" grouping.
 // Example: "a b {c d} e" → ["a", "b", "c d", "e"]
+// SplitTclList splits a TCL list into its elements (the exported form of
+// splitList — the harness parses callback results with it).
+func SplitTclList(s string) []string { return splitList(s) }
+
 func splitList(s string) []string {
 	var result []string
 	pos := 0
