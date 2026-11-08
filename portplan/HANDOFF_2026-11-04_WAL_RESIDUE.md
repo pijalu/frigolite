@@ -264,3 +264,32 @@ The rtree census family (126 isolated) decomposes into per-unit classes
   drops (stale-fixture class; the source is ext/rtree/rtreefuzz001.test).
 - **rtreecheck (5), rtree8 (5)**: assorted; rtreecheck's swap_int32
   UPDATEs corrupt the shadow tables directly.
+
+## S13-S16 RECORDS (2026-11-08, the tkt census slice) — the duplicate-generation discovery
+
+- S13 (74c173e27): tkt-bdc6bbbb38's 16 got-[] failures were a stale
+  fixture missing its `set sqlite_fts3_enable_parentheses 1` step (the
+  converter's set_fts3_parens special-case + the harness's TclVarSet
+  bridge + fts3ParenthesesEnabled all existed). 13 flag-setting fixtures
+  regenerated; the harness query arm's error path now stamps the catch
+  carriers (a catch-wrapped probe query whose query errors IS the
+  captured result). fts3 sweep 121 -> 118, zero new.
+- S14 (7a37980ba): **48 underscore-named tkt fixtures were stale-
+  generation duplicates of the dash-named siblings** — the same sources
+  ran twice, the stale ones truncated (missing setups -> "no such
+  table" cascades, missing UDF registrations). Deleted; every tkt-*
+  source regenerated with the current converter. tkt census 124 -> 55.
+- S15 (ecfdf622c): the corpus-wide duplicate scan found 3 more
+  (fts_9fd058691, fuzz_oss1, vacuum_into) — removed.
+- S16 (f81066ddf): the order-distinct mark-off honors UNIQUE-index NULL
+  semantics — an IS NULL equality over a nullable unique-prefix column
+  voids the mark-off (duplicate NULL keys); the remaining ORDER BY term
+  keeps its sorter. tkt3824 6 -> 0; where 111 / index 101 isolated runs
+  match their baselines exactly.
+- Full-suite gates: S12 2014 -> S15 1929 failing subtests, no family
+  worse. THE CENSUS NUMBERS WERE INFLATED by the duplicates — re-derive
+  family truth from the case paths before scoping any unit.
+
+**Restart point**: the remaining tkt classes (tkt-31338dca7e 8 — LEFT
+JOIN chains, tkt2820 4, tkt1644 3 — C-API finalize surfaces), then the
+rtree class map (the previous record), where 111, expr 109, pager1 101.
