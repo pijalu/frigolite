@@ -50,18 +50,22 @@ generation — re-derive family truth from the case paths before scoping.
   register_circle_geom/register_box_geom commands). The box callback
   ported with the OnCell observer hook. rtreedoc2 29 -> 11 (the
   fixture refreshed to 46 cases).
+- **S19 slice 2** (ffd102815): the box_geom trace recorder — the
+  fixture-proc interpreter wired to the box callback's OnCell observer
+  (the per-case `proc box_geom` redefinitions rebind; the C
+  invokeTclGeomCb argument shape; the zero/user/user_is_zero result
+  protocol; the query-end finalizer; the runtime-var sync). **rtreedoc2
+  0 failures** — the whole 46-case family green.
 
 ## Immediate next action
 
-The **rtree box_geom trace recorder** (S19 slice 2): the 11 remaining
-rtreedoc2 failures are the ::box_geom/::ptr_list runtime-var assertions,
-which need the fixture-proc interpreter wired to the box callback's
-OnCell observer (the per-case `proc box_geom` redefinitions rebind; the
-trace elements are TCL-rendered {name {params} {coords}} with the
-TCL float formatting). Then the census families **where 111,
-expr 109, pager1 101** and the WAL residue classes. Baselines:
-/tmp/full_S15_fails.txt (the true full-run name set),
-/tmp/tkt_s18_fails.txt, /tmp/rd2.txt.
+The census families **where 111, expr 109, pager1 101** (triage per
+family with the census methodology: bucket by message, C-source
+contract, name-diff verification), then the WAL residue classes
+(the xShmLock trace / -shm byte introspection, walvfs error-injection,
+walfault-11, interrupt2-2.1) and the carded converter classes
+(binary-format 43 files, the per-row foreach surface). Baselines:
+/tmp/full_S15_fails.txt, /tmp/tkt_s18_fails.txt, /tmp/rd2j.txt.
 
 ## Queue (in order)
 

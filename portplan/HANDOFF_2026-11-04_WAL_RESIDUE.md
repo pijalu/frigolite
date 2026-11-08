@@ -320,3 +320,37 @@ rtree class map (the previous record), where 111, expr 109, pager1 101.
   proc: lappend the trace / error / return "zero"|"user" per
   test_rtreedoc.c's result protocol), and the trace elements render
   floats through the TCL formatting.
+
+## S19 SLICE 2 RECORD (2026-11-08) — rtreedoc2 fully green
+
+- The recorder (rtgeomBoxFixture) evaluates the CURRENT `proc box_geom`
+  body through a tcl.Interp per engine cell visit, with the C
+  invokeTclGeomCb argument shape ("box", ctxPtr, {params}, {coords},
+  geomPtr — the floats through the TCL double rendering, the marker's
+  pointer as the same-struct identity). The result protocol: "zero"
+  adjusts aParam, "user" arms the query-end finalizer (the per-step
+  finishQuery hook), "user_is_zero" errors once armed, a proc error
+  aborts the MATCH as "SQL logic error".
+- The callback interpreter's globals sync into the runtime set after
+  every invocation; the runtime_var_reset/runtime_expr assignments reach
+  the interpreter too (the counter resets between cases).
+- ENGINE: the box callback's per-call order matches C — the
+  nParam!=nCoord check uses the PRE-observation count (the "zero"
+  adjustment lands on the NEXT call's check — C's 3.3 trace has FOUR
+  elements with the fourth recorded post-adjustment), and the overlap
+  reads the pre-call parameters when the observer changed the count
+  mid-call (C reads the stale tail of the original aParam allocation).
+- Converter: rtgeom_proc update steps for every later proc definition
+  after a box registration (the callback's own name and the procs it
+  calls); the box bundle's write targets seeded at registration, at
+  each redefinition, AND in the whole-source pre-scan (the
+  `set ::box_geom_calls 0` resets precede their proc definitions).
+- The 6.3 case's run-length compression hand-pinned as a tcl_expr step
+  (the harness evaluates plain-TCL do_test bodies through the recorder's
+  interpreter; the $variable expansion must be SKIPPED for it — textual
+  inlining corrupts the parse).
+
+**rtreedoc2: 0 failures** (the whole 46-case family).
+
+**Restart point**: the census families where 111 / expr 109 / pager1
+101, then the WAL residue classes.
