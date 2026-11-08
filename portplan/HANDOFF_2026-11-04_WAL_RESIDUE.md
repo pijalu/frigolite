@@ -240,3 +240,27 @@ the census — an increase is a regression), commit S12, then the census
 families rtree 126 / tkt 124 / where 111 / expr 109 / pager1 101. The
 WAL residue is the carded callback/byte-manipulation classes (see
 TODO.md's queue item 7).
+
+## RTREE SWEEP TRIAGE (2026-11-08, post-S12, /tmp/rtree_run.log)
+
+The rtree census family (126 isolated) decomposes into per-unit classes
+(the sources live in ../sqlite/ext/rtree/*.test — NOT ../sqlite/test):
+
+- **rtreedoc2 (28)**: `box(...)` is a `sqlite3_rtree_geometry_callback`
+  registered by the C-API command `register_box_geom` (test_rtreedoc.c)
+  — the MATCH-geometry surface (the SQL function returns the opaque
+  rtree-geometry handle; xQueryFunc filters). Unit: the geometry-
+  callback registry in the rtree MATCH path + the harness step. Also
+  the callback-state assertions (the ::box_geom trace).
+- **rtree1 (26)**: the 12.x class — column-level UNIQUE on rtree aux
+  columns + UPDATE/INSERT OR ROLLBACK|ABORT|IGNORE|FAIL|REPLACE
+  semantics over vtables + the `sql_uses_stmt` C-API assertions
+  (sqlite3_stmt_readonly class). Two table flavors per case (#01
+  copies); the second flavor's UNIQUE didn't fire in ours.
+- **rtreedoc (15), rtreeA (15), rtreeJ (11)**: row-order/insert classes
+  needing individual triage (rtreeA-2.x "got: [lob]" looks like a
+  quoting bug; rtreeJ-2.x row sets).
+- **rtreefuzz001 (8)**: "no such table: t1/geo1" — converter setup
+  drops (stale-fixture class; the source is ext/rtree/rtreefuzz001.test).
+- **rtreecheck (5), rtree8 (5)**: assorted; rtreecheck's swap_int32
+  UPDATEs corrupt the shadow tables directly.
