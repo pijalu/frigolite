@@ -46,7 +46,7 @@ func (e *DMLExecutor) planOrIndexScan(where sql.Expr, tableName string, colDefs 
 	for _, cd := range colDefs {
 		outerCols[cd.Name] = true
 	}
-	constConstraints, orTerm, orCount := e.collectOrConstraintTerms(andTerms, outerCols)
+	constConstraints, constSources, nonORIdxs, orTerm, orCount := e.collectOrConstraintTerms(andTerms, outerCols)
 	if orCount != 1 || orTerm == nil {
 		return nil, false
 	}
@@ -62,6 +62,7 @@ func (e *DMLExecutor) planOrIndexScan(where sql.Expr, tableName string, colDefs 
 	if err != nil || len(indexes) == 0 {
 		return nil, false
 	}
+	rowidTable := orTableHasRowid(ctx, tableName)
 
 	// whereexpr.c CASE 2 (whereCombineDisjuncts): a two-way OR whose
 	// disjuncts hold a subterm pair with the same operands and compatible
@@ -71,30 +72,73 @@ func (e *DMLExecutor) planOrIndexScan(where sql.Expr, tableName string, colDefs 
 	// (a>?)" — so the OR plan collapses to that single branch and the rows
 	// come out in the index's key order (where the multi-branch union order
 	// would differ).
-	if branch, ok := e.combineOrDisjunctsPlan(orTerm, indexes, constConstraints, colDefs, outerCols); ok {
+	if branch, consumed, ok := e.combineOrDisjunctsPlan(orTerm, indexes, constConstraints, colDefs, outerCols, rowidTable); ok {
+		// C's collapsed plan compiles only the combined conjunct into the
+		// seek; the full OR term stays the loop's residual filter.
+		branch.Residual = orBranchResidual(andTerms, nonORIdxs, constSources, consumed, []sql.Expr{orTerm})
 		return []orBranchPlan{branch}, true
 	}
 
 	var branches []orBranchPlan
 	for _, term := range terms {
-		bestK, bestIdx, bestCols, bestPrefix, bestRange := e.bestIndexForOrBranch(term, outerCols, indexes, constConstraints, colDefs)
-		// A branch served by the rowid (a range on the INTEGER PRIMARY KEY)
+		cand := e.bestIndexForOrBranch(term, outerCols, indexes, constConstraints, colDefs, rowidTable)
+		// A branch served by the rowid (an equality or a range on the
+		// INTEGER PRIMARY KEY, or on a rowid table's rowid pseudo-column)
 		// has no index: SQLite renders it "SEARCH t2 USING INTEGER PRIMARY
-		// KEY (rowid>? AND rowid<?)".
-		if bestK == 0 || (bestIdx == nil && bestRange == nil && len(bestPrefix) == 0) {
+		// KEY (rowid=?)" or "(rowid>? AND rowid<?)".
+		if cand == nil || cand.k == 0 || (cand.index == nil && cand.rangeBnd == nil && cand.rowidEq == nil && cand.rowidRng == nil) {
 			return nil, false
 		}
 		branch := orBranchPlan{
-			IndexCols: bestCols,
-			Prefix:    bestPrefix,
-			Range:     bestRange,
+			IndexCols:  cand.cols,
+			Prefix:     cand.prefix,
+			Range:      cand.rangeBnd,
+			RowidEq:    cand.rowidEq,
+			RowidRange: cand.rowidRng != nil,
 		}
-		if bestIdx != nil {
-			branch.IndexName = bestIdx.Name
+		if branch.Range == nil && cand.rowidRng != nil {
+			branch.Range = cand.rowidRng
 		}
+		if cand.index != nil {
+			branch.IndexName = cand.index.Name
+		}
+		branch.Residual = orBranchResidual(andTerms, nonORIdxs, constSources, cand.consumedConst, cand.residual)
 		branches = append(branches, branch)
 	}
 	return branches, true
+}
+
+// orTableHasRowid reports whether the table is an ordinary rowid table (a
+// WITHOUT ROWID table has no rowid pseudo-column to serve an OR branch).
+func orTableHasRowid(ctx *DatabaseContext, tableName string) bool {
+	entry, err := ctx.Schema.FindTable(tableName)
+	if err != nil || entry == nil {
+		return true // unresolved: keep the rowid routing available
+	}
+	return !HasWithoutRowidKeyword(strings.ToUpper(entry.SQL))
+}
+
+// orBranchResidual collects a branch's residual WHERE conjuncts: the OR
+// term's own unconsumed sub-conjuncts plus every AND-context conjunct whose
+// constant equality the branch's prefix did not consume. C compiles the
+// consumed terms into the loop's seek and never re-evaluates them per
+// candidate row, so the fetch filter evaluates exactly these.
+func orBranchResidual(andTerms []sql.Expr, nonORIdxs []int, constSources []int, consumedConst map[int]bool, termResidual []sql.Expr) []sql.Expr {
+	out := make([]sql.Expr, 0, len(termResidual)+len(nonORIdxs))
+	out = append(out, termResidual...)
+	for _, j := range nonORIdxs {
+		consumed := false
+		for ci, src := range constSources {
+			if src == j && consumedConst[ci] {
+				consumed = true
+				break
+			}
+		}
+		if !consumed {
+			out = append(out, andTerms[j])
+		}
+	}
+	return out
 }
 
 // mergeOrRangeBounds folds src's missing bound(s) into dst (same column).
@@ -116,12 +160,13 @@ func mergeOrRangeBounds(dst, src *orRange) {
 // (=,>,>=). The combined virtual term ("x>A OR (x=A AND y>B)" adds "x>=A")
 // drives the collapsed plan when an index (or the INTEGER PRIMARY KEY) can
 // serve it; ok is false when no pair combines or no index serves the
-// combined term (the multi-branch path stays responsible).
-func (e *DMLExecutor) combineOrDisjunctsPlan(orTerm sql.Expr, indexes []*schema.Entry, constConstraints []orConstraint, colDefs []sql.ColumnDef, outerCols map[string]bool) (orBranchPlan, bool) {
+// combined term (the multi-branch path stays responsible). The consumed
+// map reports which AND-context equalities the branch's prefix took.
+func (e *DMLExecutor) combineOrDisjunctsPlan(orTerm sql.Expr, indexes []*schema.Entry, constConstraints []orConstraint, colDefs []sql.ColumnDef, outerCols map[string]bool, rowidTable bool) (orBranchPlan, map[int]bool, bool) {
 	orTerm = unwrapParen(orTerm)
 	bin, ok := orTerm.(*sql.BinaryOp)
 	if !ok || !strings.EqualFold(bin.Operator, "OR") {
-		return orBranchPlan{}, false
+		return orBranchPlan{}, nil, false
 	}
 	// whereNthSubterm's enumeration: each disjunct contributes its
 	// AND-conjuncts (the disjunct itself when it is not an AND).
@@ -131,18 +176,21 @@ func (e *DMLExecutor) combineOrDisjunctsPlan(orTerm sql.Expr, indexes []*schema.
 			if !ok {
 				continue
 			}
-			k, idx, cols, prefix, rng := e.bestIndexForOrBranch(combined, outerCols, indexes, constConstraints, colDefs)
-			if k == 0 || (idx == nil && rng == nil && len(prefix) == 0) {
+			cand := e.bestIndexForOrBranch(combined, outerCols, indexes, constConstraints, colDefs, rowidTable)
+			if cand == nil || cand.k == 0 || (cand.index == nil && cand.rangeBnd == nil && cand.rowidEq == nil && cand.rowidRng == nil) {
 				continue
 			}
-			branch := orBranchPlan{IndexCols: cols, Prefix: prefix, Range: rng}
-			if idx != nil {
-				branch.IndexName = idx.Name
+			branch := orBranchPlan{IndexCols: cand.cols, Prefix: cand.prefix, Range: cand.rangeBnd, RowidEq: cand.rowidEq, RowidRange: cand.rowidRng != nil}
+			if branch.Range == nil && cand.rowidRng != nil {
+				branch.Range = cand.rowidRng
 			}
-			return branch, true
+			if cand.index != nil {
+				branch.IndexName = cand.index.Name
+			}
+			return branch, cand.consumedConst, true
 		}
 	}
-	return orBranchPlan{}, false
+	return orBranchPlan{}, nil, false
 }
 
 // combineDisjunctTerms ports whereCombineDisjuncts for one subterm pair: both
@@ -211,101 +259,249 @@ func combineOpBit(op string) (int, bool) {
 
 // collectOrConstraintTerms splits AND terms into the single OR term and the
 // constant equality constraints from the non-OR conjuncts.
-func (e *DMLExecutor) collectOrConstraintTerms(andTerms []sql.Expr, outerCols map[string]bool) ([]orConstraint, sql.Expr, int) {
+// collectOrConstraintTerms splits the WHERE's AND-conjuncts: the OR term,
+// the constant equalities usable as index prefixes, and bookkeeping that
+// maps each constant equality back to its source conjunct (constSources[i]
+// is the andTerms index of constConstraints[i]) and lists the AND indexes of
+// every non-OR conjunct (nonORIdxs) so unconsumed ones can stay residual.
+func (e *DMLExecutor) collectOrConstraintTerms(andTerms []sql.Expr, outerCols map[string]bool) ([]orConstraint, []int, []int, sql.Expr, int) {
 	var constConstraints []orConstraint
+	var constSources []int
+	var nonORIdxs []int
 	var orTerm sql.Expr
 	orCount := 0
-	for _, t := range andTerms {
+	for ti, t := range andTerms {
 		if isOrExpr(t) {
 			orTerm = t
 			orCount++
 			continue
 		}
+		nonORIdxs = append(nonORIdxs, ti)
 		if col, val, aff, ok := e.extractEquality(t, outerCols); ok {
 			constConstraints = append(constConstraints, orConstraint{Col: col, Val: val, ApplyAffinity: aff})
+			constSources = append(constSources, ti)
 		}
 	}
-	return constConstraints, orTerm, orCount
+	return constConstraints, constSources, nonORIdxs, orTerm, orCount
+}
+
+// orBranchCandidate is bestIndexForOrBranch's resolved shape for one OR
+// term: the serving index (or the rowid probe), the constraints compiled
+// into the branch, and the bookkeeping the residual split needs.
+type orBranchCandidate struct {
+	k        int
+	index    *schema.Entry
+	cols     []string
+	prefix   []orConstraint
+	rangeBnd *orRange
+	rowidEq  *orConstraint
+	rowidRng *orRange
+	// consumedConst holds the indexes (into the plan's constConstraints
+	// slice) of the AND-context equalities the branch's prefix consumed.
+	consumedConst map[int]bool
+	// residual holds the term's own conjuncts the branch did not consume.
+	residual []sql.Expr
+}
+
+// orRowidTermCol reports whether a constraint column denotes the table's
+// rowid: the declared INTEGER PRIMARY KEY alias, or (on an ordinary rowid
+// table) one of SQLite's rowid pseudo-column names. A WITHOUT ROWID table
+// has no rowid (its declared PK keeps the old prefix-branch shape); a
+// declared column shadows the pseudo-column.
+func orRowidTermCol(col string, colDefs []sql.ColumnDef, rowidTable bool) bool {
+	if !rowidTable {
+		return false
+	}
+	for _, cd := range colDefs {
+		if strings.EqualFold(cd.Name, col) {
+			// A declared column shadows the pseudo-column: it is the rowid
+			// only when it is the declared INTEGER PRIMARY KEY alias.
+			ipk := ipkColumnName(colDefs)
+			return ipk != "" && strings.EqualFold(cd.Name, ipk)
+		}
+	}
+	switch strings.ToLower(col) {
+	case "rowid", "_rowid_", "oid":
+		return true
+	}
+	return false
 }
 
 // bestIndexForOrBranch selects the index with the longest prefix of columns
-// covered by the branch's own constraints or a constant AND-context constraint.
-func (e *DMLExecutor) bestIndexForOrBranch(term sql.Expr, outerCols map[string]bool, indexes []*schema.Entry, constConstraints []orConstraint, colDefs []sql.ColumnDef) (int, *schema.Entry, []string, []orConstraint, *orRange) {
-	// Extract this term's own equality constraints.
+// covered by the branch's own constraints or a constant AND-context
+// constraint. The term's conjuncts are classified once: equality and range
+// constraints drive the branch (the rowid routes to the direct table-btree
+// probe), everything the branch does not compile into its seek is returned
+// as residual.
+func (e *DMLExecutor) bestIndexForOrBranch(term sql.Expr, outerCols map[string]bool, indexes []*schema.Entry, constConstraints []orConstraint, colDefs []sql.ColumnDef, rowidTable bool) *orBranchCandidate {
+	// Classify this term's conjuncts once: equality constraints, range
+	// constraints, and the leftovers that stay residual. An equality or
+	// range on the rowid serves the branch without an index ("SEARCH t
+	// USING INTEGER PRIMARY KEY (rowid=?)").
 	branchCols := make(map[string]orConstraint)
+	branchRange := make(map[string]*orRange)
+	eqSubs := make(map[string][]sql.Expr)    // equality conjunct exprs per column
+	rangeSubs := make(map[string][]sql.Expr) // range conjunct exprs per column
+	var residual []sql.Expr
+	var rowidEq *orConstraint
+	var rowidRng *orRange
+	var rowidRangeSubs []sql.Expr
 	for _, sub := range splitAndTerms(term) {
 		if col, val, aff, ok := e.extractEquality(sub, outerCols); ok {
-			branchCols[col] = orConstraint{Col: col, Val: val, ApplyAffinity: aff}
+			c := orConstraint{Col: col, Val: val, ApplyAffinity: aff}
+			if orRowidTermCol(col, colDefs, rowidTable) {
+				if rowidEq == nil {
+					rowidEq = &c
+				} else {
+					residual = append(residual, sub)
+				}
+				continue
+			}
+			if _, dup := branchCols[col]; dup {
+				residual = append(residual, sub) // a second eq on one column: re-checked per row
+				continue
+			}
+			branchCols[col] = c
+			eqSubs[col] = append(eqSubs[col], sub)
+			continue
 		}
-	}
-	// A range constraint on a column serves the branch too: SQLite scans the
-	// index over the range ("SEARCH t2 USING INDEX t2d (d>? AND d<?)"). Two
-	// bounds on one column (a>=4 AND a<=6) merge into ONE branch — SQLite's
-	// plan renders a single combined range, and separate branches would both
-	// over-scan.
-	branchRange := make(map[string]*orRange)
-	for _, sub := range splitAndTerms(term) {
 		if rng, ok := e.extractRange(sub, outerCols); ok {
+			if orRowidTermCol(rng.Col, colDefs, rowidTable) {
+				if rowidRng == nil {
+					rowidRng = rng
+				} else {
+					mergeOrRangeBounds(rowidRng, rng)
+				}
+				rowidRangeSubs = append(rowidRangeSubs, sub)
+				continue
+			}
 			if prev, exists := branchRange[rng.Col]; exists {
 				mergeOrRangeBounds(prev, rng)
 			} else {
 				branchRange[rng.Col] = rng
 			}
+			rangeSubs[rng.Col] = append(rangeSubs[rng.Col], sub)
+			continue
 		}
+		residual = append(residual, sub)
 	}
-	if len(branchCols) == 0 && len(branchRange) == 0 {
-		return 0, nil, nil, nil, nil
+	if len(branchCols) == 0 && len(branchRange) == 0 && rowidEq == nil && rowidRng == nil {
+		return nil
 	}
 
-	bestK := 0
-	bestScore := 0
-	var bestIdx *schema.Entry
-	var bestCols []string
-	var bestPrefix []orConstraint
-	var bestRange *orRange
-	// A constraint on the table's INTEGER PRIMARY KEY is served by the rowid
-	// itself: SQLite renders it "SEARCH t2 USING INTEGER PRIMARY KEY
-	// (rowid=?)" or "(rowid>? AND rowid<?)". The rowid order is the branch's
-	// order.
-	if ipk := ipkColumnName(colDefs); ipk != "" {
-		if rng, ok := branchRange[ipk]; ok {
-			return 1, nil, nil, nil, rng
-		}
-		if eq, ok := branchCols[ipk]; ok {
-			return 1, nil, nil, []orConstraint{eq}, nil
+	// The rowid serves its own branch: the VDBE probes the table b-tree
+	// directly (OP_SeekRowid for the equality, a seek range otherwise).
+	// A rowid range beside a rowid equality stays residual (the equality
+	// pins the row; the range is re-checked per candidate).
+	if rowidEq != nil {
+		residual = append(residual, rowidRangeSubs...)
+		return &orBranchCandidate{k: 1, rowidEq: rowidEq, residual: residual}
+	}
+	if rowidRng != nil {
+		return &orBranchCandidate{k: 1, rowidRng: rowidRng, residual: residual}
+	}
+	// A WITHOUT ROWID table's declared PK serves a branch through the row
+	// map (its cell rowids are synthetic): the equality arm keeps the
+	// prefix-branch shape, the range arm the range-branch shape — matched
+	// by column, counted as a seek + Nexts like any branch.
+	if !rowidTable {
+		if pk := ipkColumnName(colDefs); pk != "" {
+			if rng, ok := branchRange[pk]; ok {
+				res := append(residual, rowidRangeSubs...)
+				for col, subs := range rangeSubs {
+					if !strings.EqualFold(col, pk) {
+						res = append(res, subs...)
+					}
+				}
+				for _, subs := range eqSubs {
+					res = append(res, subs...)
+				}
+				return &orBranchCandidate{k: 1, rangeBnd: rng, residual: res}
+			}
+			if eq, ok := branchCols[pk]; ok {
+				res := residual
+				for col, subs := range eqSubs {
+					if !strings.EqualFold(col, pk) {
+						res = append(res, subs...)
+					}
+				}
+				for _, subs := range rangeSubs {
+					res = append(res, subs...)
+				}
+				return &orBranchCandidate{k: 1, prefix: []orConstraint{eq}, residual: res}
+			}
 		}
 	}
+
+	bestScore := 0
+	cand := &orBranchCandidate{}
 	for _, idx := range indexes {
 		cols := indexPlainColumns(idx.SQL)
 		if len(cols) == 0 {
 			continue
 		}
-		prefix, k := orBranchPrefix(cols, branchCols, constConstraints)
+		prefix, k, consumed := orBranchPrefix(cols, branchCols, constConstraints)
 		// An equality prefix is worth more than a range: the prefix pins
 		// the index to one key, the range only bounds it.
 		score := k * 2
 		if score > bestScore {
 			bestScore = score
-			bestK = k
-			bestIdx = idx
-			bestCols = cols
-			bestPrefix = prefix
-			bestRange = nil
+			cand.k = k
+			cand.index = idx
+			cand.cols = cols
+			cand.prefix = prefix
+			cand.rangeBnd = nil
+			cand.consumedConst = consumed
 		}
 		// A range on the index's leading column serves the branch even
 		// without an equality prefix.
 		if k == 0 && bestScore == 0 {
 			if rng, ok := branchRange[cols[0]]; ok {
 				bestScore = 1
-				bestK = 1
-				bestIdx = idx
-				bestCols = cols
-				bestPrefix = nil
-				bestRange = rng
+				cand.k = 1
+				cand.index = idx
+				cand.cols = cols
+				cand.prefix = nil
+				cand.rangeBnd = rng
+				cand.consumedConst = consumed
 			}
 		}
 	}
-	return bestK, bestIdx, bestCols, bestPrefix, bestRange
+	if cand.k == 0 {
+		return nil
+	}
+	// The prefix consumes the branch equalities whose columns it pinned;
+	// a range branch consumes the leading-column bounds. Everything else —
+	// an equality outside the prefix, a range the branch does not drive —
+	// is re-checked per candidate row (C's residual WHERE): dropping one
+	// would emit rows the predicate rejects (where7-2.2.1's
+	// `g='qponmlk' AND f GLOB 'nopqr*'` planned on t2g leaks the rows the
+	// GLOB rejects).
+	consumedEq := make(map[string]bool, len(cand.prefix))
+	consumedRange := make(map[string]bool, 1)
+	if cand.rangeBnd == nil {
+		for _, pc := range cand.prefix {
+			if _, fromBranch := branchCols[pc.Col]; fromBranch {
+				consumedEq[strings.ToLower(pc.Col)] = true
+			}
+		}
+	} else {
+		consumedRange[strings.ToLower(cand.rangeBnd.Col)] = true
+	}
+	for col, subs := range eqSubs {
+		if consumedEq[strings.ToLower(col)] {
+			continue
+		}
+		residual = append(residual, subs...)
+	}
+	for col, subs := range rangeSubs {
+		if consumedRange[strings.ToLower(col)] {
+			continue
+		}
+		residual = append(residual, subs...)
+	}
+	cand.residual = residual
+	return cand
 }
 
 // extractRange extracts a range constraint on one column: "col > const",
@@ -353,6 +549,13 @@ func (e *DMLExecutor) extractRange(expr sql.Expr, outerCols map[string]bool) (*o
 				}
 				op = flipComparison(v.Operator)
 			}
+			if bound == nil {
+				// A NULL-constant bound ("col < NULL") compares NULL: the
+				// term is never true and must stay residual, where its
+				// evaluation rejects every row (a bound the matcher skips
+				// would match everything — rowvalue2-4.IDX2's `b < NULL`).
+				return nil, false
+			}
 			rng := &orRange{Col: col, ApplyAffinity: true}
 			switch op {
 			case ">":
@@ -373,7 +576,8 @@ func (e *DMLExecutor) extractRange(expr sql.Expr, outerCols map[string]bool) (*o
 		}
 		lower, okLower := e.evalConstExpr(v.Low, outerCols)
 		upper, okUpper := e.evalConstExpr(v.High, outerCols)
-		if !okLower || !okUpper {
+		if !okLower || !okUpper || lower == nil || upper == nil {
+			// A NULL BETWEEN bound never compares true: stay residual.
 			return nil, false
 		}
 		return &orRange{Col: col, Lower: lower, LowerInclusive: true, Upper: upper, UpperInclusive: true, ApplyAffinity: true}, true
@@ -423,18 +627,24 @@ func columnRefName(expr sql.Expr) (string, bool) {
 // orBranchPrefix builds the constraint prefix for one index column list,
 // falling back to a constant equality from a sibling AND term when the branch
 // has no constraint for a column. The prefix stops at the first uncovered
-// column.
-func orBranchPrefix(cols []string, branchCols map[string]orConstraint, constConstraints []orConstraint) ([]orConstraint, int) {
+// column. The returned set holds the indexes (into constConstraints) the
+// prefix consumed — an unconsumed constant equality stays residual.
+func orBranchPrefix(cols []string, branchCols map[string]orConstraint, constConstraints []orConstraint) ([]orConstraint, int, map[int]bool) {
 	var prefix []orConstraint
 	k := 0
+	consumed := make(map[int]bool)
 	for _, ic := range cols {
 		c, ok := branchCols[ic]
 		if !ok {
 			found := false
-			for _, cc := range constConstraints {
+			for ci, cc := range constConstraints {
+				if consumed[ci] {
+					continue
+				}
 				if cc.Col == ic {
 					c = cc
 					found = true
+					consumed[ci] = true
 					break
 				}
 			}
@@ -445,7 +655,7 @@ func orBranchPrefix(cols []string, branchCols map[string]orConstraint, constCons
 		prefix = append(prefix, c)
 		k++
 	}
-	return prefix, k
+	return prefix, k, consumed
 }
 
 // unwrapParen strips any number of enclosing parentheses.
@@ -575,14 +785,19 @@ func (e *DMLExecutor) extractEquality(expr sql.Expr, outerCols map[string]bool) 
 	}
 	if col, aff, ok := columnRefSide(b.Left); ok {
 		val, ok := e.evalConstExpr(b.Right, outerCols)
-		if !ok {
+		if !ok || val == nil {
+			// A NULL constant on the value side ("col = NULL") is never
+			// true in SQL: the term is not an index constraint and must
+			// stay residual, where its evaluation rejects every row (the
+			// prefix matcher's nil Val means "col IS NULL" — different
+			// semantics; rowvalue2-4.IDX2's `b == NULL` arm pinned this).
 			return "", nil, false, false
 		}
 		return col, val, aff, true
 	}
 	if col, aff, ok := columnRefSide(b.Right); ok {
 		val, ok := e.evalConstExpr(b.Left, outerCols)
-		if !ok {
+		if !ok || val == nil {
 			return "", nil, false, false
 		}
 		return col, val, aff, true
@@ -760,24 +975,19 @@ func (e *DMLExecutor) execSelectWithOrPlan(s *sql.SelectStmt, tableEntry *schema
 	// to reproduce the index scan order.
 	matches, beyond := e.collectOrBranchMatches(cursor, branches, tableEntry, colDefs, colIndex)
 
-	// Union the rowids in branch scan order, deduplicating.
-	ordered := unionBranchRowIDs(matches)
-
 	// The search counter for the plan SQLite would run (its MULTI-INDEX OR
 	// walks each branch's index): one seek per branch, one successful Next
-	// per consumed entry except the branch range's EOF step, one deferred
-	// row fetch per emitted row, and a second (blob-pass) seek for each
-	// LIKE/GLOB branch (vdbe.c:4973, 6530; wherecode.c's LIKE loop).
-	// The movetos model C's deferred row fetches: a query COVERED by the OR
-	// arms' indexes (every referenced column is an index key) fetches no
-	// table rows — whereD-3.1 (a,b covered) counts 4 = 2 seeks + 2 arm
-	// Nexts, while 3.2 (c uncovered) adds one moveto per row.
-	movetos := int64(len(ordered))
-	if e.orPlanCovered(s, branches) {
-		movetos = 0
-	}
-	searchDelta := movetos
+	// per consumed entry except the branch range's EOF step, and a second
+	// (blob-pass) seek for each LIKE/GLOB branch (vdbe.c:4973, 6530;
+	// wherecode.c's LIKE loop). A rowid-equality branch runs OP_SeekRowid —
+	// not counted, with no Next loop. The movetos are counted per EMITTED
+	// row in the walk below (C's deferred row fetches fire per arm,
+	// OP_DeferredSeek + the aAltMap redirect, vdbe.c:3022).
+	searchDelta := int64(0)
 	for bi, br := range branches {
+		if br.RowidEq != nil {
+			continue // OP_SeekRowid: the counter does not track it
+		}
 		searchDelta++ // the branch seek
 		if n := len(matches[bi]); n > 0 {
 			nexts := int64(n)
@@ -790,15 +1000,81 @@ func (e *DMLExecutor) execSelectWithOrPlan(s *sql.SelectStmt, tableEntry *schema
 			searchDelta++ // the blob-pass seek of the LIKE-optimization loop
 		}
 	}
-	e.ctx.IncSearchCount(searchDelta)
 
-	// Pass 2: fetch the matching rows in order and apply the full WHERE as a
-	// safety filter (the index prefixes cover only part of the predicate).
+	// Pass 2: walk the branch matches in branch scan order (the order C's
+	// RowSet iterates), fetch each candidate, and apply the OWNING branch's
+	// residual WHERE conjuncts — the terms the plan did not compile into
+	// its seek (C never re-evaluates a consumed constraint per candidate).
+	// The dedup mirrors C's RowSetTest placement: the rowid enters the
+	// rowset only after the arm's residual filter accepts the row, so a
+	// row one arm rejects stays available to a later arm (where7-2.4.1:
+	// `g='rqponml' AND f GLOB 'hijkl*'` rejects row 37, then `b=407`
+	// emits it).
+	outputRefs := orPlanOutputRefs(s, colDefs)
+	movetos := int64(0)
 	needMaps := e.ctx.SelectNeedsRowMaps(s, tableEntry.Name)
-	allRows, allRowMaps, res := e.fetchOrPlanRows(cursor, ordered, s, tableEntry, colDefs, needMaps)
-	if res != nil {
-		return res
+	// C's deferred row fetch (OP_DeferredSeek -> sqlite3VdbeFinishMoveto)
+	// fires at the first table-cursor read of a candidate — at most once
+	// per candidate, since the read positions the cursor. Two read phases
+	// exist per arm: the residual terms (evaluated BEFORE C's RowSetTest,
+	// so rejected and duplicate candidates count) and the output block
+	// (after the RowSetTest, so only emitted rows count). A branch whose
+	// index covers a phase's columns serves it from the index cursor
+	// without the fetch (the aAltMap redirect, vdbe.c:3022); a rowid
+	// branch's cursor is positioned directly and never fetches
+	// (where8-1.10's rejected row 10 counts, its duplicate in 1.4a's GLOB
+	// arm does not).
+	residualCovers := make([]bool, len(branches))
+	outputCovers := make([]bool, len(branches))
+	for bi := range branches {
+		residualCovers[bi] = orBranchCovers(branches[bi], orBranchResidualRefs(branches[bi]))
+		outputCovers[bi] = orBranchCovers(branches[bi], outputRefs)
 	}
+	var allRows [][]interface{}
+	var allRowMaps []RowMap
+	seen := make(map[int64]bool)
+	seenWR := make(map[string]bool)
+	for bi, br := range branches {
+		ms := matches[bi]
+		sort.Slice(ms, func(i, j int) bool { return compareValueLists(ms[i].key, ms[j].key) < 0 })
+		for _, m := range ms {
+			switch {
+			case br.IsRowidBranch():
+				// the seek positioned the table cursor directly
+			case !residualCovers[bi]:
+				movetos++ // the residual read fetches, even on rejection
+			default:
+				// the output read decides (emitted rows only)
+			}
+			if m.rowID == 0 {
+				if seenWR[m.rawKey] {
+					continue
+				}
+			} else if seen[m.rowID] {
+				continue
+			}
+			row, ok, res := e.fetchOrPlanRow(cursor, m, branches, s, tableEntry, colDefs)
+			if res != nil {
+				return res
+			}
+			if !ok {
+				continue // the owning branch's residual rejected the row
+			}
+			if m.rowID == 0 {
+				seenWR[m.rawKey] = true
+			} else {
+				seen[m.rowID] = true
+			}
+			if !br.IsRowidBranch() && residualCovers[bi] && !outputCovers[bi] {
+				movetos++ // the output read fetches (the residual did not)
+			}
+			allRows = append(allRows, e.ctx.BuildOutputRow(s.Columns, colDefs, row))
+			if needMaps {
+				allRowMaps = append(allRowMaps, row)
+			}
+		}
+	}
+	e.ctx.IncSearchCount(searchDelta + movetos)
 
 	// Aggregate and finalize exactly like the regular scan path.
 	if result := e.ctx.HandleSelectAggregates(s, allRowMaps, colDefs); result != nil {
@@ -813,13 +1089,17 @@ func (e *DMLExecutor) execSelectWithOrPlan(s *sql.SelectStmt, tableEntry *schema
 }
 
 // branchMatch records one row that matched an OR branch's prefix, together
-// with the index key values used to reproduce the index scan order. For
-// WITHOUT ROWID tables rowID is synthetic 0 for every row, so rawKey (the
-// storage-order cell payload) identifies the row instead.
+// with the index key values used to reproduce the index scan order and the
+// branch that matched it (the per-arm moveto model keys on the owning
+// branch's index coverage; the first branch to reach a rowid owns the
+// emitted row, matching C's RowSetTest dedup). For WITHOUT ROWID tables
+// rowID is synthetic 0 for every row, so rawKey (the storage-order cell
+// payload) identifies the row instead.
 type branchMatch struct {
 	rowID  int64
 	rawKey string
 	key    []interface{}
+	branch int
 }
 
 // collectOrBranchMatches scans the table once, collecting for every branch the
@@ -848,7 +1128,17 @@ func (e *DMLExecutor) collectOrBranchMatches(cursor *btree.Cursor, branches []or
 
 		row := e.ctx.BuildRowMap(rec, colDefs, cell.RowID)
 		for bi, br := range branches {
-			if valueSortsAfterBranchBound(rowValueForBranch(row, br), br) {
+			switch {
+			case br.RowidEq != nil:
+				// OP_SeekRowid opens no loop: no boundary Next exists.
+			case br.RowidRange:
+				// A rowid-range branch walks the table b-tree: the boundary
+				// Next's successor exists when any rowid lies past the
+				// range's upper bound.
+				if orRowidSortsAfter(cell.RowID, br.Range) {
+					beyond[bi] = true
+				}
+			case valueSortsAfterBranchBound(rowValueForBranch(row, br), br):
 				beyond[bi] = true
 			}
 		}
@@ -975,15 +1265,73 @@ func toStringForOrder(v interface{}) (string, bool) {
 }
 
 // matchRowAgainstBranches checks one decoded record against every OR branch
-// and appends a branchMatch for each branch whose prefix it satisfies.
+// and appends a branchMatch for each branch whose constraint it satisfies:
+// the prefix equalities and range for an index branch, the rowid probe or
+// rowid range for a branch served by the table b-tree.
 func (e *DMLExecutor) matchRowAgainstBranches(rec *storage.Record, rowID int64, rawKey string, branches []orBranchPlan, colDefs []sql.ColumnDef, colIndex map[string]int, matches [][]branchMatch) {
 	row := e.ctx.BuildRowMap(rec, colDefs, rowID)
 	for bi, br := range branches {
-		if !e.orRowMatchesPrefix(row, br.Prefix) || !e.orRowMatchesRange(row, br.Range) {
-			continue
+		switch {
+		case br.RowidEq != nil:
+			if !e.orRowMatchesRowidEq(rowID, br.RowidEq) {
+				continue
+			}
+		case br.RowidRange:
+			if !e.orRowMatchesRowidRange(rowID, br.Range) {
+				continue
+			}
+		default:
+			if !e.orRowMatchesPrefix(row, br.Prefix) || !e.orRowMatchesRange(row, br.Range) {
+				continue
+			}
 		}
-		matches[bi] = append(matches[bi], branchMatch{rowID: rowID, rawKey: rawKey, key: branchKeyValues(rec, br, colIndex, rowID)})
+		matches[bi] = append(matches[bi], branchMatch{rowID: rowID, rawKey: rawKey, key: branchKeyValues(rec, br, colIndex, rowID), branch: bi})
 	}
+}
+
+// orRowMatchesRowidEq reports whether a cell's rowid satisfies the branch's
+// rowid equality probe. The rowid carries INTEGER affinity, so the probe
+// value coerces like C's seek register (sqlite3VdbeIntegerAffinity): the
+// text '4' matches rowid 4.
+func (e *DMLExecutor) orRowMatchesRowidEq(rowID int64, c *orConstraint) bool {
+	if c == nil || c.Val == nil {
+		return false
+	}
+	return e.ctx.CompareValuesWithCollate(rowID, util.ApplyColumnAffinity(c.Val, "INTEGER")) == 0
+}
+
+// orRowMatchesRowidRange reports whether a cell's rowid lies within the
+// branch's rowid range bounds.
+func (e *DMLExecutor) orRowMatchesRowidRange(rowID int64, rng *orRange) bool {
+	if rng == nil {
+		return true
+	}
+	if rng.Lower != nil {
+		cmp := e.ctx.CompareValuesWithCollate(rowID, util.ApplyColumnAffinity(rng.Lower, "INTEGER"))
+		if cmp < 0 || (cmp == 0 && !rng.LowerInclusive) {
+			return false
+		}
+	}
+	if rng.Upper != nil {
+		cmp := e.ctx.CompareValuesWithCollate(rowID, util.ApplyColumnAffinity(rng.Upper, "INTEGER"))
+		if cmp > 0 || (cmp == 0 && !rng.UpperInclusive) {
+			return false
+		}
+	}
+	return true
+}
+
+// orRowidSortsAfter reports whether a rowid sorts past a rowid range's upper
+// scope — the successful boundary Next of the branch's table-btree walk.
+func orRowidSortsAfter(rowID int64, rng *orRange) bool {
+	if rng == nil || rng.Upper == nil {
+		return false
+	}
+	cmp := indexValueOrder(rowID, rng.Upper)
+	if rng.UpperInclusive {
+		return cmp > 0
+	}
+	return cmp >= 0
 }
 
 // branchKeyValues builds the index key value list for one branch match,
@@ -1002,78 +1350,34 @@ func branchKeyValues(rec *storage.Record, br orBranchPlan, colIndex map[string]i
 	return keyVals
 }
 
-// unionBranchRowIDs unions the rowids across all branches in branch scan
-// order, deduplicating. Within a branch, rows are sorted by the index key
-// values (SQLite compares index keys value-wise, not by their serial-type
-// byte encoding, so int 1 vs int 2 must order numerically).
-func unionBranchRowIDs(matches [][]branchMatch) []branchMatch {
-	seen := make(map[int64]bool)
-	seenWR := make(map[string]bool)
-	ordered := make([]branchMatch, 0)
-	for _, ms := range matches {
-		sort.Slice(ms, func(i, j int) bool { return compareValueLists(ms[i].key, ms[j].key) < 0 })
-		for _, m := range ms {
-			if m.rowID == 0 {
-				if !seenWR[m.rawKey] {
-					seenWR[m.rawKey] = true
-					ordered = append(ordered, m)
-				}
-				continue
-			}
-			if !seen[m.rowID] {
-				seen[m.rowID] = true
-				ordered = append(ordered, m)
-			}
-		}
+// fetchOrPlanRow seeks to a rowid, decodes the record, and applies the
+// branch's residual WHERE conjuncts. Returns ok=false when the rowid is not
+// found or a residual conjunct rejects the row.
+func (e *DMLExecutor) fetchOrPlanRow(cursor *btree.Cursor, m branchMatch, branches []orBranchPlan, s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) (RowMap, bool, *Result) {
+	residual := []sql.Expr(nil)
+	if m.branch >= 0 && m.branch < len(branches) {
+		residual = branches[m.branch].Residual
 	}
-	return ordered
-}
-
-// fetchOrPlanRows fetches the matching rows in index order and applies the
-// full WHERE predicate as a safety filter, building output rows and maps.
-func (e *DMLExecutor) fetchOrPlanRows(cursor *btree.Cursor, ordered []branchMatch, s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, needMaps bool) ([][]interface{}, []RowMap, *Result) {
-	var allRows [][]interface{}
-	var allRowMaps []RowMap
-	for _, m := range ordered {
-		row, ok, res := e.fetchOrPlanRow(cursor, m, s, tableEntry, colDefs)
-		if res != nil {
-			return nil, nil, res
-		}
-		if !ok {
-			continue
-		}
-		allRows = append(allRows, e.ctx.BuildOutputRow(s.Columns, colDefs, row))
-		if needMaps {
-			allRowMaps = append(allRowMaps, row)
-		}
-	}
-	return allRows, allRowMaps, nil
-}
-
-// fetchOrPlanRow seeks to a rowid, decodes the record, and applies the full
-// WHERE predicate as a safety filter. Returns ok=false when the rowid is not
-// found or the WHERE rejects the row.
-func (e *DMLExecutor) fetchOrPlanRow(cursor *btree.Cursor, m branchMatch, s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) (RowMap, bool, *Result) {
 	if m.rowID == 0 && tableEntry != nil {
-		return e.fetchOrPlanWRRow(cursor, m, s, tableEntry, colDefs)
+		return e.fetchOrPlanWRRow(cursor, m, residual, tableEntry, colDefs)
 	}
-	return e.fetchOrPlanRowidRow(cursor, m.rowID, s, colDefs)
+	return e.fetchOrPlanRowidRow(cursor, m.rowID, residual, colDefs)
 }
 
 // fetchOrPlanWRRow fetches one WITHOUT ROWID candidate (its rowid is the
 // synthetic 0 and rawKey holds the encoded PK-first record).
-func (e *DMLExecutor) fetchOrPlanWRRow(cursor *btree.Cursor, m branchMatch, s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) (RowMap, bool, *Result) {
+func (e *DMLExecutor) fetchOrPlanWRRow(cursor *btree.Cursor, m branchMatch, residual []sql.Expr, tableEntry *schema.Entry, colDefs []sql.ColumnDef) (RowMap, bool, *Result) {
 	rec, err := storage.DecodeRecord([]byte(m.rawKey))
 	if err != nil || rec == nil {
 		return nil, false, nil
 	}
 	e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
 	row := e.ctx.BuildRowMap(rec, colDefs, 0)
-	return e.orRowAfterWhere(cursor, s, row)
+	return e.orRowAfterResidual(cursor, residual, row)
 }
 
 // fetchOrPlanRowidRow fetches one candidate by rowid seek.
-func (e *DMLExecutor) fetchOrPlanRowidRow(cursor *btree.Cursor, rowID int64, s *sql.SelectStmt, colDefs []sql.ColumnDef) (RowMap, bool, *Result) {
+func (e *DMLExecutor) fetchOrPlanRowidRow(cursor *btree.Cursor, rowID int64, residual []sql.Expr, colDefs []sql.ColumnDef) (RowMap, bool, *Result) {
 	found, err := cursor.SeekToRowID(rowID)
 	if err != nil || !found {
 		return nil, false, nil
@@ -1087,22 +1391,21 @@ func (e *DMLExecutor) fetchOrPlanRowidRow(cursor *btree.Cursor, rowID int64, s *
 		return nil, false, nil
 	}
 	row := e.ctx.BuildRowMap(rec, colDefs, rowID)
-	return e.orRowAfterWhere(cursor, s, row)
+	return e.orRowAfterResidual(cursor, residual, row)
 }
 
-// orRowAfterWhere applies the branch's full WHERE as a safety filter to a
-// fetched candidate row: res non-nil reports an evaluation error, ok=false
-// rejects the row.
-func (e *DMLExecutor) orRowAfterWhere(cursor *btree.Cursor, s *sql.SelectStmt, row RowMap) (RowMap, bool, *Result) {
-	if s.Where == nil {
-		return row, true, nil
-	}
-	pass, err := e.ctx.RowPassesWhere(s.Where, row, cursor)
-	if err != nil {
-		return nil, false, &Result{Error: err}
-	}
-	if !pass {
-		return nil, false, nil
+// orRowAfterResidual applies a branch's residual WHERE conjuncts (ANDed —
+// they were AND-siblings in the source predicate) to a fetched candidate
+// row: res non-nil reports an evaluation error, ok=false rejects the row.
+func (e *DMLExecutor) orRowAfterResidual(cursor *btree.Cursor, residual []sql.Expr, row RowMap) (RowMap, bool, *Result) {
+	for _, expr := range residual {
+		pass, err := e.ctx.RowPassesWhere(expr, row, cursor)
+		if err != nil {
+			return nil, false, &Result{Error: err}
+		}
+		if !pass {
+			return nil, false, nil
+		}
 	}
 	return row, true, nil
 }
@@ -1192,40 +1495,80 @@ func compareValueLists(a, b []interface{}) int {
 	return len(a) - len(b)
 }
 
-// orPlanCovered reports whether every column the OR-planned SELECT
-// references (its output columns and its WHERE columns) lives in one of the
-// branch indexes' key columns — the query then runs as a covering index scan
-// and C's plan performs no deferred table-row fetches.
-func (e *DMLExecutor) orPlanCovered(s *sql.SelectStmt, branches []orBranchPlan) bool {
-	indexCols := map[string]bool{}
-	for _, br := range branches {
-		for _, c := range br.IndexCols {
-			indexCols[strings.ToLower(c)] = true
-		}
-	}
-	if len(indexCols) == 0 {
-		return false
-	}
-	ok := true
-	check := func(expr sql.Expr) {
-		if !ok {
+// orPlanOutputRefs collects the lowercase column names the OR-planned
+// SELECT reads through the plan's row fetches: its output columns, with a
+// bare (or table-qualified) "*" expanding to every table column — C's
+// DeferredSeek alt-map covers whatever the output block reads through the
+// table cursor.
+func orPlanOutputRefs(s *sql.SelectStmt, colDefs []sql.ColumnDef) map[string]bool {
+	refs := make(map[string]bool)
+	add := func(x sql.Expr) {
+		ref, isRef := x.(*sql.ColumnRef)
+		if !isRef {
 			return
 		}
+		if ref.Name == "*" {
+			for _, cd := range colDefs {
+				refs[strings.ToLower(cd.Name)] = true
+			}
+			return
+		}
+		refs[strings.ToLower(ref.Name)] = true
+	}
+	for _, col := range s.Columns {
+		walkSelectExprs(col.Expr, add)
+	}
+	return refs
+}
+
+// orBranchResidualRefs collects the lowercase column names a branch's
+// residual terms read through the plan's row fetches.
+func orBranchResidualRefs(br orBranchPlan) map[string]bool {
+	refs := make(map[string]bool)
+	for _, expr := range br.Residual {
 		walkSelectExprs(expr, func(x sql.Expr) {
-			if ref, isRef := x.(*sql.ColumnRef); isRef {
-				if !indexCols[strings.ToLower(ref.Name)] {
-					ok = false
-				}
+			if ref, isRef := x.(*sql.ColumnRef); isRef && ref.Name != "*" {
+				refs[strings.ToLower(ref.Name)] = true
 			}
 		})
 	}
-	for _, col := range s.Columns {
-		check(col.Expr)
+	return refs
+}
+
+// orBranchCovers reports whether one branch serves the SELECT without
+// touching the table b-tree: every referenced column — the outputs plus the
+// branch's residual terms' reads — lives in the branch index's key columns,
+// with the rowid always available from any index entry (OP_IdxRowid). C
+// models this per arm through OP_DeferredSeek's alt-map redirect
+// (vdbe.c:3022): a row of a covered arm never fires the deferred moveto.
+func orBranchCovers(br orBranchPlan, outputRefs map[string]bool) bool {
+	if br.IndexName == "" {
+		return br.IsRowidBranch() // rowid branches position the cursor directly
 	}
-	if s.Where != nil {
-		check(s.Where)
+	covered := make(map[string]bool, len(br.IndexCols)+3)
+	for _, c := range br.IndexCols {
+		covered[strings.ToLower(c)] = true
 	}
-	return ok
+	covered["rowid"] = true
+	covered["_rowid_"] = true
+	covered["oid"] = true
+	for name := range outputRefs {
+		if !covered[name] {
+			return false
+		}
+	}
+	for _, expr := range br.Residual {
+		coveredByResidual := true
+		walkSelectExprs(expr, func(x sql.Expr) {
+			if ref, isRef := x.(*sql.ColumnRef); isRef && ref.Name != "*" && !covered[strings.ToLower(ref.Name)] {
+				coveredByResidual = false
+			}
+		})
+		if !coveredByResidual {
+			return false
+		}
+	}
+	return true
 }
 
 // walkSelectExprs walks one expression tree.

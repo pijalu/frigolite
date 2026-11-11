@@ -18,6 +18,7 @@ import (
 	"github.com/pijalu/frigolite/internal/execexpr"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
+	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/util"
 )
 
@@ -248,6 +249,29 @@ type OrBranchPlan struct {
 	// leading column. SQLite serves such a branch with a range scan
 	// ("d>? AND d<?"); the branch's equality prefix stays empty then.
 	Range *OrRange
+	// RowidEq marks a branch served by a direct rowid probe (C's "SEARCH t
+	// USING INTEGER PRIMARY KEY (rowid=?)"): the VDBE runs OP_SeekRowid,
+	// which the search counter does not track, with no Next loop and no
+	// deferred row fetch — the table cursor is positioned directly.
+	RowidEq *OrConstraint
+	// RowidRange marks a branch served by a seek range on the table b-tree
+	// (C's "(rowid>? AND rowid<?)"): the seek and the loop's Nexts count,
+	// but the rows need no deferred row fetch.
+	RowidRange bool
+	// Residual holds the branch's WHERE conjuncts the plan did NOT consume
+	// (as prefix equalities, range bounds, or the rowid probe): the fetch
+	// filter evaluates exactly these. SQLite compiles the consumed terms
+	// into the loop's seek and never re-evaluates them per candidate row —
+	// an uncorrelated subquery bound as a branch constraint (whereD-3.4.2's
+	// `b=(SELECT ...)`) therefore runs exactly once, at plan-build time.
+	Residual []sql.Expr
+}
+
+// IsRowidBranch reports whether the branch is served by the table b-tree
+// directly (the rowid probe or a rowid range): its rows need no deferred
+// row fetch.
+func (b *OrBranchPlan) IsRowidBranch() bool {
+	return b.RowidEq != nil || b.RowidRange
 }
 
 // IndexPragmaColumn describes one column of PRAGMA index_info/xinfo output.
