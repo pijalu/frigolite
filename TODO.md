@@ -65,13 +65,34 @@ generation — re-derive family truth from the case paths before scoping.
   subquery-in-WHERE search accounting (whereD 3.4.2-3.5.x,
   6.3.2-6.6.4), where8-3.x's db-status-step counter, the whereD
   index-cycle shapes.
+- **S21**: the OR-plan's per-arm mechanics — the whereD census residue
+  (3.4.2-3.5.2, 6.3.2-6.6.4, 16 leaves) closed with C-pinned changes in
+  execSelectWithOrPlan: PER-BRANCH movetos (C's alt-map is per-arm), a
+  TWO-PHASE at-most-one-per-candidate fetch (phase 1 = residual reads,
+  pre-RowSetTest — rejected and duplicate candidates count, where8-1.10;
+  phase 2 = output reads, post-RowSetTest — emitted rows only, 1.4a's
+  duplicate; oracle decompositions 7/10/5/3), ROWID arms (eq =
+  OP_SeekRowid: 0 seek/0 Next/0 moveto, pseudo-aliases on rowid tables;
+  range = counted seek + Nexts), the ONCE-BOUND SUBQUERY arm (C's
+  consumed/residual split — a bound subquery runs once), the residual
+  fold covering every constraint CLASS (unconsumed GLOB/LIKE/range subs
+  stay residual — dropping them leaked +3078 leaves), the RowSetTest
+  dedup AFTER the arm's residual (a rejected row stays available to
+  later arms), and NULL-constant comparisons never binding as index
+  terms (`col = NULL` is never true; rowvalue2-4.IDX2). whereD 16 -> 0;
+  where7/rowvalue2 green; where8's set == baseline; the full-suite gate
+  strictly better than S15 (temptable2-4.1.1 = timing flake, the rest
+  of its leaves = the carded temp-spill class, pre-existing at HEAD).
 
 ## Immediate next action
 
-The where census's remaining classes (S20's records), then **expr 109,
+The where census's remaining classes — where 26 (sort-markers),
+where8 16 (db-status-step counter), whereC 10 (row-order),
+where9 8 (scan-counters), where2 6 (EXPLAIN+sort), whereH 5 (planner
+covering choice), wherelimit2/whereF 7 (misc) — then **expr 109,
 pager1 101**, the WAL residue classes, and the carded converter classes.
-Baselines: /tmp/full_S15_fails.txt, /tmp/where_run3.log (the S20
-where-sweep state), /tmp/tkt_s18_fails.txt.
+Baselines: /tmp/full_S15_fails.txt, /tmp/where_s21_fails.txt (the S21
+post-unit state), /tmp/where_s21_final.log (the S21 full gate).
 
 ## Queue (in order)
 

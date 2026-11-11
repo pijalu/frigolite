@@ -374,3 +374,98 @@ rtree class map (the previous record), where 111, expr 109, pager1 101.
 **Restart point**: the remaining where classes (subquery-in-WHERE
 search accounting whereD 3.4.2-3.5.x/6.3.2-6.6.4; where8-3.x's
 db-status-step counter), then expr 109 / pager1 101.
+
+## S21 RECORD (2026-11-11) — the OR-plan's rowid arms, per-branch movetos, the once-bound subquery (whereD 16 -> 0)
+
+The whereD residue (3.4.2-3.5.2, 6.3.2-6.6.4) decomposed into THREE
+engine gaps in execSelectWithOrPlan, each pinned against the 3.51.0
+testfixture bytecode before the edit:
+
+1. PER-BRANCH movetos (was orPlanCovered's all-or-nothing). C's
+   OP_DeferredSeek alt-map (vdbe.c:3022 — aAltMap/pAltCursor: Column on a
+   deferred table cursor is SERVED FROM THE INDEX without finishing the
+   moveto) is per-arm: a row fires the moveto iff its OWNING branch's
+   index does not cover the output columns; the rowid is always
+   available (OP_IdxRowid). orPlanCovered is REPLACED by
+   orPlanOutputRefs (bare "*" expands to every column) + orBranchCovers
+   (outputs + the branch's residual reads vs IndexCols + rowid).
+2. ROWID-EQUALITY arms (was: any rowid term declined the whole plan ->
+   full scan). C renders "SEARCH t USING INTEGER PRIMARY KEY (rowid=?)" —
+   OP_SeekRowid: no seek count, NO Next loop, no moveto (the table
+   cursor is positioned directly). The routing covers the pseudo-aliases
+   rowid/_rowid_/oid on rowid tables (a declared user column named rowid
+   shadows) and the rowid RANGE (a counted seek + Nexts, no movetos);
+   branchMatch now carries its owning branch.
+3. THE ONCE-BOUND SUBQUERY ARM. The real leak was never the binding
+   (evalConstExpr already evaluates uncorrelated Subqueries) but the
+   fetch filter RE-EVALUATING the full WHERE per candidate — the
+   subquery ran again per row (3.4.2 = 4 + 3x2 = 10). The fix is C's
+   consumed/residual term split: OrBranchPlan.Residual holds the
+   conjuncts the branch did NOT compile into its seek (prefix eqs,
+   range bounds, the rowid probe, consumed const-equalities tracked by
+   orBranchPrefix); orRowAfterResidual evaluates exactly those. An
+   uncorrelated subquery bound as a branch constraint therefore runs
+   exactly ONCE at plan-build (3.4.2 = 2+2+2 = 6; 3.4.4 = 2+2+2+2 = 8).
+
+Counted variants reconciled against the oracle: plain UNIQUE full-EQ = 1
+(no Next loop); OR arm covering = seek+Next; OR arm noncovering =
+seek+Next+moveto; rowid arm = 0; subquery once = seek+moveto.
+
+**CARD (oracle-pinned, corpus-unexercised)**: the PLAIN seek path's
+residual re-evaluation leak — `SELECT a,b FROM t3 WHERE a=1 AND
+b=(SELECT y FROM t4 WHERE x='a')` = oracle 3, frigolite 5 (the seek
+consumes the eq terms as VALUES only; RowPassesWhere(s.Where) at
+select_index_seek_exec.go:430 / select_index_seek_covered.go:186
+re-runs them per row; seekConstValue does not evaluate subqueries so
+the term never binds). The fix shape mirrors this unit: indexSeekTerm
+gains its source expr, the plan tracks consumed conjuncts, the filter
+runs s.Where minus consumed.
+
+**Restart point**: the where census's remaining classes (where 26
+sort-markers, where8-3.x's db-status-step counter, whereC 10 row-order,
+where9 8 scan-counters, where2 6 EXPLAIN+sort, whereH 5 planner
+covering choice, wherelimit2/whereF 7 misc), then expr 109 / pager1 101.
+
+### S21 addendum — the two gates the narrow pins missed (caught by the full suite)
+
+1. **The residual fold must be exhaustive per class.** The first cut
+   folded only unpinned EQUALITY subs into the residual; unconsumed
+   RANGE/LIKE/GLOB subs vanished from the filter (where7-2.2.1's
+   `g='edcbazy' AND f GLOB 'wxyza*'` planned on t2g leaked every g-match
+   the GLOB rejects; +3078 leaves). The rule as landed: consumed eq cols
+   = the prefix's branch-sourced columns (range branches: none);
+   consumed range cols = the driving range's column; EVERY other eq/range
+   sub stays residual.
+2. **C's RowSetTest is inserted AFTER the arm's residual filter**
+   (wherecode.c's per-arm loop: residual terms -> IdxRowid -> RowSetTest
+   -> Gosub). Dedup-before-residual loses rows: where7-2.4.1's
+   `g='rqponml' AND f GLOB 'hijkl*'` rejects row 37 and the `b=407` arm
+   must still emit it (oracle-verified: 3.51.0 returns 49 51 33 37 for
+   the 5-row shape — arm order — and the fixture's `lsort:integer`
+   transform makes the row SET the contract). unionBranchRowIDs is gone;
+   the walk dedups by rowid AFTER the owning branch's residual accepts.
+
+### S21 addendum 2 — the NULL-constant binding and the two-phase moveto
+
+3. **A NULL-constant comparison never binds as an index term.** The
+   residual split exposed that `b == NULL` bound as a prefix equality
+   (Val=nil) — the prefix matcher reads nil Val as "col IS NULL" — while
+   the ORIGINAL term is SQL-NULL (never true). HEAD masked it by
+   re-checking the full WHERE. Fix: extractEquality rejects a nil bound
+   (the term stays residual and rejects every row) and extractRange
+   rejects nil bounds (a NULL-compared range never matches). C:
+   `x = NULL` / `x < NULL` are never true (rowvalue2-4.IDX2,
+   oracle-verified: both renderings return nothing for the NULL row).
+4. **The deferred row fetch is a TWO-PHASE, at-most-one-per-candidate
+   event.** C's arm loop reads the table cursor (a) at the residual
+   terms — BEFORE the RowSetTest, so rejected AND duplicate candidates
+   count (where8-1.10's row 10, rejected by `c != 'X'`), and (b) at the
+   output block — AFTER the RowSetTest, so only emitted rows count
+   (1.4a's duplicate row 10 in the GLOB arm does NOT). A branch whose
+   index covers a phase's columns serves that phase from the index
+   cursor without the fetch; a rowid branch's cursor is positioned
+   directly and never fetches. Oracle decompositions: 1.10 = 7 (arm1 2 +
+   arm2 2 + 3 candidate movetos), 1.4a = 10 (2 + 4 + 4 — the duplicate
+   saves exactly one), whereD-6.3.2 = 5, 3.5.2 = 3. This supersedes the
+   per-EMITTED moveto model of the first cut (which measured 6 and 11).
+   where8's failure set is byte-identical to the S20 baseline.

@@ -674,3 +674,89 @@ appending.
   first (the stale-fixture lesson generalized to mid-file state).
 - At a deterministic-schema point, a dropped foreach over sqlite_master
   names hand-pins as explicit DROP TABLE statements (S17).
+
+## S21 record (2026-11-11) — the OR-plan's per-arm mechanics
+
+- **C's deferred-seek alt-map is per-arm** (vdbe.c:3022): a Column on a
+  deferred table cursor whose `aAltMap[1+col]` is nonzero is SERVED FROM
+  THE INDEX CURSOR (`pAltCursor`) without finishing the moveto — only an
+  uncovered column read fires FinishMoveto. So the moveto is per-ROW and
+  keyed on the row's OWNING arm's index, never per-plan ("covered" vs
+  "uncovered" queries): whereD-6.3.2's x1a arm lacks c (1 moveto) while
+  its x1bc arm covers it. `SELECT rowid` never fetches (OP_IdxRowid
+  reads the index entry's trailing rowid); `SELECT *` reads everything.
+  This replaced orPlanCovered's all-or-nothing model.
+- **A rowid-equality OR arm is OP_SeekRowid** (C renders "SEARCH t USING
+  INTEGER PRIMARY KEY (rowid=?)"): no seek count, NO Next loop, no
+  moveto — the table cursor is positioned directly. The pseudo-aliases
+  rowid/_rowid_/oid work on any rowid table; a declared column named
+  rowid shadows them; a rowid RANGE arm is a counted seek + Nexts on the
+  table b-tree with no movetos.
+- **A subquery bound as a branch constraint runs ONCE** — the 3.4.2
+  leak was never the binding (evalConstExpr already evaluates
+  uncorrelated Subqueries) but the fetch filter re-running the FULL
+  WHERE per candidate. C compiles consumed terms into the seek; the
+  residual is only what is left. The consumed/residual split is the
+  reusable fix shape (branch constraints + orBranchPrefix's
+  consumed-const set -> OrBranchPlan.Residual -> orRowAfterResidual).
+  Oracle pins for the same leak in the PLAIN seek path (carded):
+  `a=1 AND b=(SELECT y FROM t4 WHERE x='a')` = 3, with the noncovering
+  output = 4; the seek path consumes eq terms as VALUES and re-runs
+  s.Where per row at select_index_seek_exec.go:430 /
+  select_index_seek_covered.go:186 (seekConstValue does not evaluate
+  subqueries, so the term never binds).
+- **Oracle byte-reading trap**: `db eval {EXPLAIN ...} v {...}` — the
+  v array's keys are addr/opcode/p1..p5/comment; printing by POSITION
+  ([lindex $r 0..4]) shifts every field one slot (addr first). The
+  addr=... p1=... form reads unambiguously.
+- A TCL probe helper that interpolates `db eval` twice (once for the
+  result, once inside the return) DOUBLES sqlite3_search_count — the
+  whereD oracle numbers only reconcile with a single eval per probe.
+
+- **The residual fold must be exhaustive per constraint class**: folding
+  only unpinned EQUALITY subs drops unconsumed RANGE/LIKE/GLOB conjuncts
+  from the fetch filter — where7-2.2.1 planned `g=... AND f GLOB ...` on
+  the g index and leaked every GLOB reject (+3078 leaves at the gate).
+  Consumed = the prefix's branch-sourced eq cols + the driving range's
+  col; everything else is residual.
+- **C's per-arm RowSetTest fires AFTER the arm's residual terms**
+  (wherecode.c's OR loop: residual -> IdxRowid -> RowSetTest -> Gosub):
+  dedup-before-residual LOSES rows (a row arm i rejects must stay
+  available to arm j — where7-2.4.1's b=407 row behind the g+f GLOB
+  arm). The OR walk dedups by rowid only after the owning branch's
+  residual accepts. whereD's fully-consumed arms cannot expose either
+  bug — the GLOB-arm shapes needed the full-suite gate.
+- **Fixture `resultTransform: lsort:integer` makes the row SET the
+  contract** — where7's count_steps_sort bodies sort before comparing,
+  so OR-plan arm ORDER is unobservable there; the oracle pins the order
+  only for unsorted shapes (whereD 6.5.4's [9 5]).
+- The 3.51.0 oracle can DISAGREE with a fixture's baked expectation when
+  the source predates a planner change — where7-2.4.1's fixture want
+  [33 37 49 51] is the old planner's full-scan order; the modern
+  testfixture returns 49 51 33 37 (the transform reconciles them). Tag
+  such observations to the oracle version before modeling.
+
+- **A NULL-constant comparison never binds as an index term**:
+  `col = NULL`/`col == NULL` is SQL-NULL (never true) — the OR prefix
+  matcher's nil Val means "col IS NULL" (different semantics!), so
+  extractEquality/extractRange must REJECT nil bounds and leave the term
+  residual, where its evaluation rejects every row
+  (rowvalue2-4.IDX2.4, oracle-verified: both the row-value form and the
+  expanded OR return nothing for the NULL row). HEAD masked the whole
+  class by re-checking the full WHERE per candidate.
+- **C's deferred row fetch is two-phase, at most once per candidate**:
+  phase 1 = the arm's residual reads (BEFORE the RowSetTest — rejected
+  and duplicate candidates count; where8-1.10's rejected row 10), phase
+  2 = the output block (AFTER the RowSetTest — emitted rows only;
+  1.4a's duplicate row 10 in the GLOB arm does not count). A branch's
+  index covering a phase's columns serves that phase without the fetch
+  (aAltMap); a rowid branch's cursor is positioned directly (never
+  fetches). Oracle decompositions are the arbiter: 1.10=7, 1.4a=10,
+  whereD-6.3.2=5, 3.5.2=3. The per-EMITTED moveto model undercounts
+  exactly the residual-rejected candidates.
+- **Probe schemas must be copied from the SOURCE test, not reinvented**:
+  where8's t1(a, b TEXT, c) has NO rowid alias — a probe with
+  `a INTEGER PRIMARY KEY` routed the arm to the rowid path and measured
+  5 vs the true 7, costing a false "oracle disagrees" conclusion. The
+  modern testfixture passes its own where8.test (0 errors / 2052) — the
+  fixture expectations are modern-C-correct there.
