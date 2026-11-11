@@ -445,13 +445,18 @@ func isTopLevelStmt(toks []sql.Token, sp stmtSpan, keyword string) bool {
 			if strings.EqualFold(t.Value, keyword) {
 				return true
 			}
-			// A WITH prefix (WITH name AS (...) name2 AS (...) ...) is skipped:
-			// WITH, AS, and COMMA separators between CTE definitions are all
-			// depth-0 keywords that precede the DML keyword. Anything else
-			// before the target keyword means this is not a matching statement.
+			// A WITH prefix (WITH name AS (…) name2 AS (…) …) is skipped:
+			// WITH, AS, RECURSIVE, the materialization hints (MATERIALIZED /
+			// NOT MATERIALIZED — wherelimit2-6.1's "WITH t2 AS MATERIALIZED
+			// (VALUES(5)) DELETE FROM t2 ORDER BY … LIMIT 2") and the COMMA
+			// separators between CTE definitions are all depth-0 keywords
+			// that precede the DML keyword. Anything else before the target
+			// keyword means this is not a matching statement.
 			if !strings.EqualFold(t.Value, "WITH") &&
 				!strings.EqualFold(t.Value, "AS") &&
 				!strings.EqualFold(t.Value, "RECURSIVE") &&
+				!strings.EqualFold(t.Value, "MATERIALIZED") &&
+				!strings.EqualFold(t.Value, "NOT") &&
 				!strings.EqualFold(t.Value, ",") {
 				return false
 			}

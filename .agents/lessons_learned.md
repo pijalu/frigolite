@@ -760,3 +760,52 @@ appending.
   5 vs the true 7, costing a false "oracle disagrees" conclusion. The
   modern testfixture passes its own where8.test (0 errors / 2052) — the
   fixture expectations are modern-C-correct there.
+
+## S25 record (2026-11-12) — wherelimit2 4 -> 0 (the UDF-global round trip + the CTE-header UDL strip)
+
+- **A general-path harnessTclFunction UDF writes INTERP globals, not
+  runtime vars** — the fixture's `db func log log` proc
+  (`lappend ::log {*}$args`, fired from INSTEAD OF trigger bodies)
+  evaluated correctly in its own tcl.Interp, but `::log` never reached
+  the runtimeVars map the runtime_var step reads (got [""]). The fix is
+  the SAME round trip the rtgeom syncVars / unlock-notify eval_script
+  syncs use: collect the write targets (`tcl.NotifyScriptVarTargets`
+  over the proc body + callback procs), PUSH present runtime values into
+  the interp before each call, PULL the written values back after.
+  Pure-Go probe first proved the ENGINE side (trigger firing + UDF args)
+  was already correct — the got-[""] signature was a harness gap, NOT an
+  engine gap and NOT a stale fixture (setup_0 already carried the
+  register_function).
+- **Push-before-invoke is REQUIRED, not just pull-after**: the
+  regenerated fixture's `runtime_var_reset log` (the source's
+  `set ::log {}`) would otherwise leave the interp's ::log holding 5.4's
+  list and 5.5 would append onto it. The reset propagates into the
+  function interp only if the shared-global mirror runs before every
+  call. Push only vars PRESENT in runtimeVars (a reset makes the key
+  present-and-empty — push that); absent vars are not the test's shared
+  state and stay untouched.
+- **The UDL pre-parse strip's CTE-header walk must know the
+  materialization hints**: isTopLevelStmt allowed only
+  WITH/AS/RECURSIVE/, as depth-0 keywords before the DML keyword, so
+  `WITH t2 AS MATERIALIZED (VALUES(5)) DELETE ... ORDER BY ... LIMIT 2`
+  (wherelimit2-6.1) was left un-stripped and the LALR tables rejected
+  ORDER. Adding MATERIALIZED/NOT completes the vocabulary; no other TCL
+  source combines a materialization hint with DELETE/UPDATE, so the
+  where/wherelimit sweeps were the only exposure. Oracle (/usr/bin/
+  sqlite3 3.54, tagged): the CTE does NOT shadow the DELETE target — the
+  statement deletes rows 1,2 from the REAL table (result 3 5 8 13),
+  matching the fixture; frigolite's collect->sort->limit delete executor
+  already evaluates `ORDER BY rank() OVER ()` per row correctly.
+- **Plain SELECT `ORDER BY rank()OVER()` errors in frigolite**
+  ("wrong number of arguments to function rank()" — the window context
+  is lost when an ORDER BY term is evaluated outside the select list;
+  `SELECT x, rank()OVER() ... ORDER BY 2` works). The DELETE-with-limit
+  path does NOT hit it. Carded as a window-function execution residue
+  (G4), untouched by this unit.
+- Fixture regen discipline held: tclconvert -only wherelimit2 diff vs
+  committed = name-set equal, 31 cases byte-identical, only
+  __RESET_DB__ steps null->[] and setup_0's converter drift (callbackProcs
+  + newer callbackVars keys) besides the wanted runtime_var_reset steps.
+S25 final counts: wherelimit2 4 -> 0; wherelimit sweep 5 -> 0; where
+sweep 86 -> 81 (fixed = exactly the wherelimit2 five); regressions = []
+everywhere; go vet + go build clean.

@@ -248,10 +248,21 @@
             "SQLITE_MAX_ATTACHED": "10",
             "SQLITE_MAX_COLUMN": "2000",
             "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_PAGE_SIZE": "65536",
             "SQLITE_MAX_VARIABLE_NUMBER": "32766",
-            "testdir": "",
+            "testdir": ".",
             "testprefix": "wherelimit2"
           },
+          "callbackProcs": [
+            {
+              "Name": "log",
+              "Args": [
+                "args"
+              ],
+              "Body": " lappend ::log {*}$args ",
+              "Defaults": null
+            }
+          ],
           "functionProc": "log",
           "functionArgs": [
             "args"
@@ -274,6 +285,10 @@
       "name": "wherelimit2-5.4",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "log"
+        },
+        {
           "type": "exec",
           "sql": "DELETE FROM \"v w\" ORDER BY \"a b\" LIMIT 3"
         },
@@ -288,6 +303,10 @@
       "name": "wherelimit2-5.5",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "log"
+        },
+        {
           "type": "exec",
           "sql": "UPDATE \"v w\" SET \"a b\" = \"a b\" || 'x' ORDER BY \"a b\" LIMIT 5;"
         },
@@ -300,7 +319,7 @@
     },
     {
       "name": "__RESET_DB__",
-      "steps": null
+      "steps": []
     },
     {
       "name": "wherelimit2-6.0",
