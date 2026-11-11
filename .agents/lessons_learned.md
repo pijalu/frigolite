@@ -760,3 +760,83 @@ appending.
   5 vs the true 7, costing a false "oracle disagrees" conclusion. The
   modern testfixture passes its own where8.test (0 errors / 2052) — the
   fixture expectations are modern-C-correct there.
+
+## S22 record (2026-11-11) — the single-table ORDER BY delivery slice
+
+- **The seek threshold has no 10% cliff in C.** With stat1 present, where.c
+  compares total path costs and the seek wins at ANY selectivity below a
+  full scan (probed 3.54: SEARCH at ~12% over stat1 "100 8 1", at 50% over
+  "1000 500 1", and seek+TEMP-B-TREE when the index does not deliver the
+  ORDER BY). A tie (est == nRow, stat1 "1000 1000 1") goes to the SCAN.
+  The old `bestEstimate < nRow*0.10` rule made the executor's
+  scanLoopForQuery return kind=loopNone for where-7.x while the EQP
+  renderer printed the right SEARCH — the planner/executor disconnect
+  class again, surfaced by the harnessSortMarker.
+- **The ORDER-BY index resolution stack now walks the rowid tail**
+  (where.c's nColumn = nKeyCol+1): a FINAL rowid-named ORDER BY term
+  (pseudo-name or IPK alias) rides the index entry's trailing rowid —
+  where-12.2's `ORDER BY b, a` over (b) — no collation, direction follows
+  the scan. findIndexForOrderTerms is refactored into
+  forEachOrderServingIndex (ALL serving candidates; where.c enumerates
+  every candidate and lets the cost pick).
+- **A covering ORDER-BY-serving walk beats a seek when the sorter's priced
+  cost makes it so** (where-6.7.x: `WHERE b>0 ORDER BY a` over the
+  analyzed t3 plans SCAN t3 USING COVERING INDEX t3acb). The port is C's
+  wherePathSolver comparison in wherecost.go: LogEst/LogEstAdd/estLog
+  verbatim from util.c, the seek rRun = LogEstAdd(rLogSize, nOut+1+
+  (15*szIdxRow)/szTabRow) (+ the table-lookup term when not covering),
+  the sorter rSort = LogEst(nRowEst) + LogEst((nResultCols+59)/30) +
+  estLog(nRow) with C's MIXED-DOMAIN LIMIT cap (the plain count compared
+  against the LogEst, where.c:5455), seek +3, walk -2. Row widths:
+  szEst 5 for the BLOB/TEXT-affinity standard typenames, else 1
+  (build.c:1537), +1 for the rowid; szTabRow adds +1 when no IPK. The
+  model reproduces both probed boundaries (walk wins the 100-row shapes;
+  the seek wins at 100k) — the boundary between is unprobed, carded.
+- **The `db status` counters reset per statement** in the engine
+  (engine_core.go ResetStmtStatus) — the harness's SortMarker PEEKS the
+  sort counter, so a "sort" verdict is always THIS statement's; there is
+  no leftover-carrier trap.
+- **Tcl option ABBREVIATIONS in the converter**: `lsort -dec` hit the
+  unknown-option skip and silently baked ASCENDING expectations (whereC's
+  10 `.3` cases: the source sorts [lsort -integer -dec $res] = [5 4], the
+  fixture wanted [4 5]). The engine was RIGHT. Fix:
+  lsortOption() unique-prefix matching over lsort's option set
+  (-dec→-decreasing, -int→-integer, -incr→-increasing). The stale-
+  fixture signature extends to "expectation baked from the WRONG helper
+  shape": where2-7.2/7.3 carried `stmtStatus` (scan N sort M) where the
+  source's cksort emits the sort marker (nosort|sort), and whereF-5.x
+  carried `stmtStatus` the source never emits. Hand-pin those steps in
+  place — a full where2 regen DROPS 19 passing hand-pinned cases
+  (6.14-6.17, 16.1, 17.x), so never install it wholesale.
+- **The vmstep surface is unexpressible**: SQLITE_STMTSTATUS_VM_STEP
+  counts real VDBE opcodes; the tree-walking executor has no opcode
+  stream to count. whereF's 5.2/5.4/5.6 (`expr [db status vmstep]<200`)
+  are removed from the fixture (the queries themselves run in 5.1/5.3/
+  5.5) — same card as e_walauto's -shm byte introspection.
+- The where census after the S22 slice: 78 -> 47 (where 26->10, whereC
+  10->0, whereF 3->0, where2 6->4). Remaining classes: the JOIN loop
+  machinery (where8 16 fullscan-step counter = the inner loop must be
+  index-driven + covering-preferred; where9 8 scan counter = the same
+  covering inner loop; where 6.15 + 14.x = per-loop ORDER BY delivery +
+  the order-distinct mark-off), whereH 5 + where2 12.1/16.2 (the
+  candidate-choice class: longer equality prefix wins, join order),
+  wherelimit2 4 (LIMIT-on-DML + INSTEAD OF trigger + log UDF), where
+  19.0/25.x (EQP autoindex names, corruption).
+
+## Gate health — never block on a possibly-stuck test (2026-11-12, directive)
+
+- **Every full gate MUST carry `-timeout`** (40m; the carded walfault-11
+  512-trial cap legitimately eats ~12 min). The timeout is the backstop:
+  on wedge, go test panics with a goroutine dump that names the stuck
+  test — never launch a gate bare.
+- **Prefer `-v` on full gates.** Non-verbose gates buffer all output
+  until exit, so a hung run shows a 0-byte log and you cannot tell which
+  family is in flight. With `-v`, `tail` the log for the last `=== RUN`
+  line — instant stuck diagnosis. (Grep `--- FAIL:` lines only for
+  diffs; RUN lines pollute substring greps.)
+- **Before waiting on a background gate, prove it's alive**: two `ps`
+  samples ~20s apart — the accumulated TIME must advance (real work) and
+  STAT should be R. A 0-byte log alone proves nothing (buffering).
+- **Bounded waits only**: poll with short sleeps; never sit in an
+  unbounded block on a gate task. If wedged: TaskStop, then re-run the
+  suspicious family in isolation before blaming the engine.

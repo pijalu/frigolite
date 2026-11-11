@@ -17,6 +17,34 @@ import (
 // The corpus relies on a real sort: trans2.test's `hash1`/`hash2` compute an
 // MD5 over the *sorted* records, so a stub that returned the input unchanged
 // produced the wrong expectation for every case.
+//
+// Option words resolve through Tcl's unique-prefix matching (whereC.test's
+// `lsort -integer -dec`): an unambiguous prefix of exactly one known option
+// selects it, so `-dec` is `-decreasing` and `-int` is `-integer`.
+// lsortOptions are lsort's option words in Tcl's option set.
+var lsortOptions = []string{
+	"-ascii", "-command", "-decreasing", "-dictionary", "-increasing",
+	"-index", "-integer", "-nocase", "-real", "-stride", "-unique",
+}
+
+// lsortOption resolves one option word the way Tcl resolves command options:
+// unique-prefix matching over the known option set. ok is false when the
+// word is not a prefix of any option or is ambiguous ("-i" matches three).
+func lsortOption(word string) string {
+	matches := 0
+	name := ""
+	for _, n := range lsortOptions {
+		if strings.HasPrefix(n, word) {
+			matches++
+			name = n
+		}
+	}
+	if matches == 1 {
+		return name
+	}
+	return word // not resolvable: hand the word back unchanged
+}
+
 func commandLSort(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
 	if len(args) == 0 {
 		i.vars[""] = ""
@@ -31,13 +59,17 @@ func commandLSort(i *Interp, rawWords []rawWord, args []string, localVars map[st
 	// argument can be found (the raw words are parallel to the arguments).
 	consumed := 0
 	for len(rest) > 0 && strings.HasPrefix(rest[0], "-") {
-		switch rest[0] {
+		switch lsortOption(rest[0]) {
 		case "-ascii", "-integer", "-real", "-dictionary":
-			mode = strings.TrimPrefix(rest[0], "-")
+			mode = strings.TrimPrefix(lsortOption(rest[0]), "-")
 			rest = rest[1:]
 			consumed++
 		case "-decreasing":
 			decreasing = true
+			rest = rest[1:]
+			consumed++
+		case "-increasing":
+			decreasing = false
 			rest = rest[1:]
 			consumed++
 		case "-unique":
@@ -60,9 +92,10 @@ func commandLSort(i *Interp, rawWords []rawWord, args []string, localVars map[st
 		case "-command", "-stride", "-nocase":
 			// Not modelled: skip the option (and its argument for
 			// -command) so the list argument is still found.
+			isCommand := lsortOption(rest[0]) == "-command"
 			rest = rest[1:]
 			consumed++
-			if rest[0] == "-command" && len(rest) > 0 {
+			if isCommand && len(rest) > 0 {
 				rest = rest[1:]
 				consumed++
 			}

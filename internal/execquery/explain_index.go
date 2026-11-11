@@ -102,7 +102,14 @@ func (e *SelectEngine) stat4RangeSelectivity(ref indexedRef, refs []indexedRef, 
 		}
 		ref.constant = value
 	}
-	if ref.op != "BETWEEN" || ref.rangeLow == nil || ref.rangeHigh == nil {
+	oneSided := ref.op == ">" || ref.op == ">=" || ref.op == "<" || ref.op == "<="
+	if ref.op != "BETWEEN" && !oneSided {
+		return 0, false, nil
+	}
+	if ref.op == "BETWEEN" && (ref.rangeLow == nil || ref.rangeHigh == nil) {
+		return 0, false, nil
+	}
+	if oneSided && ref.constant == nil {
 		return 0, false, nil
 	}
 	cols := e.indexColumns(ref.indexName)
@@ -165,7 +172,14 @@ func (e *SelectEngine) stat4RangeSelectivity(ref indexedRef, refs []indexedRef, 
 	} else if len(samples) > 0 && len(samples[0].neq) > pos-1 {
 		total = samples[0].neq[pos-1]
 	}
-	fraction, ok := stat4RangeFraction(samples, prefix, pos, ref.rangeLow, ref.rangeHigh, total)
+	var fraction float64
+	var ok bool
+	if ref.op == "BETWEEN" {
+		fraction, ok = stat4RangeFraction(samples, prefix, pos, ref.rangeLow, ref.rangeHigh, total)
+	} else {
+		above := ref.op == ">" || ref.op == ">="
+		fraction, ok = stat4OneSidedFraction(samples, prefix, pos, ref.constant, total, above)
+	}
 	return fraction, ok, nil
 }
 
@@ -201,6 +215,55 @@ func parseStat4Counts(value interface{}) ([]int64, bool) {
 }
 
 func stat4RangeFraction(samples []stat4PlannerSample, prefix []interface{}, col int, low, high interface{}, total int64) (float64, bool) {
+	matching, base, ok := stat4MatchingSamples(samples, prefix, col)
+	if !ok {
+		return 0, false
+	}
+	if total <= 0 {
+		return 0, false
+	}
+	at := func(bound interface{}) float64 {
+		return stat4BoundRow(matching, col, base, bound, total)
+	}
+	lo, hi := at(low), at(high)
+	if hi < lo {
+		return 0, false
+	}
+	fraction := (hi - lo) / float64(total)
+	if fraction < 0 {
+		fraction = 0
+	} else if fraction > 1 {
+		fraction = 1
+	}
+	return fraction, true
+}
+
+// stat4OneSidedFraction estimates a one-sided range (x > K / x < K) from
+// the stat4 histogram: the cumulative sample row count at the bound gives
+// the fraction on either side (where.c's stat4 range branch: nNew =
+// LogEst(iUpper - iLower), iUpper the table end for a lower bound).
+func stat4OneSidedFraction(samples []stat4PlannerSample, prefix []interface{}, col int, bound interface{}, total int64, above bool) (float64, bool) {
+	matching, base, ok := stat4MatchingSamples(samples, prefix, col)
+	if !ok || total <= 0 {
+		return 0, false
+	}
+	below := stat4BoundRow(matching, col, base, bound, total)
+	fraction := below / float64(total)
+	if above {
+		fraction = 1 - fraction
+	}
+	if fraction < 0 {
+		fraction = 0
+	} else if fraction > 1 {
+		fraction = 1
+	}
+	return fraction, true
+}
+
+// stat4MatchingSamples filters the samples whose leading prefix (the
+// equality-bound columns before the range column) matches, and returns the
+// cumulative-row base below the prefix.
+func stat4MatchingSamples(samples []stat4PlannerSample, prefix []interface{}, col int) ([]stat4PlannerSample, int64, bool) {
 	var matching []stat4PlannerSample
 	for _, sample := range samples {
 		if len(sample.values) <= col || len(sample.nlt) <= col || len(sample.neq) <= col {
@@ -218,40 +281,45 @@ func stat4RangeFraction(samples []stat4PlannerSample, prefix []interface{}, col 
 		}
 	}
 	if len(matching) < 2 {
-		return 0, false
+		return nil, 0, false
 	}
 	base := int64(0)
 	if col > 0 {
 		base = matching[0].nlt[col-1]
 	}
-	if total <= 0 {
-		return 0, false
-	}
-	at := func(bound interface{}) float64 {
-		first := matching[0]
-		if util.CompareValues(bound, first.values[col]) <= 0 {
+	return matching, base, true
+}
+
+// stat4BoundRow returns the sample-estimated count of rows whose range
+// column is BELOW the bound (interpolated through the samples' nlt
+// counters). A DESCENDING index stores its samples in descending key
+// order — its nlt counts the rows before it in index order (the LARGER
+// values) — so the walk reverses (analyzeE-2.8: a>1900 over a DESC
+// index seeks on the 10% tail).
+func stat4BoundRow(matching []stat4PlannerSample, col int, base int64, bound interface{}, total int64) float64 {
+	descending := util.CompareValues(matching[0].values[col], matching[len(matching)-1].values[col]) > 0
+	if !descending {
+		if util.CompareValues(bound, matching[0].values[col]) <= 0 {
 			return 0
 		}
 		for i := 1; i < len(matching); i++ {
-			previous, current := matching[i-1], matching[i]
-			if util.CompareValues(bound, current.values[col]) <= 0 {
-				return float64(current.nlt[col] - base)
+			if util.CompareValues(bound, matching[i].values[col]) <= 0 {
+				return float64(matching[i].nlt[col] - base)
 			}
-			_ = previous
 		}
 		return float64(total)
 	}
-	lo, hi := at(low), at(high)
-	if hi < lo {
-		return 0, false
+	if util.CompareValues(bound, matching[0].values[col]) > 0 {
+		return float64(total) // the bound tops the largest key: every row is below
 	}
-	fraction := (hi - lo) / float64(total)
-	if fraction < 0 {
-		fraction = 0
-	} else if fraction > 1 {
-		fraction = 1
+	for i := 1; i < len(matching); i++ {
+		if util.CompareValues(matching[i].values[col], bound) < 0 {
+			// The first sample below the bound: the rows before it in
+			// index order are the rows at-or-above the bound.
+			return float64(total - (matching[i].nlt[col] - base))
+		}
 	}
-	return fraction, true
+	return 0
 }
 
 // findIndexOnColsForQuery is like findIndexOnCols but additionally checks
@@ -278,8 +346,24 @@ func (e *SelectEngine) findIndexOnColsForQuery(tableName string, cols []string, 
 // 2.3.x's contract). Partial indexes are only used when the query WHERE
 // implies the partial-index predicate.
 func (e *SelectEngine) findIndexForOrderTerms(tableName string, terms []orderTermCol, where sql.Expr) string {
+	token := ""
+	e.forEachOrderServingIndex(tableName, terms, where, func(t string) bool {
+		token = t
+		return true // the first serving index wins
+	})
+	return token
+}
+
+// forEachOrderServingIndex visits every index of the table whose leading key
+// columns match the ORDER BY terms (the trailing rowid-column rule of
+// wherePathSatisfiesOrderBy included) under the collation rule above. The
+// visitor returns true to stop the scan. where.c enumerates every serving
+// index as a candidate loop and lets the cost model pick — the visitor keeps
+// that enumeration available (the covering-walk preference in
+// orderByIndexToken walks all candidates).
+func (e *SelectEngine) forEachOrderServingIndex(tableName string, terms []orderTermCol, where sql.Expr, visit func(token string) bool) {
 	if len(terms) == 0 {
-		return ""
+		return
 	}
 	// The candidate indexes come from the FROM table's OWNING schema: an
 	// attached database's same-named indexes are separate b-trees with
@@ -287,11 +371,11 @@ func (e *SelectEngine) findIndexForOrderTerms(tableName string, terms []orderTer
 	// plan aux.t1's index walk through main's entry).
 	_, tblCtx, err := e.ctx.FindTable(tableName)
 	if err != nil || tblCtx == nil {
-		return ""
+		return
 	}
 	entries, err := tblCtx.Schema.GetEntries("")
 	if err != nil {
-		return ""
+		return
 	}
 	// Schema-qualified FROM names ("aux.t1") match entries by the bare
 	// object name; the collation lookups resolve the qualified spelling.
@@ -321,7 +405,17 @@ func (e *SelectEngine) findIndexForOrderTerms(tableName string, terms []orderTer
 			continue
 		}
 		indexCols := e.indexEntryColumns(entry)
-		if len(indexCols) < len(terms) || !colsPrefixMatch(indexCols, orderTermNames(terms)) {
+		// where.c's order walk covers the trailing rowid column of a rowid
+		// table (nColumn == nKeyCol+1): a final rowid-named ORDER BY term
+		// rides the index entry's rowid tail (where-12.2's ORDER BY b, a).
+		// The tail needs no collation (XN_ROWID compares numerically) and
+		// its direction follows the scan. WITHOUT ROWID tables have no tail.
+		keyTerms := terms
+		if len(terms) == len(indexCols)+1 && len(e.withoutRowidPKCols(tableName)) == 0 &&
+			e.isRowidTailTermName(tableName, terms[len(terms)-1].col) {
+			keyTerms = terms[:len(terms)-1]
+		}
+		if len(indexCols) < len(keyTerms) || !colsPrefixMatch(indexCols, orderTermNames(keyTerms)) {
 			continue
 		}
 		// The index definition's explicit per-column COLLATE; autoindex
@@ -329,7 +423,7 @@ func (e *SelectEngine) findIndexForOrderTerms(tableName string, terms []orderTer
 		// resolved through the table column's declared collation below.
 		explicit := sql.ParseIndexColumnCollations(entry.SQL)
 		match := true
-		for i, term := range terms {
+		for i, term := range keyTerms {
 			idxExplicit := ""
 			if i < len(explicit) {
 				idxExplicit = explicit[i]
@@ -342,17 +436,24 @@ func (e *SelectEngine) findIndexForOrderTerms(tableName string, terms []orderTer
 		if !match {
 			continue
 		}
-		if where != nil && !e.partialIndexImplied(entry, where) {
+		if entry.SQL != "" && strings.Contains(strings.ToUpper(entry.SQL), " WHERE ") &&
+			!(where != nil && e.partialIndexImplied(entry, where)) {
+			// A partial index only delivers an order for the rows its
+			// predicate admits — the walk must not serve a statement that
+			// can emit rows outside it (upsert1-320: ORDER BY b, a over a
+			// (b) WHERE b>10 partial index ordered the in-predicate row
+			// first and left the rest at the tail).
 			continue
 		}
-		return indexLookupToken(entry.Name)
+		if visit(indexLookupToken(entry.Name)) {
+			return
+		}
 	}
 	// Also check the implicit PRIMARY KEY index of a WITHOUT ROWID table,
 	// which has no separate schema index entry.
 	if pkCols := e.withoutRowidPKCols(tableName); len(pkCols) >= len(terms) && colsPrefixMatch(pkCols, orderTermNames(terms)) {
-		return "PRIMARY KEY"
+		visit("PRIMARY KEY")
 	}
-	return ""
 }
 
 // unqualifiedObjectName strips a leading schema prefix ("aux.t1" -> "t1").
@@ -370,6 +471,18 @@ func orderTermNames(terms []orderTermCol) []string {
 		out[i] = t.col
 	}
 	return out
+}
+
+// isRowidTailTermName reports whether a final ORDER BY term names the rowid
+// (pseudo-column or the table's INTEGER PRIMARY KEY alias) — the trailing
+// implicit column of a rowid-table index entry (where.c's XN_ROWID walk
+// position).
+func (e *SelectEngine) isRowidTailTermName(tableName, col string) bool {
+	if isRowIDName(col) {
+		return true
+	}
+	alias := e.ipkAliasColumn(tableName)
+	return alias != "" && strings.EqualFold(col, alias)
 }
 
 // indexEntryColumns returns the key column names of a schema index entry,

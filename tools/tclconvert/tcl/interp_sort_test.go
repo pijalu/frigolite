@@ -20,6 +20,9 @@ func TestLSortMatchesTcl(t *testing.T) {
 		{`lsort -index 1 {{x 30} {y 10} {z 20}}`, "{y 10} {z 20} {x 30}"},
 		{`lsort -index 0 -integer {{30 a} {10 b} {20 c}}`, "{10 b} {20 c} {30 a}"},
 		{`lsort -dictionary {B a}`, "a B"},
+		{`lsort -dec {b a c}`, "c b a"},
+		{`lsort -int {10 9 100}`, "9 10 100"},
+		{`lsort -incr {b a c}`, "a b c"},
 	}
 	for _, c := range cases {
 		i := NewInterp()

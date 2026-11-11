@@ -146,9 +146,79 @@ func (e *SelectEngine) orderByIndexToken(t queryTable, s *sql.SelectStmt) (strin
 		return "", false
 	}
 	if s.Where != nil && e.whereHasNonIndexConstraint(s.Where, t.real, idxName) {
-		return "", false
+		// where.c prices the temp-b-tree sort into every loop that does not
+		// deliver the ORDER BY. A serving index defeated by a WHERE column
+		// outside it still loses only to plans cheaper than walk+filter —
+		// and a COVERING serving index walks without a single table lookup:
+		// the filter reads the index row and the walk delivers the order.
+		// C picks it over the seek+sorter whenever the seek fails its own
+		// cost bar (where-6.7.x: WHERE b>0 ORDER BY a over t3 plans
+		// "SCAN t3 USING COVERING INDEX t3acb", not the t3bc seek plus a
+		// sorter).
+		return e.coveringOrderIndexToken(t, s)
 	}
 	return idxName, true
+}
+
+// coveringOrderIndexToken resolves the first ORDER-BY-serving index that
+// also covers the query: every WHERE column of the table and every output
+// column sits in the index key (or is the rowid tail an index entry carries),
+// so the walk evaluates the filter and the projection from the index alone —
+// where.c's WHERE_IDX_ONLY loop. ok is false when no serving candidate
+// covers the query (the legacy full-scan + temp-sort shape stands).
+func (e *SelectEngine) coveringOrderIndexToken(t queryTable, s *sql.SelectStmt) (string, bool) {
+	terms := orderByTermColls(s)
+	if terms == nil {
+		return "", false
+	}
+	var found string
+	e.forEachOrderServingIndex(t.display, terms, s.Where, func(token string) bool {
+		if e.whereHasNonIndexConstraint(s.Where, t.real, token) {
+			return false // a WHERE column outside the index: the walk pays table lookups
+		}
+		if !e.indexCoversQuery(t, s, token) {
+			return false
+		}
+		found = token
+		return true
+	})
+	return found, found != ""
+}
+
+// indexCoversQuery reports whether the named index covers every column the
+// statement references on the FROM table: the output columns plus the WHERE
+// clause's column refs. Rowid references ride the index entry's trailing
+// rowid (the pseudo-names and the table's INTEGER PRIMARY KEY alias alike)
+// and never require a table lookup.
+func (e *SelectEngine) indexCoversQuery(t queryTable, s *sql.SelectStmt, token string) bool {
+	cols := make([]string, 0, len(s.Columns))
+	for _, c := range s.Columns {
+		ref, ok := c.Expr.(*sql.ColumnRef)
+		if !ok {
+			return false // an expression output needs the table row unless the index carries it
+		}
+		if ref.Table != "" && !strings.EqualFold(ref.Table, t.display) && !strings.EqualFold(ref.Table, t.real) {
+			continue
+		}
+		cols = append(cols, ref.Name)
+	}
+	refs, _, cached := e.whererefCollect(s.Where, t.real)
+	if !cached {
+		refs = collectIndexedRefs(s.Where, t.real, e)
+	}
+	for _, ref := range refs {
+		cols = append(cols, ref.colName)
+	}
+	// The rowid tail: pseudo-names and the IPK alias are covered implicitly.
+	ipk := e.ipkAliasColumn(t.real)
+	out := cols[:0]
+	for _, c := range cols {
+		if isRowIDName(c) || (ipk != "" && strings.EqualFold(c, ipk)) {
+			continue
+		}
+		out = append(out, c)
+	}
+	return e.indexCoversCols(token, t.real, out)
 }
 
 // whereHasNonIndexConstraint reports whether the WHERE expression contains a

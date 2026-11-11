@@ -84,15 +84,60 @@ generation — re-derive family truth from the case paths before scoping.
   strictly better than S15 (temptable2-4.1.1 = timing flake, the rest
   of its leaves = the carded temp-spill class, pre-existing at HEAD).
 
+## S22 RECORD (2026-11-12, LANDED — gate3 verified)
+
+- **ENGINE** (internal/execquery): the single-table ORDER BY delivery
+  slice. (1) `indexSeekChosen`'s stat1 branch: est<nRow replaces the
+  invented 10% cliff (C has no 10% cliff — probed 3.54; tie→scan).
+  (2) The ORDER-BY resolution walks the ROWID TAIL (findIndexForOrderTerms
+  refactored into forEachOrderServingIndex): where-12.2's ORDER BY b, a
+  over (b). (3) The COVERING ORDER-BY-serving walk beats the seek+sorter
+  when C's cost says so: internal/execquery/wherecost.go ports
+  wherePathSolver's comparison verbatim (LogEst/LogEstAdd/estLog, the
+  seek rRun, whereSortingCost with the mixed-domain LIMIT cap, +3/-2).
+  Pins: frigolite_where_s22_test.go (TestS22_*).
+- **CONVERTER**: `lsort -dec` (Tcl unique-prefix abbreviations) resolved
+  via lsortOption() — whereC's 10 `.3` expectations were baked ASCENDING.
+  whereC.json regenerated; whereF.json regenerated minus the 3 vmstep
+  cases (SQLITE_STMTSTATUS_VM_STEP counts real VDBE opcodes — not
+  expressible in the tree-walking executor; carded with e_walauto's
+  -shm introspection); where2-7.2/7.3 hand-pinned (stale `stmtStatus`
+  flag → sortMarker; a full where2 regen DROPS 19 passing cases — never
+  install wholesale).
+- **Census: where 78 → 47** (where 26→10, whereC 10→0, whereF 3→0,
+  where2 6→4). Zero new at every step.
+- Full gate 1 hit the 25m timeout on the CARDED walfault-11 trial cap
+  (the S21 gate ran 1965s) — full gates need -timeout 40m. **Gate 3
+  VERIFIED** (/tmp/full_s22_gate3.log, 1907s): 33 FIXED / 0
+  REGRESSIONS vs /tmp/full_s21_fails.txt (1466→1433 names); the
+  where-family census is exactly 47 (where 10, where2 4, where8 16,
+  where9 8, whereH 5, wherelimit2 4). Gate health rules added to
+  lessons (gate health section): -timeout mandatory, -v preferred,
+  ps-CPU-progress check before waiting, bounded waits only.
+
 ## Immediate next action
 
-The where census's remaining classes — where 26 (sort-markers),
-where8 16 (db-status-step counter), whereC 10 (row-order),
-where9 8 (scan-counters), where2 6 (EXPLAIN+sort), whereH 5 (planner
-covering choice), wherelimit2/whereF 7 (misc) — then **expr 109,
-pager1 101**, the WAL residue classes, and the carded converter classes.
-Baselines: /tmp/full_S15_fails.txt, /tmp/where_s21_fails.txt (the S21
-post-unit state), /tmp/where_s21_final.log (the S21 full gate).
+1. ~~Verify the S22 full gate, commit S22 slice 1~~ DONE 2026-11-12
+   (gate3: 33 fixed/0 new).
+2. **Parallel-agent units (separate git worktrees per the build-race
+   rule; merge order JOIN → CHOOSE → LIMIT → MISC; one full gate per
+   merge):**
+   - S23 JOIN: the join-loop machinery — where8 16 (db status step: the
+     inner loop must be index-driven; FULLSCAN_STEP counts TABLE cursors
+     only), where9 8 (the same covering inner loop), where 6.15 + 14.x 5
+     (per-loop ORDER BY delivery + the order-distinct mark-off; 14.3/
+     14.7.2 need the inner loop's covering-index choice for row order).
+   - S24 CHOOSE: whereH 5 + where2 12.1/16.2 — the candidate-choice
+     class (the longer equality prefix wins; join order pins).
+   - S25 LIMIT: wherelimit2 4 — DELETE/UPDATE ... ORDER BY LIMIT, the
+     INSTEAD OF trigger + log UDF surface.
+   - S26 MISC: where 19.0 (EQP autoindex names) + 25.x (corruption).
+3. Then **expr 109, pager1 101**, the WAL residue classes, and the
+   carded converter classes.
+Baselines: /tmp/full_S15_fails.txt, /tmp/w_s22_leaves.txt (the S22 pre
+state, 78), /tmp/w_s22_f.txt (the S22 post state, 47),
+/tmp/where_s22_f.log, /tmp/full_s22_gate3.log +
+/tmp/full_s22_gate3_fails.txt (the verified gate, 1433 names).
 
 ## Queue (in order)
 

@@ -62,10 +62,9 @@ const defaultPlanRowCount = 1000000
 
 func (e *SelectEngine) scanLoopForRowCount(t queryTable, s *sql.SelectStmt, nRow int64, wantConditions bool) (scanLoop, error) {
 	loop := scanLoop{bestEst: float64(nRow), nRow: float64(nRow)}
-	bestIndex := ""
 	if s.Where != nil {
 		var err error
-		bestIndex, _, loop, err = e.whereScanLoop(t, s, loop, nRow, wantConditions)
+		_, _, loop, err = e.whereScanLoop(t, s, loop, nRow, wantConditions)
 		if err != nil {
 			return scanLoop{}, err
 		}
@@ -77,10 +76,31 @@ func (e *SelectEngine) scanLoopForRowCount(t queryTable, s *sql.SelectStmt, nRow
 			if (loop.kind == loopIndex || loop.kind == loopSkipScan) && e.orderByRowidLeadingName(s) {
 				return scanLoop{kind: loopNone, bestEst: float64(nRow), nRow: float64(nRow)}, nil
 			}
+			// where.c's wherePathSolver: an ORDER-BY-serving covering index
+			// walk is a candidate loop, and the seek path that does not
+			// deliver the order pays the sorter — the walk wins whenever its
+			// run undercuts the seek+sorter path (where-6.7.x: WHERE b>0
+			// ORDER BY a over the analyzed t3 plans the covering t3acb walk,
+			// not the t3bc seek plus a temp b-tree).
+			if loop.kind == loopIndex && loop.seek && len(s.OrderBy) > 0 &&
+				s.Union == nil && len(s.Joins) == 0 && len(s.GroupBy) == 0 && !s.Distinct {
+				if _, sat := e.indexLoopOrderSatisfied(t, loop, s); !sat {
+					if walk, ok := e.coveringOrderIndexToken(t, s); ok &&
+						e.orderServingWalkCheaper(t, s, loop, walk) {
+						return scanLoop{kind: loopIndex, token: walk,
+							bestEst: loop.bestEst, nRow: loop.nRow}, nil
+					}
+				}
+			}
 			return loop, nil
 		}
 	}
-	if bestIndex == "" {
+	if loop.kind == loopNone {
+		// No seek survived its cost bar (a declined seek included —
+		// bestIndex != "" but the loop never materialized): the ORDER-BY-
+		// serving index walk is the remaining candidate (where.c prices the
+		// sorter into every non-delivering loop, so a covering walk that
+		// delivers the order wins over the scan+sort shape).
 		e.scanLoopForOrderIndex(t, s, &loop)
 	}
 	return loop, nil
@@ -107,9 +127,15 @@ func (e *SelectEngine) whereScanLoop(t queryTable, s *sql.SelectStmt, loop scanL
 		ret.kind, ret.oneRow, ret.conditions = loopIPK, eq, detail
 		return bestIndex, conditions, ret, nil
 	}
-	if bestIndex != "" && (bestIndex == "PRIMARY KEY" || e.indexSeekChosen(bestIndex, ret.bestEst, ret.nRow)) {
+	if bestIndex != "" {
 		ret.kind, ret.token, ret.seek, ret.conditions = loopIndex, bestIndex, true, conditions
-		return bestIndex, conditions, e.preferOrderByServingIndex(t, s, ret, wantConditions), nil
+		if e.indexSeekChosen(t, s, bestIndex, ret.bestEst, ret.nRow) {
+			return bestIndex, conditions, e.preferOrderByServingIndex(t, s, ret, wantConditions), nil
+		}
+		// The seek failed its cost bar: back to the plain-scan loop (the
+		// ORDER-BY-serving walk remains a candidate in
+		// scanLoopForRowCount's loopNone fallback).
+		ret = loop
 	}
 	return bestIndex, conditions, ret, nil
 }
@@ -262,15 +288,43 @@ func (e *SelectEngine) scanLoopForOrderIndex(t queryTable, s *sql.SelectStmt, lo
 	}
 }
 
-// indexSeekChosen mirrors the seek threshold: without a sqlite_stat1 row for
-// the index, SQLite's default cost model prices an index range seek at one
-// tenth of a full scan, so the seek always wins; with stats the 10%
-// selectivity threshold applies.
-func (e *SelectEngine) indexSeekChosen(bestIndex string, bestEstimate, nRow float64) bool {
+// indexSeekChosen is where.c's seek-vs-scan cost comparison in the LogEst
+// arithmetic whereLoopAddBtree prices loops with: the seek reads
+// LogEstAdd(rLogSize, nOut + 1 + (15*szIdxRow)/szTabRow) rows' worth of
+// b-tree work, plus the table-lookup term (nOut + 16) when the index does
+// not cover the query; the scan costs rSize + 16. The seek wins when its
+// run undercuts the scan. Without a sqlite_stat1 row the default cost
+// model prices the seek at one tenth of a full scan, so it always wins.
+// Evidence: SEARCH at ~12% over stat1 "100 8 1" (where-7.x) and at 50%
+// over "1000 500 1"; the tie "1000 1000 1" and the stat4-informed wide
+// ranges (analyzeE) stay scans.
+func (e *SelectEngine) indexSeekChosen(t queryTable, s *sql.SelectStmt, bestIndex string, bestEstimate, nRow float64) bool {
 	if len(e.stat1Tokens(bestIndex)) == 0 {
 		return true
 	}
-	return nRow > 0 && bestEstimate < nRow*0.10
+	if nRow <= 0 {
+		return false
+	}
+	est := bestEstimate
+	if est < 1 {
+		est = 1
+	}
+	if est >= nRow {
+		return false
+	}
+	rSize := sqlite3LogEst(uint64(nRow))
+	rOut := sqlite3LogEst(uint64(est))
+	szTab := e.tableRowWidthLogEst(t.real)
+	szIdx := e.indexRowWidthLogEst(t.real, bestIndex)
+	if szTab <= 0 {
+		szTab = 1
+	}
+	seekRun := logEstAdd(rSize, rOut+1+(15*szIdx)/szTab)
+	if !e.indexCoversQuery(t, s, bestIndex) {
+		// Not WHERE_IDX_ONLY: every surviving row pays a table lookup.
+		seekRun = logEstAdd(seekRun, rOut+16)
+	}
+	return seekRun < rSize+16
 }
 
 // orderTerm is one ORDER BY term resolved for the loop-order walk.
@@ -858,10 +912,13 @@ func isRowidPseudoColumnName(name string) bool {
 // loopOrderedEmission reports the index whose b-tree order the executor must
 // emit a SEARCH plan's rows in, and the direction: the same loop-order gate
 // the planner used to drop the sorter (so the EQP shape and the emitted row
-// order never disagree). ok is false when the comparator sort stays
-// responsible for the ordering.
+// order never disagree). A no-WHERE query's full index walk (the ORDER BY-
+// serving index scanLoopForOrderIndex resolves) is served the same way —
+// the walk consumes the terms, the rowid tail of a rowid-table index
+// included (where-12.2's ORDER BY b, a). ok is false when the comparator
+// sort stays responsible for the ordering.
 func (e *SelectEngine) loopOrderedEmission(s *sql.SelectStmt) (idxName string, backward, ok bool) {
-	if s == nil || s.Where == nil || s.Union != nil || len(s.Joins) > 0 ||
+	if s == nil || s.Union != nil || len(s.Joins) > 0 ||
 		s.From.Name == "" || s.From.Subquery != nil || len(s.GroupBy) > 0 || s.Distinct {
 		return "", false, false
 	}
