@@ -888,3 +888,16 @@ appending.
 S25 final counts: wherelimit2 4 -> 0; wherelimit sweep 5 -> 0; where
 sweep 86 -> 81 (fixed = exactly the wherelimit2 five); regressions = []
 everywhere; go vet + go build clean.
+
+## Flake watchlist (2026-11-12)
+
+- **temptable2-4.1.1** — the documented timing flake (S21 record).
+- **where2-2.4** — NEW: three `SELECT * FROM x1, x2 WHERE x=1 ORDER BY
+  random()` runs must each reshuffle 50 rows (C: P(collide) ~ 1/50!;
+  fnRANDOM = global rand.Int63 — consecutive draws cannot repeat).
+  Failed once in the S25 merge gate (`$out1!=$out2 && $out2!=$out3` got
+  [0]), passed gates 1-3 and 6/6 isolated reruns + 2 family runs.
+  Suspect: shared harness runtime-variable state under full-suite load,
+  NOT the engine. If it recurs in the next gate, dig the harness
+  query_assign/runtime_expr path with dlv; until then treat as flake
+  (do not chase single occurrences).
