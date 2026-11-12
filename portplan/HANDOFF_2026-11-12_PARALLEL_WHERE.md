@@ -15,36 +15,45 @@ queue**; this doc carries the fleet state and the merge protocol.
 
 | Unit | Worktree | Branch | Scope | State |
 |------|----------|--------|-------|-------|
-| S23 JOIN | /private/tmp/wt_s23 | s23-join | where8 16, where9 8, where 6.15+14.x — the join inner loops (index-driven/covering), FULLSCAN_STEP table-cursor gating, per-loop ORDER BY delivery | running |
-| S25 LIMIT | /private/tmp/wt_limit | s25-limit | wherelimit2 4 — DELETE/UPDATE … ORDER BY LIMIT, INSTEAD OF trigger + log UDF runtime vars | resumed, near done |
-| expr triage | /private/tmp/wt_triage | s27-expr-triage | read-only census doc portplan/TRIAGE_expr_2026-11-12.md | resumed |
-| pager1 triage | /private/tmp/wt_triage2 | s28-pager1-triage | read-only census doc portplan/TRIAGE_pager1_2026-11-12.md | resumed |
-| S24 CHOOSE | (queued) | s24-choose | whereH 5 + where2 12.1/16.2 — brief: portplan/PLAN_S24_candidate_choice.md | waiting for a free concurrency slot |
+| S23 JOIN | /private/tmp/wt_s23 | s23-join | where8 16, where9 8, where 6.15+14.x — join inner loops, FULLSCAN_STEP gating, per-loop ORDER BY | running; S23.1 landed (f3ec10698: OR-declined seek fall-through + INDEXED BY/NOT INDEXED hints, census 47→45) |
+| S24 CHOOSE | /private/tmp/wt_s24 | s24-choose | whereH 5 + where2 12.1/16.2 — candidate choice | running (diagnosis) |
+| S29 expr unit | /private/tmp/wt_expr | s29-expr-unit | TRIAGE_expr slices E3+E1+E2 (46: regsub -all + fts3expr3 regen + depth 12 + argv coercion) then S1+S2 (9: CAST/truthiness) | running |
+| S25 LIMIT | — | s25-limit | wherelimit2 4 | **DONE + MERGED 3e4edb26b** (merge gate: 5 fixed incl. selectH-3.7 bonus, 2 flakes, 0 true regressions) |
+| expr triage | — | s27-expr-triage | read-only census | **DONE + MERGED bc3f3d810** (expr truth = 3 leaves; 98-leaf substring table) |
+| pager1 triage | — | s28-pager1-triage | read-only census | **DONE + MERGED 904efda02** (99 leaves, 7 buckets, slices U1→U7) |
 
-Concurrency lesson: launching a 5th concurrent agent while a full gate
-runs trips the user concurrency limit (it killed all three first-wave
-agents once already). **Keep ≤4 agents; hold S24 until S25 lands.**
+S25 merge-gate baseline: /tmp/full_s25_merge_fails.txt (1430 names).
+Flake watchlist (lessons): temptable2-4.1.1, where2-2.4 (probabilistic
+random()-distinctness; 6/6 isolated green; chase only if it recurs).
+
+Concurrency lesson: the user concurrency limit killed 4 agent runs at
+peak (3 agents + gate + main). **Keep ≤3 agents while a gate runs, ≤4
+without one; resume killed agents via SendMessage (their context
+survives).**
 
 ## Merge protocol (order matters — file overlap is explain_plan.go/select_order_search.go)
 
-1. S23 JOIN merges first (`git merge s23-join` on feature/perf), then
-   the FULL gate (go test -run ^TestSQLiteSuite$ -count=1 -v -timeout
-   40m) + name-set diff vs /tmp/full_s22_gate3_fails.txt (python sets,
-   never comm).
-2. S24 CHOOSE rebases over the S23 merge, then merges + one full gate.
-3. S25 LIMIT rebases over both, merges + one full gate.
-4. Each merge: append-only lessons consolidation, TODO.md census
+1. ~~S25 LIMIT~~ **DONE** (merged 3e4edb26b; gate verified 5 fixed/2
+   flakes/0 regressions vs /tmp/full_s22_gate3_fails.txt).
+2. S23 JOIN merges next (`git merge s23-join` on feature/perf), then
+   the FULL gate (-v -timeout 40m) + name-set diff vs
+   /tmp/full_s25_merge_fails.txt (python sets, never comm).
+3. S24 CHOOSE rebases over the S23 merge, then merges + one full gate.
+4. S29 expr-unit merges last (disjoint territory; still gets a gate).
+5. Each merge: append-only lessons consolidation, TODO.md census
    update, plan-file status lines.
-5. S26 MISC (where 19.0 EQP autoindex names + 25.x corruption) runs in
-   the MAIN tree AFTER the merges — its territory (explain EQP
-   rendering) overlaps S23/S24.
+6. S26 MISC (where 19.0 EQP autoindex names + 25.x corruption) runs in
+   the MAIN tree AFTER the S23/S24 merges — its territory (explain EQP
+   rendering) overlaps them.
 
 ## Baselines
 
-- /tmp/full_s22_gate3_fails.txt — the current full-suite failure name
-  set (1433, TestSQLiteSuite/-prefixed).
-- /tmp/w_s22_f.txt — the where-census leaf set (47).
+- /tmp/full_s25_merge_fails.txt — the current full-suite failure name
+  set (1430, TestSQLiteSuite/-prefixed) — DIFF TARGET for the next
+  gates.
+- /tmp/full_s22_gate3_fails.txt — the S22 gate set (1433).
 - /tmp/full_s21_fails.txt — the S21 pre state (1466).
+- /tmp/w_s22_f.txt — STALE (62 lines, a mid-session snapshot) — ignore.
 
 ## After the where classes close
 
