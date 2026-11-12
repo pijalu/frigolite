@@ -149,7 +149,14 @@ generation — re-derive family truth from the case paths before scoping.
    readonly 4, B1 subst-foreach 3, B3 __STEP_ 2. Slice order U1(3) →
    U2(2) → U3(4) → U4(5) → U5(11) → U6(13) → U7(61); U1-U4 are
    converter/harness-only (14 leaves).
-4. Then **expr (triage in flight), the WAL residue classes**, and the
+4. Then **expr** (triage DONE, merged bc3f3d810:
+   portplan/TRIAGE_expr_2026-11-12.md — the "109" census is STALE:
+   expr-family truth = 3 leaves (expr-16.100/101/102); the substring
+   group is 98 leaves/17 families. Top slices: E3+E1+E2 46 subtests
+   (regsub -all + fts3expr3 regen + fts3MaxExprDepth 12 + argv
+   coercion), S1+S2 CAST/truthiness 9, S5+A1+A8+D1 converter batch 11.
+   Stale fixtures: fts3expr3 .json+.gz dup, expridx1 fossil oracle,
+   e_expr-5.x frozen $as$bs), **the WAL residue classes**, and the
    carded converter classes.
 Baselines: /tmp/full_S15_fails.txt, /tmp/full_s22_gate3.log +
 /tmp/full_s22_gate3_fails.txt (the verified gate, 1433 names;
