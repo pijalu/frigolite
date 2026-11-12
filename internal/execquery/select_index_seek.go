@@ -67,31 +67,151 @@ type indexSeekPlan struct {
 	patternDriven bool
 }
 
+// orPlanRoutable reports whether the OR-index planner owns the statement:
+// the WHERE's top-level OR plans as an OR-index scan (or as per-value
+// equality branches after the IN-arm expansion) — the same routing test
+// execSelectOrPlan applies before executing. Used by the seek planner to
+// stay out of the OR plan's way.
+func (e *SelectEngine) orPlanRoutable(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, dbCtx *DatabaseContext) bool {
+	if _, ok := e.ctx.PlanOrIndexScan(s.Where, tableEntry.Name, colDefs, dbCtx); ok {
+		return true
+	}
+	expansion := e.expandOrInArms(s, tableEntry)
+	if expansion == nil {
+		return false
+	}
+	_, ok := e.ctx.PlanOrIndexScan(expansion.where, tableEntry.Name, colDefs, dbCtx)
+	return ok
+}
+
+// exprHasOrSubtree reports whether the expression contains an OR node
+// beneath its AND/parenthesis spine — peeling parentheses the way
+// whereHasOrConjunct does, so a parenthesized OR conjunct is seen.
+func exprHasOrSubtree(expr sql.Expr) bool {
+	switch v := expr.(type) {
+	case *sql.ParenExpr:
+		return exprHasOrSubtree(v.Expr)
+	case *sql.BinaryOp:
+		if strings.EqualFold(v.Operator, "OR") {
+			return true
+		}
+		if strings.EqualFold(v.Operator, "AND") {
+			return exprHasOrSubtree(v.Left) || exprHasOrSubtree(v.Right)
+		}
+		return false
+	}
+	return false
+}
+
+// whereNonOrConjuncts returns the AND of the WHERE's top-level conjuncts
+// that contain no OR subtree (where.c: an OR term the OR-optimization
+// declines is a plain filter — only the OR-free conjuncts can drive an
+// index seek, and a term inside the OR is never a standalone constraint).
+// nil when no conjunct qualifies.
+func whereNonOrConjuncts(where sql.Expr) sql.Expr {
+	var kept []sql.Expr
+	for _, conj := range splitAnd(where) {
+		if !exprHasOrSubtree(conj) {
+			kept = append(kept, conj)
+		}
+	}
+	return andChainExprs(kept)
+}
+
+// andChainExprs rebuilds an AND chain over the conjuncts (nil when empty,
+// the single conjunct unwrapped).
+func andChainExprs(conjuncts []sql.Expr) sql.Expr {
+	switch len(conjuncts) {
+	case 0:
+		return nil
+	case 1:
+		return conjuncts[0]
+	}
+	out := conjuncts[0]
+	for _, c := range conjuncts[1:] {
+		out = &sql.BinaryOp{Left: out, Right: c, Operator: "AND"}
+	}
+	return out
+}
+
 // selectIndexSeekPlanFor resolves the index-driven scan for a single-table
 // SELECT, or nil when the statement keeps the regular table scan. The gates
 // mirror the shapes whose row order an index loop can serve: one real rowid
-// table, no join, no ORDER BY / GROUP BY / DISTINCT / compound member, and a
-// WHERE without a top-level OR (an OR is a union of index ranges, served by
-// execSelectWithOrPlan). The driving index is the planner's own loop — the
-// same decision the EXPLAIN QUERY PLAN renderer consumes — so a LIKE/GLOB
-// conjunct that merely rides along as a residual filter (where8-1.8's
-// `a > 1 AND c LIKE 'I%'` planned as `SEARCH t1 USING INDEX i1 (a>?)`) does
-// not disconnect the executor from the plan. Only a plan whose own seek
-// constraints were derived from a LIKE/complete-GLOB term keeps the regular
-// scan, whose scan-local optimizer elides the provably-decided matcher calls
-// (select_like_opt.go — the sqlite3_like_count contract).
-func (e *SelectEngine) selectIndexSeekPlanFor(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) (*indexSeekPlan, error) {
+// table, no join, no GROUP BY / DISTINCT / compound member, and a WHERE
+// whose top-level OR conjunct the OR-index planner did not claim (an OR is
+// a union of index ranges, served by execSelectWithOrPlan; when the planner
+// declines it, the OR-free conjuncts still drive a seek the way where.c
+// keeps the surviving WHERE terms usable — where9-4.2's
+// `b>1000 AND (c=31031 OR +d IS NULL)` seeks the t1b range). An ORDER BY
+// rides along when the seek loop does not deliver it (the comparator sort
+// runs in the post-scan pipeline, matching C's seek+temp-b-tree plan);
+// a loop-delivering ORDER BY keeps the regular scan and the S22
+// index-order emission. An INDEXED BY clause forces the named index the
+// way C's planner does (where9-4.4). The driving index is the planner's
+// own loop — the same decision the EXPLAIN QUERY PLAN renderer consumes —
+// so a LIKE/GLOB conjunct that merely rides along as a residual filter
+// (where8-1.8's `a > 1 AND c LIKE 'I%'` planned as `SEARCH t1 USING INDEX
+// i1 (a>?)`) does not disconnect the executor from the plan. Only a plan
+// whose own seek constraints were derived from a LIKE/complete-GLOB term
+// keeps the regular scan, whose scan-local optimizer elides the
+// provably-decided matcher calls (select_like_opt.go — the
+// sqlite3_like_count contract).
+func (e *SelectEngine) selectIndexSeekPlanFor(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, dbCtx *DatabaseContext) (*indexSeekPlan, error) {
 	if !indexSeekShapeApplies(s, tableEntry) || e.ctx.TableIsWithoutRowidEntry(tableEntry) {
 		return nil, nil
 	}
-	loop, err := e.scanLoopForRowCount(queryTableFromRef(s.From), s, indexSeekPlanRowCount, false)
+	if s.From.NotIndexed {
+		// NOT INDEXED forbids every index plan for the table (where9-4.6's
+		// full table scan): the regular scan owns the statement.
+		return nil, nil
+	}
+	seek := s
+	forced := ""
+	if idx := s.From.IndexedBy; idx != "" {
+		// INDEXED BY forces the named index (build.c: the planner must use
+		// it or report "no query solution"): the OR arbitration below is
+		// skipped — the OR arms' own indexes are unavailable.
+		forced = idx
+	} else if whereHasOrConjunct(s.Where) {
+		// The OR-index planner owns the statement when it plans the OR; when
+		// it declines, only the OR-free top-level conjuncts may drive the
+		// seek (a term inside the OR is not a standalone constraint — C
+		// never extracts an arm as an index term). The full WHERE stays the
+		// residual: every candidate row is re-checked against it.
+		if e.orPlanRoutable(s, tableEntry, colDefs, dbCtx) {
+			return nil, nil
+		}
+		where := whereNonOrConjuncts(s.Where)
+		if where == nil {
+			return nil, nil
+		}
+		ns := *s
+		ns.Where = where
+		seek = &ns
+	}
+	loop, err := e.scanLoopForRowCount(queryTableFromRef(seek.From), seek, indexSeekPlanRowCount, false)
 	if err != nil {
 		return nil, err
+	}
+	if forced != "" {
+		if e.schemaIndexEntry(forced) == nil {
+			return nil, nil
+		}
+		loop = scanLoop{kind: loopIndex, token: forced, seek: true, bestEst: loop.bestEst, nRow: loop.nRow}
 	}
 	if loop.kind != loopIndex || !loop.seek || loop.token == "PRIMARY KEY" {
 		return nil, nil
 	}
-	plan := e.buildIndexSeekPlan(s, tableEntry, colDefs, loop.token)
+	if len(s.OrderBy) > 0 && len(s.GroupBy) == 0 && !s.Distinct {
+		// A seek the ORDER BY delivery rides would double-serve the order
+		// (the post-scan index-order emission owns those shapes): keep the
+		// regular scan there. A seek that does NOT deliver runs ahead of the
+		// comparator sort like C's seek+temp-b-tree plan.
+		if _, sat := e.indexLoopOrderSatisfied(queryTableFromRef(s.From), loop, s); sat {
+			return nil, nil
+		}
+	}
+	plan := e.buildIndexSeekPlan(seek, tableEntry, colDefs, loop.token)
 	if plan == nil || plan.patternDriven {
 		return nil, nil
 	}
@@ -100,9 +220,9 @@ func (e *SelectEngine) selectIndexSeekPlanFor(s *sql.SelectStmt, tableEntry *sch
 
 // indexSeekShapeApplies reports whether the statement is a single-table scan
 // whose row order an index loop can serve: one real FROM table, no join, no
-// ORDER BY / GROUP BY / DISTINCT / compound member, a WHERE without a
-// top-level OR (an OR is a union of index ranges, served by
-// execSelectWithOrPlan), and no system table.
+// ORDER BY / GROUP BY / DISTINCT / compound member, and no system table.
+// INDEXED BY / NOT INDEXED clauses are resolved in selectIndexSeekPlanFor
+// (an INDEXED BY name forces the named index; NOT INDEXED forbids the seek).
 func indexSeekShapeApplies(s *sql.SelectStmt, tableEntry *schema.Entry) bool {
 	if s == nil || s.Where == nil || tableEntry == nil {
 		return false
@@ -110,14 +230,17 @@ func indexSeekShapeApplies(s *sql.SelectStmt, tableEntry *schema.Entry) bool {
 	if !indexSeekPlainScanShape(s) {
 		return false
 	}
-	return !IsSchemaTable(tableEntry.Name) && !whereHasOrConjunct(s.Where)
+	return !IsSchemaTable(tableEntry.Name)
 }
 
 // indexSeekPlainScanShape reports whether the statement is a plain
-// single-table scan: a real FROM table, no join, and no ORDER BY / GROUP BY /
-// DISTINCT / compound member.
+// single-table scan: a real FROM table, no join, and no GROUP BY /
+// DISTINCT / compound member. An ORDER BY is allowed — the plan-for gate
+// declines the seek when the loop delivers it (the post-scan index-order
+// emission owns those shapes) and runs the seek ahead of the comparator
+// sort when it does not (C's seek + temp-b-tree shape, where9-4.2).
 func indexSeekPlainScanShape(s *sql.SelectStmt) bool {
-	if len(s.Joins) > 0 || len(s.OrderBy) > 0 || len(s.GroupBy) > 0 || s.Distinct || s.Union != nil {
+	if len(s.Joins) > 0 || len(s.GroupBy) > 0 || s.Distinct || s.Union != nil {
 		return false
 	}
 	return s.From.Name != "" && s.From.Subquery == nil && !s.From.EmptyName

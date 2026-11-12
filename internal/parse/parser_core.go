@@ -458,8 +458,14 @@ func appendSeltablistTable(p *Parser, ruleNo, posName, posSchema, posAlias, posI
 		ref.EmptyName = true
 	}
 	if posIndexedBy > 0 {
-		if ib, ok := getRHS(p, ruleNo, posIndexedBy).(string); ok && ib != "" && !strings.EqualFold(ib, "NOT INDEXED") {
-			ref.IndexedBy = ib
+		if ib, ok := getRHS(p, ruleNo, posIndexedBy).(string); ok && ib != "" {
+			if strings.EqualFold(ib, "NOT INDEXED") {
+				// The "NOT INDEXED" hint forbids every index plan for this
+				// table's loop (build.c).
+				ref.NotIndexed = true
+			} else {
+				ref.IndexedBy = ib
+			}
 		}
 	}
 	return acc.appendTableWithOn(p, ref, on, using)

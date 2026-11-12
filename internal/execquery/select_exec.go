@@ -504,6 +504,12 @@ func (e *SelectEngine) execSelectPrevalidate(s *sql.SelectStmt, tableEntry *sche
 // statement keeps its original WHERE, and the value loops' OP_Next delta
 // completes the search-count model.
 func (e *SelectEngine) execSelectOrPlan(s *sql.SelectStmt, tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef) (*Result, bool) {
+	// An INDEXED BY / NOT INDEXED clause pins or forbids index plans for the
+	// FROM table (where9-4.6's NOT INDEXED scans the table): the OR-index
+	// plan must not route around the hint.
+	if s.From.IndexedBy != "" || s.From.NotIndexed {
+		return nil, false
+	}
 	if branches, ok := e.ctx.PlanOrIndexScan(s.Where, tableEntry.Name, colDefs, dbCtx); ok {
 		return e.ctx.ExecSelectWithOrPlan(s, tableEntry, dbCtx, colDefs, branches), true
 	}

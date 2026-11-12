@@ -374,7 +374,7 @@ func (e *SelectEngine) selectRowidSeekPlan(s *sql.SelectStmt, tableEntry *schema
 	// system tables keep the scan (an INDEXED BY clause forces the named
 	// plan; schema tables have post-scan filtering the seek path bypasses).
 	if len(s.Joins) > 0 || s.From.Name == "" || s.From.Subquery != nil ||
-		s.From.IndexedBy != "" || s.From.EmptyName || IsSchemaTable(tableEntry.Name) {
+		s.From.IndexedBy != "" || s.From.NotIndexed || s.From.EmptyName || IsSchemaTable(tableEntry.Name) {
 		return nil
 	}
 	if e.ctx.TableIsWithoutRowidEntry(tableEntry) {
