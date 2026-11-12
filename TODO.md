@@ -119,25 +119,42 @@ generation — re-derive family truth from the case paths before scoping.
 
 1. ~~Verify the S22 full gate, commit S22 slice 1~~ DONE 2026-11-12
    (gate3: 33 fixed/0 new).
-2. **Parallel-agent units (separate git worktrees per the build-race
-   rule; merge order JOIN → CHOOSE → LIMIT → MISC; one full gate per
-   merge):**
+2. **Parallel-agent units — S25 LANDED + MERGED** (14e8ee855, merge
+   3e4edb26b): wherelimit2 4 → 0 (the harnessTclFunction UDF-global
+   round trip: tcl.NotifyScriptVarTargets + runtime_var_reset; the
+   CTE-header UDL strip learned MATERIALIZED/NOT — the CTE does not
+   shadow a DELETE target, oracle-verified). Where sweep 86 → 81.
+   Merge gate running (/tmp/full_s25_merge_gate.log, -v -timeout 40m;
+   expect 5 fixed/0 new vs /tmp/full_s22_gate3_fails.txt — wherelimit2
+   ×4 + wherelimit ×1). Carded finding from S25: a window function as
+   an ORDER BY term outside the select list errors (rank()OVER() "wrong
+   number of arguments") — G4 window-function execution residue.
+   **Fleet: S23 JOIN running (wt_s23, s23-join; NOTE /tmp/w_s22_f.txt
+   is a STALE 62-line snapshot — the authoritative census is gate3's
+   47), expr triage running (wt_triage); pager1 triage DONE and
+   merged.** Keep ≤2 agents while a gate runs (the concurrency limit
+   killed 4 agent runs once already).
    - S23 JOIN: the join-loop machinery — where8 16 (db status step: the
      inner loop must be index-driven; FULLSCAN_STEP counts TABLE cursors
      only), where9 8 (the same covering inner loop), where 6.15 + 14.x 5
      (per-loop ORDER BY delivery + the order-distinct mark-off; 14.3/
      14.7.2 need the inner loop's covering-index choice for row order).
-   - S24 CHOOSE: whereH 5 + where2 12.1/16.2 — the candidate-choice
-     class (the longer equality prefix wins; join order pins).
-   - S25 LIMIT: wherelimit2 4 — DELETE/UPDATE ... ORDER BY LIMIT, the
-     INSTEAD OF trigger + log UDF surface.
+   - S24 CHOOSE (launch when expr triage frees a slot): whereH 5 +
+     where2 12.1/16.2 — the candidate-choice class.
    - S26 MISC: where 19.0 (EQP autoindex names) + 25.x (corruption).
-3. Then **expr 109, pager1 101**, the WAL residue classes, and the
+3. **pager1 triage DONE** (portplan/TRIAGE_pager1_2026-11-12.md, merged
+   904efda02): 99 leaves in 7 buckets — B5 super-journal+faultsim 61
+   (land the harness-restore half first, ~27 leaves alone), B4
+   hot-journal 13, B7 misc engine contracts 11, B2 converter 5, B6
+   readonly 4, B1 subst-foreach 3, B3 __STEP_ 2. Slice order U1(3) →
+   U2(2) → U3(4) → U4(5) → U5(11) → U6(13) → U7(61); U1-U4 are
+   converter/harness-only (14 leaves).
+4. Then **expr (triage in flight), the WAL residue classes**, and the
    carded converter classes.
-Baselines: /tmp/full_S15_fails.txt, /tmp/w_s22_leaves.txt (the S22 pre
-state, 78), /tmp/w_s22_f.txt (the S22 post state, 47),
-/tmp/where_s22_f.log, /tmp/full_s22_gate3.log +
-/tmp/full_s22_gate3_fails.txt (the verified gate, 1433 names).
+Baselines: /tmp/full_S15_fails.txt, /tmp/full_s22_gate3.log +
+/tmp/full_s22_gate3_fails.txt (the verified gate, 1433 names;
+/tmp/w_s22_f.txt is STALE — 62 lines, ignore it),
+/tmp/full_s25_merge_gate.log (the S25 merge gate in flight).
 
 ## Queue (in order)
 
