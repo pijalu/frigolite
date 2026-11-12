@@ -318,6 +318,19 @@ func (e *SelectEngine) execRealTableSelect(s *sql.SelectStmt) *Result {
 		e.currentScanTable = s.From.As
 	}
 	defer func() { e.currentScanTable = prevScanTable }()
+	// JOIN base loop (where.c's outermost WhereLoop): the FROM-only WHERE
+	// conjuncts drive the rowid/index seek or the ORDER-BY-serving index
+	// walk, so the base rows enter the join nesting in the loop's own order
+	// (a full table scan keeps the scan path and its counter).
+	if len(s.Joins) > 0 {
+		jRows, jMaps, jHandled, jErr := e.joinBaseScanRows(s, tableEntry, dbCtx, colDefs, tree, feed)
+		if jErr != nil {
+			return &Result{Error: jErr}
+		}
+		if jHandled {
+			return e.execSelectPostScan(s, jRows, jMaps, nil, colDefs)
+		}
+	}
 	// Point-lookup short circuit (src/where.c SEARCH rowid=?): a WHERE that
 	// pins the rowid to a literal reads the single candidate row by seek.
 	// The scan cursor opens below, AFTER the seek verdict: OpenCursor

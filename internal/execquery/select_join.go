@@ -347,7 +347,13 @@ func (e *SelectEngine) materializeSubqueryJoin(join sql.JoinClause) ([]RowMap, [
 	}
 	savedDerived := e.derivedScope
 	e.derivedScope = !correlated
+	// The materialization scan is not a loop of the outer statement: C
+	// flattens a derived "SELECT * FROM t" into the outer query's own loop,
+	// so the outer statement's counters see no separate scan here.
+	savedSuppress := e.suppressFullScanCounter
+	e.suppressFullScanCounter = true
 	subqResult := e.execSelect(join.Table.Subquery)
+	e.suppressFullScanCounter = savedSuppress
 	e.derivedScope = savedDerived
 	if subqResult.Error != nil {
 		return nil, nil, "", nil, subqResult.Error

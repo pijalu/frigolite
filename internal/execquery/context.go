@@ -396,6 +396,16 @@ type SelectEngine struct {
 	cteScopes         [][]sql.CTEDef           // CTE scopes from enclosing statements (innermost last)
 	resolvingCTEs     map[*sql.SelectStmt]bool // CTE bodies currently being resolved (circular reference detection); keyed by the CTE body AST so a same-named inner WITH shadow is a different CTE
 	currentScanTable  string                   // table name being scanned (for qualified column resolution)
+	// forceScanRowMaps makes selectNeedsRowMapsCached answer true: the join
+	// base-seek reuses the single-table seek executors on a statement copy
+	// whose Joins slice is stripped (their shape gates), but the join
+	// pipeline consumes FULL row maps for every base row.
+	forceScanRowMaps bool
+	// suppressFullScanCounter silences the scan's FULLSCAN_STEP / search
+	// counter contributions: a derived-table join operand's materialization
+	// scan is C's query-flattening target (SELECT * FROM t2 flattens into a
+	// plain t2 loop), so no separate scan exists in C's plan to count.
+	suppressFullScanCounter bool
 	resolvingViews    map[string]bool          // tracks views currently being resolved (circular reference detection)
 	viewRefCounts     map[string]int           // FROM-term references per view within one statement (select.c Table.nTabRef, 0xffff cap)
 	viewRefDepth      int                      // >0 while a top-level SELECT using view reference counting is executing
