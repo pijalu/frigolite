@@ -48,6 +48,7 @@ type TestStep struct {
 	AuthProc          string            `json:"authProc,omitempty"`
 	CatchMessage      string            `json:"catchMessage,omitempty"`
 	ExpectedExpr      string            `json:"expectedExpr,omitempty"`
+	ValueType         string            `json:"valueType,omitempty"`
 	ListValues        []string          `json:"listValues,omitempty"`
 	InternalFunctions bool              `json:"internalFunctions,omitempty"`
 	Expect            string            `json:"expect,omitempty"`
@@ -555,6 +556,7 @@ func stepFromStmt(s tcl.Stmt) TestStep {
 		AuthProc:          s.AuthProc,
 		CatchMessage:      s.CatchMessage,
 		ExpectedExpr:      tcl.StripRuntimeValues(s.ExpectedExpr),
+		ValueType:         s.ValueType,
 		ListValues:        s.ListValues,
 		InternalFunctions: s.Type == "internal_functions" && s.SQL == "enable",
 		Database:          s.Database,

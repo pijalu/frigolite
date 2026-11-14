@@ -319,6 +319,7 @@ type TestStep struct {
 	AuthProc             string            `json:"authProc,omitempty"`      // the Tcl authorizer proc (a `db auth <proc>` step)
 	CatchMessage         string            `json:"catchMessage,omitempty"`  // the variable the catch's error message goes to
 	ExpectedExpr         string            `json:"expectedExpr,omitempty"`  // the expectation is itself a runtime expression
+	ValueType            string            `json:"valueType,omitempty"`     // the Tcl object type the value carries (integer/real, a foreach-init binding)
 	ListValues           []string          `json:"listValues,omitempty"`    // the step builds a Tcl list from these values
 	LoopVar              string            `json:"loopVar,omitempty"`
 	LoopStart            string            `json:"loopStart,omitempty"`
@@ -743,6 +744,14 @@ func registerTCLIdentityFunction(t *testing.T, db *DB, step TestStep, runtimeVar
 			}
 			name := strings.TrimPrefix(fmt.Sprint(args[0]), "::")
 			appendRuntimeList(runtimeVars, "varlist", name)
+			// The value's Tcl object type governs the SQL value type (see
+			// runtimeValueTypeKey): [expr 3] returns INTEGER 3, a braced
+			// literal returns TEXT.
+			if tv, has := runtimeVars[runtimeValueTypeKey(name)]; has {
+				if rendered, ok := runtimeValueTypeRender(tv, runtimeVars[name]); ok {
+					return rendered, nil
+				}
+			}
 			value, ok := runtimeVars[name]
 			if !ok {
 				return nil, nil
@@ -2358,12 +2367,13 @@ func expandTCLVarRefs(sql string, values map[string]string, render func(string) 
 		// The converter emits "$name" placeholders for runtime values. Two
 		// adjacent placeholders ("$as$bs", from `[list "${as}${bs}"]`) are one
 		// parameter reference under Tcl's rules, because '$' is a valid
-		// identifier character. Split at the inner '$' and expand the parts.
+		// identifier character. Split at the inner '$' (it sits AT idx — the
+		// remainder key[idx+1:] never starts with another '$') and expand the
+		// first segment; the scan resumes at the inner '$', so chains
+		// ("$a$b$c") split iteratively. A single reference ("$tcl") never
+		// enters this branch: its key contains no '$'.
 		if idx := strings.IndexByte(key, '$'); idx > 0 {
-			// Only split when the remainder is another parameter
-			// reference: "$as$bs" is two placeholders, but "$tcl" is one
-			// (a variable whose name happens to start with a known one).
-			if v, ok := values[key[:idx]]; ok && idx+1 < len(key) && key[idx+1] == '$' {
+			if v, ok := values[key[:idx]]; ok {
 				b.WriteString(render(v))
 				i += 1 + idx
 				continue
@@ -2373,6 +2383,36 @@ func expandTCLVarRefs(sql string, values map[string]string, render func(string) 
 		i = end
 	}
 	return b.String()
+}
+
+// runtimeValueTypeKey is the runtime-variables side key carrying the Tcl
+// object type of a value ("integer"/"real"). A registered function that
+// reads a global (e_expr's `var` proc) must return the value with its Tcl
+// object type, or the engine's comparisons diverge from C: [expr 3] yields
+// an INTEGER object, so CASE var('a') WHEN 3 matches (e_expr-22.1.1), while
+// a braced literal yields TEXT, so CASE '0' WHEN var('a') matches
+// (e_expr-25.1.3). The NUL prefix cannot collide with a Tcl variable name,
+// and the runtime-variables map is never iterated wholesale.
+func runtimeValueTypeKey(name string) string {
+	return "\x00rttype:" + name
+}
+
+// runtimeValueTypeRender converts a runtime string to the Go value its Tcl
+// object type demands (int64/float64 for the SQL function result). ok is
+// false when the value does not fit the type — the caller then falls back
+// to the plain string.
+func runtimeValueTypeRender(valueType, value string) (interface{}, bool) {
+	switch valueType {
+	case "integer":
+		if n, err := strconv.ParseInt(strings.TrimSpace(value), 10, 64); err == nil {
+			return n, true
+		}
+	case "real":
+		if f, err := strconv.ParseFloat(strings.TrimSpace(value), 64); err == nil {
+			return f, true
+		}
+	}
+	return nil, false
 }
 
 // scanTCLParamRef returns the index just past the `$` parameter reference
@@ -5645,6 +5685,7 @@ func TestSQLiteSuite(t *testing.T) {
 							// — reset it there too, or its next sync would
 							// resurrect the whole history.
 							runtimeVars[step.Variable] = ""
+							delete(runtimeVars, runtimeValueTypeKey(step.Variable))
 							if rtgeomBox.interp != nil {
 								rtgeomBox.interp.SetVariable("::"+step.Variable, "")
 							}
@@ -5705,6 +5746,7 @@ func TestSQLiteSuite(t *testing.T) {
 							if strings.TrimSpace(step.SQL) == "" {
 								if step.Variable != "" {
 									runtimeVars[step.Variable] = ""
+									delete(runtimeVars, runtimeValueTypeKey(step.Variable))
 								}
 								continue
 							}
@@ -5718,6 +5760,20 @@ func TestSQLiteSuite(t *testing.T) {
 							// against that variable.
 							if step.Variable != "" {
 								runtimeVars[step.Variable] = got
+								// A step may carry the Tcl object type its value
+								// had at conversion time (foreach-init bindings
+								// from evaluated lists: [expr 3] is an integer
+								// object, a braced literal is a string). The
+								// type rides on a NUL-prefixed side key — no
+								// Tcl variable name contains NUL, and the map
+								// is never iterated wholesale.
+								typeKey := runtimeValueTypeKey(step.Variable)
+								delete(runtimeVars, typeKey)
+								if step.ValueType != "" && runtimeVars[step.Variable] != "" {
+									if _, ok := runtimeValueTypeRender(step.ValueType, got); ok {
+										runtimeVars[typeKey] = step.ValueType
+									}
+								}
 								// The box recorder's interpreter holds the
 								// same globals: a `set ::box_geom_calls 0`
 								// reset must reach it (rtreedoc2 5.1.x).

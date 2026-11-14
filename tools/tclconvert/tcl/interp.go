@@ -62,6 +62,7 @@ type Stmt struct {
 	CatchMessage    string            // the variable the catch's error message is stored in
 	AuthProc        string            // the Tcl authorizer proc name (a `db auth <proc>` step)
 	ExpectedExpr    string            // the expectation is itself a runtime expression
+	ValueType       string            // the Tcl object type the value carries (integer/real, a foreach-init binding)
 	WriteValue      string            // set_readmark's writer-form VALUE (empty = reader form)
 	ListValues      []string          // the step builds a Tcl list from these values
 	Expected        string            // empty = no expected result check
@@ -998,6 +999,10 @@ func (i *Interp) cmdFor(rawWords []rawWord, localVars map[string]string) error {
 type foreachPair struct {
 	vars  []string
 	items []string
+	// evaluatedList reports that the list word was a command substitution
+	// ([...]), so its numeric elements are Tcl objects with an integer/double
+	// internal rep (a braced or bare list word yields pure string objects).
+	evaluatedList bool
 }
 
 // cmdForeach implements `foreach varList list ?varList list ...? body`.
@@ -1030,6 +1035,17 @@ func (i *Interp) cmdForeach(rawWords []rawWord, localVars map[string]string) err
 	if err != nil {
 		return err
 	}
+	// `foreach {v ...} {list} break` — the var-init idiom (e_expr.test:1164):
+	// TCL binds the variables on the FIRST iteration before the body's break
+	// runs, so the globals hold the first chunk's values after the loop. A
+	// registered callback reads them at run time (e_expr's `var` proc), so
+	// the harness must receive the bindings as runtime-variable steps; the
+	// conversion-time bindings keep the plain values for `$` substitution.
+	if isBreakTerminatedForeach(body) {
+		i.assignForeachVars(pairs, 0, localVars)
+		i.emitForeachVarInit(pairs)
+		return nil
+	}
 	for it := 0; it < iterations; it++ {
 		i.assignForeachVars(pairs, it, localVars)
 		if !body.Braced {
@@ -1044,6 +1060,123 @@ func (i *Interp) cmdForeach(rawWords []rawWord, localVars map[string]string) err
 		}
 	}
 	return nil
+}
+
+// isBreakTerminatedForeach reports whether the loop body is exactly the
+// bare word `break` or a braced body whose first command is `break`: the
+// loop runs its variable bindings once, then terminates.
+func isBreakTerminatedForeach(body rawWord) bool {
+	if !body.Braced {
+		return strings.TrimSpace(body.Text) == "break"
+	}
+	cmds := parseCommands(body.Text)
+	return len(cmds) > 0 && len(cmds[0]) == 1 && cmds[0][0].Text == "break"
+}
+
+// emitForeachVarInit records the first-iteration variable bindings of a
+// break-terminated foreach as runtime_expr steps (the harness stores the
+// values in its runtime variables). A numeric value stays bare so the
+// harness's Tcl-expr evaluator reads it as a number; any other value is a
+// braced literal; a value past the list's end is the empty string (TCL
+// binds "" — the harness's empty-expression reset). An element of an
+// evaluated list ([expr 3]) carries its Tcl object type (integer/double),
+// which the harness restores at the UDF boundary; braced-literal elements
+// are string objects (e_expr-22.1.1's CASE var('a') WHEN 3 matches only an
+// integer, while 25.1.3's CASE '0' WHEN var('a') matches only text).
+func (i *Interp) emitForeachVarInit(pairs []foreachPair) {
+	for _, p := range pairs {
+		for j, v := range p.vars {
+			value := ""
+			if j < len(p.items) {
+				value = p.items[j]
+			}
+			step := Stmt{
+				Type:     "runtime_expr",
+				SQL:      tclExprLiteral(value),
+				Variable: strings.TrimPrefix(v, "::"),
+				TestName: i.curTest,
+			}
+			if p.evaluatedList {
+				switch {
+				case isCanonicalInteger(value):
+					step.ValueType = "integer"
+				case isCanonicalFloat(value):
+					step.ValueType = "real"
+				}
+			}
+			i.stmts = append(i.stmts, step)
+		}
+	}
+}
+
+// isCanonicalInteger reports whether s is a decimal integer literal without
+// a fraction or exponent (Tcl's integer object form).
+func isCanonicalInteger(s string) bool {
+	if s == "" {
+		return false
+	}
+	digits := strings.TrimPrefix(strings.TrimPrefix(s, "-"), "+")
+	if digits == "" {
+		return false
+	}
+	for pos := 0; pos < len(digits); pos++ {
+		if digits[pos] < '0' || digits[pos] > '9' {
+			return false
+		}
+	}
+	return true
+}
+
+// isCanonicalFloat reports whether s is a decimal real literal (a fraction
+// dot or exponent) — Tcl's double object form.
+func isCanonicalFloat(s string) bool {
+	if isCanonicalInteger(s) || s == "" {
+		return false
+	}
+	for pos := 0; pos < len(s); pos++ {
+		c := s[pos]
+		switch {
+		case c >= '0' && c <= '9', c == '.', c == 'e', c == 'E':
+		case (c == '-' || c == '+') && (pos == 0 || s[pos-1] == 'e' || s[pos-1] == 'E'):
+		default:
+			return false
+		}
+	}
+	_, err := strconv.ParseFloat(s, 64)
+	return err == nil
+}
+
+// tclExprLiteral renders one static list element as a Tcl-expr literal the
+// harness's evalHarnessTclExpr parses: integers/reals bare, anything else a
+// braced string (the element text is taken literally, matching how the TCL
+// list element behaved as a variable value).
+func tclExprLiteral(value string) string {
+	trimmed := strings.TrimSpace(value)
+	if trimmed != "" && isTclExprNumber(trimmed) {
+		return trimmed
+	}
+	if trimmed == "" {
+		return ""
+	}
+	return "{" + value + "}"
+}
+
+// isTclExprNumber reports whether s is a plain integer or decimal literal
+// the harness expr evaluator parses as a number.
+func isTclExprNumber(s string) bool {
+	digits, dot := 0, false
+	for pos := 0; pos < len(s); pos++ {
+		c := s[pos]
+		switch {
+		case c >= '0' && c <= '9':
+			digits++
+		case c == '.' && !dot:
+			dot = true
+		default:
+			return false
+		}
+	}
+	return digits > 0
 }
 
 // parseForeachPairs collects the varList/list pairs of a foreach command
@@ -1067,7 +1200,13 @@ func (i *Interp) parseForeachPairs(rawWords []rawWord, localVars map[string]stri
 			continue
 		}
 		items := splitList(listVal)
-		pairs = append(pairs, foreachPair{vars: vars, items: items})
+		// A bracketed list word was evaluated: its numeric elements carry the
+		// producing command's object type ([expr 3] is an integer object,
+		// while the elements of the braced literal {0 0 0} are strings).
+		listRawText := strings.TrimSpace(rawWords[2+2*p].Text)
+		evaluated := !rawWords[2+2*p].Braced &&
+			strings.HasPrefix(listRawText, "[") && strings.HasSuffix(listRawText, "]")
+		pairs = append(pairs, foreachPair{vars: vars, items: items, evaluatedList: evaluated})
 		if n := (len(items) + len(vars) - 1) / len(vars); n > iterations {
 			iterations = n
 		}

@@ -386692,6 +386692,21 @@
           "maxArgs": -1
         },
         {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "a"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "b"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "c"
+        },
+        {
           "type": "runtime_var_reset",
           "variable": "varlist"
         }
@@ -386747,12 +386762,52 @@
       ]
     },
     {
+      "name": "setup_15715a",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "a"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "1",
+          "variable": "b"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "c"
+        }
+      ]
+    },
+    {
       "name": "e_expr-21.2.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT CASE WHEN var('a') THEN 'A' \n              WHEN var('b') THEN 'B' \n              WHEN var('c') THEN 'C' \n              ELSE 'no result'\n  END",
           "expect": "B"
+        }
+      ]
+    },
+    {
+      "name": "setup_15715b",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "a"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "1",
+          "variable": "b"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "1",
+          "variable": "c"
         }
       ]
     },
@@ -386767,12 +386822,52 @@
       ]
     },
     {
+      "name": "setup_15715c",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "a"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "b"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "1",
+          "variable": "c"
+        }
+      ]
+    },
+    {
       "name": "e_expr-21.2.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT CASE WHEN var('a') THEN 'A' \n              WHEN var('b') THEN 'B' \n              WHEN var('c') THEN 'C'\n              ELSE 'no result'\n  END",
           "expect": "C"
+        }
+      ]
+    },
+    {
+      "name": "setup_15715d",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "a"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "b"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "c"
         }
       ]
     },
@@ -386856,6 +386951,24 @@
     {
       "name": "setup_15718",
       "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "3",
+          "variable": "a",
+          "valueType": "integer"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "4",
+          "variable": "b",
+          "valueType": "integer"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "5",
+          "variable": "c",
+          "valueType": "integer"
+        },
         {
           "type": "runtime_var_reset",
           "variable": "varlist"
@@ -387860,6 +387973,26 @@
         {
           "type": "runtime_var_reset",
           "variable": "varlist"
+        }
+      ]
+    },
+    {
+      "name": "setup_15721a",
+      "steps": [
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "a"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "1",
+          "variable": "b"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "0",
+          "variable": "c"
         }
       ]
     },

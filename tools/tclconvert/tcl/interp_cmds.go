@@ -94,6 +94,7 @@ func init() {
 		"reset_db":                    commandResetDB,
 		"faultsim_delete_and_reopen":  commandResetDB,
 		"do_faultsim_test":            commandDoFaultsimTest,
+		"do_malloc_test":              commandDoMallocTest,
 		"faultsim_save":               commandFaultsimSave,
 		"faultsim_save_and_close":     commandFaultsimSaveClose,
 		"faultsim_restore":            commandFaultsimRestore,

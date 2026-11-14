@@ -1282,3 +1282,85 @@ everywhere; go vet + go build clean.
   only (misc6-1.1, blob-3.2, e_blobclose-1.2/3.3 fail at the pristine
   commit too). wal4/walbak/walfault diffs recorded in the S30 sweep logs
   (/tmp/s30_cleanbase_* vs /tmp/s30_after_*).
+
+## S32 record (2026-11-14) — the expr converter batch: A1 (foreach var-init) + A8 ($as$bs expects) + D1 (malloc-test reset)
+
+- **A `foreach {v…} {list} break` binds its variables BEFORE the body's
+  break runs** (Tcl binds the first chunk, then runs the body): the
+  var-init idiom's globals survive the loop. The converter's cmdForeach
+  bound them only in its own interp (conversion-time `$` substitution), so
+  the harness's `var()` UDF (registered via setup_15714's register_function,
+  reading runtimeVars) saw stale values — runtimeVars["b"]="23" was seeded
+  earlier by setup_15700's register_function callbackVars, and every CASE
+  WHEN var(...) test picked 'B'. Fix: cmdForeach detects the break
+  idiom (bare `break` body or braced body whose FIRST command is break),
+  emits one runtime_expr step per variable with the first-chunk value
+  (numeric bare / braced literal / empty for past-list-end = the harness's
+  empty-reset), and binds only iteration 0.
+- **The runtime value's TCL OBJECT TYPE must cross the UDF boundary**:
+  e_expr-22.1.1's `CASE var('a') WHEN 3` compares TEXT vs INTEGER with NO
+  affinity (oracle 3.54: `CASE '3' WHEN 3` → NULL, `'3' = 3` → 0), so a
+  TEXT '3' from the harness never matches. The 3.51.0 testfixture pins the
+  object duality: braced-literal foreach items are TEXT (e_expr-25.1.3's
+  `CASE '0' WHEN var('a')` REQUIRES text), while `[list [expr 3] ...]`
+  items are INTEGER (22.1.1 REQUIRES integer). Fix: the converter marks
+  bracket-evaluated lists' canonical-numeric elements with
+  `valueType: "integer"/"real"` (braced/bare list words stay untyped); the
+  harness stores the type on a NUL-prefixed side key
+  (`\x00rttype:<name>` in runtimeVars — no Tcl name contains NUL, nothing
+  iterates the map wholesale) and the var() UDF returns int64/float64 for
+  typed values; runtime_expr/runtime_var_reset clear the marker on
+  re-assignment. A strings-only runtimeVars map is an approximation: any
+  NEW UDF that reads a global into an SQL comparison must check the type
+  key first.
+- **The A8 split condition was an off-by-one that never fired**: the
+  frozen expect "$as$bs" is ONE parameter reference to scanTCLParamRef
+  ('$' is a name byte), and the split-at-inner-'$' branch tested
+  `key[idx+1] == '$'` — but the inner '$' sits AT idx, so the remainder
+  never starts with '$' and the branch was dead (a scratch probe of
+  expandTCLVarRefs with both values present reproduced it in one run).
+  Fix: split when `values[key[:idx]]` exists, resume the scan at
+  i+1+idx (the inner '$'), so chains ("$a$b$c") split iteratively; a
+  whole-key hit still wins; "$tcl" (no '$' in the key) never enters the
+  branch. The e_expr-5.1/5.2 fixture needed NO change.
+- **do_malloc_test resets the database per trial** (malloc_common.tcl
+  forcedelete test.db/-journal/-wal + open empty): the converter dropped
+  the whole command, so fts3expr-4.1's t1(a,b,c) survived into 6.1 and its
+  `CREATE VIRTUAL TABLE t1 USING fts3(a)` failed "table t1 already
+  exists". Fix: commandDoMallocTest = reset_db marker + -tclprep/-sqlprep/
+  -tclbody/-sqlbody/-cleanup in order under the malloc test's name; the
+  SQL body is a plain query/exec step (an engine error fails the test —
+  the trial's do_test asserts {1 1}, i.e. the body succeeds on the no-fault
+  trial); unknown options → UnsupportedCommandError. -start/-end/-testdb
+  are not needed by the corpus (fail-trial side effects are erased by the
+  next trial's reset, so the observable contract is reset+success).
+- **Hand-pin the pins in source order, keep the name list in sync**: the
+  first e_expr.json re-pin dropped the `names.insert` bookkeeping and all
+  five new setup groups stacked at the SAME stale index — the family ran
+  all four groups before 21.2.1 and three leaves regressed. The debug
+  trail was the interleaved `=== RUN` + value-set log, not the leaf list.
+  Also: JSON rewrites of the fixture must reproduce Go's MarshalIndent
+  byte-for-byte (indent "  ", HTML-escaped `< > &` as \u003c/…, no
+  trailing newline) or the diff explodes to 780k lines.
+- **Regen-vs-hand-pin verdicts**: fts3expr.json regenerated (trial regen
+  with the fixed converter was byte-identical to committed before the D1
+  change — the installed diff is exactly the two malloc groups + resets).
+  e_expr.json hand-pinned (the regen drift re-measured at 7024/32210
+  cases / 7021 drifting steps: register_function callbackVars bake a flood
+  of runtime-var placeholders the committed fixture lacks) — but the
+  pinned region was cross-checked against the fixed converter's trial
+  regen: SAME steps at the SAME positions, only the sequential setup
+  group NAMES shift (15715a… vs the regen's renumbering); content-equal.
+- Quality gate: isCanonicalFloat started at gocognit 19/gocyclo 24 and
+  commandDoMallocTest at gocyclo 14 — rewritten (charset scan + ParseFloat;
+  parseMallocTestArgs/execMallocScript/emitMallocSQLStep split). The
+  converter files' gate failures are grandfathered (commandSet 69/61,
+  interp.go/interp_cmds.go > 1000 lines at dd045611d too); staticcheck
+  diff vs baseline = line-number shifts only.
+- Family diffs: e_expr 12 → 2 (closed 21.1.1-21.1.4, 21.2.3, 21.3.1,
+  21.3.2, 22.1.1, 5.1, 5.2; remaining 26.1.6 A2 + 32.2.8 A9 are engine
+  slices); fts3expr 1 → 0 (6.1 closed; fts3expr-malloc-1/-2 are NEW green
+  subtests); fts3 substring sweep 54 → 53 leaves (only fts3expr-6.1 gone,
+  zero new); expr substring net 98 → 26 (triage residue minus this unit's
+  and S29's closures: e_expr 2, expr 3, expridx1 10, indexexpr2 9,
+  indexexpr3 2).

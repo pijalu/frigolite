@@ -628,6 +628,93 @@ func commandDoFaultsimTest(i *Interp, rawWords []rawWord, args []string, localVa
 	return nil
 }
 
+// mallocTestOptions carries the do_malloc_test script options (the braced
+// option values, brace-stripped like the faultsim shapes).
+type mallocTestOptions struct {
+	tclPrep, sqlPrep, tclBody, sqlBody, cleanup string
+}
+
+// parseMallocTestArgs splits a do_malloc_test argument list into its name
+// and option scripts. An unknown option is fatal for the file (never
+// silently skipped).
+func parseMallocTestArgs(rawWords []rawWord, args []string) (string, mallocTestOptions, error) {
+	if len(args) < 1 {
+		return "", mallocTestOptions{}, nil
+	}
+	var opts mallocTestOptions
+	for k := 1; k+1 < len(args); k += 2 {
+		switch args[k] {
+		case "-tclprep":
+			opts.tclPrep = rawWords[k+2].Text
+		case "-sqlprep":
+			opts.sqlPrep = rawWords[k+2].Text
+		case "-tclbody":
+			opts.tclBody = rawWords[k+2].Text
+		case "-sqlbody":
+			opts.sqlBody = rawWords[k+2].Text
+		case "-cleanup":
+			opts.cleanup = rawWords[k+2].Text
+		default:
+			return "", opts, &UnsupportedCommandError{Cmd: "do_malloc_test " + args[k]}
+		}
+	}
+	return args[0], opts, nil
+}
+
+// execMallocScript runs one do_malloc_test Tcl script through the
+// interpreter (a missing script is a no-op arm).
+func (i *Interp) execMallocScript(script string, localVars map[string]string) error {
+	if script == "" {
+		return nil
+	}
+	return i.execScript(script, localVars)
+}
+
+// emitMallocSQLStep records one do_malloc_test SQL script (-sqlprep/-sqlbody)
+// as a query/exec step: it must succeed (the trial's do_test compares the
+// (handled-failure, value) pair with {1 1}).
+func (i *Interp) emitMallocSQLStep(sql, name string, localVars map[string]string) {
+	sql = i.bindSQLParams(sql, localVars)
+	if strings.TrimSpace(sql) == "" {
+		return
+	}
+	kind := "exec"
+	if isQueryStmt(lastStatement(sql)) {
+		kind = "query"
+	}
+	i.stmts = append(i.stmts, Stmt{Type: kind, SQL: sql, TestName: name})
+}
+
+// commandDoMallocTest records do_malloc_test NAME ?-tclprep S? ?-sqlprep S?
+// ?-tclbody S? ?-sqlbody SQL? ?-cleanup S? (malloc_common.tcl:416). Every
+// trial deletes test.db* and opens an EMPTY database before running
+// prep/body/cleanup; the first trial injects no malloc failure, so the
+// observable contract without fault injection is: a fresh empty database,
+// then the prep scripts, the SQL body (it must succeed), then the cleanup.
+// The reset is load-bearing: fts3expr-6.1's CREATE VIRTUAL TABLE t1 only
+// succeeds because the malloc section reset the database (fts3expr.test
+// 4.1 created t1 with different columns).
+func commandDoMallocTest(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
+	name, opts, err := parseMallocTestArgs(rawWords, args)
+	if err != nil || name == "" {
+		return err
+	}
+	previous := i.curTest
+	i.curTest = name
+	defer func() { i.curTest = previous }()
+	// The per-trial fresh database (malloc_common.tcl:440-447).
+	i.stmts = append(i.stmts, Stmt{Type: "reset_db"})
+	if err := i.execMallocScript(opts.tclPrep, localVars); err != nil {
+		return err
+	}
+	i.emitMallocSQLStep(opts.sqlPrep, name, localVars)
+	i.emitMallocSQLStep(opts.sqlBody, name, localVars)
+	if err := i.execMallocScript(opts.tclBody, localVars); err != nil {
+		return err
+	}
+	return i.execMallocScript(opts.cleanup, localVars)
+}
+
 // commandFaultsimSave records the faultsim snapshot steps: the file pair
 // copies of test.db* (tester.tcl's db_save/db_restore family).
 func commandFaultsimSave(i *Interp, rawWords []rawWord, args []string, _ map[string]string) error {

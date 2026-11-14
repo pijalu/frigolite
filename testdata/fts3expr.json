@@ -957,6 +957,40 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": []
+    },
+    {
+      "name": "fts3expr-malloc-1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT fts3_exprtest('simple', 'a b c \"d e f\"', 'a', 'b', 'c')"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": []
+    },
+    {
+      "name": "fts3expr-malloc-2",
+      "steps": [
+        {
+          "type": "set_fts3_parens",
+          "sql": "0"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT fts3_exprtest('simple', 'a -b', 'a', 'b', 'c')"
+        },
+        {
+          "type": "set_fts3_parens",
+          "sql": "1"
+        }
+      ]
+    },
+    {
       "name": "fts3expr-5.1",
       "steps": [
         {
