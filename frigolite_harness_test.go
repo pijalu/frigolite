@@ -3636,7 +3636,13 @@ func TestSQLiteSuite(t *testing.T) {
 					// harness renders the last N results and compares that
 					// (e_walckpt-1.full.2.7's two COMMIT assertions).
 					var catchResults []string
+					if tc.Name == "pager1-42.1" {
+						t.Logf("DBG nsteps=%d", len(tc.Steps))
+					}
 					for _, step := range expandRepeatedSteps(tc.Steps) {
+						if tc.Name == "pager1-42.1" {
+							t.Logf("DBG iter type=%s cond=%q", step.Type, step.Condition)
+						}
 						// A statement's results are destroyed when the
 						// statement completes (test_func.c's result
 						// destructors run with the statement): drain the
@@ -4958,6 +4964,25 @@ func TestSQLiteSuite(t *testing.T) {
 									t.Errorf("sqlite3_db_cacheflush got %s want %s", got, want)
 								}
 							}
+						case "testctl_pending_byte":
+							// sqlite3_test_control(SQLITE_TESTCTRL_PENDING_BYTE, X)
+							// (main.c:4326): installs the process-global PENDING_BYTE
+							// override and returns the previous value. Every pager
+							// opened afterwards reads it into lckPgno at open
+							// (pager.c:3810) — reads of that page fail SQLITE_CORRUPT
+							// (pager1-42.1 builds the db before the byte moves).
+							off, perr := parsePendingByteValue(step.SQL)
+							if perr != nil {
+								t.Errorf("testctl_pending_byte: %v", perr)
+								continue
+							}
+							prev := pager.SetGlobalPendingByte(off)
+							if prev == 0 {
+								prev = 0x40000000
+							}
+							if step.Variable != "" {
+								runtimeVars[step.Variable] = strconv.FormatUint(uint64(prev), 10)
+							}
 						case "internal_functions":
 							execDB.ToggleInternalFunctions()
 						case "sqlite3_exec":
@@ -5130,6 +5155,9 @@ func TestSQLiteSuite(t *testing.T) {
 						// exactly like "exec" steps below — except that a catch
 						// step without an expectation tolerates an error.
 						case "exec", "catch":
+							if tc.Name == "pager1-42.1" {
+								t.Logf("DBG step type=%s sql=%q", step.Type, step.SQL[:min(40, len(step.SQL))])
+							}
 							res := execDB.Exec(step.SQL)
 							// C's ATTACH inherits the parent connection's
 							// VFS (btree.c sqlite3BtreeOpen passes the
@@ -6981,6 +7009,27 @@ func faultsimMainPath(db *DB, fixtureDBDir string) string {
 		return db.path
 	}
 	return filepath.Join(fixtureDBDir, "test.db")
+}
+
+// parsePendingByteValue parses a sqlite3_test_control_pending_byte argument:
+// a Tcl hex literal (0x10000) or a decimal byte offset.
+func parsePendingByteValue(s string) (uint32, error) {
+	v := strings.TrimSpace(s)
+	if v == "" {
+		return 0, fmt.Errorf("empty pending byte offset")
+	}
+	if strings.HasPrefix(v, "0x") || strings.HasPrefix(v, "0X") {
+		n, err := strconv.ParseUint(v[2:], 16, 32)
+		if err != nil {
+			return 0, fmt.Errorf("bad pending byte offset %q: %v", s, err)
+		}
+		return uint32(n), nil
+	}
+	n, err := strconv.ParseUint(v, 10, 32)
+	if err != nil {
+		return 0, fmt.Errorf("bad pending byte offset %q: %v", s, err)
+	}
+	return uint32(n), nil
 }
 
 // fileAttrMode converts a `file attributes` step's attribute/value pair into

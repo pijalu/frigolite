@@ -13147,6 +13147,10 @@
           "type": "close_db"
         },
         {
+          "type": "testctl_pending_byte",
+          "sql": "0x10000"
+        },
+        {
           "type": "reopen_db",
           "sql": "test.db"
         },
@@ -13158,6 +13162,10 @@
           "type": "catch",
           "sql": "SELECT sum(length(y)) FROM t1",
           "expect": "1 {database disk image is malformed}"
+        },
+        {
+          "type": "testctl_pending_byte",
+          "sql": "0x40000000"
         }
       ]
     },

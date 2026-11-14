@@ -113,6 +113,12 @@ func openPager(path string, pageSize uint32, forceReadOnly bool) (*Pager, error)
 		// the default to 32768; the upstream source and the TCL corpus expect
 		// -1 — jrnlmode-5.2.)
 		journalSizeLimit: -1,
+		// C reads the process-global sqlite3PendingByte at pager open into
+		// lckPgno (pager.c:3810): a test-control pending byte installed
+		// BEFORE this open governs this pager for its lifetime (pager1-42.1
+		// sets 0x10000, then opens test.db). Per-pager SetPendingByte still
+		// overrides afterwards.
+		pendingByteOverride: globalPendingByte,
 	}
 	pr.readOnly = readOnlyFallback || forceReadOnly
 	// Quota layer (test_quota.c quotaOpen): a database file opened while
@@ -449,6 +455,7 @@ func OpenInMemory(pageSize uint32) *Pager {
 		numPages:              0,
 		header:                dh.Encode(),
 		deviceCharacteristics: IOCAPPowerSafeOverwrite,
+		pendingByteOverride:   globalPendingByte,
 	}
 }
 

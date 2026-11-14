@@ -227,6 +227,28 @@ func (p *Pager) PendingBytePage() uint32 {
 	return p.pendingBytePageFor()
 }
 
+// globalPendingByte is the process-global PENDING_BYTE override (C's
+// sqlite3PendingByte writable via
+// sqlite3_test_control(SQLITE_TESTCTRL_PENDING_BYTE, X)). Every pager
+// opened while a non-zero override is installed inherits it at open
+// (pager.c:3810 reads the global into lckPgno at open); pagers opened
+// before keep their open-time value. 0 = production default (0x40000000).
+var globalPendingByte uint32
+
+// SetGlobalPendingByte installs the process-global PENDING_BYTE override
+// and returns the previous value (0 when none was installed — the
+// sqlite3_test_control_pending_byte return shape maps that to the
+// production default at the call site). The override applies to pagers
+// opened AFTER the call.
+func SetGlobalPendingByte(byteOffset uint32) uint32 {
+	prev := globalPendingByte
+	globalPendingByte = byteOffset
+	return prev
+}
+
+// GlobalPendingByte reports the process-global override (0 = default).
+func GlobalPendingByte() uint32 { return globalPendingByte }
+
 // Serialize returns a contiguous copy of the database image: numPages ×
 // pageSize bytes, page 1 carrying the live 100-byte header (memdb.c
 // sqlite3_serialize: sz = page_count × pageSize; each page copied from the

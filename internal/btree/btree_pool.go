@@ -224,6 +224,7 @@ func (c *Cursor) resetFor(t *BTree) {
 	c.cellIdx = 0
 	c.onInteriorCell = false
 	c.endOfBTree = false
+	c.pendingCorruptErr = nil
 	if c.path != nil {
 		c.path = c.path[:0]
 	} else {

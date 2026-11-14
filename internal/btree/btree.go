@@ -35,6 +35,13 @@ type Cursor struct {
 	onInteriorCell bool // current position is an interior INDEX page's cell (a real entry)
 	endOfBTree     bool
 
+	// pendingCorruptErr carries a page-fetch corruption verdict out of the
+	// void navigation helpers (descendToFirstLeafFromCurrent): the page-batch
+	// walk turns it into a scan error instead of a clean end-of-tree (C's
+	// OP_Column aborts the statement on a corrupt page fetch, pager.c:5579).
+	// Only ErrCorruptPage sets it; the walk reads and clears it.
+	pendingCorruptErr error
+
 	// Path stack for multi-level tree traversal. Each entry records an
 	// interior page and the child index within it that we descended through.
 	// The stack grows as we descend and shrinks as we ascend.
@@ -417,6 +424,14 @@ func (c *Cursor) descendToFirstLeafFromCurrent() {
 		pg, err := c.tx.pager.ReadPage(c.pageNum)
 		if err != nil {
 			c.endOfBTree = true
+			// The lock-byte page's corruption verdict must reach the walk
+			// driver (C's OP_Column aborts on a corrupt page fetch, pager.c
+			// :5579); the void signature keeps other callers' end-of-tree
+			// semantics, so the verdict rides on the cursor until the page
+			// -batch walk reads it (pager1-42.1).
+			if errors.Is(err, pager.ErrCorruptPage) {
+				c.pendingCorruptErr = err
+			}
 			return
 		}
 		page, err := storage.ParsePageInto(pg.Data, int(c.tx.pageSize), contentOffset(pg.PageNum), &sp)
