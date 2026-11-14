@@ -38,7 +38,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE counter(\n      i CHECK (i\u003c5), \n      u CHECK (u\u003c10)\n    );\n    INSERT INTO counter VALUES(0, 0);\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      UPDATE counter SET i = i+1;\n    END;\n    CREATE TRIGGER tr2 AFTER UPDATE ON t1 BEGIN\n      UPDATE counter SET u = u+1;\n    END;"
+          "sql": "CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE counter(\n      i CHECK (i<5), \n      u CHECK (u<10)\n    );\n    INSERT INTO counter VALUES(0, 0);\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      UPDATE counter SET i = i+1;\n    END;\n    CREATE TRIGGER tr2 AFTER UPDATE ON t1 BEGIN\n      UPDATE counter SET u = u+1;\n    END;"
         },
         {
           "type": "exec",
@@ -63,7 +63,7 @@
         {
           "type": "catch",
           "sql": "INSERT INTO t1 SELECT a+3, randomblob(1500) FROM t1",
-          "expect": "1 {CHECK constraint failed: i\u003c5}"
+          "expect": "1 {CHECK constraint failed: i<5}"
         }
       ]
     },
@@ -147,7 +147,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n      INSERT INTO z VALUES(NULL, a_string(800));\n      INSERT INTO z VALUES(NULL, a_string(800));\n      SAVEPOINT one;\n        UPDATE z SET y = NULL WHERE x\u003e256;\n        PRAGMA incremental_vacuum;\n        SELECT count(*) FROM z WHERE x \u003c 100;\n      ROLLBACK TO one;\n    COMMIT;",
+          "sql": "BEGIN;\n      INSERT INTO z VALUES(NULL, a_string(800));\n      INSERT INTO z VALUES(NULL, a_string(800));\n      SAVEPOINT one;\n        UPDATE z SET y = NULL WHERE x>256;\n        PRAGMA incremental_vacuum;\n        SELECT count(*) FROM z WHERE x < 100;\n      ROLLBACK TO one;\n    COMMIT;",
           "expect": "99"
         }
       ]
@@ -249,7 +249,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n      INSERT INTO z VALUES(NULL, a_string(800));\n      INSERT INTO z VALUES(NULL, a_string(800));\n      SAVEPOINT one;\n        UPDATE z SET y = NULL WHERE x\u003e256;\n        PRAGMA incremental_vacuum;\n        SELECT count(*) FROM z WHERE x \u003c 100;\n      ROLLBACK TO one;\n    COMMIT;",
+          "sql": "BEGIN;\n      INSERT INTO z VALUES(NULL, a_string(800));\n      INSERT INTO z VALUES(NULL, a_string(800));\n      SAVEPOINT one;\n        UPDATE z SET y = NULL WHERE x>256;\n        PRAGMA incremental_vacuum;\n        SELECT count(*) FROM z WHERE x < 100;\n      ROLLBACK TO one;\n    COMMIT;",
           "expect": "99"
         }
       ]
@@ -351,7 +351,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n      INSERT INTO z VALUES(NULL, a_string(800));\n      INSERT INTO z VALUES(NULL, a_string(800));\n      SAVEPOINT one;\n        UPDATE z SET y = NULL WHERE x\u003e256;\n        PRAGMA incremental_vacuum;\n        SELECT count(*) FROM z WHERE x \u003c 100;\n      ROLLBACK TO one;\n    COMMIT;",
+          "sql": "BEGIN;\n      INSERT INTO z VALUES(NULL, a_string(800));\n      INSERT INTO z VALUES(NULL, a_string(800));\n      SAVEPOINT one;\n        UPDATE z SET y = NULL WHERE x>256;\n        PRAGMA incremental_vacuum;\n        SELECT count(*) FROM z WHERE x < 100;\n      ROLLBACK TO one;\n    COMMIT;",
           "expect": "99"
         }
       ]
@@ -453,7 +453,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n      INSERT INTO z VALUES(NULL, a_string(800));\n      INSERT INTO z VALUES(NULL, a_string(800));\n      SAVEPOINT one;\n        UPDATE z SET y = NULL WHERE x\u003e256;\n        PRAGMA incremental_vacuum;\n        SELECT count(*) FROM z WHERE x \u003c 100;\n      ROLLBACK TO one;\n    COMMIT;",
+          "sql": "BEGIN;\n      INSERT INTO z VALUES(NULL, a_string(800));\n      INSERT INTO z VALUES(NULL, a_string(800));\n      SAVEPOINT one;\n        UPDATE z SET y = NULL WHERE x>256;\n        PRAGMA incremental_vacuum;\n        SELECT count(*) FROM z WHERE x < 100;\n      ROLLBACK TO one;\n    COMMIT;",
           "expect": "99"
         }
       ]
@@ -555,7 +555,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n      INSERT INTO z VALUES(NULL, a_string(800));\n      INSERT INTO z VALUES(NULL, a_string(800));\n      SAVEPOINT one;\n        UPDATE z SET y = NULL WHERE x\u003e256;\n        PRAGMA incremental_vacuum;\n        SELECT count(*) FROM z WHERE x \u003c 100;\n      ROLLBACK TO one;\n    COMMIT;",
+          "sql": "BEGIN;\n      INSERT INTO z VALUES(NULL, a_string(800));\n      INSERT INTO z VALUES(NULL, a_string(800));\n      SAVEPOINT one;\n        UPDATE z SET y = NULL WHERE x>256;\n        PRAGMA incremental_vacuum;\n        SELECT count(*) FROM z WHERE x < 100;\n      ROLLBACK TO one;\n    COMMIT;",
           "expect": "99"
         }
       ]
@@ -657,7 +657,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n      INSERT INTO z VALUES(NULL, a_string(800));\n      INSERT INTO z VALUES(NULL, a_string(800));\n      SAVEPOINT one;\n        UPDATE z SET y = NULL WHERE x\u003e256;\n        PRAGMA incremental_vacuum;\n        SELECT count(*) FROM z WHERE x \u003c 100;\n      ROLLBACK TO one;\n    COMMIT;",
+          "sql": "BEGIN;\n      INSERT INTO z VALUES(NULL, a_string(800));\n      INSERT INTO z VALUES(NULL, a_string(800));\n      SAVEPOINT one;\n        UPDATE z SET y = NULL WHERE x>256;\n        PRAGMA incremental_vacuum;\n        SELECT count(*) FROM z WHERE x < 100;\n      ROLLBACK TO one;\n    COMMIT;",
           "expect": "99"
         }
       ]
@@ -759,7 +759,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n      INSERT INTO z VALUES(NULL, a_string(800));\n      INSERT INTO z VALUES(NULL, a_string(800));\n      SAVEPOINT one;\n        UPDATE z SET y = NULL WHERE x\u003e256;\n        PRAGMA incremental_vacuum;\n        SELECT count(*) FROM z WHERE x \u003c 100;\n      ROLLBACK TO one;\n    COMMIT;",
+          "sql": "BEGIN;\n      INSERT INTO z VALUES(NULL, a_string(800));\n      INSERT INTO z VALUES(NULL, a_string(800));\n      SAVEPOINT one;\n        UPDATE z SET y = NULL WHERE x>256;\n        PRAGMA incremental_vacuum;\n        SELECT count(*) FROM z WHERE x < 100;\n      ROLLBACK TO one;\n    COMMIT;",
           "expect": "99"
         }
       ]
@@ -861,7 +861,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n      INSERT INTO z VALUES(NULL, a_string(800));\n      INSERT INTO z VALUES(NULL, a_string(800));\n      SAVEPOINT one;\n        UPDATE z SET y = NULL WHERE x\u003e256;\n        PRAGMA incremental_vacuum;\n        SELECT count(*) FROM z WHERE x \u003c 100;\n      ROLLBACK TO one;\n    COMMIT;",
+          "sql": "BEGIN;\n      INSERT INTO z VALUES(NULL, a_string(800));\n      INSERT INTO z VALUES(NULL, a_string(800));\n      SAVEPOINT one;\n        UPDATE z SET y = NULL WHERE x>256;\n        PRAGMA incremental_vacuum;\n        SELECT count(*) FROM z WHERE x < 100;\n      ROLLBACK TO one;\n    COMMIT;",
           "expect": "99"
         }
       ]
@@ -1171,7 +1171,7 @@
         },
         {
           "type": "exec",
-          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid\u003c=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid\u003c=3;\n        COMMIT;"
+          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
         }
       ]
     },
@@ -1254,7 +1254,7 @@
         },
         {
           "type": "exec",
-          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid\u003c=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid\u003c=3;\n        COMMIT;"
+          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
         }
       ]
     },
@@ -1337,7 +1337,7 @@
         },
         {
           "type": "exec",
-          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid\u003c=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid\u003c=3;\n        COMMIT;"
+          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
         }
       ]
     },
@@ -1449,7 +1449,7 @@
         },
         {
           "type": "exec",
-          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid\u003c=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid\u003c=3;\n        COMMIT;"
+          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
         }
       ]
     },
@@ -1561,7 +1561,7 @@
         },
         {
           "type": "exec",
-          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid\u003c=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid\u003c=3;\n        COMMIT;"
+          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
         }
       ]
     },
@@ -1644,7 +1644,7 @@
         },
         {
           "type": "exec",
-          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid\u003c=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid\u003c=3;\n        COMMIT;"
+          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
         }
       ]
     },
@@ -1727,7 +1727,7 @@
         },
         {
           "type": "exec",
-          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid\u003c=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid\u003c=3;\n        COMMIT;"
+          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
         }
       ]
     },
@@ -1810,7 +1810,7 @@
         },
         {
           "type": "exec",
-          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid\u003c=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid\u003c=3;\n        COMMIT;"
+          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
         }
       ]
     },
@@ -1893,7 +1893,7 @@
         },
         {
           "type": "exec",
-          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid\u003c=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid\u003c=3;\n        COMMIT;"
+          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
         }
       ]
     },
@@ -1976,7 +1976,7 @@
         },
         {
           "type": "exec",
-          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid\u003c=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid\u003c=3;\n        COMMIT;"
+          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
         }
       ]
     },
@@ -2088,7 +2088,7 @@
         },
         {
           "type": "exec",
-          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid\u003c=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid\u003c=3;\n        COMMIT;"
+          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
         }
       ]
     },
@@ -2200,7 +2200,7 @@
         },
         {
           "type": "exec",
-          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid\u003c=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid\u003c=3;\n        COMMIT;"
+          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
         }
       ]
     },
@@ -2283,7 +2283,7 @@
         },
         {
           "type": "exec",
-          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid\u003c=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid\u003c=3;\n        COMMIT;"
+          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
         }
       ]
     },
@@ -2366,7 +2366,7 @@
         },
         {
           "type": "exec",
-          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid\u003c=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid\u003c=3;\n        COMMIT;"
+          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
         }
       ]
     },
@@ -2478,7 +2478,7 @@
         },
         {
           "type": "exec",
-          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid\u003c=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid\u003c=3;\n        COMMIT;"
+          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
         }
       ]
     },
@@ -2590,7 +2590,7 @@
         },
         {
           "type": "exec",
-          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid\u003c=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid\u003c=3;\n        COMMIT;"
+          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
         }
       ]
     },
@@ -2673,7 +2673,7 @@
         },
         {
           "type": "exec",
-          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid\u003c=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid\u003c=3;\n        COMMIT;"
+          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
         }
       ]
     },
@@ -2756,7 +2756,7 @@
         },
         {
           "type": "exec",
-          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid\u003c=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid\u003c=3;\n        COMMIT;"
+          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
         }
       ]
     },
@@ -2839,7 +2839,7 @@
         },
         {
           "type": "exec",
-          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid\u003c=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid\u003c=3;\n        COMMIT;"
+          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
         }
       ]
     },
@@ -2922,7 +2922,7 @@
         },
         {
           "type": "exec",
-          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid\u003c=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid\u003c=3;\n        COMMIT;"
+          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
         }
       ]
     },
@@ -3005,7 +3005,7 @@
         },
         {
           "type": "exec",
-          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid\u003c=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid\u003c=3;\n        COMMIT;"
+          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
         }
       ]
     },
@@ -3117,7 +3117,7 @@
         },
         {
           "type": "exec",
-          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid\u003c=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid\u003c=3;\n        COMMIT;"
+          "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
         }
       ]
     },
@@ -3319,7 +3319,8 @@
         },
         {
           "type": "reopen_db",
-          "sql": "test.db"
+          "sql": "test.db",
+          "readonly": true
         }
       ]
     },
@@ -3458,6 +3459,21 @@
       "name": "pager1.4.7.2",
       "steps": [
         {
+          "type": "faultsim_restore_reopen"
+        },
+        {
+          "type": "file_attr",
+          "sql": "test.db-journal",
+          "variable": "-permissions",
+          "bindValue": "r--------"
+        },
+        {
+          "type": "file_attr",
+          "sql": "test.db-journal",
+          "variable": "-readonly",
+          "bindValue": "1"
+        },
+        {
           "type": "catch",
           "sql": "SELECT * FROM t1",
           "expect": "1 {unable to open database file}"
@@ -3477,13 +3493,41 @@
       "name": "pager1.4.8.1",
       "steps": [
         {
+          "type": "file_attr",
+          "sql": "test.db",
+          "variable": "-permissions",
+          "bindValue": "r--------"
+        },
+        {
+          "type": "file_attr",
+          "sql": "test.db",
+          "variable": "-readonly",
+          "bindValue": "1"
+        },
+        {
           "type": "reopen_db",
           "sql": "test.db"
         },
         {
           "type": "query",
-          "sql": "SELECT * FROM t1",
-          "expect": "1"
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "capi_db_readonly",
+          "sql": "main",
+          "expect": "1",
+          "database": "db"
+        }
+      ]
+    },
+    {
+      "name": "pager1.4.8.2",
+      "steps": [
+        {
+          "type": "capi_db_readonly",
+          "sql": "xyz",
+          "expect": "-1",
+          "database": "db"
         }
       ]
     },
@@ -3494,13 +3538,31 @@
           "type": "close_db"
         },
         {
+          "type": "file_attr",
+          "sql": "test.db",
+          "variable": "-readonly",
+          "bindValue": "0"
+        },
+        {
+          "type": "file_attr",
+          "sql": "test.db",
+          "variable": "-permissions",
+          "catchMessage": "msg",
+          "bindValue": "rw-rw-rw-"
+        },
+        {
           "type": "reopen_db",
           "sql": "test.db"
         },
         {
           "type": "query",
-          "sql": "SELECT * FROM t1",
-          "expect": "0"
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "capi_db_readonly",
+          "sql": "main",
+          "expect": "0",
+          "database": "db"
         }
       ]
     },
@@ -3824,41 +3886,50 @@
       ]
     },
     {
-      "name": "pager1-7.1. PRAGMA locking_mode = NORMAL .1",
+      "name": "pager1-7.1.6.1",
       "steps": [
         {
-          "type": "exec",
-          "sql": "exclusive",
-          "expect": "-1"
+          "type": "query",
+          "sql": "PRAGMA locking_mode = NORMAL",
+          "expect": "exclusive"
         }
       ]
     },
     {
-      "name": "pager1-7.1..1",
+      "name": "pager1-7.1.7.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "-1",
-          "expect": "8"
+          "sql": "INSERT INTO t1 VALUES(5, 6);"
         }
       ]
     },
     {
-      "name": "pager1-7.1.0.1",
+      "name": "pager1-7.1.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = TRUNCATE",
+          "expect": "truncate"
+        }
+      ]
+    },
+    {
+      "name": "pager1-7.1.9.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "-1",
-          "expect": "9"
-        },
+          "sql": "INSERT INTO t1 VALUES(7, 8)"
+        }
+      ]
+    },
+    {
+      "name": "pager1-7.1.10.1",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "-1",
-          "expect": "10"
-        },
-        {
-          "type": "exec",
-          "sql": "-1"
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 4 5 6 7 8"
         }
       ]
     },
@@ -11986,7 +12057,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n      DELETE FROM x1 WHERE rowid\u003c32;"
+          "sql": "BEGIN;\n      DELETE FROM x1 WHERE rowid<32;"
         },
         {
           "type": "query",
@@ -11999,7 +12070,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE x1 SET z = a_string(300) WHERE rowid\u003e40;\n    COMMIT;\n    PRAGMA integrity_check;\n    SELECT count(*) FROM x1;",
+          "sql": "UPDATE x1 SET z = a_string(300) WHERE rowid>40;\n    COMMIT;\n    PRAGMA integrity_check;\n    SELECT count(*) FROM x1;",
           "expect": "ok 33"
         }
       ]
@@ -12009,7 +12080,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM x1;\n    INSERT INTO x1 SELECT * FROM x2;\n    BEGIN;\n      DELETE FROM x1 WHERE rowid\u003c32;\n      UPDATE x1 SET z = a_string(299) WHERE rowid\u003e40;"
+          "sql": "DELETE FROM x1;\n    INSERT INTO x1 SELECT * FROM x2;\n    BEGIN;\n      DELETE FROM x1 WHERE rowid<32;\n      UPDATE x1 SET z = a_string(299) WHERE rowid>40;"
         },
         {
           "type": "query",
@@ -12705,11 +12776,13 @@
       "name": "pager1-37.1",
       "steps": [
         {
-          "type": "close_db"
+          "type": "close_db",
+          "variable": "__catchrc",
+          "catchResult": true
         },
         {
           "type": "reopen_db",
-          "sql": "."
+          "sql": "file:?mode=memory&cache=shared"
         },
         {
           "type": "exec",
@@ -12917,7 +12990,7 @@
         },
         {
           "type": "runtime_assert",
-          "sql": "__STEP_stmt_1__",
+          "sql": "__COL_stmt_1_0__",
           "expect": "one"
         }
       ]
@@ -12936,7 +13009,7 @@
         },
         {
           "type": "runtime_assert",
-          "sql": "__STEP_stmt_1__",
+          "sql": "__COL_stmt_1_0__",
           "expect": "two"
         }
       ]
@@ -13144,8 +13217,13 @@
         },
         {
           "type": "query",
-          "sql": "SELECT * FROM t1",
-          "expect": "0 2 0"
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "capi_db_status",
+          "sql": "CACHE_MISS",
+          "expect": "0 2 0",
+          "database": "db"
         }
       ]
     },
@@ -13154,8 +13232,14 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t2",
-          "expect": "0 3 0"
+          "sql": "SELECT * FROM t2"
+        },
+        {
+          "type": "capi_db_status",
+          "sql": "CACHE_MISS",
+          "expect": "0 3 0",
+          "statusReset": true,
+          "database": "db"
         }
       ]
     },
@@ -13164,8 +13248,13 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t3",
-          "expect": "0 1 0"
+          "sql": "SELECT * FROM t3"
+        },
+        {
+          "type": "capi_db_status",
+          "sql": "CACHE_MISS",
+          "expect": "0 1 0",
+          "database": "db"
         }
       ]
     },
@@ -13185,7 +13274,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "PRAGMA page_size=4096;\n  PRAGMA auto_vacuum=FULL;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b ANY);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c50)\n  INSERT INTO t1(a,b) SELECT x, zeroblob(1000) FROM c;\n  CREATE TABLE t2 AS SELECT * FROM t1;\n  PRAGMA page_count;",
+          "sql": "PRAGMA page_size=4096;\n  PRAGMA auto_vacuum=FULL;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b ANY);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<50)\n  INSERT INTO t1(a,b) SELECT x, zeroblob(1000) FROM c;\n  CREATE TABLE t2 AS SELECT * FROM t1;\n  PRAGMA page_count;",
           "expect": "31"
         }
       ]

@@ -59,6 +59,7 @@ func init() {
 		"sqlite3_unlock_notify":       commandSQLite3UnlockNotify,
 		"sqlite3_bind_blob":           commandBindBlob,
 		"strftime":                    commandStrftime,
+		"wal_file_size":               commandWalFileSize,
 		"string":                      commandString,
 		"regexp":                      commandRegexp,
 		"regsub":                      commandRegsub,
@@ -116,6 +117,9 @@ func init() {
 		"sqlite3_prepare_v3":          commandPrepareStmt,
 		"sqlite3_prepare":             commandPrepareStmt,
 		"sqlite3_step":                commandStepStmt,
+		"sqlite3_column_text":         commandColumnText,
+		"sqlite3_db_readonly":         commandDBReadonly,
+		"sqlite3_db_status":           commandDBStatus,
 		"sqlite3_reset":               commandResetStmt,
 		"sqlite3_finalize":            commandFinalizeStmt,
 		"sqlite3_limit":               commandSQLite3Limit,
@@ -399,7 +403,37 @@ func commandSubst(i *Interp, rawWords []rawWord, args []string, localVars map[st
 		return fmt.Errorf("wrong # args: should be \"subst ?-nobackslashes? ?-nocommands? ?-novariables? string\"")
 	}
 	result := i.substituteOptions(text, localVars, variables, commands, backslashes)
+	// A command substitution that FAILED inside the substituted text must
+	// abort: substituteCmd already stored the error in the sticky substErr,
+	// but commandSubst was ignoring it — the missing command's "" then
+	// silently dropped out of the result, shifting every list element after
+	// it (pager1-7.1's foreach column binding became garbage for tn>=6).
+	if i.substErr != nil {
+		err := i.substErr
+		i.substErr = nil
+		return err
+	}
 	i.vars[""] = result
+	return nil
+}
+
+// commandWalFileSize mirrors wal_common.tcl:16-18
+// (`proc wal_file_size {nFrame pgsz} { expr {32 + ($pgsz+24)*$nFrame} }`):
+// the WAL file's byte size for nFrame frames of pgsz page size. pager1.test
+// sources wal_common.tcl and calls the proc inside the
+// `foreach {tn sql res js ws} [subst {...}]` list of its 7.1 section — an
+// unknown command there would silently yield "" and shift every loop
+// variable after the first missing element (round1's silent-garbage class).
+func commandWalFileSize(i *Interp, _ []rawWord, args []string, _ map[string]string) error {
+	if len(args) != 2 {
+		return fmt.Errorf("wrong # args: should be \"wal_file_size nFrame pgsz\"")
+	}
+	nFrame, err1 := strconv.Atoi(strings.TrimSpace(args[0]))
+	pgsz, err2 := strconv.Atoi(strings.TrimSpace(args[1]))
+	if err1 != nil || err2 != nil {
+		return fmt.Errorf("wal_file_size: expected integer arguments, got %q %q", args[0], args[1])
+	}
+	i.vars[""] = strconv.Itoa(32 + (pgsz+24)*nFrame)
 	return nil
 }
 
@@ -1572,15 +1606,22 @@ func commandSQLite3(i *Interp, rawWords []rawWord, args []string, localVars map[
 		return nil
 	}
 	// Options follow the filename: `-vfs <name>` opens through the named
-	// testvfs wrapper (walvfs.test's `sqlite3 db test.db -vfs tvfs`).
+	// testvfs wrapper (walvfs.test's `sqlite3 db test.db -vfs tvfs`);
+	// `-readonly 1` opens SQLITE_OPEN_READONLY (pager1-4.5.6's
+	// `sqlite3 db test.db -readonly 1`).
 	vfsName := ""
+	readOnly := false
 	for k := 2; k+1 < len(args); k += 2 {
 		if args[k] == "-vfs" {
 			vfsName = args[k+1]
 		}
+		if args[k] == "-readonly" {
+			readOnly = args[k+1] == "1"
+		}
 	}
 	i.pendingVFS = vfsName
-	defer func() { i.pendingVFS = "" }()
+	i.pendingReadOnly = readOnly
+	defer func() { i.pendingVFS = ""; i.pendingReadOnly = false }()
 	name, filename := args[0], args[1]
 	if filename == ":memory:" || filename == "" {
 		if name == "db" {
@@ -1602,28 +1643,76 @@ func commandSQLite3(i *Interp, rawWords []rawWord, args []string, localVars map[
 		}
 		return nil
 	}
+	// The open target: only the URI's PATH PART feeds the deletedFiles
+	// lifecycle lookup (forcedelete test.db → `sqlite3 db test.db` must
+	// reopen).
+	uri := ""
 	path := filename
-	if strings.HasPrefix(path, "file:") {
+	if strings.HasPrefix(filename, "file:") {
+		uri = filename
 		path = strings.TrimPrefix(path, "file:")
 		if n := strings.IndexByte(path, '?'); n >= 0 {
 			path = path[:n]
 		}
 	}
 	path = filepath.Clean(path)
-	// The harness reopens the fixture's lifecycle file, so strip any
-	// `file:` prefix and URI query (8_3_names / VFS options are
-	// compile-time features, not part of the file path).
-	localPath := filepath.Base(path)
 	if name == "db" && i.deletedFiles[path] {
+		// The deletedFiles branch models the harness's LIFECYCLE file: the
+		// reopen targets the fixture basename (8_3_names's
+		// `forcedelete test.db; sqlite3 db file:./test.db?8_3_names=1`
+		// reopens the lifecycle test.db — the VFS query is a compile-time
+		// feature the harness does not model).
 		delete(i.deletedFiles, path)
-		i.stmts = append(i.stmts, Stmt{Type: "reopen_db", SQL: localPath, VFS: i.pendingVFS, TestName: i.curTest})
+		i.stmts = append(i.stmts, Stmt{Type: "reopen_db", SQL: filepath.Base(path), VFS: i.pendingVFS, ReadOnly: i.pendingReadOnly, TestName: i.curTest})
 		return nil
 	}
-	if name == "db" {
-		i.stmts = append(i.stmts, Stmt{Type: "reopen_db", SQL: localPath, VFS: i.pendingVFS, TestName: i.curTest})
-	} else {
-		i.stmts = append(i.stmts, Stmt{Type: "open_named_db", SQL: filename, Database: name, VFS: i.pendingVFS, TestName: i.curTest})
+	// The normal branch: a `file:` URI stays INTACT (the engine's Open
+	// parses mode=memory / cache=shared / vfs=memdb URIs itself —
+	// frigolite.Open's sharedMemURI / memdbName routing — and collapsing
+	// `file:?mode=memory&cache=shared` to the cleaned empty path "."
+	// turned pager1-37.1's shared-memory open into a directory open).
+	openTarget := filepath.Base(path)
+	if uri != "" {
+		openTarget = uri
 	}
+	if name == "db" {
+		i.stmts = append(i.stmts, Stmt{Type: "reopen_db", SQL: openTarget, VFS: i.pendingVFS, ReadOnly: i.pendingReadOnly, TestName: i.curTest})
+	} else {
+		i.stmts = append(i.stmts, Stmt{Type: "open_named_db", SQL: filename, Database: name, VFS: i.pendingVFS, ReadOnly: i.pendingReadOnly, TestName: i.curTest})
+	}
+	return nil
+}
+
+// commandDBReadonly captures `sqlite3_db_readonly db NAME` (pager1-4.8.x):
+// the C-API returns 1 when the database file lacks write permission, 0 when
+// it is writable, and -1 when NAME matches no open database.
+func commandDBReadonly(i *Interp, _ []rawWord, args []string, _ map[string]string) error {
+	if len(args) < 2 {
+		return nil
+	}
+	i.stmts = append(i.stmts, Stmt{Type: "capi_db_readonly", Database: args[0], SQL: args[1], TestName: i.curTest})
+	return nil
+}
+
+// commandDBStatus captures `sqlite3_db_status db CACHE_MISS N` (pager1-43.x):
+// the do_test body value is the {code, counter, unused} triple of the
+// connection's page-cache statistic. The reset flag zeroes the counter
+// after reading it (pager.c sqlite3PagerCacheStat).
+func commandDBStatus(i *Interp, _ []rawWord, args []string, _ map[string]string) error {
+	if len(args) < 2 {
+		return nil
+	}
+	op := strings.ToUpper(strings.TrimSpace(args[1]))
+	if op != "CACHE_MISS" {
+		// Only the CACHE_MISS statistic is asserted by the corpus today;
+		// an unrecognised op would bake a wrong expectation.
+		return &UnsupportedCommandError{Cmd: "sqlite3_db_status " + op}
+	}
+	reset := false
+	if len(args) >= 3 {
+		reset = strings.TrimSpace(args[2]) == "1"
+	}
+	i.stmts = append(i.stmts, Stmt{Type: "capi_db_status", Database: args[0], SQL: op, StatusReset: reset, TestName: i.curTest})
 	return nil
 }
 
@@ -1747,6 +1836,9 @@ func commandFile(i *Interp, rawWords []rawWord, args []string, localVars map[str
 	if len(args) >= 1 && args[0] == "delete" {
 		return commandForceDelete(i, rawWords, args[1:], localVars)
 	}
+	if len(args) == 4 && args[0] == "attributes" {
+		return commandFileAttributes(i, args)
+	}
 	// Path-inspection subcommands the fixture callbacks use (walvfs's
 	// xSync dispatches on `file tail $file`).
 	switch {
@@ -1757,6 +1849,21 @@ func commandFile(i *Interp, rawWords []rawWord, args []string, localVars map[str
 	case len(args) == 2 && args[0] == "extension":
 		i.vars[""] = filepath.Ext(args[1])
 	}
+	return nil
+}
+
+// commandFileAttributes captures `file attributes PATH -permissions X` /
+// `-readonly N` (pager1-4.7.2 / 4.8.x): the fixture makes files unwritable
+// to exercise the readonly error paths. The attribute is a RUNTIME chmod on
+// the target path — the harness applies the permission bits when the step
+// executes. (TCL's catch{} around the call tolerates a missing file; so
+// does the harness handler.)
+func commandFileAttributes(i *Interp, args []string) error {
+	attr, val := args[2], args[3]
+	if attr != "-permissions" && attr != "-readonly" {
+		return nil
+	}
+	i.stmts = append(i.stmts, Stmt{Type: "file_attr", SQL: args[1], Variable: attr, BindValue: val, TestName: i.curTest})
 	return nil
 }
 

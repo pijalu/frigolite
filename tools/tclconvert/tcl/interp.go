@@ -40,6 +40,8 @@ type Stmt struct {
 	SearchStyle string // "" = bare " N" (where8); "search" = labeled " search N" (whereD's do_searchcount_test)
 	Condition   string // the step runs only when this Tcl expression is true
 	VFS         string // the -vfs option of the opening sqlite3 command
+	ReadOnly    bool   // the -readonly 1 option of the opening sqlite3 command (SQLITE_OPEN_READONLY)
+	StatusReset bool   // sqlite3_db_status's reset flag: zero the counter after reading it
 	// faultsim_test (malloc_common.tcl): the Prep/Body step trees replay per
 	// trial with the ioerr injector armed at the trial index; TestScript is
 	// the -test script evaluated per trial (faultsim_test_result's pattern
@@ -151,6 +153,7 @@ type Interp struct {
 	rtgeomBoxProcs     map[string]bool             // proc names bound as box-geometry callback observers
 	backupHandles      map[string]backupHandleInfo // the sqlite3_backup command objects (test_backup.c)
 	pendingVFS         string                      // the -vfs option of the sqlite3 open being converted
+	pendingReadOnly    bool                        // the -readonly 1 option of the sqlite3 open being converted
 	deletedFiles       map[string]bool             // files removed via forcedelete/file delete
 	fileWrites         map[string]*tclFileWrite
 	nextFileHandle     int

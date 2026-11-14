@@ -257,6 +257,19 @@ func (t *BTree) OpenCursor() (*Cursor, error) {
 	if t.closed {
 		return nil, fmt.Errorf("btree: cursor opened on closed tree")
 	}
+	// C's sqlite3BtreeCursor (btree.c:4693): a cursor over the schema root
+	// (iTable<=1) on a ZERO-PAGE database becomes an empty cursor (iTable=0)
+	// — reading the schema of an empty file yields no rows, never a
+	// corruption error (a readonly connection cannot bootstrap page 1 the
+	// way a writable open does). Without this the descent hits the pager's
+	// numPages guard ("malformed") instead of C's empty scan.
+	if t.rootPage <= 1 && t.pager.NumPages() == 0 {
+		c := t.acquireCursor()
+		c.endOfBTree = true
+		t.cursors = append(t.cursors, c)
+		registerTreeCursor(cursorTreeKey{pg: t.pager, root: t.rootPage}, c)
+		return c, nil
+	}
 	c := t.acquireCursor()
 	// Descend from root to the leftmost leaf, building the path stack
 	if err := c.descendToFirstLeaf(); err != nil {
@@ -285,6 +298,16 @@ func (t *BTree) OpenCursor() (*Cursor, error) {
 func (t *BTree) OpenCursorAtRoot() (*Cursor, error) {
 	if t.closed {
 		return nil, fmt.Errorf("btree: cursor opened on closed tree")
+	}
+	// The empty-root rule (see OpenCursor): seeks over the schema root on a
+	// zero-page database are empty too — sqlite3BtreeCursor applies the
+	// iTable=0 fold before any descend.
+	if t.rootPage <= 1 && t.pager.NumPages() == 0 {
+		c := t.acquireCursor()
+		c.endOfBTree = true
+		t.cursors = append(t.cursors, c)
+		registerTreeCursor(cursorTreeKey{pg: t.pager, root: t.rootPage}, c)
+		return c, nil
 	}
 	c := t.acquireCursor() // resetFor parks it at the root with an empty path
 	t.cursors = append(t.cursors, c)

@@ -1180,3 +1180,105 @@ everywhere; go vet + go build clean.
   samples; its true baseline is "sometimes ~14". Class unit: the
   small-cache temp-db churn (spill/latch timing) — separate from the
   timing flake temptable2-4.1.1.
+## S30 record (2026-11-14) — pager1 slices U1-U4 (subst-foreach, __STEP_ column text, readonly surfaces, URI + CACHE_MISS)
+
+- **An unknown command inside a `[subst {...}]` list silently deleted its
+  element and shifted every foreach column after it** (the U1 class):
+  pager1-7.1's `foreach {tn sql res js ws} [subst {...}]` lost one element
+  per unconverted `[wal_file_size ...]` (wal_common.tcl is `source`d, and
+  `source` is a converter noop), collapsing rows 6-10 into the 3 garbage
+  cases (`sql: "exclusive"`/`sql: "-1"`). The substituteCmd policy comment
+  ("a failing command substitution must abort") never fired because
+  dispatchCommand's unknown-command tail returns nil — the error was only
+  sticky on the evalWord path. Fixes: (a) implement the sourced helper proc
+  the file needs (wal_file_size = `32 + (pgsz+24)*nFrame`); (b) commandSubst
+  now propagates the sticky substErr so a subst-context unknown command
+  aborts the conversion loudly instead of baking shifted lists.
+- **Reproduce a converter bug with a minimal interp Execute before
+  modeling**: the minimal foreach+subst repro (with/without the proc
+  defined) proved the binding-shift mechanism in one run — the
+  element-count model in my head was wrong twice before that.
+- **Hand-pin, never wholesale-regen, when the converter drifts**: the full
+  pager1 regen DROPS pager1-16.1.* x25 and adds setup_249-308 x60. All
+  fixture edits were hand-pins of exactly the affected cases; the fixed
+  converter's regen output only VALIDATED the pinned shapes (7.1.6-10, 39.x
+  markers, 4.7.2/4.8.x/37.1/43.x steps).
+- **sqlite3_column_text is a value carrier, not a status carrier**: the
+  do_test body `sqlite3_step $S; sqlite3_column_text $S 0` evaluates to the
+  CURRENT ROW's column 0. The converter now emits `__COL_<handle>_<idx>__`
+  (commandColumnText) and the harness records the formatted current row per
+  handle at stmt_step (main handler) and expands the markers at
+  runtime_assert. The __STEP_ STATUS carriers stay untouched — every LIVE
+  __STEP_ user (analyze3, blob, misc6, tkt2820) expects a status name; the
+  value-expect families (trace3, capi2) are skip-listed and inert.
+- **The engine's prepared statement already survives same-connection DDL
+  mid-cursor** (step 2 returns the SECOND row after CREATE TABLE) — the
+  pager1-39.2 contract needed zero engine work; probe first.
+- **C's locking_mode SET form reports the PAGER's mode, the bare QUERY form
+  reports db->dfltLockMode** (pragma.c:687: eMode =
+  sqlite3PagerLockingMode(pPager, eMode) for the set, `eMode =
+  db->dfltLockMode` for the query). And the SET is REFUSED while
+  sqlite3WalHeapMemory holds: a WAL opened while the pager was exclusive
+  keeps a heap wal-index (wal.c sqlite3WalOpen's bNoShm ← pager.c:7596
+  pPager->exclusiveMode) — pager1-7.1.6.1's `PRAGMA locking_mode = NORMAL`
+  must return "exclusive". Port: Pager.walExclusiveLatched (latched by
+  SetWALExclusiveRequested even before a WAL exists) → walWriter.heapMemory
+  at openWal → Pager.WALHeapMemory; the exec LockingMode gate skips
+  heap-WAL pagers and splits the set/query result. Verified: after
+  journal_mode=TRUNCATE tears the WAL down, the same NORMAL set takes
+  effect.
+- **C's sqlite3BtreeCursor folds a schema-root cursor (iTable<=1) on a
+  ZERO-PAGE database to iTable=0 — an empty cursor** (btree.c:4693): a
+  readonly connection cannot bootstrap page 1, so the empty-file schema
+  read yields NO ROWS, never "malformed". Our OpenCursor/OpenCursorAtRoot
+  now return an endOfBTree cursor for rootPage<=1 && NumPages()==0 — the
+  read-only fallback open of a wiped 0-byte file (pager1-4.8.x's state
+  before the restore lands) scans empty like C. The writable path was
+  already correct (schema Init bootstraps the header in cache).
+- **frigolite.Open already implements the URI semantics the pager1-37.x
+  test needs** (sharedMemURI routes file:?mode=memory&cache=shared to a
+  shared in-memory store) — the converter was the only gap: commandSQLite3
+  collapsed the URI to filepath.Clean("") = ".". URIs now pass through
+  INTACT (the harness's reopen_db detects the "file:" prefix and opens
+  verbatim), EXCEPT the deletedFiles lifecycle branch, which keeps the
+  bare basename (8_3_names's forcedelete→file:./test.db?8_3_names=1
+  models the harness's lifecycle file; pinned by
+  TestSQLite3ReopenAfterForcedeleteURI).
+- **sqlite3_db_status CACHE_MISS counts a content-wanted acquire that
+  reads the page image from the db file** (pager.c:5615, before readDbPage;
+  WAL-resolved reads included; the noContent zero-fill and open-time direct
+  header reads excluded). The counter sits in Pager.ReadPage's two paths
+  (hit fast path, miss slow path under the write-lock re-check), NOT in
+  readPageLocked — pageropen.go/external.go read page 1 through
+  readPageLocked directly at open (C's direct sqlite3OsRead, no counter).
+  Reset zeroes after reading (sqlite3PagerCacheStat). 43.1/43.2/43.3 = 2/3/1.
+- **The U3 readonly surfaces**: `file attributes PATH -permissions X`
+  parses TCL's rwxrwxrwx string to chmod bits, `-readonly N` toggles the
+  write bits on the file's current mode (tclUnixFile.c); a missing file is
+  a no-op (the fixture wraps everything in catch{}). `sqlite3 db test.db
+  -readonly 1` → reopen_db readonly → OpenReadOnly. sqlite3_db_readonly →
+  capi_db_readonly (1/0 via pager.ReadOnly, -1 unknown name). The engine
+  already fell back to read-only on an EACCES open (openDatabaseFile) —
+  probed before touching anything.
+- **U3's 4.5.6/4.7.2/4.8.1/4.8.3 need the B4/B5 substrate**: C's readonly
+  SELECT fails because a readonly connection cannot roll back a HOT
+  JOURNAL restored by the tvfs xDelete→faultsim_save snapshot (4.7.1's
+  commit). Our engine writes no on-disk journal (U6) and the fixture has
+  NO tv machinery (U7) — the pinned restore wipes test.db, so 4.8.1's
+  readonly EXPECT reads a missing (writable, empty) file. Fixtures now
+  carry the faithful steps; the leaves go green when U6/U7 land.
+  4.8.2 (`sqlite3_db_readonly db xyz` → -1) is a NEW leaf, green.
+- **Quality gate delta**: commandFile's attributes branch pushed it to
+  gocyclo 13 — extracted commandFileAttributes. Check the gate on changed
+  non-test files BEFORE committing: several target files already exceed
+  the 1000-line hard cap at HEAD (interp_cmds 2019, interp.go 2113,
+  pragma_state 1059, wal 1249) — pre-existing, but a new function-level
+  violation blocks.
+- Family diffs (failure NAME sets, pristine-vs-changed): pager1 100→90
+  (10 fixed: the 3 U1 garbage names + 39.1/39.2 + 37.1/37.1.2/43.1-3; new
+  green leaves 7.1.6.1-10.1 + 4.8.2), pager family sweep identical except
+  pager1, wal 97→97 identical, wal2 26→26, wal3 6→6, jrnlmode*/lock*
+  0→0, tkt2820/analyze3 identical-ok, blob/misc6 pre-existing failures
+  only (misc6-1.1, blob-3.2, e_blobclose-1.2/3.3 fail at the pristine
+  commit too). wal4/walbak/walfault diffs recorded in the S30 sweep logs
+  (/tmp/s30_cleanbase_* vs /tmp/s30_after_*).

@@ -119,6 +119,20 @@ type Pager struct {
 	// rollback-journal path; "wal" = WAL write path). Only "wal" routes
 	// commits through the WAL writer; the default path is untouched.
 	journalMode string
+	// cacheStat holds the page-cache hit/miss counters (pager.c
+	// pPager->aStat[PAGER_STAT_HIT/MISS]): sqlite3PagerAcquire increments
+	// MISS when a content-wanted acquire finds no cached page and reads the
+	// page image from the database file, HIT when the pcache already holds
+	// an initialized page. Atomic because the hit path runs under the read
+	// lock. Read through CacheStat (sqlite3_db_status CACHE_HIT/MISS,
+	// pager.c sqlite3PagerCacheStat).
+	cacheStatHitN  atomic.Uint64
+	cacheStatMissN atomic.Uint64
+	// walExclusiveLatched is the pager-side pPager->exclusiveMode mirror the
+	// PRAGMA locking_mode request writes; openWal latches it into the
+	// walWriter's heapMemory flag at WAL-open time (a WAL opened while
+	// exclusive runs a heap-memory wal-index, wal.c bNoShm).
+	walExclusiveLatched bool
 	// journalSizeLimit is the per-database cap (bytes) applied to a PERSIST
 	// journal file after a successful commit (PRAGMA journal_size_limit). A
 	// negative value means unlimited (the journal keeps its full content); 0
@@ -483,6 +497,20 @@ func (p *Pager) IsHeaderCorrupt() bool {
 // SQLITE_READONLY, "attempt to write a readonly database".
 func (p *Pager) ReadOnly() bool {
 	return p.readOnly
+}
+
+// CacheStat returns the page-cache hit/miss counters, zeroing them when
+// reset is set (pager.c sqlite3PagerCacheStat: *pnVal += pPager->aStat[eStat];
+// if reset, aStat[eStat] = 0 — sqlite3_db_status's CACHE_HIT/CACHE_MISS
+// read-and-clear contract).
+func (p *Pager) CacheStat(reset bool) (hit, miss uint64) {
+	hit = p.cacheStatHitN.Load()
+	miss = p.cacheStatMissN.Load()
+	if reset {
+		p.cacheStatHitN.Store(0)
+		p.cacheStatMissN.Store(0)
+	}
+	return hit, miss
 }
 
 // databaseFileMoved reports whether the file at p.path is no longer the file

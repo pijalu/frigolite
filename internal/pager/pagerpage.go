@@ -210,11 +210,24 @@ func (p *Pager) ReadPage(pageNum uint32) (*Page, error) {
 	p.mu.RUnlock()
 	if ok {
 		p.auditReadTouch(pg)
+		p.cacheStatHitN.Add(1)
 		return pg, nil
 	}
 
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	_, hit := p.pages[pageNum]
+	if !hit {
+		// Cache miss with content wanted (pager.c sqlite3PagerAcquire's
+		// pcache-miss branch: PAGER_STAT_MISS increments right before
+		// readDbPage). Only the content-acquire path counts — the open-time
+		// header validation and external-modification checks read page 1
+		// through readPageLocked directly, mirroring C's direct
+		// sqlite3OsRead at open (no pcache acquire, no counter).
+		if p.file != nil || p.wal != nil {
+			p.cacheStatMissN.Add(1)
+		}
+	}
 	return p.readPageLocked(pageNum)
 }
 

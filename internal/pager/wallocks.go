@@ -403,9 +403,25 @@ func (p *Pager) WALWriterProbe() error {
 func (p *Pager) SetWALExclusiveRequested(excl bool) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	// The request also outlives a WAL switch: pPager->exclusiveMode sits on
+	// the PAGER, so a WAL opened while exclusive runs with a heap-memory
+	// wal-index (wal.c sqlite3WalOpen's bNoShm ← pager.c:7596) — openWal
+	// latches walExclusiveLatched into walWriter.heapMemory.
+	p.walExclusiveLatched = excl
 	if p.wal != nil {
 		p.wal.exclusiveRequested = excl
 	}
+}
+
+// WALHeapMemory reports C's sqlite3WalHeapMemory: the attached WAL was
+// opened while the pager's locking mode was EXCLUSIVE (the wal-index lives
+// in heap memory). sqlite3PagerLockingMode refuses locking-mode changes
+// while it holds (pager1-7.1.6.1's `PRAGMA locking_mode = NORMAL` must
+// return "exclusive").
+func (p *Pager) WALHeapMemory() bool {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return p.wal != nil && p.wal.heapMemory
 }
 
 // SetWALExclusiveMode toggles locking_mode=EXCLUSIVE for the WAL writer
