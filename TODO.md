@@ -119,28 +119,27 @@ generation — re-derive family truth from the case paths before scoping.
 
 1. ~~Verify the S22 full gate, commit S22 slice 1~~ DONE 2026-11-12
    (gate3: 33 fixed/0 new).
-2. **Parallel-agent units — S25 LANDED + MERGED** (14e8ee855, merge
-   3e4edb26b): wherelimit2 4 → 0 (the harnessTclFunction UDF-global
-   round trip: tcl.NotifyScriptVarTargets + runtime_var_reset; the
-   CTE-header UDL strip learned MATERIALIZED/NOT — the CTE does not
-   shadow a DELETE target, oracle-verified). Where sweep 86 → 81.
-   Merge gate running (/tmp/full_s25_merge_gate.log, -v -timeout 40m;
-   expect 5 fixed/0 new vs /tmp/full_s22_gate3_fails.txt — wherelimit2
-   ×4 + wherelimit ×1). Carded finding from S25: a window function as
-   an ORDER BY term outside the select list errors (rank()OVER() "wrong
-   number of arguments") — G4 window-function execution residue.
-   **Fleet: S23 JOIN running (wt_s23, s23-join; NOTE /tmp/w_s22_f.txt
-   is a STALE 62-line snapshot — the authoritative census is gate3's
-   47), expr triage running (wt_triage); pager1 triage DONE and
-   merged.** Keep ≤2 agents while a gate runs (the concurrency limit
-   killed 4 agent runs once already).
-   - S23 JOIN: the join-loop machinery — where8 16 (db status step: the
-     inner loop must be index-driven; FULLSCAN_STEP counts TABLE cursors
-     only), where9 8 (the same covering inner loop), where 6.15 + 14.x 5
-     (per-loop ORDER BY delivery + the order-distinct mark-off; 14.3/
-     14.7.2 need the inner loop's covering-index choice for row order).
-   - S24 CHOOSE (launch when expr triage frees a slot): whereH 5 +
-     where2 12.1/16.2 — the candidate-choice class.
+2. **Parallel-agent units — S25 + S23(1-2) MERGED** (3e4edb26b,
+   510efa6b8). S25: wherelimit2 4 → 0 (the harnessTclFunction UDF-global
+   round trip; the CTE-header UDL strip learned MATERIALIZED/NOT); its
+   gate verified 5 fixed (incl. selectH-3.7 bonus) / 2 flakes
+   (where2-2.4 probabilistic — see the lessons flake watchlist — and
+   temptable2-4.1.1 standing) / 0 regressions → baseline
+   /tmp/full_s25_merge_fails.txt (1430). Carded finding: a window
+   function as an ORDER BY term outside the select list errors
+   (rank()OVER() "wrong number of arguments") — G4 residue. S23.1
+   (f3ec10698: OR-declined seek fall-through + INDEXED BY/NOT INDEXED
+   hints) + S23.2 (7a3a28e6f: the join FROM-loop picks,
+   internal/execquery/select_join_scan.go; census 47→40 in the branch's
+   frame) merged; **the S23 merge gate is running**
+   (/tmp/full_s23_merge_gate.log, -v -timeout 40m).
+   **Fleet post-pause (2026-11-14: the quota pause expired the agent
+   tasks and macOS purged /private/tmp — worktrees rebuilt from branch
+   refs, uncommitted agent work lost): S23-continuation running (where
+   6.15/14.x + where8/where9 residue), S29 expr-unit running (E3+E1+E2
+   → S1+S2). S24 relaunch QUEUED (hold ≤2 agents while a gate runs).**
+   - S24 CHOOSE: whereH 5 + where2 12.1/16.2 — the candidate-choice
+     class (brief: portplan/PLAN_S24_candidate_choice.md).
    - S26 MISC: where 19.0 (EQP autoindex names) + 25.x (corruption).
 3. **pager1 triage DONE** (portplan/TRIAGE_pager1_2026-11-12.md, merged
    904efda02): 99 leaves in 7 buckets — B5 super-journal+faultsim 61
@@ -158,10 +157,11 @@ generation — re-derive family truth from the case paths before scoping.
    Stale fixtures: fts3expr3 .json+.gz dup, expridx1 fossil oracle,
    e_expr-5.x frozen $as$bs), **the WAL residue classes**, and the
    carded converter classes.
-Baselines: /tmp/full_S15_fails.txt, /tmp/full_s22_gate3.log +
-/tmp/full_s22_gate3_fails.txt (the verified gate, 1433 names;
+Baselines: /tmp/full_s25_merge_fails.txt (the CURRENT diff target,
+1430 names), /tmp/full_s22_gate3_fails.txt (the S22 gate, 1433),
+/tmp/full_S15_fails.txt (the S21 pre state, 1466;
 /tmp/w_s22_f.txt is STALE — 62 lines, ignore it),
-/tmp/full_s25_merge_gate.log (the S25 merge gate in flight).
+/tmp/full_s23_merge_gate.log (the S23 merge gate in flight).
 
 ## Queue (in order)
 

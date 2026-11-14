@@ -15,9 +15,9 @@ queue**; this doc carries the fleet state and the merge protocol.
 
 | Unit | Worktree | Branch | Scope | State |
 |------|----------|--------|-------|-------|
-| S23 JOIN | /private/tmp/wt_s23 | s23-join | where8 16, where9 8, where 6.15+14.x — join inner loops, FULLSCAN_STEP gating, per-loop ORDER BY | running; S23.1 landed (f3ec10698: OR-declined seek fall-through + INDEXED BY/NOT INDEXED hints, census 47→45) |
-| S24 CHOOSE | /private/tmp/wt_s24 | s24-choose | whereH 5 + where2 12.1/16.2 — candidate choice | running (diagnosis) |
-| S29 expr unit | /private/tmp/wt_expr | s29-expr-unit | TRIAGE_expr slices E3+E1+E2 (46: regsub -all + fts3expr3 regen + depth 12 + argv coercion) then S1+S2 (9: CAST/truthiness) | running |
+| S23 JOIN | /private/tmp/wt_s23 | s23-join | join inner loops, FULLSCAN_STEP gating, per-loop ORDER BY | **S23.1+S23.2 MERGED** (510efa6b8; census 47→40 per the branch's frame); continuation agent running for where 6.15/14.x + residue (fresh agent — the pause expired the old task; /private/tmp was purged, uncommitted work lost, rebuild worktrees from branch refs) |
+| S24 CHOOSE | /private/tmp/wt_s24 | s24-choose | whereH 5 + where2 12.1/16.2 — candidate choice | worktree rebuilt at 39d6bba9d; agent relaunch QUEUED (hold until the S23 merge gate finishes — ≤2 agents + gate) |
+| S29 expr unit | /private/tmp/wt_expr | s29-expr-unit | TRIAGE_expr slices E3+E1+E2 (46) then S1+S2 (9) | running (fresh agent) |
 | S25 LIMIT | — | s25-limit | wherelimit2 4 | **DONE + MERGED 3e4edb26b** (merge gate: 5 fixed incl. selectH-3.7 bonus, 2 flakes, 0 true regressions) |
 | expr triage | — | s27-expr-triage | read-only census | **DONE + MERGED bc3f3d810** (expr truth = 3 leaves; 98-leaf substring table) |
 | pager1 triage | — | s28-pager1-triage | read-only census | **DONE + MERGED 904efda02** (99 leaves, 7 buckets, slices U1→U7) |
