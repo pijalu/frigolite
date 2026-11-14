@@ -406,6 +406,21 @@ type SelectEngine struct {
 	// scan is C's query-flattening target (SELECT * FROM t2 flattens into a
 	// plain t2 loop), so no separate scan exists in C's plan to count.
 	suppressFullScanCounter bool
+	// joinBaseLoop records the loop the join statement's FROM table actually
+	// ran (joinBaseScanRows): C's WhereLoop for the outermost path slot, the
+	// input of the join ORDER BY delivery analysis. nil outside a join
+	// statement's execution (a plain single-table scan still records
+	// loopNone when the delivery claim is computed).
+	joinBaseLoop *joinDeliveryLoop
+	// joinDelivery carries the join ORDER BY delivery verdict (the
+	// wherePathSatisfiesOrderBy port) and the per-operand inner picks the
+	// executor must honor for the rows to emerge in the delivered order.
+	// Computed once per join statement before the join pipeline runs.
+	joinDelivery *joinDeliveryPlan
+	// joinInnerPick is the delivery pick of the join operand currently
+	// being materialized (consumed by materializeTableJoin to permute the
+	// operand's rows into the pick's index order).
+	joinInnerPick *joinInnerPick
 	resolvingViews    map[string]bool          // tracks views currently being resolved (circular reference detection)
 	viewRefCounts     map[string]int           // FROM-term references per view within one statement (select.c Table.nTabRef, 0xffff cap)
 	viewRefDepth      int                      // >0 while a top-level SELECT using view reference counting is executing
