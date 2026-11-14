@@ -901,3 +901,70 @@ everywhere; go vet + go build clean.
   NOT the engine. If it recurs in the next gate, dig the harness
   query_assign/runtime_expr path with dlv; until then treat as flake
   (do not chase single occurrences).
+## S24 record (2026-11-14) — the proper-superset candidate choice + the CROSS-join join order
+
+- **The whereH "proper superset" choice is decided by whereLoopInsert's
+  subset-cost adjustment, not by the default ladder alone**
+  (where.c whereLoopCheaperProperSubset + whereLoopAdjustCost +
+  whereLoopFindLesser): a loop whose constraint set is a proper superset of
+  an existing loop's is forced strictly cheaper (rRun=min, nOut=min(
+  existing−1)); a proper subset strictly costlier. whereH-1's trace proves
+  it load-bearing: t1abc and t1bc's raw ladder arithmetic TIES at nOut 12
+  and the subset rule breaks the tie to 11. Probe order = the pIndex
+  prepend chain = REVERSE creation order (adjustments are insertion-order
+  dependent; both probe orders still elect t1abc, but by different
+  adjustment directions).
+- **The verbatim no-stat1 pricing chain**: default ladder build.c
+  sqlite3DefaultRowEst aVal={33,32,30,28,26} then 23, a[0]=max(nRowLogEst,
+  99) with nRowLogEst=200; nOut(eq prefix)=aiRowLogEst[nEq]; one range
+  bound: whereRangeScanEst −20 per bound, −20 more for both bounds, −1 per
+  bound, floor 10 — **the −20 comes from WhereTerm.truthProb DEFAULTING TO
+  1 (whereexpr.c:83), not from a TUNING constant**; then
+  whereLoopOutputAdjust (only when single table AND an ORDER BY exists —
+  C's early-out) −1 per unconsumed term with the iReduce cap (10 for an
+  unused `col = int in [-1,1]`, else 20) against aiRowLogEst[0]; rRun =
+  LogEstAdd(estLog(aiRowLogEst[0]), nOut+1+(15*szIdxRow)/szTabRow) plus
+  LogEstAdd(..., nOut+16) when not covering — priced from the PRE-adjust
+  nOut. szIdxRow/szTabRow are LogEst(w*4) values and the (15*x)/y ratio
+  consumes LogEst inputs directly.
+- **Debug-shell oracle recipe**: gcc -O1 -DSQLITE_DEBUG=1
+  -DSQLITE_ENABLE_WHERETRACE -o /tmp/.../sqlite3dbg shell.c sqlite3.c
+  (never build inside the shared ../sqlite tree); `.wheretrace 0x44ff`
+  dumps every candidate loop ("add:/skip:/replace:" + the final list);
+  whereLoopPrint's cost tuple is (rSetup, rRun, nOut); estLog(x) =
+  sqlite3LogEst(x)−33. The 3.54 where.c source fetch: sqlite.org/src/raw/
+  <artifact-hash> with the hash read from the tag's MANIFEST (the raw URL
+  by tag name returns the manifest).
+- **3.54 changed the CROSS-join prereq rule** (where.c:4960-5017,
+  hasRightCrossJoin): a CROSS edge |= mPrior at its term AND latches, so
+  the per-term `mPrereq = 0` reset stops for ALL later FROM terms — a
+  comma-joined term after a CROSS edge inherits the CROSS term's prereq
+  (probes: `t1, t2 CROSS JOIN t3, t4` gives t3 AND t4 prereq {t1,t2};
+  `t1 CROSS JOIN t2, t3, t4` leaves t2..t4 at {t1}; LEFT edges still
+  reset). 3.51's `hasRightJoin` (LTORJ only) does not latch on CROSS —
+  the 3.51 tree alone MISDIAGNOSES 16.2's contract; validate against the
+  3.54 CLI (/usr/bin/sqlite3) whenever the shape involves CROSS.
+- **Our parser normalizes every join operator through joinTypeOf, whose
+  default returns "CROSS"** — a comma join carries JoinType "CROSS" PLUS
+  CommaJoin=true. Any jointype-driven logic (prereqs, reorder rules) must
+  consult CommaJoin; keying on the JoinType string alone turns every comma
+  join into a CROSS edge (it regressed `t1, t2 WHERE t2.c=1` to t1-first
+  before the flag check landed).
+- **Landing**: select_order_loopcost.go prices the ORDER-BY-delivering
+  seek candidates per the chain above and runs the subset adjustment
+  (terms = conjunct indexes = C's WhereTerm identity); the elevation lives
+  in preferOrderByServingIndex's chosen-delivers path (the chosen-not-
+  delivering tranche path is untouched); both EQP and the seek executor
+  flow through scanLoopForRowCount so plan and execution stay coherent.
+  The join EQP grew joinPrereqs (the 3.54 rule) with driver/next gating in
+  explain_join_order.go (moved out of explain_plan.go for the size
+  budget). whereH 5 -> 0, where2-16.2 fixed; where* name-set diff vs the
+  base commit: exactly those 6 fixed, zero new; orderby/index/analyze/
+  intpkey/select/join/limit/like all 0/0; TestS22_/TestSOLID_ green.
+- **where2-12.1 is CARDED** (the OR-loop-in-join planner unit): C's plan
+  is the MULTI-INDEX OR as table b's JOIN loop (whereLoopAddOr inside a
+  join: arms b.x=rowid-seek + b.y=t12y-seek, prereq 0; a searched inner
+  via t12y(y=b.x)) — needs OR loops as join-loop candidates + the
+  MULTI-INDEX OR EQP block; overlaps S23's active join machinery
+  (select_join_scan.go) — schedule after the S23 merge settles. The
+  fixture's single-table OR machinery (S21) does not reach joins.

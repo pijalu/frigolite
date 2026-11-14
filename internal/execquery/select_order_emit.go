@@ -9,6 +9,8 @@
 package execquery
 
 import (
+	"strconv"
+
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/pager"
 	"strings"
@@ -416,4 +418,212 @@ func indexEntryRowid(cell *storage.Cell) (int64, bool) {
 	}
 	rid, isInt := util.UnwrapColumnValue(rec.Values[len(rec.Values)-1]).(int64)
 	return rid, isInt
+}
+// rowsInRowidOrder reports whether the statement's rows are already in
+// rowid order and the ORDER BY asks for exactly that order: a plain
+// single-table scan whose FIRST ORDER BY term is the rowid pseudo-column or
+// the table's INTEGER PRIMARY KEY alias. The rowid is unique, so any terms
+// after the first add no ordering constraint (where.c: a unique leading term
+// retires the rest of the sort). backward reports a rowid DESC order, which
+// a reverse table scan delivers.
+//
+// SQLite's rule (where.c): a full table scan emits its rows in rowid order,
+// so an ORDER BY on the rowid needs no temp b-tree. A skip-scan, an index
+// seek and the OR-index plan all deliver a different order and are excluded.
+func (e *SelectEngine) rowsInRowidOrder(result *Result, s *sql.SelectStmt, orderBy []sql.OrderByTerm) (backward, ok bool) {
+	if result == nil || result.RowsInBranchOrder || s == nil || len(orderBy) == 0 {
+		return false, false
+	}
+	if len(s.Joins) > 0 || s.Union != nil || len(s.GroupBy) > 0 || s.Distinct ||
+		s.From.Subquery != nil || s.From.Name == "" {
+		return false, false
+	}
+	// The scan must be a plain table scan: an index loop (seek, skip-scan or
+	// a covering walk) delivers its own order. An INTEGER PRIMARY KEY loop is
+	// rowid-ordered too — an equality seek emits one row and a range seek
+	// (rowid BETWEEN…) walks the table b-tree itself.
+	//
+	// A WHERE with a top-level OR is the exception: the OR-index plan
+	// decides the order, and when it is not applicable (a branch that no
+	// index can serve) the executor falls back to a plain table scan, whose
+	// rows are in rowid order. The OR plan itself marks its result
+	// RowsInBranchOrder, so the sort path never reaches this check for it.
+	loop, err := e.scanLoopForRowCount(queryTableFromRef(s.From), s, indexSeekPlanRowCount, false)
+	if err != nil {
+		return false, false
+	}
+	if loop.kind != loopNone && loop.kind != loopIPK && !whereHasOrConjunct(s.Where) {
+		return false, false
+	}
+	alias := e.rowidAliasColumnName(s.From.Name)
+	// The FIRST term decides (the rowid is unique, so later terms cannot
+	// break its order — where.c retires the remaining terms behind a unique
+	// leading term). It must name the rowid: the pseudo-columns
+	// rowid/_rowid_/oid work on every rowid table, the alias only where the
+	// table declares an INTEGER PRIMARY KEY.
+	first := orderBy[0]
+	isRowid := false
+	if ref, isRef := first.Expr.(*sql.ColumnRef); isRef {
+		isRowid = (alias != "" && strings.EqualFold(ref.Name, alias)) || isRowidPseudoColumnName(ref.Name)
+	} else if lit, isLit := first.Expr.(*sql.NumericLit); isLit {
+		// An ORDER BY ordinal names an output column: "ORDER BY 1" is the
+		// first column of the result.
+		if n, convErr := strconv.Atoi(strings.TrimSpace(lit.Value)); convErr == nil &&
+			n >= 1 && n <= len(result.Columns) {
+			name := result.Columns[n-1]
+			isRowid = (alias != "" && strings.EqualFold(name, alias)) || isRowidPseudoColumnName(name)
+		}
+	}
+	if !isRowid {
+		return false, false
+	}
+	return first.Desc, true
+}
+
+// rowidAliasColumnName returns the table's INTEGER PRIMARY KEY alias column
+// name ("" when the table has none, is a WITHOUT ROWID table, or declares a
+// column that shadows the rowid pseudo-column).
+func (e *SelectEngine) rowidAliasColumnName(tableName string) string {
+	entries, err := e.ctx.Schema().GetEntries("")
+	if err != nil {
+		return ""
+	}
+	for _, entry := range entries {
+		if entry.Name != tableName {
+			continue
+		}
+		if e.ctx.TableIsWithoutRowidEntry(entry) {
+			return ""
+		}
+		colDefs := e.ctx.ParseColumnDefs(tableName, entry.SQL)
+		if len(colDefs) > 0 && isRowidShadowColumn(colDefs) {
+			return ""
+		}
+		for i := range colDefs {
+			if isIPKRowidAliasCol(colDefs[i]) {
+				return colDefs[i].Name
+			}
+		}
+		return ""
+	}
+	return ""
+}
+
+// isRowidShadowColumn reports whether a declared column shadows the rowid
+// pseudo-column ("rowid"/"_rowid_"/"oid").
+func isRowidShadowColumn(colDefs []sql.ColumnDef) bool {
+	for i := range colDefs {
+		if isRowidPseudoColumnName(colDefs[i].Name) {
+			return true
+		}
+	}
+	return false
+}
+
+// isRowidPseudoColumnName reports whether a column name is one of the rowid
+// pseudo-column spellings.
+func isRowidPseudoColumnName(name string) bool {
+	switch strings.ToLower(name) {
+	case "rowid", "_rowid_", "oid":
+		return true
+	}
+	return false
+}
+
+// loopOrderedEmission reports the index whose b-tree order the executor must
+// emit a SEARCH plan's rows in, and the direction: the same loop-order gate
+// the planner used to drop the sorter (so the EQP shape and the emitted row
+// order never disagree). A no-WHERE query's full index walk (the ORDER BY-
+// serving index scanLoopForOrderIndex resolves) is served the same way —
+// the walk consumes the terms, the rowid tail of a rowid-table index
+// included (where-12.2's ORDER BY b, a). ok is false when the comparator
+// sort stays responsible for the ordering.
+func (e *SelectEngine) loopOrderedEmission(s *sql.SelectStmt) (idxName string, backward, ok bool) {
+	if s == nil || s.Union != nil || len(s.Joins) > 0 ||
+		s.From.Name == "" || s.From.Subquery != nil || len(s.GroupBy) > 0 || s.Distinct {
+		return "", false, false
+	}
+	if len(e.withoutRowidPKCols(s.From.Name)) > 0 {
+		return "", false, false
+	}
+	loop := e.scanLoopForQuery(queryTableFromRef(s.From), s, false)
+	if loop.kind != loopIndex {
+		return "", false, false
+	}
+	backward, satisfied := e.indexLoopOrderSatisfied(queryTableFromRef(s.From), loop, s)
+	if !satisfied {
+		return "", false, false
+	}
+	return loop.token, backward, true
+}
+
+// emitIndexOrderedRows applies the two index-order emission gates: the
+// plain-scan gate (all terms bare, index-leading-prefix order) and the
+// SEARCH gate (loopOrderedEmission: seek prefix + residual index columns —
+// the gate the planner used to omit the sorter, so the EQP shape and the
+// emitted row order never disagree). When either gate accepts, the result
+// rows are permuted into the index b-tree's stored key order: the seek
+// prefix fixes the leading values and the walk orders the rest, including
+// the reverse direction and its rowid-descending ties. Returns false when
+// the comparator sort stays responsible.
+// reverseResultRows flips the emitted row order in place — the reverse of a
+// table scan (OP_Last/OP_Prev) delivers a rowid-DESC order with no sorter.
+func reverseResultRows(result *Result) {
+	for i, j := 0, len(result.Rows)-1; i < j; i, j = i+1, j-1 {
+		result.Rows[i], result.Rows[j] = result.Rows[j], result.Rows[i]
+	}
+}
+
+// orderByRowidLeadingName reports whether the statement's first ORDER BY
+// term directly names the rowid (pseudo-column or INTEGER PRIMARY KEY
+// alias) by column name — the shape whose delivery the planner secures by
+// choosing the plain table scan over a secondary-index loop (where.c prices
+// the temp-b-tree sort into every loop that does not deliver the order, and
+// rowid order is free). Ordinal terms are excluded: resolving them needs
+// the result columns, which the planner does not have.
+func (e *SelectEngine) orderByRowidLeadingName(s *sql.SelectStmt) bool {
+	if s == nil || len(s.OrderBy) == 0 || s.Union != nil || len(s.Joins) > 0 ||
+		len(s.GroupBy) > 0 || s.Distinct || s.From.Subquery != nil || s.From.Name == "" {
+		return false
+	}
+	if len(e.withoutRowidPKCols(s.From.Name)) > 0 {
+		return false
+	}
+	ref, ok := normalizeOrderByExpr(s.OrderBy[0].Expr).(*sql.ColumnRef)
+	if !ok {
+		return false
+	}
+	if isRowidPseudoColumnName(ref.Name) {
+		return true
+	}
+	alias := e.rowidAliasColumnName(s.From.Name)
+	return alias != "" && strings.EqualFold(ref.Name, alias)
+}
+
+func (e *SelectEngine) emitIndexOrderedRows(result *Result, rowMaps []RowMap, s *sql.SelectStmt, orderBy []sql.OrderByTerm) bool {
+	// A plain table scan yields its rows in rowid order, so an ORDER BY whose
+	// FIRST term is the rowid (or its INTEGER PRIMARY KEY alias) is already
+	// satisfied and no sorter runs (SQLite: where.c's "the loop delivers the
+	// ordering" for a full table scan; the rowid's uniqueness retires later
+	// terms). A DESC first term is delivered by reversing the emitted rows —
+	// SQLite's OP_Last/OP_Prev reverse table scan. An OR-index plan is
+	// excluded: its rows are in branch order, not rowid order.
+	if backward, ok := e.rowsInRowidOrder(result, s, orderBy); ok {
+		if backward {
+			reverseResultRows(result)
+		}
+		return true
+	}
+
+	if idxName, backward, ok := e.indexOrderedScanForOrderBy(s, orderBy); ok {
+		if e.emitRowsInIndexOrder(result, rowMaps, s.From.Name, idxName, backward) {
+			return true
+		}
+	}
+	if idxName, backward, ok := e.loopOrderedEmission(s); ok {
+		if e.emitRowsInIndexOrder(result, rowMaps, s.From.Name, idxName, backward) {
+			return true
+		}
+	}
+	return false
 }
