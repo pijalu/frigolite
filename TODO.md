@@ -117,48 +117,38 @@ generation — re-derive family truth from the case paths before scoping.
 
 ## Immediate next action
 
-1. ~~Verify the S22 full gate, commit S22 slice 1~~ DONE 2026-11-12
-   (gate3: 33 fixed/0 new).
-2. **Parallel-agent units — S25 + S23(1-2) + S26 + S24 MERGED** (3e4edb26b,
-   510efa6b8, S26 commit, e746f48db). **S23's merge gate VERIFIED**
-   (/tmp/full_s23_merge_fails.txt, 1422 names: 8 net fixed / 0
-   regressions; where census 36). **S26** (coordinator, execdml): the
-   write-path corrupt contract — C trusts the index (OP_Found + the
-   OP_NotExists recheck); where-25.1/25.2 fixed, where census 10 → 8,
-   PLUS 9 bonus DML fixes (insert 2→0, delete 6→0, delete2 1→0 — the
-   authoritative no-entry probe replaced drifted scan paths). **25.5
-   CARDED**: the WR recheck needs the PK tail in the index record (C's
-   format; ours stores an unresolvable synthetic rowid) — a standalone
-   format unit (portplan/PLAN_S26_dml_corrupt.md). **S24**
-   (c3a0a7e9f): whereH 5 → 0 (the superset choice = whereLoopInsert's
-   subset-cost adjustment, wheretrace-pinned) + where2-16.2 (3.54's
-   hasRightCrossJoin prereq rule — the 3.51 tree alone misdiagnoses it);
-   where2-12.1 carded (OR loops as join candidates, after S23 settles).
-   **The S24 merge gate is running** (/tmp/full_s24_merge_gate.log;
-   expect ~17 fixed vs /tmp/full_s23_merge_fails.txt 1422).
-   **Fleet: S23-continuation running (where 14.x/6.15/19.0 + where8
-   residue), S29 expr-unit resumed (E3/E1/E2 → S1+S2).**
-3. **pager1 triage DONE** (portplan/TRIAGE_pager1_2026-11-12.md, merged
-   904efda02): 99 leaves in 7 buckets — B5 super-journal+faultsim 61
-   (land the harness-restore half first, ~27 leaves alone), B4
-   hot-journal 13, B7 misc engine contracts 11, B2 converter 5, B6
-   readonly 4, B1 subst-foreach 3, B3 __STEP_ 2. Slice order U1(3) →
-   U2(2) → U3(4) → U4(5) → U5(11) → U6(13) → U7(61); U1-U4 are
-   converter/harness-only (14 leaves).
-4. Then **expr** (triage DONE, merged bc3f3d810:
-   portplan/TRIAGE_expr_2026-11-12.md — the "109" census is STALE:
-   expr-family truth = 3 leaves (expr-16.100/101/102); the substring
-   group is 98 leaves/17 families. Top slices: E3+E1+E2 46 subtests
-   (regsub -all + fts3expr3 regen + fts3MaxExprDepth 12 + argv
-   coercion), S1+S2 CAST/truthiness 9, S5+A1+A8+D1 converter batch 11.
-   Stale fixtures: fts3expr3 .json+.gz dup, expridx1 fossil oracle,
-   e_expr-5.x frozen $as$bs), **the WAL residue classes**, and the
-   carded converter classes.
-Baselines: /tmp/full_s23_merge_fails.txt (the gate3-era diff target,
-1422 names; the S24 gate diff adds S26+S24 fixes on top),
-/tmp/full_s23_merge_gate.log (the verified gate log; older logs were
-purged from /tmp in the pause — rebuild fail sets from logs, never
-trust remembered counts).
+1. **The parallel-where phase is COMPLETE** (S22 → S26 → S24 → S23-cont
+   → S29 → S30, all merged, every merge gate name-set-verified; the
+   full record lives in portplan/HANDOFF_2026-11-12_PARALLEL_WHERE.md):
+   - Where census **78 → 3** (where-25.5 carded; where2-2.5/2.5b the
+     random-EXPLAIN class; the where2-2.4 probabilistic flake).
+   - pager1 **99 → 89** (U1-U4 landed; U3's readonly leaves await U6/U7).
+   - fts3expr3 52 → 0; e_expr -9; where8/where9/whereH 0; the DML
+     corrupt contract (25.1/25.2) + 9 bonus DML fixes.
+   - The seek-collation gate (96b624803) fixed the existsexpr-4.4.2
+     regression; temptable2-9.2.x bisected PRE-EXISTING (a small-cache
+     stress dither, watchlist).
+   - Verified baseline: /tmp/full_s30_gate_fails.txt (1366, clean run;
+     the only "new" = the documented temptable2-4.1.1 timing flake).
+2. **Next units (in order)**:
+   - **pager1 U5-U7** (85 leaves: B7 misc 11 → B4 hot-journal 13 → B5
+     super-journal+faultsim 61; land U6's journal substrate before U7;
+     U3's 4 readonly leaves ride U7).
+   - **expr S5+A1+A8+D1** (11 subtests, the converter batch) + the
+     fts3* residue 54 (B1-style converter classes).
+   - **where-25.5**: the WR index PK-tail format unit
+     (portplan/PLAN_S26_dml_corrupt.md's card).
+   - **The WAL residue classes** (HANDOFF_2026-11-04_WAL_RESIDUE.md).
+   - Then the carded converter classes and the performance phase
+     (F1c/F3 lanes in GAP_CLOSURE_PLAN_2026-10-31.md).
+3. Standing rules: ≤2 agents while a gate runs (≤4 without); gates need
+   the box's CPU (budget -timeout 60m when sharing); verify in FAMILY
+   context (the leaf filter skips setup steps); faultsim logs corrupt
+   in place — never trust a suspiciously-clean extraction.
+Baselines: /tmp/full_s30_gate_fails.txt (1366, the verified diff
+target), /tmp/full_s32_gate_fails.txt (1388 incl. the stress dither),
+/tmp/full_s29_gate_fails.txt (1375). Older logs purged — rebuild fail
+sets from logs, never trust remembered counts.
 
 ## Queue (in order)
 
