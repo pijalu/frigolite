@@ -145,6 +145,13 @@ func (e *SelectEngine) buildJoinDeliveryPlan(s *sql.SelectStmt, baseDefs []sql.C
 			continue
 		}
 		loop.withoutRowid = e.operandIsWithoutRowid(op.real)
+		if e.joinOrArmConjunctForClaim(s, i, ops) != nil {
+			// The operand's loop is an OR-branch row source (C's OR loop
+			// carries no index): the walk gives up when it reaches it.
+			loop.orLoop = true
+			loops = append(loops, loop)
+			continue
+		}
 		loop.idx, loop.kind = e.joinInnerOrderPick(s, i+1, op, terms, pool, ops)
 		if loop.kind == loopIndex {
 			picks[i] = &joinInnerPick{idxName: loop.idx}

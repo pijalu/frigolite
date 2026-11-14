@@ -140,7 +140,7 @@ func (e *SelectEngine) applyJoin(
 	combinedMaps := e.runJoinNestedLoop(
 		s, join, currentMaps, rightMaps, corrLeftIdx,
 		lastTableName, tableName, leftName, effectiveOn,
-		autoIndex, rightDefs, isRightOrFull, matchedRight)
+		autoIndex, currentDefs, rightDefs, isRightOrFull, matchedRight)
 
 	// RIGHT/FULL JOIN: add unmatched right rows with NULL-padded left.
 	if isRightOrFull {
@@ -212,7 +212,7 @@ func (e *SelectEngine) runJoinNestedLoop(
 	s *sql.SelectStmt, join sql.JoinClause,
 	currentMaps, rightMaps []RowMap, corrLeftIdx []int,
 	lastTableName, tableName, leftName string, effectiveOn sql.Expr,
-	autoIndex map[interface{}][]joinIndexEntry, rightDefs []sql.ColumnDef,
+	autoIndex map[interface{}][]joinIndexEntry, currentDefs, rightDefs []sql.ColumnDef,
 	isRightOrFull bool, matchedRight []bool,
 ) []RowMap {
 	var combinedMaps []RowMap
@@ -231,12 +231,26 @@ func (e *SelectEngine) runJoinNestedLoop(
 		}
 		return combinedMaps
 	}
+	// The OR-branch row source (where.c's Case 5 OR loop for this operand):
+	// per outer row the arms run in order over the right rows (C's RowSet
+	// dedup by right-row identity), the ON's remaining conjuncts still
+	// filtering each candidate.
+	orArms := e.joinInnerOrArms(s, join, currentDefs, rightDefs, lastTableName, tableName)
 	for leftIdx, leftMap := range currentMaps {
 		effectiveJoin := join
 		if effectiveOn != join.On {
 			effectiveJoin.On = effectiveOn
 		}
 		rowRightMaps, rowCorrLeft := selectCorrelatedRightMaps(rightMaps, corrLeftIdx, leftIdx)
+		if orArms != nil && rowCorrLeft == nil && !isRightOrFull {
+			// RIGHT/FULL joins keep the pass out: their unmatched-right
+			// tracking needs the full right-map sweep the pass replaces.
+			matched := e.orArmJoinRows(leftMap, rightMaps, orArms, effectiveOn, &combinedMaps, lastTableName, tableName)
+			if !matched && (joinTypeHas(join.JoinType, "LEFT") || joinTypeHas(join.JoinType, "FULL")) {
+				combinedMaps = append(combinedMaps, e.buildLeftJoinRow(leftMap, rightDefs, tableName, leftName))
+			}
+			continue
+		}
 		matched := e.processJoinRowTrackingRight(
 			leftMap, rowRightMaps, &combinedMaps, lastTableName, tableName, effectiveJoin,
 			rightDefs, autoIndex,
