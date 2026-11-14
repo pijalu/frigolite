@@ -105,6 +105,28 @@ as you land pieces.
   the inner covering-walk pick) → P3 S23.3 OR→IN + OR-arm row source →
   P4 where9-2.6 → P5 S23.5. Family sweep + TestS22_ pins after each.
 
+### FINAL STATUS (2026-11-14, s23-join — all pieces landed)
+
+- Commits: a85d3cd9b (P1 fixture), 31d9f980c (P2 delivery),
+  18f554871 (P3a base OR), 7983f47a5 (P3b inner OR pass),
+  2ad953337 (P3c 19.0 EQP), 9f3d07419 (P5 correlated seek).
+- Census: 40 → 15 (where 10→3, where2 4→3, where8 15→0, where9 2→0,
+  whereH 5 unchanged, wherelimit2 4 unchanged — S25 merges).
+  where-19.0 folded in per the coordinator's scope addition; where2-12.1
+  fixed as a side effect (the OR EQP shape). Remaining:
+  where-25.1/25.2/25.5 (corruption/error class), where2-16.2/2.5/2.5b
+  (candidate-choice), whereH 5 (EQP autoindex names), wherelimit2 4
+  (S25 merge) — all carded out of this unit.
+- Regression sweeps: the where families + the join families + the
+  select/index/order/group/distinct/having/limit canaries diffed against
+  the a85d3cd9b baseline in a DEDICATED baseline worktree — 169 → 169
+  leaf-identical. TestS22_ pins + TestSOLID_ green after every piece.
+- C contracts landed (see the lessons record): the backward
+  sqlite3WhereExprAnalyze + the commuted-copy arm ordering, the CASE-1
+  same-column IN rewrite, the correlated-bound seek (the orientation-aware
+  seekRefSides + the operand scope), and the real-name schema resolution
+  for aliased FROM terms.
+
 ### P2 concrete design (verified against probes + the 3.54 oracle, 2026-11-14)
 
 - **Probes established**: where8-3.12's base already runs the i1 walk
