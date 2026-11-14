@@ -141,3 +141,51 @@ helpers in expression_inlist.go:362-503:
 - Lessons: append S29 record to .agents/lessons_learned.md (append-only).
 - Commit on s29-expr-unit (pre-commit hook: gocognit<=15, gocyclo<=12,
   staticcheck). Full-suite gate is the COORDINATOR's job.
+
+## Addendum (mid-flight discoveries, 2026-11-14)
+
+1. **E3 needed a second converter fix — cmdCatch branch order** (interp_cmds.go):
+   a conversion-time error raised AFTER a statement was captured (the
+   strip_phrase_data recursion over the runtime placeholder hitting the
+   proc-depth limiter) routed to the literal-msg branch, freezing
+   "proc call depth exceeded" into the runtime_list instead of the dynamic
+   $msg reference. Statement capture is now authoritative; the seven
+   depth-limit leaves (3.65-3.69#01, 4.1.1, 4.2) emit the correct
+   [$__catchrc_msg, $msg] runtime_list.
+2. **E2's error text**: exprtest maps ANY rebalance-stage error to
+   "Error parsing expression" (fts3_expr.c:1263-1265 discards pzErr).
+3. **The fts3expr3 fixture regen also corrected the INPUTS**: the old
+   fixture's `regsub xxx $query $i query` froze ALL placeholders to the same
+   number (ReplaceAllString without -all); single-match semantics numbers
+   them 1..n in order. Name-set equal except `fts3expr3-fault-1` ADDED (the
+   do_faultsim_test the older converter never emitted; harness supports
+   faultsim_test — it passes).
+4. **4.1.2 (bare `catch {}` body value) needed a third converter fix**:
+   commandCatch stamps a deterministic __catchrc variable for the bare form,
+   and cmdDoTest emits a runtime_list [$__catchrc] for a trailing catch
+   whose value is the placeholder (previously the expect "0" stayed on the
+   query step and compared the tree render against the rc).
+5. **A4's fix point moved**: the oracle keeps the NUL bytes IN THE VALUE
+   (hex(CAST(X'670068006900' AS text)) = 670068006900) — the triage's
+   "truncate in evalCastExpr" is wrong. The stop is the testfixture row
+   adapter's Tcl_NewStringObj(z, -1) (tclsqlite.c:1866): the harness's
+   formatSQLiteValue now truncates rendered TEXT at the first NUL.
+6. **A3's fix point**: util.Affinity IS the engine's sqlite3AffinityType
+   derivation (DDL uses it); evalCastExpr now switches on it (C's
+   sqlite3ExprAffinity TK_CAST case). isTextAffinityType removed.
+7. **A6's engine root cause**: scanRealPrefix consumed a dangling 'e'
+   ('1english' → prefix '1e' → ParseFloat error → 0.0 → false). C's AtoF
+   ignores a dangling exponent for the VALUE (eValid=0). The prefix-real
+   port now lives in value.RealValuePrefix (shared by ToBool and iif's
+   isTruthyValue — iif is INLINEFUNC_iif, compiled to CASE in C).
+8. **A7's reality vs the triage**: the ENGINE side was already faithful
+   (exec/params.go MaxVariableNumber=32766 + errTooManySQLVariables); the
+   CONVERTER's bindSQLParams inlined `$::a` → `22`, destroying the
+   parameter. bindSQLParams now keeps ::-prefixed (global-namespace)
+   references as parameters — testfixture binds globals AFTER prepare.
+   The e_expr fixture was NOT wholesale-regenerated: the regen drifted on
+   7024/32210 cases ($a2 → {} expect freeze — older-converter runtime-var
+   machinery), so leaf e_expr-11.7.1's first step is HAND-PINNED instead
+   ("SELECT ?32766, 22" → "SELECT ?32766, $::a", one string replacement,
+   JSON re-validated). The S22 lesson (never wholesale-install drifted
+   regens) applies; the e_expr regen stays a carded converter-drift item.
