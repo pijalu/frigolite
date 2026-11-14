@@ -67,16 +67,126 @@ as you land pieces.
 
 ## Restart / status (S23 execution log — update as pieces land)
 
-- Baseline RESOLUTION: /tmp/w_s22_f.txt (62 lines) is a STALE mid-S22
-  snapshot. The authoritative census = the verified full gate at
-  73a643fe4: where-family 47 leaves (where 10, where2 4, where8 16,
-  where9 8, whereH 5, wherelimit2 4). The worktree's own sweep
-  reproduces exactly 47 — /tmp/s23_base_leaves.txt is the working
-  baseline (leaf-only lines; the raw sweep log also has 6 family-level
-  FAIL lines that must be filtered).
-- Failure table (got vs want, from the sweep log) and the C contracts
-  are in the diagnosis below. Scope = 30 leaves: where8 16, where9 8,
-  where 6.15+14.x (6).
+- S23.1/S23.2 landed (f3ec10698, 7a3a28e6f). Fresh sweep 2026-11-14
+  (this worktree, /tmp/s23_sweep_where.txt): census **40** leaves
+  (where 10, where2 4, where8 15, where9 2, whereH 5, wherelimit2 4).
+  S23.1/S23.2 took where8 16→15 (3.7, 3.13 green) and where9 8→2
+  (4.x + 2.1-2.4 green; 2.6 still red). New arrivals: **where8-5.3 is a
+  REGRESSION-turned-stale-fixture**: the S23.2 loop picks made the
+  LEFT-JOIN-OR query SUCCEED (C-correct: oracle returns `1|`; the old
+  engine errored, which silently matched the converter's mis-baked
+  `expect: "1 {}"` read as rc-1+braced-message = error expectation).
+  Hand-pin the fixture (query step) — engine is right.
+- In-scope residue (23 leaves):
+  - **sort-only (S23.4)**: where8-3.11/3.12/3.21/3.21.1/3.21.2/3.22
+    (scan counters already right; ORDER BY t1.a delivered by the outer
+    i1 range walk) + where-6.15 (rows right, sort 1→0).
+  - **rows+sort (S23.4)**: where-14.3/14.4 (x.a unique retires x.b via
+    the mark-off; inner y must walk UNIQUE(b) covering — y.a rides the
+    entry rowid), where-14.7.2 (x outer via covering UNIQUE(b) walk,
+    x.a rides the entry rowid; x.a||x.b retired by the mask rule).
+    where-14.1/14.2 rows already right — sort only.
+  - **OR→IN base seek (S23.3.1)**: where8-3.3/3.4/3.5/3.6 — scan 9→0,
+    rows already right.
+  - **OR-arm row source (S23.3.2)**: where8-3.8 (base t1 arms a=? i1,
+    b=? i2 → counter 0, rows unchanged, sort stays 1), where8-3.9 (base
+    t1 stays the PLAIN table scan — C declines the 3-arm OR for the
+    rowid-ordered walk; inner t2 arms i3 d=?/i4 e=? per outer row →
+    rows 9/4 9/9 → 9/9 9/4, sort 1→0 via the rowid walk),
+    where9-2.5 (inner t2 arms per outer row, arm order).
+  - **where9-2.6**: LEFT JOIN; base t1 WHERE has a 3-arm OR — want
+    scan 0 (C: t1 via multi-index OR of the WHERE arms).
+  - **S23.5 correlated subquery seek**: where8-3.14 (99→9), 3.15
+    (909→9).
+  - Out of scope stays: where-19.0/25.x, where2 4, whereH 5,
+    wherelimit2 4 (S25 merge).
+- Delivery order (plan-before-change per piece): P1 fixture hand-pin →
+  P2 S23.4 join ORDER BY delivery (the wherePathSatisfiesOrderBy port +
+  the inner covering-walk pick) → P3 S23.3 OR→IN + OR-arm row source →
+  P4 where9-2.6 → P5 S23.5. Family sweep + TestS22_ pins after each.
+
+### FINAL STATUS (2026-11-14, s23-join — all pieces landed)
+
+- Commits: a85d3cd9b (P1 fixture), 31d9f980c (P2 delivery),
+  18f554871 (P3a base OR), 7983f47a5 (P3b inner OR pass),
+  2ad953337 (P3c 19.0 EQP), 9f3d07419 (P5 correlated seek).
+- Census: 40 → 15 (where 10→3, where2 4→3, where8 15→0, where9 2→0,
+  whereH 5 unchanged, wherelimit2 4 unchanged — S25 merges).
+  where-19.0 folded in per the coordinator's scope addition; where2-12.1
+  fixed as a side effect (the OR EQP shape). Remaining:
+  where-25.1/25.2/25.5 (corruption/error class), where2-16.2/2.5/2.5b
+  (candidate-choice), whereH 5 (EQP autoindex names), wherelimit2 4
+  (S25 merge) — all carded out of this unit.
+- Regression sweeps: the where families + the join families + the
+  select/index/order/group/distinct/having/limit canaries diffed against
+  the a85d3cd9b baseline in a DEDICATED baseline worktree — 169 → 169
+  leaf-identical. TestS22_ pins + TestSOLID_ green after every piece.
+- C contracts landed (see the lessons record): the backward
+  sqlite3WhereExprAnalyze + the commuted-copy arm ordering, the CASE-1
+  same-column IN rewrite, the correlated-bound seek (the orientation-aware
+  seekRefSides + the operand scope), and the real-name schema resolution
+  for aliased FROM terms.
+
+### P2 concrete design (verified against probes + the 3.54 oracle, 2026-11-14)
+
+- **Probes established**: where8-3.12's base already runs the i1 walk
+  (rows in a-order with reversed inserts; the join EQP renderer just
+  prints "SCAN t1"); where-14.7.2's base already runs the b walk;
+  where-14.1/14.2 rows already right; where-14.3/14.4's wrong rows =
+  the y materialization's table order vs C's covering autoindex walk;
+  where-6.15's swap (shouldSwapCommaJoin fires: indexed side inner)
+  destroys the t3 base walk's order — C keeps t3 outer BECAUSE its walk
+  delivers the ORDER BY. Our unordered `SELECT a FROM t` covering-walk
+  gap is pre-existing and out of scope.
+- **New file internal/execquery/select_join_order.go**:
+  - `joinDeliveryLoop{token, real, kind, idx, nEq, oneRow}` — one loop;
+    built for the base from joinBaseScanRows's actual pick (RECORDED on
+    the engine, save/restored like currentScanTable) and per join
+    operand (real plain-table only; subquery/view/vtab operands are
+    non-deliverable → the analysis dies at that loop unless obDone).
+  - `joinOrderTerm{col, tableToken, desc, collate, nullsFirst/Last,
+    usageTables, sat}` — expression terms carry usage masks; column
+    terms carry their table token.
+  - `joinOrderByDelivered(s)` — the wherePathSatisfiesOrderBy port:
+    per loop the eq pre-pass (conjuncts usable at this level: refs ⊆
+    positioned tables; X IS NULL / IS / eq with agreeing collation),
+    the one-row skip, the index-column walk (reuse walkColumnStep/
+    matchWalkColumn per loop: nEq skip, the rowid tail, direction per
+    loop, the nullable-unconstrained void + the rowid-match restore,
+    the j==0||j<nKeyCol break rule), and the order-distinct mark-off
+    (mask |= loop token; terms whose usage ⊆ mask marked; constants
+    marked). Full delivery only when obSat==obDone. OR-loop bases and
+    non-real-table inners void the claim. LEFT/RIGHT/FULL joins void
+    the claim (targets are all comma/inner).
+  - `joinInnerDeliveryPick` — per real-table inner operand: remaining
+    ORDER BY terms referencing it → the ORDER-BY-serving covering walk
+    (first covering serving index, else first serving); else the cost
+    covering walk (the statement's used columns on the operand ⊆ index
+    cols ∪ rowid — C's colUsed covering rule; first covering index in
+    schema order); else none (table walk = rowid order — already
+    faithful).
+- **Wiring**: execSelectPostScan computes the claim + picks BEFORE
+  execJoins (the swap decline in runJoinNestedLoop reads it: a
+  delivered claim owns the loop order — where-6.15 keeps t3 outer).
+  materializeTableJoin permutes the rightMaps into the pick's index
+  stored rowid order (indexStoredRowidOrder + indexOrderPermutation,
+  reversed for a backward pick — 14.2's y.b DESC). The final gate: the
+  emitIndexOrderedRows join branch returns true when the claim held
+  (rows are already in the delivered order; no permutation, no
+  sorter). Base walk directions must be forward (a backward base walk
+  claim is declined — sorter owns it; carded).
+- **Counters**: none of P2 touches counters (the sort marker only).
+- **S23.3 amendment** (probes): 3.3/3.4/3.5/3.6 are covered by routing
+  the join BASE through the existing OR-branch machinery (planOrIndex-
+  Scan on the FROM-only view; every arm must find an index — 3.9's
+  c-arm unindexed declines exactly like C's no-OR-loop rule). C's
+  same-column-arm IN rewrite (exprAnalyzeOrTerm) only differs from
+  branch order when the arm order is not value-sorted — not observable
+  in the targets; carded nuance. The INNER OR-arm row source is a
+  per-outer-row arm-order pass over the materialized right maps (the
+  arm exprs evaluated on the combined maps, dedup by right rowid per
+  outer row — C's RowSetTest), gated on every arm constraining an
+  indexed right-operand column (LEFT JOIN included — where9-2.5/2.6).
 
 ### Diagnosis (verified against the 3.54 CLI oracle + fixture expects)
 

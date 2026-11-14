@@ -180,6 +180,10 @@ func (e *Engine) ExecSelectWithOrPlan(s *sql.SelectStmt, tableEntry *schema.Entr
 	return e.execSelectWithOrPlan(s, tableEntry, dbCtx, colDefs, branches)
 }
 
+func (e *Engine) ExecSelectWithOrPlanRows(s *sql.SelectStmt, tableEntry *schema.Entry, dbCtx *execquery.DatabaseContext, colDefs []sql.ColumnDef, branches []execquery.OrBranchPlan) ([][]interface{}, []execquery.RowMap, error) {
+	return e.dml.ExecSelectWithOrPlanRows(s, tableEntry, dbCtx, colDefs, branches)
+}
+
 func (e *Engine) ValidateIndexedBy(tableEntry *schema.Entry, indexName string, s *sql.SelectStmt) error {
 	return e.validateIndexedBy(tableEntry, indexName, s)
 }

@@ -951,6 +951,27 @@ func indexPlainColumns(sqlStr string) []string {
 // for each OR term in order, the matching rows in that term's index scan
 // order (deduplicated against rows already emitted).
 func (e *DMLExecutor) execSelectWithOrPlan(s *sql.SelectStmt, tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef, branches []orBranchPlan) *Result {
+	allRows, allRowMaps, coreRes := e.orPlanSelectRows(s, tableEntry, dbCtx, colDefs, branches)
+	if coreRes != nil {
+		return coreRes
+	}
+	// Aggregate and finalize exactly like the regular scan path.
+	if result := e.ctx.HandleSelectAggregates(s, allRowMaps, colDefs); result != nil {
+		return result
+	}
+	result := &Result{Columns: e.ctx.BuildColumnNames(s.Columns, colDefs, s), Rows: allRows}
+	// The rows come out in OR-branch order (each branch contributes its own
+	// index order), so an ORDER BY needs a comparator sort — SQLite's
+	// MULTI-INDEX OR always adds a temp b-tree for one.
+	result.RowsInBranchOrder = true
+	return e.ctx.FinalizeSelectResult(result, s, allRowMaps)
+}
+
+// orPlanSelectRows runs the OR-branch walk and returns the raw output rows
+// and full row maps in branch scan order (no aggregate/finalize pass — the
+// join base loop feeds them into the join pipeline, which owns the
+// statement-level handling). A non-nil *Result carries an error.
+func (e *DMLExecutor) orPlanSelectRows(s *sql.SelectStmt, tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef, branches []orBranchPlan) ([][]interface{}, []RowMap, *Result) {
 	prevScanTable := e.ctx.CurrentScanTable()
 	e.ctx.SetCurrentScanTable(tableEntry.Name)
 	if s.From.As != "" {
@@ -962,7 +983,7 @@ func (e *DMLExecutor) execSelectWithOrPlan(s *sql.SelectStmt, tableEntry *schema
 	defer tree.Close() // scan tree is function-local
 	cursor, err := tree.OpenCursor()
 	if err != nil {
-		return &Result{Error: err}
+		return nil, nil, &Result{Error: err}
 	}
 
 	colIndex := make(map[string]int, len(colDefs))
@@ -1055,7 +1076,7 @@ func (e *DMLExecutor) execSelectWithOrPlan(s *sql.SelectStmt, tableEntry *schema
 			}
 			row, ok, res := e.fetchOrPlanRow(cursor, m, branches, s, tableEntry, colDefs)
 			if res != nil {
-				return res
+				return nil, nil, res
 			}
 			if !ok {
 				continue // the owning branch's residual rejected the row
@@ -1075,17 +1096,17 @@ func (e *DMLExecutor) execSelectWithOrPlan(s *sql.SelectStmt, tableEntry *schema
 		}
 	}
 	e.ctx.IncSearchCount(searchDelta + movetos)
+	return allRows, allRowMaps, nil
+}
 
-	// Aggregate and finalize exactly like the regular scan path.
-	if result := e.ctx.HandleSelectAggregates(s, allRowMaps, colDefs); result != nil {
-		return result
+// ExecSelectWithOrPlanRows runs the OR plan and returns the raw branch-order
+// rows and full row maps (no finalize) — the join base loop's row source.
+func (e *DMLExecutor) ExecSelectWithOrPlanRows(s *sql.SelectStmt, tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef, branches []orBranchPlan) ([][]interface{}, []RowMap, error) {
+	rows, maps, res := e.orPlanSelectRows(s, tableEntry, dbCtx, colDefs, branches)
+	if res != nil {
+		return nil, nil, res.Error
 	}
-	result := &Result{Columns: e.ctx.BuildColumnNames(s.Columns, colDefs, s), Rows: allRows}
-	// The rows come out in OR-branch order (each branch contributes its own
-	// index order), so an ORDER BY needs a comparator sort — SQLite's
-	// MULTI-INDEX OR always adds a temp b-tree for one.
-	result.RowsInBranchOrder = true
-	return e.ctx.FinalizeSelectResult(result, s, allRowMaps)
+	return rows, maps, nil
 }
 
 // branchMatch records one row that matched an OR branch's prefix, together

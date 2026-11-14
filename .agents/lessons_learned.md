@@ -968,3 +968,90 @@ everywhere; go vet + go build clean.
   MULTI-INDEX OR EQP block; overlaps S23's active join machinery
   (select_join_scan.go) — schedule after the S23 merge settles. The
   fixture's single-table OR machinery (S21) does not reach joins.
+
+## S23 record (2026-11-14) — the join-loop machinery (P-C1, the where census 40 -> 15)
+
+- **The join ORDER BY delivery is a WHOLE-PATH analysis, not a per-table
+  one** (where.c wherePathSatisfiesOrderBy over the loop path): the
+  per-loop walk (the eq pre-pass over conjuncts whose other side is
+  already-positioned, the index-column walk from the seek's eq prefix with
+  the rowid tail, the nullable-unconstrained order-distinct void and the
+  rowid-match restore) is the single-table shape per loop, but the
+  obSat/obDone/mask state is CROSS-LOOP: the mark-off (isOrderDistinct ->
+  orderDistinctMask |= the loop) retires every term whose operand usage
+  the mask covers — so a UNIQUE base index can retire the whole ORDER BY
+  before the inner loop is ever examined (where-14.7.2's x.a||x.b), and a
+  rowid match restores distinctness even for a voided non-unique loop.
+- **The loops must EMERGE in the claimed order**: the base pick is
+  recorded from actual execution (rowid seek / index seek / walk / plain
+  scan / OR loop), and each real-table inner operand materializes into its
+  pick's stored index order (C's covering walk) — the permutation by the
+  index b-tree's rowid sequence reproduces C's constrained-inner seek
+  order too (the filtered subset preserves the walk's relative order).
+  The claim declines when the base direction is backward (the executor's
+  base runs forward only — carded) and at LEFT/RIGHT/FULL joins.
+- **A delivered claim owns the loop order**: the comma-join swap
+  (indexed-side-inner) must be declined when the claim held — C kept the
+  ORDER-BY-delivering loop outer (where-6.15's t3 outer via its a-walk).
+- **C's OR-arm execution order is NOT the written order** (three oracle
+  probes + the source): sqlite3WhereExprAnalyze walks the clause
+  BACKWARD, every two-column comparison gets a commuted virtual copy
+  (exprAnalyze's copy+commute), and wherecode.c Case 5 runs only terms
+  whose normalized leftCursor is the OR table — so operand-column-left
+  arms (and AND-spine arms, literal-left arms) run in written order, then
+  the commuted copies of outer-column-left arms run in REVERSE written
+  order (where8-3.11's (a=d OR b=e) emits the e-arm first; (b=e OR a=d)
+  emits the d-arm first). The CASE-1 same-column shape (every arm a
+  single eq on one operand column) rewrites to one IN seek — the arms
+  stay in written order (where2-6.14.1).
+- **The OR plan's every-arm rule is the no-OR-loop rule**: an arm without
+  an indexed operand column voids the whole OR plan (where8-3.9's c='IX'
+  arm — C scans t1 instead; where9-2.5/2.6's all-indexed arms form the
+  MULTI-INDEX OR). The join BASE routes through the S21 branch machinery
+  on the FROM-only conjunct view; the INNER loop runs a per-outer-row
+  arm-order pass over the materialized right maps (the arm exprs evaluated
+  on the combined maps, dedup by right-row identity after the arm
+  accepts, the ON's remaining conjuncts still filtering). Gated off
+  RIGHT/FULL joins (their unmatched tracking needs the full sweep —
+  join7-1.116) and correlated rights. The ORDER BY claim marks an
+  OR-pass operand non-deliverable (C's OR loop carries no index).
+- **A correlated comparison bound is a runtime constant** (where8-3.14's
+  `e = b` seeks i4 per outer row; 3.15's `t2.d > inner.d` ranges i3): the
+  planner's collectBinaryRef gains the orientation-aware seekRefSides
+  (the OWN-table column side pairs with a literal/param/deterministic/
+  correlated bound; the operator FLIPS when the column is the
+  written-right — the executor's term extraction flips the same way, so
+  the (column, operator) pairs must agree), the executor's
+  seekOuterBoundValue binds through OuterRowsForResolution (innermost
+  first, Get(qual) then Get(name)), and the whereref memo REFUSES the
+  correlated-bound shapes (the slot-path replay re-reads literal leaves
+  only). The correlated-bound check consults the statement's FROM operand
+  scope: a JOIN SIBLING's column is never a bound (its value is only
+  computable at that operand's own loop level — whereE-1.1's SCAN t1
+  stays); the scope is set per statement in execRealTableSelect and
+  explainQueryPlanSelect.
+- **bestIndexForRowCount must resolve the REAL table name**: the aliased
+  FROM term (t2 AS inner) rendered as the alias and every schema lookup
+  (findIndexOnColumn) failed — an aliased single-table seek planned SCAN
+  pre-P5 (`FROM t2 AS inner WHERE d=4` planned SCAN, C plans SEARCH inner
+  USING COVERING INDEX i3). The whereref memo key stays correct: the
+  where-AST pointer is unique per statement instance, so alias variants
+  never collide.
+- **Stale fixture (converter artifact)**: where8-5.3's do_execsql_test
+  result list "1 {}" was baked onto an exec step — the harness reads
+  "1 {}" as rc-1 + braced-message = an ERROR expectation, and the query
+  passed only while the engine ERRORED. The S23.2 loop picks made the
+  LEFT-JOIN-OR query succeed (C-correct: oracle "1|") and unmasked it.
+  Hand-pinned to a query step. The general signature: an exec step whose
+  expect is "N {...}" for a do_execsql_test whose LAST statement is a
+  SELECT.
+- **The join EQP's inner OR loop**: one "INDEX n" sub-plan per arm in
+  execution order, each arm's SEARCH naming its driving index (C's
+  ExplainQueryPlan in Case 5; where-19.0's t191 via
+  sqlite_autoindex_t191_1/2). The single-table seek planner must resolve
+  the REAL table name for the same reason as above.
+- **Sweep discipline**: the baseline for regression diffs must come from
+  a DEDICATED baseline worktree (git stash without -u leaves untracked
+  new files and breaks the baseline build — the "0 failures" baseline
+  was a build failure, and the resulting diff invented 28 regressions);
+  grep the harness logs with -a (the logs contain binary bytes).

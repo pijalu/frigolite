@@ -708,6 +708,12 @@ func (e *Engine) InvalidateRowIDCache(pg *pager.Pager, rootPage uint32) {
 
 // SelectNeedsRowMaps reports whether a SELECT needs per-row maps.
 func (e *Engine) SelectNeedsRowMaps(s *sql.SelectStmt, tableName string) bool {
+	// The join base-seek's row sources (seek / OR-plan) run on a
+	// Joins-stripped statement copy whose maps the join pipeline consumes:
+	// the forced flag outranks the statement's own shape.
+	if e.selectEngine.SelectRowMapsForced() {
+		return true
+	}
 	return selectNeedsRowMaps(e, s, tableName)
 }
 

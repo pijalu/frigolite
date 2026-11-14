@@ -13682,7 +13682,7 @@
           "sql": "INSERT INTO tA VALUES(1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8); \n    CREATE UNIQUE INDEX tAI ON tA(p);\n    CREATE TABLE tB(x);\n    INSERT INTO tB VALUES('x');"
         },
         {
-          "type": "exec",
+          "type": "query",
           "sql": "SELECT a, x FROM tA LEFT JOIN tB ON (\n      a=1 AND b=2 AND c=3 AND d=4 AND e=5 AND f=6 AND g=7 AND h=8 AND\n      i=1 AND j=2 AND k=3 AND l=4 AND m=5 AND n=6 AND o=7 AND\n      (p = 1 OR p = 2 OR p = 3)\n    )",
           "expect": "1 {}"
         }
