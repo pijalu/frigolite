@@ -1172,3 +1172,11 @@ everywhere; go vet + go build clean.
   side's declared) equals the index column's (the DDL's COLLATE, else the
   column's declared). A recreated same-name index with a different
   collation (existsexpr-4.3's DROP+CREATE) is the trap shape.
+- **temptable2-9.2.x (+4.1.1, 5.1.2 when they dither)** — the
+  small-cache stress class (cache_size=15 + auto_vacuum + randomblob
+  churn + exact page-count assertions): dithers 13→3→2 across back-to-back
+  family runs, identical profile at the pre- and post-collation commits
+  (bisected via a worktree). The four historical gates drew clean
+  samples; its true baseline is "sometimes ~14". Class unit: the
+  small-cache temp-db churn (spill/latch timing) — separate from the
+  timing flake temptable2-4.1.1.
