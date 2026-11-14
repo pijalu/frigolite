@@ -53,6 +53,8 @@ func (e *SelectEngine) joinBaseScanRows(s *sql.SelectStmt, tableEntry *schema.En
 
 	rows, maps, handled := e.selectRowidSeekRows(&bs, tableEntry, colDefs, tree, nil)
 	if handled {
+		// The point-lookup rowid seek: at most one row (C's WHERE_ONEROW).
+		e.joinBaseLoop = &joinDeliveryLoop{kind: loopIPK, oneRow: true, real: tableEntry.Name}
 		return rows, maps, true, nil
 	}
 	rows, maps, handled, err := e.selectIndexSeekRows(&bs, tableEntry, dbCtx, colDefs, tree, nil)
@@ -60,13 +62,31 @@ func (e *SelectEngine) joinBaseScanRows(s *sql.SelectStmt, tableEntry *schema.En
 		return nil, nil, true, err
 	}
 	if handled {
+		// The index seek: the rows arrive in the seek's index order within
+		// the equality/range bounds (C's SEARCH loop).
+		e.joinBaseLoop = &joinDeliveryLoop{kind: loopIndex, seek: true,
+			real: tableEntry.Name, withoutRowid: e.operandIsWithoutRowid(tableEntry.Name)}
+		if loop := e.scanLoopForQuery(queryTableFromRef(s.From), &bs, false); loop.kind == loopIndex {
+			e.joinBaseLoop.idx = loop.token
+			e.joinBaseLoop.nEq = e.indexEqPrefixLen(queryTableFromRef(s.From), loop.token, where)
+		}
 		return rows, maps, true, nil
 	}
 	// No seek survived: the ORDER-BY-serving index walk is the remaining
 	// candidate (scanLoopForQuery's loopNone fallback — where.c prices the
 	// sorter into every non-delivering loop, so a walk that delivers the
 	// order wins over the scan+sort shape).
-	return e.joinBaseOrderIndexWalk(s, bs, where, tableEntry, dbCtx, colDefs, tree)
+	rows, maps, handled, walkErr := e.joinBaseOrderIndexWalk(s, bs, where, tableEntry, dbCtx, colDefs, tree)
+	if walkErr != nil {
+		return nil, nil, true, walkErr
+	}
+	if handled {
+		return rows, maps, true, nil
+	}
+	// The plain table scan (C's Case 6 loop): rowid order.
+	e.joinBaseLoop = &joinDeliveryLoop{kind: loopNone, real: tableEntry.Name,
+		withoutRowid: e.operandIsWithoutRowid(tableEntry.Name)}
+	return nil, nil, false, nil
 }
 
 // joinBaseOrderIndexWalk runs the ORDER-BY-serving unconstrained index walk
@@ -77,16 +97,19 @@ func (e *SelectEngine) joinBaseScanRows(s *sql.SelectStmt, tableEntry *schema.En
 // advances count n-1 — recorded here; the per-candidate fetch movetos were
 // already counted by the fetch path's search counter.
 func (e *SelectEngine) joinBaseOrderIndexWalk(s *sql.SelectStmt, bs sql.SelectStmt, where sql.Expr, tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef, tree *btree.BTree) ([][]interface{}, []RowMap, bool, error) {
-	// The loop pick keeps the ORDER BY (the walk must be the one the ORDER
-	// BY serving analysis chooses) but plans constraints from the FROM-only
-	// conjuncts only.
-	ls := bs
-	ls.OrderBy = s.OrderBy
-	loop := e.scanLoopForQuery(queryTableFromRef(s.From), &ls, false)
-	if loop.kind != loopIndex || loop.seek || loop.token == "PRIMARY KEY" || loop.groupDistinct {
+	// The loop pick: an index whose unconstrained walk consumes every ORDER
+	// BY term of the FROM table (the prefix + order-distinct mark-off rule —
+	// where.c's ORDER-BY-delivering loop for the outermost slot; expression
+	// terms ride the mark-off). Candidates run in schema order.
+	tok, ok := e.joinBaseWalkCandidate(s, where, tableEntry, colDefs)
+	if !ok {
 		return nil, nil, false, nil
 	}
-	plan := &indexSeekPlan{index: loop.token}
+	// The walk ran: record its pick for the ORDER BY delivery analysis (the
+	// rows emerge in this index's stored key order).
+	e.joinBaseLoop = &joinDeliveryLoop{kind: loopIndex, idx: tok,
+		real: tableEntry.Name, withoutRowid: e.operandIsWithoutRowid(tableEntry.Name)}
+	plan := &indexSeekPlan{index: tok}
 	run, idxTree, ok := e.openIndexSeekRun(plan, tableEntry, dbCtx, colDefs)
 	if !ok {
 		return nil, nil, false, nil
@@ -108,6 +131,67 @@ func (e *SelectEngine) joinBaseOrderIndexWalk(s *sql.SelectStmt, bs sql.SelectSt
 		e.ctx.RecordFullScanSteps(entries - 1)
 	}
 	return rows, maps, true, nil
+}
+
+// joinBaseWalkCandidate tests the FROM table's indexes (schema order) with
+// the base loop's delivery walk and returns the first whose walk consumes
+// every ORDER BY term of the base operand, forward only (the executor's
+// walk is forward; a backward delivery keeps the sorter — carded).
+func (e *SelectEngine) joinBaseWalkCandidate(s *sql.SelectStmt, where sql.Expr, tableEntry *schema.Entry, colDefs []sql.ColumnDef) (string, bool) {
+	if len(s.OrderBy) == 0 {
+		return "", false
+	}
+	ops := e.joinDeliveryOperands(s, colDefs)
+	if ops == nil {
+		return "", false
+	}
+	terms := e.joinDeliveryTerms(s, s.OrderBy, ops)
+	if terms == nil {
+		return "", false
+	}
+	// The base loop's usable pool: the FROM-only conjuncts (where.c's
+	// prereqRight ⊆ ready with nothing positioned — a conjunct referencing
+	// another operand is never usable at loop 0).
+	pool := make([]joinPoolEntry, 0, 4)
+	for _, conj := range splitAnd(where) {
+		refs, ok := e.joinExprOperandUsage(conj, ops)
+		if !ok {
+			pool = append(pool, joinPoolEntry{expr: conj})
+			continue
+		}
+		pool = append(pool, joinPoolEntry{expr: conj, refs: refs})
+	}
+	indexes, err := e.ctx.Schema().FindIndexesForTable(tableEntry.Name)
+	if err != nil {
+		return "", false
+	}
+	for _, entry := range indexes {
+		if len(e.indexColumns(entry.Name)) == 0 || indexHasPartialPredicate(entry) {
+			continue
+		}
+		testTerms := make([]joinOrderTerm, len(terms))
+		copy(testTerms, terms)
+		loop := joinDeliveryLoop{operand: 0, token: strings.ToLower(ops[0].tokens[0]),
+			real: tableEntry.Name, kind: loopIndex, idx: entry.Name,
+			withoutRowid: e.operandIsWithoutRowid(tableEntry.Name)}
+		st := &joinWalkState{obDone: len(testTerms), isOrderDistinct: true,
+			orderDistinctMask: make([]bool, len(ops)), ready: make([]bool, len(ops))}
+		e.joinEqPrePass(&loop, testTerms, pool, st, ops)
+		e.joinWalkLoopColumns(&loop, testTerms, st)
+		if st.isOrderDistinct {
+			st.orderDistinctMask[0] = true
+			for k := range testTerms {
+				if !testTerms[k].sat && testTerms[k].operand == 0 &&
+					joinUsageSubset(testTerms[k].usage, st.orderDistinctMask) {
+					testTerms[k].sat = true
+				}
+			}
+		}
+		if !loop.backward && joinTermsOfOperandSatisfied(testTerms, 0) {
+			return entry.Name, true
+		}
+	}
+	return "", false
 }
 
 // countIndexEntries walks the run's index b-tree once to count its entries

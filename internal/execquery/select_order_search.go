@@ -980,6 +980,15 @@ func (e *SelectEngine) orderByRowidLeadingName(s *sql.SelectStmt) bool {
 }
 
 func (e *SelectEngine) emitIndexOrderedRows(result *Result, rowMaps []RowMap, s *sql.SelectStmt, orderBy []sql.OrderByTerm) bool {
+	// JOIN delivery: the claim (wherePathSatisfiesOrderBy over the whole
+	// loop path) held — the base rows entered the nesting in the base
+	// loop's order and every picked operand materialized in its index's
+	// order, so the combined rows already emerge in the delivered order
+	// and no sorter runs. Without the claim the comparator sort stays
+	// responsible (the pre-claim behavior).
+	if len(s.Joins) > 0 {
+		return e.joinDelivery != nil && e.joinDelivery.delivered
+	}
 	// A plain table scan yields its rows in rowid order, so an ORDER BY whose
 	// FIRST term is the rowid (or its INTEGER PRIMARY KEY alias) is already
 	// satisfied and no sorter runs (SQLite: where.c's "the loop delivers the

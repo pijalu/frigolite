@@ -74,6 +74,13 @@ func (e *SelectEngine) execSelectPostScan(s *sql.SelectStmt, allRows [][]interfa
 	}
 	var err error
 	if len(s.Joins) > 0 {
+		// The join ORDER BY delivery verdict (where.c's
+		// wherePathSatisfiesOrderBy over the whole loop path): computed
+		// BEFORE the join pipeline so the inner operands materialize in
+		// their pick's order and the nested loop keeps the base's order
+		// (the swap decline reads the claim). The finalization gate
+		// consumes the verdict to skip the sorter.
+		e.joinDelivery = e.buildJoinDeliveryPlan(s, colDefs)
 		if allRows, allRowMaps, colDefs, err = e.execSelectJoins(s, allRowMaps, colDefs); err != nil {
 			return &Result{Error: err}
 		}
@@ -286,6 +293,12 @@ func (e *SelectEngine) enterCTEScopes(s *sql.SelectStmt) *Result {
 // FROM term's alias as the current scan table so correlated references
 // resolve under it.
 func (e *SelectEngine) execRealTableSelect(s *sql.SelectStmt) *Result {
+	// The join ORDER BY delivery state is per statement: a nested execution
+	// (a subquery's own join) records its own base pick and claim without
+	// disturbing the enclosing statement's.
+	prevBaseLoop, prevDelivery, prevInnerPick := e.joinBaseLoop, e.joinDelivery, e.joinInnerPick
+	e.joinBaseLoop, e.joinDelivery, e.joinInnerPick = nil, nil, nil
+	defer func() { e.joinBaseLoop, e.joinDelivery, e.joinInnerPick = prevBaseLoop, prevDelivery, prevInnerPick }()
 	tableEntry, dbCtx, result := e.resolveFromTable(s)
 	if result != nil {
 		return result

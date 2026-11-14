@@ -36,9 +36,18 @@ func (e *SelectEngine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs 
 		return maps, defs, nil
 	}
 
-	for _, join := range s.Joins {
+	for i := range s.Joins {
+		// The delivery pick for this operand drives its materialization
+		// order (the permutation inside materializeTableJoin); nil when
+		// the ORDER BY claim is absent or this operand keeps table order.
+		if e.joinDelivery != nil && e.joinDelivery.delivered {
+			e.joinInnerPick = e.joinDelivery.picks[i]
+		} else {
+			e.joinInnerPick = nil
+		}
 		maps, defs, name, err := e.applyJoin(
-			s, join, currentMaps, currentDefs, leftName, lastTableName, plainNames)
+			s, s.Joins[i], currentMaps, currentDefs, leftName, lastTableName, plainNames)
+		e.joinInnerPick = nil
 		if err != nil {
 			return nil, nil, err
 		}
@@ -61,8 +70,10 @@ func (e *SelectEngine) applyJoin(
 		return nil, nil, "", err
 	}
 	// Correlated right rows stay paired positionally with corrLeftIdx. Filtering
-	// or reordering only rightMaps would corrupt that provenance.
-	if plainInnerJoin(join) && corrLeftIdx == nil {
+	// or reordering only rightMaps would corrupt that provenance. A delivery
+	// pick already fixed this operand's order (C's index walk) — the
+	// automatic-index reordering must not overwrite it.
+	if plainInnerJoin(join) && corrLeftIdx == nil && e.joinInnerPick == nil {
 		rightMaps = e.orderJoinRightByAutomaticIndex(s.Where, rightMaps, rightDefs, tableName)
 	}
 	for _, row := range rightMaps {
@@ -206,6 +217,12 @@ func (e *SelectEngine) runJoinNestedLoop(
 ) []RowMap {
 	var combinedMaps []RowMap
 	swapJoin := corrLeftIdx == nil && e.shouldSwapCommaJoin(s, join, lastTableName, tableName)
+	// A delivered ORDER BY claim owns the loop order (where.c's solver kept
+	// the base's ORDER-BY-delivering loop outer — where-6.15): the swap
+	// would put a non-delivering table outer and destroy the claimed order.
+	if swapJoin && e.joinDelivery != nil && e.joinDelivery.delivered {
+		swapJoin = false
+	}
 	if swapJoin {
 		for _, rightMap := range rightMaps {
 			for _, leftMap := range currentMaps {
@@ -478,7 +495,11 @@ func buildViewRowMaps(viewResult *Result, rightDefs []sql.ColumnDef, tableName s
 
 // materializeTableJoin builds the right-side row maps and column defs for a
 // real-table join operand (scanning the b-tree, or materializing a virtual
-// table when RootPage == 0).
+// table when RootPage == 0). A delivery pick permutes the rows into the
+// pick index's stored key order — C's index walk for this loop (the
+// ORDER-BY-serving walk, or the unconstrained operand's covering walk); the
+// nested loop then emits the operand's rows in exactly the order C's index
+// loop would.
 func (e *SelectEngine) materializeTableJoin(s *sql.SelectStmt, join sql.JoinClause, tableEntry *schema.Entry, currentMaps []RowMap) ([]RowMap, []sql.ColumnDef, string, []int, error) {
 	tableName := joinTableName(join)
 	if tableEntry.RootPage == 0 {
@@ -488,6 +509,9 @@ func (e *SelectEngine) materializeTableJoin(s *sql.SelectStmt, join sql.JoinClau
 	rightMaps, err := e.scanRealTableJoinRows(join.Table.Name, tableEntry.RootPage, rightDefs, tableEntry.SQL, !e.ctx.TableIsWithoutRowidEntry(tableEntry))
 	if err != nil {
 		return nil, nil, "", nil, err
+	}
+	if e.joinInnerPick != nil {
+		e.permuteJoinRightToIndexOrder(rightMaps, tableEntry.Name, e.joinInnerPick)
 	}
 	return rightMaps, rightDefs, tableName, nil, nil
 }
