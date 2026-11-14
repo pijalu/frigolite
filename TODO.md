@@ -131,13 +131,17 @@ generation — re-derive family truth from the case paths before scoping.
    (f3ec10698: OR-declined seek fall-through + INDEXED BY/NOT INDEXED
    hints) + S23.2 (7a3a28e6f: the join FROM-loop picks,
    internal/execquery/select_join_scan.go; census 47→40 in the branch's
-   frame) merged; **the S23 merge gate is running**
-   (/tmp/full_s23_merge_gate.log, -v -timeout 40m).
+   frame) merged; **the S23 merge gate VERIFIED**
+   (/tmp/full_s23_merge_gate.log, 1885s → /tmp/full_s23_merge_fails.txt,
+   1422 names: 8 net fixed / 0 regressions; where census exactly 36 —
+   where 10, where2 4, where8 15, where9 2, whereH 5, wherelimit2 0;
+   selectH-3.7 stays green; temptable2-4.1.1 flake present, where2-2.4
+   absent — flake status confirmed).
    **Fleet post-pause (2026-11-14: the quota pause expired the agent
    tasks and macOS purged /private/tmp — worktrees rebuilt from branch
    refs, uncommitted agent work lost): S23-continuation running (where
    6.15/14.x + where8/where9 residue), S29 expr-unit running (E3+E1+E2
-   → S1+S2). S24 relaunch QUEUED (hold ≤2 agents while a gate runs).**
+   → S1+S2), S24 CHOOSE relaunched (whereH + where2 candidate choice).**
    - S24 CHOOSE: whereH 5 + where2 12.1/16.2 — the candidate-choice
      class (brief: portplan/PLAN_S24_candidate_choice.md).
    - S26 MISC: where 19.0 (EQP autoindex names) + 25.x (corruption).
@@ -157,11 +161,10 @@ generation — re-derive family truth from the case paths before scoping.
    Stale fixtures: fts3expr3 .json+.gz dup, expridx1 fossil oracle,
    e_expr-5.x frozen $as$bs), **the WAL residue classes**, and the
    carded converter classes.
-Baselines: /tmp/full_s25_merge_fails.txt (the CURRENT diff target,
-1430 names), /tmp/full_s22_gate3_fails.txt (the S22 gate, 1433),
-/tmp/full_S15_fails.txt (the S21 pre state, 1466;
-/tmp/w_s22_f.txt is STALE — 62 lines, ignore it),
-/tmp/full_s23_merge_gate.log (the S23 merge gate in flight).
+Baselines: /tmp/full_s23_merge_fails.txt (the CURRENT diff target,
+1422 names), /tmp/full_s23_merge_gate.log (the verified gate log;
+older logs were purged from /tmp in the pause — rebuild fail sets from
+logs, never trust remembered counts).
 
 ## Queue (in order)
 
