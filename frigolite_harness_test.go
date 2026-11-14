@@ -4152,7 +4152,16 @@ func TestSQLiteSuite(t *testing.T) {
 								// statement on a reopened connection. Prime Frigolite's lazy schema
 								// cache here so that statement sees stored virtual-table rows.
 								if refreshed := db.Query("SELECT name FROM sqlite_master LIMIT 1"); refreshed.Error != nil {
-									err = refreshed.Error
+									// C's sqlite3_open is lazy: the file is open even
+									// when its content is invalid. A failed schema
+									// prime leaves the pager in the ERROR state — the
+									// connection SURVIVES and every statement fails
+									// with the same error until close (pager1-38.1#01:
+									// CREATE TABLE on a "hello world" file reports
+									// "file is not a database"). Replacing the handle
+									// with a fresh empty db would let that statement
+									// succeed against a database C never had.
+									t.Logf("reopen schema prime: %v", refreshed.Error)
 								}
 							}
 							if err != nil {
