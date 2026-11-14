@@ -511,3 +511,43 @@ func (e *SelectEngine) joinArmSearchColumn(arm sql.Expr, rightNames map[string]b
 	})
 	return col
 }
+
+// statementOperandScope returns the current statement's FROM scope: the
+// operand tokens (alias-or-name, lower-cased) and the union of their column
+// names — the references a correlated bound must NOT resolve to (a join
+// sibling's column is bound only at its own loop level).
+func (e *SelectEngine) statementOperandScope(s *sql.SelectStmt) ([]string, map[string]bool) {
+	var tokens []string
+	cols := make(map[string]bool)
+	addOperand := func(ref sql.TableRef, defs []sql.ColumnDef) {
+		tok := strings.ToLower(ref.As)
+		if tok == "" {
+			tok = strings.ToLower(schemaStrippedName(ref.Name))
+		}
+		if tok != "" {
+			tokens = append(tokens, tok)
+		}
+		for name := range joinOperandColumnNames(defs) {
+			cols[name] = true
+		}
+	}
+	if s.From.Name != "" && s.From.Subquery == nil {
+		var baseDefs []sql.ColumnDef
+		if entry, _, err := e.ctx.FindTable(s.From.Name); err == nil && entry.RootPage > 0 {
+			baseDefs = e.ctx.ParseColumnDefs(entry.Name, entry.SQL)
+		}
+		addOperand(s.From, baseDefs)
+	}
+	for i := range s.Joins {
+		ref := s.Joins[i].Table
+		if ref.Name == "" || ref.Subquery != nil {
+			continue
+		}
+		var defs []sql.ColumnDef
+		if entry, _, err := e.ctx.FindTable(ref.Name); err == nil && entry.RootPage > 0 {
+			defs = e.ctx.ParseColumnDefs(entry.Name, entry.SQL)
+		}
+		addOperand(ref, defs)
+	}
+	return tokens, cols
+}

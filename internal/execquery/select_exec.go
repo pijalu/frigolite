@@ -299,6 +299,12 @@ func (e *SelectEngine) execRealTableSelect(s *sql.SelectStmt) *Result {
 	prevBaseLoop, prevDelivery, prevInnerPick := e.joinBaseLoop, e.joinDelivery, e.joinInnerPick
 	e.joinBaseLoop, e.joinDelivery, e.joinInnerPick = nil, nil, nil
 	defer func() { e.joinBaseLoop, e.joinDelivery, e.joinInnerPick = prevBaseLoop, prevDelivery, prevInnerPick }()
+	// The FROM operand scope for the correlated-bound check (a reference
+	// resolving to any operand is a join sibling's column, never a bound);
+	// the defer above restores it with the rest of the per-statement state.
+	prevTokens, prevCols := e.stmtOperandTokens, e.stmtOperandCols
+	e.stmtOperandTokens, e.stmtOperandCols = e.statementOperandScope(s)
+	defer func() { e.stmtOperandTokens, e.stmtOperandCols = prevTokens, prevCols }()
 	tableEntry, dbCtx, result := e.resolveFromTable(s)
 	if result != nil {
 		return result

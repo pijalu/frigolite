@@ -426,6 +426,13 @@ type SelectEngine struct {
 	// being materialized (consumed by materializeTableJoin to permute the
 	// operand's rows into the pick's index order).
 	joinInnerPick *joinInnerPick
+	// stmtOperandTokens/stmtOperandCols carry the current statement's FROM
+	// scope (the operand tokens and the union of their column names): a
+	// column reference resolving inside this scope is a join sibling's
+	// column — never a correlated bound. nil outside the statements that
+	// set it (the correlated-bound check keeps its conservative fallback).
+	stmtOperandTokens []string
+	stmtOperandCols   map[string]bool
 	resolvingViews    map[string]bool          // tracks views currently being resolved (circular reference detection)
 	viewRefCounts     map[string]int           // FROM-term references per view within one statement (select.c Table.nTabRef, 0xffff cap)
 	viewRefDepth      int                      // >0 while a top-level SELECT using view reference counting is executing

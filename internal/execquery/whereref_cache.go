@@ -236,6 +236,33 @@ func (e *SelectEngine) whererefBuild(where sql.Expr, tableName string) *whereref
 			sk.recordBetween(bt, tableName, e, where, &refs, &refSite)
 		}
 	})
+	for _, ref := range refs {
+		if _, isRef := ref.constantExpr.(*sql.ColumnRef); isRef {
+			// A correlated bound: the value comes from the enclosing outer
+			// rows at execution, not from a literal leaf the slot-path
+			// replay can re-read — refuse the memo (the uncached walk runs
+			// fresh per execution).
+			refuse = true
+			break
+		}
+	}
+	if !refuse {
+		// A comparison whose bound resolves through the enclosing outer
+		// rows (the correlated-bound class): the skeleton's recordBinary
+		// extraction cannot reproduce it — refuse the memo.
+		walkExpr(where, func(n sql.Expr) {
+			if refuse {
+				return
+			}
+			if binop, isOp := n.(*sql.BinaryOp); isOp && binop.Operator != "LIKE" {
+				if colRef, constVal, constExpr := findColAndConstExpr(binop, e); colRef == nil || (constVal == nil && constExpr == nil) {
+					if cr, bound, _ := e.seekRefSides(binop, tableName); cr != nil && bound != nil {
+						refuse = true
+					}
+				}
+			}
+		})
+	}
 	if refuse {
 		return nil
 	}

@@ -472,7 +472,14 @@ func (e *SelectEngine) indexSeekBinaryTerm(v *sql.BinaryOp, tableEntry *schema.E
 		}
 		val, ok := e.seekConstValue(sides[1])
 		if !ok {
-			continue
+			// A correlated bound: C compiles the subquery's seek with the
+			// outer loop's value in the bound register — the comparison's
+			// other side is a column reference that resolves outside this
+			// statement (where8-3.14's `e = b` seeks i4 per outer row).
+			val, ok = e.seekOuterBoundValue(sides[1], tableEntry, alias)
+			if !ok {
+				continue
+			}
 		}
 		op := v.Operator
 		if sides[0] == v.Right {
@@ -510,7 +517,13 @@ func (e *SelectEngine) indexSeekBetweenTerm(v *sql.Between, tableEntry *schema.E
 		return indexSeekTerm{}, false
 	}
 	lo, ok1 := e.seekConstValue(v.Low)
+	if !ok1 {
+		lo, ok1 = e.seekOuterBoundValue(v.Low, tableEntry, alias)
+	}
 	hi, ok2 := e.seekConstValue(v.High)
+	if !ok2 {
+		hi, ok2 = e.seekOuterBoundValue(v.High, tableEntry, alias)
+	}
 	if !ok1 || !ok2 {
 		return indexSeekTerm{}, false
 	}
@@ -596,6 +609,55 @@ func (e *SelectEngine) seekConstValue(expr sql.Expr) (interface{}, bool) {
 		return nil, false
 	}
 	return execexpr.UnwrapCollatedValue(util.UnwrapColumnValue(val)), true
+}
+
+// seekOuterBoundValue binds a correlated comparison bound: a column
+// reference that does not resolve to this statement's own table resolves
+// through the enclosing outer rows (the subquery re-executes per outer row,
+// so the bound is the outer loop's value — where.c compiles the seek with
+// the outer register). ok is false when no outer row supplies the column.
+func (e *SelectEngine) seekOuterBoundValue(expr sql.Expr, tableEntry *schema.Entry, alias string) (interface{}, bool) {
+	if e.outerRow == nil && len(e.OuterRows()) == 0 {
+		return nil, false
+	}
+	ref, isRef := unwrapParenExpr(expr).(*sql.ColumnRef)
+	if !isRef || ref.Name == "*" {
+		return nil, false
+	}
+	// The reference must not resolve inside this statement: a qualified one
+	// must not name the FROM table's token, an unqualified one must not name
+	// one of the table's columns.
+	tok := strings.ToLower(schemaStrippedName(ref.Table))
+	ownToken := strings.ToLower(schemaStrippedName(alias))
+	if ownToken == "" {
+		ownToken = strings.ToLower(schemaStrippedName(tableEntry.Name))
+	}
+	if ref.Table != "" && tok == ownToken {
+		return nil, false
+	}
+	if ref.Table == "" {
+		for _, cd := range e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL) {
+			if strings.EqualFold(cd.Name, ref.Name) {
+				return nil, false
+			}
+		}
+	}
+	qual := ref.Name
+	if ref.Table != "" {
+		qual = ref.Table + "." + ref.Name
+	}
+	for _, outer := range e.OuterRowsForResolution() {
+		if outer == nil {
+			continue
+		}
+		if val, ok := outer.Get(qual); ok {
+			return execexpr.UnwrapCollatedValue(util.UnwrapColumnValue(val)), true
+		}
+		if val, ok := outer.Get(ref.Name); ok {
+			return execexpr.UnwrapCollatedValue(util.UnwrapColumnValue(val)), true
+		}
+	}
+	return nil, false
 }
 
 // indexSeekColumnType returns the declared type text of a column ("" when

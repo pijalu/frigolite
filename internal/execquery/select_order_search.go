@@ -114,8 +114,11 @@ func (e *SelectEngine) scanLoopForRowCount(t queryTable, s *sql.SelectStmt, nRow
 // through to the ORDER BY / GROUP BY index walks. rowCount is the loop's
 // planning row count (the caller's scale).
 func (e *SelectEngine) whereScanLoop(t queryTable, s *sql.SelectStmt, loop scanLoop, rowCount int64, wantConditions bool) (string, string, scanLoop, error) {
+	// The schema lookups resolve the REAL table name: an aliased FROM term
+	// (t2 AS inner) renders as the alias but its indexes live under the
+	// base name (where8-3.15's correlated subquery plans the i3 seek).
 	ret := loop
-	bestIndex, conditions, err := e.bestIndexForRowCount(t.display, s.Where, &ret.bestEst, rowCount, wantConditions)
+	bestIndex, conditions, err := e.bestIndexForRowCount(t.real, s.Where, &ret.bestEst, rowCount, wantConditions)
 	if err != nil {
 		return "", "", ret, err
 	}

@@ -785,14 +785,107 @@ func collectBinaryRef(binop *sql.BinaryOp, tableName string, e *SelectEngine, wh
 		return collectLikeRef(binop, tableName, e, where)
 	}
 	colRef, constVal, constExpr := findColAndConstExpr(binop, e)
+	flip := false
 	if colRef == nil || constVal == nil && constExpr == nil {
-		return nil
+		// A correlated bound: the comparison's own-table column side pairs
+		// with a bound that resolves through the enclosing outer rows (the
+		// subquery re-executes per outer row — where.c compiles the seek
+		// with the outer loop's register). The bound is a runtime constant
+		// for planning; its VALUE binds at execution.
+		var bound sql.Expr
+		colRef, bound, flip = e.seekRefSides(binop, tableName)
+		if colRef == nil {
+			return nil
+		}
+		constExpr = bound
+	} else if _, leftIsCol := binop.Left.(*sql.ColumnRef); !leftIsCol {
+		// findColAndConstExpr took the RIGHT operand as the column: the
+		// operator flips (5 > d means d < 5) — the executor's term
+		// extraction flips the same way, so the (column, operator) pairs
+		// must agree.
+		flip = true
+	}
+	op := binop.Operator
+	if flip {
+		op = flipComparisonOp(op)
 	}
 	idxName := e.findIndexOnColumn(tableName, colRef.Name, where)
 	if idxName == "" {
 		return nil
 	}
-	return []indexedRef{{indexName: idxName, colName: colRef.Name, constant: constVal, constantExpr: constExpr, op: binop.Operator}}
+	return []indexedRef{{indexName: idxName, colName: colRef.Name, constant: constVal, constantExpr: constExpr, op: op}}
+}
+
+// seekRefSides splits a comparison into its own-table column side and its
+// runtime-constant bound side (either orientation): a literal/parameter or
+// deterministic expression bound (findColAndConstExpr's shapes), or a
+// column reference that resolves OUTSIDE the statement being planned (a
+// correlated bound). nil when neither orientation yields the pair.
+func (e *SelectEngine) seekRefSides(b *sql.BinaryOp, tableName string) (*sql.ColumnRef, sql.Expr, bool) {
+	for i, sides := range [2][2]sql.Expr{{b.Left, b.Right}, {b.Right, b.Left}} {
+		colRef, ok := sides[0].(*sql.ColumnRef)
+		if !ok || colRef.Name == "*" || !e.seekRefIsOwnColumn(colRef, tableName) {
+			continue
+		}
+		bound := sides[1]
+		if extractConst(bound) != nil || deterministicConstExpr(bound, e) != nil {
+			return colRef, bound, i == 1
+		}
+		if e.seekRefIsOuterColumn(bound, tableName) {
+			return colRef, bound, i == 1
+		}
+	}
+	return nil, nil, false
+}
+
+// seekRefIsOwnColumn reports whether the reference names a column of the
+// statement being planned (the FROM table's token — its alias when the FROM
+// term carries one — or one of the table's columns for an unqualified name).
+func (e *SelectEngine) seekRefIsOwnColumn(ref *sql.ColumnRef, tableName string) bool {
+	if ref.Table != "" {
+		tok := strings.ToLower(schemaStrippedName(ref.Table))
+		own := strings.ToLower(schemaStrippedName(e.currentScanTable))
+		return own != "" && tok == own
+	}
+	entry, _, err := e.ctx.FindTable(tableName)
+	if err != nil {
+		return false
+	}
+	for _, cd := range e.ctx.ParseColumnDefs(entry.Name, entry.SQL) {
+		if strings.EqualFold(cd.Name, ref.Name) {
+			return true
+		}
+	}
+	return false
+}
+
+// seekRefIsOuterColumn reports whether the reference is a column that does
+// NOT resolve inside the statement being planned (an enclosing scope's
+// column — the correlated bound's source). A reference resolving to any
+// FROM operand of the current statement (a join sibling's column) is NOT a
+// correlated bound: its value is only computable at that operand's own loop
+// level, not at this table's seek.
+func (e *SelectEngine) seekRefIsOuterColumn(expr sql.Expr, tableName string) bool {
+	ref, ok := expr.(*sql.ColumnRef)
+	if !ok || ref.Name == "*" {
+		return false
+	}
+	if ref.Table != "" {
+		if e.stmtOperandTokens != nil {
+			tok := strings.ToLower(schemaStrippedName(ref.Table))
+			for _, t := range e.stmtOperandTokens {
+				if tok == t {
+					return false
+				}
+			}
+			return true
+		}
+		return !e.seekRefIsOwnColumn(ref, tableName)
+	}
+	if e.stmtOperandCols != nil {
+		return !e.stmtOperandCols[strings.ToLower(ref.Name)]
+	}
+	return !e.seekRefIsOwnColumn(ref, tableName)
 }
 
 // collectLikeRef collects the indexed ref for a LIKE predicate when its

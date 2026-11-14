@@ -266,6 +266,11 @@ func (e *SelectEngine) explainQueryPlanSelect(s *sql.SelectStmt) *Result {
 	if err := e.validateCompoundColumnCounts(s); err != nil {
 		return &Result{Error: err}
 	}
+	// The FROM operand scope for the correlated-bound check (a reference
+	// resolving to any operand is a join sibling's column, never a bound).
+	prevTokens, prevCols := e.stmtOperandTokens, e.stmtOperandCols
+	e.stmtOperandTokens, e.stmtOperandCols = e.statementOperandScope(s)
+	defer func() { e.stmtOperandTokens, e.stmtOperandCols = prevTokens, prevCols }()
 
 	// A view reference must be validated by expanding its stored body (SQLite
 	// prepares the view definition, so compile errors in the body surface
