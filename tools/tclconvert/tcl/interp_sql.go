@@ -653,6 +653,17 @@ func (i *Interp) appendBracedParam(b *strings.Builder, sql string, pos int, loca
 		return -1
 	}
 	name := sql[pos+2 : pos+2+end]
+	if strings.HasPrefix(name, "::") {
+		// A ::-prefixed reference is the GLOBAL namespace: testfixture binds
+		// globals from the interpreter AFTER prepare (tclsqlite.c), so the
+		// reference must stay a SQL parameter — inlining the value would
+		// change the statement's parameter count and defeat prepare-time
+		// checks (e_expr-11.7.1: `SELECT ?32766, \$::a` must fail with
+		// "too many SQL variables" because the named parameter takes slot
+		// 32767, not because 22 appears as a literal).
+		b.WriteString("${" + name + "}")
+		return pos + 3 + end
+	}
 	if i.dynamicVars[strings.TrimPrefix(name, "::")] {
 		// Runtime-assigned variable (query result): keep a $name reference
 		// for the harness to expand from its runtime value.
@@ -691,6 +702,17 @@ func scanBoundVarName(sql string, start int) int {
 // returns the position after it.
 func (i *Interp) appendNamedParam(b *strings.Builder, sql string, pos, j int, localVars map[string]string) int {
 	name := sql[pos+1 : j]
+	if strings.HasPrefix(name, "::") {
+		// A ::-prefixed reference is the GLOBAL namespace: testfixture binds
+		// globals from the interpreter AFTER prepare (tclsqlite.c), so the
+		// reference must stay a SQL parameter — inlining the value would
+		// change the statement's parameter count and defeat prepare-time
+		// checks (e_expr-11.7.1: `SELECT ?32766, \$::a` must fail with
+		// "too many SQL variables" because the named parameter takes slot
+		// 32767, not because 22 appears as a literal).
+		b.WriteString(sql[pos:j])
+		return j
+	}
 	if i.dynamicVars[strings.TrimPrefix(name, "::")] {
 		// Runtime-assigned variable (query result): keep the $name reference
 		// for the harness to expand from its runtime value.
@@ -1114,6 +1136,20 @@ func (i *Interp) cmdDoTest(rawWords []rawWord, localVars map[string]string) erro
 				i.stmts = append(i.stmts, Stmt{Type: "runtime_list", ListValues: values, Expected: expected, TestName: name})
 				bodyValueCaptured = true
 			}
+		}
+		// A trailing `catch { ... }` is the body value itself: the catch's
+		// rc is a runtime fact of the statement it captured (fts3expr3-4.1.2:
+		// `catch {test_fts3expr2 $q}` with the expectation {0} — the rc, not
+		// the query's rows). Compare the stamped rc variable at run time.
+		if lastCmd := bodyCommands[len(bodyCommands)-1]; len(lastCmd) >= 1 && lastCmd[0].Text == "catch" && i.vars[""] == catchResultPlaceholder {
+			rcVar := "__catchrc"
+			if len(lastCmd) >= 3 {
+				// The named form `catch { ... } msg`: the rc variable was
+				// stamped as $__catchrc_<msg>.
+				rcVar = "__catchrc_" + strings.TrimPrefix(lastCmd[2].Text, "::")
+			}
+			i.stmts = append(i.stmts, Stmt{Type: "runtime_list", ListValues: []string{"$" + rcVar}, Expected: expected, TestName: name})
+			bodyValueCaptured = true
 		}
 		if lastCmd := bodyCommands[len(bodyCommands)-1]; len(lastCmd) == 2 && lastCmd[0].Text == "expr" {
 			if exprText := strings.TrimSpace(lastCmd[1].Text); i.exprReadsRuntimeVar(exprText) {

@@ -119,11 +119,15 @@ func ExprTest(tokenizer, expr string, columns []string, rebalance bool) (string,
 	}
 	if rebalance && root != nil {
 		root, err = fts3ExprBalance(root, fts3MaxExprDepth)
-		if err != nil {
-			return "", err
+		if err == nil {
+			err = fts3ExprCheckDepth(root, fts3MaxExprDepth)
 		}
-		if err = fts3ExprCheckDepth(root, fts3MaxExprDepth); err != nil {
-			return "", err
+		if err != nil {
+			// fts3ExprTestCommon reports every parse-stage failure the same
+			// way (fts3_expr.c:1263-1265): the "FTS expression tree is too
+			// large (maximum depth %d)" text of sqlite3Fts3ExprParse goes to
+			// the MATCH path only — the test interface discards it.
+			return "", &fts3ExprError{msg: "Error parsing expression"}
 		}
 	}
 	return fts3ExprToString(root), nil
@@ -141,21 +145,14 @@ func ExprTestFunc(rebalance bool) func(args []interface{}) (interface{}, error) 
 			// keep its SQLite-exact capitalization and trailing "...".
 			return nil, fmt.Errorf("%s", fts3ExprtestUsage)
 		}
-		tokenizer, ok := args[0].(string)
-		if !ok {
-			return nil, fmt.Errorf("fts3_exprtest: the tokenizer name must be text")
-		}
-		expr, ok := args[1].(string)
-		if !ok {
-			return nil, fmt.Errorf("fts3_exprtest: the expression must be text")
-		}
+		// No type checks: the C coerces every argument through
+		// sqlite3_value_text (fts3_expr.c:1233-1245) — an integer
+		// expression argument parses as its decimal text.
+		tokenizer := fts3ValueText(args[0])
+		expr := fts3ValueText(args[1])
 		columns := make([]string, 0, len(args)-2)
 		for _, arg := range args[2:] {
-			name, ok := arg.(string)
-			if !ok {
-				return nil, fmt.Errorf("fts3_exprtest: the column names must be text")
-			}
-			columns = append(columns, name)
+			columns = append(columns, fts3ValueText(arg))
 		}
 		result, err := ExprTest(tokenizer, expr, columns, rebalance)
 		if err != nil {
@@ -166,8 +163,32 @@ func ExprTestFunc(rebalance bool) func(args []interface{}) (interface{}, error) 
 }
 
 // fts3MaxExprDepth is the maximum depth of a balanced expression tree
-// (SQLITE_FTS3_MAX_EXPR_DEPTH).
-const fts3MaxExprDepth = 100
+// (fts3Int.h's SQLITE_FTS3_MAX_EXPR_DEPTH, default 12): FTS3 recursion uses
+// stack proportional to the tree depth, so the small bound keeps large
+// queries from overflowing the stack.
+const fts3MaxExprDepth = 12
+
+// fts3ValueText mirrors sqlite3_value_text: any SQL value coerces to its
+// text rendering (NULL to the empty string, numbers through the engine's
+// numeric text forms, blobs as raw bytes). The C exprtest never type-checks
+// its argv — zTokenizer, zExpr and every column name come from
+// sqlite3_value_text calls (fts3_expr.c:1233-1245).
+func fts3ValueText(v interface{}) string {
+	switch x := v.(type) {
+	case nil:
+		return ""
+	case string:
+		return x
+	case int64:
+		return strconv.FormatInt(x, 10)
+	case float64:
+		return strconv.FormatFloat(x, 'g', -1, 64)
+	case []byte:
+		return string(x)
+	default:
+		return fmt.Sprintf("%v", x)
+	}
+}
 
 // fts3isspace mirrors the C helper of the same name: it never reads a byte
 // outside the ASCII range.

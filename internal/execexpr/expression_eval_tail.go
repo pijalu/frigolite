@@ -467,24 +467,24 @@ func (ev *Evaluator) evalCastExpr(v *sql.CastExpr, row Row) (result interface{},
 			result = &util.ColumnValue{Value: result, Affinity: util.Affinity(v.AsType)}
 		}
 	}()
-	switch strings.ToUpper(v.AsType) {
-	case "INTEGER", "INT":
+	// The cast arms switch on the declared type's AFFINITY, not the name:
+	// sqlite3ExprAffinity's TK_CAST case derives the affinity with
+	// sqlite3AffinityType's full substring rules (build.c:1650) —
+	// CAST('def' AS shobblob_x) is BLOB, CAST('x' AS shint_x) is INTEGER,
+	// CAST('x' AS clob) is TEXT (e_expr-27.3.x). util.Affinity is the
+	// engine's single derivation of those rules.
+	switch util.Affinity(v.AsType) {
+	case 'I':
 		return castToInteger(val)
-	case "REAL", "FLOAT", "DOUBLE":
+	case 'R':
 		return castToReal(val)
-	case "TEXT":
+	case 'T':
 		return castToText(val)
-	case "BLOB":
+	case 'B':
 		return castToBlob(val)
-	case "NUMERIC":
+	case 'N':
 		return castToNumeric(val)
 	default:
-		// Any other TEXT-affinity target (VARCHAR, CHARACTER, CLOB, ...):
-		// CAST(1 AS VARCHAR(50)) is '1' (text), like CAST(... AS TEXT)
-		// (SQLite affinity rules; tkt3527).
-		if isTextAffinityType(v.AsType) {
-			return castToText(val)
-		}
 		return val, nil
 	}
 }

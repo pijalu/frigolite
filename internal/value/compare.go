@@ -64,6 +64,38 @@ func skipSQLiteSpace(s string, i int) int {
 	return i
 }
 
+// RealValuePrefix converts the leading numeric prefix of s to a REAL the way
+// sqlite3VdbeRealValue's TEXT arm does (vdbemem.c → sqlite3AtoF): the longest
+// numeric prefix converts, and a dangling exponent contributes nothing to the
+// value (sqlite3AtoF's eValid=0 flag affects the return code, never the
+// result) — '1english' reads 1.0 (the 'e' is unconsumed), '1e5' reads
+// 100000.0, text with no numeric prefix reads 0.0. Shared by the CASE WHEN
+// truthiness (sqlite3VdbeBooleanValue) and iif()'s compiled-to-CASE test.
+func RealValuePrefix(s string) float64 {
+	i := skipSQLiteSpace(s, 0)
+	if i == len(s) {
+		return 0
+	}
+	start := i
+	end, nDigit, _, _, expValid := scanNumericToken(s, i)
+	if nDigit == 0 {
+		return 0
+	}
+	if !expValid {
+		// A dangling exponent belongs to no number: the value is the
+		// mantissa read so far (sqlite3AtoF skips the exponent for the
+		// value when eValid is 0).
+		end, _, _ = scanMantissa(s, i)
+	}
+	f, err := strconv.ParseFloat(s[start:end], 64)
+	if err != nil {
+		// A well-formed scan only fails here on range overflow: Go carries
+		// the +/-Inf result in f (sqlite3AtoF computes the same magnitude).
+		return f
+	}
+	return f
+}
+
 // scanNumericToken scans the numeric token grammar starting at s[i] (the
 // caller has guaranteed i < len(s)): an optional sign, digits with an
 // optional decimal point, and an optional exponent attempted only when at
