@@ -230,6 +230,7 @@ func (e *DMLExecutor) ExecSelectWithOrPlan(s *sql.SelectStmt, tableEntry *schema
 	return e.execSelectWithOrPlan(s, tableEntry, dbCtx, colDefs, branches)
 }
 
+
 // CheckConstraintFailureText renders a CHECK constraint's verbatim expression
 // text the way SQLite reports it in "CHECK constraint failed: <text>"
 // (the CREATE TABLE spelling, not the re-rendered AST form). Exposed for the

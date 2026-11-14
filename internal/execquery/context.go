@@ -248,6 +248,11 @@ type SelectContext interface {
 	// OR-index optimization.
 	PlanOrIndexScan(where sql.Expr, tableName string, colDefs []sql.ColumnDef, ctx *DatabaseContext) ([]OrBranchPlan, bool)
 	ExecSelectWithOrPlan(s *sql.SelectStmt, tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef, branches []OrBranchPlan) *Result
+	// ExecSelectWithOrPlanRows runs the OR plan and returns the raw
+	// branch-order rows and full row maps without finalizing — the join
+	// base loop's row source (the join pipeline owns the statement-level
+	// aggregate/finalize handling).
+	ExecSelectWithOrPlanRows(s *sql.SelectStmt, tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef, branches []OrBranchPlan) ([][]interface{}, []RowMap, error)
 
 	// Validation helpers.
 	ValidateIndexedBy(tableEntry *schema.Entry, indexName string, s *sql.SelectStmt) error
@@ -670,6 +675,14 @@ func (e *SelectEngine) OuterRowsForResolution() []Row {
 
 // SetCurrentScanTable sets the table name being scanned (for qualified column
 // resolution during DML and SELECT execution).
+// SelectRowMapsForced reports the forceScanRowMaps flag: the join base-seek
+// (seek/OR-plan row sources on a Joins-stripped statement copy) requires
+// FULL row maps for every base row — the DML-side needMaps checks must
+// honor it (Engine.SelectNeedsRowMaps consults this first).
+func (e *SelectEngine) SelectRowMapsForced() bool {
+	return e.forceScanRowMaps
+}
+
 func (e *SelectEngine) SetCurrentScanTable(name string) {
 	e.currentScanTable = name
 }

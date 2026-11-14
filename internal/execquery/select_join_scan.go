@@ -51,6 +51,26 @@ func (e *SelectEngine) joinBaseScanRows(s *sql.SelectStmt, tableEntry *schema.En
 	e.forceScanRowMaps = true
 	defer func() { e.forceScanRowMaps = prev }()
 
+	// The OR-branch row source (where.c's MULTI-INDEX OR loop): the
+	// FROM-only conjunct view's top-level OR plans as per-branch index
+	// seeks — every branch must find an index (an unindexed arm voids the
+	// plan exactly like C's no-OR-loop rule, where8-3.9's c='IX' arm). The
+	// rows come out in branch scan order and the FULLSCAN_STEP counter
+	// stays silent (the branch seeks never count). The base OR loop never
+	// delivers an ORDER BY (C's u.btree.pIndex==0 rule in
+	// wherePathSatisfiesOrderBy) — the sorter stays.
+	if !s.Distinct && len(s.GroupBy) == 0 {
+		rows, maps, routed, rerr := e.routeJoinBaseOrPlan(&bs, tableEntry, dbCtx, colDefs)
+		if rerr != nil {
+			return nil, nil, true, rerr
+		}
+		if routed {
+			e.joinBaseLoop = &joinDeliveryLoop{orLoop: true, real: tableEntry.Name,
+				withoutRowid: e.operandIsWithoutRowid(tableEntry.Name)}
+			return rows, maps, true, nil
+		}
+	}
+
 	rows, maps, handled := e.selectRowidSeekRows(&bs, tableEntry, colDefs, tree, nil)
 	if handled {
 		// The point-lookup rowid seek: at most one row (C's WHERE_ONEROW).
@@ -312,4 +332,36 @@ func refTableMatchesTokens(table string, tokens []string) bool {
 		}
 	}
 	return false
+}
+
+// routeJoinBaseOrPlan routes the base loop to the OR-branch row source when
+// the FROM-only conjunct view plans as a MULTI-INDEX OR (the S21 branch
+// machinery; an IN-valued arm expands to per-value equality branches first,
+// execSelectOrPlan's routing). The executed statement keeps its original
+// WHERE — the join's full-WHERE filter re-checks every cross-table term.
+func (e *SelectEngine) routeJoinBaseOrPlan(bs *sql.SelectStmt, tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef) ([][]interface{}, []RowMap, bool, error) {
+	if bs.Where == nil {
+		return nil, nil, false, nil
+	}
+	branches, ok := e.ctx.PlanOrIndexScan(bs.Where, tableEntry.Name, colDefs, dbCtx)
+	delta := int64(0)
+	if !ok {
+		expansion := e.expandOrInArms(bs, tableEntry)
+		if expansion == nil {
+			return nil, nil, false, nil
+		}
+		branches, ok = e.ctx.PlanOrIndexScan(expansion.where, tableEntry.Name, colDefs, dbCtx)
+		if !ok {
+			return nil, nil, false, nil
+		}
+		delta = expansion.delta
+	}
+	rows, maps, err := e.ctx.ExecSelectWithOrPlanRows(bs, tableEntry, dbCtx, colDefs, branches)
+	if err != nil {
+		return nil, nil, true, err
+	}
+	if delta != 0 {
+		e.ctx.IncSearchCount(delta)
+	}
+	return rows, maps, true, nil
 }
