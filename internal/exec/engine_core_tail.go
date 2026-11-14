@@ -18,6 +18,12 @@ func (e *Engine) normalizeCorruptionError(res *Result) *Result {
 		return res
 	}
 	msg := res.Error.Error()
+	if msg == "corrupt database" {
+		// The WITHOUT ROWID write-path recheck's canonical text (oracle 3.54,
+		// where-25.5) is exactly this string — never normalized to the generic
+		// SQLITE_CORRUPT message.
+		return res
+	}
 	if strings.Contains(msg, "ORDER BY term out of range") ||
 		strings.Contains(msg, "GROUP BY term out of range") {
 		// resolve.c's ordinal-range errors are prepare-time misuse errors,

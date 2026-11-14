@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
@@ -624,11 +623,22 @@ func (e *DMLExecutor) checkUniqueIndexExcluding(tableEntry *schema.Entry, colDef
 	// Fast verdict: the index b-tree itself answers "is an equal entry
 	// already present" with one seek. A negative answer makes the O(table)
 	// scan below unreachable — that scan is what made bulk INSERTs into a
-	// UNIQUE-indexed table quadratic. On a positive (or unavailable) answer the
-	// scan runs unchanged, so conflict semantics — partial-index predicate,
-	// excludeCell, NULL-never-conflicts, error text — stay exactly as before.
-	if conflict, fallback := e.indexHasConflictingKey(tableEntry.Name, def.Name, colDefs, key); !conflict && !fallback {
-		return nil
+	// UNIQUE-indexed table quadratic. On a positive verdict the entry's
+	// table row is the recheck C's OP_NotExists performs: a missing row is
+	// corruption (where-25.2/25.5), a present row falls through to the
+	// authoritative scan (excludeCell, NULL-never-conflicts, error text
+	// unchanged). An unavailable probe keeps the scan unchanged too.
+	if entryRowID, conflict, fallback := e.indexConflictEntry(tableEntry.Name, def.Name, colDefs, key); !fallback && !tableIsWithoutRowid(tableEntry.SQL) {
+		// The corrupt recheck is rowid-tables only: a WITHOUT ROWID index
+		// record's trailing synthetic rowid is unresolvable against our
+		// PK-keyed table btree (see PLAN_S26_dml_corrupt.md's carded note),
+		// so WITHOUT ROWID keeps the scan verdict below.
+		if !conflict {
+			return nil
+		}
+		if !e.rowIDExists(tableEntry.Name, tableEntry.RootPage, entryRowID) {
+			return dmlCorruptError(false)
+		}
 	}
 	cell, _, _ := e.scanTableForMatch(tableEntry, func(rc *storage.Record, cl *storage.Cell) bool {
 		if excludeCell(rc, cl) {
@@ -657,38 +667,6 @@ func (e *DMLExecutor) checkUniqueIndexExcluding(tableEntry *schema.Entry, colDef
 //
 // errFallback is true when the verdict is unavailable (no index b-tree, no
 // parsed KeyInfo, seek error) and the caller must scan without the shortcut.
-func (e *DMLExecutor) indexHasConflictingKey(tableName, indexName string, colDefs []sql.ColumnDef, key []interface{}) (conflict bool, errFallback bool) {
-	if len(key) == 0 {
-		return false, true
-	}
-	var def *indexDef
-	for _, cand := range e.allTableIndexes(tableName) {
-		if cand.Name == indexName {
-			c := cand
-			def = &c
-			break
-		}
-	}
-	if def == nil || def.RootPage == 0 {
-		return false, true
-	}
-	ki := e.ikiKeyInfo(*def, colDefs, e.collationLookup())
-	if ki == nil {
-		return false, true
-	}
-	tree := btree.NewBTree(def.Ctx.Pager, def.RootPage, false)
-	defer tree.Close()
-	e.ikiOrder(tree, *def, colDefs, e.collationLookup())
-	cursor, err := tree.OpenCursorAtRoot()
-	if err != nil {
-		return false, true
-	}
-	found, err := cursor.SeekIndexKey(btree.NewUnpackedIndexKey(ki, key))
-	if err != nil {
-		return false, true
-	}
-	return found, false
-}
 
 // uniqueIndexConflictError builds the SQLite-style UNIQUE conflict message for
 // an index: expression keys report the index name, plain column keys list the
@@ -717,7 +695,10 @@ func (e *DMLExecutor) replaceDeleteConflicts(pg *pager.Pager, tableEntry *schema
 	// they conflict with the new row, the subsequent INSERT reports the
 	// UNIQUE/CHECK error (matching SQLite, which does not loop over
 	// trigger-inserted rows).
-	conflicts, _ := e.collectReplaceConflicts(pg, tableEntry, colDefs, colIndex, values, replaceRowID)
+	conflicts, _, confErr := e.collectReplaceConflicts(pg, tableEntry, colDefs, colIndex, values, replaceRowID)
+	if confErr != nil {
+		return &Result{Error: confErr}
+	}
 
 	// insert.c OE_Replace: the rows deleted by REPLACE conflict resolution
 	// fire their row triggers only when the recursive-triggers flag is set —
@@ -781,7 +762,10 @@ func (e *DMLExecutor) execInsertOnConflict(pg *pager.Pager, tableEntry *schema.E
 	// Try to find existing conflicting rows (via UNIQUE columns, composite
 	// constraints, and UNIQUE indexes).
 	colIndex := e.columnIndexFor(colDefs)
-	hits := e.findOnConflictRow(tableEntry, colDefs, colIndex, values)
+	hits, hitErr := e.findOnConflictRow(tableEntry, colDefs, colIndex, values)
+	if hitErr != nil {
+		return &Result{Error: hitErr}
+	}
 
 	if len(hits) == 0 {
 		// insertRow mutates values in place (rowid fill, affinity, generated

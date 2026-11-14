@@ -242,31 +242,54 @@ func plainIndexDef(ctx *DatabaseContext, ent *schema.Entry) (def indexDef, ok bo
 
 // indexDef describes any (unique or non-unique) index for index maintenance.
 
-// findRowByIndexCols finds a row that matches the given values on every column
-// of the named UNIQUE index. Returns its rowid, values, and true if found.
-func (e *DMLExecutor) findRowByIndexCols(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, def uniqueIndexDef) (int64, []interface{}, bool) {
+// findRowByIndexCols finds the row conflicting with the given values on every
+// column of the named UNIQUE index. C resolves the conflict at the INDEX
+// cursor (OP_Found) and then re-seeks the table row; a matching index entry
+// whose table row is gone is corruption, not a no-match (where-25.2/25.5).
+// Returns the row's rowid, its values, whether a conflict was found, and an
+// error (corruption) that the caller must surface.
+func (e *DMLExecutor) findRowByIndexCols(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, def uniqueIndexDef) (int64, []interface{}, bool, error) {
 	colIndex := e.columnIndexFor(colDefs)
 	// The new row must itself satisfy the partial-index predicate.
 	row := buildRowMapFromValues(values, colDefs, 0)
 	if inIndex, _ := e.evalIndexWhere(def.Where, row); !inIndex {
-		return 0, nil, false
+		return 0, nil, false, nil
 	}
 	idxCols := def.Cols
 	key := make([]interface{}, len(idxCols))
 	for i, cn := range idxCols {
 		kv, ok := e.indexKeyValue(cn, colDefs, colIndex, values, row)
 		if !ok {
-			return 0, nil, false
+			return 0, nil, false, nil
 		}
 		key[i] = kv
+	}
+	withoutRowid := tableIsWithoutRowid(tableEntry.SQL)
+	entryRowID, ok, fallback := e.indexConflictEntry(tableEntry.Name, def.Name, colDefs, key)
+	if !fallback && !withoutRowid {
+		// The corrupt recheck (C's OP_NotExists: the conflict row must exist)
+		// needs the entry's row locator. WITHOUT ROWID index records carry
+		// only a synthetic rowid our PK-keyed table btree cannot resolve, so
+		// the recheck is rowid-tables only; WITHOUT ROWID keeps the scan
+		// verdict (see PLAN_S26_dml_corrupt.md's carded note).
+		if !ok {
+			// Definitive: the index holds no equal entry.
+			return 0, nil, false, nil
+		}
+		if !e.rowIDExists(tableEntry.Name, tableEntry.RootPage, entryRowID) {
+			// The index entry's row locator has no table row: corruption.
+			return 0, nil, false, dmlCorruptError(false)
+		}
 	}
 	cell, rec, _ := e.scanTableForMatch(tableEntry, func(rc *storage.Record, cl *storage.Cell) bool {
 		return e.rowMatchesIndexKey(rc, cl, colDefs, colIndex, idxCols, key, def)
 	})
 	if cell == nil {
-		return 0, nil, false
+		// The index entry exists but no row matches it (exclude/NULL/collation
+		// semantics): no conflict through this index.
+		return 0, nil, false, nil
 	}
-	return cell.RowID, rec.Values, true
+	return cell.RowID, rec.Values, true, nil
 }
 
 // rowMatchesIndexKey reports whether an existing row belongs to the partial

@@ -493,7 +493,9 @@ func rowTrueRowID(row RowMap) (int64, bool) {
 // (see seek.go); the full WHERE is still evaluated per candidate row, so the
 // returned row set is identical to the scan's.
 func (e *DMLExecutor) collectDeleteRows(tree *btree.BTree, s *sql.DeleteStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) ([]*dmlRow, error) {
-	if rows, ok := e.seekDeleteRows(tree, s, tableEntry, colDefs); ok {
+	if rows, ok, err := e.seekDeleteRows(tree, s, tableEntry, colDefs); err != nil {
+		return nil, err
+	} else if ok {
 		return rows, nil
 	}
 	var deletedRows []*dmlRow

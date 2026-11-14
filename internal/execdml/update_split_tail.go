@@ -185,7 +185,11 @@ func (e *DMLExecutor) collectUpdateChanges(tableName string, rootPage uint32, co
 	// UPDATE ... FROM joins rows from other tables, so its WHERE is not a
 	// pure target-table predicate — keep the scan there.
 	if s.From.Name == "" {
-		if changes, rowMaps, ok := e.seekUpdateChanges(tableName, rootPage, colDefs, s, deferSetEval, scanName); ok {
+		changes, rowMaps, ok, err := e.seekUpdateChanges(tableName, rootPage, colDefs, s, deferSetEval, scanName)
+		if err != nil {
+			return nil, err
+		}
+		if ok {
 			changes = e.applyUpdateOrderLimit(changes, rowMaps, s)
 			return changes, nil
 		}
@@ -300,12 +304,16 @@ func (e *DMLExecutor) updateEvalRow(plan *execquery.DMLRowPlan, srow *execquery.
 // seekUpdateChanges collects UPDATE changes through a point-lookup plan,
 // mirroring the scan loop's per-row work (decode, remap, WHERE evaluation,
 // change building) over the candidate rows only. ok=false falls back to the
-// full scan (no plan, or a candidate lookup/evaluation anomaly). Rows are
-// collected positionally like scanUpdateChanges.
-func (e *DMLExecutor) seekUpdateChanges(tableName string, rootPage uint32, colDefs []sql.ColumnDef, s *sql.UpdateStmt, deferSetEval bool, scanName string) ([]updateChange, []Row, bool) {
-	tableEntry, rowIDs, ok := e.planUpdateSeek(tableName, rootPage, colDefs, s, scanName)
+// full scan (no plan, or a candidate lookup/evaluation anomaly). err carries
+// the write-path corruption verdict: an INDEX-derived candidate rowid whose
+// table row is gone is corruption (C's DeferredSeek/FinishSeek +
+// OP_NotExists p2==0 — the DELETE mirror in seekDeleteRows), never a
+// no-match; a rowid-plan miss is the legitimate no-match point UPDATE.
+// Rows are collected positionally like scanUpdateChanges.
+func (e *DMLExecutor) seekUpdateChanges(tableName string, rootPage uint32, colDefs []sql.ColumnDef, s *sql.UpdateStmt, deferSetEval bool, scanName string) ([]updateChange, []Row, bool, error) {
+	tableEntry, rowIDs, ok, indexDerived := e.planUpdateSeek(tableName, rootPage, colDefs, s, scanName)
 	if !ok {
-		return nil, nil, false
+		return nil, nil, false, nil
 	}
 	tree := e.dmlTableBTree(tableName, rootPage)
 	defer tree.Close() // seek tree is function-local
@@ -316,7 +324,7 @@ func (e *DMLExecutor) seekUpdateChanges(tableName string, rootPage uint32, colDe
 	// positional plan only amortizes from three candidates up, and a point
 	// UPDATE ("WHERE id=<const>") must not pay for it.
 	if len(rowIDs) <= updateSeekMapPathMaxCandidates {
-		return e.seekUpdateChangesMaps(tree, tableEntry, colDefs, colIndex, s, deferSetEval, rowIDs)
+		return e.seekUpdateChangesMaps(tree, tableEntry, colDefs, colIndex, s, deferSetEval, rowIDs, indexDerived)
 	}
 	plan := e.newUpdateRowPlan(colDefs, s)
 	srow := plan.NewRow()
@@ -325,19 +333,22 @@ func (e *DMLExecutor) seekUpdateChanges(tableName string, rootPage uint32, colDe
 		// SQLITE_TEST interrupt countdown: one op per row examined
 		// (src/vdbe.c per-opcode decrement of sqlite3_interrupt_count).
 		if err := e.ctx.CheckProgress(); err != nil {
-			return nil, nil, false
+			return nil, nil, false, nil
 		}
 		cell, rec, failed := e.seekUpdateCandidateRow(tree, rowID, tableEntry, colDefs)
 		if failed {
-			return nil, nil, false
+			return nil, nil, false, nil
 		}
 		if cell == nil {
+			if indexDerived {
+				return nil, nil, false, dmlCorruptError(false)
+			}
 			continue // the rowid has no cell (deleted before this visit)
 		}
 		row := e.updateEvalRow(plan, srow, rec, colDefs, cell.RowID, retainMaps)
 		ch, matchRow, matched, err := e.matchUpdateRow(s, cell, rec, colIndex, colDefs, row, deferSetEval)
 		if err != nil {
-			return nil, nil, false // the scan fallback re-evaluates and surfaces it
+			return nil, nil, false, nil // the scan fallback re-evaluates and surfaces it
 		}
 		if matched {
 			ch.seq = len(changes)
@@ -345,7 +356,7 @@ func (e *DMLExecutor) seekUpdateChanges(tableName string, rootPage uint32, colDe
 			rowMaps = append(rowMaps, matchRow)
 		}
 	}
-	return changes, rowMaps, true
+	return changes, rowMaps, true, nil
 }
 
 // updateSeekMapPathMaxCandidates is the seek candidate count below which the
@@ -356,26 +367,29 @@ const updateSeekMapPathMaxCandidates = 2
 // seekUpdateChangesMaps is seekUpdateChanges' map-backed small-candidate
 // form: the full WHERE evaluates against the row map built per candidate
 // (the exact collected map the scan built before positional collection).
-func (e *DMLExecutor) seekUpdateChangesMaps(tree *btree.BTree, tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, s *sql.UpdateStmt, deferSetEval bool, rowIDs []int64) ([]updateChange, []Row, bool) {
+func (e *DMLExecutor) seekUpdateChangesMaps(tree *btree.BTree, tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, s *sql.UpdateStmt, deferSetEval bool, rowIDs []int64, indexDerived bool) ([]updateChange, []Row, bool, error) {
 	var changes []updateChange
 	var rowMaps []Row
 	for _, rowID := range rowIDs {
 		// SQLITE_TEST interrupt countdown: one op per row examined
 		// (src/vdbe.c per-opcode decrement of sqlite3_interrupt_count).
 		if err := e.ctx.CheckProgress(); err != nil {
-			return nil, nil, false
+			return nil, nil, false, nil
 		}
 		cell, rec, failed := e.seekUpdateCandidateRow(tree, rowID, tableEntry, colDefs)
 		if failed {
-			return nil, nil, false // the scan fallback re-evaluates and surfaces it
+			return nil, nil, false, nil // the scan fallback re-evaluates and surfaces it
 		}
 		if cell == nil {
+			if indexDerived {
+				return nil, nil, false, dmlCorruptError(false)
+			}
 			continue // the rowid has no cell (deleted before this visit)
 		}
 		row := e.ctx.BuildRowMap(rec, colDefs, cell.RowID)
 		ch, matchRow, matched, err := e.matchUpdateRow(s, cell, rec, colIndex, colDefs, row, deferSetEval)
 		if err != nil {
-			return nil, nil, false // the scan fallback re-evaluates and surfaces it
+			return nil, nil, false, nil // the scan fallback re-evaluates and surfaces it
 		}
 		if matched {
 			ch.seq = len(changes)
@@ -383,30 +397,33 @@ func (e *DMLExecutor) seekUpdateChangesMaps(tree *btree.BTree, tableEntry *schem
 			rowMaps = append(rowMaps, matchRow)
 		}
 	}
-	return changes, rowMaps, true
+	return changes, rowMaps, true, nil
 }
 
 // planUpdateSeek resolves the table and builds the point-lookup plan's
-// candidate rowids. ok=false keeps the full scan.
-func (e *DMLExecutor) planUpdateSeek(tableName string, rootPage uint32, colDefs []sql.ColumnDef, s *sql.UpdateStmt, scanName string) (*schema.Entry, []int64, bool) {
+// candidate rowids. indexDerived reports an INDEX-driven plan (a candidate
+// rowid whose table row is gone is corruption, where-25.x — a rowid-plan
+// miss is the legitimate no-match point UPDATE). ok=false keeps the full
+// scan.
+func (e *DMLExecutor) planUpdateSeek(tableName string, rootPage uint32, colDefs []sql.ColumnDef, s *sql.UpdateStmt, scanName string) (*schema.Entry, []int64, bool, bool) {
 	te, _, ferr := e.ctx.FindTable(tableName)
 	if ferr != nil || te == nil {
-		return nil, nil, false
+		return nil, nil, false, false
 	}
 	// Index entries for WITHOUT ROWID tables carry synthetic rowid zero;
 	// candidate seeks cannot identify rows by rowid and would collapse them.
 	if strings.Contains(strings.ToUpper(te.SQL), "WITHOUT ROWID") {
-		return nil, nil, false
+		return nil, nil, false, false
 	}
 	plan := e.planDMLSeek(te, colDefs, s.Where, scanName, e.currentDMLCtx)
 	if plan == nil {
-		return nil, nil, false
+		return nil, nil, false, false
 	}
 	rowIDs, ok := e.seekCandidateRowIDs(tableName, rootPage, plan, colDefs)
 	if !ok {
-		return nil, nil, false
+		return nil, nil, false, false
 	}
-	return te, rowIDs, true
+	return te, rowIDs, true, plan.index != nil
 }
 
 // seekUpdateCandidateRow fetches one planned candidate: cell+record on hit

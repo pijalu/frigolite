@@ -301,8 +301,9 @@ type conflictHit struct {
 // findOnConflictRow locates every existing row conflicting with the new values,
 // via UNIQUE/PK columns, composite constraints, or UNIQUE indexes. Each hit
 // carries the conflict source's key terms so execInsertOnConflict can match the
-// ON CONFLICT clauses in order.
-func (e *DMLExecutor) findOnConflictRow(tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}) []conflictHit {
+// ON CONFLICT clauses in order. The error carries the write-path corruption
+// verdict (a matching index entry whose table row is gone — where-25.x).
+func (e *DMLExecutor) findOnConflictRow(tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}) ([]conflictHit, error) {
 	var hits []conflictHit
 
 	// Column-level single-column UNIQUE / PK constraints: collect EVERY
@@ -340,7 +341,11 @@ func (e *DMLExecutor) findOnConflictRow(tableEntry *schema.Entry, colDefs []sql.
 	// UNIQUE indexes (including autoindexes for table constraints). The
 	// conflicting index is identified by its def so the error can name it.
 	for _, def := range e.uniqueIndexColumns(tableEntry.Name) {
-		if rid, rv, ok := e.findRowByIndexCols(tableEntry, colDefs, values, def); ok {
+		rid, rv, ok, err := e.findRowByIndexCols(tableEntry, colDefs, values, def)
+		if err != nil {
+			return nil, err
+		}
+		if ok {
 			hits = append(hits, conflictHit{
 				rowID:  rid,
 				values: rv,
@@ -349,7 +354,7 @@ func (e *DMLExecutor) findOnConflictRow(tableEntry *schema.Entry, colDefs []sql.
 			})
 		}
 	}
-	return hits
+	return hits, nil
 }
 
 // clauseMatchesHit reports whether one ON CONFLICT clause's target matches one

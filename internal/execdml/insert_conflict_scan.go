@@ -714,7 +714,10 @@ func (e *DMLExecutor) selectRowUpsert(tableEntry *schema.Entry, colDefs []sql.Co
 		return false, nil, res, true
 	}
 	colIndex := e.columnIndexFor(colDefs)
-	hits := e.findOnConflictRow(tableEntry, colDefs, colIndex, values)
+	hits, hitErr := e.findOnConflictRow(tableEntry, colDefs, colIndex, values)
+	if hitErr != nil {
+		return false, nil, &Result{Error: hitErr}, true
+	}
 	if len(hits) == 0 {
 		return false, nil, nil, false
 	}

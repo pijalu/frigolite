@@ -17,19 +17,22 @@ import (
 	"github.com/pijalu/frigolite/internal/util"
 )
 
-func (e *DMLExecutor) collectReplaceConflicts(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}, replaceRowID int64) ([]conflictRow, bool) {
+func (e *DMLExecutor) collectReplaceConflicts(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}, replaceRowID int64) ([]conflictRow, bool, error) {
 	seen := make(map[string]bool)
 	keyer := newConflictKeyer(tableEntry, colDefs)
 	var conflicts []conflictRow
 	for {
-		foundID, foundVals, found := e.findNextReplaceConflict(pg, tableEntry, colDefs, colIndex, values, replaceRowID, seen, keyer)
+		foundID, foundVals, found, err := e.findNextReplaceConflict(pg, tableEntry, colDefs, colIndex, values, replaceRowID, seen, keyer)
+		if err != nil {
+			return nil, false, err
+		}
 		if !found {
 			break
 		}
 		seen[keyer.key(foundID, foundVals)] = true
 		conflicts = append(conflicts, conflictRow{rowID: foundID, values: foundVals})
 	}
-	return conflicts, len(conflicts) > 0
+	return conflicts, len(conflicts) > 0, nil
 }
 
 // replaceSecondaryConflictResult inspects the unique constraints OTHER than
@@ -64,7 +67,11 @@ func (e *DMLExecutor) replaceSecondaryConflictResult(tableEntry *schema.Entry, c
 // fails the insert (CREATE UNIQUE INDEX has no ON CONFLICT grammar).
 func (e *DMLExecutor) replaceSecondaryIndexConflict(tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}) *Result {
 	for _, def := range e.uniqueIndexColumns(tableEntry.Name) {
-		if _, _, ok := e.findRowByIndexCols(tableEntry, colDefs, values, def); ok {
+		_, _, ok, err := e.findRowByIndexCols(tableEntry, colDefs, values, def)
+		if err != nil {
+			return &Result{Error: err}
+		}
+		if ok {
 			return &Result{Error: uniqueIndexConflictError(tableEntry, colIndex, def, def.Cols)}
 		}
 	}
@@ -170,19 +177,23 @@ func replaceSecondaryRowConflict(tableEntry *schema.Entry, rowVals, values []int
 // UNIQUE columns are checked PER-COLUMN: INSERT OR REPLACE INTO t(a UNIQUE,
 // b UNIQUE) VALUES('one','two') must delete BOTH the row with a='one' and the
 // row with b='two' (each unique column independently).
-func (e *DMLExecutor) findNextReplaceConflict(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}, replaceRowID int64, seen map[string]bool, keyer conflictKeyer) (int64, []interface{}, bool) {
+func (e *DMLExecutor) findNextReplaceConflict(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}, replaceRowID int64, seen map[string]bool, keyer conflictKeyer) (int64, []interface{}, bool, error) {
 	// An explicit rowid (rowid/oid/_rowid_ in the INSERT list) conflicts
 	// with the existing row at that rowid (SQLite OP_Delete on the rowid).
 	if rid, rv, ok := e.replaceConflictAtRowID(pg, tableEntry, replaceRowID, seen); ok {
-		return rid, rv, true
+		return rid, rv, true, nil
 	}
 	// UNIQUE indexes (CREATE UNIQUE INDEX ... ON t(c1, c2)): SQLite resolves
 	// these conflicts first in a REPLACE (a row matched by a UNIQUE index is
 	// deleted before a composite-PK conflict; hook2.test 2.1.5 expects the
 	// index-conflict row's DELETE preupdate before the PK-conflict row's).
 	for _, def := range e.uniqueIndexColumns(tableEntry.Name) {
-		if rid, rv, ok := e.findRowByIndexCols(tableEntry, colDefs, values, def); ok && !seen[keyer.key(rid, rv)] {
-			return rid, rv, true
+		rid, rv, ok, err := e.findRowByIndexCols(tableEntry, colDefs, values, def)
+		if err != nil {
+			return 0, nil, false, err
+		}
+		if ok && !seen[keyer.key(rid, rv)] {
+			return rid, rv, true, nil
 		}
 	}
 	// Scan the table once, collecting the first conflicting row for each
@@ -202,7 +213,7 @@ func (e *DMLExecutor) findNextReplaceConflict(pg *pager.Pager, tableEntry *schem
 	}
 	if len(uniqueCols) > 0 {
 		if rid, rv, ok := e.findReplaceColumnConflict(tableEntry, colDefs, values, uniqueCols, seen, keyer); ok {
-			return rid, rv, true
+			return rid, rv, true, nil
 		}
 	}
 	// Composite PRIMARY KEY / UNIQUE groups (e.g. PRIMARY KEY(b,c)): scan
@@ -212,10 +223,10 @@ func (e *DMLExecutor) findNextReplaceConflict(pg *pager.Pager, tableEntry *schem
 		if cell, rec, err := e.scanTableForMatch(tableEntry, func(rec *storage.Record, cell *storage.Cell) bool {
 			return !seen[keyer.key(cell.RowID, rec.Values)] && e.allMatch(colDefs, rec.Values, group, values)
 		}); err == nil && cell != nil {
-			return cell.RowID, rec.Values, true
+			return cell.RowID, rec.Values, true, nil
 		}
 	}
-	return 0, nil, false
+	return 0, nil, false, nil
 }
 
 // findReplaceColumnConflict scans the table once for the first row whose
