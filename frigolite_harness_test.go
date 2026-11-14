@@ -373,6 +373,12 @@ type TestStep struct {
 	// VFS names the testvfs wrapper the opening command requested
 	// (walvfs.test's `sqlite3 db test.db -vfs tvfs`).
 	VFS string `json:"vfs,omitempty"`
+	// ReadOnly marks the -readonly 1 open (SQLITE_OPEN_READONLY,
+	// pager1-4.5.6's `sqlite3 db test.db -readonly 1`).
+	ReadOnly bool `json:"readonly,omitempty"`
+	// StatusReset carries sqlite3_db_status's reset flag: the counter is
+	// zeroed after being read (pager.c sqlite3PagerCacheStat).
+	StatusReset bool `json:"statusReset,omitempty"`
 	// faultsim_test (malloc_common.tcl): the -prep/-body step trees replay
 	// per trial with the ioerr injector armed at the trial index;
 	// TestPatterns are the accepted (rc, result) pairs.
@@ -3415,6 +3421,11 @@ func TestSQLiteSuite(t *testing.T) {
 			prepared := make(map[string]*Stmt)
 			stmtCode := make(map[string]string)
 			stmtFinCode := make(map[string]string)
+			// stmtRow holds the most recent step's current-row column texts
+			// per prepared handle (sqlite3_column_text's C contract: the
+			// value of the row the statement is positioned on — pager1-39.1's
+			// `sqlite3_column_text $::stmt 0` body value).
+			stmtRow := make(map[string][]string)
 			// The process-global shared-cache flag belongs to the family that
 			// set it (C runs each test file in its own process): reset it at
 			// every family boundary so it cannot leak into the next file's
@@ -4096,12 +4107,23 @@ func TestSQLiteSuite(t *testing.T) {
 							continue
 						}
 						if step.Type == "reopen_db" {
-							if lifecycleDBPath == "" || filepath.Base(step.SQL) != step.SQL {
+							// A `file:` URI passes through VERBATIM: the engine's
+							// Open parses mode=memory / cache=shared / vfs=memdb
+							// URIs (pager1-37.1's shared-memory open — collapsing
+							// it to a path turned the open into a directory
+							// open). Plain names resolve against the fixture
+							// lifecycle file as before.
+							uriOpen := strings.HasPrefix(step.SQL, "file:")
+							if !uriOpen && (lifecycleDBPath == "" || filepath.Base(step.SQL) != step.SQL) {
 								t.Fatalf("unexpected reopen marker path %q", step.SQL)
 							}
-							path, pathErr := fixtureLifecyclePath(fixtureDBDir, step.SQL)
-							if pathErr != nil {
-								t.Fatal(pathErr)
+							openTarget := step.SQL
+							if !uriOpen {
+								path, pathErr := fixtureLifecyclePath(fixtureDBDir, step.SQL)
+								if pathErr != nil {
+									t.Fatal(pathErr)
+								}
+								openTarget = path
 							}
 							// C's reopen_db closes the previous connection first
 							// (tester.tcl's `catch {db close}`): the replacement
@@ -4116,7 +4138,15 @@ func TestSQLiteSuite(t *testing.T) {
 									t.Errorf("close lifecycle database for reopen: %v", cerr)
 								}
 							}
-							db, err = Open(path)
+							if step.ReadOnly {
+								// `sqlite3 db test.db -readonly 1` (SQLITE_OPEN_
+								// READONLY, pager1-4.5.6): the read-only open must
+								// not create the file, and every write fails
+								// SQLITE_READONLY.
+								db, err = OpenReadOnly(openTarget)
+							} else {
+								db, err = Open(openTarget)
+							}
 							if err == nil {
 								// SQLite initializes persisted schema before executing the first
 								// statement on a reopened connection. Prime Frigolite's lazy schema
@@ -4431,6 +4461,17 @@ func TestSQLiteSuite(t *testing.T) {
 							stmtCode[step.Variable] = "SQLITE_DONE"
 							if row {
 								stmtCode[step.Variable] = "SQLITE_ROW"
+								// Record the current row's formatted column
+								// texts: __COL_<handle>_<idx>__ expansions
+								// read them (sqlite3_column_text's contract).
+								rowData := stmt.Row()
+								texts := make([]string, len(rowData))
+								for ci, cv := range rowData {
+									texts[ci] = formatHarnessValue(base, cv)
+								}
+								stmtRow[step.Variable] = texts
+							} else {
+								delete(stmtRow, step.Variable)
 							}
 						case "stmt_reset":
 							stmt := prepared[step.Variable]
@@ -4470,6 +4511,16 @@ func TestSQLiteSuite(t *testing.T) {
 							for handle, code := range stmtCode {
 								actual = strings.ReplaceAll(actual, "__STEP_"+handle+"__", code)
 							}
+							// sqlite3_column_text's value carrier: the current
+							// row's formatted column texts of the last
+							// successful step (pager1-39.1/39.2). A handle
+							// with no current row expands to "" (C returns
+							// NULL → Tcl "").
+							for handle, texts := range stmtRow {
+								for ci, text := range texts {
+									actual = strings.ReplaceAll(actual, "__COL_"+handle+"_"+strconv.Itoa(ci)+"__", text)
+								}
+							}
 							for handle, code := range stmtFinCode {
 								actual = strings.ReplaceAll(actual, "__FIN_"+handle+"__", code)
 							}
@@ -4483,6 +4534,67 @@ func TestSQLiteSuite(t *testing.T) {
 								// lock held and blocking every later write with
 								// "database is locked".
 								continue
+							}
+						case "file_attr":
+							// `file attributes PATH -permissions X|-readonly N`
+							// (pager1-4.7.2/4.8.x, wrapped in catch{}): the
+							// fixture makes target files unwritable to exercise
+							// the readonly error paths. Apply the permission
+							// bits now; a missing file stays a no-op (TCL's
+							// catch{} swallows the error).
+							target := step.SQL
+							if !filepath.IsAbs(target) {
+								target = filepath.Join(fixtureDBDir, target)
+							}
+							mode, modeErr := fileAttrMode(target, step.Variable, step.BindValue)
+							if modeErr != nil {
+								if !os.IsNotExist(modeErr) {
+									t.Errorf("file attributes: %v", modeErr)
+								}
+								continue
+							}
+							if chmodErr := os.Chmod(target, mode); chmodErr != nil && !os.IsNotExist(chmodErr) {
+								t.Errorf("file attributes %s %s %s: %v", target, step.Variable, step.BindValue, chmodErr)
+							}
+						case "capi_db_readonly":
+							// sqlite3_db_readonly(db, NAME): 1 when the named
+							// database's file lacks write permission, 0 when
+							// writable, -1 when NAME matches no open database
+							// (pager1-4.8.2's unknown-name probe). MAIN and
+							// every attached name resolve through the engine's
+							// database map; TEMP always has a pager there.
+							got := "-1"
+							name := strings.ToUpper(strings.TrimSpace(step.SQL))
+							if name == "" {
+								name = "MAIN"
+							}
+							if ctx := execDB.engine.GetDB(name); ctx != nil && ctx.Pager != nil {
+								if ctx.Pager.ReadOnly() {
+									got = "1"
+								} else {
+									got = "0"
+								}
+							}
+							if step.Expect != "" {
+								if diff := matchExpectation(got, step.Expect); diff != "" {
+									t.Errorf("sqlite3_db_readonly %s mismatch: %s\\n got: %s\\n want: %s", step.SQL, diff, got, step.Expect)
+								}
+							}
+						case "capi_db_status":
+							// sqlite3_db_status(db, CACHE_MISS, reset): the
+							// {code, counter, unused} triple of the page-cache
+							// miss counter (pager.c sqlite3PagerCacheStat); a
+							// reset flag zeroes the counter after reading.
+							if !strings.EqualFold(strings.TrimSpace(step.SQL), "CACHE_MISS") {
+								t.Errorf("unsupported sqlite3_db_status op %q", step.SQL)
+								continue
+							}
+							_, miss := execDB.engine.Pager().CacheStat(step.StatusReset)
+							got := fmt.Sprintf("0 %d 0", miss)
+							if step.Expect != "" {
+								if diff := matchExpectation(got, step.Expect); diff != "" {
+									t.Errorf("sqlite3_db_status %s mismatch: %s\\n got: %s\\n want: %s", step.SQL, diff, got, step.Expect)
+								}
 							}
 						case "backup_file":
 							// `db backup FILE` (test1.c's DbBackupCmd): the
@@ -6860,6 +6972,50 @@ func faultsimMainPath(db *DB, fixtureDBDir string) string {
 		return db.path
 	}
 	return filepath.Join(fixtureDBDir, "test.db")
+}
+
+// fileAttrMode converts a `file attributes` step's attribute/value pair into
+// the target permission bits. `-permissions X` parses TCL's 9-character
+// rwxrwxrwx string (pager1-4.7.2's r-------- = 0400, 4.8.3's rw-rw-rw- =
+// 0666); `-readonly N` toggles the user/group/other write bits on the
+// file's CURRENT mode, matching Tcl's unix attribute implementation
+// (tclUnixFile.c sets/clears S_IWUSR|S_IWGRP|S_IWOTH). An unknown
+// attribute is a conversion bug, not a skip.
+func fileAttrMode(target, attr, value string) (os.FileMode, error) {
+	switch attr {
+	case "-permissions":
+		if len(value) != 9 {
+			return 0, fmt.Errorf("bad -permissions string %q", value)
+		}
+		mode := os.FileMode(0)
+		for i := 0; i < 3; i++ {
+			block := value[i*3 : i*3+3]
+			shift := uint(6 - i*3)
+			if block[0] == 'r' {
+				mode |= 4 << shift
+			}
+			if block[1] == 'w' {
+				mode |= 2 << shift
+			}
+			if block[2] == 'x' {
+				mode |= 1 << shift
+			}
+		}
+		return mode, nil
+	case "-readonly":
+		info, err := os.Stat(target)
+		if err != nil {
+			return 0, err
+		}
+		mode := info.Mode().Perm()
+		writeBits := os.FileMode(0o222)
+		if value == "1" {
+			return mode &^ writeBits, nil
+		}
+		return mode | writeBits, nil
+	default:
+		return 0, fmt.Errorf("unsupported file attribute %q", attr)
+	}
 }
 
 // faultsimGlobFiles enumerates tester.tcl's `glob <base>*` scope in main's

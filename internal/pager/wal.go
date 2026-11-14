@@ -91,6 +91,15 @@ type walWriter struct {
 	// exclusiveRequested is the PRAGMA locking_mode=EXCLUSIVE request
 	// (pPager->exclusiveMode): no shm state changes at pragma time.
 	exclusiveRequested bool
+	// heapMemory is C's WAL_HEAPMEMORY_MODE: the WAL was opened while the
+	// pager's locking mode was EXCLUSIVE, so the wal-index lives in heap
+	// memory (wal.c sqlite3WalOpen's bNoShm ← pager.c:7596
+	// pPager->exclusiveMode). sqlite3WalHeapMemory reports it, and
+	// sqlite3PagerLockingMode REFUSES a locking-mode change while it holds
+	// (pager1-7.1.6's `PRAGMA locking_mode = NORMAL` must return
+	// "exclusive"). The flag dies with the WAL (leaving WAL mode tears the
+	// heap wal-index down with it).
+	heapMemory bool
 	// busyTimeout is sqlite3_busy_timeout: contended shm lock acquisitions
 	// retry until the deadline, then report "database is locked".
 	busyTimeout time.Duration
@@ -146,7 +155,8 @@ func openWal(p *Pager, dbPath string, pageSize uint32) (*walWriter, error) {
 		f.Close()
 		return nil, err
 	}
-	w := &walWriter{p: p, path: walPath, file: f, pageSize: pageSize, wi: wi, readLock: -1}
+	w := &walWriter{p: p, path: walPath, file: f, pageSize: pageSize, wi: wi, readLock: -1,
+		heapMemory: p.walExclusiveLatched}
 	if err := w.walInitHeader(); err != nil {
 		wi.release()
 		f.Close()

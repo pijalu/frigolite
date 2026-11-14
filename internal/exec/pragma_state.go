@@ -229,39 +229,62 @@ func (e *Engine) LockingMode(schema, value string) *execpragma.Result {
 		// (getLockingMode falls back to QUERY mode, so the result row is
 		// just the current value).
 	}
-	return &execpragma.Result{Rows: [][]interface{}{{e.currentLockingMode(schema)}}}
+	// C's result (pragma.c PragTyp_LOCKING_MODE): the SET form reports the
+	// ADDRESS database's resulting PAGER mode (eMode =
+	// sqlite3PagerLockingMode(pPager, eMode) over pDb->pBt — "exclusive"
+	// when a heap-memory WAL refused the change, pager1-7.1.6.1); the bare
+	// QUERY form reports db->dfltLockMode (the connection default, which
+	// may differ from MAIN's pager after a refused set).
+	if m == "normal" || m == "exclusive" {
+		if schema == "" {
+			schema = "main"
+		}
+		return &execpragma.Result{Rows: [][]interface{}{{e.currentLockingMode(schema)}}}
+	}
+	return &execpragma.Result{Rows: [][]interface{}{{e.currentLockingMode("")}}}
 }
 
 // lockingModeSetAll applies an unqualified PRAGMA locking_mode = X: every
 // database except temp (pragma.c ii=2..nDb loop) and the connection default
-// for future ATTACHes.
+// for future ATTACHes. A pager whose WAL runs a heap-memory wal-index
+// (opened while exclusive — sqlite3WalHeapMemory) REFUSES the set
+// (pager.c sqlite3PagerLockingMode's gate): its own mode stays unchanged
+// while db->dfltLockMode still updates.
 func (e *Engine) lockingModeSetAll(m string) {
 	e.lockingMode = m
 	for _, dbCtx := range e.dbList {
+		if dbCtx != nil && dbCtx.Pager != nil && dbCtx.Pager.WALHeapMemory() {
+			continue // sqlite3WalHeapMemory: the pager keeps its mode
+		}
 		e.setSchemaLockingMode(dbCtx.Name, m)
 	}
 	// WAL parity (wal.c walLockShared/walLockExclusive): in
 	// locking_mode=EXCLUSIVE the shm lock calls become no-ops.
 	for _, dbCtx := range e.dbList {
-		if dbCtx != nil && dbCtx.Pager != nil {
+		if dbCtx != nil && dbCtx.Pager != nil && !dbCtx.Pager.WALHeapMemory() {
 			dbCtx.Pager.SetWALExclusiveRequested(m == "exclusive")
 		}
 	}
-	if m == "normal" {
+	if m == "normal" && !strings.EqualFold(e.currentLockingMode("main"), "exclusive") {
 		// Reverting to normal releases the never-unlocked SHARED
 		// locks held in exclusive mode (pager.c drops back to
-		// unlock-at-transaction-end).
+		// unlock-at-transaction-end). A heap-memory WAL refused the
+		// set: MAIN's pager stays exclusive and keeps its locks.
 		e.clearPersistentShared()
 	}
 }
 
 // lockingModeSetOne applies a schema-qualified PRAGMA <db>.locking_mode = X:
 // only that pager (pragma.c pId2->n!=0 branch); dfltLockMode is untouched.
-// TEMP refuses the set.
+// TEMP refuses the set, and so does a pager whose WAL runs a heap-memory
+// wal-index (sqlite3PagerLockingMode's sqlite3WalHeapMemory gate).
 func (e *Engine) lockingModeSetOne(schema, m string) {
 	upper := strings.ToUpper(schema)
 	settable := upper != "TEMP" && upper != "TEMPORARY"
 	if !settable {
+		return
+	}
+	if ctx := e.GetDB(upper); ctx != nil && ctx.Pager != nil && ctx.Pager.WALHeapMemory() {
 		return
 	}
 	e.setSchemaLockingMode(upper, m)

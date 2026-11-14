@@ -149,6 +149,27 @@ func commandBindStmt(i *Interp, _ []rawWord, args []string, _ map[string]string)
 	return nil
 }
 
+// commandColumnText captures `sqlite3_column_text $STMT N`: the do_test body
+// value is the CURRENT ROW's column N of the most recently stepped statement
+// (pager1-39.1's `sqlite3_step $::stmt; sqlite3_column_text $::stmt 0` →
+// "one"). No step is emitted — the value exists only at run time — so the
+// marker the harness expands carries the handle and column index. The step
+// STATUS carrier (__STEP_<handle>__) is separate: commandStepStmt keeps it,
+// and the while-collect shape (func-13.7) slices column_text out of the body
+// text before any dispatch reaches here.
+func commandColumnText(i *Interp, _ []rawWord, args []string, _ map[string]string) error {
+	if len(args) < 2 {
+		return nil
+	}
+	handle := strings.TrimPrefix(args[0], "$")
+	idx, err := strconv.Atoi(strings.TrimSpace(args[1]))
+	if err != nil {
+		return nil
+	}
+	i.vars[""] = "__COL_" + handle + "_" + strconv.Itoa(idx) + "__"
+	return nil
+}
+
 // sqlite3BindKind is set by the dispatch wrapper: which sqlite3_bind_*
 // command invoked commandBindStmt.
 var sqlite3BindKind string
