@@ -661,7 +661,7 @@ func (e *DMLExecutor) insertSelectOneRow(tableEntry *schema.Entry, colDefs []sql
 			return skip, rv, res, false
 		}
 	}
-	if res := e.execInsertSelectConflict(s, tableEntry, colDefs, values, rowID, s.OrIgnore); res != nil {
+	if res := e.execInsertSelectConflict(s, tableEntry, colDefs, values, rowID, s.OrIgnore, hasExplicitRowID); res != nil {
 		if res.Error == errRowSkipped {
 			return true, nil, nil, false
 		}
