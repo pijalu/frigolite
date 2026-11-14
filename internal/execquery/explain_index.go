@@ -813,6 +813,9 @@ func collectBinaryRef(binop *sql.BinaryOp, tableName string, e *SelectEngine, wh
 	if idxName == "" {
 		return nil
 	}
+	if !e.seekCollationAgrees(tableName, idxName, colRef.Name, binop) {
+		return nil
+	}
 	return []indexedRef{{indexName: idxName, colName: colRef.Name, constant: constVal, constantExpr: constExpr, op: op}}
 }
 
@@ -836,6 +839,56 @@ func (e *SelectEngine) seekRefSides(b *sql.BinaryOp, tableName string) (*sql.Col
 		}
 	}
 	return nil, nil, false
+}
+
+// seekCollationAgrees reports whether the index named idxName orders its
+// colName column by the comparison's effective collation — C's rule
+// (whereLoopAddBtree only takes a term whose collation matches the index
+// column's sqlite3IndexCollSeq). The comparison's effective collation is an
+// explicit COLLATE on either operand, else the column-operand side's declared
+// collation (sqlite3BinaryCompareCollSeq); the index column's is the index
+// DDL's explicit COLLATE, else the column's declared collation. An index
+// ordering a NOCASE column by BINARY cannot serve a=x (existsexpr-4.4.2's
+// recreated index: the seek would compare under the wrong collation and
+// miss every entry). The IPK/PK tokens are numeric — no collation applies.
+func (e *SelectEngine) seekCollationAgrees(tableName, idxName, colName string, binop *sql.BinaryOp) bool {
+	if idxName == "PRIMARY KEY" || idxName == "INTEGER PRIMARY KEY" {
+		return true
+	}
+	seek := collateWrapperName(binop.Left)
+	if seek == "" {
+		seek = e.tableColumnCollationForRef(binop.Left, tableName)
+	}
+	if seek == "" {
+		seek = collateWrapperName(binop.Right)
+	}
+	if seek == "" {
+		seek = e.tableColumnCollationForRef(binop.Right, tableName)
+	}
+	if seek == "" {
+		return true
+	}
+	return strings.EqualFold(seek, e.indexColumnCollation(tableName, idxName, colName))
+}
+
+// tableColumnCollationForRef returns the declared collation of the column
+// when ref names one of the planned table's columns (either orientation of
+// the comparison qualifies); "" when ref is not an own-table column.
+func (e *SelectEngine) tableColumnCollationForRef(ref sql.Expr, tableName string) string {
+	cr, ok := ref.(*sql.ColumnRef)
+	if !ok || !e.seekRefIsOwnColumn(cr, tableName) {
+		return ""
+	}
+	entry, _, err := e.ctx.FindTable(tableName)
+	if err != nil || entry == nil {
+		return ""
+	}
+	for _, cd := range e.ctx.ParseColumnDefs(entry.Name, entry.SQL) {
+		if strings.EqualFold(cd.Name, cr.Name) {
+			return strings.ToUpper(cd.Collate)
+		}
+	}
+	return ""
 }
 
 // seekRefIsOwnColumn reports whether the reference names a column of the
