@@ -144,6 +144,14 @@ type Pager struct {
 	// ends (sqlite3BtreeSetJournalMode / btreeEndTransaction). Empty means no
 	// pending change.
 	pendingJournalMode string
+	// shmUnavailable models a VFS without xShm methods (testvfs -noshm /
+	// -iversion 1): a WAL-mode database opened through it refuses the WAL
+	// attach (pager.c pagerOpenWal's SQLITE_CANTOPEN) at the first use.
+	shmUnavailable bool
+	// walOpenRefused records that attachWalAtOpen declined the WAL attach
+	// because shmUnavailable was set: every later page read fails
+	// SQLITE_CANTOPEN until the connection closes (pager1-21.1/21.2).
+	walOpenRefused bool
 	// pendingByteOverride stores a non-default PENDING_BYTE offset installed
 	// by the SQLite test harness via sqlite3_test_control_pending_byte
 	// (src/test2.c::testPendingByte). 0 means production default.

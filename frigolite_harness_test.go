@@ -3783,6 +3783,7 @@ func TestSQLiteSuite(t *testing.T) {
 							if vfsName != "" {
 								if fx := testvfsFixtures[vfsName]; fx != nil {
 									opened.engine.InstallVFSHook(fx.hook(runtimeVars, opened, namedDBs, fixtureDBDir), fx.devcharBits)
+									markFixtureShmUnavailable(fx, opened)
 								}
 							}
 							continue
@@ -3805,6 +3806,7 @@ func TestSQLiteSuite(t *testing.T) {
 						if step.VFS != "" {
 							if fx := testvfsFixtures[step.VFS]; fx != nil {
 								execDB.engine.InstallVFSHook(fx.hook(runtimeVars, execDB, namedDBs, fixtureDBDir), fx.devcharBits)
+								markFixtureShmUnavailable(fx, execDB)
 							}
 						}
 						if step.Type == "auth_analyze_deny" {
@@ -4187,6 +4189,7 @@ func TestSQLiteSuite(t *testing.T) {
 								connVFS[db] = step.VFS
 								if fx := testvfsFixtures[step.VFS]; fx != nil {
 									db.engine.InstallVFSHook(fx.hook(runtimeVars, db, namedDBs, fixtureDBDir), fx.devcharBits)
+									markFixtureShmUnavailable(fx, db)
 								}
 							}
 							continue
@@ -4763,7 +4766,9 @@ func TestSQLiteSuite(t *testing.T) {
 							})
 							continue
 						case "register_testvfs":
-							testvfsFixtures[step.Variable] = &testvfsFixture{name: step.Variable, isDefault: step.SQL == "default", devcharBits: -1}
+							// SQL carries the -default/-noshm/-iversion flag the
+							// converter extracted from `testvfs <name> <opt> 1`.
+							testvfsFixtures[step.Variable] = &testvfsFixture{name: step.Variable, isDefault: step.SQL == "default", noShm: step.SQL == "noshm" || step.SQL == "iversion", devcharBits: -1}
 							if step.SQL == "default" {
 								testvfsDefault = step.Variable
 								// The -default fixture governs the connection
@@ -6794,6 +6799,10 @@ type testvfsFixture struct {
 	// (nothing fires). Before the first `filter` option the fixture is in
 	// the all-methods state (e_walckpt's tvfs_callback without any filter).
 	filterConfigured bool
+	// noShm models `testvfs tv -noshm 1` (and -iversion 1): the fixture VFS
+	// has no xShm methods, so a WAL-mode database opened through it refuses
+	// the WAL attach and every statement reports CANTOPEN (pager1-21.1/21.2).
+	noShm bool
 	// devcharBits models test_vfs.c's iDevchar: -1 = passthrough (the real
 	// file's characteristics — the unix default POWERSAFE_OVERWRITE), any
 	// other value REPLACES the whole mask (`tvfs devchar sequential`).
@@ -6999,6 +7008,19 @@ func installDefaultVFS(t *testing.T, fixtures map[string]*testvfsFixture, name s
 		return
 	}
 	db.engine.InstallVFSHook(fx.hook(runtimeVars, db, namedDBs, fixtureDBDir), fx.devcharBits)
+	markFixtureShmUnavailable(fx, db)
+}
+
+// markFixtureShmUnavailable applies an xShm-less fixture (-noshm/-iversion)
+// to every file-backed pager of the connection: the WAL attach refuses at
+// open and the first read reports CANTOPEN (pager.c pagerOpenWal's contract).
+func markFixtureShmUnavailable(fx *testvfsFixture, db *DB) {
+	if fx == nil || db == nil || !fx.noShm {
+		return
+	}
+	for _, ctx := range db.engine.AttachedPagers() {
+		ctx.SetShmUnavailable()
+	}
 }
 
 // faultsimMainPath resolves the main database file a faultsim snapshot pair

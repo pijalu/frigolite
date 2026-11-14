@@ -345,6 +345,17 @@ func recoverJournalAtOpen(pr *Pager, cleanPath string) error {
 // empty (uncheckpointed) carries its page size only in the "-wal" header, so
 // prefer that when the main file did not yield a size.
 func attachWalAtOpen(pr *Pager, cleanPath string) error {
+	// C's pagerOpenWal (pager.c sqlite3PagerOpenWal) needs a VFS with xShm
+	// methods (iVersion >= 2): a WAL-mode database opened through a VFS
+	// without them fails SQLITE_CANTOPEN at the first statement ("unable to
+	// open database file", pager1-21.1's testvfs -noshm / 21.2's
+	// -iversion 1). The refusal is lazy in C — sqlite3_open succeeds, the
+	// pagerOpenWal inside the first read transaction fails — so the open
+	// itself succeeds here and every later page read reports the refusal.
+	if pr.shmUnavailable {
+		pr.walOpenRefused = true
+		return nil
+	}
 	// C's pagerOpenWalIfPresent garbage rule (pager.c:3337, mirrored in
 	// CheckExternalFile's per-statement gate): a "-wal" beside an EMPTY
 	// database is garbage — its frames reference a database that does not

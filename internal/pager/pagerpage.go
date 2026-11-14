@@ -213,6 +213,12 @@ func (p *Pager) ReadPage(pageNum uint32) (*Page, error) {
 	if pageNum == 0 {
 		return nil, fmt.Errorf("database disk image is malformed")
 	}
+	// C's pagerOpenWal refusal surfaces at the first page acquire (the lazy
+	// sqlite3_open): a WAL db through an xShm-less VFS reports CANTOPEN
+	// "unable to open database file" on every statement (pager1-21.1/21.2).
+	if p.walOpenRefused {
+		return nil, fmt.Errorf("unable to open database file")
+	}
 	// C's getPageNormal (pager.c:5577-5580): a content fetch of the lock-byte
 	// page (the PENDING_BYTE page, PAGER_SJ_PGNO) is corruption. A database
 	// BUILT before the pending byte moved holds data on that page; reading it

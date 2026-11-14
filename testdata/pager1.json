@@ -11575,9 +11575,15 @@
       "name": "pager1-21.1",
       "steps": [
         {
+          "type": "register_testvfs",
+          "sql": "noshm",
+          "variable": "tv"
+        },
+        {
           "type": "open_named_db",
           "sql": "test.db",
-          "database": "db2"
+          "database": "db2",
+          "vfs": "tv"
         },
         {
           "type": "catch",
@@ -11600,9 +11606,15 @@
       "name": "pager1-21.2",
       "steps": [
         {
+          "type": "register_testvfs",
+          "sql": "iversion",
+          "variable": "tv"
+        },
+        {
           "type": "open_named_db",
           "sql": "test.db",
-          "database": "db2"
+          "database": "db2",
+          "vfs": "tv"
         },
         {
           "type": "catch",
