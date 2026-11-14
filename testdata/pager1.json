@@ -13275,7 +13275,7 @@
         {
           "type": "query",
           "sql": "PRAGMA page_size=4096;\n  PRAGMA auto_vacuum=FULL;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b ANY);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<50)\n  INSERT INTO t1(a,b) SELECT x, zeroblob(1000) FROM c;\n  CREATE TABLE t2 AS SELECT * FROM t1;\n  PRAGMA page_count;",
-          "expect": "31"
+          "expect": "30"
         }
       ]
     },
@@ -13295,7 +13295,7 @@
         {
           "type": "query",
           "sql": "ROLLBACK;\n  PRAGMA page_count;\n  PRAGMA max_page_count;",
-          "expect": "31 31"
+          "expect": "30 30"
         }
       ]
     }

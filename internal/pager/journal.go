@@ -729,6 +729,7 @@ func (p *Pager) restoreJournalTruncationLocked(jpages []JournalPage) {
 	if len(p.header) >= 32 {
 		binary.BigEndian.PutUint32(p.header[28:32], p.journalDBOrigSize)
 	}
+	p.restoreMaxPageCountLocked(p.journalDBOrigSize)
 }
 
 // restoreBeforeImagesLocked replays the journal's page records in reverse

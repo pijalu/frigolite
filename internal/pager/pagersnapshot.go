@@ -141,6 +141,20 @@ func (p *Pager) Restore(s *PagerState) {
 	// The rollback reinstated the pre-truncate page count, so a deferred
 	// file shrink recorded by truncatePages no longer applies.
 	p.pendingFileTruncate = false
+	p.restoreMaxPageCountLocked(s.numPages)
+}
+
+// restoreMaxPageCountLocked applies C's pager_playback first-header restore
+// (pager.c:2900-2901): the rollback reinstated the transaction-start page
+// count, so a max_page_count set BELOW the restored size during the
+// transaction is adjusted UPWARD — mxPgno can never legitimately sit below
+// dbSize (the pragma setter clamps the requested cap to the current size).
+// 44.3: PRAGMA max_page_count=2 inside the transaction (clamped to 16) must
+// roll back to the restored page count. Caller holds p.mu.
+func (p *Pager) restoreMaxPageCountLocked(numPages uint32) {
+	if p.maxPageCount != 0 && p.maxPageCount < numPages {
+		p.maxPageCount = numPages
+	}
 }
 
 // restoreFileImageLocked aligns the database FILE with the snapshot image:
