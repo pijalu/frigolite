@@ -617,6 +617,11 @@ func isIdentChar(c byte) bool {
 // (body plan nested) followed by a SCAN of the subquery alias; the caller
 // splices those sibling nodes into the join plan.
 func (e *SelectEngine) joinNodeFor(t queryTable, planned []string, joins []joinRef, s *sql.SelectStmt) []planNode {
+	if orNode := e.joinOrNodeFor(t, planned, s); orNode != nil {
+		// The operand's loop is a MULTI-INDEX OR (wherecode.c Case 5): one
+		// sub-plan per arm in execution order.
+		return orNode
+	}
 	if jr := e.joinSearchRef(joins, planned); jr != nil {
 		// Try skip-scan when the join ref matches a non-leading column of an
 		// index (e.g. WHERE c=y with index (a,b,c) becomes ANY(a) AND

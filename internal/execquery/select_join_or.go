@@ -10,6 +10,7 @@
 package execquery
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/sql"
@@ -446,4 +447,67 @@ func lookupRowidOfMap(m RowMap) (int64, bool) {
 	}
 	rid, isInt := util.UnwrapColumnValue(v).(int64)
 	return rid, isInt
+}
+
+// joinOrNodeFor emits the EQP plan node for a join operand whose constraint
+// set plans as a MULTI-INDEX OR (wherecode.c Case 5): one INDEX-n sub-plan
+// per arm in execution order, each arm's SEARCH naming its driving index.
+// nil when the operand's loop is not an OR loop.
+func (e *SelectEngine) joinOrNodeFor(t queryTable, planned []string, s *sql.SelectStmt) []planNode {
+	if t.real == "" || t.subquery != nil {
+		return nil
+	}
+	rightNames := joinOperandColumnNames(e.ctx.ParseColumnDefs(t.real, e.tableCreateSQL(t.real)))
+	rightTokens := joinOperandRefTokens(t.display, t.real)
+	leftNames := make(map[string]bool)
+	leftTokens := make([]string, 0, len(planned))
+	for _, name := range planned {
+		if entry, _, err := e.ctx.FindTable(name); err == nil && entry.RootPage > 0 {
+			for col := range joinOperandColumnNames(e.ctx.ParseColumnDefs(entry.Name, entry.SQL)) {
+				leftNames[col] = true
+			}
+		}
+		leftTokens = append(leftTokens, strings.ToLower(schemaStrippedName(name)))
+	}
+	arms := e.joinOrArmConjunct(nil, joinWhereExpr(s), leftNames, rightNames, leftTokens, rightTokens, t.real)
+	if arms == nil {
+		return nil
+	}
+	node := planNode{detail: "MULTI-INDEX OR"}
+	for i, arm := range arms {
+		idx := planNode{detail: fmt.Sprintf("INDEX %d", i+1)}
+		col := e.joinArmSearchColumn(arm, rightNames, rightTokens)
+		if col == "" {
+			return nil
+		}
+		idxName := e.findIndexOnColumn(t.real, col)
+		var search string
+		switch {
+		case isRowIDName(col):
+			search = fmt.Sprintf("SEARCH %s USING INTEGER PRIMARY KEY (rowid=?)", t.display)
+		case idxName == "":
+			return nil
+		default:
+			search = fmt.Sprintf("SEARCH %s USING INDEX %s (%s=?)", t.display, indexSchemaName(idxName), col)
+		}
+		idx.children = []planNode{{detail: search}}
+		node.children = append(node.children, idx)
+	}
+	return []planNode{node}
+}
+
+// joinArmSearchColumn returns the arm's anchoring operand column (the first
+// AND-spine equality's operand column).
+func (e *SelectEngine) joinArmSearchColumn(arm sql.Expr, rightNames map[string]bool, rightTokens []string) string {
+	col := ""
+	e.walkAndSpine(arm, func(conj sql.Expr) {
+		if col != "" {
+			return
+		}
+		if bop, ok := conj.(*sql.BinaryOp); ok &&
+			(bop.Operator == "=" || bop.Operator == "==" || bop.Operator == "IS") {
+			col = e.joinArmOperandColumn(bop, rightNames, rightTokens)
+		}
+	})
+	return col
 }
