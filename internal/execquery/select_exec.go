@@ -318,6 +318,19 @@ func (e *SelectEngine) execRealTableSelect(s *sql.SelectStmt) *Result {
 		e.currentScanTable = s.From.As
 	}
 	defer func() { e.currentScanTable = prevScanTable }()
+	// JOIN base loop (where.c's outermost WhereLoop): the FROM-only WHERE
+	// conjuncts drive the rowid/index seek or the ORDER-BY-serving index
+	// walk, so the base rows enter the join nesting in the loop's own order
+	// (a full table scan keeps the scan path and its counter).
+	if len(s.Joins) > 0 {
+		jRows, jMaps, jHandled, jErr := e.joinBaseScanRows(s, tableEntry, dbCtx, colDefs, tree, feed)
+		if jErr != nil {
+			return &Result{Error: jErr}
+		}
+		if jHandled {
+			return e.execSelectPostScan(s, jRows, jMaps, nil, colDefs)
+		}
+	}
 	// Point-lookup short circuit (src/where.c SEARCH rowid=?): a WHERE that
 	// pins the rowid to a literal reads the single candidate row by seek.
 	// The scan cursor opens below, AFTER the seek verdict: OpenCursor
@@ -504,6 +517,12 @@ func (e *SelectEngine) execSelectPrevalidate(s *sql.SelectStmt, tableEntry *sche
 // statement keeps its original WHERE, and the value loops' OP_Next delta
 // completes the search-count model.
 func (e *SelectEngine) execSelectOrPlan(s *sql.SelectStmt, tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef) (*Result, bool) {
+	// An INDEXED BY / NOT INDEXED clause pins or forbids index plans for the
+	// FROM table (where9-4.6's NOT INDEXED scans the table): the OR-index
+	// plan must not route around the hint.
+	if s.From.IndexedBy != "" || s.From.NotIndexed {
+		return nil, false
+	}
 	if branches, ok := e.ctx.PlanOrIndexScan(s.Where, tableEntry.Name, colDefs, dbCtx); ok {
 		return e.ctx.ExecSelectWithOrPlan(s, tableEntry, dbCtx, colDefs, branches), true
 	}

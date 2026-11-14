@@ -451,7 +451,7 @@ func (e *SelectEngine) scanTableRowsWithSQL(cursor *btree.Cursor, s *sql.SelectS
 	// counted) and increments the counter in OP_Next, so a scan of n rows
 	// counts n-1. The search counter (SQLITE_TEST's sqlite3_search_count)
 	// counts those same successful OP_Next positionings (vdbe.c next_tail).
-	if st.rowsVisited > 1 {
+	if st.rowsVisited > 1 && !e.suppressFullScanCounter {
 		e.ctx.RecordFullScanSteps(int(st.rowsVisited) - 1)
 		e.ctx.IncSearchCount(int64(st.rowsVisited) - 1)
 	}

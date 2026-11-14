@@ -119,6 +119,12 @@ func (e *SelectEngine) projectionIsBareRefsCached(s *sql.SelectStmt) bool {
 // classification only fires on FuncCall nodes, which memo-eligible
 // statements cannot carry.
 func (e *SelectEngine) selectNeedsRowMapsCached(s *sql.SelectStmt, tableName string) bool {
+	// The join base-seek runs the single-table seek executors on a
+	// Joins-stripped statement copy, but the join pipeline consumes full row
+	// maps for every base row.
+	if e.forceScanRowMaps {
+		return true
+	}
 	if ent := e.shapeEntryFor(s); ent != nil {
 		if !ent.needsRowMapsDone {
 			ent.needsRowMaps = SelectNeedsRowMaps(e, s, tableName)

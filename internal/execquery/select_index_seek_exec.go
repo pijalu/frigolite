@@ -43,7 +43,7 @@ type indexSeekRun struct {
 }
 
 func (e *SelectEngine) selectIndexSeekRows(s *sql.SelectStmt, tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef, tree *btree.BTree, feed *simpleAggFeed) (allRows [][]interface{}, allRowMaps []RowMap, handled bool, err error) {
-	plan, err := e.selectIndexSeekPlanFor(s, tableEntry, colDefs)
+	plan, err := e.selectIndexSeekPlanFor(s, tableEntry, colDefs, dbCtx)
 	if err != nil {
 		return nil, nil, false, err
 	}

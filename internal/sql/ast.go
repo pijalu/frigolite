@@ -203,10 +203,15 @@ type TableRef struct {
 	// ordinary table, view or CTE instead of a table-valued module
 	// (tabfunc01-1.21).
 	IsTabFunc bool
-	// IndexedBy is the index name from an "INDEXED BY name" clause ("NOT
-	// INDEXED" is represented as the sentinel ""). The engine validates
-	// that the named index can serve the query.
+	// IndexedBy is the index name from an "INDEXED BY name" clause. The
+	// engine validates that the named index can serve the query, and the
+	// SELECT scan planner forces the named index (build.c: the planner must
+	// use it or report "no query solution").
 	IndexedBy string
+	// NotIndexed marks a "NOT INDEXED" clause: no index plan may serve the
+	// table's loop (C's whereLoopAddBtree skips every index, leaving the
+	// full table scan).
+	NotIndexed bool
 	// EmptyName marks a FROM term whose name is the quoted empty identifier
 	// ("FROM \"\"" — tkt-78e04e52ea's zero-length table name). Name=="" alone
 	// is ambiguous with a FROM-less SELECT; this flag preserves the
