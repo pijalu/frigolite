@@ -1364,3 +1364,7 @@ everywhere; go vet + go build clean.
   zero new); expr substring net 98 → 26 (triage residue minus this unit's
   and S29's closures: e_expr 2, expr 3, expridx1 10, indexexpr2 9,
   indexexpr3 2).
+- **atof1-2.40** — `SELECT randomblob(0) - 1` (randomblob(0) yields a
+  1-RANDOM-BYTE blob; the arithmetic result varies per run: got [4] want
+  [-1] in the S32 gate, 0/3 family reruns). Same probabilistic class as
+  where2-2.4 — never chase single occurrences.
