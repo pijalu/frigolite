@@ -375865,7 +375865,7 @@
       "steps": [
         {
           "type": "catch",
-          "sql": "SELECT ?32766, 22",
+          "sql": "SELECT ?32766, $::a",
           "expect": "1 {too many SQL variables}"
         }
       ]

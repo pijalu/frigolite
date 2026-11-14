@@ -1197,12 +1197,15 @@ func commandCatch(i *Interp, rawWords []rawWord, args []string, localVars map[st
 		err := i.execScript(body.Text, localVars)
 		{
 			i.catchDepth--
-			if err != nil {
-				i.vars[""] = "1"
-				if len(args) >= 2 {
-					i.setVar(args[1], err.Error(), localVars)
-				}
-			} else if len(i.stmts) > statementsBefore {
+			if len(i.stmts) > statementsBefore {
+				// Statement capture is authoritative even when the
+				// conversion-time body evaluation ALSO errored: an error
+				// raised after a statement was captured (fts3expr3's
+				// strip_phrase_data recursion over the runtime placeholder
+				// hitting the proc-depth limiter) is a conversion artifact —
+				// the runtime outcome is the statement's own rc and message,
+				// never the artifact text baked into $msg.
+				//
 				// The body captured a statement: its outcome is a runtime
 				// fact, so the catch result must be one too.
 				//
@@ -1237,6 +1240,23 @@ func commandCatch(i *Interp, rawWords []rawWord, args []string, localVars map[st
 							i.dynamicVars[rcVar] = true
 						}
 					}
+				} else if len(i.stmts) > 0 {
+					// A bare `catch { ... }` (fts3expr3-4.1.2): no message
+					// variable exists, but the body's value is still the
+					// catch rc — a runtime fact of the captured statement.
+					// Stamp a deterministic rc variable so the do_test
+					// body-value comparison can reference it.
+					last := &i.stmts[len(i.stmts)-1]
+					if last.Variable == "" {
+						last.Variable = "__catchrc"
+						last.CatchResult = true
+						i.dynamicVars["__catchrc"] = true
+					}
+				}
+			} else if err != nil {
+				i.vars[""] = "1"
+				if len(args) >= 2 {
+					i.setVar(args[1], err.Error(), localVars)
 				}
 			} else {
 				i.vars[""] = "0"

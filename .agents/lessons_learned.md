@@ -1055,3 +1055,97 @@ everywhere; go vet + go build clean.
   new files and breaks the baseline build — the "0 failures" baseline
   was a build failure, and the resulting diff invented 28 regressions);
   grep the harness logs with -a (the logs contain binary bytes).
+
+## S29 record (2026-11-14) — the expr slices: E3 (regsub -all + fts3expr3 regen), E1/E2 (fts3 exprtest), S1/S2 (CAST/truthiness/var-limit)
+
+- **TCL `regsub` option args are leading dash-args** (`regsub ?switches?
+  pattern string subSpec varName`): the converter took args[0] ("-all") as the
+  pattern, so `regsub -all AND $node OR node` matched the literal "-all" and
+  NO substitution happened — fts3expr3's andor wants froze as the raw
+  "AND xxx xxx" template (the E3 class). Fix: skip/apply the switch set
+  (-all → ReplaceAllString; -nocase → (?i); unknown dash-arg →
+  UnsupportedCommandError, never silently skipped — the lsort -decreasing
+  lesson), non-all → FIRST match only (TCL semantics; ExpandString for the
+  $-expansion). The SAME regsub class also froze the fixture's INPUTS: the
+  old ReplaceAllString-without--all numbered every placeholder with the same
+  i, the correct first-match-per-iteration loop numbers them 1..n — so a
+  regen changes SQL and expects together; both were self-consistently wrong
+  before, which is why only the andor leaves failed.
+- **A conversion-time error raised AFTER a statement was captured must not
+  become the catch's message**: fts3expr3's catch bodies emit the query, then
+  the strip_phrase_data recursion over the runtime placeholder hits the
+  proc-depth limiter — the old cmdCatch branch order overwrote the dynamic
+  $msg with the literal "proc call depth exceeded". Statement capture is now
+  authoritative (checked before err). The seven depth-limit leaves emit the
+  correct [$__catchrc_msg, $msg] runtime_list with expect
+  "1 {Error parsing expression}".
+- **A bare `catch { ... }` do_test body value is the catch rc**: stamp a
+  deterministic __catchrc variable (commandCatch) and emit runtime_list
+  [$__catchrc] (cmdDoTest) — leaving expect "0" on the query step compared
+  the tree RENDER against the rc (fts3expr3-4.1.2).
+- **The exprtest surface reports every parse-stage error uniformly**
+  (fts3_expr.c:1263-1265): the "FTS expression tree is too large (maximum
+  depth %d)" pzErr goes to the MATCH path only; fts3ExprTestCommon prints
+  "Error parsing expression" for balance/depth failures too. And the C
+  NEVER type-checks exprtest argv: zTokenizer/zExpr/azCol all come from
+  sqlite3_value_text (fts3_expr.c:1233-1245) — integer 1 parses as "1".
+  SQLITE_FTS3_MAX_EXPR_DEPTH is 12 (fts3Int.h:66), not 100; 4.1.2's
+  4000-term AND chain pins it (balanced depth ≤ 12 parses OK).
+- **The converter writes ONE output and removes the stale alternate**
+  (main.go:237-253): the fts3expr3 .json+.json.gz double-family duplicate
+  resolves itself on regen — the >1MB fixture stays .gz, the stale .json is
+  deleted by the converter. Verify with `git status testdata/`.
+- **The oracle keeps NUL bytes IN the value; the stop is the TCL adapter**:
+  hex(CAST(X'670068006900' AS text)) = 670068006900 (3.54 oracle) — the
+  triage's "truncate in evalCastExpr" was wrong. testfixture renders row
+  values with Tcl_NewStringObj(z, -1) (tclsqlite.c:1866): the harness's
+  formatSQLiteValue truncates TEXT at the first NUL. length()/quote()'s
+  NUL rules are separate engine surfaces (carded).
+- **CAST's arms switch on the declared type's AFFINITY, not the name**:
+  sqlite3ExprAffinity's TK_CAST case derives it via sqlite3AffinityType's
+  substring rules (build.c:1650) — util.Affinity IS the engine's faithful
+  derivation (DDL uses it; verified equivalent for CHAR/CLOB/TEXT/BLOB/
+  REAL/FLOA/DOUB/INT-window priority), so evalCastExpr switches on
+  util.Affinity(v.AsType) and the exact-name switch + isTextAffinityType
+  died. CAST('def' AS shobblob_x) is blob, 'abbLOb10' blob, 'shint_x'
+  integer, 'clob' text.
+- **CAST-NUMERIC keeps REAL-syntax text REAL** (sqlite3VdbeMemNumerify,
+  vdbemem.c:781): integer-SYNTAX text (AtoF rc 0/1) goes through
+  sqlite3Atoi64 (return ≤ 1 → INTEGER; trailing junk/spaces tolerated,
+  2^63 fits negative only); REAL-syntax text folds only when
+  sqlite3RealSameAsInt — bit-equal to its int64 AND |i| < 2^51
+  (vdbemem.c:756). The old lossless-int collapse at ANY magnitude made
+  '9.223372036e15'/'9.0e+18' INTEGER. e_expr-32.2.8's `||''` rendering of
+  9223372036854775808.0 wants the 17-digit shortest-round-trip form — the
+  A9 harness-real-rendering layer stays carded.
+- **CASE WHEN truthiness is the REAL-prefix rule with AtoF's dangling-
+  exponent ignore**: C's AtoF treats 'e' without [sign]digits as consumed-
+  but-invalid (eValid=0) and the VALUE is the significand — the old
+  scanRealPrefix kept the 'e' in the prefix ('1english' → '1e' → ParseFloat
+  error → 0.0 → false). The shared port is value.RealValuePrefix; iif() is
+  INLINEFUNC_iif in C (compiled to CASE), so fnIfIIf's isTruthyValue calls
+  the SAME helper ('1engl' → true, 'engligh'/'0' → false, oracle f/f/f/t).
+- **A prepare-time parameter error is VALUE-INDEPENDENT**: C prepares the
+  UNEXPANDED text, then binds $refs (tclsqlite.c) — the converter's
+  bindSQLParams and the harness's expandTCLRuntimeVarsSQL both emulated
+  binding by INLINING the value, which deleted the parameter and hid the
+  limit error (e_expr-11.7.1: `SELECT ?32766, \$::a` — the named parameter
+  takes slot 32767 → "too many SQL variables"). Fixes on both layers:
+  bindSQLParams keeps ::-prefixed (global-namespace) references as
+  parameters (globals bind AFTER prepare), and expandTCLRuntimeVarsSQL
+  keeps the original text when the unexpanded SQL already breaches a
+  parameter limit (exec.CollectParameterNames, guarded on '$' presence so
+  $-free SQL pays nothing). The engine's exec/params.go
+  (MaxVariableNumber=32766) was already faithful — the triage's "fix
+  resolve slot assignment" pointer was stale.
+- **The e_expr fixture was NOT wholesale-regenerated**: the regen drifted on
+  7024/32210 cases ($a2 → {} expect freeze — the current converter's
+  runtime-var machinery bakes different text than the committed one), so
+  leaf e_expr-11.7.1's first step is HAND-PINNED instead ("SELECT ?32766,
+  22" → "SELECT ?32766, $::a", one string replacement, JSON re-validated).
+  The S22 lesson (never wholesale-install drifted regens) held; the e_expr
+  converter drift is a carded item for a future converter-alignment slice.
+- Family census after the slice: fts3expr3 52 → 0; fts3 sweep 106 → 54
+  (exactly the 52 fts3expr3 leaves + the pre-existing fts3* residue);
+  e_expr 21 → 12 (A3×2, A4, A5×2, A6×3, A7 gone; A1×8/A2/A8×2 are
+  converter slices S3/S5; A9 32.2.8 needs the real-rendering layer).

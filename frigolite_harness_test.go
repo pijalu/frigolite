@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/pijalu/frigolite/internal/auth"
+	"github.com/pijalu/frigolite/internal/exec"
 	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -2239,7 +2240,20 @@ func expandTCLRuntimeVars(sql string, values map[string]string) string {
 // byte-wise). Identifier-shaped values stay bare: e_expr-12.3.13.1's
 // `SELECT $tcl FROM tblname` substitutes a COLUMN NAME, and numeric values
 // keep today's bare rendering (TCL binds "5" with an integer rep).
+//
+// The textual binding emulates tclsqlite's post-PREPARE bind: C prepares the
+// unexpanded text first, so a prepare-time parameter error is
+// value-independent and must surface even though the substitution would hide
+// it (e_expr-11.7.1: `SELECT ?32766, $::a` fails with "too many SQL
+// variables" because the named parameter takes slot 32767 — the bound value
+// never reaches prepare). When the unexpanded text breaches a parameter
+// limit, the original SQL is kept intact so the engine reports that error.
 func expandTCLRuntimeVarsSQL(sql string, values map[string]string) string {
+	if strings.IndexByte(sql, '$') >= 0 {
+		if _, err := exec.CollectParameterNames(sql); err != nil {
+			return sql
+		}
+	}
 	return expandTCLVarRefs(sql, values, sqlSafeRuntimeValue)
 }
 

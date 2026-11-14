@@ -516,19 +516,6 @@ func (ev *Evaluator) evalCaseElse(v *sql.CaseExpr, row Row) (interface{}, error)
 	return nil, nil
 }
 
-// isTextAffinityType reports whether a CAST target type name has TEXT
-// affinity (SQLite affinity rules): VARCHAR, CHARACTER, CLOB, and any type
-// containing those substrings (e.g. VARCHAR(50), CHARACTER(20)).
-func isTextAffinityType(typeName string) bool {
-	upper := strings.ToUpper(typeName)
-	for _, kw := range []string{"CHAR", "CLOB", "TEXT"} {
-		if strings.Contains(upper, kw) {
-			return true
-		}
-	}
-	return false
-}
-
 // isHexLiteral reports whether s is a hexadecimal integer literal
 // (optionally with a leading + or - sign), e.g. "0x1A" or "-0xFF".
 func isHexLiteral(s string) bool {

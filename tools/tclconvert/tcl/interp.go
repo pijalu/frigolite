@@ -1919,23 +1919,74 @@ func (i *Interp) cmdRegexp(args []string) error {
 	return nil
 }
 
-// cmdRegsub implements basic regsub.
+// cmdRegsub implements regsub with its switch set (TCL:
+// `regsub ?switches? pattern string subSpec varName`). The switches are the
+// leading dash-args — fts3expr3.test's `regsub -all AND $node OR node` was
+// misparsed as pattern="-all" before the option skipping existed, freezing
+// the unsubstituted template into the fixture's expectations.
 func (i *Interp) cmdRegsub(args []string, localVars map[string]string) error {
-	if len(args) >= 3 {
-		pattern := args[0]
-		str := args[1]
-		repl := args[2]
-		re, err := regexp.Compile(pattern)
-		if err == nil {
-			result := re.ReplaceAllString(str, repl)
-			i.vars[""] = result
-			if len(args) >= 4 {
-				// The result is written back to the variable in the
-				// current scope: fts3expr3.test's regsub writes a
-				// procedure-local.
-				i.setVar(args[3], result, localVars)
+	all := false
+	pattern := ""
+	nOpts := 0
+opts:
+	for nOpts < len(args) {
+		switch args[nOpts] {
+		case "-all":
+			all = true
+		case "-nocase":
+			pattern += "(?i)"
+		case "-expanded":
+			pattern += "(?x)"
+		case "-line", "-linestop":
+			pattern += "(?s)"
+		case "-linestart":
+			pattern += "(?m)"
+		case "--":
+			nOpts++
+			break opts
+		default:
+			if strings.HasPrefix(args[nOpts], "-") {
+				// An unknown switch must fail the conversion, never be
+				// taken for the pattern: a silently skipped option bakes
+				// wrong expectations (the lsort -decreasing precedent).
+				return &UnsupportedCommandError{Cmd: "regsub " + args[nOpts]}
 			}
+			break opts
 		}
+		nOpts++
+	}
+	args = args[nOpts:]
+	if len(args) < 3 {
+		return nil
+	}
+	pattern += args[0]
+	str := args[1]
+	repl := args[2]
+	re, err := regexp.Compile(pattern)
+	if err != nil {
+		return &UnsupportedCommandError{Cmd: "regsub pattern " + pattern}
+	}
+	var result string
+	if all {
+		result = re.ReplaceAllString(str, repl)
+	} else {
+		// Without -all only the FIRST match is replaced (TCL semantics);
+		// ExpandString applies the same $-expansion ReplaceAllString uses.
+		result = str
+		if loc := re.FindStringIndex(str); loc != nil {
+			var b strings.Builder
+			b.WriteString(str[:loc[0]])
+			b.WriteString(string(re.ExpandString(nil, repl, str, loc)))
+			b.WriteString(str[loc[1]:])
+			result = b.String()
+		}
+	}
+	i.vars[""] = result
+	if len(args) >= 4 {
+		// The result is written back to the variable in the
+		// current scope: fts3expr3.test's regsub writes a
+		// procedure-local.
+		i.setVar(args[3], result, localVars)
 	}
 	return nil
 }

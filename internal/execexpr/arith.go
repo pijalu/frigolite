@@ -35,9 +35,9 @@ func ToBool(v interface{}) bool {
 	case string:
 		// SQLite's sqlite3VdbeBooleanValue converts TEXT/BLOB to REAL and
 		// checks != 0.0: 'a' and '0.0' are FALSE, '5' and '5x' are TRUE.
-		return sqliteRealValue(x) != 0.0
+		return value.RealValuePrefix(x) != 0
 	case []byte:
-		return sqliteRealValue(string(x)) != 0.0
+		return value.RealValuePrefix(string(x)) != 0
 	default:
 		return true
 	}
@@ -436,81 +436,6 @@ func negateFloatAsInt(v interface{}, f float64) (interface{}, bool) {
 		return negateInt64(int64(f)), true
 	}
 	return nil, false
-}
-
-// sqliteRealValue converts a text value to REAL like SQLite's
-// sqlite3VdbeRealValue: the numeric prefix is parsed (an empty or
-// non-numeric string yields 0.0).
-func sqliteRealValue(s string) float64 {
-	trimmed := strings.TrimSpace(s)
-	if trimmed == "" {
-		return 0.0
-	}
-	// Parse the leading numeric prefix; stop at the first non-numeric char.
-	prefix := scanRealPrefix(trimmed)
-	if isDegenerateNumericPrefix(prefix) {
-		return 0.0
-	}
-	f, err := strconv.ParseFloat(prefix, 64)
-	if err != nil {
-		return 0.0
-	}
-	return f
-}
-
-// scanRealPrefix scans the leading numeric prefix of a string the way SQLite's
-// sqlite3VdbeRealValue does: optional sign, digits, a single '.', and a single
-// e/E exponent with an optional sign, stopping at the first other character.
-func scanRealPrefix(trimmed string) string {
-	i := 0
-	if i < len(trimmed) && (trimmed[i] == '+' || trimmed[i] == '-') {
-		i++
-	}
-	dot := false
-	exp := false
-	for i < len(trimmed) {
-		var stop bool
-		i, dot, exp, stop = realPrefixStep(trimmed, i, dot, exp)
-		if stop {
-			break
-		}
-	}
-	return trimmed[:i]
-}
-
-// realPrefixStep classifies one character of a numeric prefix scan and returns
-// the next position, the updated dot/exp flags, and whether scanning stops
-// (the character is not part of the numeric prefix).
-func realPrefixStep(trimmed string, i int, dot, exp bool) (int, bool, bool, bool) {
-	c := trimmed[i]
-	if c >= '0' && c <= '9' {
-		return i + 1, dot, exp, false
-	}
-	if c == '.' && !dot && !exp {
-		return i + 1, true, exp, false
-	}
-	if (c == 'e' || c == 'E') && !exp {
-		return skipRealExponentSign(trimmed, i) + 1, true, true, false
-	}
-	return i, dot, exp, true
-}
-
-// skipRealExponentSign advances past the optional sign after an e/E exponent.
-func skipRealExponentSign(trimmed string, i int) int {
-	if i+1 < len(trimmed) && (trimmed[i+1] == '+' || trimmed[i+1] == '-') {
-		return i + 1
-	}
-	return i
-}
-
-// isDegenerateNumericPrefix reports whether a scanned numeric prefix is a
-// lone sign or dot (no digits), which parses as numeric 0.
-func isDegenerateNumericPrefix(prefix string) bool {
-	switch prefix {
-	case "", "+", "-", ".", "+.", "-.":
-		return true
-	}
-	return false
 }
 
 // hasRealNumericPrefix reports whether a TEXT/BLOB operand's leading numeric

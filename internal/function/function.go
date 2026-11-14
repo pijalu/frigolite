@@ -947,7 +947,11 @@ func fnIfIIf(args []interface{}) (interface{}, error) {
 	return nil, nil
 }
 
-// isTruthyValue reports whether a value is truthy (non-zero, non-NULL, non-empty).
+// isTruthyValue reports whether a value is truthy (non-zero, non-NULL).
+// iif() compiles to a CASE expression in C (expr.c's INLINEFUNC_iif), so the
+// condition test is sqlite3VdbeBooleanValue's: TEXT/BLOB read as their REAL
+// numeric prefix ('1engl' is TRUE; '', '0' and 'engligh' are FALSE) — the
+// same rule execexpr's ToBool applies to CASE WHEN arms.
 func isTruthyValue(v interface{}) bool {
 	v = unwrap(v)
 	switch x := v.(type) {
@@ -958,9 +962,9 @@ func isTruthyValue(v interface{}) bool {
 	case float64:
 		return x != 0
 	case string:
-		return x != ""
+		return value.RealValuePrefix(x) != 0
 	case []byte:
-		return len(x) > 0
+		return value.RealValuePrefix(string(x)) != 0
 	default:
 		return true
 	}

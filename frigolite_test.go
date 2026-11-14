@@ -377,6 +377,15 @@ func formatSQLiteValue(base string, val interface{}) string {
 		// raw string content.
 		return string(v)
 	default:
-		return fmt.Sprintf("%v", v)
+		s := fmt.Sprintf("%v", v)
+		// The testfixture row adapter builds each TEXT value with
+		// Tcl_NewStringObj(z, -1) (tclsqlite.c:1866) — a C-string read that
+		// stops at the first NUL byte. The ENGINE value keeps all bytes
+		// (hex(CAST(X'670068006900' AS text)) is 670068006900, oracle
+		// 3.54), but the rendered row shows only 'g' (e_expr-28.1.2).
+		if i := strings.IndexByte(s, 0); i >= 0 {
+			return s[:i]
+		}
+		return s
 	}
 }

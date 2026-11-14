@@ -385,27 +385,6 @@ func castToInteger(val interface{}) (interface{}, error) {
 
 // castStringToInteger parses a string's numeric prefix as int64, clamping
 // out-of-range values to the int64 limits (SQLite CAST semantics).
-// parseInt64Exact parses a decimal integer that fits in int64 (with an
-// optional sign). ok is false for an empty run or an overflow.
-func parseInt64Exact(s string) (int64, bool) {
-	t := strings.TrimSpace(s)
-	end := 0
-	if end < len(t) && (t[end] == '+' || t[end] == '-') {
-		end++
-	}
-	for end < len(t) && t[end] >= '0' && t[end] <= '9' {
-		end++
-	}
-	if end == 0 {
-		return 0, false
-	}
-	i, err := strconv.ParseInt(t[:end], 10, 64)
-	if err != nil {
-		return 0, false
-	}
-	return i, true
-}
-
 func castStringToInteger(s string) interface{} {
 	t := strings.TrimSpace(s)
 	end := 0
@@ -517,47 +496,95 @@ func castToNumeric(val interface{}) (interface{}, error) {
 	}
 }
 
-// numericFromText coerces TEXT to NUMERIC like SQLite's CAST(x AS NUMERIC):
-// the longest numeric PREFIX converts (CAST('123abc' AS NUMERIC) is 123); a
-// prefix with no fraction or exponent parses as INTEGER, anything else
-// becomes a REAL that folds to INTEGER when the value is losslessly integral
-// (CAST('123.0' AS NUMERIC) is 123, CAST('123.5abc' AS NUMERIC) is 123.5).
+// numericFromText coerces TEXT to NUMERIC like SQLite's
+// sqlite3VdbeMemNumerify (vdbemem.c:781): sqlite3AtoF classifies the text
+// (0 = no numeric content, 1 = integer syntax, 2 = real syntax); INTEGER-
+// syntax text goes through sqlite3Atoi64, whose well-formed return (<= 1:
+// trailing spaces and junk tolerated) takes the INTEGER arm — overflow
+// (return 2/3) falls through. REAL-syntax text stays REAL unless
+// sqlite3RealSameAsInt folds it (vdbemem.c:756): bit-equal to its int64 AND
+// |i| < 2^51 — so CAST('123.0' AS NUMERIC) is 123 while '9.0e+18',
+// '9.223372036e15' and '9223372036854775808' stay REAL (e_expr-32.x).
 func numericFromText(s string) interface{} {
 	t := strings.TrimSpace(s)
-	body := strings.TrimLeft(t, "+-")
-	d := digitRunLen(body)
-	if d == 0 && !strings.HasPrefix(body, ".") {
-		// A lone sign (or empty text) has no numeric prefix: CAST('-' AS
-		// NUMERIC) is 0.
+	prefix, ok := scanNumericPrefix(t)
+	if !ok {
+		// No numeric content: sqlite3Atoi64 finds no digits (return -1,
+		// still <= 1) and the INTEGER arm takes the zero value —
+		// CAST('abc' AS NUMERIC) is 0.
 		return int64(0)
 	}
-	if d > 0 && (d == len(body) || (body[d] != '.' && body[d] != 'e' && body[d] != 'E')) {
-		if i, ok := parseInt64Exact(t); ok {
-			return i
-		}
-		// An integer that does not fit in int64 becomes a REAL: SQLite's
-		// numeric cast falls back to sqlite3AtoF when sqlite3Atoi64
-		// overflows (CAST('9223372036854775808' AS NUMERIC) is
-		// 9.223372036854775808e18, not a clamped integer).
-		if f, ok := parseNumericPrefix(t); ok {
-			return f
-		}
-		return castStringToInteger(t)
+	r, err := strconv.ParseFloat(prefix, 64)
+	if err != nil {
+		// The scan only fails to parse on range overflow: Go carries the
+		// +/-Inf result in r (sqlite3AtoF computes the same magnitude).
+		return r
 	}
-	if f, ok := parseNumericPrefix(t); ok {
-		if f == float64(int64(f)) {
-			return int64(f)
+	if !strings.ContainsAny(prefix, ".eE") {
+		// Integer syntax: sqlite3Atoi64's `return <= 1` decides.
+		if ix, fits := atoi64Prefix(t); fits {
+			return ix
 		}
-		return f
 	}
-	return int64(0)
+	// REAL arm: fold only when sqlite3RealSameAsInt (vdbemem.c:756).
+	ix := sqlite3RealToI64(r)
+	if r == 0 || (math.Float64bits(r) == math.Float64bits(float64(ix)) &&
+		ix >= -(1<<51) && ix < (1<<51)) {
+		return ix
+	}
+	return r
 }
 
-// digitRunLen returns the length of the leading decimal-digit run of s.
-func digitRunLen(s string) int {
+// atoi64Prefix ports sqlite3Atoi64 (util.c:798) for sqlite3VdbeMemNumerify's
+// INTEGER arm: it reports whether the integer prefix is well-formed AND
+// within int64 (the C's `return <= 1`), tolerating leading zeros, surrounding
+// spaces and trailing junk. Exactly 9223372036854775808 fits only when
+// negative (SMALLEST_INT64); positive 2^63 is the return-3 special case the
+// `<= 1` test rejects.
+func atoi64Prefix(s string) (int64, bool) {
+	z := strings.TrimLeft(s, " \t\n\v\f\r")
+	neg := false
+	if len(z) > 0 && (z[0] == '-' || z[0] == '+') {
+		neg = z[0] == '-'
+		z = z[1:]
+	}
 	i := 0
-	for i < len(s) && s[i] >= '0' && s[i] <= '9' {
+	for i < len(z) && z[i] >= '0' && z[i] <= '9' {
 		i++
 	}
-	return i
+	if i == 0 {
+		// No digits: the C returns -1 (still <= 1) with the value 0.
+		return 0, true
+	}
+	digits := strings.TrimLeft(z[:i], "0")
+	if digits == "" {
+		return 0, true
+	}
+	if len(digits) > 19 || (len(digits) == 19 && digits > "9223372036854775808") {
+		return math.MaxInt64, false
+	}
+	if len(digits) == 19 && digits == "9223372036854775808" {
+		if neg {
+			return math.MinInt64, true
+		}
+		return math.MaxInt64, false
+	}
+	ix, _ := strconv.ParseInt(digits, 10, 64)
+	if neg {
+		ix = -ix
+	}
+	return ix, true
+}
+
+// sqlite3RealToI64 ports vdbemem.c's sqlite3RealToI64: the closest int64,
+// guarded against conversion overflow (values beyond the largest double
+// below 2^63 clamp; otherwise truncation toward zero).
+func sqlite3RealToI64(r float64) int64 {
+	if r < -9223372036854774784.0 {
+		return math.MinInt64
+	}
+	if r > 9223372036854774784.0 {
+		return math.MaxInt64
+	}
+	return int64(r)
 }
