@@ -5,11 +5,43 @@ queue**; this doc carries the fleet state and the merge protocol.
 
 ## Landed
 
-- **S22 — 73a643fe4** (feature/perf): the seek/order cost model. Gate
-  VERIFIED: 33 fixed / 0 regressions vs /tmp/full_s21_fails.txt (1466 →
-  1433 names, /tmp/full_s22_gate3_fails.txt). Where census 78 → 47:
-  where 10, where2 4, where8 16, where9 8, whereH 5, wherelimit2 4
-  (/tmp/w_s22_f.txt).
+- **S22 — 73a643fe4**: the seek/order cost model. Gate VERIFIED (33
+  fixed/0 regressions). Where census 78 → 47.
+- **S25 — 14e8ee855 (merge 3e4edb26b)**: wherelimit2 4 → 0; gate 5
+  fixed/2 flakes/0 regressions → 1430.
+- **S23.1+S23.2 — f3ec10698/7a3a28e6f (merge 510efa6b8)**: the join
+  FROM-loop picks + INDEXED BY/NOT INDEXED; gate 8 fixed → 1422 (census
+  36).
+- **S26 — the write-path corrupt contract**: where-25.1/25.2 + 9 bonus
+  DML fixes; **25.5 carded** (the WR index PK-tail format unit,
+  portplan/PLAN_S26_dml_corrupt.md).
+- **S24 — c3a0a7e9f (merge e746f48db)**: whereH 5 → 0 + where2-16.2
+  (3.54's hasRightCrossJoin rule); gate 9 fixed/0 regressions → 1413.
+- **S23-cont — a85d3cd9b…5436b135e (merge 0daa3073c)**: the join ORDER
+  BY delivery (wherePathSatisfiesOrderBy port), the OR-arm execution
+  order, the correlated-bound seek, where-19.0 + where2-12.1, where8 15
+  → 0, where9 → 0. **The where census after the S23 merge: 3 leaves**
+  (where-25.5 carded, where2-2.5/2.5b the random-EXPLAIN class).
+- **S29 — 1cbe11121 (merge 62b1f8790)**: regsub -all + the fts3expr3
+  regen (52 → 0, single .gz) + fts3 argv coercion + depth 12 +
+  CAST/truthiness/var-limit (e_expr 9 fixed) + the A4 NUL harness fix.
+  **The combined S23-cont+S29 gate is the current verification in
+  flight** (/tmp/full_s29_gate.log; diff target /tmp/full_s24_merge_fails.txt,
+  1413).
+
+## The fleet (2026-11-14)
+
+| Unit | Worktree | Branch | Scope | State |
+|------|----------|--------|-------|-------|
+| S30 pager1 U1-U4 | /private/tmp/wt_pager | s30-pager1 | the converter/harness-only 14 leaves (subst-foreach, __STEP_, readonly, URI collapse) | running |
+| S23-cont | — | s23-join | join machinery | **DONE + MERGED** |
+| S29 expr | — | s29-expr-unit | expr slices E3/E1/E2+S1/S2 | **DONE + MERGED** |
+| S24 choose | — | s24-choose | candidate choice | **DONE + MERGED** |
+
+Carded queue: where-25.5 (the WR index PK-tail format unit), where2-2.5/
+2.5b (the random()-EXPLAIN class), expr S5+A1+A8+D1 (11, converter
+batch), the fts3* residue 54, pager1 B5/B4/B7 engine buckets (U5-U7:
+61+13+11), where2-12.1 RESOLVED by S23-cont's P3c.
 
 ## The fleet (2026-11-12, all in dedicated worktrees — NEVER share a tree)
 
