@@ -1149,3 +1149,26 @@ everywhere; go vet + go build clean.
   (exactly the 52 fts3expr3 leaves + the pre-existing fts3* residue);
   e_expr 21 → 12 (A3×2, A4, A5×2, A6×3, A7 gone; A1×8/A2/A8×2 are
   converter slices S3/S5; A9 32.2.8 needs the real-rendering layer).
+
+## Gate exclusivity + corrupted faultsim logs (2026-11-14)
+
+- **A full gate needs the box's CPU**: a concurrent agent's family sweep
+  (walfault!) starved the carded walfault-11 stretch into the 40m
+  timeout (2400s gate). Either run gates when agents are idle or budget
+  -timeout 60m when sharing.
+- **Faultsim runs corrupt the gate log in place** (binary junk interleaves
+  with the -v stream — awk chokes on multibyte). A FAIL extraction from
+  such a log can silently show "0 failures in 347k tests" — the
+  empty-failure-set trap's third face. Verify a suspiciously-clean gate
+  log: `grep -c "=== RUN"` sanity, no-binary-junk check, and targeted
+  family sweeps for the known-failing set.
+- **The single-leaf harness filter runs the leaf WITHOUT its family's
+  setup** (FRIGOLITE_TEST=where-25.5 alone skips setup_2's corruption →
+  the case trivially passes). Verify in FAMILY context, never by
+  leaf-name filter, when the case depends on setup steps.
+- **The seek-collation gate** (collectBinaryRef): C's sqlite3IndexCollSeq
+  rule — a comparison serves as an index term only when its effective
+  collation (explicit COLLATE on either operand, else the column-operand
+  side's declared) equals the index column's (the DDL's COLLATE, else the
+  column's declared). A recreated same-name index with a different
+  collation (existsexpr-4.3's DROP+CREATE) is the trap shape.
