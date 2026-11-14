@@ -25,9 +25,21 @@ queue**; this doc carries the fleet state and the merge protocol.
 - **S29 — 1cbe11121 (merge 62b1f8790)**: regsub -all + the fts3expr3
   regen (52 → 0, single .gz) + fts3 argv coercion + depth 12 +
   CAST/truthiness/var-limit (e_expr 9 fixed) + the A4 NUL harness fix.
-  **The combined S23-cont+S29 gate is the current verification in
-  flight** (/tmp/full_s29_gate.log; diff target /tmp/full_s24_merge_fails.txt,
-  1413).
+  Its gate: 39 fixed, ONE regression (existsexpr-4.4.2 — a stale-collation
+  seek) → FIXED by the **seek-collation gate** (96b624803,
+  collectBinaryRef + C's sqlite3IndexCollSeq rule; verified by family
+  replay + a pre/post bisect). The S32 gate then surfaced the
+  **temptable2-9.2.x small-cache stress dither** (bisected PRE-EXISTING
+  at 62b1f8790 — 5/5 fails there too; the four earlier gates drew clean
+  samples; watchlist).
+- **S30 — d0cd72e23 (merge 0692e6e27)**: pager1 U1-U4 (subst-foreach,
+  __STEP_ column text, URI collapse + db_status, readonly surfaces) —
+  pager1 99 → 89; two C-pinned engine deltas (the WAL heap-memory
+  locking_mode refusal, the btree empty-root rule); U3's 4.5.6/4.7.2/
+  4.8.x await U6/U7 (the journal substrate + tvfs snapshot).
+  **The S30 merge gate is in flight** (/tmp/full_s30_gate.log; diff
+  target /tmp/full_s32_gate_fails.txt, 1388 = 1375 - existsexpr + 14
+  temptable2 stress dither).
 
 ## The fleet (2026-11-14)
 
