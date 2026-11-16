@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/btree"
+	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -168,6 +169,92 @@ func wrIndexTailValues(plan wrTailPlan, values []interface{}) []interface{} {
 	return tail
 }
 
+// wrTailPlanForIndexSQL resolves one index's WR tail layout from the index's
+// stored SQL (the plain-column key list parse — the same source the
+// maintenance defs use). ok=false for a rowid table, an unparseable key list
+// or an undecodable WR layout (the caller keeps its non-tailed behavior).
+func wrTailPlanForIndexSQL(createSQL, indexSQL string, colDefs []sql.ColumnDef) (wrTailPlan, bool) {
+	if !tableIsWithoutRowid(createSQL) {
+		return wrTailPlan{}, false
+	}
+	cols := parseIndexKeyCols(indexColumnListText(indexSQL))
+	if len(cols) == 0 {
+		return wrTailPlan{}, false
+	}
+	plan := wrIndexTailPlan(createSQL, colDefs, cols, buildColumnIndex(colDefs))
+	if !plan.valid() {
+		return wrTailPlan{}, false
+	}
+	return plan, true
+}
+
+// WRExtendedIndexKeyInfo is the reader-side WR index KeyInfo: IndexKeyInfo's
+// collations and sort flags extended with the PK tail's (C's index KeyInfo
+// covers every record field for a WITHOUT ROWID table). nil when the table
+// is not tail-carrying WR or the base KeyInfo cannot be built (the caller
+// keeps the plain comparator).
+func WRExtendedIndexKeyInfo(createSQL, indexSQL string, colDefs []sql.ColumnDef, lookup func(string) func(a, b string) int) *btree.KeyInfo {
+	plan, ok := wrTailPlanForIndexSQL(createSQL, indexSQL, colDefs)
+	if !ok {
+		return nil
+	}
+	ki := IndexKeyInfo(indexSQL, colDefs, lookup)
+	if ki == nil {
+		return nil
+	}
+	return extendIndexKeyInfoForWR(ki, plan)
+}
+
+// WRIndexTailValues computes one declared-order row's WR index tail for the
+// index indexSQL (the exported form for the integrity presence probe). nil
+// when the table is not tail-carrying WR or the layout cannot be resolved.
+func WRIndexTailValues(createSQL, indexSQL string, colDefs []sql.ColumnDef, values []interface{}) []interface{} {
+	plan, ok := wrTailPlanForIndexSQL(createSQL, indexSQL, colDefs)
+	if !ok {
+		return nil
+	}
+	return wrIndexTailValues(plan, values)
+}
+
+// WRIndexTailValuesForKeys computes the WR index tail for one row given as a
+// name-keyed map (the DDL backfill path's RowMap — the same map
+// indexKeyForCreate reads). ok=false when the table is not tail-carrying WR
+// or the layout cannot be resolved (the caller keeps the rowid locator).
+func WRIndexTailValuesForKeys(createSQL string, colDefs []sql.ColumnDef, keyCols []string, row execquery.RowMap) ([]interface{}, bool) {
+	if !tableIsWithoutRowid(createSQL) {
+		return nil, false
+	}
+	plan := wrIndexTailPlan(createSQL, colDefs, keyCols, buildColumnIndex(colDefs))
+	if !plan.valid() {
+		return nil, false
+	}
+	out := make([]interface{}, len(plan.cols))
+	for k, ci := range plan.cols {
+		if ci < len(colDefs) {
+			out[k] = row[colDefs[ci].Name]
+		}
+	}
+	return out, true
+}
+
+// wrTailTargetKey renders one row's PK tail as the update-side delete map's
+// per-row target key: WR index cells all share the synthetic RowID 0, so a
+// rowid key would collide every change into one target (only the last
+// change's delete payload survived per index). The PK is unique per row, so
+// the tail's value string is too.
+func wrTailTargetKey(plan wrTailPlan, values []interface{}) string {
+	var b strings.Builder
+	for _, ci := range plan.cols {
+		var v interface{}
+		if ci < len(values) {
+			v = values[ci]
+		}
+		b.WriteString(util.SQLiteValueString(util.UnwrapColumnValue(v)))
+		b.WriteByte(0)
+	}
+	return b.String()
+}
+
 // wrTailPlanMemo is wrIndexTailPlan through the write path's schema-keyed
 // memo slot (the ikiStamp pattern): the tail layout is a pure function of
 // the schema, so one resolution per index serves every index-cell write.
@@ -257,16 +344,6 @@ func wrEntryFullPK(tableSQL string, colDefs []sql.ColumnDef, indexCols []string,
 	return pk, true
 }
 
-// wrPKProbeValues unwraps a probe value list into raw storage values for a
-// probe record (wrPKTailProbe's role for any locator slice).
-func wrPKProbeValues(vals []interface{}) []interface{} {
-	out := make([]interface{}, len(vals))
-	for i, v := range vals {
-		out[i] = util.UnwrapColumnValue(v)
-	}
-	return out
-}
-
 // wrSeekRowByPK seeks a WITHOUT ROWID table's PK-keyed btree for the row
 // with the given full PRIMARY KEY (PK key order — the storage record's
 // leading slots). exists=false is definitive for a decodable layout and a
@@ -278,6 +355,13 @@ func (e *DMLExecutor) wrSeekRowByPK(tableName, createSQL string, rootPage uint32
 	order := WithoutRowidStorageOrder(createSQL, colDefs)
 	pkIdx := WRPKIndices(createSQL, colDefs)
 	if len(order) != len(colDefs) || len(pkIdx) != len(pkKey) {
+		return false, false
+	}
+	// The seek's lower-bound landing is conclusive only when every PK column
+	// compares under BINARY (wrPKSeekApplies): a collated-equal row can sort
+	// outside the binary landing window, and reporting it absent would raise
+	// a false "corrupt database" on a healthy database.
+	if !wrPKSeekApplies(createSQL, colDefs) {
 		return false, false
 	}
 	probe := make([]interface{}, len(pkKey))
@@ -330,12 +414,23 @@ func (e *DMLExecutor) wrSeekRowByPK(tableName, createSQL string, rootPage uint32
 	return true, true
 }
 
-// wrRecheckRowExists is the 25.5 recheck for one found WR index entry: it
-// rebuilds the entry's full PK from the entry's record and seeks the table
+// wrIndexEntryRowExists is the 25.5 write-path recheck for one found WR
+// index entry (C's OP_NotExists: the conflicting index entry's row must
+// exist in the table btree): it rebuilds the entry's full PRIMARY KEY from
+// the entry's stored record ([key..., PK tail...]) and seeks the WR table
 // btree for it. ok=false means the recheck could not run (undecodable
-// layout/seek failure) — the caller keeps its scan-based verdict.
-func (e *DMLExecutor) wrRecheckRowExists(tableEntry *schema.Entry, colDefs []sql.ColumnDef, def indexDef, colIndex map[string]int, plan wrTailPlan, recValues []interface{}) (exists, ok bool) {
-	pk, valid := wrEntryFullPK(tableEntry.SQL, colDefs, def.Cols, colIndex, plan, recValues)
+// layout/seek failure — a collated PK keeps the scan verdict) and the
+// caller keeps its scan-based verdict; ok=true with exists=false is a
+// definitive missing row (corruption).
+func (e *DMLExecutor) wrIndexEntryRowExists(tableEntry *schema.Entry, colDefs []sql.ColumnDef, indexCols []string, colIndex map[string]int, recValues []interface{}) (exists, ok bool) {
+	if len(recValues) <= len(indexCols) {
+		return false, false
+	}
+	plan := wrIndexTailPlan(tableEntry.SQL, colDefs, indexCols, colIndex)
+	if !plan.valid() {
+		return false, false
+	}
+	pk, valid := wrEntryFullPK(tableEntry.SQL, colDefs, indexCols, colIndex, plan, recValues)
 	if !valid {
 		return false, false
 	}

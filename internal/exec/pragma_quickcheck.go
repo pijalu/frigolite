@@ -423,7 +423,7 @@ func (e *Engine) quickCheckTable(te *schema.Entry, dbCtx *DatabaseContext, emit 
 		if e.quickCheckRow(te, colDefs, uniqIdx, row, rec.Values, cell.RowID, seenKeys, emit) {
 			break
 		}
-		e.quickCheckIndexPresence(targets, colDefs, rec.Values, row, cell.RowID, withoutRowid, ordinal, emit)
+		e.quickCheckIndexPresence(targets, colDefs, rec.Values, row, cell.RowID, withoutRowid, te.SQL, ordinal, emit)
 		ok, err = cursor.Next()
 		if err != nil || !ok {
 			break

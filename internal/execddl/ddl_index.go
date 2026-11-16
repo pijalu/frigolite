@@ -327,7 +327,14 @@ func (e *DDLExecutor) populateIndexFromRows(tableCtx *DatabaseContext, tableEntr
 	// schema entry (with the stored CREATE INDEX text) was added before the
 	// row scan.
 	if idxEnt, err := tableCtx.Schema.FindIndex(indexName); err == nil && idxEnt != nil {
-		if ki := execdml.IndexKeyInfo(idxEnt.SQL, colDefs, e.ctx.LookupCollation); ki != nil {
+		ki := execdml.IndexKeyInfo(idxEnt.SQL, colDefs, e.ctx.LookupCollation)
+		// A WITHOUT ROWID table's backfilled entries carry the PK tail (S33):
+		// the tree's comparator must cover every record field — key columns
+		// AND tail — like C's index KeyInfo does.
+		if wki := execdml.WRExtendedIndexKeyInfo(tableEntry.SQL, idxEnt.SQL, colDefs, e.ctx.LookupCollation); wki != nil {
+			ki = wki
+		}
+		if ki != nil {
 			lookup := e.ctx.LookupCollation
 			idxTree.SetIndexKeyInfo(ki, func(name string) (util.CollationFunc, bool) {
 				if fn := lookup(name); fn != nil {
@@ -372,6 +379,11 @@ func (e *DDLExecutor) indexRowStep(tableCtx *DatabaseContext, tableEntry *schema
 	if err != nil {
 		return true, nil
 	}
+	// A WITHOUT ROWID table's stored record is PK-first (storage order);
+	// permute it back to declared order before the row map is built, or a
+	// non-identity WR layout reads storage slot 0 as declared column 0 and
+	// the backfill stores wrong key values.
+	e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
 	row := e.ctx.BuildRowMap(rec, colDefs, cell.RowID)
 	action, res := e.indexRowAction(s, row)
 	if res != nil {
@@ -403,6 +415,13 @@ func (e *DDLExecutor) insertIndexKeyRow(tableCtx *DatabaseContext, tableEntry *s
 		// (e.g. integer overflow); remove the schema entry first.
 		_ = tableCtx.Schema.RemoveEntry(indexName)
 		return res
+	}
+	// A WITHOUT ROWID table's backfilled entry carries C's PK tail (S33 —
+	// index record = [key..., PK...]) instead of the synthetic rowid: the
+	// same format maintainIndexesOnInsert writes, so every write path agrees
+	// and the write-path recheck can resolve the tail.
+	if tail, ok := execdml.WRIndexTailValuesForKeys(tableEntry.SQL, colDefs, keyExprs, row); ok {
+		indexValues = append(indexValues[:len(indexValues)-1], tail...)
 	}
 	if res := e.enforceIndexUnique(s, tableCtx, tableEntry, indexName, indexValues, keyExprs, seenKeys, allColumnKeys); res != nil {
 		return res
@@ -554,7 +573,15 @@ func (e *DDLExecutor) enforceIndexUnique(s *sql.CreateIndexStmt, tableCtx *Datab
 	}
 	hasNull := false
 	var keyParts []string
-	for _, kv := range indexValues[:len(indexValues)-1] {
+	// The KEY prefix is len(keyExprs) values: a rowid table's payload is
+	// [key..., rowid] and a WITHOUT ROWID table's is [key..., PK tail...]
+	// (S33) — slicing len-1 would walk into the WR tail and mis-key the
+	// seenKeys set.
+	nKey := len(keyExprs)
+	if nKey > len(indexValues) {
+		nKey = len(indexValues)
+	}
+	for _, kv := range indexValues[:nKey] {
 		// The row-map value may be a ColumnValue wrapper; unwrap so a stored
 		// NULL is detected (multiple NULLs are allowed in a UNIQUE index —
 		// SQLite treats NULLs as distinct).

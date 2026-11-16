@@ -77,13 +77,14 @@ func (e *DMLExecutor) deleteRowFromIndexes(defs []indexDef, colDefs []sql.Column
 		if withoutRowid {
 			if plan := wrIndexTailPlan(tableSQL, colDefs, def.Cols, colIndex); plan.valid() {
 				indexValues = append(indexValues, wrIndexTailValues(plan, values)...)
-			} else {
-				indexValues = append(indexValues, rowID)
+				if err := e.deleteIndexCell(def, colDefs, tableSQL, plan, indexValues); err != nil {
+					return err
+				}
+				continue
 			}
-		} else {
-			indexValues = append(indexValues, rowID)
 		}
-		if err := e.deleteIndexCell(def, colDefs, tableSQL, indexValues); err != nil {
+		indexValues = append(indexValues, rowID)
+		if err := e.deleteIndexCell(def, colDefs, tableSQL, wrTailPlan{}, indexValues); err != nil {
 			return err
 		}
 	}
@@ -97,7 +98,7 @@ func (e *DMLExecutor) deleteRowFromIndexes(defs []indexDef, colDefs []sql.Column
 // batched leaf walk survives in DeleteIndexEntries as the fallback for trees
 // with no installed comparator). A missing entry is tolerated (no error): the
 // index may predate this engine's index maintenance.
-func (e *DMLExecutor) deleteIndexCellsBatch(def indexDef, colDefs []sql.ColumnDef, tableSQL string, targets map[string][]interface{}) error {
+func (e *DMLExecutor) deleteIndexCellsBatch(def indexDef, colDefs []sql.ColumnDef, tableSQL string, plan wrTailPlan, targets map[string][]interface{}) error {
 	if len(targets) == 0 {
 		return nil
 	}
@@ -118,7 +119,7 @@ func (e *DMLExecutor) deleteIndexCellsBatch(def indexDef, colDefs []sql.ColumnDe
 	// sqlite3BtreeMovetoUnpacked), so the tree carries the same
 	// collation-aware comparator the insert side ordered it with — extended
 	// over the WR PK tail for WITHOUT ROWID tables.
-	e.installIndexWriteOrder(idxTree, def, colDefs, tableSQL)
+	e.installIndexWriteOrder(idxTree, def, colDefs, tableSQL, plan)
 	if _, err := idxTree.DeleteIndexEntries(encoded); err != nil {
 		return err
 	}
@@ -130,7 +131,7 @@ func (e *DMLExecutor) deleteIndexCellsBatch(def indexDef, colDefs []sql.ColumnDe
 // delete (clearEmptyRootRightmost rewrites the root in place), so no root
 // tracking is needed. A missing entry is tolerated (no error): the index
 // may predate this engine's index maintenance.
-func (e *DMLExecutor) deleteIndexCell(def indexDef, colDefs []sql.ColumnDef, tableSQL string, indexValues []interface{}) error {
+func (e *DMLExecutor) deleteIndexCell(def indexDef, colDefs []sql.ColumnDef, tableSQL string, plan wrTailPlan, indexValues []interface{}) error {
 	// Mirror writeIndexCell's storage normalization: the delete payload must
 	// byte-match the entry the insert side wrote.
 	indexStorageValues(indexValues)
@@ -144,7 +145,7 @@ func (e *DMLExecutor) deleteIndexCell(def indexDef, colDefs []sql.ColumnDef, tab
 	// sqlite3BtreeMovetoUnpacked): install the same collation-aware
 	// comparator the insert side ordered the tree with — extended over the
 	// WR PK tail for WITHOUT ROWID tables.
-	e.installIndexWriteOrder(idxTree, def, colDefs, tableSQL)
+	e.installIndexWriteOrder(idxTree, def, colDefs, tableSQL, plan)
 	if _, err := idxTree.DeleteIndexEntry(payload); err != nil {
 		return err
 	}

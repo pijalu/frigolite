@@ -585,12 +585,13 @@ func (e *DMLExecutor) maintainIndexesOnInsert(tableEntry *schema.Entry, colDefs 
 		// PRIMARY KEY tail for a WITHOUT ROWID table (S33 — index record =
 		// [key..., PK...]; the tail is the locator the write-path recheck
 		// resolves, so the synthetic rowid is gone).
-		if plan := e.wrTailPlanMemo(tableEntry, colDefs, colIndex, def); plan.valid() {
+		plan := e.wrTailPlanMemo(tableEntry, colDefs, colIndex, def)
+		if plan.valid() {
 			indexValues = append(indexValues, wrIndexTailValues(plan, values)...)
 		} else {
 			indexValues = append(indexValues, rowID)
 		}
-		if err := e.writeIndexCell(def, colDefs, tableEntry.SQL, indexValues); err != nil {
+		if err := e.writeIndexCell(def, colDefs, tableEntry.SQL, plan, indexValues); err != nil {
 			return err
 		}
 	}
@@ -637,15 +638,21 @@ func (e *DMLExecutor) checkUniqueIndexExcluding(tableEntry *schema.Entry, colDef
 	// corruption (where-25.2/25.5), a present row falls through to the
 	// authoritative scan (excludeCell, NULL-never-conflicts, error text
 	// unchanged). An unavailable probe keeps the scan unchanged too.
-	if entryRowID, conflict, fallback := e.indexConflictEntry(tableEntry.Name, def.Name, colDefs, key); !fallback && !tableIsWithoutRowid(tableEntry.SQL) {
-		// The corrupt recheck is rowid-tables only: a WITHOUT ROWID index
-		// record's trailing synthetic rowid is unresolvable against our
-		// PK-keyed table btree (see PLAN_S26_dml_corrupt.md's carded note),
-		// so WITHOUT ROWID keeps the scan verdict below.
+	withoutRowid := tableIsWithoutRowid(tableEntry.SQL)
+	if entryRowID, recValues, conflict, fallback := e.indexConflictEntry(tableEntry.Name, def.Name, colDefs, key, withoutRowid); !fallback {
 		if !conflict {
-			return nil
+			return nil // definitive: the index holds no equal entry
 		}
-		if !e.rowIDExists(tableEntry.Name, tableEntry.RootPage, entryRowID) {
+		if withoutRowid {
+			// The recheck C's OP_NotExists performs, over the entry's PK tail
+			// (S33 — the record is [key..., PK...]): the conflicting entry's
+			// row must exist in the WR table btree; a missing row is
+			// corruption (where-25.5). An unresolvable tail or an unseekable
+			// layout keeps the authoritative scan verdict below.
+			if exists, runnable := e.wrIndexEntryRowExists(tableEntry, colDefs, def.Cols, colIndex, recValues); runnable && !exists {
+				return dmlCorruptError(true)
+			}
+		} else if !e.rowIDExists(tableEntry.Name, tableEntry.RootPage, entryRowID) {
 			return dmlCorruptError(false)
 		}
 	}
