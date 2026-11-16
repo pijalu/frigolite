@@ -149,3 +149,25 @@ delete=12, update=0, savepoint=15.
   added to maintainedUpdateIndexes — a WR PK-column change maintains every
   index (the tail rides every record).
 - TestSOLID_/TestS22_ green at commit; family sweeps PENDING (next).
+
+## STATUS (2026-11-16, S33 COMPLETE)
+
+- Items 1-6 DELIVERED: the C payload format on every write site, the 25.5
+  recheck enabled, the reader sweep, probe parity, family sweeps clean.
+- Commits: baa8dfebb (write paths + recheck + reader sweep), a5ea11125
+  (WR table walks use the index-shaped btree — divider rows are real rows;
+  the CREATE INDEX backfill/DML scans/integrity per-row walk lost one row
+  per divider on multi-level WR tables).
+- Probe parity (python dump_index.py vs /tmp/s33/oracle/*.db, byte-equal
+  values + stored order): wr.db [c,b,a], wr2.db NOCASE tail, wr4.db dup
+  elision, wr5.db DESC tail, backfill; del.db stale entry gone; upd.db
+  chngPk re-tail; integrity ok everywhere.
+- Family census (final, /tmp/s33/sweeps/final vs before): NEW=0 across all
+  12 families. where 5->3 (where-25.5 GREEN — the recheck works; where2-2.4
+  also absent this run = the documented ORDER BY random() flake flaking
+  green, not a fix). where2 3, without_rowid 27, temptable 7, vacuum 24,
+  alter 20, quickcheck 0, index 101, insert 3, delete 12, update 0,
+  savepoint 15 — leaf-identical otherwise.
+- Carded: temptable2-9.1.x (rowid temp table bulk-DELETE index drift) is a
+  PRE-EXISTING random-sequence-dependent bug — fired 1/6 at the pre-S33
+  baseline too; own slice needed (see lessons_learned flake watchlist).
