@@ -400,7 +400,10 @@ func (e *Engine) quickCheckTable(te *schema.Entry, dbCtx *DatabaseContext, emit 
 	targets := e.integrityIndexTargetsFor(dbCtx, te, colDefs, quick)
 	defer e.closeIntegrityIndexTargets(targets)
 	var seenKeys = map[string]int{}
-	tree := e.tableBTreePg(dbCtx.Pager, te.Name, te.RootPage, true)
+	// A WITHOUT ROWID table's btree is index-shaped: its interior divider
+	// cells are real rows the walk must yield (isTable=false) or the per-row
+	// passes silently skip every divider row.
+	tree := e.tableBTreePg(dbCtx.Pager, te.Name, te.RootPage, !withoutRowid)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return

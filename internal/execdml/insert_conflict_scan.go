@@ -96,13 +96,13 @@ func (e *DMLExecutor) uniqueScanTree(tableName string, rootPage uint32) (*btree.
 	if e.currentDMLCtx != nil && e.currentDMLCtx.Pager != nil {
 		pg := e.currentDMLCtx.Pager
 		root := e.ctx.RootPagePg(pg, tableName, rootPage)
-		key := insTreeKey{pg: pg, root: root, isTable: true}
+		key := insTreeKey{pg: pg, root: root, isTable: !e.scanTreeIsWithoutRowid(tableName, rootPage)}
 		if t := e.insTree; t != nil && !t.Closed() && e.insTreeKey == key {
 			return t, false
 		}
 		return e.uniqueScanTreeFresh(tableName, rootPage), true
 	}
-	return e.ctx.TableBTreeForName(tableName, rootPage, true), true
+	return e.ctx.TableBTreeForName(tableName, rootPage, !e.scanTreeIsWithoutRowid(tableName, rootPage)), true
 }
 
 // uniqueScanTreeFresh is uniqueScanTree's always-fresh form (the historical
@@ -110,9 +110,28 @@ func (e *DMLExecutor) uniqueScanTree(tableName string, rootPage uint32) (*btree.
 // conflict-scan loops whose cursors die with the tree.
 func (e *DMLExecutor) uniqueScanTreeFresh(tableName string, rootPage uint32) *btree.BTree {
 	if e.currentDMLCtx != nil && e.currentDMLCtx.Pager != nil {
-		return e.ctx.TableBTreePg(e.currentDMLCtx.Pager, tableName, rootPage, true)
+		return e.ctx.TableBTreePg(e.currentDMLCtx.Pager, tableName, rootPage, !e.scanTreeIsWithoutRowid(tableName, rootPage))
 	}
-	return e.ctx.TableBTreeForName(tableName, rootPage, true)
+	return e.ctx.TableBTreeForName(tableName, rootPage, !e.scanTreeIsWithoutRowid(tableName, rootPage))
+}
+
+// scanTreeIsWithoutRowid resolves the scan table's shape for the btree's
+// isTable flag: a WITHOUT ROWID table's rows live in a PK-first index-shaped
+// btree whose interior divider cells are real rows, so its scans must walk
+// the index way (isTable=false — wrTableBTree's convention) or every
+// divider row vanishes from the walk. Resolution checks the statement's own
+// schema FIRST: a TEMP/attached table shadows a same-named table elsewhere,
+// and the engine-global lookup may answer with the wrong one.
+func (e *DMLExecutor) scanTreeIsWithoutRowid(tableName string, rootPage uint32) bool {
+	if e.currentDMLCtx != nil && e.currentDMLCtx.Schema != nil {
+		if ent, err := e.currentDMLCtx.Schema.FindTable(tableName); err == nil && ent != nil {
+			return tableIsWithoutRowid(ent.SQL)
+		}
+	}
+	if ent, _, err := e.ctx.FindTable(tableName); err == nil && ent != nil {
+		return tableIsWithoutRowid(ent.SQL)
+	}
+	return false
 }
 
 // collectUniqueColsWithPK gathers the UNIQUE column indices and adds any

@@ -113,7 +113,11 @@ func (e *DDLExecutor) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 		return &Result{Error: err}
 	}
 
-	tree := e.ctx.TableBTreePg(tableCtx.Pager, tableEntry.Name, e.ctx.RootPagePg(tableCtx.Pager, tableEntry.Name, tableEntry.RootPage), true)
+	// The backfill scan walks the WR table's PK-first btree, whose INTERIOR
+	// divider cells are real rows (index-shaped tree, R13): isTable must
+	// follow the table shape or the walk skips every divider row (the
+	// without_rowid1-6.x count drift).
+	tree := e.ctx.TableBTreePg(tableCtx.Pager, tableEntry.Name, e.ctx.RootPagePg(tableCtx.Pager, tableEntry.Name, tableEntry.RootPage), !execdml.TableIsWithoutRowid(tableEntry.SQL))
 
 	if res := e.populateIndexFromRows(tableCtx, tableEntry, indexName, s, colDefs, pg, tree); res != nil {
 		return res
