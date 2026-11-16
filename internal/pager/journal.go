@@ -188,7 +188,18 @@ func hotJournalProbe(p *Pager, jpath string) ([]JournalPage, JournalHeader, []by
 	// journal a remnant from a prior database — journal1.test 1.2 — or the
 	// rollback of the initial populate transaction) — DELETE it (the one
 	// not-hot shape C removes), no playback.
-	if p.numPages == 0 {
+	//
+	// The page count is C's pagerPagecount (pager.c), called from
+	// hasHotJournal while the pager is in the OPEN state: the DATABASE FILE
+	// size via xFileSize, ceil-divided by the page size — NEVER an in-memory
+	// page count. (pagerPagecount consults the wal-index first, but
+	// pagerSharedLock only reaches hasHotJournal for non-WAL pagers.) The
+	// pager's own numPages is wrong here: schema bootstrapping materializes
+	// page 1 in memory for an empty file (numPages==1), which classified a
+	// remnant journal beside a freshly-deleted database as HOT and the
+	// playback resurrected the old generation's schema over the empty file
+	// (pragma2-5.1 "table t1 already exists"; sharedA-1.1/1.2 malformed).
+	if p.hotProbeDBPageCount() == 0 {
 		return nil, JournalHeader{}, nil, hotJournalDelete
 	}
 	// C hasHotJournal: the FIRST BYTE must be nonzero — a zeroed header
@@ -282,6 +293,27 @@ func hotJournalProbe(p *Pager, jpath string) ([]JournalPage, JournalHeader, []by
 		})
 	}
 	return pages, hdr, data, hotJournalHot
+}
+
+// hotProbeDBPageCount computes the classification page count C's
+// pagerPagecount produces for hasHotJournal: the DATABASE FILE's size via
+// xFileSize, ceil-divided by the page size ((n+pageSize-1)/pageSize — the
+// non-integer-multiple rule rounds UP), with a zero result for an
+// absent/empty file. Falls back to the pager's cached file size when the
+// stat fails (the fd is open, so this is unreachable in practice; C would
+// surface the error and skip the classification entirely). Callers hold no
+// locks — this reads only the file metadata.
+func (p *Pager) hotProbeDBPageCount() uint32 {
+	size := p.fileSize
+	if p.file != nil {
+		if info, err := p.file.Stat(); err == nil {
+			size = info.Size()
+		}
+	}
+	if size <= 0 || p.pageSize == 0 {
+		return 0
+	}
+	return uint32((size + int64(p.pageSize) - 1) / int64(p.pageSize))
 }
 
 // playbackHotJournalLocked plays the probe's records back C-style: the
