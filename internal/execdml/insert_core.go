@@ -333,7 +333,7 @@ func (e *DMLExecutor) validateInsertSourceAndCollations(tableEntry *schema.Entry
 // columns, and validates constraints for a single row. Returns a non-nil
 // Result on failure, and write=true when the row may be written (constraints
 // passed or resolved).
-func (e *DMLExecutor) resolveInsertRowConstraints(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, nextRowID int64, orConflict string) (*Result, bool) {
+func (e *DMLExecutor) resolveInsertRowConstraints(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, nextRowID int64, orConflict string, rowidExplicit bool) (*Result, bool) {
 	// For statement-level REPLACE, substitute the DEFAULT for NULL values in
 	// NOT NULL columns BEFORE computing generated columns: SQLite replaces the
 	// NULLs first (so a generated column fed by them is non-NULL). This mirrors
@@ -349,7 +349,7 @@ func (e *DMLExecutor) resolveInsertRowConstraints(tableEntry *schema.Entry, colD
 		return &Result{Error: err}, false
 	}
 
-	if err := e.checkConstraints(tableEntry, colDefs, values, nextRowID); err != nil {
+	if err := e.checkConstraintsExplicit(tableEntry, colDefs, values, nextRowID, rowidExplicit); err != nil {
 		// Per-constraint ON CONFLICT only applies when the statement has no
 		// explicit OR clause — a statement-level OR overrides the per-constraint
 		// algorithm (verified against sqlite3 3.51: UNIQUE ON CONFLICT IGNORE
@@ -487,9 +487,25 @@ func (e *DMLExecutor) columnReplaceVerdict(cd *sql.ColumnDef, tableEntry *schema
 // checkConstraints validates NOT NULL, CHECK, UNIQUE, and PRIMARY KEY
 // constraints for a row being inserted.
 func (e *DMLExecutor) checkConstraints(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, rowID int64) error {
+	return e.checkConstraintsExplicit(tableEntry, colDefs, values, rowID, false)
+}
+
+// checkConstraintsExplicit is checkConstraints with the row's explicit-rowid
+// flag. An EXPLICIT rowid (a rowid/_rowid_/docid column in the INSERT list,
+// or a non-NULL value for an INTEGER PRIMARY KEY column) conflicts with an
+// existing row at that rowid — SQLite's OP_NotExists seek enforces this even
+// on a table with no declared constraints (pager1-14.1.4: the duplicate-
+// rowid INSERT..SELECT fails "UNIQUE constraint failed: t1.rowid" under
+// journal_mode=OFF). Auto-assigned rowids never conflict. The check runs
+// BEFORE the constraint-shape fast path: a constraint-free table has no
+// other coverage for it.
+func (e *DMLExecutor) checkConstraintsExplicit(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, rowID int64, rowidExplicit bool) error {
+	sh := e.insertShapeFor(tableEntry, colDefs)
+	if rowidExplicit && (sh == nil || !sh.withoutRowid) && e.rowIDExists(tableEntry.Name, tableEntry.RootPage, rowID) {
+		return e.rowIDConflictError(tableEntry, colDefs)
+	}
 	// Fast path: if there are no constraints at all, skip allocation entirely
 	// (the shape memo carries the hasInsertConstraints verdict).
-	sh := e.insertShapeFor(tableEntry, colDefs)
 	if sh == nil || !sh.hasConstraints {
 		return nil
 	}

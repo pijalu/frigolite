@@ -116,6 +116,14 @@ func checkDBFileCtx(ctx *DatabaseContext, writableSchema bool, pinWAL bool) (cha
 	// that cannot be recovered right now is BUSY_RECOVERY ("database is
 	// locked") or — after the retry budget — SQLITE_PROTOCOL ("locking
 	// protocol"), exactly walTryBeginRead's error contract.
+	// C's sharedLock order: hasHotJournal (play back a hot rollback journal,
+	// or fail a readonly connection's attempt) runs BEFORE the rest of the
+	// shared-lock work — the healed image is what the header validation and
+	// the b-tree see (pager1-4.5.x's playback contracts; 4.5.6's readonly
+	// refusal).
+	if jerr := ctx.Pager.RecoverHotJournalIfNeeded(); jerr != nil {
+		return false, jerr
+	}
 	changed, ferr := ctx.Pager.CheckExternalFileErr(pinWAL)
 	if ferr != nil {
 		return false, ferr

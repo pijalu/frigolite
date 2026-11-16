@@ -160,6 +160,11 @@ func (p *Pager) truncateCachePagesLocked(n uint32) {
 // longer exist on disk). Caller holds p.mu.
 func (p *Pager) shrinkDatabaseFileLocked(n uint32) error {
 	newSize := int64(n) * int64(p.pageSize)
+	// The VFS's xTruncate result gates the shrink like C's sqlite3OsTruncate
+	// (a fixture lockout proc vetoes it, pager1-11.2's filter set).
+	if err := p.vfsWriteGate("xTruncate", int(newSize)); err != nil {
+		return err
+	}
 	if err := p.file.Truncate(newSize); err != nil {
 		return fmt.Errorf("pager: truncate to %d pages: %w", n, err)
 	}
@@ -324,31 +329,33 @@ func (p *Pager) CacheFlush() error {
 
 // Flush is the public flush entry point. See flushAll for the actual work.
 func (p *Pager) Flush() error {
-	return p.FlushWithContext(false)
+	return p.FlushWithContext("")
 }
 
-// FlushWithContext flushes the pager. multiDB is true when this flush is
-// part of a multi-database COMMIT (one or more ATTACH'd databases are
-// committing together); it controls PERSIST-mode finalization (the
-// super-journal path in pager.c forces the per-database journal file to
-// 0 bytes when the commit is multi-DB).
-func (p *Pager) FlushWithContext(multiDB bool) error {
+// FlushWithContext flushes the pager. superJournal is the multi-database
+// COMMIT's super-journal name (vdbeaux.c sqlite3VdbeCommit's zSuper): non-empty
+// routes this flush through the super-journal path — the journal gains the
+// trailing super-journal pointer (pager.c writeSuperJournal) and the journal
+// FINALIZE is deferred to CommitPhaseTwo (the commit point is the
+// super-journal's deletion, after which the journals are stale and only then
+// finalized). An empty superJournal is the single-database commit.
+func (p *Pager) FlushWithContext(superJournal string) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	return p.flushAllCtx(multiDB)
+	return p.flushAllCtx(superJournal)
 }
 
 // flushAll is the legacy single-DB flush entry point. New callers should
 // use FlushWithContext to pass the multi-DB flag.
 func (p *Pager) flushAll() error {
-	return p.flushAllCtx(false)
+	return p.flushAllCtx("")
 }
 
-// flushAllCtx is called under p.mu. The multiDB flag is true when this
-// flush is part of a COMMIT that includes one or more ATTACH'd databases
-// (the "super-journal" path in pager.c, which forces PERSIST-mode
-// journals to truncate to 0 instead of honouring journal_size_limit).
-func (p *Pager) flushAllCtx(multiDB bool) error {
+// flushAllCtx is called under p.mu. superJournal is non-empty when this
+// flush is part of a multi-database COMMIT (the "super-journal" path in
+// pager.c, which forces PERSIST-mode journals to truncate to 0 instead of
+// honouring journal_size_limit).
+func (p *Pager) flushAllCtx(superJournal string) error {
 	if os.Getenv("FRIGOLITE_WALTRACE") != "" {
 		fmt.Fprintf(os.Stderr, "FAULTDBG flushAllCtx path=%s jm=%s wal=%v dirty=%d\n", p.path, p.journalMode, p.wal != nil, len(p.dirty))
 	}
@@ -364,7 +371,7 @@ func (p *Pager) flushAllCtx(multiDB bool) error {
 		return nil
 	}
 	if p.file != nil {
-		if err := p.flushFilePagesLocked(multiDB); err != nil {
+		if err := p.flushFilePagesLocked(superJournal); err != nil {
 			return err
 		}
 	}
@@ -391,7 +398,7 @@ func (p *Pager) flushAllCtx(multiDB bool) error {
 // finalise the journal, and re-baseline the external-change stamp. When the
 // commit has no dirty pages only a PERSIST journal re-finalisation runs (to
 // honour journal_size_limit). Caller holds p.mu.
-func (p *Pager) flushFilePagesLocked(multiDB bool) error {
+func (p *Pager) flushFilePagesLocked(superJournal string) error {
 	if len(p.dirty) == 0 {
 		// No dirty pages — nothing to write to the main database, and
 		// nothing to record in the journal. The journal file may still
@@ -402,7 +409,7 @@ func (p *Pager) flushFilePagesLocked(multiDB bool) error {
 		// unlinked, TRUNCATE left an open zero-length file that does
 		// not need re-truncation).
 		if p.journalFile != nil && p.journalMode == "persist" {
-			if err := p.finalizeRollbackJournalLockedMulti(multiDB); err != nil {
+			if err := p.finalizeRollbackJournalLockedMulti(superJournal != ""); err != nil {
 				return err
 			}
 		}
@@ -453,13 +460,15 @@ func (p *Pager) flushFilePagesLocked(multiDB bool) error {
 			return err
 		}
 	}
-	// Finalise the journal after every dirty page is on disk: DELETE
-	// unlinks, TRUNCATE zeroes, PERSIST truncates to journal_size_limit
-	// (or 0 in the super-journal / multi-DB case), MEMORY/OFF are
-	// no-ops (no file was created). This mirrors pager.c
-	// pager_end_transaction / sqlite3PagerCommitPhaseOne.
-	if err := p.finalizeRollbackJournalLockedMulti(multiDB); err != nil {
-		return err
+	// C's CommitPhaseOne tail: the database file sync (xSync) after the
+	// dirty pages reach the file, when the synchronous level is not OFF
+	// (pager.c:6595's sqlite3OsSync(db, syncFlags)) — and BEFORE the journal
+	// is finalised: pager_end_transaction deletes the journal after the db
+	// sync, so a faultsim snapshot taken at the db-file xSync captures both
+	// the committed database and its sidecar (pager1-4.3.1's xSyncCallback
+	// save; the fixture VFS's xSync callback observes the sync).
+	if p.journalMode != "wal" && p.walSyncFlags != walSyncOff {
+		p.vfsSync(p.path, 1)
 	}
 	// Own writes just hit the file: refresh the external-change baseline
 	// (pager.c readDbPage restores Pager.dbFileVers from page 1) so the
@@ -468,15 +477,37 @@ func (p *Pager) flushFilePagesLocked(multiDB bool) error {
 	// the bytes just written (the header mirror in flushPage guarantees
 	// pg1.Data carries the final header) — no Stat+ReadAt pair.
 	p.refreshKnownFileStampAfterFlush(flushedPage1)
-	// C's CommitPhaseOne tail: the database file sync (xSync) after the
-	// dirty pages reach the file, when the synchronous level is not OFF
-	// (pager.c:6595's syncJournal + sqlite3OsSync(db, syncFlags)). The
-	// fixture VFS's xSync callback observes it (pagerfault-2's faultsim
-	// save fires on the first non-journal sync).
-	if p.journalMode != "wal" && p.walSyncFlags != walSyncOff {
-		p.vfsSync(p.path, 1)
+	// The super-journal path defers the journal FINALIZE to CommitPhaseTwo
+	// (exec's commitFlushAllPagers finalizes after the super-journal's
+	// deletion — vdbeaux.c: the commit point is the super-journal xDelete,
+	// and the per-database journals must still carry their pointers and
+	// exist when the fixture's save fires there).
+	if superJournal == "" {
+		// Finalise the journal after every dirty page is on disk: DELETE
+		// unlinks, TRUNCATE zeroes, PERSIST truncates to journal_size_limit,
+		// MEMORY/OFF are no-ops (no file was created). This mirrors pager.c
+		// pager_end_transaction / sqlite3PagerCommitPhaseOne.
+		if err := p.finalizeRollbackJournalLockedMulti(false); err != nil {
+			return err
+		}
+	} else if p.journalFile != nil {
+		// pager.c writeSuperJournal: the trailing pointer block makes this
+		// journal's playback conditional on the super-journal's existence.
+		if err := p.AppendSuperJournalPointer(journalPath(p.path), superJournal); err != nil {
+			return err
+		}
 	}
 	return nil
+}
+
+// FinalizeJournal is CommitPhaseTwo's journal tail (pager_end_transaction):
+// DELETE unlinks, TRUNCATE zeroes, PERSIST truncates. The multi-file commit
+// calls it for every participating pager AFTER the super-journal's deletion.
+// Caller must NOT hold p.mu.
+func (p *Pager) FinalizeJournal() error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return p.finalizeRollbackJournalLockedMulti(true)
 }
 
 // growHeaderSizeLocked records a file growth in the in-header database size
@@ -575,6 +606,14 @@ func (p *Pager) flushPage(pageNum uint32) error {
 		return err
 	}
 
+	// C's sqlite3OsWrite goes through the VFS: a fixture's xWrite result
+	// code (testvfs -noshm-free lockout procs, pager1-11.2's
+	// `proc lockout {method args} { return SQLITE_IOERR }`) vetoes the write.
+	// The hook fires BEFORE the write; a non-OK return is the method result
+	// and the page stays unwritten (the commit fails "disk I/O error").
+	if err := p.vfsWriteGate("xWrite", len(pg.Data)); err != nil {
+		return err
+	}
 	if _, err := p.file.WriteAt(pg.Data, off); err != nil {
 		return fmt.Errorf("pager: write page %d: %w", pageNum, err)
 	}

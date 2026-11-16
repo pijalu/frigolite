@@ -711,8 +711,8 @@ func partialRowValues(row []interface{}, colDefs []sql.ColumnDef) []interface{} 
 // execInsertSelectConflict validates constraints for an INSERT ... SELECT row
 // and handles the ON CONFLICT resolution (IGNORE skips the row via
 // errRowSkipped; REPLACE deletes the conflicting row).
-func (e *DMLExecutor) execInsertSelectConflict(s *sql.InsertStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, rowID int64, orIgnore bool) *Result {
-	if err := e.checkConstraints(tableEntry, colDefs, values, rowID); err != nil {
+func (e *DMLExecutor) execInsertSelectConflict(s *sql.InsertStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, rowID int64, orIgnore bool, rowidExplicit bool) *Result {
+	if err := e.checkConstraintsExplicit(tableEntry, colDefs, values, rowID, rowidExplicit); err != nil {
 		// Statement-level INSERT OR IGNORE: silently skip UNIQUE conflicts.
 		if orIgnore && isUniqueConflictError(err) {
 			return &Result{Error: errRowSkipped}

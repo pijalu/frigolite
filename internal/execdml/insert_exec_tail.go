@@ -67,7 +67,7 @@ func (e *DMLExecutor) prepareInsertRowValuesSh(tableEntry *schema.Entry, colDefs
 	// For statement-level REPLACE, substitute the DEFAULT for NULL values in
 	// NOT NULL columns BEFORE computing generated columns, then compute
 	// generated values and validate constraints (with ON CONFLICT resolution).
-	if res, write := e.resolveInsertRowConstraints(tableEntry, colDefs, values, nextRowID, orConflict); res != nil {
+	if res, write := e.resolveInsertRowConstraints(tableEntry, colDefs, values, nextRowID, orConflict, fixedRowID != nil || rowidExplicit); res != nil {
 		return 0, res
 	} else if !write {
 		return 0, &Result{Changes: 0}

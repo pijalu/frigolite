@@ -227,6 +227,56 @@ func (p *Pager) PendingBytePage() uint32 {
 	return p.pendingBytePageFor()
 }
 
+// SetShmUnavailable marks this pager's VFS as lacking xShm methods
+// (testvfs -noshm 1 / -iversion 1): a WAL-mode database refuses the WAL
+// attach (pager.c pagerOpenWal's SQLITE_CANTOPEN) and every page read
+// fails "unable to open database file" (pager1-21.1/21.2). A rollback-
+// journal database is unaffected — the xShm methods only gate WAL.
+func (p *Pager) SetShmUnavailable() {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.shmUnavailable = true
+	// The harness routes an already-open connection through the fixture:
+	// a WAL attached before the flag landed is dropped exactly like C's
+	// failed pagerOpenWal leaves the pager without one — the first read
+	// then reports the refusal.
+	isWal := p.wal != nil || (len(p.header) >= 20 && p.header[18] == 2 && p.header[19] == 2)
+	if !isWal {
+		return
+	}
+	// Release the wal-index reference WITHOUT C's failed-open side effects:
+	// another connection may still hold the shared -wal/-shm (21.1's db
+	// stays open while db2's open refuses), so no checkpoint and no sidecar
+	// deletion — just the detach (walWriter.Close releases the registry ref).
+	if p.wal != nil {
+		_ = p.wal.Close()
+		p.wal = nil
+	}
+	p.walOpenRefused = true
+}
+
+// globalPendingByte is the process-global PENDING_BYTE override (C's
+// sqlite3PendingByte writable via
+// sqlite3_test_control(SQLITE_TESTCTRL_PENDING_BYTE, X)). Every pager
+// opened while a non-zero override is installed inherits it at open
+// (pager.c:3810 reads the global into lckPgno at open); pagers opened
+// before keep their open-time value. 0 = production default (0x40000000).
+var globalPendingByte uint32
+
+// SetGlobalPendingByte installs the process-global PENDING_BYTE override
+// and returns the previous value (0 when none was installed — the
+// sqlite3_test_control_pending_byte return shape maps that to the
+// production default at the call site). The override applies to pagers
+// opened AFTER the call.
+func SetGlobalPendingByte(byteOffset uint32) uint32 {
+	prev := globalPendingByte
+	globalPendingByte = byteOffset
+	return prev
+}
+
+// GlobalPendingByte reports the process-global override (0 = default).
+func GlobalPendingByte() uint32 { return globalPendingByte }
+
 // Serialize returns a contiguous copy of the database image: numPages ×
 // pageSize bytes, page 1 carrying the live 100-byte header (memdb.c
 // sqlite3_serialize: sz = page_count × pageSize; each page copied from the
@@ -569,7 +619,7 @@ func (p *Pager) writeRollbackVersionBytesLocked() {
 		pg1.Data[18], pg1.Data[19] = 1, 1
 	}
 	p.markDirtyLocked(1)
-	_ = p.flushAllCtx(false)
+	_ = p.flushAllCtx("")
 }
 
 // writeWALVersionBytesLocked stamps the WAL file-format bytes (18/19 = 2)
@@ -589,7 +639,7 @@ func (p *Pager) writeWALVersionBytesLocked() error {
 		pg1.Data[18], pg1.Data[19] = 2, 2
 	}
 	p.markDirtyLocked(1)
-	return p.flushAllCtx(false)
+	return p.flushAllCtx("")
 }
 
 // setLegacyJournalModeLocked applies one of the legacy rollback-journal

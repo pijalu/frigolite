@@ -1,6 +1,7 @@
 package frigolite
 
 import (
+	"log"
 	"bytes"
 	"compress/gzip"
 	"crypto/md5"
@@ -3676,7 +3677,13 @@ func TestSQLiteSuite(t *testing.T) {
 					// harness renders the last N results and compares that
 					// (e_walckpt-1.full.2.7's two COMMIT assertions).
 					var catchResults []string
+					if tc.Name == "pager1-42.1" {
+						t.Logf("DBG nsteps=%d", len(tc.Steps))
+					}
 					for _, step := range expandRepeatedSteps(tc.Steps) {
+						if tc.Name == "pager1-42.1" {
+							t.Logf("DBG iter type=%s cond=%q", step.Type, step.Condition)
+						}
 						// A statement's results are destroyed when the
 						// statement completes (test_func.c's result
 						// destructors run with the statement): drain the
@@ -3817,6 +3824,7 @@ func TestSQLiteSuite(t *testing.T) {
 							if vfsName != "" {
 								if fx := testvfsFixtures[vfsName]; fx != nil {
 									opened.engine.InstallVFSHook(fx.hook(runtimeVars, opened, namedDBs, fixtureDBDir), fx.devcharBits)
+									markFixtureShmUnavailable(fx, opened)
 								}
 							}
 							continue
@@ -3839,6 +3847,7 @@ func TestSQLiteSuite(t *testing.T) {
 						if step.VFS != "" {
 							if fx := testvfsFixtures[step.VFS]; fx != nil {
 								execDB.engine.InstallVFSHook(fx.hook(runtimeVars, execDB, namedDBs, fixtureDBDir), fx.devcharBits)
+								markFixtureShmUnavailable(fx, execDB)
 							}
 						}
 						if step.Type == "auth_analyze_deny" {
@@ -4095,16 +4104,25 @@ func TestSQLiteSuite(t *testing.T) {
 							// db_delete_and_reopen force-deletes the whole
 							// test.db* glob (tester.tcl:2490) — a surviving
 							// stale -wal/-journal would be recovered over the
-							// fresh file.
+							// fresh file. The optional SQL carries the file
+							// argument (pager1-4.4.2's `faultsim_delete_and_reopen
+							// $prefix`: the padded prefix IS the main database).
+							resetPath := lifecycleDBPath
+							if step.SQL != "" {
+								resetPath = step.SQL
+								if !filepath.IsAbs(resetPath) {
+									resetPath = filepath.Join(fixtureDBDir, resetPath)
+								}
+							}
 							runCollationDestructors(db, collationDestructors, runtimeVars)
 							db.UnregisterEchoModule()
 							_ = db.Close()
-							if lifecycleDBPath != "" {
-								_ = os.Remove(lifecycleDBPath)
-								for _, name := range faultsimGlobFiles(lifecycleDBPath) {
-									_ = os.Remove(filepath.Join(filepath.Dir(lifecycleDBPath), name))
+							if resetPath != "" {
+								_ = os.Remove(resetPath)
+								for _, name := range faultsimGlobFiles(resetPath) {
+									_ = os.Remove(filepath.Join(filepath.Dir(resetPath), name))
 								}
-								db, err = Open(lifecycleDBPath)
+								db, err = Open(resetPath)
 								if err != nil {
 									// Report and fall back to an empty database (see the
 									// reopen_db comment above).
@@ -4192,7 +4210,16 @@ func TestSQLiteSuite(t *testing.T) {
 								// statement on a reopened connection. Prime Frigolite's lazy schema
 								// cache here so that statement sees stored virtual-table rows.
 								if refreshed := db.Query("SELECT name FROM sqlite_master LIMIT 1"); refreshed.Error != nil {
-									err = refreshed.Error
+									// C's sqlite3_open is lazy: the file is open even
+									// when its content is invalid. A failed schema
+									// prime leaves the pager in the ERROR state — the
+									// connection SURVIVES and every statement fails
+									// with the same error until close (pager1-38.1#01:
+									// CREATE TABLE on a "hello world" file reports
+									// "file is not a database"). Replacing the handle
+									// with a fresh empty db would let that statement
+									// succeed against a database C never had.
+									t.Logf("reopen schema prime: %v", refreshed.Error)
 								}
 							}
 							if err != nil {
@@ -4212,6 +4239,7 @@ func TestSQLiteSuite(t *testing.T) {
 								connVFS[db] = step.VFS
 								if fx := testvfsFixtures[step.VFS]; fx != nil {
 									db.engine.InstallVFSHook(fx.hook(runtimeVars, db, namedDBs, fixtureDBDir), fx.devcharBits)
+									markFixtureShmUnavailable(fx, db)
 								}
 							}
 							continue
@@ -4788,7 +4816,9 @@ func TestSQLiteSuite(t *testing.T) {
 							})
 							continue
 						case "register_testvfs":
-							testvfsFixtures[step.Variable] = &testvfsFixture{name: step.Variable, isDefault: step.SQL == "default", devcharBits: -1}
+							// SQL carries the -default/-noshm/-iversion flag the
+							// converter extracted from `testvfs <name> <opt> 1`.
+							testvfsFixtures[step.Variable] = &testvfsFixture{name: step.Variable, isDefault: step.SQL == "default", noShm: step.SQL == "noshm" || step.SQL == "iversion", devcharBits: -1}
 							if step.SQL == "default" {
 								testvfsDefault = step.Variable
 								// The -default fixture governs the connection
@@ -4865,11 +4895,21 @@ func TestSQLiteSuite(t *testing.T) {
 							// the freelist-corruption seed the trial loop
 							// hung on.
 							if step.Type == "faultsim_restore_reopen" {
+								// The reopen target is C's $dbfile argument
+								// (tester.tcl:2482's default test.db): pager1-4.4.2's
+								// restores pass the padded prefix, 4.6.12's none.
+								// The file operation itself always walks the
+								// test.db* glob (db_restore is hardcoded to it).
 								lifecycle := filepath.Join(fixtureDBDir, "test.db")
-								if b := filepath.Base(db.path); b != "test.db" {
+								if step.SQL != "" {
+									lifecycle = step.SQL
+									if !filepath.IsAbs(lifecycle) {
+										lifecycle = filepath.Join(fixtureDBDir, lifecycle)
+									}
+								} else if b := filepath.Base(db.path); b != "test.db" {
 									lifecycle = filepath.Join(fixtureDBDir, b)
 								}
-								main := db.path
+								main := faultsimMainPath(db, fixtureDBDir)
 								runCollationDestructors(db, collationDestructors, runtimeVars)
 								if !db.closedFlag {
 									db.UnregisterEchoModule()
@@ -4988,6 +5028,25 @@ func TestSQLiteSuite(t *testing.T) {
 								if matchExpectation(got, want) != "" {
 									t.Errorf("sqlite3_db_cacheflush got %s want %s", got, want)
 								}
+							}
+						case "testctl_pending_byte":
+							// sqlite3_test_control(SQLITE_TESTCTRL_PENDING_BYTE, X)
+							// (main.c:4326): installs the process-global PENDING_BYTE
+							// override and returns the previous value. Every pager
+							// opened afterwards reads it into lckPgno at open
+							// (pager.c:3810) — reads of that page fail SQLITE_CORRUPT
+							// (pager1-42.1 builds the db before the byte moves).
+							off, perr := parsePendingByteValue(step.SQL)
+							if perr != nil {
+								t.Errorf("testctl_pending_byte: %v", perr)
+								continue
+							}
+							prev := pager.SetGlobalPendingByte(off)
+							if prev == 0 {
+								prev = 0x40000000
+							}
+							if step.Variable != "" {
+								runtimeVars[step.Variable] = strconv.FormatUint(uint64(prev), 10)
 							}
 						case "internal_functions":
 							execDB.ToggleInternalFunctions()
@@ -5161,6 +5220,9 @@ func TestSQLiteSuite(t *testing.T) {
 						// exactly like "exec" steps below — except that a catch
 						// step without an expectation tolerates an error.
 						case "exec", "catch":
+							if tc.Name == "pager1-42.1" {
+								t.Logf("DBG step type=%s sql=%q", step.Type, step.SQL[:min(40, len(step.SQL))])
+							}
 							res := execDB.Exec(step.SQL)
 							// C's ATTACH inherits the parent connection's
 							// VFS (btree.c sqlite3BtreeOpen passes the
@@ -5675,6 +5737,12 @@ func TestSQLiteSuite(t *testing.T) {
 							if diff := matchExpectation(got, step.Expect); diff != "" {
 								t.Errorf("runtime variable mismatch\\n  got: [%q]\\n  %s", got, diff)
 							}
+						case "runtime_var_set":
+							// A plain `set ::VAR VALUE` preamble (pager1-4.4.x's
+							// `set ::mj_delete_cnt 0` before the foreach): the
+							// fixture procs' incr/capture need the variable to
+							// EXIST before the first callback fire.
+							runtimeVars[step.Variable] = step.SQL
 						case "runtime_var_reset":
 							// A plain `set VAR [list]` on a callback-recorded
 							// variable (e_droptrigger's droptrigger_reopen_db,
@@ -6813,6 +6881,10 @@ type testvfsFixture struct {
 	// (nothing fires). Before the first `filter` option the fixture is in
 	// the all-methods state (e_walckpt's tvfs_callback without any filter).
 	filterConfigured bool
+	// noShm models `testvfs tv -noshm 1` (and -iversion 1): the fixture VFS
+	// has no xShm methods, so a WAL-mode database opened through it refuses
+	// the WAL attach and every statement reports CANTOPEN (pager1-21.1/21.2).
+	noShm bool
 	// devcharBits models test_vfs.c's iDevchar: -1 = passthrough (the real
 	// file's characteristics — the unix default POWERSAFE_OVERWRITE), any
 	// other value REPLACES the whole mask (`tvfs devchar sequential`).
@@ -6995,7 +7067,7 @@ func (fx *testvfsFixture) hook(runtimeVars map[string]string, db *DB, namedDBs m
 		// (test_vfs.c:381/453 — an SQLITE_ error code vetoes the I/O:
 		// e_walckpt-5.3.1's inject_ioerr on the copyback xWrite). xSync's
 		// fixtures return non-codes, which both models treat as OK.
-		if op == "xShmMap" || op == "xShmLock" || op == "xWrite" || op == "xSync" {
+		if op == "xShmMap" || op == "xShmLock" || op == "xWrite" || op == "xSync" || op == "xTruncate" {
 			code := strings.TrimSpace(answer)
 			if strings.HasPrefix(code, "SQLITE_") && code != "SQLITE_OK" {
 				return &pager.VFSHookError{Code: code}
@@ -7018,16 +7090,52 @@ func installDefaultVFS(t *testing.T, fixtures map[string]*testvfsFixture, name s
 		return
 	}
 	db.engine.InstallVFSHook(fx.hook(runtimeVars, db, namedDBs, fixtureDBDir), fx.devcharBits)
+	markFixtureShmUnavailable(fx, db)
+}
+
+// markFixtureShmUnavailable applies an xShm-less fixture (-noshm/-iversion)
+// to every file-backed pager of the connection: the WAL attach refuses at
+// open and the first read reports CANTOPEN (pager.c pagerOpenWal's contract).
+func markFixtureShmUnavailable(fx *testvfsFixture, db *DB) {
+	if fx == nil || db == nil || !fx.noShm {
+		return
+	}
+	for _, ctx := range db.engine.AttachedPagers() {
+		ctx.SetShmUnavailable()
+	}
 }
 
 // faultsimMainPath resolves the main database file a faultsim snapshot pair
 // operates on (the connection's path, or the fixture's test.db for
 // private-temporary databases).
 func faultsimMainPath(db *DB, fixtureDBDir string) string {
-	if db != nil && db.path != "" && db.path != ":memory:" {
-		return db.path
-	}
+	// tester.tcl's db_save/db_restore are hardcoded to the test.db* glob
+	// (tester.tcl:2463/2480) regardless of which file the connection was
+	// last opened on (pager1-4.6.8's `sqlite3 db test.db2` makes test.db2
+	// the connection's main while the snapshot pair still walks test.db*).
+	_ = db
 	return filepath.Join(fixtureDBDir, "test.db")
+}
+
+// parsePendingByteValue parses a sqlite3_test_control_pending_byte argument:
+// a Tcl hex literal (0x10000) or a decimal byte offset.
+func parsePendingByteValue(s string) (uint32, error) {
+	v := strings.TrimSpace(s)
+	if v == "" {
+		return 0, fmt.Errorf("empty pending byte offset")
+	}
+	if strings.HasPrefix(v, "0x") || strings.HasPrefix(v, "0X") {
+		n, err := strconv.ParseUint(v[2:], 16, 32)
+		if err != nil {
+			return 0, fmt.Errorf("bad pending byte offset %q: %v", s, err)
+		}
+		return uint32(n), nil
+	}
+	n, err := strconv.ParseUint(v, 10, 32)
+	if err != nil {
+		return 0, fmt.Errorf("bad pending byte offset %q: %v", s, err)
+	}
+	return uint32(n), nil
 }
 
 // fileAttrMode converts a `file attributes` step's attribute/value pair into
@@ -7102,9 +7210,21 @@ func faultsimGlobFiles(main string) []string {
 // sv_test.db*). The scope is the test.db* glob: ATTACH'd sibling files
 // travel with the snapshot.
 func faultsimFileOp(t *testing.T, op string, main, fixtureDBDir string) {
-	t.Helper()
+	// t may be nil when the faultsim pair runs inside a fixture VFS
+	// callback (testvfsFixture.hook's faultsim_save/restore registration):
+	// report anomalies through the log instead of the testing.T error path.
+	if t != nil {
+		t.Helper()
+	}
 	if main == "" {
 		main = filepath.Join(fixtureDBDir, "test.db")
+	}
+	failf := func(format string, args ...any) {
+		if t != nil {
+			t.Errorf(format, args...)
+		} else {
+			log.Printf(format, args...)
+		}
 	}
 	dir := filepath.Dir(main)
 	base := filepath.Base(main)
@@ -7123,12 +7243,12 @@ func faultsimFileOp(t *testing.T, op string, main, fixtureDBDir string) {
 			data, err := os.ReadFile(filepath.Join(dir, name))
 			if err != nil {
 				if !os.IsNotExist(err) {
-					t.Errorf("faultsim_save read %s: %v", name, err)
+					failf("faultsim_save read %s: %v", name, err)
 				}
 				continue
 			}
 			if werr := os.WriteFile(filepath.Join(dir, "sv_"+name), data, 0o644); werr != nil {
-				t.Errorf("faultsim_save %s: %v", name, werr)
+				failf("faultsim_save %s: %v", name, werr)
 			}
 		}
 	case "faultsim_restore", "faultsim_restore_reopen":
@@ -7146,11 +7266,11 @@ func faultsimFileOp(t *testing.T, op string, main, fixtureDBDir string) {
 			}
 			data, err := os.ReadFile(filepath.Join(dir, name))
 			if err != nil {
-				t.Errorf("faultsim_restore read %s: %v", name, err)
+				failf("faultsim_restore read %s: %v", name, err)
 				continue
 			}
 			if werr := os.WriteFile(filepath.Join(dir, strings.TrimPrefix(name, "sv_")), data, 0o644); werr != nil {
-				t.Errorf("faultsim_restore %s: %v", name, werr)
+				failf("faultsim_restore %s: %v", name, werr)
 			}
 		}
 	}

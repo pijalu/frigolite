@@ -113,6 +113,12 @@ func openPager(path string, pageSize uint32, forceReadOnly bool) (*Pager, error)
 		// the default to 32768; the upstream source and the TCL corpus expect
 		// -1 — jrnlmode-5.2.)
 		journalSizeLimit: -1,
+		// C reads the process-global sqlite3PendingByte at pager open into
+		// lckPgno (pager.c:3810): a test-control pending byte installed
+		// BEFORE this open governs this pager for its lifetime (pager1-42.1
+		// sets 0x10000, then opens test.db). Per-pager SetPendingByte still
+		// overrides afterwards.
+		pendingByteOverride: globalPendingByte,
 	}
 	pr.readOnly = readOnlyFallback || forceReadOnly
 	// Quota layer (test_quota.c quotaOpen): a database file opened while
@@ -128,10 +134,12 @@ func openPager(path string, pageSize uint32, forceReadOnly bool) (*Pager, error)
 	// records Pager.dbFileVers when page 1 is first read).
 	pr.refreshKnownFileStamp()
 
-	if err := recoverJournalAtOpen(pr, cleanPath); err != nil {
-		file.Close()
-		return nil, err
-	}
+	// Hot-journal recovery deliberately does NOT run here: C's
+	// sqlite3PagerOpen only reads page 1 raw — hasHotJournal fires at the
+	// first shared lock (statement), and the pager1-4.5.x faultsim fixtures
+	// restore a hot journal onto a closed snapshot expecting the sidecar to
+	// survive until then (RecoverHotJournalIfNeeded, exec's per-statement
+	// check).
 	if err := attachWalAtOpen(pr, cleanPath); err != nil {
 		file.Close()
 		if pr.wal != nil {
@@ -310,26 +318,6 @@ func applyOpenHeader(pr *Pager, headerBuf []byte) {
 	}
 }
 
-// recoverJournalAtOpen runs hot-journal crash recovery when a "-journal"
-// sidecar accompanies the main database at open (pager.c pagerPlayback /
-// hasHotJournal): its page records are the before-images of an uncommitted
-// transaction whose process died. A reader must replay them into the page
-// cache before the first read (never serving the crashed partial image) and
-// unlink the journal. Stale journals (dbOrigSize mismatch, bad magic, or
-// main-file change counter newer than the journal) are discarded without
-// playback (journal1.test 1.2: a leftover journal from a prior database must
-// not roll back into a new database).
-func recoverJournalAtOpen(pr *Pager, cleanPath string) error {
-	jpath := journalPath(cleanPath)
-	if jpath == "" {
-		return nil
-	}
-	if _, err := os.Stat(jpath); err != nil {
-		return nil
-	}
-	return recoverHotJournal(pr, cleanPath)
-}
-
 // attachWalAtOpen performs WAL crash recovery / WAL-mode detection at open:
 // SQLite auto-detects WAL from the presence of a valid "-wal" file. When one
 // accompanies the main database, attach to the shared wal-index (rebuilding
@@ -339,6 +327,17 @@ func recoverJournalAtOpen(pr *Pager, cleanPath string) error {
 // empty (uncheckpointed) carries its page size only in the "-wal" header, so
 // prefer that when the main file did not yield a size.
 func attachWalAtOpen(pr *Pager, cleanPath string) error {
+	// C's pagerOpenWal (pager.c sqlite3PagerOpenWal) needs a VFS with xShm
+	// methods (iVersion >= 2): a WAL-mode database opened through a VFS
+	// without them fails SQLITE_CANTOPEN at the first statement ("unable to
+	// open database file", pager1-21.1's testvfs -noshm / 21.2's
+	// -iversion 1). The refusal is lazy in C — sqlite3_open succeeds, the
+	// pagerOpenWal inside the first read transaction fails — so the open
+	// itself succeeds here and every later page read reports the refusal.
+	if pr.shmUnavailable {
+		pr.walOpenRefused = true
+		return nil
+	}
 	// C's pagerOpenWalIfPresent garbage rule (pager.c:3337, mirrored in
 	// CheckExternalFile's per-statement gate): a "-wal" beside an EMPTY
 	// database is garbage — its frames reference a database that does not
@@ -449,6 +448,7 @@ func OpenInMemory(pageSize uint32) *Pager {
 		numPages:              0,
 		header:                dh.Encode(),
 		deviceCharacteristics: IOCAPPowerSafeOverwrite,
+		pendingByteOverride:   globalPendingByte,
 	}
 }
 

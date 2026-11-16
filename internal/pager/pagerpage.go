@@ -7,12 +7,20 @@ package pager
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 
 	"github.com/pijalu/frigolite/internal/storage"
 )
+
+// ErrCorruptPage is the pager's page-image corruption verdict (C's
+// SQLITE_CORRUPT from getPageNormal's lock-byte-page fetch and the
+// malformed-header guards). Scans distinguish it from cursor exhaustion so
+// a corrupt page aborts the statement instead of ending the scan
+// silently (pager.c's readDbPage/getPageNormal error propagation).
+var ErrCorruptPage = errors.New("database disk image is malformed")
 
 // For page 1, the first HeaderSize bytes are reserved for the database header.
 // With auto-vacuum enabled, page numbers at pointer-map positions are
@@ -204,6 +212,21 @@ func (p *Pager) AllocateRootpage() *Page {
 func (p *Pager) ReadPage(pageNum uint32) (*Page, error) {
 	if pageNum == 0 {
 		return nil, fmt.Errorf("database disk image is malformed")
+	}
+	// C's pagerOpenWal refusal surfaces at the first page acquire (the lazy
+	// sqlite3_open): a WAL db through an xShm-less VFS reports CANTOPEN
+	// "unable to open database file" on every statement (pager1-21.1/21.2).
+	if p.walOpenRefused {
+		return nil, fmt.Errorf("unable to open database file")
+	}
+	// C's getPageNormal (pager.c:5577-5580): a content fetch of the lock-byte
+	// page (the PENDING_BYTE page, PAGER_SJ_PGNO) is corruption. A database
+	// BUILT before the pending byte moved holds data on that page; reading it
+	// after `sqlite3_test_control(SQLITE_TESTCTRL_PENDING_BYTE, ...)` fails
+	// "database disk image is malformed" (pager1-42.1). 0 override = the
+	// production default (0x40000000, beyond any test file) — no check.
+	if p.pendingByteOverride != 0 && pageNum == p.PendingBytePage() {
+		return nil, fmt.Errorf("%w (lock-byte page %d)", ErrCorruptPage, pageNum)
 	}
 	p.mu.RLock()
 	pg, ok := p.pages[pageNum]
@@ -527,7 +550,7 @@ func (p *Pager) WritePage(pg *Page) error {
 		// (frames appended, wal-index header published) whose deferred
 		// walEndWriteLocked releases the WRITER shm lock — the
 		// walBeginWriteTransaction/walEndWriteTransaction pairing of wal.c.
-		return p.flushAllCtx(false)
+		return p.flushAllCtx("")
 	}
 	return nil
 }

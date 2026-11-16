@@ -389,7 +389,9 @@ func (e *SelectEngine) fromRefColumnNames(name string) map[string]bool {
 		return names
 	}
 	if tableEntry, err := e.ctx.Schema().FindTable(name); err == nil {
-		return e.fromTableColumnNames(tableEntry)
+		names := e.fromTableColumnNames(tableEntry)
+		addRowidAliasNames(names)
+		return names
 	}
 	return nil
 }
@@ -402,6 +404,22 @@ func (e *SelectEngine) fromTableColumnNames(tableEntry *schema.Entry) map[string
 		names[cd.Name] = true
 	}
 	return names
+}
+
+// addRowidAliasNames adds the rowid pseudo-column aliases to a FROM table's
+// column-name set: every rowid table exposes rowid/_rowid_/oid, so an
+// aggregate over a bare rowid (pager1-11.1's max(rowid)) is INNER-owned and
+// must not collapse the enclosing query the way an outer-only reference
+// does (C's resolve.c binds unqualified rowid to the innermost FROM).
+// WITHOUT ROWID tables never bind a bare rowid — such a query fails at
+// name resolution before this classification matters.
+func addRowidAliasNames(names map[string]bool) {
+	if len(names) == 0 {
+		return
+	}
+	names["rowid"] = true
+	names["_rowid_"] = true
+	names["oid"] = true
 }
 
 // aggColumnArgsRefInner checks if a SELECT column's aggregate function args,
@@ -509,6 +527,19 @@ func (e *SelectEngine) collectInnerColsAndTables(s *sql.SelectStmt) (map[string]
 	for _, j := range s.Joins {
 		e.addTableInnerCols(j.Table.Name, inner)
 		e.recordTableAndAlias(j.Table.Name, j.Table.As, innerTables)
+	}
+	// A bare rowid-alias reference (rowid/_rowid_/oid) always resolves
+	// against the subquery's own FROM table — every rowid table exposes the
+	// pseudo-column — so max(rowid) is an INNER aggregate, never an
+	// outer-collapsing one (C's resolve.c binds unqualified rowid to the
+	// innermost FROM; aggnested's outer-collapse needs an outer-only
+	// reference). Without this the pager1-11.1 growth statements
+	// `(SELECT 222+max(rowid) FROM zz)` collapsed the outer INSERT..SELECT
+	// scan to one row per statement.
+	if len(innerTables) > 0 {
+		inner["rowid"] = true
+		inner["_rowid_"] = true
+		inner["oid"] = true
 	}
 	return inner, innerTables
 }

@@ -155,7 +155,7 @@ otherwise regeneration reproduces the same artifacts.
   = {0 2 0} / {0 3 0} / {0 1 0}.
 
 **U5 — misc engine contracts (B7, 11 leaves; six independent units, land in
-any order)**
+any order) — COMPLETE (S31.1..S31.6, branch s31-pager-engine)**
 - U5a page_count/max_page_count (44.1/44.3): auto_vacuum=FULL page_count
   must count ptrmap pages (pager.c:1070 — the super-journal page number is
   never a ptrmap page; ptrmap pages ARE counted in dbSize); on ROLLBACK
@@ -192,8 +192,14 @@ any order)**
 - C source pointers: pager1.test:2752-2956 (44.x), 2737-2749 (38.1),
   1778-1803 (14.1.x), 2852-2898 (42.1), 2100-2124 (21.x), 1296-1317 (8.x),
   1576-1611 (11.x).
+- Landed status (S31, 2026-11-16): 44.1/44.3 (S31.1), 38.1#01 (S31.2),
+  14.1.4/14.1.6 (S31.3), 42.1 (S31.4), 21.1/21.2 (S31.5), 8.2.2 +
+  11.1/11.2/11.5 (S31.6 — the failed-COMMIT abort path rollbackOpenTx +
+  BEGIN-snapshot lifetime, bare-rowid INNER-owning aggregates, testvfs
+  lockout pins). pager1 90 → 79.
 
-**U6 — hot-journal substrate (B4, 13 leaves)**
+**U6 — hot-journal substrate (B4, 13 leaves) — COMPLETE (S31.7, branch
+s31-pager-engine)**
 - Engine `internal/pager`: (a) materialize the rollback journal on disk
   during write txns (DELETE mode: create at first page write, header at
   offset 0, records sector-aligned, header fields per contract #1); (b)
@@ -214,7 +220,7 @@ any order)**
   playback semantics already asserted by the fixture.
 
 **U7 — super-journal + faultsim/testvfs machinery (B5, 61 leaves; the big
-lever, last because it needs U6's journal substrate)**
+lever, last because it needs U6's journal substrate) — COMPLETE (S31.8)**
 - Engine `internal/pager` + `internal/exec` (the multi-db commit path):
   (a) nTrans gate per contract #2 (aMJNeeded table, sync!=OFF, memdb
   excluded, >1 write txn); (b) super-journal open/write (`-mj%06X9%02X`
@@ -244,6 +250,15 @@ lever, last because it needs U6's journal substrate)**
 - C source: vdbeaux.c:2950-3140 (decision + creation + delsuper),
   pager.c readSuperJournal 1274-1340 + pager_delsuper, pager1.test:530-745
   (4.4.x incl. the tn1=2 padding block 560-591), 824-926 (4.6.x).
+
+## Final status (S31, 2026-11-16)
+
+The pager1 family is 100% GREEN (957 leaves, 0 failures). U5 (11 leaves,
+S31.1..S31.6), U6 (15 leaves incl. the 4.5.6/4.8.x riders, S31.7), U7 (62
+leaves incl. 4.7.2, S31.8). Census 90 → 0 across the S31 arc. The tn1=2
+padded-prefix leaves (4.4.2.*) run on the converter-baked 31-x prefix — the
+C directory-hierarchy machinery (file mkdir / cd, TESTVFS_P_C1_PLAN) is
+carded, not needed for the observable contracts.
 
 ## Recommended slice order (smallest-first)
 

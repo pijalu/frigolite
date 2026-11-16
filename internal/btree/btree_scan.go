@@ -147,6 +147,14 @@ func (c *Cursor) ScanTableLeaves(fn func(b *LeafBatch) (stop bool, err error)) (
 		if res == leafPageNext {
 			c.clearPageCache()
 			c.navigateToNextChild()
+			// The navigation's descent folds a corrupt page fetch into
+			// endOfBTree; the verdict rides on the cursor — surface it here
+			// so the scan aborts instead of ending cleanly (pager.c:5579).
+			if c.pendingCorruptErr != nil {
+				err := c.pendingCorruptErr
+				c.pendingCorruptErr = nil
+				return false, err
+			}
 			continue
 		}
 		return res == leafPageSaved, nil
@@ -161,6 +169,14 @@ func (c *Cursor) ScanTableLeaves(fn func(b *LeafBatch) (stop bool, err error)) (
 // behavior exactly.
 func (c *Cursor) scanTableLeafPage(fn func(b *LeafBatch) (stop bool, err error)) (leafPageResult, error) {
 	if err := c.cachePage(); err != nil {
+		// C's OP_Column aborts the statement when the pager reports corruption
+		// on the page fetch (the lock-byte page, pager.c:5579): unlike the
+		// extraction errors the cursor loop treats as clean EOF, a corrupt
+		// verdict must reach the caller (pager1-42.1's SELECT over a db whose
+		// page 17 became the pending-byte page).
+		if errors.Is(err, pager.ErrCorruptPage) {
+			return leafPageDone, err
+		}
 		return leafPageDone, nil // the cursor loop reports/ends identically
 	}
 	// Skip forward past empty leaf pages (the engine keeps them after

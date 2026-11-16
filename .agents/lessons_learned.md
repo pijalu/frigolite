@@ -1368,3 +1368,168 @@ everywhere; go vet + go build clean.
   1-RANDOM-BYTE blob; the arithmetic result varies per run: got [4] want
   [-1] in the S32 gate, 0/3 family reruns). Same probabilistic class as
   where2-2.4 — never chase single occurrences.
+## S31 record (2026-11-16) — pager1 U5 complete: the failed-COMMIT abort path, rowid-alias aggregates, lockout pins
+
+- **A failed COMMIT must still roll the transaction back even though the
+  commit teardown already cleared the transaction flags** (vdbeaux.c
+  sqlite3VdbeHalt's abort path): `commitClearTxState` set
+  inTransaction=false AND nilled txSnapshots BEFORE the pager flush, so the
+  flush-failure `execRollback()` (a) bailed at the "cannot rollback - no
+  transaction is active" guard and (b) found no snapshots — the connection
+  kept the mid-txn pager state (grown header nPage + fileSize cache vs the
+  un-extended file) and the next read failed "database disk image is
+  malformed" (pager1-11.5). Fix: `rollbackOpenTx()` = the rollback body
+  without the guard; execRollback = guard + rollbackOpenTx; the
+  commitFlushAllPagers failure path calls rollbackOpenTx directly; the BEGIN
+  snapshots stay alive until AFTER commitFlushAllPagers succeeds.
+- **flushPage's xWrite gate runs after the cached fileSize / header nPage
+  bump** — a VETOED page write still grows p.fileSize and
+  growHeaderSizeLocked's in-header count in memory. That is survivable ONLY
+  because the failed commit now restores the whole BEGIN image; without the
+  restore the vetoed write leaves header claims leading the file.
+- **Statement-boundary cache spill (CacheFlush) is the engine's mid-txn
+  file-writer** (cache_size=10 + a 32-row UPDATE): the probe must replicate
+  EVERY fixture ingredient (cache_size, row widths) or the failure will not
+  reproduce — the plain probe COMMIT had nothing to flush and never failed.
+- **The previous instance's `[open hdr]` / `[pgno>N]` debug tags in
+  user-visible error text would have corrupted exact-match catchsql
+  comparisons** (matchExpectation is exact; only the harness's regex/glob
+  wrapper forms relax it). Reverted before S31.6; error-text probes must be
+  removed before commit, not landed.
+- **U5 is COMPLETE (11 leaves)**: 44.1/44.3 (S31.1), 38.1#01 (S31.2),
+  14.1.4/14.1.6 (S31.3), 42.1 (S31.4), 21.1/21.2 (S31.5), 11.1/11.2/11.5
+  (WIP + S31.6), 8.2.2 (WIP). pager1 90 → 79.
+- The C 11.x lockout pins: `tv script lockout` + `tv filter {xWrite
+  xTruncate xSync}` are set BETWEEN 11.1 and 11.2 (they veto 11.2's COMMIT
+  only); `tv script {}` clears at the END of 11.2 (C's line between the
+  catchsql and 11.3) — db2's 11.3 open + journal_mode=TRUNCATE must NOT be
+  vetoed; the filter (without a script) stays a no-op through 11.5.
+- Sensitive-family sweep at S31.6 (failure NAME sets, pristine vs changed,
+  two directions): trans/jrnlmode/incrvacuum/lock_/lock3/pagerfault/pager2/
+  pager3/trigger2/fts4merge4 all 0; savepoint 15 and pager4 6 identical to
+  pristine (pre-existing). staticcheck U1000 joinOperandColumnSide
+  (select_join_or.go) is pre-existing at the WIP commit.
+
+## S31 record (2026-11-16, cont.) — U6 hot-journal substrate (S31.7)
+
+- **Hot-journal recovery runs at the per-statement shared-lock point, NOT at
+  Open** (pager.c sqlite3PagerSharedLock → hasHotJournal → pager_playback):
+  C's sqlite3PagerOpen only reads page 1 raw. The faultsim fixtures restore a
+  hot journal onto a CLOSED snapshot and expect the sidecar to survive the
+  reopen until the first statement (pager1-4.5.4's hexio_write hits the
+  journal AFTER a restore_reopen) — an Open-time replay consumed it. Port:
+  `Pager.RecoverHotJournalIfNeeded` called from exec's checkDBFileCtx before
+  CheckExternalFileErr; the old recoverJournalAtOpen is gone.
+- **C's hot classification is three-way, not two-way** (hasHotJournal):
+  nPage==0 → DELETE the journal (journal1-1.2's remnant); first byte == 0
+  (PERSIST's zeroJournalHdr, or a never-synced header) → NOT hot, file LEFT
+  on disk; first byte nonzero but header unparsable (bad magic / sector field
+  out of [32,0x10000] / page field out of [512,65536], zero page field =
+  pre-3.5.8 compat → the pager's own size) → DELETE (playback's
+  readJournalHdr returned DONE); a valid header → play records FORWARD
+  (pgno==0 stops, pgno>dbSize skips, the pager_cksum sample-byte checksum
+  STOPS the walk — 4.5.5's partial playback), truncate the db file to the
+  header's dbOrigSize, write every before-image to the FILE (the heal must be
+  visible to later connections — a cache-only replay left the crashed image
+  on disk), re-seed the header from page 1's before-image, pager_reset the
+  cache, mxPgno adjusts upward, then unlink.
+- **PERSIST finalize must zero the journal header** (pager.c zeroJournalHdr):
+  28 zero bytes at offset 0 (or a 0-truncate when journal_size_limit==0 or
+  the super-journal path), then the size-limit truncation. Without it the
+  leftover PERSIST journal still carries a valid magic + the last txn's
+  records, and the new hot-journal probe plays it back over the NEXT
+  database at that path — pager1-10.x's reopen failed "database disk image
+  is malformed" (30 leaves).
+- **The commit's db-file xSync runs BEFORE the journal finalize** (C's
+  CommitPhaseOne tail vs pager_end_transaction): a faultsim save keyed on
+  the db xSync (pager1-4.3.1's xSyncCallback) must capture the journal still
+  on disk. Likewise the journal xClose/xDelete events fire BEFORE the actual
+  os.Remove (C's testvfs intercepts xDelete INSTEAD of performing it;
+  pager1-4.5.1's copy_on_journal_delete faults in on the pre-delete state).
+- **InstallVFSHook now wires the journal sidecar events into the fixture
+  hook** (xOpen/xClose/xDelete via SetJournalFileOpHook): C's testvfs
+  intercepts every method of every file it backs; pager1-4.5.1's save keys
+  on the journal xDelete. journal2's own SetDefaultJournalFileOpHook path is
+  untouched (per-pager hook precedence) and stays green.
+- **A nil *testing.T in faultsimFileOp panicked at t.Helper()** — the
+  fixture-callback faultsim_save registration passes nil; nil-safe now
+  (log.Printf instead of Errorf). A family-run PANIC truncates the run: a
+  "fixed" name-set computed from a panicked run silently covers only the
+  leaves BEFORE the panic point — diff by failure name set only after a
+  run that COMPLETED (grep for "panic" first).
+- **pager1 census after S31.7: 79 → 63** (16 fixed: 4.3.2-10, setup_11/12,
+  4.5.3/4.5.5/4.5.6, and 4.8.1/4.8.3 as a side effect of the recovery
+  timing + readonly-hot-journal refusal). The remaining 63 = the U7
+  super-journal bucket exactly (4.4.x 54, 4.6.x 4, 4.7.2 — their failure
+  shapes: ::mj_delete_cnt got [""] (no super-journal exists → no mj
+  deletes), the 4.6.x multi-file restore cascade (t1.2 vs t1.1), 4.7.2's
+  readonly-journal open).
+- Sweeps (failure NAME sets, pristine-vs-changed): journal1/journal3/
+  jrnlmode*/corrupt*/pagerfault/incrvacuum/trans/pager2/pager3/lock*/quick
+  all 0; journal2 5, savepoint 15, pager4 6, walfault 6 identical to
+  pristine.
+
+## S31 record (2026-11-16, cont. 2) — U7 super-journal + faultsim (S31.8): pager1 100% green
+
+- **The multi-file commit needs the super-journal to be a COMMIT POINT, not
+  decoration** (vdbeaux.c sqlite3VdbeCommit): nTrans counts write-transaction
+  databases whose journal mode carries an mj (aMJNeeded: DELETE/PERSIST/
+  TRUNCATE), whose safety_level != OFF, and that are not memory — nTrans>1
+  routes zSuper through every pager's CommitPhaseOne. The engine flow:
+  create `<main>-mj%06X9%02X` (antepenultimate '9') + write each
+  participating journal's NAME (dbPath+"-journal") NUL-terminated + sync →
+  flush every pager (each appends its trailing POINTER block:
+  [SJ-pgno sentinel][name][len][cksum=sum(name bytes)][journal magic] — the
+  sentinel pgno stops the hot-journal record walk) → delete the mj (the
+  xDelete event routes through the main pager's fixture hook — the
+  copy_on_mj_delete save + ::mj_delete_cnt fire HERE, journals still on
+  disk) → CommitPhaseTwo per pager (the journal finalize). A pager whose
+  journalMode is "" participates: the empty mode IS the DELETE default
+  (a pager attached after `PRAGMA journal_mode=DELETE` never sees the
+  pragma).
+- **Each journal's trailing pointer gates its own playback** (pager.c
+  readSuperJournal, read from the FILE TAIL: len@szJ-16, cksum@szJ-12,
+  magic@szJ-8, name@szJ-16-len): a journal naming an EXISTING super-journal
+  belongs to an UNCOMMITTED multi-file txn (roll back); naming a MISSING one
+  means committed (delete, no rollback — 4.4.x.7's "no master-journal ==
+  no rollback"). pager_delsuper after a playback: read the mj's journal-name
+  list; delete the mj only when no OTHER journal still points at it
+  (4.6.x's per-database deletion cascade — the last journal's playback
+  removes the mj).
+- **PERSIST/TRUNCATE journal reuse must RE-INITIALIZE the epoch** (fresh
+  header via writeJournalHdr): the sidecar stays open across COMMITs, and
+  the post-finalize epoch (TRUNCATE zeroes the file, PERSIST zeroes the 28
+  header bytes) must not be mistaken for a live one — without a
+  journalEpochLive gate the next txn appended records into a ZEROED journal
+  (no header → the hot probe saw first-byte==0 → LEAVE → no playback →
+  4.4.1.p1/t1.6's aux never rolled back).
+- **tester.tcl's db_save/db_restore are hardcoded to the test.db\* glob**
+  regardless of which file the connection was opened on (pager1-4.6.8's
+  `sqlite3 db test.db2` leaves db.path=test.db2 while the snapshot pair
+  still walks test.db\*) — faultsimMainPath now returns the test.db
+  lifecycle path unconditionally; the REOPEN target is C's $dbfile argument
+  (faultsim_restore_reopen's optional step.SQL; reset_db likewise carries
+  faultsim_delete_and_reopen's $prefix — 4.4.2's padded prefix IS the main
+  database file, and its `.7` delete_glob must use the padded prefix for
+  the -mj files).
+- **The hot-journal playback reopens the journal READWRITE** (pager.c:5329):
+  a journal without WRITE permission (4.7.2's chmod r-------- journal)
+  fails SQLITE_CANTOPEN "unable to open database file" and stays in place.
+  The readonly-CONNECTION refusal (4.5.6) and the readonly-JOURNAL refusal
+  (4.7.2) are separate checks in RecoverHotJournalIfNeeded.
+- **Converter-dropped fixture steps must be re-derived from the C source,
+  not invented**: 4.7.3's chmod+delete_file+file-exists steps were dropped
+  by the converter (the leaf carried only close_db), which left the 4.7.2
+  journal alive into 4.8.1's window and broke the readonly-fallback leaves
+  that had already passed. The file_attr/delete_file step shapes come from
+  the S30 pins (4.7.2/4.8.x).
+- **pager1 census: 79 → 0** (S31.6 -1: 11.5; S31.7 -16: 4.3.2-10,
+  setup_11/12, 4.5.3/4.5.5/4.5.6, 4.8.1/4.8.3; S31.8 -62: the 4.4.x
+  super-journal bucket (23+34), 4.6.x (4), 4.7.2 (1)). The family runs 957
+  leaves, all green, exit 0.
+- U7 sweeps (failure NAME sets vs pristine): trans/trans2/trans3, attach,
+  attach2, lock_/3/4, jrnlmode/2/3, corrupt/2, journal1/3, pagerfault,
+  walfault, incrvacuum, pager2/3/4, quick, e_walckpt, e_walptr, auto_vacuum,
+  trigger2 — all 0 or identical-baseline; journal2 5 / savepoint 15 /
+  pager4 6 / walfault 6 / wal 97 / wal2 26 / trigger 25 all identical to
+  pristine (two-direction name-set diffs).
