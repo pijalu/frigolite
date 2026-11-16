@@ -1364,3 +1364,37 @@ everywhere; go vet + go build clean.
   zero new); expr substring net 98 → 26 (triage residue minus this unit's
   and S29's closures: e_expr 2, expr 3, expridx1 10, indexexpr2 9,
   indexexpr3 2).
+- **S33 WR index payload format (baa8dfebb)**: C stores a WITHOUT ROWID
+  secondary index record as [indexed cols..., PK cols in PK key order...]
+  (build.c ~4269 "Append the table key"), with isDupColumn eliding PK
+  columns the index keys already carry, and the tail ordered under the PK
+  columns' collations + DESC flags. The synthetic-rowid tail we wrote
+  before was unresolvable against the PK-keyed WR table btree, which made
+  the where-25.5 corrupt recheck impossible and left stale entries after
+  DELETE (delete payload [key..., rowID] != insert payload [key..., rowID]
+  because the delete's rowID read the WR cell's synthetic 0).
+- **WR tail plumbing patterns**: (a) one plan resolution per index —
+  wrTailPlanMemo (schema-stamp keyed, the ikiStamp pattern); (b) the tree
+  comparator must cover key + tail — installIndexWriteOrder extends the
+  memoized base KeyInfo per call (two slice copies, never mutates the
+  memo); (c) seek probes carry only the probe's fields (C's nField rule —
+  btree.IndexRecordCompare already probes len(probe.Values)); (d) the
+  seek's lower-bound landing is conclusive ONLY under BINARY PK collations
+  (wrPKSeekApplies gate) — a NOCASE PK row can sort outside the binary
+  window and a false "corrupt database" on a healthy db is worse than no
+  recheck.
+- **WR UPDATE targets collide on the synthetic rowid**: every WR index
+  cell carries RowID 0, so an update-side delete map keyed by rowID
+  collapsed all changes into one target (only the last delete payload
+  survived). Key by the OLD PK tail's value string (unique per row). Also
+  C update.c's chngKey rule (~566): a WR PK-column change must maintain
+  EVERY index (the tail rides every record) even when no index KEY column
+  changed.
+- **CREATE INDEX backfill on WR must remap before BuildRowMap**: the
+  stored record is PK-first; the positional row map read storage slot 0
+  as declared column 0 and stored wrong key values on non-identity
+  layouts. RemapWRRecordToDeclared (now on DDLContext) before the row map.
+- **Probe verification workflow that worked**: engine-built dbs in
+  /tmp/s33/probe/go + python3 -I dump_index.py (raw btree leaf parser,
+  record decode, stored order) diffed against /tmp/s33/oracle/*.db dumps
+  — byte-equal values AND order on all five format contracts in one shot.
