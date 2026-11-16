@@ -132,3 +132,20 @@ delete=12, update=0, savepoint=15.
   leaf-identical or better.
 - TestS22_/TestSOLID_ green; go build ./... clean.
 - Full gate at the merge (coordinator).
+
+## STATUS (2026-11-16, agent S33 resume)
+
+- Items 1-5 DELIVERED at baa8dfebb: wr_index_tail.go complete (the plan's
+  wrRowExistsByPK realized as wrSeekRowByPK + wrIndexEntryRowExists, with the
+  wrPKSeekApplies BINARY-window gate), all six write sites, comparator
+  plumbing (installIndexWriteOrder), the 25.5 recheck enabled over the
+  entry's full PK, integrity un-exemption + joinServingIndexCandidate WR
+  guard.
+- Probe parity vs oracle 3.54 CONFIRMED (python dump_index.py, byte-equal
+  record values + stored order): wr.db, wr2.db (NOCASE tail), wr4.db (dup
+  elision), wr5.db (DESC tail), backfill.db; del.db stale entry gone;
+  upd.db chngPk re-tail right; integrity ok on all.
+- C update.c chngKey rule (update.c ~566: `chngKey || hasFK>1 || pIdx==pPk`)
+  added to maintainedUpdateIndexes — a WR PK-column change maintains every
+  index (the tail rides every record).
+- TestSOLID_/TestS22_ green at commit; family sweeps PENDING (next).
