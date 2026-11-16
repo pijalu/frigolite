@@ -126,6 +126,12 @@ func translateVFSHookError(err error) error {
 			return errors.New("attempt to write a readonly database")
 		case "SQLITE_BUSY":
 			return errors.New("database is locked")
+		case "SQLITE_IOERR":
+			return errors.New("disk I/O error")
+		case "SQLITE_FULL":
+			return errors.New("database or disk is full")
+		case "SQLITE_CANTOPEN":
+			return errors.New("unable to open database file")
 		}
 		return errors.New(he.Code)
 	}
@@ -219,6 +225,21 @@ func (p *Pager) vfsSync(path string, bits uint8) {
 		zFlags += "|dataonly"
 	}
 	_ = p.vfsHook("xSync", path, []string{zFlags})
+}
+
+// vfsWriteGate runs a file-method event through the fixture hook and maps
+// the callback's result code onto the method's outcome: C's sqlite3OsWrite/
+// Truncate return the VFS method's result, so a fixture lockout proc
+// (SQLITE_IOERR) fails the operation before the real I/O runs. A nil hook
+// or a nil error passes through.
+func (p *Pager) vfsWriteGate(op string, arg int) error {
+	if p.vfsHook == nil {
+		return nil
+	}
+	if err := p.vfsCall(op, p.path, strconv.Itoa(arg)); err != nil {
+		return translateVFSHookError(err)
+	}
+	return nil
 }
 
 // walHeaderSyncAllowed reports whether the WAL header sync may run: false

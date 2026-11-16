@@ -160,6 +160,11 @@ func (p *Pager) truncateCachePagesLocked(n uint32) {
 // longer exist on disk). Caller holds p.mu.
 func (p *Pager) shrinkDatabaseFileLocked(n uint32) error {
 	newSize := int64(n) * int64(p.pageSize)
+	// The VFS's xTruncate result gates the shrink like C's sqlite3OsTruncate
+	// (a fixture lockout proc vetoes it, pager1-11.2's filter set).
+	if err := p.vfsWriteGate("xTruncate", int(newSize)); err != nil {
+		return err
+	}
 	if err := p.file.Truncate(newSize); err != nil {
 		return fmt.Errorf("pager: truncate to %d pages: %w", n, err)
 	}
@@ -575,6 +580,14 @@ func (p *Pager) flushPage(pageNum uint32) error {
 		return err
 	}
 
+	// C's sqlite3OsWrite goes through the VFS: a fixture's xWrite result
+	// code (testvfs -noshm-free lockout procs, pager1-11.2's
+	// `proc lockout {method args} { return SQLITE_IOERR }`) vetoes the write.
+	// The hook fires BEFORE the write; a non-OK return is the method result
+	// and the page stays unwritten (the commit fails "disk I/O error").
+	if err := p.vfsWriteGate("xWrite", len(pg.Data)); err != nil {
+		return err
+	}
 	if _, err := p.file.WriteAt(pg.Data, off); err != nil {
 		return fmt.Errorf("pager: write page %d: %w", pageNum, err)
 	}

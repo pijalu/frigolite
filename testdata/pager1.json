@@ -4053,6 +4053,11 @@
       "name": "pager1-8.2.2",
       "steps": [
         {
+          "type": "open_named_db",
+          "sql": "",
+          "database": "db2"
+        },
+        {
           "type": "catch",
           "sql": "SELECT * FROM x1",
           "expect": "1 {no such table: x1}",
@@ -6525,6 +6530,36 @@
       "name": "pager1-11.1",
       "steps": [
         {
+          "type": "register_testvfs",
+          "sql": "default",
+          "variable": "tv"
+        },
+        {
+          "type": "reopen_db",
+          "sql": "test.db"
+        },
+        {
+          "type": "register_function",
+          "functionName": "a_string",
+          "callbackVars": {
+            "": "1",
+            "SQLITE_MAX_ATTACHED": "10",
+            "SQLITE_MAX_COLUMN": "2000",
+            "SQLITE_MAX_LENGTH": "1000000000",
+            "SQLITE_MAX_VARIABLE_NUMBER": "32766",
+            "a_string_counter": "1",
+            "testdir": "",
+            "testprefix": "pager1"
+          },
+          "functionProc": "a_string",
+          "functionArgs": [
+            "n"
+          ],
+          "functionBody": "\n  global a_string_counter\n  incr a_string_counter\n  string range [string repeat \"${a_string_counter}.\" $n] 1 $n\n",
+          "minArgs": 1,
+          "maxArgs": -1
+        },
+        {
           "type": "exec",
           "sql": "PRAGMA journal_mode = DELETE;\n  PRAGMA cache_size = 10;\n  BEGIN;\n    CREATE TABLE zz(top PRIMARY KEY);\n    INSERT INTO zz VALUES(a_string(222));\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n    INSERT INTO zz SELECT a_string((SELECT 222+max(rowid) FROM zz)) FROM zz;\n  COMMIT;\n  BEGIN;\n    UPDATE zz SET top = a_string(345);",
           "expect": "delete"
@@ -6535,9 +6570,38 @@
       "name": "pager1-11.2",
       "steps": [
         {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "lockout",
+          "database": "tv",
+          "functionProc": "lockout",
+          "callbackProcs": [
+            {
+              "Name": "lockout",
+              "Args": [
+                "method",
+                "args"
+              ],
+              "Body": "\n  return SQLITE_IOERR\n"
+            }
+          ]
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "xWrite xTruncate xSync",
+          "database": "tv"
+        },
+        {
           "type": "catch",
           "sql": "COMMIT",
           "expect": "1 {disk I/O error}"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "script",
+          "variable": "",
+          "database": "tv"
         }
       ]
     },
@@ -6574,6 +6638,12 @@
           "type": "query",
           "sql": "SELECT count(*) FROM zz",
           "expect": "32"
+        },
+        {
+          "type": "testvfs_config",
+          "sql": "filter",
+          "variable": "",
+          "database": "tv"
         }
       ]
     },

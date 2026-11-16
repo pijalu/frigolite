@@ -6985,7 +6985,7 @@ func (fx *testvfsFixture) hook(runtimeVars map[string]string, db *DB, namedDBs m
 		// (test_vfs.c:381/453 — an SQLITE_ error code vetoes the I/O:
 		// e_walckpt-5.3.1's inject_ioerr on the copyback xWrite). xSync's
 		// fixtures return non-codes, which both models treat as OK.
-		if op == "xShmMap" || op == "xShmLock" || op == "xWrite" || op == "xSync" {
+		if op == "xShmMap" || op == "xShmLock" || op == "xWrite" || op == "xSync" || op == "xTruncate" {
 			code := strings.TrimSpace(answer)
 			if strings.HasPrefix(code, "SQLITE_") && code != "SQLITE_OK" {
 				return &pager.VFSHookError{Code: code}
