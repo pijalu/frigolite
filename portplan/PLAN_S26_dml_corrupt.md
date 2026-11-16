@@ -83,6 +83,9 @@ Uniqueness/conflict resolution never consults the index btree:
   insert/update/delete/reindex/CREATE-INDEX backfill + any WR index
   reader — a standalone unit; the battery re-run after the format change
   must include the WR family sweeps.
+  → **S33 LANDED as portplan/PLAN_S33_wr_index_payload.md** (concrete
+  plan: tail layout incl. dup elision + tail collations/DESC, all 7 write
+  sites, comparator extension, the 25.5 recheck, integrity un-exemption).
 - where-25.4 stays green (WR reads keep the OP_NotFound skip).
 
 ## Verify
