@@ -178,11 +178,29 @@ go vet . && go test -run TestSOLID_ ./... && go test ./internal/auth/...
 
 ## Status
 
-- [x] Investigation + pre-fix baselines recorded
-- [x] Plan committed
-- [ ] E1-E3 engine auth events
-- [ ] H1 harness authorizer sync
-- [ ] C1+H2 update_hook surface + fixture regen
-- [ ] F1 fixture hand-pins
-- [ ] Verification sweeps + two-direction diffs
-- [ ] Lessons updated
+- [x] Investigation + pre-fix baselines recorded (/tmp/s37_prefix_fails.json)
+- [x] Plan committed (2e7c34c48)
+- [x] E1-E3 engine auth events (auth_events.go; UPDATE per-column shape;
+      INSERT/DELETE schema-name auth)
+- [x] H1 harness authorizer sync (S25 push/pull)
+- [x] C1+H2 update_hook surface (converter branch + whitelist + harness
+      handler; tkt-f7b4edec hand-installed)
+- [x] F1 fixture hand-pins (savepoint 9.1-9.6; without_rowid3 setup_43 +
+      setup_44/45 inserts + 18.5/18.7; fkey2 setup_44 + setup_46/47 +
+      18.5/18.7 — fkey2 joined the slice, same stale-fixture signature)
+- [x] Verification sweeps + two-direction diffs — ALL CLEAN:
+  - savepoint 9.1/9.2/9.3 fixed (5.x bucket-K residue unchanged)
+  - without_rowid3 18.2/3/4/5/7 fixed (bucket-J residue unchanged)
+  - tkt-f7b4edec 1/3 fixed
+  - fkey2 18.2/3/4/5/7 fixed (bonus, same mechanism; 18.8/18.11 residual)
+  - NEW regressions: NONE in any swept family (savepoint*, without_rowid3,
+    fkey2, fkey7, fts4aa, alterauth, alterauth2, altercons2, analyze3,
+    schema, schema2, starschema1, tclsqlite)
+  - go vet + TestSOLID_ + converter package tests green; scoped quality-gate
+    diff vs base: no new gocognit/gocyclo/staticcheck findings (the flagged
+    lines are pre-existing shifts; update_split.go/interp_cmds.go were
+    already past the 1000-line hard cap at base — grandfathered)
+- [x] Lessons updated
+
+Commits: 2e7c34c48 (plan), 043b53c54 (slice), 7410e79e9 (fkey2 + S1011).
+
