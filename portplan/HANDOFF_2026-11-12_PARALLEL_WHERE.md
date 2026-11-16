@@ -105,3 +105,37 @@ expr 109 → pager1 101 (the triage docs guide the slices) → the WAL
 residue classes (HANDOFF_2026-11-04_WAL_RESIDUE.md) → the carded
 converter classes → the performance phase (F1c/F3 lanes in
 GAP_CLOSURE_PLAN_2026-10-31.md).
+
+## 2026-11-16 — the pager arc (S31/S33/S34) COMPLETE, gate verified
+
+- **S31** merged 51a09c00b (S31.1→S31.8): pager1 **89 → 0** (957 leaves).
+  S31.6 failed-COMMIT abort path; S31.7 hot-journal substrate (recovery at
+  the per-statement shared-lock point, C's three-way classification,
+  file-healing playback); S31.8 super-journal engine
+  (internal/pager/superjournal.go) + faultsim/testvfs harness machinery.
+  Also really fixed alter2 (13), analyze-5.99, fkey6 (2), index3-99.1,
+  trigger7-99.1, main-2.0#01, tkt-f3e5abed55-2.5 (select_scan rewrite;
+  verified fail-at-dd045611d / pass-at-HEAD across two gates).
+- **The 1355 baseline was UNDERCOUNTED** (faultsim NUL corruption ate 75
+  lines from a strings-style extraction): python raw byte scan of the same
+  raw log gives 1430 = /tmp/full_s33_true_fails.txt. The first S31-merge
+  diff looked like +310 NEW; bisect at dd045611d showed e_dropview's 14
+  failing there too. Lesson recorded: raw-scan only + bisect suspicious
+  GONE/NEW sets at the base commit.
+- **S34** (s34-regress, merged): S31's ONE true regression —
+  hotJournalProbe's nPage==0 guard read the in-memory page count
+  (schema.Init materializes page 1) where C's pagerPagecount reads the
+  FILE size. pragma2-5.1/5.3 + sharedA-1.1/1.2 fixed; sweep 46→42 name-set
+  clean. Cards: rollback/close journal-file residue, close-mid-txn flush.
+- **S33** (s33-wr-index, merged e8675d3de): the WR index payload format =
+  C's [indexed..., PK tail...] at every write site (dup elision, tail
+  collations, DESC), comparator extension, **where-25.5 recheck enabled
+  and green** (where 5→3), integrity un-exemption + the join WR guard,
+  probe parity byte-verified vs oracle 3.54. WR table trees are
+  index-shaped — three scan sites skipped one row per divider (fixed).
+- **Combined gate VERIFIED** (/tmp/full_s33s34_merge_gate.log): 1430 →
+  **1317, NEW=0**, all 113 GONEs accounted (89 pager1 + 4 S34 + 18 scan
+  fixes + atof1-2.40 the documented flake). New diff target:
+  /tmp/full_s33s34_merge_fails.txt (1317).
+- Next queue: the WAL residue classes → the carded converter classes →
+  the performance phase.
