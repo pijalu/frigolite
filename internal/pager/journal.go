@@ -105,6 +105,10 @@ const (
 // write a readonly database" and the journal is LEFT in place (pager1-4.5.6).
 var errReadOnlyHotJournal = errors.New("attempt to write a readonly database")
 
+// errCantOpenJournal is C's SQLITE_CANTOPEN when the hot journal cannot be
+// reopened READWRITE for the playback (pager1-4.7.2's r-------- journal).
+var errCantOpenJournal = errors.New("unable to open database file")
+
 // RecoverHotJournalIfNeeded runs C's hot-journal recovery at the per-statement
 // shared-lock point (pager.c sqlite3PagerSharedLock -> hasHotJournal ->
 // pager_playback — NOT at sqlite3PagerOpen: C's open only reads page 1 raw,
@@ -142,7 +146,7 @@ func (p *Pager) RecoverHotJournalIfNeeded() error {
 	if jpath == "" {
 		return nil
 	}
-	pages, hdr, state := hotJournalProbe(p, jpath)
+	pages, hdr, data, state := hotJournalProbe(p, jpath)
 	switch state {
 	case hotJournalAbsent, hotJournalLeave:
 		return nil
@@ -153,10 +157,21 @@ func (p *Pager) RecoverHotJournalIfNeeded() error {
 		if ro {
 			return errReadOnlyHotJournal
 		}
+		// pager.c sqlite3PagerSharedLock:5329 — the hot journal is reopened
+		// READWRITE before the playback (the DELETE-mode journal must be
+		// deletable through the same fd). A journal without WRITE permission
+		// (pager1-4.7.2's chmod r-------- journal) fails the open with
+		// SQLITE_CANTOPEN and the statement reports "unable to open database
+		// file"; the journal stays for the next (privileged) process.
+		if fd, oerr := os.OpenFile(jpath, os.O_RDWR, 0); oerr != nil {
+			return errCantOpenJournal
+		} else {
+			fd.Close()
+		}
 	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	playbackHotJournalLocked(p, pages, hdr, jpath)
+	playbackHotJournalLocked(p, pages, hdr, jpath, data)
 	return nil
 }
 
@@ -164,31 +179,42 @@ func (p *Pager) RecoverHotJournalIfNeeded() error {
 // (pager.c hasHotJournal + readJournalHdr + the pager_playback_one_page
 // record walk). Returns the play-able records, the decoded header, and the
 // classification. Header integers are BIG-endian (pager.c writeJournalHdr).
-func hotJournalProbe(p *Pager, jpath string) ([]JournalPage, JournalHeader, hotJournalState) {
+func hotJournalProbe(p *Pager, jpath string) ([]JournalPage, JournalHeader, []byte, hotJournalState) {
 	data, err := os.ReadFile(jpath)
 	if err != nil {
-		return nil, JournalHeader{}, hotJournalAbsent // vanished between Stat and read
+		return nil, JournalHeader{}, nil, hotJournalAbsent // vanished between Stat and read
 	}
 	// C hasHotJournal: the database must be non-empty (nPage==0 makes the
 	// journal a remnant from a prior database — journal1.test 1.2 — or the
 	// rollback of the initial populate transaction) — DELETE it (the one
 	// not-hot shape C removes), no playback.
 	if p.numPages == 0 {
-		return nil, JournalHeader{}, hotJournalDelete
+		return nil, JournalHeader{}, nil, hotJournalDelete
 	}
 	// C hasHotJournal: the FIRST BYTE must be nonzero — a zeroed header
 	// (PERSIST mode's zeroJournalHdr writes 28 zero bytes at offset 0, or a
 	// header never patched by syncJournal) is NOT hot and the file is LEFT
 	// on disk (PERSIST reuses it for the next transaction).
 	if len(data) == 0 || data[0] == 0 {
-		return nil, JournalHeader{}, hotJournalLeave
+		return nil, JournalHeader{}, nil, hotJournalLeave
+	}
+	// pager_playback's super-journal gate (before readJournalHdr): a journal
+	// whose tail names an EXISTING super-journal belongs to an UNCOMMITTED
+	// multi-file transaction (roll back); a journal naming a MISSING one
+	// belongs to a committed transaction — no playback, journal deleted
+	// (pager1-4.4.x.7: "no master-journal file == no rollback"). A failed
+	// pointer parse (bad magic/checksum) falls through to the header rules.
+	if sjName, ok := SuperJournalPointerFromData(data); ok && sjName != "" {
+		if _, serr := os.Stat(sjName); serr != nil {
+			return nil, JournalHeader{}, nil, hotJournalDelete
+		}
 	}
 	if len(data) < 28 {
-		return nil, JournalHeader{}, hotJournalDelete
+		return nil, JournalHeader{}, nil, hotJournalDelete
 	}
 	hdr, herr := DecodeJournalHeader(data[:28])
 	if herr != nil {
-		return nil, JournalHeader{}, hotJournalDelete
+		return nil, JournalHeader{}, nil, hotJournalDelete
 	}
 	// readJournalHdr (pager.c:1626-1660): the sector- and page-size fields
 	// of the first header must be in range — powers of two, sector in
@@ -203,7 +229,7 @@ func hotJournalProbe(p *Pager, jpath string) ([]JournalPage, JournalHeader, hotJ
 	}
 	if sector < 32 || sector > 0x10000 || sector&(sector-1) != 0 ||
 		pageSize < 512 || pageSize > 65536 || pageSize&(pageSize-1) != 0 {
-		return nil, JournalHeader{}, hotJournalDelete
+		return nil, JournalHeader{}, nil, hotJournalDelete
 	}
 	if pageSize != p.pageSize {
 		// C re-sizes the pager to the journal's page size mid-playback
@@ -211,7 +237,7 @@ func hotJournalProbe(p *Pager, jpath string) ([]JournalPage, JournalHeader, hotJ
 		// fixture exercises a cross-size playback (the compat case is the
 		// zero field above, which equals the pager's size by definition);
 		// a size mismatch is a generation change — treat as stale.
-		return nil, JournalHeader{}, hotJournalDelete
+		return nil, JournalHeader{}, nil, hotJournalDelete
 	}
 	// Record walk (pager_playback + pager_playback_one_page): records start
 	// at the first JOURNAL_HDR_SZ-aligned offset — the sector-size field
@@ -223,7 +249,7 @@ func hotJournalProbe(p *Pager, jpath string) ([]JournalPage, JournalHeader, hotJ
 	recSize := int64(pageSize) + 8
 	if hdrSize+recSize > int64(len(data)) {
 		// No complete record after the header: nothing to play back.
-		return nil, hdr, hotJournalHot
+		return nil, hdr, data, hotJournalHot
 	}
 	limit := (int64(len(data)) - hdrSize) / recSize
 	if hdr.RecordCount >= 0 && int64(hdr.RecordCount) < limit {
@@ -255,7 +281,7 @@ func hotJournalProbe(p *Pager, jpath string) ([]JournalPage, JournalHeader, hotJ
 			Data:       append([]byte(nil), pageData...),
 		})
 	}
-	return pages, hdr, hotJournalHot
+	return pages, hdr, data, hotJournalHot
 }
 
 // playbackHotJournalLocked plays the probe's records back C-style: the
@@ -265,8 +291,9 @@ func hotJournalProbe(p *Pager, jpath string) ([]JournalPage, JournalHeader, hotJ
 // write — the heal must be visible to later connections), page 1's before-
 // image re-seeds the cached header, and the page cache is reset (pager_reset)
 // so subsequent reads fetch the healed image. The journal is unlinked last
-// (pager_end_transaction). Caller holds p.mu.
-func playbackHotJournalLocked(p *Pager, pages []JournalPage, hdr JournalHeader, jpath string) {
+// (pager_end_transaction). data is the journal image the probe read (for the
+// super-journal pointer). Caller holds p.mu.
+func playbackHotJournalLocked(p *Pager, pages []JournalPage, hdr JournalHeader, jpath string, data []byte) {
 	mxPg := hdr.DBPageCount
 	if mxPg == 0 {
 		mxPg = p.numPages
@@ -300,7 +327,14 @@ func playbackHotJournalLocked(p *Pager, pages []JournalPage, hdr JournalHeader, 
 	p.pendingFileTruncate = false
 	p.restoreMaxPageCountLocked(mxPg)
 	p.refreshKnownFileStamp()
+	sjName, _ := SuperJournalPointerFromData(data)
 	_ = os.Remove(jpath)
+	// pager_delsuper: when this journal pointed at a super-journal, the
+	// super-journal is deleted only if no OTHER journal still references it
+	// (pager1-4.6.x's per-database deletion cascade).
+	if sjName != "" {
+		DeleteSuperJournalIfUnreferenced(sjName)
+	}
 }
 
 // journalPath builds the rollback-journal sidecar path for dbPath (the
@@ -357,8 +391,11 @@ func (p *Pager) journalWriteSkipped() bool {
 	if p.file == nil {
 		return true // in-memory pager: no journal file
 	}
-	if p.journalFile != nil {
-		return true // already open
+	if p.journalFile != nil && p.journalEpochLive {
+		// Already open AND this transaction's epoch started: the header,
+		// the checksum seeds, and the append cursor are current (a
+		// spill's second flush within one transaction).
+		return true
 	}
 	if p.openedEmpty && len(p.dirty) == 1 {
 		if _, only := p.dirty[1]; only {
@@ -528,6 +565,7 @@ func (p *Pager) initJournalEpochLocked() error {
 	// once until the journal is finalized or replayed (pInJournal bitvec
 	// lifetime in pager.c).
 	p.resetJournalPagesLocked()
+	p.journalEpochLive = true
 	return nil
 }
 
@@ -627,8 +665,10 @@ func (p *Pager) finalizeRollbackJournalLockedMulti(multiDB bool) error {
 	}
 	// The transaction is committed: the journalled-before-image epoch ends
 	// here (PERSIST/TRUNCATE keep the file open, but the next transaction
-	// must record fresh before-images).
+	// must record fresh before-images AND a fresh header — writeJournalHdr
+	// reseeds cksumInit and dbOrigSize per epoch, pager.c writeJournalHdr).
 	p.resetJournalPagesLocked()
+	p.journalEpochLive = false
 	mode := p.journalMode
 	if mode == "" {
 		mode = "delete"

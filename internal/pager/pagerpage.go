@@ -550,7 +550,7 @@ func (p *Pager) WritePage(pg *Page) error {
 		// (frames appended, wal-index header published) whose deferred
 		// walEndWriteLocked releases the WRITER shm lock — the
 		// walBeginWriteTransaction/walEndWriteTransaction pairing of wal.c.
-		return p.flushAllCtx(false)
+		return p.flushAllCtx("")
 	}
 	return nil
 }

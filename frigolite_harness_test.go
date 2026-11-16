@@ -4064,16 +4064,25 @@ func TestSQLiteSuite(t *testing.T) {
 							// db_delete_and_reopen force-deletes the whole
 							// test.db* glob (tester.tcl:2490) — a surviving
 							// stale -wal/-journal would be recovered over the
-							// fresh file.
+							// fresh file. The optional SQL carries the file
+							// argument (pager1-4.4.2's `faultsim_delete_and_reopen
+							// $prefix`: the padded prefix IS the main database).
+							resetPath := lifecycleDBPath
+							if step.SQL != "" {
+								resetPath = step.SQL
+								if !filepath.IsAbs(resetPath) {
+									resetPath = filepath.Join(fixtureDBDir, resetPath)
+								}
+							}
 							runCollationDestructors(db, collationDestructors, runtimeVars)
 							db.UnregisterEchoModule()
 							_ = db.Close()
-							if lifecycleDBPath != "" {
-								_ = os.Remove(lifecycleDBPath)
-								for _, name := range faultsimGlobFiles(lifecycleDBPath) {
-									_ = os.Remove(filepath.Join(filepath.Dir(lifecycleDBPath), name))
+							if resetPath != "" {
+								_ = os.Remove(resetPath)
+								for _, name := range faultsimGlobFiles(resetPath) {
+									_ = os.Remove(filepath.Join(filepath.Dir(resetPath), name))
 								}
-								db, err = Open(lifecycleDBPath)
+								db, err = Open(resetPath)
 								if err != nil {
 									// Report and fall back to an empty database (see the
 									// reopen_db comment above).
@@ -4846,11 +4855,21 @@ func TestSQLiteSuite(t *testing.T) {
 							// the freelist-corruption seed the trial loop
 							// hung on.
 							if step.Type == "faultsim_restore_reopen" {
+								// The reopen target is C's $dbfile argument
+								// (tester.tcl:2482's default test.db): pager1-4.4.2's
+								// restores pass the padded prefix, 4.6.12's none.
+								// The file operation itself always walks the
+								// test.db* glob (db_restore is hardcoded to it).
 								lifecycle := filepath.Join(fixtureDBDir, "test.db")
-								if b := filepath.Base(db.path); b != "test.db" {
+								if step.SQL != "" {
+									lifecycle = step.SQL
+									if !filepath.IsAbs(lifecycle) {
+										lifecycle = filepath.Join(fixtureDBDir, lifecycle)
+									}
+								} else if b := filepath.Base(db.path); b != "test.db" {
 									lifecycle = filepath.Join(fixtureDBDir, b)
 								}
-								main := db.path
+								main := faultsimMainPath(db, fixtureDBDir)
 								runCollationDestructors(db, collationDestructors, runtimeVars)
 								if !db.closedFlag {
 									db.UnregisterEchoModule()
@@ -5678,6 +5697,12 @@ func TestSQLiteSuite(t *testing.T) {
 							if diff := matchExpectation(got, step.Expect); diff != "" {
 								t.Errorf("runtime variable mismatch\\n  got: [%q]\\n  %s", got, diff)
 							}
+						case "runtime_var_set":
+							// A plain `set ::VAR VALUE` preamble (pager1-4.4.x's
+							// `set ::mj_delete_cnt 0` before the foreach): the
+							// fixture procs' incr/capture need the variable to
+							// EXIST before the first callback fire.
+							runtimeVars[step.Variable] = step.SQL
 						case "runtime_var_reset":
 							// A plain `set VAR [list]` on a callback-recorded
 							// variable (e_droptrigger's droptrigger_reopen_db,
@@ -7028,9 +7053,11 @@ func markFixtureShmUnavailable(fx *testvfsFixture, db *DB) {
 // operates on (the connection's path, or the fixture's test.db for
 // private-temporary databases).
 func faultsimMainPath(db *DB, fixtureDBDir string) string {
-	if db != nil && db.path != "" && db.path != ":memory:" {
-		return db.path
-	}
+	// tester.tcl's db_save/db_restore are hardcoded to the test.db* glob
+	// (tester.tcl:2463/2480) regardless of which file the connection was
+	// last opened on (pager1-4.6.8's `sqlite3 db test.db2` makes test.db2
+	// the connection's main while the snapshot pair still walks test.db*).
+	_ = db
 	return filepath.Join(fixtureDBDir, "test.db")
 }
 

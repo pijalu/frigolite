@@ -3,6 +3,7 @@ package exec
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/auth"
@@ -215,39 +216,120 @@ func (e *Engine) releaseTransactionLocks() {
 // commitFlushAllPagers flushes every database's pager so HasDirtyPages()
 // becomes false (lock_status reads "unlocked" after the commit): after
 // COMMIT all databases return to unlocked. The main pager is in dbList.
-// When more than one USER database is being flushed together (an ATTACH'd
-// database is also part of the commit), the pagers are flushed with
-// multiDB=true so PERSIST-mode journals are truncated to 0 (the
-// super-journal path in pager.c zeroJournalHdr hasSuper==true branch). The
-// temp database is in dbList but is an in-memory pager that never produces
-// a rollback journal file, so it does NOT count toward the multi-DB total.
+//
+// Multi-file commits carry a SUPER-JOURNAL (vdbeaux.c sqlite3VdbeCommit):
+// when more than one USER database has a write transaction whose journal
+// mode needs it (aMJNeeded: DELETE/PERSIST/TRUNCATE), the safety level is
+// not OFF, and the database is not memory, nTrans>1 routes the commit
+// through zSuper — the super-journal file lists every participating
+// journal, each journal gains the trailing pointer, and the super-journal's
+// deletion (AFTER phase one, BEFORE the per-database journal finalize) is
+// the commit point. The temp database is in dbList but is an in-memory
+// pager that never produces a rollback journal file, so it does NOT count
+// (vdbeaux.c's needXcommit/nTrans split).
 func (e *Engine) commitFlushAllPagers() *Result {
-	multiDB := false
-	nonNilPagers := 0
+	nTrans := 0
 	for _, dbCtx := range e.dbList {
-		if dbCtx != nil && dbCtx.Pager != nil && !dbCtx.Pager.IsMemory() && dbCtx.Pager.HasDirtyPages() {
-			nonNilPagers++
+		if dbCtx == nil || dbCtx.Pager == nil || dbCtx.Pager.IsMemory() || !dbCtx.Pager.HasDirtyPages() {
+			continue
+		}
+		if lvl, ok := e.settings.synchronousLevels[strings.ToUpper(dbCtx.Name)]; ok && lvl == 1 {
+			// PRAGMA synchronous=OFF on this database (safety_level
+			// PAGER_SYNCHRONOUS_OFF): the pager's own durability is the
+			// caller's problem — vdbeaux.c does not count it toward nTrans.
+			continue
+		}
+		if dbCtx.Pager.SuperJournalGate() {
+			nTrans++
 		}
 	}
-	if nonNilPagers > 1 {
-		multiDB = true
+	super := ""
+	if nTrans > 1 {
+		mainPath := ""
+		if main := e.GetDB("main"); main != nil && main.Pager != nil {
+			mainPath = main.Pager.Path()
+		}
+		if mainPath != "" && mainPath != ":memory:" {
+			var err error
+			super, err = createSuperJournal(e, mainPath)
+			if err != nil {
+				e.rollbackOpenTx()
+				return &Result{Error: err}
+			}
+		}
 	}
 	for _, dbCtx := range e.dbList {
 		if dbCtx != nil && dbCtx.Pager != nil {
-		if err := dbCtx.Pager.FlushWithContext(multiDB); err != nil {
-			// sqlite3PagerCommitPhaseOne failure aborts the
-			// transaction: the pager rolls back to its BEGIN state
-			// (vdbe.c abort path). Without the rollback the flushed
-			// header/pages would lead the rolled-back file state.
-			// rollbackOpenTx (not execRollback): the commit teardown
-			// already cleared inTransaction, and vdbeaux.c's abort path
-			// rolls back regardless (pager1-11.2's lockout IOERR).
+			if err := dbCtx.Pager.FlushWithContext(super); err != nil {
+				// sqlite3PagerCommitPhaseOne failure aborts the
+				// transaction: the pager rolls back to its BEGIN state
+				// (vdbe.c abort path). Without the rollback the flushed
+				// header/pages would lead the rolled-back file state.
+				// rollbackOpenTx (not execRollback): the commit teardown
+				// already cleared inTransaction, and vdbeaux.c's abort path
+				// rolls back regardless (pager1-11.2's lockout IOERR). C
+				// deliberately does NOT delete the super-journal here (the
+				// pointer may already be in a journal).
+				e.rollbackOpenTx()
+				return &Result{Error: err}
+			}
+		}
+	}
+	if super != "" {
+		// The commit point: delete the super-journal (vdbeaux.c
+		// sqlite3OsDelete(pVfs, zSuper, 1)). The xDelete event routes through
+		// the main pager's fixture VFS first — pager1-4.4.x's
+		// copy_on_mj_delete faultsim_save and ::mj_delete_cnt fire HERE,
+		// while every journal still exists and carries its pointer.
+		if main := e.GetDB("main"); main != nil && main.Pager != nil {
+			main.Pager.FireJournalFileOpEvent("xDelete", super)
+		}
+		if err := os.Remove(super); err != nil && !os.IsNotExist(err) {
 			e.rollbackOpenTx()
 			return &Result{Error: err}
 		}
+		// CommitPhaseTwo per database: the journals are stale now — finalize
+		// them (DELETE unlink / TRUNCATE zero / PERSIST 0-truncate).
+		for _, dbCtx := range e.dbList {
+			if dbCtx != nil && dbCtx.Pager != nil && !dbCtx.Pager.IsMemory() && dbCtx.Pager.HasJournalled() {
+				if err := dbCtx.Pager.FinalizeJournal(); err != nil {
+					return &Result{Error: err}
+				}
+			}
 		}
 	}
 	return nil
+}
+
+// createSuperJournal opens the super-journal file and writes the journal
+// name of every write-transaction database into it (vdbeaux.c
+// sqlite3VdbeCommit's zSuper block), then syncs it. The name is
+// "<mainPath>-mj%06X9%02X" (the antepenultimate '9' is the 8+3-filename
+// collision guard).
+func createSuperJournal(e *Engine, mainPath string) (string, error) {
+	super := mainPath + pager.SuperJournalSuffix()
+	f, err := os.OpenFile(super, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0o644)
+	if err != nil {
+		return "", fmt.Errorf("pager: super-journal open: %w", err)
+	}
+	for _, dbCtx := range e.dbList {
+		if dbCtx == nil || dbCtx.Pager == nil || dbCtx.Pager.IsMemory() || !dbCtx.Pager.HasDirtyPages() {
+			continue
+		}
+		name := pager.JournalNameFor(dbCtx.Pager.Path())
+		if _, werr := f.WriteString(name + "\x00"); werr != nil {
+			f.Close()
+			os.Remove(super)
+			return "", fmt.Errorf("pager: super-journal write: %w", werr)
+		}
+	}
+	if serr := f.Sync(); serr != nil {
+		f.Close()
+		os.Remove(super)
+		return "", fmt.Errorf("pager: super-journal sync: %w", serr)
+	}
+	f.Close()
+	return super, nil
 }
 
 // commitLockGate enforces the cross-connection COMMIT lock: a writer must
@@ -686,7 +768,7 @@ func (e *Engine) releaseImplicitTxSavepoint(popped []savepointEntry) *Result {
 	e.clearReservedDbs()
 	for _, dbCtx := range e.dbList {
 		if dbCtx != nil && dbCtx.Pager != nil {
-			if err := dbCtx.Pager.FlushWithContext(false); err != nil {
+			if err := dbCtx.Pager.FlushWithContext(""); err != nil {
 				return &Result{Error: err}
 			}
 		}

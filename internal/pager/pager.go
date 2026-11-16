@@ -209,6 +209,14 @@ type Pager struct {
 	// Advanced by appendRollbackRecordLocked, reset to one sector (past the
 	// header) whenever a fresh epoch starts or the file is truncated.
 	journalAppendOff int64
+	// journalEpochLive tracks whether the open journal sidecar has a CURRENT
+	// epoch (header + checksum seeds + append cursor written for the
+	// in-flight transaction). PERSIST/TRUNCATE keep the file open across
+	// COMMITs; a stale epoch (post-finalize) must be re-initialized by the
+	// next transaction's first flush — writeJournalHdr reseeds cksumInit
+	// and dbOrigSize per epoch (pager.c writeJournalHdr at the first
+	// sqlite3PagerWrite).
+	journalEpochLive bool
 	// dbFilePerm caches the database file's permission bits at Open time
 	// (journal3 parity: the rollback journal mirrors the main file's mode).
 	// initJournalEpochLocked chmods the freshly created journal only when

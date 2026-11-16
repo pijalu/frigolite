@@ -1383,3 +1383,68 @@ everywhere; go vet + go build clean.
   jrnlmode*/corrupt*/pagerfault/incrvacuum/trans/pager2/pager3/lock*/quick
   all 0; journal2 5, savepoint 15, pager4 6, walfault 6 identical to
   pristine.
+
+## S31 record (2026-11-16, cont. 2) — U7 super-journal + faultsim (S31.8): pager1 100% green
+
+- **The multi-file commit needs the super-journal to be a COMMIT POINT, not
+  decoration** (vdbeaux.c sqlite3VdbeCommit): nTrans counts write-transaction
+  databases whose journal mode carries an mj (aMJNeeded: DELETE/PERSIST/
+  TRUNCATE), whose safety_level != OFF, and that are not memory — nTrans>1
+  routes zSuper through every pager's CommitPhaseOne. The engine flow:
+  create `<main>-mj%06X9%02X` (antepenultimate '9') + write each
+  participating journal's NAME (dbPath+"-journal") NUL-terminated + sync →
+  flush every pager (each appends its trailing POINTER block:
+  [SJ-pgno sentinel][name][len][cksum=sum(name bytes)][journal magic] — the
+  sentinel pgno stops the hot-journal record walk) → delete the mj (the
+  xDelete event routes through the main pager's fixture hook — the
+  copy_on_mj_delete save + ::mj_delete_cnt fire HERE, journals still on
+  disk) → CommitPhaseTwo per pager (the journal finalize). A pager whose
+  journalMode is "" participates: the empty mode IS the DELETE default
+  (a pager attached after `PRAGMA journal_mode=DELETE` never sees the
+  pragma).
+- **Each journal's trailing pointer gates its own playback** (pager.c
+  readSuperJournal, read from the FILE TAIL: len@szJ-16, cksum@szJ-12,
+  magic@szJ-8, name@szJ-16-len): a journal naming an EXISTING super-journal
+  belongs to an UNCOMMITTED multi-file txn (roll back); naming a MISSING one
+  means committed (delete, no rollback — 4.4.x.7's "no master-journal ==
+  no rollback"). pager_delsuper after a playback: read the mj's journal-name
+  list; delete the mj only when no OTHER journal still points at it
+  (4.6.x's per-database deletion cascade — the last journal's playback
+  removes the mj).
+- **PERSIST/TRUNCATE journal reuse must RE-INITIALIZE the epoch** (fresh
+  header via writeJournalHdr): the sidecar stays open across COMMITs, and
+  the post-finalize epoch (TRUNCATE zeroes the file, PERSIST zeroes the 28
+  header bytes) must not be mistaken for a live one — without a
+  journalEpochLive gate the next txn appended records into a ZEROED journal
+  (no header → the hot probe saw first-byte==0 → LEAVE → no playback →
+  4.4.1.p1/t1.6's aux never rolled back).
+- **tester.tcl's db_save/db_restore are hardcoded to the test.db\* glob**
+  regardless of which file the connection was opened on (pager1-4.6.8's
+  `sqlite3 db test.db2` leaves db.path=test.db2 while the snapshot pair
+  still walks test.db\*) — faultsimMainPath now returns the test.db
+  lifecycle path unconditionally; the REOPEN target is C's $dbfile argument
+  (faultsim_restore_reopen's optional step.SQL; reset_db likewise carries
+  faultsim_delete_and_reopen's $prefix — 4.4.2's padded prefix IS the main
+  database file, and its `.7` delete_glob must use the padded prefix for
+  the -mj files).
+- **The hot-journal playback reopens the journal READWRITE** (pager.c:5329):
+  a journal without WRITE permission (4.7.2's chmod r-------- journal)
+  fails SQLITE_CANTOPEN "unable to open database file" and stays in place.
+  The readonly-CONNECTION refusal (4.5.6) and the readonly-JOURNAL refusal
+  (4.7.2) are separate checks in RecoverHotJournalIfNeeded.
+- **Converter-dropped fixture steps must be re-derived from the C source,
+  not invented**: 4.7.3's chmod+delete_file+file-exists steps were dropped
+  by the converter (the leaf carried only close_db), which left the 4.7.2
+  journal alive into 4.8.1's window and broke the readonly-fallback leaves
+  that had already passed. The file_attr/delete_file step shapes come from
+  the S30 pins (4.7.2/4.8.x).
+- **pager1 census: 79 → 0** (S31.6 -1: 11.5; S31.7 -16: 4.3.2-10,
+  setup_11/12, 4.5.3/4.5.5/4.5.6, 4.8.1/4.8.3; S31.8 -62: the 4.4.x
+  super-journal bucket (23+34), 4.6.x (4), 4.7.2 (1)). The family runs 957
+  leaves, all green, exit 0.
+- U7 sweeps (failure NAME sets vs pristine): trans/trans2/trans3, attach,
+  attach2, lock_/3/4, jrnlmode/2/3, corrupt/2, journal1/3, pagerfault,
+  walfault, incrvacuum, pager2/3/4, quick, e_walckpt, e_walptr, auto_vacuum,
+  trigger2 — all 0 or identical-baseline; journal2 5 / savepoint 15 /
+  pager4 6 / walfault 6 / wal 97 / wal2 26 / trigger 25 all identical to
+  pristine (two-direction name-set diffs).

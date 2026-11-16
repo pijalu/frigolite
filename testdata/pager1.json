@@ -1225,12 +1225,55 @@
    "name": "pager1-4.4.1.o.1",
    "steps": [
     {
+     "type": "register_testvfs",
+     "sql": "default",
+     "variable": "tv"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "script",
+     "variable": "copy_on_mj_delete",
+     "database": "tv",
+     "functionProc": "copy_on_mj_delete",
+     "callbackProcs": [
+      {
+       "Name": "copy_on_mj_delete",
+       "Args": [
+        "method",
+        "filename",
+        "args"
+       ],
+       "Body": "\n  if {[string match *mj* [file tail $filename]]} { \n    set ::mj_filename_length [string length $filename]\n    faultsim_save \n    incr ::mj_delete_cnt\n  }\n  return SQLITE_OK\n"
+      }
+     ]
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "xDelete",
+     "database": "tv"
+    },
+    {
+     "type": "runtime_var_set",
+     "variable": "mj_delete_cnt",
+     "sql": "0"
+    },
+    {
+     "type": "reset_db"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.db2' AS aux;\n         \n      PRAGMA main.synchronous=OFF;\n      PRAGMA aux.synchronous=OFF;\n      PRAGMA journal_mode = DELETE;\n    \n        CREATE TABLE a(x);\n        CREATE TABLE aux.b(x);\n        INSERT INTO a VALUES('double-you');\n        INSERT INTO a VALUES('why');\n        INSERT INTO a VALUES('zed');\n        INSERT INTO b VALUES('won');\n        INSERT INTO b VALUES('too');\n        INSERT INTO b VALUES('free');"
     },
     {
      "type": "exec",
      "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "",
+     "database": "tv"
     }
    ]
   },
@@ -1308,12 +1351,32 @@
    "name": "pager1-4.4.1.o512.1",
    "steps": [
     {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "xDelete",
+     "database": "tv"
+    },
+    {
+     "type": "runtime_var_set",
+     "variable": "mj_delete_cnt",
+     "sql": "0"
+    },
+    {
+     "type": "reset_db"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.db2' AS aux;\n         \n      PRAGMA main.synchronous=OFF;\n      PRAGMA aux.synchronous=OFF;\n      PRAGMA main.page_size = 512;\n      PRAGMA aux.page_size = 512;\n      PRAGMA journal_mode = DELETE;\n    \n        CREATE TABLE a(x);\n        CREATE TABLE aux.b(x);\n        INSERT INTO a VALUES('double-you');\n        INSERT INTO a VALUES('why');\n        INSERT INTO a VALUES('zed');\n        INSERT INTO b VALUES('won');\n        INSERT INTO b VALUES('too');\n        INSERT INTO b VALUES('free');"
     },
     {
      "type": "exec",
      "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "",
+     "database": "tv"
     }
    ]
   },
@@ -1391,12 +1454,32 @@
    "name": "pager1-4.4.1.n.1",
    "steps": [
     {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "xDelete",
+     "database": "tv"
+    },
+    {
+     "type": "runtime_var_set",
+     "variable": "mj_delete_cnt",
+     "sql": "0"
+    },
+    {
+     "type": "reset_db"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.db2' AS aux;\n         \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA journal_mode = DELETE;\n    \n        CREATE TABLE a(x);\n        CREATE TABLE aux.b(x);\n        INSERT INTO a VALUES('double-you');\n        INSERT INTO a VALUES('why');\n        INSERT INTO a VALUES('zed');\n        INSERT INTO b VALUES('won');\n        INSERT INTO b VALUES('too');\n        INSERT INTO b VALUES('free');"
     },
     {
      "type": "exec",
      "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "",
+     "database": "tv"
     }
    ]
   },
@@ -1434,6 +1517,9 @@
    "name": "pager1-4.4.1.n.4",
    "steps": [
     {
+     "type": "faultsim_restore_reopen"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.db2' AS aux"
     }
@@ -1463,11 +1549,11 @@
    "name": "pager1-4.4.1.n.7",
    "steps": [
     {
-     "type": "close_db"
+     "type": "faultsim_restore_reopen"
     },
     {
-     "type": "reopen_db",
-     "sql": "test.db"
+     "type": "delete_glob",
+     "sql": "test.db-mj*"
     },
     {
      "type": "exec",
@@ -1503,12 +1589,32 @@
    "name": "pager1-4.4.1.f.1",
    "steps": [
     {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "xDelete",
+     "database": "tv"
+    },
+    {
+     "type": "runtime_var_set",
+     "variable": "mj_delete_cnt",
+     "sql": "0"
+    },
+    {
+     "type": "reset_db"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.db2' AS aux;\n         \n      PRAGMA main.synchronous=FULL;\n      PRAGMA aux.synchronous=FULL;\n      PRAGMA journal_mode = DELETE;\n    \n        CREATE TABLE a(x);\n        CREATE TABLE aux.b(x);\n        INSERT INTO a VALUES('double-you');\n        INSERT INTO a VALUES('why');\n        INSERT INTO a VALUES('zed');\n        INSERT INTO b VALUES('won');\n        INSERT INTO b VALUES('too');\n        INSERT INTO b VALUES('free');"
     },
     {
      "type": "exec",
      "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "",
+     "database": "tv"
     }
    ]
   },
@@ -1546,6 +1652,9 @@
    "name": "pager1-4.4.1.f.4",
    "steps": [
     {
+     "type": "faultsim_restore_reopen"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.db2' AS aux"
     }
@@ -1575,11 +1684,11 @@
    "name": "pager1-4.4.1.f.7",
    "steps": [
     {
-     "type": "close_db"
+     "type": "faultsim_restore_reopen"
     },
     {
-     "type": "reopen_db",
-     "sql": "test.db"
+     "type": "delete_glob",
+     "sql": "test.db-mj*"
     },
     {
      "type": "exec",
@@ -1615,12 +1724,32 @@
    "name": "pager1-4.4.1.w1.1",
    "steps": [
     {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "xDelete",
+     "database": "tv"
+    },
+    {
+     "type": "runtime_var_set",
+     "variable": "mj_delete_cnt",
+     "sql": "0"
+    },
+    {
+     "type": "reset_db"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.db2' AS aux;\n         \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA journal_mode = WAL;\n    \n        CREATE TABLE a(x);\n        CREATE TABLE aux.b(x);\n        INSERT INTO a VALUES('double-you');\n        INSERT INTO a VALUES('why');\n        INSERT INTO a VALUES('zed');\n        INSERT INTO b VALUES('won');\n        INSERT INTO b VALUES('too');\n        INSERT INTO b VALUES('free');"
     },
     {
      "type": "exec",
      "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "",
+     "database": "tv"
     }
    ]
   },
@@ -1698,12 +1827,32 @@
    "name": "pager1-4.4.1.w2.1",
    "steps": [
     {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "xDelete",
+     "database": "tv"
+    },
+    {
+     "type": "runtime_var_set",
+     "variable": "mj_delete_cnt",
+     "sql": "0"
+    },
+    {
+     "type": "reset_db"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.db2' AS aux;\n         \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode=WAL;\n    \n        CREATE TABLE a(x);\n        CREATE TABLE aux.b(x);\n        INSERT INTO a VALUES('double-you');\n        INSERT INTO a VALUES('why');\n        INSERT INTO a VALUES('zed');\n        INSERT INTO b VALUES('won');\n        INSERT INTO b VALUES('too');\n        INSERT INTO b VALUES('free');"
     },
     {
      "type": "exec",
      "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "",
+     "database": "tv"
     }
    ]
   },
@@ -1781,12 +1930,32 @@
    "name": "pager1-4.4.1.o1a.1",
    "steps": [
     {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "xDelete",
+     "database": "tv"
+    },
+    {
+     "type": "runtime_var_set",
+     "variable": "mj_delete_cnt",
+     "sql": "0"
+    },
+    {
+     "type": "reset_db"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.db2' AS aux;\n         \n      PRAGMA main.synchronous=FULL;\n      PRAGMA aux.synchronous=OFF;\n      PRAGMA journal_mode=DELETE;\n    \n        CREATE TABLE a(x);\n        CREATE TABLE aux.b(x);\n        INSERT INTO a VALUES('double-you');\n        INSERT INTO a VALUES('why');\n        INSERT INTO a VALUES('zed');\n        INSERT INTO b VALUES('won');\n        INSERT INTO b VALUES('too');\n        INSERT INTO b VALUES('free');"
     },
     {
      "type": "exec",
      "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "",
+     "database": "tv"
     }
    ]
   },
@@ -1864,12 +2033,32 @@
    "name": "pager1-4.4.1.o1b.1",
    "steps": [
     {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "xDelete",
+     "database": "tv"
+    },
+    {
+     "type": "runtime_var_set",
+     "variable": "mj_delete_cnt",
+     "sql": "0"
+    },
+    {
+     "type": "reset_db"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.db2' AS aux;\n         \n      PRAGMA main.synchronous=OFF;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA journal_mode=DELETE;\n    \n        CREATE TABLE a(x);\n        CREATE TABLE aux.b(x);\n        INSERT INTO a VALUES('double-you');\n        INSERT INTO a VALUES('why');\n        INSERT INTO a VALUES('zed');\n        INSERT INTO b VALUES('won');\n        INSERT INTO b VALUES('too');\n        INSERT INTO b VALUES('free');"
     },
     {
      "type": "exec",
      "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "",
+     "database": "tv"
     }
    ]
   },
@@ -1947,12 +2136,32 @@
    "name": "pager1-4.4.1.m1.1",
    "steps": [
     {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "xDelete",
+     "database": "tv"
+    },
+    {
+     "type": "runtime_var_set",
+     "variable": "mj_delete_cnt",
+     "sql": "0"
+    },
+    {
+     "type": "reset_db"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.db2' AS aux;\n         \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode = MEMORY;\n    \n        CREATE TABLE a(x);\n        CREATE TABLE aux.b(x);\n        INSERT INTO a VALUES('double-you');\n        INSERT INTO a VALUES('why');\n        INSERT INTO a VALUES('zed');\n        INSERT INTO b VALUES('won');\n        INSERT INTO b VALUES('too');\n        INSERT INTO b VALUES('free');"
     },
     {
      "type": "exec",
      "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "",
+     "database": "tv"
     }
    ]
   },
@@ -2030,12 +2239,32 @@
    "name": "pager1-4.4.1.t1.1",
    "steps": [
     {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "xDelete",
+     "database": "tv"
+    },
+    {
+     "type": "runtime_var_set",
+     "variable": "mj_delete_cnt",
+     "sql": "0"
+    },
+    {
+     "type": "reset_db"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.db2' AS aux;\n         \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode = TRUNCATE;\n    \n        CREATE TABLE a(x);\n        CREATE TABLE aux.b(x);\n        INSERT INTO a VALUES('double-you');\n        INSERT INTO a VALUES('why');\n        INSERT INTO a VALUES('zed');\n        INSERT INTO b VALUES('won');\n        INSERT INTO b VALUES('too');\n        INSERT INTO b VALUES('free');"
     },
     {
      "type": "exec",
      "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "",
+     "database": "tv"
     }
    ]
   },
@@ -2073,6 +2302,9 @@
    "name": "pager1-4.4.1.t1.4",
    "steps": [
     {
+     "type": "faultsim_restore_reopen"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.db2' AS aux"
     }
@@ -2102,11 +2334,11 @@
    "name": "pager1-4.4.1.t1.7",
    "steps": [
     {
-     "type": "close_db"
+     "type": "faultsim_restore_reopen"
     },
     {
-     "type": "reopen_db",
-     "sql": "test.db"
+     "type": "delete_glob",
+     "sql": "test.db-mj*"
     },
     {
      "type": "exec",
@@ -2142,12 +2374,32 @@
    "name": "pager1-4.4.1.p1.1",
    "steps": [
     {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "xDelete",
+     "database": "tv"
+    },
+    {
+     "type": "runtime_var_set",
+     "variable": "mj_delete_cnt",
+     "sql": "0"
+    },
+    {
+     "type": "reset_db"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.db2' AS aux;\n         \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode = PERSIST;\n    \n        CREATE TABLE a(x);\n        CREATE TABLE aux.b(x);\n        INSERT INTO a VALUES('double-you');\n        INSERT INTO a VALUES('why');\n        INSERT INTO a VALUES('zed');\n        INSERT INTO b VALUES('won');\n        INSERT INTO b VALUES('too');\n        INSERT INTO b VALUES('free');"
     },
     {
      "type": "exec",
      "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "",
+     "database": "tv"
     }
    ]
   },
@@ -2185,6 +2437,9 @@
    "name": "pager1-4.4.1.p1.4",
    "steps": [
     {
+     "type": "faultsim_restore_reopen"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.db2' AS aux"
     }
@@ -2214,11 +2469,11 @@
    "name": "pager1-4.4.1.p1.7",
    "steps": [
     {
-     "type": "close_db"
+     "type": "faultsim_restore_reopen"
     },
     {
-     "type": "reopen_db",
-     "sql": "test.db"
+     "type": "delete_glob",
+     "sql": "test.db-mj*"
     },
     {
      "type": "exec",
@@ -2254,12 +2509,33 @@
    "name": "pager1-4.4.2.o.1",
    "steps": [
     {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "xDelete",
+     "database": "tv"
+    },
+    {
+     "type": "runtime_var_set",
+     "variable": "mj_delete_cnt",
+     "sql": "0"
+    },
+    {
+     "type": "reset_db",
+     "sql": "test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2' AS aux;\n         \n      PRAGMA main.synchronous=OFF;\n      PRAGMA aux.synchronous=OFF;\n      PRAGMA journal_mode = DELETE;\n    \n        CREATE TABLE a(x);\n        CREATE TABLE aux.b(x);\n        INSERT INTO a VALUES('double-you');\n        INSERT INTO a VALUES('why');\n        INSERT INTO a VALUES('zed');\n        INSERT INTO b VALUES('won');\n        INSERT INTO b VALUES('too');\n        INSERT INTO b VALUES('free');"
     },
     {
      "type": "exec",
      "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "",
+     "database": "tv"
     }
    ]
   },
@@ -2337,12 +2613,33 @@
    "name": "pager1-4.4.2.o512.1",
    "steps": [
     {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "xDelete",
+     "database": "tv"
+    },
+    {
+     "type": "runtime_var_set",
+     "variable": "mj_delete_cnt",
+     "sql": "0"
+    },
+    {
+     "type": "reset_db",
+     "sql": "test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2' AS aux;\n         \n      PRAGMA main.synchronous=OFF;\n      PRAGMA aux.synchronous=OFF;\n      PRAGMA main.page_size = 512;\n      PRAGMA aux.page_size = 512;\n      PRAGMA journal_mode = DELETE;\n    \n        CREATE TABLE a(x);\n        CREATE TABLE aux.b(x);\n        INSERT INTO a VALUES('double-you');\n        INSERT INTO a VALUES('why');\n        INSERT INTO a VALUES('zed');\n        INSERT INTO b VALUES('won');\n        INSERT INTO b VALUES('too');\n        INSERT INTO b VALUES('free');"
     },
     {
      "type": "exec",
      "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "",
+     "database": "tv"
     }
    ]
   },
@@ -2420,12 +2717,33 @@
    "name": "pager1-4.4.2.n.1",
    "steps": [
     {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "xDelete",
+     "database": "tv"
+    },
+    {
+     "type": "runtime_var_set",
+     "variable": "mj_delete_cnt",
+     "sql": "0"
+    },
+    {
+     "type": "reset_db",
+     "sql": "test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2' AS aux;\n         \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA journal_mode = DELETE;\n    \n        CREATE TABLE a(x);\n        CREATE TABLE aux.b(x);\n        INSERT INTO a VALUES('double-you');\n        INSERT INTO a VALUES('why');\n        INSERT INTO a VALUES('zed');\n        INSERT INTO b VALUES('won');\n        INSERT INTO b VALUES('too');\n        INSERT INTO b VALUES('free');"
     },
     {
      "type": "exec",
      "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "",
+     "database": "tv"
     }
    ]
   },
@@ -2463,6 +2781,10 @@
    "name": "pager1-4.4.2.n.4",
    "steps": [
     {
+     "type": "faultsim_restore_reopen",
+     "sql": "test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2' AS aux"
     }
@@ -2492,11 +2814,12 @@
    "name": "pager1-4.4.2.n.7",
    "steps": [
     {
-     "type": "close_db"
+     "type": "faultsim_restore_reopen",
+     "sql": "test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
     },
     {
-     "type": "reopen_db",
-     "sql": "test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+     "type": "delete_glob",
+     "sql": "test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-mj*"
     },
     {
      "type": "exec",
@@ -2532,12 +2855,33 @@
    "name": "pager1-4.4.2.f.1",
    "steps": [
     {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "xDelete",
+     "database": "tv"
+    },
+    {
+     "type": "runtime_var_set",
+     "variable": "mj_delete_cnt",
+     "sql": "0"
+    },
+    {
+     "type": "reset_db",
+     "sql": "test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2' AS aux;\n         \n      PRAGMA main.synchronous=FULL;\n      PRAGMA aux.synchronous=FULL;\n      PRAGMA journal_mode = DELETE;\n    \n        CREATE TABLE a(x);\n        CREATE TABLE aux.b(x);\n        INSERT INTO a VALUES('double-you');\n        INSERT INTO a VALUES('why');\n        INSERT INTO a VALUES('zed');\n        INSERT INTO b VALUES('won');\n        INSERT INTO b VALUES('too');\n        INSERT INTO b VALUES('free');"
     },
     {
      "type": "exec",
      "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "",
+     "database": "tv"
     }
    ]
   },
@@ -2575,6 +2919,10 @@
    "name": "pager1-4.4.2.f.4",
    "steps": [
     {
+     "type": "faultsim_restore_reopen",
+     "sql": "test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2' AS aux"
     }
@@ -2604,11 +2952,12 @@
    "name": "pager1-4.4.2.f.7",
    "steps": [
     {
-     "type": "close_db"
+     "type": "faultsim_restore_reopen",
+     "sql": "test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
     },
     {
-     "type": "reopen_db",
-     "sql": "test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+     "type": "delete_glob",
+     "sql": "test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-mj*"
     },
     {
      "type": "exec",
@@ -2644,12 +2993,33 @@
    "name": "pager1-4.4.2.w1.1",
    "steps": [
     {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "xDelete",
+     "database": "tv"
+    },
+    {
+     "type": "runtime_var_set",
+     "variable": "mj_delete_cnt",
+     "sql": "0"
+    },
+    {
+     "type": "reset_db",
+     "sql": "test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2' AS aux;\n         \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA journal_mode = WAL;\n    \n        CREATE TABLE a(x);\n        CREATE TABLE aux.b(x);\n        INSERT INTO a VALUES('double-you');\n        INSERT INTO a VALUES('why');\n        INSERT INTO a VALUES('zed');\n        INSERT INTO b VALUES('won');\n        INSERT INTO b VALUES('too');\n        INSERT INTO b VALUES('free');"
     },
     {
      "type": "exec",
      "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "",
+     "database": "tv"
     }
    ]
   },
@@ -2727,12 +3097,33 @@
    "name": "pager1-4.4.2.w2.1",
    "steps": [
     {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "xDelete",
+     "database": "tv"
+    },
+    {
+     "type": "runtime_var_set",
+     "variable": "mj_delete_cnt",
+     "sql": "0"
+    },
+    {
+     "type": "reset_db",
+     "sql": "test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2' AS aux;\n         \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode=WAL;\n    \n        CREATE TABLE a(x);\n        CREATE TABLE aux.b(x);\n        INSERT INTO a VALUES('double-you');\n        INSERT INTO a VALUES('why');\n        INSERT INTO a VALUES('zed');\n        INSERT INTO b VALUES('won');\n        INSERT INTO b VALUES('too');\n        INSERT INTO b VALUES('free');"
     },
     {
      "type": "exec",
      "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "",
+     "database": "tv"
     }
    ]
   },
@@ -2810,12 +3201,33 @@
    "name": "pager1-4.4.2.o1a.1",
    "steps": [
     {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "xDelete",
+     "database": "tv"
+    },
+    {
+     "type": "runtime_var_set",
+     "variable": "mj_delete_cnt",
+     "sql": "0"
+    },
+    {
+     "type": "reset_db",
+     "sql": "test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2' AS aux;\n         \n      PRAGMA main.synchronous=FULL;\n      PRAGMA aux.synchronous=OFF;\n      PRAGMA journal_mode=DELETE;\n    \n        CREATE TABLE a(x);\n        CREATE TABLE aux.b(x);\n        INSERT INTO a VALUES('double-you');\n        INSERT INTO a VALUES('why');\n        INSERT INTO a VALUES('zed');\n        INSERT INTO b VALUES('won');\n        INSERT INTO b VALUES('too');\n        INSERT INTO b VALUES('free');"
     },
     {
      "type": "exec",
      "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "",
+     "database": "tv"
     }
    ]
   },
@@ -2893,12 +3305,33 @@
    "name": "pager1-4.4.2.o1b.1",
    "steps": [
     {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "xDelete",
+     "database": "tv"
+    },
+    {
+     "type": "runtime_var_set",
+     "variable": "mj_delete_cnt",
+     "sql": "0"
+    },
+    {
+     "type": "reset_db",
+     "sql": "test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2' AS aux;\n         \n      PRAGMA main.synchronous=OFF;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA journal_mode=DELETE;\n    \n        CREATE TABLE a(x);\n        CREATE TABLE aux.b(x);\n        INSERT INTO a VALUES('double-you');\n        INSERT INTO a VALUES('why');\n        INSERT INTO a VALUES('zed');\n        INSERT INTO b VALUES('won');\n        INSERT INTO b VALUES('too');\n        INSERT INTO b VALUES('free');"
     },
     {
      "type": "exec",
      "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "",
+     "database": "tv"
     }
    ]
   },
@@ -2976,12 +3409,33 @@
    "name": "pager1-4.4.2.m1.1",
    "steps": [
     {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "xDelete",
+     "database": "tv"
+    },
+    {
+     "type": "runtime_var_set",
+     "variable": "mj_delete_cnt",
+     "sql": "0"
+    },
+    {
+     "type": "reset_db",
+     "sql": "test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2' AS aux;\n         \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode = MEMORY;\n    \n        CREATE TABLE a(x);\n        CREATE TABLE aux.b(x);\n        INSERT INTO a VALUES('double-you');\n        INSERT INTO a VALUES('why');\n        INSERT INTO a VALUES('zed');\n        INSERT INTO b VALUES('won');\n        INSERT INTO b VALUES('too');\n        INSERT INTO b VALUES('free');"
     },
     {
      "type": "exec",
      "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "",
+     "database": "tv"
     }
    ]
   },
@@ -3059,12 +3513,33 @@
    "name": "pager1-4.4.2.t1.1",
    "steps": [
     {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "xDelete",
+     "database": "tv"
+    },
+    {
+     "type": "runtime_var_set",
+     "variable": "mj_delete_cnt",
+     "sql": "0"
+    },
+    {
+     "type": "reset_db",
+     "sql": "test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2' AS aux;\n         \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode = TRUNCATE;\n    \n        CREATE TABLE a(x);\n        CREATE TABLE aux.b(x);\n        INSERT INTO a VALUES('double-you');\n        INSERT INTO a VALUES('why');\n        INSERT INTO a VALUES('zed');\n        INSERT INTO b VALUES('won');\n        INSERT INTO b VALUES('too');\n        INSERT INTO b VALUES('free');"
     },
     {
      "type": "exec",
      "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "",
+     "database": "tv"
     }
    ]
   },
@@ -3102,6 +3577,10 @@
    "name": "pager1-4.4.2.t1.4",
    "steps": [
     {
+     "type": "faultsim_restore_reopen",
+     "sql": "test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2' AS aux"
     }
@@ -3131,11 +3610,12 @@
    "name": "pager1-4.4.2.t1.7",
    "steps": [
     {
-     "type": "close_db"
+     "type": "faultsim_restore_reopen",
+     "sql": "test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
     },
     {
-     "type": "reopen_db",
-     "sql": "test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+     "type": "delete_glob",
+     "sql": "test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-mj*"
     },
     {
      "type": "exec",
@@ -3171,12 +3651,33 @@
    "name": "pager1-4.4.2.p1.1",
    "steps": [
     {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "xDelete",
+     "database": "tv"
+    },
+    {
+     "type": "runtime_var_set",
+     "variable": "mj_delete_cnt",
+     "sql": "0"
+    },
+    {
+     "type": "reset_db",
+     "sql": "test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2' AS aux;\n         \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode = PERSIST;\n    \n        CREATE TABLE a(x);\n        CREATE TABLE aux.b(x);\n        INSERT INTO a VALUES('double-you');\n        INSERT INTO a VALUES('why');\n        INSERT INTO a VALUES('zed');\n        INSERT INTO b VALUES('won');\n        INSERT INTO b VALUES('too');\n        INSERT INTO b VALUES('free');"
     },
     {
      "type": "exec",
      "sql": "BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "",
+     "database": "tv"
     }
    ]
   },
@@ -3214,6 +3715,10 @@
    "name": "pager1-4.4.2.p1.4",
    "steps": [
     {
+     "type": "faultsim_restore_reopen",
+     "sql": "test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
      "type": "exec",
      "sql": "ATTACH 'test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2' AS aux"
     }
@@ -3243,11 +3748,12 @@
    "name": "pager1-4.4.2.p1.7",
    "steps": [
     {
-     "type": "close_db"
+     "type": "faultsim_restore_reopen",
+     "sql": "test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
     },
     {
-     "type": "reopen_db",
-     "sql": "test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+     "type": "delete_glob",
+     "sql": "test.dbxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-mj*"
     },
     {
      "type": "exec",
@@ -3464,17 +3970,58 @@
    "name": "pager1.4.6.1",
    "steps": [
     {
+     "type": "register_testvfs",
+     "sql": "default",
+     "variable": "tv"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "script",
+     "variable": "copy_on_mj_delete",
+     "database": "tv",
+     "functionProc": "copy_on_mj_delete",
+     "callbackProcs": [
+      {
+       "Name": "copy_on_mj_delete",
+       "Args": [
+        "method",
+        "filename",
+        "args"
+       ],
+       "Body": "\n  if {[string match *mj* [file tail $filename]]} { \n    set ::mj_filename $filename\n    faultsim_save \n  }\n  return SQLITE_OK\n"
+      }
+     ]
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "xDelete",
+     "database": "tv"
+    },
+    {
+     "type": "reset_db"
+    },
+    {
      "type": "exec",
      "sql": "PRAGMA journal_mode = DELETE;\n    ATTACH 'test.db2' AS two;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE two.t2(a, b);\n    INSERT INTO t1 VALUES(1, 't1.1');\n    INSERT INTO t2 VALUES(1, 't2.1');\n    BEGIN;\n      UPDATE t1 SET b = 't1.2';\n      UPDATE t2 SET b = 't2.2';\n    COMMIT;"
     },
     {
      "type": "close_db"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "",
+     "database": "tv"
     }
    ]
   },
   {
    "name": "pager1.4.6.2",
    "steps": [
+    {
+     "type": "faultsim_restore_reopen"
+    },
     {
      "type": "query",
      "sql": "SELECT * FROM t1",
@@ -3504,6 +4051,12 @@
    "name": "pager1.4.6.8",
    "steps": [
     {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "xDelete",
+     "database": "tv"
+    },
+    {
      "type": "reopen_db",
      "sql": "test.db2"
     },
@@ -3511,12 +4064,25 @@
      "type": "exec",
      "sql": "PRAGMA journal_mode = DELETE;\n    ATTACH 'test.db3' AS three;\n    CREATE TABLE three.t3(a, b);\n    INSERT INTO t3 VALUES(1, 't3.1');\n    BEGIN;\n      UPDATE t2 SET b = 't2.3';\n      UPDATE t3 SET b = 't3.3';\n    COMMIT;",
      "expect": "1"
+    },
+    {
+     "type": "faultsim_restore_reopen"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "",
+     "database": "tv"
     }
    ]
   },
   {
    "name": "pager1.4.6.12",
    "steps": [
+    {
+     "type": "faultsim_restore_reopen",
+     "sql": "test.db"
+    },
     {
      "type": "query",
      "sql": "SELECT * FROM t1",
@@ -3555,9 +4121,47 @@
    "name": "pager1.4.7.1",
    "steps": [
     {
+     "type": "register_testvfs",
+     "sql": "default",
+     "variable": "tv"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "script",
+     "variable": "copy_on_journal_delete",
+     "database": "tv",
+     "functionProc": "copy_on_journal_delete",
+     "callbackProcs": [
+      {
+       "Name": "copy_on_journal_delete",
+       "Args": [
+        "method",
+        "filename",
+        "args"
+       ],
+       "Body": "\n  if {[string match *journal $filename]} faultsim_save \n  return SQLITE_OK\n"
+      }
+     ]
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "xDelete",
+     "database": "tv"
+    },
+    {
+     "type": "reset_db"
+    },
+    {
      "type": "exec",
      "sql": "PRAGMA journal_mode = DELETE;\n  CREATE TABLE t1(x PRIMARY KEY, y);\n  CREATE INDEX i1 ON t1(y);\n  INSERT INTO t1 VALUES('I',   'one');\n  INSERT INTO t1 VALUES('II',  'four');\n  INSERT INTO t1 VALUES('III', 'nine');\n  BEGIN;\n    INSERT INTO t1 VALUES('IV', 'sixteen');\n    INSERT INTO t1 VALUES('V' , 'twentyfive');\n  COMMIT;",
      "expect": "delete"
+    },
+    {
+     "type": "testvfs_config",
+     "sql": "filter",
+     "variable": "",
+     "database": "tv"
     }
    ]
   },
@@ -3600,6 +4204,22 @@
     {
      "type": "close_db",
      "expect": "0"
+    },
+    {
+     "type": "file_attr",
+     "sql": "test.db-journal",
+     "variable": "-permissions",
+     "bindValue": "rw-rw-rw-"
+    },
+    {
+     "type": "file_attr",
+     "sql": "test.db-journal",
+     "variable": "-readonly",
+     "bindValue": "0"
+    },
+    {
+     "type": "delete_file",
+     "sql": "test.db-journal"
     }
    ]
   },

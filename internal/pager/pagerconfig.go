@@ -619,7 +619,7 @@ func (p *Pager) writeRollbackVersionBytesLocked() {
 		pg1.Data[18], pg1.Data[19] = 1, 1
 	}
 	p.markDirtyLocked(1)
-	_ = p.flushAllCtx(false)
+	_ = p.flushAllCtx("")
 }
 
 // writeWALVersionBytesLocked stamps the WAL file-format bytes (18/19 = 2)
@@ -639,7 +639,7 @@ func (p *Pager) writeWALVersionBytesLocked() error {
 		pg1.Data[18], pg1.Data[19] = 2, 2
 	}
 	p.markDirtyLocked(1)
-	return p.flushAllCtx(false)
+	return p.flushAllCtx("")
 }
 
 // setLegacyJournalModeLocked applies one of the legacy rollback-journal
