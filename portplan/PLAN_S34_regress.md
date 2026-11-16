@@ -1,6 +1,6 @@
 # PLAN S34 — pager-merge leaf regressions (pragma2-5.1/5.3, sharedA-1.1/1.2)
 
-STATUS: COMPLETE (fix verified, sweeps clean; see bottom)
+STATUS: COMPLETE (2026-11-16) — fix landed 8c8061993: pragma2 + sharedA families green (sharedA x3 repeat clean); two-direction sweep diff over pragma*/shared*/jrnlmode*/pager*/trans/attach/corrupt* = exactly the 4 leaves left the set, nothing new, 42 pre-existing failures unchanged.
 
 ## Symptom (all reproduce at HEAD ffd22bf60; also red at pre-S31 base dd045611d)
 

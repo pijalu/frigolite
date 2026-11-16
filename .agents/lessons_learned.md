@@ -1560,3 +1560,40 @@ everywhere; go vet + go build clean.
 - Agent sweep lists need the FULL family universe: S31's 31-family sweep
   missed pragma2/sharedA (the regressions) AND e_dropview/skipscan5/tkt-*
   (the phantom news). The full-suite gate is the only complete net.
+
+## S34: hot-journal nPage classification must be FILE-SIZE-derived (2026-11-16)
+
+- **C's hasHotJournal (pager.c) classifies via pagerPagecount, and
+  pagerPagecount's nPage at the OPEN state is the DATABASE FILE SIZE via
+  xFileSize, ceil-divided by the page size — NEVER the pager's in-memory
+  page count.** nPage==0 ⇒ the journal is "a remnant from a prior database"
+  and is DELETED without playback, before any header read.
+- **Frigolite's schema.Init() materializes page 1 in memory for an empty
+  file, so a freshly-reopened empty db reports pager.numPages==1.** Any
+  probe keyed on `numPages==0` therefore NEVER fires for the exact state
+  C's nPage==0 branch exists for (db file deleted, stale journal left) —
+  the stale journal classified HOT, playback truncated the fresh 0-byte
+  file to the journal header's dbOrigSize and wrote skipped-range
+  before-images: old schema resurrected ("table t1 already exists",
+  pragma2-5.1) or header-over-zeros image ("database disk image is
+  malformed", sharedA-1.1/1.2). Fix: Pager.hotProbeDBPageCount —
+  p.file.Stat(), ceil(size/pageSize).
+- **Diagnostic pattern that nailed it in ~30min:** (1) per-step fixture-dir
+  probes in the harness (log file sizes before each step, print only on
+  CHANGE) showed test.db-journal surviving ROLLBACK/COMMIT/close while the
+  attached db's journal was deleted; (2) an S34DBG-gated print + the call
+  site in RecoverHotJournalIfNeeded pinned WHO ran the playback and with
+  WHICH numPages (1) — the wrong signal was visible in one line.
+- **engine residue vs classification: fix the classification, card the
+  residue.** The DELETE-mode journal left on disk after a snapshot-based
+  ROLLBACK (Restore never ends the journal epoch) and after a close with
+  zero dirty pages is a real divergence from C (rollback/close remove it),
+  but with the classification fixed the next open handles the residue
+  C-style (delete, no playback) — no currently-green fixture observes the
+  residue, so re-plumbing rollback through journal playback is carded, not
+  done (PLAN_S34_regress.md §Carded).
+- pragma2-5.3's cache_spill was PURELY downstream of 5.1 (aborted batch
+  never ran cache_size=2; the max(cache,spill) read then reports 2000).
+  Check what a failed earlier statement in the SAME exec batch means for
+  the observed pragma state before treating a pragma read as an
+  independent bug.
