@@ -22,6 +22,40 @@
           "type": "open_named_db",
           "sql": "test.db",
           "database": "db2"
+        },
+        {
+          "type": "update_hook",
+          "authProc": "update_hook",
+          "callbackProcs": [
+            {
+              "Name": "update_hook",
+              "Args": [
+                "args"
+              ],
+              "Body": " lappend ::HOOKS $args ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "update_hook",
+          "functionBody": " lappend ::HOOKS $args ",
+          "database": "db1"
+        },
+        {
+          "type": "update_hook",
+          "authProc": "update_hook",
+          "callbackProcs": [
+            {
+              "Name": "update_hook",
+              "Args": [
+                "args"
+              ],
+              "Body": " lappend ::HOOKS $args ",
+              "Defaults": null
+            }
+          ],
+          "functionProc": "update_hook",
+          "functionBody": " lappend ::HOOKS $args ",
+          "database": "db2"
         }
       ]
     },

@@ -864,6 +864,10 @@
       "name": "savepoint-9.1",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "authdata"
+        },
+        {
           "type": "exec",
           "sql": "SAVEPOINT sp1"
         },
@@ -878,6 +882,10 @@
       "name": "savepoint-9.2",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "authdata"
+        },
+        {
           "type": "exec",
           "sql": "ROLLBACK TO sp1"
         },
@@ -891,6 +899,10 @@
     {
       "name": "savepoint-9.3",
       "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "authdata"
+        },
         {
           "type": "exec",
           "sql": "RELEASE sp1"
@@ -940,6 +952,10 @@
       "name": "savepoint-9.4",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "authdata"
+        },
+        {
           "type": "catch",
           "sql": "SAVEPOINT sp1",
           "expect": "SQLITE_SAVEPOINT BEGIN sp1 {} {} 1 {not authorized}"
@@ -950,6 +966,10 @@
       "name": "savepoint-9.5",
       "steps": [
         {
+          "type": "runtime_var_reset",
+          "variable": "authdata"
+        },
+        {
           "type": "catch",
           "sql": "ROLLBACK TO sp1",
           "expect": "SQLITE_SAVEPOINT ROLLBACK sp1 {} {} 1 {not authorized}"
@@ -959,6 +979,10 @@
     {
       "name": "savepoint-9.6",
       "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "authdata"
+        },
         {
           "type": "catch",
           "sql": "RELEASE sp1",

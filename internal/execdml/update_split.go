@@ -37,6 +37,73 @@ func (e *DMLExecutor) execUpdate(s *sql.UpdateStmt) *Result {
 	return res
 }
 
+// authorizeUpdateColumns runs the UPDATE statement's authorizer checks
+// (update.c:495-520): SQLITE_UPDATE once per changed column, in SET order,
+// with the column name as arg2 ("ROWID" when the statement rewrites the
+// rowid pseudo-alias of a table with no such declared column — C's j<0
+// branch). Each target column resolves BEFORE its auth request (C's
+// interleaved lookup + sqlite3AuthCheck loop); an unknown column reports
+// "no such column" ahead of the auth. The table lookup precedes everything
+// (C's sqlite3SrcListLookup errors first). A DENY fails the statement.
+// IGNORE keeps the current behavior (the column updates).
+func (e *DMLExecutor) authorizeUpdateColumns(s *sql.UpdateStmt, tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef) *Result {
+	colIndex := e.columnIndexFor(colDefs)
+	hasRowidColumn := execquery.RowHasRowIDColumn(colDefs)
+	fire := func(col string) *Result {
+		if _, ok := colIndex[strings.ToLower(col)]; !ok {
+			if !(execquery.IsRowIDName(col) && !hasRowidColumn) {
+				return &Result{Error: fmt.Errorf("no such column: %s", col)}
+			}
+		}
+		arg2 := col
+		if execquery.IsRowIDName(col) && !hasRowidColumn {
+			arg2 = "ROWID"
+		}
+		if err := e.ctx.Authorize(auth.ActionUpdate, s.Table, arg2, dbCtx.Name, ""); err != nil {
+			return &Result{Error: err}
+		}
+		return nil
+	}
+	for _, a := range s.Assignments {
+		if res := fire(a.Column); res != nil {
+			return res
+		}
+	}
+	for _, col := range s.SetParenColumns {
+		if res := fire(col); res != nil {
+			return res
+		}
+	}
+	return nil
+}
+
+// authFKEventsForUpdate fires the UPDATE's FK compile-time authorizer events
+// (fkey.c sqlite3FkCheck + sqlite3FkActions). Only ordinary tables run FK
+// processing (fkey.c sqlite3FkCheck's IsOrdinaryTable gate; views go through
+// INSTEAD OF triggers and virtual tables through xUpdate).
+func (e *DMLExecutor) authFKEventsForUpdate(s *sql.UpdateStmt, tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef) {
+	if tableEntry == nil || tableEntry.Type != schema.TypeTable || e.ctx.IsVirtualTable(tableEntry) {
+		return
+	}
+	changed := make([]string, 0, len(s.Assignments)+len(s.SetParenColumns)+1)
+	for _, a := range s.Assignments {
+		changed = append(changed, a.Column)
+	}
+	for _, col := range s.SetParenColumns {
+		changed = append(changed, col)
+	}
+	hasRowidColumn := execquery.RowHasRowIDColumn(colDefs)
+	if !hasRowidColumn {
+		for _, a := range s.Assignments {
+			if execquery.IsRowIDName(a.Column) {
+				changed = append(changed, "ROWID")
+				break
+			}
+		}
+	}
+	e.ctx.AuthFKEvents("UPDATE", tableEntry, dbCtx, changed, false)
+}
+
 // execUpdateInner is execUpdate's statement pipeline (the echo write-through
 // wrapper above re-routes its errors). The defers below pin THIS frame: the
 // CTE pop, the outer-conflict restore, the DML-context restore, the
@@ -53,9 +120,6 @@ func (e *DMLExecutor) execUpdateInner(s *sql.UpdateStmt) *Result {
 	e.redirectEchoVTab(s)
 	if res, handled := e.routeUpdateVTab(s); handled {
 		return res
-	}
-	if err := e.ctx.Authorize(auth.ActionUpdate, s.Table, "", "", ""); err != nil {
-		return &Result{Error: err}
 	}
 	tableEntry, dbCtx, res := e.openUpdateTarget(s)
 	if res != nil {
@@ -86,6 +150,14 @@ func (e *DMLExecutor) execUpdateInner(s *sql.UpdateStmt) *Result {
 	defer cleanup()
 
 	colDefs := e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
+	// update.c:495-520: the per-column SQLITE_UPDATE auth runs at this point
+	// (targets resolved, before WHERE resolution and the FK codegen).
+	if res := e.authorizeUpdateColumns(s, tableEntry, dbCtx, colDefs); res != nil {
+		return res
+	}
+	// update.c:1049/1093 (FkCheck passes) + update.c:1107 (FkActions): the
+	// FK processing's compile-time authorizer events.
+	e.authFKEventsForUpdate(s, tableEntry, dbCtx, colDefs)
 	if res := e.validateUpdateExprResolution(s, tableEntry, colDefs); res != nil {
 		return res
 	}

@@ -66,12 +66,24 @@ func (e *DMLExecutor) execDeleteInner(s *sql.DeleteStmt) *Result {
 	if res, handled := e.execVTabDelete(s); handled {
 		return res
 	}
-	if err := e.ctx.Authorize(auth.ActionDelete, s.Table, "", "", ""); err != nil {
+	// delete.c:393: SQLITE_DELETE with arg3 = the target's schema name
+	// (C's db->aDb[iDb].zDbSName); the table lookup precedes the auth.
+	authDBName := ""
+	if _, ctx2, ferr := e.ctx.FindTable(s.Table); ferr == nil && ctx2 != nil {
+		authDBName = ctx2.Name
+	}
+	if err := e.ctx.Authorize(auth.ActionDelete, s.Table, "", authDBName, ""); err != nil {
 		return &Result{Error: err}
 	}
 	tableEntry, dbCtx, colDefs, res, prevDMLCtx := e.deleteTableContext(s)
 	if res != nil {
 		return res
+	}
+	// delete.c:832 (FkCheck(iOld, 0)) + delete.c:865 (FkActions): the FK
+	// processing's compile-time authorizer events. Ordinary tables only
+	// (fkey.c's IsOrdinaryTable gate).
+	if tableEntry.Type == schema.TypeTable && !e.ctx.IsVirtualTable(tableEntry) {
+		e.ctx.AuthFKEvents("DELETE", tableEntry, dbCtx, nil, false)
 	}
 	e.currentDMLCtx = dbCtx
 	if res := e.CheckSameFileWriteConflictRes(dbCtx); res != nil {
