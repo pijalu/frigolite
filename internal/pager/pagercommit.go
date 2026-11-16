@@ -458,13 +458,15 @@ func (p *Pager) flushFilePagesLocked(multiDB bool) error {
 			return err
 		}
 	}
-	// Finalise the journal after every dirty page is on disk: DELETE
-	// unlinks, TRUNCATE zeroes, PERSIST truncates to journal_size_limit
-	// (or 0 in the super-journal / multi-DB case), MEMORY/OFF are
-	// no-ops (no file was created). This mirrors pager.c
-	// pager_end_transaction / sqlite3PagerCommitPhaseOne.
-	if err := p.finalizeRollbackJournalLockedMulti(multiDB); err != nil {
-		return err
+	// C's CommitPhaseOne tail: the database file sync (xSync) after the
+	// dirty pages reach the file, when the synchronous level is not OFF
+	// (pager.c:6595's sqlite3OsSync(db, syncFlags)) — and BEFORE the journal
+	// is finalised: pager_end_transaction deletes the journal after the db
+	// sync, so a faultsim snapshot taken at the db-file xSync captures both
+	// the committed database and its sidecar (pager1-4.3.1's xSyncCallback
+	// save; the fixture VFS's xSync callback observes the sync).
+	if p.journalMode != "wal" && p.walSyncFlags != walSyncOff {
+		p.vfsSync(p.path, 1)
 	}
 	// Own writes just hit the file: refresh the external-change baseline
 	// (pager.c readDbPage restores Pager.dbFileVers from page 1) so the
@@ -473,13 +475,13 @@ func (p *Pager) flushFilePagesLocked(multiDB bool) error {
 	// the bytes just written (the header mirror in flushPage guarantees
 	// pg1.Data carries the final header) — no Stat+ReadAt pair.
 	p.refreshKnownFileStampAfterFlush(flushedPage1)
-	// C's CommitPhaseOne tail: the database file sync (xSync) after the
-	// dirty pages reach the file, when the synchronous level is not OFF
-	// (pager.c:6595's syncJournal + sqlite3OsSync(db, syncFlags)). The
-	// fixture VFS's xSync callback observes it (pagerfault-2's faultsim
-	// save fires on the first non-journal sync).
-	if p.journalMode != "wal" && p.walSyncFlags != walSyncOff {
-		p.vfsSync(p.path, 1)
+	// Finalise the journal after every dirty page is on disk: DELETE
+	// unlinks, TRUNCATE zeroes, PERSIST truncates to journal_size_limit
+	// (or 0 in the super-journal / multi-DB case), MEMORY/OFF are
+	// no-ops (no file was created). This mirrors pager.c
+	// pager_end_transaction / sqlite3PagerCommitPhaseOne.
+	if err := p.finalizeRollbackJournalLockedMulti(multiDB); err != nil {
+		return err
 	}
 	return nil
 }

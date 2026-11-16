@@ -1,6 +1,7 @@
 package frigolite
 
 import (
+	"log"
 	"bytes"
 	"compress/gzip"
 	"crypto/md5"
@@ -7126,9 +7127,21 @@ func faultsimGlobFiles(main string) []string {
 // sv_test.db*). The scope is the test.db* glob: ATTACH'd sibling files
 // travel with the snapshot.
 func faultsimFileOp(t *testing.T, op string, main, fixtureDBDir string) {
-	t.Helper()
+	// t may be nil when the faultsim pair runs inside a fixture VFS
+	// callback (testvfsFixture.hook's faultsim_save/restore registration):
+	// report anomalies through the log instead of the testing.T error path.
+	if t != nil {
+		t.Helper()
+	}
 	if main == "" {
 		main = filepath.Join(fixtureDBDir, "test.db")
+	}
+	failf := func(format string, args ...any) {
+		if t != nil {
+			t.Errorf(format, args...)
+		} else {
+			log.Printf(format, args...)
+		}
 	}
 	dir := filepath.Dir(main)
 	base := filepath.Base(main)
@@ -7147,12 +7160,12 @@ func faultsimFileOp(t *testing.T, op string, main, fixtureDBDir string) {
 			data, err := os.ReadFile(filepath.Join(dir, name))
 			if err != nil {
 				if !os.IsNotExist(err) {
-					t.Errorf("faultsim_save read %s: %v", name, err)
+					failf("faultsim_save read %s: %v", name, err)
 				}
 				continue
 			}
 			if werr := os.WriteFile(filepath.Join(dir, "sv_"+name), data, 0o644); werr != nil {
-				t.Errorf("faultsim_save %s: %v", name, werr)
+				failf("faultsim_save %s: %v", name, werr)
 			}
 		}
 	case "faultsim_restore", "faultsim_restore_reopen":
@@ -7170,11 +7183,11 @@ func faultsimFileOp(t *testing.T, op string, main, fixtureDBDir string) {
 			}
 			data, err := os.ReadFile(filepath.Join(dir, name))
 			if err != nil {
-				t.Errorf("faultsim_restore read %s: %v", name, err)
+				failf("faultsim_restore read %s: %v", name, err)
 				continue
 			}
 			if werr := os.WriteFile(filepath.Join(dir, strings.TrimPrefix(name, "sv_")), data, 0o644); werr != nil {
-				t.Errorf("faultsim_restore %s: %v", name, werr)
+				failf("faultsim_restore %s: %v", name, werr)
 			}
 		}
 	}

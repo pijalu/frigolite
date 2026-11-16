@@ -20,6 +20,16 @@ func (e *Engine) InstallVFSHook(fn func(op, path string, details []string) error
 	for _, ctx := range e.dbList {
 		if ctx != nil && ctx.Pager != nil {
 			ctx.Pager.SetVFSHook(fn)
+			// The rollback-journal sidecar's xOpen/xClose/xDelete events go
+			// through the same fixture VFS: C's testvfs intercepts every
+			// method of every file it backs, and pager1-4.5.1's
+			// copy_on_journal_delete faultsim_save fires on the journal's
+			// xDelete. The journal hook's fire-and-forget signature wraps
+			// the fixture's (a script answer never vetoes these events).
+			pgr := ctx.Pager
+			pgr.SetJournalFileOpHook(func(op, path string) {
+				_ = fn(op, path, nil)
+			})
 			if devcharBits >= 0 {
 				ctx.Pager.SetDeviceCharacteristics(devcharBits)
 			}

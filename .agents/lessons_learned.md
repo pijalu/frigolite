@@ -1324,3 +1324,62 @@ everywhere; go vet + go build clean.
   pager3/trigger2/fts4merge4 all 0; savepoint 15 and pager4 6 identical to
   pristine (pre-existing). staticcheck U1000 joinOperandColumnSide
   (select_join_or.go) is pre-existing at the WIP commit.
+
+## S31 record (2026-11-16, cont.) — U6 hot-journal substrate (S31.7)
+
+- **Hot-journal recovery runs at the per-statement shared-lock point, NOT at
+  Open** (pager.c sqlite3PagerSharedLock → hasHotJournal → pager_playback):
+  C's sqlite3PagerOpen only reads page 1 raw. The faultsim fixtures restore a
+  hot journal onto a CLOSED snapshot and expect the sidecar to survive the
+  reopen until the first statement (pager1-4.5.4's hexio_write hits the
+  journal AFTER a restore_reopen) — an Open-time replay consumed it. Port:
+  `Pager.RecoverHotJournalIfNeeded` called from exec's checkDBFileCtx before
+  CheckExternalFileErr; the old recoverJournalAtOpen is gone.
+- **C's hot classification is three-way, not two-way** (hasHotJournal):
+  nPage==0 → DELETE the journal (journal1-1.2's remnant); first byte == 0
+  (PERSIST's zeroJournalHdr, or a never-synced header) → NOT hot, file LEFT
+  on disk; first byte nonzero but header unparsable (bad magic / sector field
+  out of [32,0x10000] / page field out of [512,65536], zero page field =
+  pre-3.5.8 compat → the pager's own size) → DELETE (playback's
+  readJournalHdr returned DONE); a valid header → play records FORWARD
+  (pgno==0 stops, pgno>dbSize skips, the pager_cksum sample-byte checksum
+  STOPS the walk — 4.5.5's partial playback), truncate the db file to the
+  header's dbOrigSize, write every before-image to the FILE (the heal must be
+  visible to later connections — a cache-only replay left the crashed image
+  on disk), re-seed the header from page 1's before-image, pager_reset the
+  cache, mxPgno adjusts upward, then unlink.
+- **PERSIST finalize must zero the journal header** (pager.c zeroJournalHdr):
+  28 zero bytes at offset 0 (or a 0-truncate when journal_size_limit==0 or
+  the super-journal path), then the size-limit truncation. Without it the
+  leftover PERSIST journal still carries a valid magic + the last txn's
+  records, and the new hot-journal probe plays it back over the NEXT
+  database at that path — pager1-10.x's reopen failed "database disk image
+  is malformed" (30 leaves).
+- **The commit's db-file xSync runs BEFORE the journal finalize** (C's
+  CommitPhaseOne tail vs pager_end_transaction): a faultsim save keyed on
+  the db xSync (pager1-4.3.1's xSyncCallback) must capture the journal still
+  on disk. Likewise the journal xClose/xDelete events fire BEFORE the actual
+  os.Remove (C's testvfs intercepts xDelete INSTEAD of performing it;
+  pager1-4.5.1's copy_on_journal_delete faults in on the pre-delete state).
+- **InstallVFSHook now wires the journal sidecar events into the fixture
+  hook** (xOpen/xClose/xDelete via SetJournalFileOpHook): C's testvfs
+  intercepts every method of every file it backs; pager1-4.5.1's save keys
+  on the journal xDelete. journal2's own SetDefaultJournalFileOpHook path is
+  untouched (per-pager hook precedence) and stays green.
+- **A nil *testing.T in faultsimFileOp panicked at t.Helper()** — the
+  fixture-callback faultsim_save registration passes nil; nil-safe now
+  (log.Printf instead of Errorf). A family-run PANIC truncates the run: a
+  "fixed" name-set computed from a panicked run silently covers only the
+  leaves BEFORE the panic point — diff by failure name set only after a
+  run that COMPLETED (grep for "panic" first).
+- **pager1 census after S31.7: 79 → 63** (16 fixed: 4.3.2-10, setup_11/12,
+  4.5.3/4.5.5/4.5.6, and 4.8.1/4.8.3 as a side effect of the recovery
+  timing + readonly-hot-journal refusal). The remaining 63 = the U7
+  super-journal bucket exactly (4.4.x 54, 4.6.x 4, 4.7.2 — their failure
+  shapes: ::mj_delete_cnt got [""] (no super-journal exists → no mj
+  deletes), the 4.6.x multi-file restore cascade (t1.2 vs t1.1), 4.7.2's
+  readonly-journal open).
+- Sweeps (failure NAME sets, pristine-vs-changed): journal1/journal3/
+  jrnlmode*/corrupt*/pagerfault/incrvacuum/trans/pager2/pager3/lock*/quick
+  all 0; journal2 5, savepoint 15, pager4 6, walfault 6 identical to
+  pristine.

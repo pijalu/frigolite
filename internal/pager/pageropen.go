@@ -134,10 +134,12 @@ func openPager(path string, pageSize uint32, forceReadOnly bool) (*Pager, error)
 	// records Pager.dbFileVers when page 1 is first read).
 	pr.refreshKnownFileStamp()
 
-	if err := recoverJournalAtOpen(pr, cleanPath); err != nil {
-		file.Close()
-		return nil, err
-	}
+	// Hot-journal recovery deliberately does NOT run here: C's
+	// sqlite3PagerOpen only reads page 1 raw — hasHotJournal fires at the
+	// first shared lock (statement), and the pager1-4.5.x faultsim fixtures
+	// restore a hot journal onto a closed snapshot expecting the sidecar to
+	// survive until then (RecoverHotJournalIfNeeded, exec's per-statement
+	// check).
 	if err := attachWalAtOpen(pr, cleanPath); err != nil {
 		file.Close()
 		if pr.wal != nil {
@@ -314,26 +316,6 @@ func applyOpenHeader(pr *Pager, headerBuf []byte) {
 	if hdr.LargestBTreePage != 0 {
 		pr.autoVacuum = true
 	}
-}
-
-// recoverJournalAtOpen runs hot-journal crash recovery when a "-journal"
-// sidecar accompanies the main database at open (pager.c pagerPlayback /
-// hasHotJournal): its page records are the before-images of an uncommitted
-// transaction whose process died. A reader must replay them into the page
-// cache before the first read (never serving the crashed partial image) and
-// unlink the journal. Stale journals (dbOrigSize mismatch, bad magic, or
-// main-file change counter newer than the journal) are discarded without
-// playback (journal1.test 1.2: a leftover journal from a prior database must
-// not roll back into a new database).
-func recoverJournalAtOpen(pr *Pager, cleanPath string) error {
-	jpath := journalPath(cleanPath)
-	if jpath == "" {
-		return nil
-	}
-	if _, err := os.Stat(jpath); err != nil {
-		return nil
-	}
-	return recoverHotJournal(pr, cleanPath)
 }
 
 // attachWalAtOpen performs WAL crash recovery / WAL-mode detection at open:
