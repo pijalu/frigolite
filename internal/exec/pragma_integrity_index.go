@@ -48,13 +48,14 @@ func (e *Engine) QuickCheckMode(table string, quick bool) *execpragma.Result {
 // for the per-row presence pass — the collation-aware KeyInfo with an open
 // cursor over its b-tree.
 type integrityIndexTarget struct {
-	name  string
-	root  uint32
-	terms []sql.OrderByTerm // index key terms in stored order
-	where sql.Expr          // partial-index predicate (nil for full indexes)
-	ki    *btree.KeyInfo    // per-key collations + sort flags
-	tree  *btree.BTree
-	cur   *btree.Cursor
+	name   string
+	root   uint32
+	sqlStr string            // the index's stored CREATE INDEX text
+	terms  []sql.OrderByTerm // index key terms in stored order
+	where  sql.Expr          // partial-index predicate (nil for full indexes)
+	ki     *btree.KeyInfo    // per-key collations + sort flags (WR: + PK tail)
+	tree   *btree.BTree
+	cur    *btree.Cursor
 }
 
 // execQuickCheckMode is execQuickCheck with the quick/integrity mode.
@@ -138,13 +139,11 @@ func (e *Engine) checkDatabaseIndexEntryCounts(ctx *DatabaseContext, emit func(s
 }
 
 // checkTableIndexEntryCounts compares one table's row count against each of
-// its explicit full indexes' entry counts. WITHOUT ROWID tables are exempt:
-// their secondary indexes are the engine's one storage area whose write
-// paths do not yet agree on the record tail (insert appends the insert-time
-// rowid, the DDL backfill and the DELETE path address [key..., 0]), so a
-// count mismatch there reflects that known desync, not user-visible
-// corruption — SQLite's own WR maintenance keeps the counts equal and
-// reports ok (delete4-4.11, without_rowid1-6.x).
+// its explicit full indexes' entry counts. Every index write path now agrees
+// on the WITHOUT ROWID record format (S33: [key..., PK tail...] on every
+// write site), so WR secondary indexes participate like rowid-table indexes
+// do — a count mismatch there is a real maintenance desync, exactly what
+// SQLite's integrity_check reports (delete4-4.11, without_rowid1-6.x).
 func (e *Engine) checkTableIndexEntryCounts(ctx *DatabaseContext, te *schema.Entry, emit func(string)) {
 	withoutRowid := execdml.TableIsWithoutRowid(te.SQL)
 	tree := btree.NewBTree(ctx.Pager, te.RootPage, !withoutRowid)
@@ -155,8 +154,8 @@ func (e *Engine) checkTableIndexEntryCounts(ctx *DatabaseContext, te *schema.Ent
 	}
 	for _, ent := range explicitIndexesOf(ctx, te.Name) {
 		tgt, ok := parseIntegrityIndex(ent)
-		if !ok || tgt.where != nil || withoutRowid {
-			continue // partial indexes and WR secondary indexes are exempt
+		if !ok || tgt.where != nil {
+			continue // partial indexes are exempt (pragma.c's pPartIdxWhere rule)
 		}
 		idxTree := btree.NewBTree(ctx.Pager, tgt.root, false)
 		idxCount, err := idxTree.CountEntries()
@@ -207,7 +206,7 @@ func parseIntegrityIndex(ent *schema.Entry) (*integrityIndexTarget, bool) {
 	if !ok || len(ci.Terms) == 0 {
 		return nil, false
 	}
-	return &integrityIndexTarget{name: ent.Name, root: ent.RootPage, terms: ci.Terms, where: ci.Where}, true
+	return &integrityIndexTarget{name: ent.Name, root: ent.RootPage, sqlStr: ent.SQL, terms: ci.Terms, where: ci.Where}, true
 }
 
 // indexTermsReferenceGenerated reports whether any key term is (or
@@ -231,15 +230,14 @@ func indexTermsReferenceGenerated(terms []sql.OrderByTerm, colDefs []sql.ColumnD
 // integrityIndexTargetsFor prepares the per-row presence walkers for one
 // table scan: one open cursor per explicit index, reverse creation order.
 // quick_check passes no targets (pragma.c omits the per-row index tests).
-// WITHOUT ROWID tables pass none either: their secondary-index record tails
-// are not re-derivable from the scan (see checkTableIndexEntryCounts), so
-// presence is probed over the key prefix — and the engine's WR maintenance
-// desyncs would report as false "missing" rows (delete4-4.11,
-// without_rowid1-6.x). Indexes with generated-column keys pass none: the
+// WITHOUT ROWID tables participate too (S33): their secondary-index records
+// carry the PK tail, which the scan's declared-order row re-derives
+// (integrityIndexProbe), so presence is probed over key + tail under the
+// tail's collations. Indexes with generated-column keys pass none: the
 // scan's stored record does not carry the generated value the write path
 // evaluated (gencol1-2.7.130).
 func (e *Engine) integrityIndexTargetsFor(ctx *DatabaseContext, te *schema.Entry, colDefs []sql.ColumnDef, quick bool) []*integrityIndexTarget {
-	if quick || execdml.TableIsWithoutRowid(te.SQL) {
+	if quick {
 		return nil
 	}
 	var out []*integrityIndexTarget
@@ -249,6 +247,12 @@ func (e *Engine) integrityIndexTargetsFor(ctx *DatabaseContext, te *schema.Entry
 			continue
 		}
 		tgt.ki = execdml.IndexKeyInfo(ent.SQL, colDefs, e.LookupCollation)
+		// A WITHOUT ROWID table's index records carry the PK tail (S33): the
+		// presence cursor's KeyInfo covers every record field — key columns
+		// AND tail — like C's index KeyInfo.
+		if wki := execdml.WRExtendedIndexKeyInfo(te.SQL, ent.SQL, colDefs, e.LookupCollation); wki != nil {
+			tgt.ki = wki
+		}
 		if tgt.ki == nil {
 			continue // key collations unresolvable: cannot probe safely
 		}
@@ -290,12 +294,10 @@ func (e *Engine) closeIntegrityIndexTargets(targets []*integrityIndexTarget) {
 // Rowid tables probe the full stored key (index columns + rowid): index
 // maintenance appends the rowid to every entry (maintainIndexesOnInsert),
 // and the table scan's cell carries that rowid, so tail equality is exact.
-// WITHOUT ROWID tables probe the key columns only: their secondary-index
-// tails carry the engine's insert-time rowid bookkeeping, which an index-
-// leaf scan (index cells have no rowid field) cannot re-derive, so tail
-// equality is not verifiable here — the key prefix still detects stale or
-// absent entries.
-func (e *Engine) quickCheckIndexPresence(targets []*integrityIndexTarget, colDefs []sql.ColumnDef, values []interface{}, row RowMap, rowID int64, withoutRowid bool, ordinal int64, emit func(string)) {
+// WITHOUT ROWID tables probe key + PK tail (S33): the scan's declared-order
+// row re-derives the tail (the same values the write paths append), so tail
+// equality is exact under the tail's collations too.
+func (e *Engine) quickCheckIndexPresence(targets []*integrityIndexTarget, colDefs []sql.ColumnDef, values []interface{}, row RowMap, rowID int64, withoutRowid bool, tableSQL string, ordinal int64, emit func(string)) {
 	for _, t := range targets {
 		if t.where != nil {
 			wv, err := e.evalExpr(t.where, row)
@@ -303,7 +305,7 @@ func (e *Engine) quickCheckIndexPresence(targets []*integrityIndexTarget, colDef
 				continue // row is not in this partial index
 			}
 		}
-		probe, ok := e.integrityIndexProbe(t, colDefs, values, row, rowID, withoutRowid)
+		probe, ok := e.integrityIndexProbe(t, colDefs, values, row, rowID, withoutRowid, tableSQL)
 		if !ok {
 			continue
 		}
@@ -316,9 +318,12 @@ func (e *Engine) quickCheckIndexPresence(targets []*integrityIndexTarget, colDef
 }
 
 // integrityIndexProbe builds one row's seek probe for one index: the key
-// terms' values plus (for rowid tables) the rowid tail. ok=false when a key
-// term's value cannot be computed (the row+index pair is then skipped).
-func (e *Engine) integrityIndexProbe(t *integrityIndexTarget, colDefs []sql.ColumnDef, values []interface{}, row RowMap, rowID int64, withoutRowid bool) ([]interface{}, bool) {
+// terms' values plus the record's trailing locator — the rowid for a rowid
+// table, the PK tail (re-derived from the row's declared values) for a
+// WITHOUT ROWID table (S33). ok=false when a key term's value cannot be
+// computed (the row+index pair is then skipped); an undecodable WR tail
+// layout probes the key prefix only.
+func (e *Engine) integrityIndexProbe(t *integrityIndexTarget, colDefs []sql.ColumnDef, values []interface{}, row RowMap, rowID int64, withoutRowid bool, tableSQL string) ([]interface{}, bool) {
 	probe := make([]interface{}, 0, len(t.terms)+1)
 	for _, term := range t.terms {
 		v, ok := e.indexProbeTermValue(term, colDefs, values, row)
@@ -329,6 +334,8 @@ func (e *Engine) integrityIndexProbe(t *integrityIndexTarget, colDefs []sql.Colu
 	}
 	if !withoutRowid {
 		probe = append(probe, rowID)
+	} else if tail := execdml.WRIndexTailValues(tableSQL, t.sqlStr, colDefs, values); tail != nil {
+		probe = append(probe, tail...)
 	}
 	return probe, true
 }

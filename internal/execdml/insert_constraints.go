@@ -305,8 +305,11 @@ func unwrapIndexKeyValue(v interface{}) interface{} {
 
 // writeIndexCell encodes and inserts one index entry, tracking root page
 // changes after splits. colDefs carries the table's column definitions for
-// the index keys' collation resolution.
-func (e *DMLExecutor) writeIndexCell(def indexDef, colDefs []sql.ColumnDef, indexValues []interface{}) error {
+// the index keys' collation resolution; tableSQL + plan select the WITHOUT
+// ROWID tail extension for the tree's comparator (S33: the entry's record
+// carries the PK tail, and the comparator must cover every field like C's
+// index KeyInfo does).
+func (e *DMLExecutor) writeIndexCell(def indexDef, colDefs []sql.ColumnDef, tableSQL string, plan wrTailPlan, indexValues []interface{}) error {
 	indexStorageValues(indexValues)
 	payload, err := storage.EncodeRecord(indexValues)
 	if err != nil {
@@ -320,8 +323,9 @@ func (e *DMLExecutor) writeIndexCell(def indexDef, colDefs []sql.ColumnDef, inde
 	defer idxTree.Close() // tree and its insert cursor are function-local
 	// SQLite orders index b-trees by the keys' collations at insert time
 	// (OP_IdxInsert → sqlite3BtreeIndexMoveto under the index's KeyInfo):
-	// install the collation-aware comparator before the insert.
-	e.ikiOrder(idxTree, def, colDefs, e.collationLookup())
+	// install the collation-aware comparator before the insert — extended
+	// over the WR PK tail for WITHOUT ROWID tables.
+	e.installIndexWriteOrder(idxTree, def, colDefs, tableSQL, plan)
 	if err := idxTree.InsertCell(idxCell); err != nil {
 		return err
 	}

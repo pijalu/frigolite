@@ -123,6 +123,11 @@ type DDLContext interface {
 	SubqueryColumnCount(s *sql.SelectStmt) int
 	ViewColumnDefsFromSelect(sel *sql.SelectStmt) []sql.ColumnDef
 	BuildRowMap(rec *storage.Record, colDefs []sql.ColumnDef, rowID int64) RowMap
+	// RemapWRRecordToDeclared permutes a PK-first WITHOUT ROWID storage-order
+	// record back to declared column order in place (no-op otherwise): the
+	// CREATE INDEX backfill's row map must read the declared slots or a
+	// non-identity WR layout stores wrong key values.
+	RemapWRRecordToDeclared(rec *storage.Record, createSQL string, colDefs []sql.ColumnDef)
 	BuildColumnNames(columns []sql.SelectColumn, colDefs []sql.ColumnDef, sel *sql.SelectStmt) []string
 	BuildOutputRow(columns []sql.SelectColumn, colDefs []sql.ColumnDef, row Row) []interface{}
 	BuildOutputRowWithErr(columns []sql.SelectColumn, colDefs []sql.ColumnDef, row Row) ([]interface{}, error)

@@ -1597,3 +1597,59 @@ everywhere; go vet + go build clean.
   Check what a failed earlier statement in the SAME exec batch means for
   the observed pragma state before treating a pragma read as an
   independent bug.
+- **S33 WR index payload format (baa8dfebb)**: C stores a WITHOUT ROWID
+  secondary index record as [indexed cols..., PK cols in PK key order...]
+  (build.c ~4269 "Append the table key"), with isDupColumn eliding PK
+  columns the index keys already carry, and the tail ordered under the PK
+  columns' collations + DESC flags. The synthetic-rowid tail we wrote
+  before was unresolvable against the PK-keyed WR table btree, which made
+  the where-25.5 corrupt recheck impossible and left stale entries after
+  DELETE (delete payload [key..., rowID] != insert payload [key..., rowID]
+  because the delete's rowID read the WR cell's synthetic 0).
+- **WR tail plumbing patterns**: (a) one plan resolution per index —
+  wrTailPlanMemo (schema-stamp keyed, the ikiStamp pattern); (b) the tree
+  comparator must cover key + tail — installIndexWriteOrder extends the
+  memoized base KeyInfo per call (two slice copies, never mutates the
+  memo); (c) seek probes carry only the probe's fields (C's nField rule —
+  btree.IndexRecordCompare already probes len(probe.Values)); (d) the
+  seek's lower-bound landing is conclusive ONLY under BINARY PK collations
+  (wrPKSeekApplies gate) — a NOCASE PK row can sort outside the binary
+  window and a false "corrupt database" on a healthy db is worse than no
+  recheck.
+- **WR UPDATE targets collide on the synthetic rowid**: every WR index
+  cell carries RowID 0, so an update-side delete map keyed by rowID
+  collapsed all changes into one target (only the last delete payload
+  survived). Key by the OLD PK tail's value string (unique per row). Also
+  C update.c's chngKey rule (~566): a WR PK-column change must maintain
+  EVERY index (the tail rides every record) even when no index KEY column
+  changed.
+- **CREATE INDEX backfill on WR must remap before BuildRowMap**: the
+  stored record is PK-first; the positional row map read storage slot 0
+  as declared column 0 and stored wrong key values on non-identity
+  layouts. RemapWRRecordToDeclared (now on DDLContext) before the row map.
+- **Probe verification workflow that worked**: engine-built dbs in
+  /tmp/s33/probe/go + python3 -I dump_index.py (raw btree leaf parser,
+  record decode, stored order) diffed against /tmp/s33/oracle/*.db dumps
+  — byte-equal values AND order on all five format contracts in one shot.
+- **Flake watchlist addition (2026-11-16, S33)**: temptable2-9.1.x — a
+  bulk `DELETE FROM tx WHERE (random()%3)==0` on a ROWID temp table
+  (attached db, auto_vacuum=1, cache_size=15, two blob-keyed indexes)
+  sometimes leaves surviving rows' entries missing from index i1
+  (integrity_check: "wrong # of entries in index i1" + "row N missing").
+  PRE-EXISTING: fired 1/6 family-sweep runs at the pre-S33 baseline
+  9a8391251 (base fam run 6) as well as on S33 code (~1/3). NOT an S33
+  regression (tx is a rowid table; its integrity passes were never
+  exempted). Needs its own slice: capture a firing seed, then bisect the
+  bulk-DELETE index-maintenance funnel (delete.go maintainIndexesOnDelete
+  vs the scan that collects deleted rows) under auto_vacuum + tiny cache.
+- **WR table walks must use isTable=false**: a WITHOUT ROWID table's btree
+  is index-shaped — interior divider cells ARE rows (R13 moved one cell per
+  split boundary up). Any walk that opens a WR table tree with
+  isTable=true silently skips every divider row (CREATE INDEX backfill
+  short counts, scanTableForMatch misses rows). The flag must follow the
+  TABLE SHAPE resolved in the statement's OWN schema (temp/attached
+  shadowing!), not a hardcoded true. Fixed in a5ea11125 for the DDL
+  backfill, the DML uniqueScanTree funnels and integrity's per-row walk;
+  audit the execconstraint/alter sites when they next surface.
+- **sweep.sh gotcha**: grep treats some failure logs as BINARY (blob
+  values in got/want lines) and drops the leaf extraction — use `grep -a`.

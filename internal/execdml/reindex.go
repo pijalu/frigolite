@@ -206,7 +206,18 @@ func (e *DMLExecutor) RebuildIndex(ctx *DatabaseContext, tableEntry *schema.Entr
 			scanErr = kerr
 			return true
 		}
-		if err := e.writeIndexCell(*def, colDefs, append(indexValues, rowID)); err != nil {
+		// The rebuilt payload carries C's PK tail for a WITHOUT ROWID table
+		// (REINDEX rewrites every index to the engine's current format —
+		// the same one maintainIndexesOnInsert writes). scanTableForMatch
+		// remaps WR records to declared order, so rec.Values supply the
+		// tail directly.
+		plan := e.wrTailPlanMemo(tableEntry, colDefs, colIndex, *def)
+		if plan.valid() {
+			indexValues = append(indexValues, wrIndexTailValues(plan, values)...)
+		} else {
+			indexValues = append(indexValues, rowID)
+		}
+		if err := e.writeIndexCell(*def, colDefs, tableEntry.SQL, plan, indexValues); err != nil {
 			scanErr = err
 			return true
 		}

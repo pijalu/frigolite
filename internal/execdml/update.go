@@ -340,7 +340,7 @@ func (e *DMLExecutor) deleteUpdateIndexEntriesFor(tableEntry *schema.Entry, colD
 	// Union of touched indexes across changes, per index name (a rowid re-key
 	// touches every index; see maintainedUpdateIndexes).
 	defsByName := make(map[string]indexDef)
-	changeTargets := make(map[string]map[int64][]interface{}, len(changes)) // defName -> rowid -> key values
+	changeTargets := make(map[string]map[string][]interface{}, len(changes)) // defName -> target key -> key values
 	colIndex := e.columnIndexFor(colDefs)
 	for _, c := range changes {
 		if err := e.collectUpdateIndexDeleteTarget(tableEntry, colDefs, colIndex, c, defsByName, changeTargets); err != nil {
@@ -349,7 +349,11 @@ func (e *DMLExecutor) deleteUpdateIndexEntriesFor(tableEntry *schema.Entry, colD
 	}
 	for name, targets := range changeTargets {
 		def := defsByName[name]
-		if err := e.deleteIndexCellsBatch(def, colDefs, targets); err != nil {
+		// The WR tail plan (empty for rowid tables): the delete payloads and
+		// the descent's comparator must cover the PK tail like the insert
+		// side's do.
+		plan := wrIndexTailPlan(tableEntry.SQL, colDefs, def.Cols, colIndex)
+		if err := e.deleteIndexCellsBatch(def, colDefs, tableEntry.SQL, plan, targets); err != nil {
 			return err
 		}
 	}
@@ -381,7 +385,7 @@ func indexDefNeedsRowMaps(def indexDef, colIndex map[string]int) bool {
 // so the batched deletions below can resolve the index definitions). The OLD
 // row's name-keyed map is built lazily — only when a touched definition's
 // predicate or keys evaluate against a row.
-func (e *DMLExecutor) collectUpdateIndexDeleteTarget(tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, c updateChange, defsByName map[string]indexDef, changeTargets map[string]map[int64][]interface{}) error {
+func (e *DMLExecutor) collectUpdateIndexDeleteTarget(tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, c updateChange, defsByName map[string]indexDef, changeTargets map[string]map[string][]interface{}) error {
 	defs, _ := e.maintainedUpdateIndexes(tableEntry, colDefs, c, updateWriteRowID(c))
 	if len(defs) == 0 {
 		return nil
@@ -406,10 +410,24 @@ func (e *DMLExecutor) collectUpdateIndexDeleteTarget(tableEntry *schema.Entry, c
 		}
 		targets := changeTargets[def.Name]
 		if targets == nil {
-			targets = make(map[int64][]interface{})
+			targets = make(map[string][]interface{})
 			changeTargets[def.Name] = targets
 		}
-		targets[c.rowID] = append(indexValues, c.rowID)
+		// The removed payload mirrors the insert side's format: [key..., PK
+		// tail...] for a WITHOUT ROWID table (the tail from the OLD row's
+		// declared values), [key..., rowid] otherwise. WR index cells all
+		// carry the synthetic RowID 0, so the map is keyed by the tail's
+		// value string (unique per row — the PK is) instead of the rowid,
+		// which collided every change into one target (only the last
+		// change's delete payload survived per index).
+		if tableIsWithoutRowid(tableEntry.SQL) {
+			if plan := wrIndexTailPlan(tableEntry.SQL, colDefs, def.Cols, colIndex); plan.valid() {
+				indexValues = append(indexValues, wrIndexTailValues(plan, c.oldValues)...)
+				targets[wrTailTargetKey(plan, c.oldValues)] = indexValues
+				continue
+			}
+		}
+		targets[strconv.FormatInt(c.rowID, 10)] = append(indexValues, c.rowID)
 	}
 	return nil
 }
@@ -444,7 +462,17 @@ func (e *DMLExecutor) writeUpdateIndexEntriesFor(tableEntry *schema.Entry, colDe
 		if kerr != nil {
 			return kerr
 		}
-		if err := e.writeIndexCell(def, colDefs, append(indexValues, writeRowID)); err != nil {
+		// The written payload mirrors the insert side's format: [key..., PK
+		// tail...] for a WITHOUT ROWID table (the tail from the new row's
+		// declared values — the same slot the table record stores), [key...,
+		// rowid] otherwise.
+		plan := e.wrTailPlanMemo(tableEntry, colDefs, colIndex, def)
+		if plan.valid() {
+			indexValues = append(indexValues, wrIndexTailValues(plan, newValues)...)
+		} else {
+			indexValues = append(indexValues, writeRowID)
+		}
+		if err := e.writeIndexCell(def, colDefs, tableEntry.SQL, plan, indexValues); err != nil {
 			return err
 		}
 	}
@@ -468,9 +496,21 @@ func (e *DMLExecutor) maintainedUpdateIndexes(tableEntry *schema.Entry, colDefs 
 		}
 	}
 	rowidChanged := writeRowID != c.rowID
+	// C update.c's chngKey (chngPk): a WITHOUT ROWID table's PRIMARY KEY
+	// columns ride every index's record tail (the S33 payload format), so a
+	// PK change maintains every index even when no index KEY column changed.
+	pkChanged := false
+	if tableIsWithoutRowid(tableEntry.SQL) {
+		for _, ci := range WRPKIndices(tableEntry.SQL, colDefs) {
+			if ci < len(colDefs) && changed[strings.ToLower(colDefs[ci].Name)] {
+				pkChanged = true
+				break
+			}
+		}
+	}
 	var maintained []indexDef
 	for _, def := range defs {
-		if rowidChanged || indexTouchesChangedCols(def, colDefs, changed) {
+		if rowidChanged || pkChanged || indexTouchesChangedCols(def, colDefs, changed) {
 			maintained = append(maintained, def)
 		}
 	}

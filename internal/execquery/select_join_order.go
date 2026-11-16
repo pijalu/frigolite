@@ -430,6 +430,14 @@ func (e *SelectEngine) joinServingIndexCandidate(operand int, op *joinDeliveryOp
 	if op.real == "" {
 		return "", false, false
 	}
+	// A WITHOUT ROWID operand keeps its table walk: its rows are already in
+	// PK order, and the secondary-index delivery walk would permute rows
+	// into the index's order — whose trailing locator is the PK tail (S33),
+	// not a rowid sequence the permutation can walk back into table order
+	// (every other WR index-scan pick site is excluded the same way).
+	if e.operandIsWithoutRowid(op.real) {
+		return "", false, false
+	}
 	indexes, err := e.ctx.Schema().FindIndexesForTable(op.real)
 	if err != nil {
 		return "", false, false

@@ -29,7 +29,7 @@ func (e *DMLExecutor) maintainIndexesOnDelete(tableEntry *schema.Entry, colDefs 
 		// only indexed tables pay for it — for the partial-index predicate
 		// and expression-key consumers.
 		rowMap := row.rowMap(e)
-		if err := e.deleteRowFromIndexes(defs, colDefs, colIndex, rowMap, row.values, row.rowID); err != nil {
+		if err := e.deleteRowFromIndexes(defs, colDefs, colIndex, rowMap, row.values, row.rowID, tableEntry.SQL); err != nil {
 			return err
 		}
 	}
@@ -48,7 +48,7 @@ func (e *DMLExecutor) maintainIndexesOnDeleteRowMaps(tableEntry *schema.Entry, c
 	for _, row := range deletedRows {
 		rowID, _ := util.UnwrapColumnValue(row["rowid"]).(int64)
 		values := e.rowMapColumnValues(row, colDefs)
-		if err := e.deleteRowFromIndexes(defs, colDefs, colIndex, row, values, rowID); err != nil {
+		if err := e.deleteRowFromIndexes(defs, colDefs, colIndex, row, values, rowID, tableEntry.SQL); err != nil {
 			return err
 		}
 	}
@@ -56,8 +56,12 @@ func (e *DMLExecutor) maintainIndexesOnDeleteRowMaps(tableEntry *schema.Entry, c
 }
 
 // deleteRowFromIndexes removes one deleted row's entries from every index it
-// participates in (partial-index membership evaluated per index).
-func (e *DMLExecutor) deleteRowFromIndexes(defs []indexDef, colDefs []sql.ColumnDef, colIndex map[string]int, row RowMap, values []interface{}, rowID int64) error {
+// participates in (partial-index membership evaluated per index). The
+// removed payload is the one the insert side wrote: [key..., rowid] for a
+// rowid table, [key..., PK tail...] for a WITHOUT ROWID table (S33 — the
+// C payload format; the old row's declared values supply the tail).
+func (e *DMLExecutor) deleteRowFromIndexes(defs []indexDef, colDefs []sql.ColumnDef, colIndex map[string]int, row RowMap, values []interface{}, rowID int64, tableSQL string) error {
+	withoutRowid := tableIsWithoutRowid(tableSQL)
 	for _, def := range defs {
 		inIndex, werr := e.indexRowIncluded(def, row)
 		if werr != nil {
@@ -70,21 +74,31 @@ func (e *DMLExecutor) deleteRowFromIndexes(defs []indexDef, colDefs []sql.Column
 		if kerr != nil {
 			return kerr
 		}
-		if err := e.deleteIndexCell(def, colDefs, append(indexValues, rowID)); err != nil {
+		if withoutRowid {
+			if plan := wrIndexTailPlan(tableSQL, colDefs, def.Cols, colIndex); plan.valid() {
+				indexValues = append(indexValues, wrIndexTailValues(plan, values)...)
+				if err := e.deleteIndexCell(def, colDefs, tableSQL, plan, indexValues); err != nil {
+					return err
+				}
+				continue
+			}
+		}
+		indexValues = append(indexValues, rowID)
+		if err := e.deleteIndexCell(def, colDefs, tableSQL, wrTailPlan{}, indexValues); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-// deleteIndexCellsBatch removes the index entries keyed by rowid in targets
-// (each value is the full [key..., rowid] record) with ONE index descent per
-// target — the batch form of deleteIndexCell for statements touching many
-// rows (the per-statement batched leaf walk survives in
-// DeleteIndexEntries as the fallback for trees with no installed comparator).
-// A missing entry is tolerated (no error): the index may predate this engine's
-// index maintenance.
-func (e *DMLExecutor) deleteIndexCellsBatch(def indexDef, colDefs []sql.ColumnDef, targets map[int64][]interface{}) error {
+// deleteIndexCellsBatch removes the index entries keyed by target identity in
+// targets (each value is the full [key..., rowid] or [key..., PK tail...]
+// record) with ONE index descent per target — the batch form of
+// deleteIndexCell for statements touching many rows (the per-statement
+// batched leaf walk survives in DeleteIndexEntries as the fallback for trees
+// with no installed comparator). A missing entry is tolerated (no error): the
+// index may predate this engine's index maintenance.
+func (e *DMLExecutor) deleteIndexCellsBatch(def indexDef, colDefs []sql.ColumnDef, tableSQL string, plan wrTailPlan, targets map[string][]interface{}) error {
 	if len(targets) == 0 {
 		return nil
 	}
@@ -103,8 +117,9 @@ func (e *DMLExecutor) deleteIndexCellsBatch(def indexDef, colDefs []sql.ColumnDe
 	defer idxTree.Close() // tree and its cursor are function-local
 	// Every target is removed by a VALUE-ordered descent (OP_IdxDelete's
 	// sqlite3BtreeMovetoUnpacked), so the tree carries the same
-	// collation-aware comparator the insert side ordered it with.
-	installIndexOrder(idxTree, def.SQL, colDefs, e.collationLookup())
+	// collation-aware comparator the insert side ordered it with — extended
+	// over the WR PK tail for WITHOUT ROWID tables.
+	e.installIndexWriteOrder(idxTree, def, colDefs, tableSQL, plan)
 	if _, err := idxTree.DeleteIndexEntries(encoded); err != nil {
 		return err
 	}
@@ -116,7 +131,7 @@ func (e *DMLExecutor) deleteIndexCellsBatch(def indexDef, colDefs []sql.ColumnDe
 // delete (clearEmptyRootRightmost rewrites the root in place), so no root
 // tracking is needed. A missing entry is tolerated (no error): the index
 // may predate this engine's index maintenance.
-func (e *DMLExecutor) deleteIndexCell(def indexDef, colDefs []sql.ColumnDef, indexValues []interface{}) error {
+func (e *DMLExecutor) deleteIndexCell(def indexDef, colDefs []sql.ColumnDef, tableSQL string, plan wrTailPlan, indexValues []interface{}) error {
 	// Mirror writeIndexCell's storage normalization: the delete payload must
 	// byte-match the entry the insert side wrote.
 	indexStorageValues(indexValues)
@@ -128,8 +143,9 @@ func (e *DMLExecutor) deleteIndexCell(def indexDef, colDefs []sql.ColumnDef, ind
 	defer idxTree.Close() // tree and its cursor are function-local
 	// The delete descends the index by VALUE order (OP_IdxDelete's
 	// sqlite3BtreeMovetoUnpacked): install the same collation-aware
-	// comparator the insert side ordered the tree with.
-	installIndexOrder(idxTree, def.SQL, colDefs, e.collationLookup())
+	// comparator the insert side ordered the tree with — extended over the
+	// WR PK tail for WITHOUT ROWID tables.
+	e.installIndexWriteOrder(idxTree, def, colDefs, tableSQL, plan)
 	if _, err := idxTree.DeleteIndexEntry(payload); err != nil {
 		return err
 	}

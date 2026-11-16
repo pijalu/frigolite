@@ -265,18 +265,22 @@ func (e *DMLExecutor) findRowByIndexCols(tableEntry *schema.Entry, colDefs []sql
 		key[i] = kv
 	}
 	withoutRowid := tableIsWithoutRowid(tableEntry.SQL)
-	entryRowID, ok, fallback := e.indexConflictEntry(tableEntry.Name, def.Name, colDefs, key)
-	if !fallback && !withoutRowid {
-		// The corrupt recheck (C's OP_NotExists: the conflict row must exist)
-		// needs the entry's row locator. WITHOUT ROWID index records carry
-		// only a synthetic rowid our PK-keyed table btree cannot resolve, so
-		// the recheck is rowid-tables only; WITHOUT ROWID keeps the scan
-		// verdict (see PLAN_S26_dml_corrupt.md's carded note).
+	entryRowID, recValues, ok, fallback := e.indexConflictEntry(tableEntry.Name, def.Name, colDefs, key, withoutRowid)
+	if !fallback {
 		if !ok {
 			// Definitive: the index holds no equal entry.
 			return 0, nil, false, nil
 		}
-		if !e.rowIDExists(tableEntry.Name, tableEntry.RootPage, entryRowID) {
+		if withoutRowid {
+			// The recheck C's OP_NotExists performs, over the entry's PK tail
+			// (S33 — the record is [key..., PK...]): the conflicting entry's
+			// row must exist in the WR table btree; a missing row is
+			// corruption (where-25.5). An unresolvable tail or an unseekable
+			// layout keeps the scan verdict below.
+			if exists, runnable := e.wrIndexEntryRowExists(tableEntry, colDefs, def.Cols, colIndex, recValues); runnable && !exists {
+				return 0, nil, false, dmlCorruptError(true)
+			}
+		} else if !e.rowIDExists(tableEntry.Name, tableEntry.RootPage, entryRowID) {
 			// The index entry's row locator has no table row: corruption.
 			return 0, nil, false, dmlCorruptError(false)
 		}

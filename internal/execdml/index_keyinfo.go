@@ -65,6 +65,24 @@ func (e *DMLExecutor) ikiKeyInfo(def indexDef, colDefs []sql.ColumnDef, lookup f
 	return ki
 }
 
+// installIndexWriteOrder equips an index WRITE-side b-tree with the
+// collation-aware record comparator, extended with the WR PK tail's
+// collations and sort flags for WITHOUT ROWID tables (S33: C's index KeyInfo
+// covers every record field — the insert walk, the delete descent and the
+// seek probes must all agree with it). plan is the resolved tail layout
+// (wrIndexTailPlan); an invalid plan or a rowid table installs the plain
+// KeyInfo (ikiOrder's memoized form).
+func (e *DMLExecutor) installIndexWriteOrder(tree *btree.BTree, def indexDef, colDefs []sql.ColumnDef, tableSQL string, plan wrTailPlan) {
+	ki := e.ikiKeyInfo(def, colDefs, e.collationLookup())
+	if ki == nil {
+		return
+	}
+	if tableIsWithoutRowid(tableSQL) && plan.valid() {
+		ki = extendIndexKeyInfoForWR(ki, plan)
+	}
+	tree.SetIndexKeyInfo(ki, indexOrderLookup(e.collationLookup()))
+}
+
 // ikiOrder is installIndexOrder's memoizing form: same installed comparator,
 // but the KeyInfo of the last index write is reused. It is the per-index-cell
 // write path's hot call — the R14 profile put the CREATE INDEX re-parse at
