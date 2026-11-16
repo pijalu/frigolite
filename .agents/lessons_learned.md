@@ -1398,3 +1398,25 @@ everywhere; go vet + go build clean.
   /tmp/s33/probe/go + python3 -I dump_index.py (raw btree leaf parser,
   record decode, stored order) diffed against /tmp/s33/oracle/*.db dumps
   — byte-equal values AND order on all five format contracts in one shot.
+- **Flake watchlist addition (2026-11-16, S33)**: temptable2-9.1.x — a
+  bulk `DELETE FROM tx WHERE (random()%3)==0` on a ROWID temp table
+  (attached db, auto_vacuum=1, cache_size=15, two blob-keyed indexes)
+  sometimes leaves surviving rows' entries missing from index i1
+  (integrity_check: "wrong # of entries in index i1" + "row N missing").
+  PRE-EXISTING: fired 1/6 family-sweep runs at the pre-S33 baseline
+  9a8391251 (base fam run 6) as well as on S33 code (~1/3). NOT an S33
+  regression (tx is a rowid table; its integrity passes were never
+  exempted). Needs its own slice: capture a firing seed, then bisect the
+  bulk-DELETE index-maintenance funnel (delete.go maintainIndexesOnDelete
+  vs the scan that collects deleted rows) under auto_vacuum + tiny cache.
+- **WR table walks must use isTable=false**: a WITHOUT ROWID table's btree
+  is index-shaped — interior divider cells ARE rows (R13 moved one cell per
+  split boundary up). Any walk that opens a WR table tree with
+  isTable=true silently skips every divider row (CREATE INDEX backfill
+  short counts, scanTableForMatch misses rows). The flag must follow the
+  TABLE SHAPE resolved in the statement's OWN schema (temp/attached
+  shadowing!), not a hardcoded true. Fixed in a5ea11125 for the DDL
+  backfill, the DML uniqueScanTree funnels and integrity's per-row walk;
+  audit the execconstraint/alter sites when they next surface.
+- **sweep.sh gotcha**: grep treats some failure logs as BINARY (blob
+  values in got/want lines) and drops the leaf extraction — use `grep -a`.
