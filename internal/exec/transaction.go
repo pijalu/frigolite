@@ -95,6 +95,14 @@ func (e *Engine) execCommit() *Result {
 	if res := e.commitFlushAllPagers(); res != nil {
 		return res
 	}
+	// The BEGIN snapshots stay alive through the pager flush so a FAILED
+	// COMMIT's execRollback (vdbeaux.c sqlite3VdbeHalt's abort path) can undo
+	// the whole transaction; commitClearTxState deliberately does not drop
+	// them. The commit succeeded — discard them now (they are owned by the
+	// transaction that just completed; the FTS/FTS5 snapshots likewise).
+	e.tx.txSnapshots = nil
+	e.tx.txFTSnapshots = nil
+	e.tx.txFTS5Snapshots = nil
 	return &Result{}
 }
 
@@ -141,8 +149,6 @@ func (e *Engine) commitClearTxState() {
 	e.constraints.ResetFKDirty()
 	e.dml.ClearTxnWrittenFiles()
 	e.tx.ddlBuffer = nil
-	e.tx.txSnapshots = nil
-	e.tx.txFTSnapshots = nil
 	e.clearReservedDbs()
 	e.dml.ClearTxnWrittenFiles()
 }
@@ -228,14 +234,17 @@ func (e *Engine) commitFlushAllPagers() *Result {
 	}
 	for _, dbCtx := range e.dbList {
 		if dbCtx != nil && dbCtx.Pager != nil {
-			if err := dbCtx.Pager.FlushWithContext(multiDB); err != nil {
-				// sqlite3PagerCommitPhaseOne failure aborts the
-				// transaction: the pager rolls back to its BEGIN state
-				// (vdbe.c abort path). Without the rollback the flushed
-				// header/pages would lead the rolled-back file state.
-				e.execRollback()
-				return &Result{Error: err}
-			}
+		if err := dbCtx.Pager.FlushWithContext(multiDB); err != nil {
+			// sqlite3PagerCommitPhaseOne failure aborts the
+			// transaction: the pager rolls back to its BEGIN state
+			// (vdbe.c abort path). Without the rollback the flushed
+			// header/pages would lead the rolled-back file state.
+			// rollbackOpenTx (not execRollback): the commit teardown
+			// already cleared inTransaction, and vdbeaux.c's abort path
+			// rolls back regardless (pager1-11.2's lockout IOERR).
+			e.rollbackOpenTx()
+			return &Result{Error: err}
+		}
 		}
 	}
 	return nil
@@ -429,6 +438,16 @@ func (e *Engine) execRollback() *Result {
 		e.releaseTransactionLocks()
 		return &Result{Error: fmt.Errorf("cannot rollback - no transaction is active")}
 	}
+	return e.rollbackOpenTx()
+}
+
+// rollbackOpenTx performs the transaction rollback without the
+// active-transaction guard. The failed-COMMIT abort path needs it: vdbeaux.c
+// sqlite3VdbeHalt aborts the transaction (sqlite3VdbeRollback) when the
+// commit itself failed, after the commit teardown cleared db->autoCommit —
+// the page state must still roll back to the BEGIN image. Callers:
+// execRollback (guarded) and commitFlushAllPagers (the pager flush failure).
+func (e *Engine) rollbackOpenTx() *Result {
 	// A ROLLBACK issued from a nested statement (the eval() extension, a
 	// trigger body) that undoes schema changes (DDL inside the transaction)
 	// aborts the enclosing statement: SQLite bumps the schema cookie on DDL,

@@ -260,7 +260,7 @@ func (p *Pager) readPageLocked(pageNum uint32) (*Page, error) {
 		return pg, nil
 	}
 	if pageNum > p.numPages {
-		return nil, fmt.Errorf("database disk image is malformed [pgno>%d]", p.numPages)
+		return nil, fmt.Errorf("database disk image is malformed")
 	}
 
 	pg := &Page{

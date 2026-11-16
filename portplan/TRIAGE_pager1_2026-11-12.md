@@ -155,7 +155,7 @@ otherwise regeneration reproduces the same artifacts.
   = {0 2 0} / {0 3 0} / {0 1 0}.
 
 **U5 — misc engine contracts (B7, 11 leaves; six independent units, land in
-any order)**
+any order) — COMPLETE (S31.1..S31.6, branch s31-pager-engine)**
 - U5a page_count/max_page_count (44.1/44.3): auto_vacuum=FULL page_count
   must count ptrmap pages (pager.c:1070 — the super-journal page number is
   never a ptrmap page; ptrmap pages ARE counted in dbSize); on ROLLBACK
@@ -192,6 +192,11 @@ any order)**
 - C source pointers: pager1.test:2752-2956 (44.x), 2737-2749 (38.1),
   1778-1803 (14.1.x), 2852-2898 (42.1), 2100-2124 (21.x), 1296-1317 (8.x),
   1576-1611 (11.x).
+- Landed status (S31, 2026-11-16): 44.1/44.3 (S31.1), 38.1#01 (S31.2),
+  14.1.4/14.1.6 (S31.3), 42.1 (S31.4), 21.1/21.2 (S31.5), 8.2.2 +
+  11.1/11.2/11.5 (S31.6 — the failed-COMMIT abort path rollbackOpenTx +
+  BEGIN-snapshot lifetime, bare-rowid INNER-owning aggregates, testvfs
+  lockout pins). pager1 90 → 79.
 
 **U6 — hot-journal substrate (B4, 13 leaves)**
 - Engine `internal/pager`: (a) materialize the rollback journal on disk

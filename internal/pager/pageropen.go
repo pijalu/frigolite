@@ -559,7 +559,7 @@ func (p *Pager) ValidateHeader() error {
 	// underneath the header — malformed. Corrupt2/incrvacuum suites load
 	// images cut short while the header still advertises more pages.
 	if p.HeaderBeyondFile() {
-		return fmt.Errorf("database disk image is malformed [open hdr]")
+		return fmt.Errorf("database disk image is malformed")
 	}
 	return nil
 }

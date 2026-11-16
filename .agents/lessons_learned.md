@@ -1282,3 +1282,45 @@ everywhere; go vet + go build clean.
   only (misc6-1.1, blob-3.2, e_blobclose-1.2/3.3 fail at the pristine
   commit too). wal4/walbak/walfault diffs recorded in the S30 sweep logs
   (/tmp/s30_cleanbase_* vs /tmp/s30_after_*).
+
+## S31 record (2026-11-16) — pager1 U5 complete: the failed-COMMIT abort path, rowid-alias aggregates, lockout pins
+
+- **A failed COMMIT must still roll the transaction back even though the
+  commit teardown already cleared the transaction flags** (vdbeaux.c
+  sqlite3VdbeHalt's abort path): `commitClearTxState` set
+  inTransaction=false AND nilled txSnapshots BEFORE the pager flush, so the
+  flush-failure `execRollback()` (a) bailed at the "cannot rollback - no
+  transaction is active" guard and (b) found no snapshots — the connection
+  kept the mid-txn pager state (grown header nPage + fileSize cache vs the
+  un-extended file) and the next read failed "database disk image is
+  malformed" (pager1-11.5). Fix: `rollbackOpenTx()` = the rollback body
+  without the guard; execRollback = guard + rollbackOpenTx; the
+  commitFlushAllPagers failure path calls rollbackOpenTx directly; the BEGIN
+  snapshots stay alive until AFTER commitFlushAllPagers succeeds.
+- **flushPage's xWrite gate runs after the cached fileSize / header nPage
+  bump** — a VETOED page write still grows p.fileSize and
+  growHeaderSizeLocked's in-header count in memory. That is survivable ONLY
+  because the failed commit now restores the whole BEGIN image; without the
+  restore the vetoed write leaves header claims leading the file.
+- **Statement-boundary cache spill (CacheFlush) is the engine's mid-txn
+  file-writer** (cache_size=10 + a 32-row UPDATE): the probe must replicate
+  EVERY fixture ingredient (cache_size, row widths) or the failure will not
+  reproduce — the plain probe COMMIT had nothing to flush and never failed.
+- **The previous instance's `[open hdr]` / `[pgno>N]` debug tags in
+  user-visible error text would have corrupted exact-match catchsql
+  comparisons** (matchExpectation is exact; only the harness's regex/glob
+  wrapper forms relax it). Reverted before S31.6; error-text probes must be
+  removed before commit, not landed.
+- **U5 is COMPLETE (11 leaves)**: 44.1/44.3 (S31.1), 38.1#01 (S31.2),
+  14.1.4/14.1.6 (S31.3), 42.1 (S31.4), 21.1/21.2 (S31.5), 11.1/11.2/11.5
+  (WIP + S31.6), 8.2.2 (WIP). pager1 90 → 79.
+- The C 11.x lockout pins: `tv script lockout` + `tv filter {xWrite
+  xTruncate xSync}` are set BETWEEN 11.1 and 11.2 (they veto 11.2's COMMIT
+  only); `tv script {}` clears at the END of 11.2 (C's line between the
+  catchsql and 11.3) — db2's 11.3 open + journal_mode=TRUNCATE must NOT be
+  vetoed; the filter (without a script) stays a no-op through 11.5.
+- Sensitive-family sweep at S31.6 (failure NAME sets, pristine vs changed,
+  two directions): trans/jrnlmode/incrvacuum/lock_/lock3/pagerfault/pager2/
+  pager3/trigger2/fts4merge4 all 0; savepoint 15 and pager4 6 identical to
+  pristine (pre-existing). staticcheck U1000 joinOperandColumnSide
+  (select_join_or.go) is pre-existing at the WIP commit.
