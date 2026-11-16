@@ -1533,3 +1533,30 @@ everywhere; go vet + go build clean.
   trigger2 — all 0 or identical-baseline; journal2 5 / savepoint 15 /
   pager4 6 / walfault 6 / wal 97 / wal2 26 / trigger 25 all identical to
   pristine (two-direction name-set diffs).
+
+## The 1355 baseline was UNDERCOUNTED (2026-11-16)
+
+- **/tmp/full_s33_gate_fails.txt (1355) lost 75 leaf lines** to the s33 gate
+  log's faultsim NUL corruption — the extraction used a line-based method
+  (`strings`-style) that collapses NUL-heavy regions and DROPS the FAIL lines
+  inside them. Robust re-extraction of the SAME raw log
+  (/tmp/full_s33_gate.log, still on disk) with the python raw byte scan
+  (`re.findall(rb'--- FAIL: TestSQLiteSuite/([^\s(]+)')`, leaf-only = names
+  containing '/') yields **1430 = /tmp/full_s33_true_fails.txt**.
+- **Rule: extract from corrupted faultsim logs with the python raw byte scan
+  ONLY.** `strings(1)`/grep-line methods silently undercount (my first
+  strings extraction found ONE FAIL line in a log with 1556). Validate any
+  extraction: leaf-only count + spot-check a family known-failing.
+- **Validate suspicious GONE sets the same way**: e_dropview's 14 leaves
+  "passed" at baseline only because the lines were eaten — bisected at
+  dd045611d (pre-S31) reproducing the identical failure set (a
+  wt_basecheck worktree run). A "fix" that no commit explains = extraction
+  loss, not engine improvement.
+- The true S31-merge delta vs 1430: **4 NEW (pragma2-5.1, pragma2-5.3,
+  sharedA-1.1, sharedA-1.2 — all reproduce at HEAD, 0/3 at dd045611d) /
+  112 GONE (89 pager1 + alter2 13 + analyze-5.99, fkey6 2, index3-99.1,
+  main-2.0#01, tkt-f3e5abed55-2.5, trigger7-99.1 — the non-pager1 GONEs
+  need per-leaf verification before crediting S31)**.
+- Agent sweep lists need the FULL family universe: S31's 31-family sweep
+  missed pragma2/sharedA (the regressions) AND e_dropview/skipscan5/tkt-*
+  (the phantom news). The full-suite gate is the only complete net.
