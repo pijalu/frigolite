@@ -581,7 +581,16 @@ func (e *DMLExecutor) maintainIndexesOnInsert(tableEntry *schema.Entry, colDefs 
 		if kerr != nil {
 			return kerr
 		}
-		if err := e.writeIndexCell(def, colDefs, append(indexValues, rowID)); err != nil {
+		// The entry's trailing locator: the rowid for a rowid table, C's
+		// PRIMARY KEY tail for a WITHOUT ROWID table (S33 — index record =
+		// [key..., PK...]; the tail is the locator the write-path recheck
+		// resolves, so the synthetic rowid is gone).
+		if plan := e.wrTailPlanMemo(tableEntry, colDefs, colIndex, def); plan.valid() {
+			indexValues = append(indexValues, wrIndexTailValues(plan, values)...)
+		} else {
+			indexValues = append(indexValues, rowID)
+		}
+		if err := e.writeIndexCell(def, colDefs, tableEntry.SQL, indexValues); err != nil {
 			return err
 		}
 	}

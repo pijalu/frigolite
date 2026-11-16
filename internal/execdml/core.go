@@ -327,6 +327,18 @@ type DMLExecutor struct {
 	ikiName  string
 	ikiVal   *btree.KeyInfo
 
+	// The wrPlan* slot memoizes one WITHOUT ROWID index's PK tail layout
+	// (wrIndexTailPlan): like the iki slot it is a pure function of the
+	// schema (the CREATE TABLE's PK list, the CREATE INDEX's key list), so
+	// one resolution per index serves every index-cell write instead of
+	// re-parsing the table-level PK text per row.
+	wrPlanStamp uint64
+	wrPlanCtx   *DatabaseContext
+	wrPlanTable string
+	wrPlanIndex string
+	wrPlanDone  bool
+	wrPlanVal   wrTailPlan
+
 	// dmlStmtSeq/fpSeq/fpCache memoize the schema fingerprint per DML
 	// statement (schemaFingerprint): the memo guards read it several times
 	// per statement and the schema is frozen mid-statement.
