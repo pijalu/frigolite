@@ -10762,6 +10762,10 @@
           ],
           "functionProc": "auth",
           "functionBody": "eval lappend ::authargs [lrange $args 0 4]; return SQLITE_OK"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "authargs"
         }
       ]
     },
@@ -10780,6 +10784,15 @@
       ]
     },
     {
+      "name": "setup_46",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "authargs"
+        }
+      ]
+    },
+    {
       "name": "fkey2-18.3",
       "steps": [
         {
@@ -10790,6 +10803,15 @@
           "type": "runtime_var",
           "variable": "authargs",
           "expect": "SQLITE_INSERT short {} main {} SQLITE_READ long b main {}"
+        }
+      ]
+    },
+    {
+      "name": "setup_47",
+      "steps": [
+        {
+          "type": "runtime_var_reset",
+          "variable": "authargs"
         }
       ]
     },
@@ -10823,6 +10845,10 @@
           "sql": "INSERT INTO cross VALUES(0, 1, 0)"
         },
         {
+          "type": "runtime_var_reset",
+          "variable": "authargs"
+        },
+        {
           "type": "exec",
           "sql": "UPDATE nought SET b = 5"
         },
@@ -10849,6 +10875,10 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE one(a INTEGER PRIMARY KEY, b);\n      CREATE TABLE two(b, c REFERENCES one);\n      INSERT INTO one VALUES(101, 102);"
+        },
+        {
+          "type": "runtime_var_reset",
+          "variable": "authargs"
         },
         {
           "type": "exec",

@@ -89,9 +89,7 @@ func (e *DMLExecutor) authFKEventsForUpdate(s *sql.UpdateStmt, tableEntry *schem
 	for _, a := range s.Assignments {
 		changed = append(changed, a.Column)
 	}
-	for _, col := range s.SetParenColumns {
-		changed = append(changed, col)
-	}
+	changed = append(changed, s.SetParenColumns...)
 	hasRowidColumn := execquery.RowHasRowIDColumn(colDefs)
 	if !hasRowidColumn {
 		for _, a := range s.Assignments {
