@@ -1,8 +1,8 @@
 package exec
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -173,13 +173,13 @@ func (e *Engine) setJournalMode(ctx *DatabaseContext, schema, m string) *execpra
 		if strings.Contains(err.Error(), "in-memory") {
 			return journalModeResult(ctx.Pager.JournalMode())
 		}
-		// C's WAL→rollback switch under contention: sqlite3PagerCloseWal's
-		// EXCLUSIVE lock fails with SQLITE_BUSY and OP_JournalMode (vdbe.c:
-		// 8087) falls back to eNew = eOld — the PRAGMA SUCCEEDS reporting
-		// the CURRENT mode, no error (wal-25.x's contended DELETE).
-		if strings.Contains(err.Error(), "database is locked") {
-			return journalModeResult(ctx.Pager.JournalMode())
-		}
+		// C's WAL→rollback switch under contention FAILS the statement:
+		// OP_JournalMode (vdbe.c:8081-8096) runs sqlite3PagerCloseWal and
+		// on its SQLITE_BUSY falls back to eNew = eOld AND
+		// `goto abort_due_to_error` — sqlite3ErrStr(SQLITE_BUSY)'s
+		// "database is locked" surfaces (walmode-4.9's second connection
+		// holds the pager's wal-index RefCount gate; wal.test 25.x is the
+		// ATTACH journal-mode sweep, no contention).
 		return &execpragma.Result{Error: err}
 	}
 	return journalModeResult(ctx.Pager.JournalMode())

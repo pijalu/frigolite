@@ -60,7 +60,20 @@
         {
           "type": "query_assign",
           "sql": "PRAGMA page_count",
-          "variable": "nPage",
+          "variable": "nPage"
+        },
+        {
+          "type": "runtime_expr",
+          "sql": "$nPage-10",
+          "variable": "pages"
+        },
+        {
+          "type": "backup_db",
+          "sql": "$pages",
+          "database": "db2",
+          "destDb": "main",
+          "srcConn": "db",
+          "srcDb": "main",
           "expect": "SQLITE_OK"
         }
       ]

@@ -95,6 +95,10 @@ func openPager(path string, pageSize uint32, forceReadOnly bool) (*Pager, error)
 		// and syncHeader (wal.c:1731-1734). A fixture devchar option
 		// REPLACES the whole mask (test_vfs.c tvfsDeviceCharacteristics).
 		deviceCharacteristics: IOCAPPowerSafeOverwrite,
+		// setSectorSize (pager.c:2727-2735): POWERSAFE_OVERWRITE in the
+		// mask → the 512 floor. SetDeviceCharacteristics recomputes when a
+		// fixture drops the bit.
+		sectorSize: 512,
 		// pager.c lazy creation: a database opened empty (0 bytes) must
 		// stay untouched on disk until the first real write — opening and
 		// closing it never materializes the file.
@@ -346,8 +350,12 @@ func attachWalAtOpen(pr *Pager, cleanPath string) error {
 	// close (the RefCount gate skips the close-time deletion while another
 	// connection is attached) and would otherwise resurrect the old
 	// generation's schema at the next journal_mode=wal (e_walckpt's
-	// per-scenario forcedelete cycles: "table t1 already exists").
-	if fi, err := os.Stat(cleanPath); err == nil && fi.Size() == 0 {
+	// per-scenario forcedelete cycles: "table t1 already exists"). A MISSING
+	// main file is the same rule: C's open creates a 0-byte main
+	// (wal4's faultsim restore), whose xFileSize reports 0 pages, so
+	// pagerPagecount's nPage==0 branch deletes the log (pager.c:3348-3351)
+	// before anything reads it — wal4-1.3's "no such table: t1".
+	if fi, err := os.Stat(cleanPath); (err == nil && fi.Size() == 0) || os.IsNotExist(err) {
 		if _, werr := os.Stat(cleanPath + "-wal"); werr == nil && !walIndexLiveEntry(cleanPath) {
 			_ = os.Remove(cleanPath + "-wal")
 			_ = os.Remove(cleanPath + "-shm")
@@ -448,6 +456,7 @@ func OpenInMemory(pageSize uint32) *Pager {
 		numPages:              0,
 		header:                dh.Encode(),
 		deviceCharacteristics: IOCAPPowerSafeOverwrite,
+		sectorSize:            512, // setSectorSize's PSO floor; memory never dispatches large sectors
 		pendingByteOverride:   globalPendingByte,
 	}
 }

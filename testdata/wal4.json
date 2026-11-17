@@ -14,11 +14,27 @@
       ]
     },
     {
+      "name": "faultsim_save_close",
+      "steps": [
+        {
+          "type": "faultsim_save_close"
+        }
+      ]
+    },
+    {
       "name": "delete_file",
       "steps": [
         {
           "type": "delete_file",
           "sql": "sv_test.db"
+        }
+      ]
+    },
+    {
+      "name": "faultsim_restore",
+      "steps": [
+        {
+          "type": "faultsim_restore_reopen"
         }
       ]
     },

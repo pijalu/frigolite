@@ -520,13 +520,82 @@ func (p *Pager) PrepareWrite(pg *Page) {
 	if pg == nil {
 		return
 	}
-	top := p.stmtTop
-	if top == nil {
+	p.mu.Lock()
+	// C's sqlite3PagerWrite dispatch (pager.c:6106): a sector size larger
+	// than the page size routes EVERY write-intent to pagerWriteLargeSector
+	// (the hardware blast radius of a partial-sector write spans the whole
+	// sector). Memory pagers never dispatch (their PSO-capable mask keeps
+	// sectorSize 512 below every page size).
+	if p.sectorSize > p.pageSize && p.file != nil {
+		p.pagerWriteLargeSectorLocked(pg)
+		p.mu.Unlock()
 		return
 	}
-	p.mu.Lock()
 	p.stmtJournalPageLocked(pg.PageNum)
 	p.mu.Unlock()
+}
+
+// pagerWriteLargeSectorLocked ports pagerWriteLargeSector (pager.c:6131-6190):
+// every page sharing the target's sector is journaled with the target —
+// fetched into the cache and marked dirty so the commit appends their frames
+// (the walvfs-1.2 oracle dump: each 1-row INSERT at page_size 1024 with
+// sectorSize 4096 commits frames [pgno 1 uncommitted, leaf COMMIT], because
+// page 2's sector covers pages 1-4). Pages already dirty need no fetch (C
+// skips them via the journal bitvec test). The target keeps its own
+// statement-journal capture. Caller holds p.mu.
+func (p *Pager) pagerWriteLargeSectorLocked(pg *Page) {
+	nPagePerSector := p.sectorSize / p.pageSize
+	if nPagePerSector == 0 {
+		p.stmtJournalPageLocked(pg.PageNum)
+		return
+	}
+	// pg1: the first page of the sector containing the target (both sizes
+	// are powers of two — pager.c's bit trick).
+	pg1 := ((pg.PageNum - 1) & ^(nPagePerSector - 1)) + 1
+	nPageCount := p.dbSizeLocked()
+	var nPage uint32
+	switch {
+	case pg.PageNum > nPageCount:
+		nPage = pg.PageNum - pg1 + 1
+	case pg1+nPagePerSector-1 > nPageCount:
+		nPage = nPageCount + 1 - pg1
+	default:
+		nPage = nPagePerSector
+	}
+	for i := uint32(0); i < nPage; i++ {
+		pgno := pg1 + i
+		if pgno == pg.PageNum {
+			// The target: C journals it through pager_write inside the loop.
+			p.stmtJournalPageLocked(pgno)
+			continue
+		}
+		if p.dirty[pgno] {
+			// Already journaled this transaction — C's
+			// sqlite3BitvecTest(pInJournal, pg) skip branch.
+			continue
+		}
+		// C fetches through sqlite3PagerGet + pager_write; a fetch failure
+		// propagates rc. Our void PrepareWrite seam surfaces I/O faults at
+		// the write/commit paths instead (the walvfs-3.x fault-injection
+		// harness surfaces are the carded S35g bucket).
+		if fetched, err := p.readPageLocked(pgno); err == nil && fetched != nil {
+			p.markDirtyLocked(fetched.PageNum)
+		}
+	}
+}
+
+// dbSizeLocked ports C's Pager.dbSize as pagerPagecount derives it
+// (pager.c:841-856): the WAL-attached case reads the wal-index header's
+// committed page count (sqlite3WalDbsize), the rollback case the main
+// file's size. Caller holds p.mu.
+func (p *Pager) dbSizeLocked() uint32 {
+	if p.wal != nil && p.wal.hdr.NPage > 0 {
+		return p.wal.hdr.NPage
+	}
+	if p.pageSize > 0 && p.fileSize > 0 {
+		return uint32(p.fileSize / int64(p.pageSize))
+	}
+	return p.numPages
 }
 
 // prepareWriteLocked is PrepareWrite for pager-internal callers already

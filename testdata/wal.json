@@ -2178,8 +2178,18 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA page_size = 1024;\n    CREATE TABLE t1(x, y);\n    CREATE TABLE t2(x, y);\n    INSERT INTO t1 VALUES('A', 1);",
-          "expect": "1 {}"
+          "sql": "PRAGMA page_size = 1024;\n    CREATE TABLE t1(x, y);\n    CREATE TABLE t2(x, y);\n    INSERT INTO t1 VALUES('A', 1);"
+        },
+        {
+          "type": "file_size",
+          "sql": "test.db",
+          "variable": "1024",
+          "expect": "1"
+        },
+        {
+          "type": "file_size",
+          "sql": "test.db-wal",
+          "expect": "5272"
         }
       ]
     },

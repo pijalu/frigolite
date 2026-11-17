@@ -14,15 +14,30 @@ import (
 	"github.com/pijalu/frigolite/internal/storage"
 )
 
-// SetPageSize changes the pager's page size. It is only valid before any
-// user data pages exist (PRAGMA page_size on an empty database); the caller
-// is responsible for enforcing that. Page 1's Data buffer is resized so the
-// header/payload layout stays consistent. For a file-backed database the
-// file is truncated to zero so the next flush writes page 1 at the new size
-// (a previously-written page 1 at the old size would otherwise leave a
-// stale larger file, since flushPage only ever grows the file).
-func (p *Pager) SetPageSize(ps uint32) {
+// SetPageSize changes the pager's page size and reports whether it was
+// applied. It is only valid before any user data pages exist (PRAGMA
+// page_size on an empty database); the caller is responsible for enforcing
+// that. Page 1's Data buffer is resized so the header/payload layout stays
+// consistent. For a file-backed database the file is truncated to zero so
+// the next flush writes page 1 at the new size (a previously-written page 1
+// at the old size would otherwise leave a stale larger file, since
+// flushPage only ever grows the file).
+//
+// Two C refusal rules precede the resize (btree.c sqlite3BtreeSetPageSize),
+// and the caller must skip its header-field write when the change is
+// refused: a size that already matches is an early no-op (btree.c:3077-3081
+// — wal-12.1 re-issues PRAGMA page_size=1024 after journal_mode=wal already
+// applied it; the truncate below would zero a main file C leaves at 1024),
+// and a database whose header image exists (BTS_PAGESIZE_FIXED, set at
+// btree.c:2724-2725 whenever lockBtree read a zDbHeader — the main file's
+// bytes, or page 1 through the WAL) refuses the change; pragma.c swallows
+// the READONLY and the file image pins the size.
+func (p *Pager) SetPageSize(ps uint32) bool {
 	p.mu.Lock()
+	if ps == p.pageSize || p.fileSize > 0 || (p.wal != nil && p.wal.hdr.NPage > 0) {
+		p.mu.Unlock()
+		return false
+	}
 	p.pageSize = ps
 	if p.file != nil {
 		_ = p.file.Truncate(0)
@@ -58,6 +73,7 @@ func (p *Pager) SetPageSize(ps uint32) {
 	}
 	p.mu.Unlock()
 	p.notifyLayoutChanged()
+	return true
 }
 
 // ResetToEmpty rewrites the database as a fresh, empty single-page database

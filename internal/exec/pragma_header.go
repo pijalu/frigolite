@@ -411,11 +411,17 @@ func (e *Engine) execPragmaPageSize(ctx *DatabaseContext, value string) *Result 
 		// Otherwise the value is REMEMBERED and applied by the next VACUUM
 		// (pragma.c pNextPagesize, applied by sqlite3RunVacuum).
 		if e.schemaIsEmpty(ctx) {
-			ctx.Pager.SetPageSize(uint32(n))
-			if err := e.updateDBHeaderField(ctx, func(h *storage.DatabaseHeader) {
-				h.PageSize = uint32(n)
-			}); err != nil {
-				return &Result{Error: err}
+			// The pager refuses (reporting false) when the size already
+			// matches or the database image exists (btree.c BTS_PAGESIZE_FIXED)
+			// — the header-field write must ride the same gate or the refused
+			// change would still mark page 1 dirty and emit a spurious WAL
+			// frame (wal-12.1's re-issued PRAGMA page_size=1024).
+			if ctx.Pager.SetPageSize(uint32(n)) {
+				if err := e.updateDBHeaderField(ctx, func(h *storage.DatabaseHeader) {
+					h.PageSize = uint32(n)
+				}); err != nil {
+					return &Result{Error: err}
+				}
 			}
 			ctx.PendingPageSize = 0
 		} else {

@@ -258,7 +258,7 @@ type Pager struct {
 	walHook func(nLog, nCkpt int) int
 	// testvfs hook layer (vfshooks.go): the fixture VFS's observable I/O
 	// events, the devchar override, and the WAL sync-flag level.
-	vfsHook               func(op, path string, details []string) error
+	vfsHook func(op, path string, details []string) error
 	// interruptProbe reports the owning connection's interrupt flag
 	// (sqlite3_interrupt): wal.c's checkpoint copyback consults it between
 	// page writes (wal.c:2289-2292). Installed once at engine binding; nil
@@ -268,6 +268,11 @@ type Pager struct {
 	vfsShmMapPending      bool
 	deviceCharacteristics int
 	walSyncFlags          uint8
+	// sectorSize is the VFS sector size C's setSectorSize derives
+	// (pager.c:2727-2735): 512 whenever POWERSAFE_OVERWRITE is in the
+	// device mask (the default), SQLITE_DEFAULT_SECTOR_SIZE otherwise — the
+	// input to sqlite3PagerWrite's large-sector dispatch (pager.c:6106).
+	sectorSize uint32
 	// walFault injects I/O faults into WAL writes when non-nil (mirrors
 	// SQLite's test_syscall faultsim). The writer calls it before each write;
 	// a non-nil return aborts the write with that error. Nil in production.

@@ -1,7 +1,6 @@
 package frigolite
 
 import (
-	"log"
 	"bytes"
 	"compress/gzip"
 	"crypto/md5"
@@ -10,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"math"
 	"math/big"
 	randlib "math/rand"
@@ -3503,6 +3503,16 @@ func TestSQLiteSuite(t *testing.T) {
 							usesReopen = true
 						}
 					}
+					// faultsim_save's file snapshots only mean something when
+					// the main handle IS the file (tester.tcl's test.db): the
+					// save copies test.db* and the restore replaces them —
+					// wal4-1.2/1.3's snapshot restores a wal+shm pair with no
+					// main. The triage's §4.5 general rule: any family whose
+					// source calls faultsim_save gets the file-backed
+					// lifecycle.
+					if strings.HasPrefix(step.Type, "faultsim_save") {
+						usesReopen = true
+					}
 				}
 			}
 			if usesReopen {
@@ -4407,6 +4417,39 @@ func TestSQLiteSuite(t *testing.T) {
 							if err := os.Rename(source, target); err != nil {
 								t.Errorf("rename file %q -> %q: %v", source, target, err)
 								return
+							}
+							continue
+						}
+						if step.Type == "file_size" {
+							// `[file size PATH]` from a do_test body (wal-12.1's
+							// `list [expr [file size test.db]/1024]
+							// [file size test.db-wal]`): the converter cannot
+							// bake file sizes (the fixture-relative path is
+							// per-run), so the pin carries the path in SQL, the
+							// decimal divisor in Variable ("" = 1) and the
+							// compared value in Expect. A missing file fails
+							// loudly (TCL's [file size] errors the same way).
+							target := step.SQL
+							if !filepath.IsAbs(target) {
+								target = filepath.Join(fixtureDBDir, target)
+							}
+							info, serr := os.Stat(target)
+							if serr != nil {
+								t.Errorf("file size %q: %v", target, serr)
+								continue
+							}
+							size := info.Size()
+							if div := strings.TrimSpace(step.Variable); div != "" {
+								n, derr := strconv.ParseInt(div, 10, 64)
+								if derr != nil || n <= 0 {
+									t.Errorf("file size %q: bad divisor %q", step.SQL, step.Variable)
+									continue
+								}
+								size /= n
+							}
+							got := fmt.Sprintf("%d", size)
+							if diff := matchExpectation(got, step.Expect); diff != "" {
+								t.Errorf("file size %q mismatch: %s\n  got: %s\n  want: %s", step.SQL, diff, got, step.Expect)
 							}
 							continue
 						}

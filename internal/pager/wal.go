@@ -166,24 +166,24 @@ func openWal(p *Pager, dbPath string, pageSize uint32) (*walWriter, error) {
 }
 
 // walInitHeader loads the shared wal-index header (recovering from the -wal
-// through the WRITER-lock dance when it does not parse), rebuilds when the
-// shared header outlives its -wal file, and adopts the WAL file's header
-// state into the writer.
+// through the WRITER-lock dance when it does not parse) and adopts the WAL
+// file's header state into the writer.
+//
+// C's walIndexTryHdr (wal.c:2580-2625) trusts a parsed shared header
+// (isInit + the header's own checksums) with NO file re-check on the
+// real-shm path; the file salts are consulted only in RECOVERY
+// (walIndexRecover, from the FILE's own header) and in the heap-memory path
+// (wal.c:2851). A shared header outliving its -wal file (a restarted WAL)
+// therefore serves raw frame reads at the mapped offsets — wal6-4.4.2's
+// zeroed-WAL scenario: db2's reopen adopts db's live index, t1's
+// checkpointed page is served from the main db (minFrame = nBackfill+1)
+// and t2's un-checkpointed frame reads back the zeroed image the btree
+// rejects ("database disk image is malformed"). The prior stale-gate
+// rebuild (salts vs the -wal file header) voided the log on every reopen
+// beside a zeroed/garbage -wal header and never matched C.
 func (w *walWriter) walInitHeader() error {
 	if _, err := w.walIndexReadHdr(); err != nil {
 		return err
-	}
-	stale := false
-	_ = w.wi.WriterSection(func() error {
-		stale = w.hdr.MxFrame > 0 && !w.walFileHeaderSaltsMatchLocked()
-		return nil
-	})
-	if stale {
-		// The shared header outlived its WAL file (restarted/truncated by
-		// another generation): the -wal is the authority — rebuild.
-		if err := w.walRecoverWithWriterLock(); err != nil {
-			return err
-		}
 	}
 	return w.wi.WriterSection(w.initHeaderAdoptLocked)
 }
@@ -295,33 +295,6 @@ func (w *walWriter) busyToRetryOrRecovery(busy error) error {
 	w.walUnlockShared(walLockRecover, 1)
 	_ = busy
 	return errWalRetry
-}
-
-// walFileHeaderSaltsMatchLocked reports whether the -wal file carries a valid
-// header whose salts match the shared wal-index header, AND holds every frame
-// the shared header maps (wal.c's walIndexRecover is the only writer of
-// MxFrame and it never maps frames the file lacks — a shared header that
-// claims frames beyond the file's capacity outlived its -wal file, e.g. a
-// snapshot pair restored a wal-index beside a restarted WAL — and the -wal is
-// the authority: rebuild). Caller holds the wal-index writer section.
-func (w *walWriter) walFileHeaderSaltsMatchLocked() bool {
-	buf := make([]byte, WalHdrSize)
-	n, err := w.file.ReadAt(buf, 0)
-	if err != nil || n < WalHdrSize {
-		return false
-	}
-	h, derr := DecodeWalHeader(buf)
-	if derr == nil && h.HeaderCksumOK &&
-		h.Salt1 == w.hdr.ASalt[0] && h.Salt2 == w.hdr.ASalt[1] {
-		if info, serr := w.file.Stat(); serr == nil {
-			frameSize := int64(w.pageSize) + WalFrameHdrSize
-			if (info.Size()-WalHdrSize)/frameSize < int64(w.hdr.MxFrame) {
-				return false
-			}
-		}
-		return true
-	}
-	return false
 }
 
 // syncChainFromWalFileLocked seeds the writer's frame-checksum chain from the
@@ -577,6 +550,29 @@ func (w *walWriter) commit() (int, error) {
 	return appended, nil
 }
 
+// pagerWriteVersionNumber is the SQLite version number stamped into page-1
+// image bytes 96-99 by the WAL commit's change-counter rider (C's
+// SQLITE_VERSION_NUMBER). The engine's open-time header materialization
+// (internal/exec pragma_header.go) carries the same value.
+const pagerWriteVersionNumber uint32 = 3045000
+
+// pagerWriteChangeCounterLocked ports pager_write_changecounter
+// (pager.c:3082-3097): bump the change counter read from the connection's
+// last-seen disk stamp (dbFileVers — knownFileVers' first word, the page-1
+// header bytes 24-27) and write it into the page-1 IMAGE at bytes 24, mirror
+// it at 92 (version-valid-for) and stamp the version number at 96. No
+// pager-stamp mutation: C's dbFileVers stays stale across consecutive
+// page-1 WAL commits. Caller holds p.mu (and the wal-index writer section).
+func (p *Pager) pagerWriteChangeCounterLocked(pg1 *Page) {
+	if pg1 == nil || len(pg1.Data) < 100 {
+		return
+	}
+	counter := binary.BigEndian.Uint32(p.knownFileVers[:4]) + 1
+	binary.BigEndian.PutUint32(pg1.Data[24:28], counter)
+	binary.BigEndian.PutUint32(pg1.Data[92:96], counter)
+	binary.BigEndian.PutUint32(pg1.Data[96:100], pagerWriteVersionNumber)
+}
+
 // commitPrepareLocked synchronizes the writer with the shared wal-index
 // before frames are appended: the snapshot-consistency check
 // (sqlite3WalBeginWriteTransaction's memcmp — the WRITER lock has been held
@@ -629,6 +625,16 @@ func (w *walWriter) commitPrepareLocked() error {
 func (w *walWriter) commitLocked(pages []*Page, appended *int) error {
 	if err := w.commitPrepareLocked(); err != nil {
 		return err
+	}
+	// pager.c:3216 (pagerWalFrames) → pager_write_changecounter
+	// (pager.c:3082-3097): when page 1 leads the commit list, bump the
+	// change counter in the page-1 IMAGE (bytes 24), mirror it at 92
+	// (version-valid-for) and stamp the version number at 96. C's dbFileVers
+	// is the last-seen DISK copy — it updates only at page-1 disk fetches —
+	// so consecutive page-1 WAL commits stamp the SAME counter (the
+	// walvfs-1.2 oracle dump: both page-1 frames carry counter 3).
+	if len(pages) > 0 && pages[0].PageNum == 1 {
+		w.p.pagerWriteChangeCounterLocked(pages[0])
 	}
 	dbSize := w.p.numPages
 	for i, pg := range pages {

@@ -28,16 +28,23 @@ var theShmIDSeq uint64
 // xShmMap(pFd, 0, 32*1024, 0, &pShm)).
 const walShmRegionBytes = "32768"
 
-// walSyncFlagBits are the WAL-mode sync flag levels (pager.c:3636-3650):
-// synchronous=OFF → 0, NORMAL → 0x08 (NORMAL<<2, commit bits zero), FULL →
-// 0x0F (NORMAL<<2|FULL). WAL_SYNC_FLAGS(x) = x&0x03 (the commit sync bits),
-// CKPT_SYNC_FLAGS(x) = (x>>2)&3 (the checkpoint/header sync bits).
+// walSyncFlagBits are the WAL-mode sync flag levels (pager.c:3610-3652,
+// sqlite3PagerSetFlags): syncFlags itself is NORMAL (0x02) at every level
+// above OFF unless the fullfsync pragma is set; fullSync = level>=FULL.
+// walSyncFlags = syncFlags<<2 | (fullSync ? syncFlags : 0), so:
+// synchronous=OFF → 0, NORMAL → 0x08 (commit bits zero — no commit sync),
+// FULL → 0x0A (NORMAL<<2|NORMAL: the commit sync HAPPENS but its flag
+// string renders "normal", wal3-3.3's oracle probe; "full" only under
+// PRAGMA fullfsync, which the engine does not model). WAL_SYNC_FLAGS(x) =
+// x&0x03 (the commit sync bits, wal.h:24), CKPT_SYNC_FLAGS(x) = (x>>2)&3
+// (the checkpoint/header sync bits, wal.h:25) — the struct comment at
+// pager.c:605-616 claims the opposite assignment and is stale.
 const (
 	// WALSyncOff/WALSyncNormal/WALSyncFull are the synchronous levels' WAL
 	// sync-flag values (exported for the engine's PRAGMA synchronous push).
 	WALSyncOff    uint8 = 0x00
 	WALSyncNormal uint8 = 0x08
-	WALSyncFull   uint8 = 0x0F
+	WALSyncFull   uint8 = 0x0A
 )
 
 // deprecated internal aliases (the wal.go sites read these).
@@ -179,13 +186,31 @@ func (p *Pager) vfsShmLock(idx, n int, op string, excl bool) error {
 	return err
 }
 
+// sqliteDefaultSectorSize is SQLITE_DEFAULT_SECTOR_SIZE (os.h:53): the
+// sector size the unix VFS's xSectorSize reports (os_unix.c:4367) and the
+// value setSectorSize falls back to when the device mask lacks
+// POWERSAFE_OVERWRITE.
+const sqliteDefaultSectorSize uint32 = 4096
+
 // SetDeviceCharacteristics overrides the IOCAP bits the fixture's devchar
 // option sets (test_vfs.c CMD_DEVCHAR). The WAL writer consults them where
-// wal.c does (IOCAP_SEQUENTIAL gates the WAL header sync).
+// wal.c does (IOCAP_SEQUENTIAL gates the WAL header sync). The device mask
+// also drives C's setSectorSize (pager.c:2727-2735): POWERSAFE_OVERWRITE
+// present → the 512 floor, absent → the VFS-reported sector size (the
+// harness VFS reports SQLITE_DEFAULT_SECTOR_SIZE — walvfs-1.2's
+// `tvfs devchar sequential` lands here, and sqlite3PagerWrite's
+// sectorSize>pageSize dispatch then routes every write-intent to
+// pagerWriteLargeSector). The harness arms devchar before any I/O, so the
+// recomputed value stabilizes pre-I/O exactly like C's open-time value.
 func (p *Pager) SetDeviceCharacteristics(bits int) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.deviceCharacteristics = bits
+	if bits&IOCAPPowerSafeOverwrite != 0 {
+		p.sectorSize = 512
+	} else {
+		p.sectorSize = sqliteDefaultSectorSize
+	}
 }
 
 // DeviceCharacteristics reports the effective IOCAP bits.
