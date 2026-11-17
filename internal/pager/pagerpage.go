@@ -309,11 +309,6 @@ func (p *Pager) readPageWALLocked(pg *Page, pageNum uint32) error {
 	if iFrame := p.wal.wi.FindFrame(pageNum, p.wal.hdr.MxFrame, p.wal.minFrame); iFrame > 0 {
 		off := walFrameOffset(int(iFrame), p.pageSize) + WalFrameHdrSize
 		if _, err := p.wal.file.ReadAt(pg.Data, off); err != nil {
-			if os.Getenv("FRIGOLITE_WALDBG") != "" {
-				if info, serr := p.wal.file.Stat(); serr == nil {
-					fmt.Fprintf(os.Stderr, "WALDBG read frame %d pgno=%d mx=%d min=%d pgsz=%d walsz=%d heap=%v readlock=%d\n", iFrame, pageNum, p.wal.hdr.MxFrame, p.wal.minFrame, p.pageSize, info.Size(), p.wal.heapMemory, p.wal.readLock)
-				}
-			}
 			return fmt.Errorf("pager: read wal frame %d: %w", iFrame, err)
 		}
 		return nil

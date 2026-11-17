@@ -191,11 +191,6 @@ func (w *walWriter) walInitHeader() error {
 	if _, err := w.walIndexReadHdr(); err != nil {
 		return err
 	}
-	if os.Getenv("FRIGOLITE_WALDBG") != "" {
-		if info, serr := w.file.Stat(); serr == nil {
-			fmt.Fprintf(os.Stderr, "WALDBG init hdr mx=%d heap=%v walsz=%d\n", w.hdr.MxFrame, w.heapMemory, info.Size())
-		}
-	}
 	if w.heapMemory {
 		stale := false
 		_ = w.wi.WriterSection(func() error {
