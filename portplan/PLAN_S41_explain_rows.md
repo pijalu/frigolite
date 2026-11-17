@@ -245,6 +245,35 @@ the constant-ORDER-BY class. `go test -c -o /dev/null .` + `go test -run
 TestSOLID_ ./...` + TestS22_ after every engine stage. Quality gate
 (gocognit ≤15, gocyclo ≤12) on every changed non-test file.
 
+- **Stage 3 COMPLETE (2026-11-17)** — the harness surfaces:
+  (1) the runtime command layer (frigolite_harness_expr_test.go):
+  `[cmd ...]` substitution in runtime expressions with lsearch (Tcl's
+  default -glob via the tcl package's StringMatch), lindex, join,
+  `array names` over the flat-key runtime model, `file size` via the
+  fixture lifecycle resolver, nested `expr` — unknown commands error
+  loudly; runtime_expr routes command heads through the layer
+  (evalHarnessRuntimeExpr). (2) the `explain_rows` step: the per-row Tcl
+  callback over the EXPLAIN row stream (S25 push/pull over a fresh
+  interpreter, `array unset ::T` reset at walk start, array-element pulls
+  via the new tcl.Interp.ArrayKeys). (3) rawVarExpansion (verbatim $var
+  substitution for the `IN ($in)` form) + runtime_var_unset. (4)
+  query_assign: resultFlat (db eval's flat all-rows list) + plain-EXPLAIN
+  captures (EXPLAIN QUERY PLAN keeps the converter-era exec-drop). (5) the
+  converter: explain_rows/dbEval capture, set-[cmd] runtime_expr capture,
+  unset→runtime_var_unset, whitelist — ALL gated on the new
+  conversionMode flag (a runtime callback interpreter must EVALUATE
+  `set ::box_geom [lindex $args 2]`, not record it — the rtgeom
+  regression). Hand-pins: index9.json (the C's per-case $y restores + the
+  sqluses sequence — 19 leaves GREEN) + bestindexF setup_4..13 resultFlat.
+- **Stage 3 scoreboard**: index9 19→0, indexexpr2 9→5 (Bucket C residue),
+  vacuum2 4→2 (3.3 residual: the auto_vacuum=FULL page-count class — the
+  substitution gap itself closed; 5.4 carded), bestindexF 34→17 (setup_4..13
+  + 2.2.0/2.6.0-2.11.0; the 2.3.0/2.4.0/2.5.0 DISTINCT-over-vtab handshake +
+  the .1/.2 xBestIndex-globals + 1.4.1 = Bucket B/S43), where2 2→0 (Stage 1).
+  Sweeps two-direction clean: where/select/index/vacuum universes
+  NEW=0, date/notify1/where8/with1/rtree2/rtreedoc/tabfunc01/carray/dbstat/
+  dbpage/keyword1 = baseline.
+
 ## Carded / out of scope
 
 - indexexpr2 1.2, 3.4.5eqp, 4.120, 4.130, 11.0 (Bucket C).

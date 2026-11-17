@@ -5,10 +5,14 @@ package frigolite
 import (
 	"fmt"
 	"math"
+	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"testing"
 	"unicode"
+
+	"github.com/pijalu/frigolite/tools/tclconvert/tcl"
 )
 
 // tclExprVal is a value produced by the harness Tcl-expression evaluator.
@@ -108,7 +112,14 @@ func (v tclExprVal) truthy() (bool, error) {
 // syntax returns an error so the assertion fails loudly instead of silently
 // passing.
 func evalHarnessTclExpr(expr string, vars map[string]string) (string, error) {
-	p := &tclExprParser{input: expr, vars: vars}
+	return evalHarnessTclExprResolving(expr, vars, nil)
+}
+
+// evalHarnessTclExprResolving is evalHarnessTclExpr with a lifecycle path
+// resolver for the command layer's `file size <name>` (the resolver maps the
+// fixture's relative database name onto its lifecycle path).
+func evalHarnessTclExprResolving(expr string, vars map[string]string, resolvePath func(string) string) (string, error) {
+	p := &tclExprParser{input: expr, vars: vars, pathResolve: resolvePath}
 	v, err := p.parseTernary()
 	if err != nil {
 		return "", err
@@ -121,9 +132,10 @@ func evalHarnessTclExpr(expr string, vars map[string]string) (string, error) {
 }
 
 type tclExprParser struct {
-	input string
-	pos   int
-	vars  map[string]string
+	input       string
+	pos         int
+	vars        map[string]string
+	pathResolve func(string) string
 }
 
 func (p *tclExprParser) skipSpace() {
@@ -387,7 +399,7 @@ func (p *tclExprParser) parsePrimary() (tclExprVal, error) {
 	case c == '$':
 		return p.parseVariable()
 	case c == '[':
-		return tclExprVal{}, fmt.Errorf("command substitution is not supported in runtime expressions")
+		return p.parseCommandSubstitution()
 	case unicode.IsDigit(rune(c)) || c == '.':
 		return p.parseNumber()
 	case unicode.IsLetter(rune(c)) || c == '_':
@@ -752,4 +764,526 @@ func TestHarnessTclExprEvaluator(t *testing.T) {
 			t.Errorf("evalHarnessTclExpr(%q) = %q, want error", expr, got)
 		}
 	}
+}
+
+// --- the runtime command layer ---
+
+// parseCommandSubstitution parses and evaluates one `[cmd arg ...]`
+// substitution in a runtime expression (vacuum2's
+// `[file size test.db]/$pageSize`, bestindexF's `[lsearch $vm IdxInsert]`):
+// the command text runs to the matching bracket, splits into Tcl words with
+// $var and nested [cmd] substitutions applied, and dispatches through
+// evalHarnessTclCommand. An unknown command errors loudly (the subst lesson:
+// silent emptiness hides real gaps).
+func (p *tclExprParser) parseCommandSubstitution() (tclExprVal, error) {
+	text, err := p.readBracketed()
+	if err != nil {
+		return tclExprVal{}, err
+	}
+	words, err := splitHarnessTclCommandWords(text, p.vars, p.pathResolve)
+	if err != nil {
+		return tclExprVal{}, err
+	}
+	if len(words) == 0 {
+		return tclExprVal{}, fmt.Errorf("empty command substitution")
+	}
+	out, err := evalHarnessTclCommand(words, p.vars, p.pathResolve)
+	if err != nil {
+		return tclExprVal{}, err
+	}
+	return harnessCommandValue(out), nil
+}
+
+// readBracketed consumes the `[` at the current position and returns the
+// command text up to the matching `]` (brackets, quotes and braces nest).
+func (p *tclExprParser) readBracketed() (string, error) {
+	if p.pos >= len(p.input) || p.input[p.pos] != '[' {
+		return "", fmt.Errorf("expected [ command substitution")
+	}
+	start := p.pos + 1
+	depth := 1
+	for i := start; i < len(p.input); i++ {
+		switch p.input[i] {
+		case '[':
+			depth++
+		case ']':
+			depth--
+			if depth == 0 {
+				p.pos = i + 1
+				return p.input[start:i], nil
+			}
+		case '"':
+			if j := skipTclQuoted(p.input, i); j > i {
+				i = j - 1
+			}
+		case '{':
+			if j := skipTclBraced(p.input, i); j > i {
+				i = j - 1
+			}
+		}
+	}
+	return "", fmt.Errorf("unterminated [ command substitution")
+}
+
+// skipTclQuoted returns the index just past the quoted string starting at i
+// (backslash escapes honored), or i when unterminated.
+func skipTclQuoted(text string, i int) int {
+	i++ // opening quote
+	for i < len(text) {
+		if text[i] == '\\' {
+			i += 2
+			continue
+		}
+		if text[i] == '"' {
+			return i + 1
+		}
+		i++
+	}
+	return i
+}
+
+// skipTclBraced returns the index just past the braced body starting at i
+// (braces nest; no escape processing inside braces), or i when unterminated.
+func skipTclBraced(text string, i int) int {
+	depth := 0
+	for i < len(text) {
+		switch text[i] {
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth == 0 {
+				return i + 1
+			}
+		}
+		i++
+	}
+	return i
+}
+
+// splitHarnessTclCommandWords splits one command's text into Tcl words:
+// whitespace-separated, with braced bodies verbatim, quoted words carrying
+// their substitutions, and bare words carrying $var and [cmd] substitution.
+func splitHarnessTclCommandWords(text string, vars map[string]string, resolvePath func(string) string) ([]string, error) {
+	var words []string
+	i := 0
+	for i < len(text) {
+		for i < len(text) && (text[i] == ' ' || text[i] == '\t' || text[i] == '\n' || text[i] == '\r' || text[i] == ';') {
+			i++
+		}
+		if i >= len(text) {
+			break
+		}
+		word, next, err := readTclCommandWord(text, i, vars, resolvePath)
+		if err != nil {
+			return nil, err
+		}
+		words = append(words, word)
+		i = next
+	}
+	return words, nil
+}
+
+// readTclCommandWord reads one Tcl word starting at i and returns it with the
+// index of the next word's start.
+func readTclCommandWord(text string, i int, vars map[string]string, resolvePath func(string) string) (string, int, error) {
+	var b strings.Builder
+	switch text[i] {
+	case '{':
+		end := skipTclBraced(text, i)
+		if end <= i {
+			return "", i, fmt.Errorf("unterminated braced word")
+		}
+		return text[i+1 : end-1], end, nil
+	case '"':
+		end := skipTclQuoted(text, i)
+		if end <= i {
+			return "", i, fmt.Errorf("unterminated quoted word")
+		}
+		body := text[i+1 : end-1]
+		out, err := substituteTclWord(body, vars, resolvePath)
+		if err != nil {
+			return "", i, err
+		}
+		return out, end, nil
+	}
+	for i < len(text) && text[i] != ' ' && text[i] != '\t' && text[i] != '\n' && text[i] != '\r' && text[i] != ';' {
+		switch {
+		case text[i] == '{':
+			end := skipTclBraced(text, i)
+			if end <= i {
+				return "", i, fmt.Errorf("unterminated braced word")
+			}
+			b.WriteString(text[i:end])
+			i = end
+		case text[i] == '"':
+			end := skipTclQuoted(text, i)
+			if end <= i {
+				return "", i, fmt.Errorf("unterminated quoted word")
+			}
+			out, err := substituteTclWord(text[i+1:end-1], vars, resolvePath)
+			if err != nil {
+				return "", i, err
+			}
+			b.WriteString(out)
+			i = end
+		case text[i] == '[':
+			depth := 0
+			start := i
+			for i < len(text) {
+				if text[i] == '[' {
+					depth++
+				} else if text[i] == ']' {
+					depth--
+					if depth == 0 {
+						i++
+						break
+					}
+				} else if text[i] == '"' {
+					if j := skipTclQuoted(text, i); j > i {
+						i = j - 1
+					}
+				}
+				i++
+			}
+			inner := text[start:i]
+			if !strings.HasSuffix(inner, "]") {
+				return "", i, fmt.Errorf("unterminated [ command substitution in word")
+			}
+			out, err := evalHarnessTclCommandText(inner[1:len(inner)-1], vars, resolvePath)
+			if err != nil {
+				return "", i, err
+			}
+			b.WriteString(out)
+		case text[i] == '$':
+			out, next, err := readTclVarRef(text, i, vars)
+			if err != nil {
+				return "", i, err
+			}
+			b.WriteString(out)
+			i = next
+		case text[i] == '\\' && i+1 < len(text):
+			b.WriteByte(tclBackslash(text[i+1]))
+			i += 2
+		default:
+			b.WriteByte(text[i])
+			i++
+		}
+	}
+	return b.String(), i, nil
+}
+
+// readTclVarRef reads a $name / $name(key) reference at i and returns its
+// value with the index past the reference (an absent variable renders empty —
+// Tcl's substitution semantics).
+func readTclVarRef(text string, i int, vars map[string]string) (string, int, error) {
+	start := i + 1
+	end := start
+	for end < len(text) {
+		c := text[end]
+		if unicode.IsLetter(rune(c)) || unicode.IsDigit(rune(c)) || c == '_' || c == ':' {
+			end++
+			continue
+		}
+		if c == '(' {
+			depth := 1
+			end++
+			for end < len(text) && depth > 0 {
+				if text[end] == '(' {
+					depth++
+				} else if text[end] == ')' {
+					depth--
+				}
+				end++
+			}
+			break
+		}
+		break
+	}
+	name := text[start:end]
+	if name == "" {
+		return "", i + 1, nil // a bare $ renders empty (Tcl)
+	}
+	if v, ok := vars[strings.TrimPrefix(name, "::")]; ok {
+		return v, end, nil
+	}
+	if v, ok := vars[name]; ok {
+		return v, end, nil
+	}
+	return "", end, nil
+}
+
+// substituteTclWord applies $var and [cmd] substitution inside a quoted word
+// body (backslash escapes honored).
+func substituteTclWord(body string, vars map[string]string, resolvePath func(string) string) (string, error) {
+	var b strings.Builder
+	for i := 0; i < len(body); {
+		switch {
+		case body[i] == '\\' && i+1 < len(body):
+			b.WriteByte(tclBackslash(body[i+1]))
+			i += 2
+		case body[i] == '[':
+			end := skipTclBracketed(body, i)
+			if end <= i {
+				return "", fmt.Errorf("unterminated [ command substitution")
+			}
+			out, err := evalHarnessTclCommandText(body[i+1:end-1], vars, resolvePath)
+			if err != nil {
+				return "", err
+			}
+			b.WriteString(out)
+			i = end
+		case body[i] == '$':
+			out, next, err := readTclVarRef(body, i, vars)
+			if err != nil {
+				return "", err
+			}
+			b.WriteString(out)
+			i = next
+		default:
+			b.WriteByte(body[i])
+			i++
+		}
+	}
+	return b.String(), nil
+}
+
+// skipTclBracketed returns the index just past the [ ... ] group starting at
+// i (nested brackets and quotes honored), or i when unterminated.
+func skipTclBracketed(text string, i int) int {
+	depth := 0
+	for i < len(text) {
+		switch text[i] {
+		case '[':
+			depth++
+		case ']':
+			depth--
+			if depth == 0 {
+				return i + 1
+			}
+		case '"':
+			if j := skipTclQuoted(text, i); j > i {
+				i = j - 1
+			}
+		case '{':
+			if j := skipTclBraced(text, i); j > i {
+				i = j - 1
+			}
+		}
+		i++
+	}
+	return i
+}
+
+// evalHarnessTclCommandText evaluates one [command] body (the brackets
+// stripped): word-split then dispatch.
+func evalHarnessTclCommandText(text string, vars map[string]string, resolvePath func(string) string) (string, error) {
+	words, err := splitHarnessTclCommandWords(text, vars, resolvePath)
+	if err != nil {
+		return "", err
+	}
+	if len(words) == 0 {
+		return "", nil // a bare empty substitution renders empty
+	}
+	return evalHarnessTclCommand(words, vars, resolvePath)
+}
+
+// evalHarnessTclCommand dispatches the runtime command layer's supported
+// commands (the Tcl subset the converted fixtures use in runtime
+// expressions). Anything else errors loudly.
+func evalHarnessTclCommand(words []string, vars map[string]string, resolvePath func(string) string) (string, error) {
+	switch strings.ToLower(words[0]) {
+	case "lsearch":
+		return harnessCmdLsearch(words)
+	case "lindex":
+		return harnessCmdLindex(words)
+	case "join":
+		return harnessCmdJoin(words)
+	case "array":
+		return harnessCmdArrayNames(words, vars)
+	case "file":
+		return harnessCmdFileSize(words, resolvePath)
+	case "expr":
+		if len(words) < 2 {
+			return "", fmt.Errorf("expr: wrong # of arguments")
+		}
+		return evalHarnessTclExprResolving(strings.Join(words[1:], " "), vars, resolvePath)
+	default:
+		return "", fmt.Errorf("invalid command name %q in runtime expression", words[0])
+	}
+}
+
+// harnessCmdLsearch implements `lsearch ?-exact|-glob? list needle`
+// (Tcl's default mode is -glob). The result is the first matching element's
+// index, or -1.
+func harnessCmdLsearch(words []string) (string, error) {
+	glob := true
+	args := words[1:]
+	for len(args) > 0 && strings.HasPrefix(args[0], "-") {
+		switch strings.ToLower(args[0]) {
+		case "-glob":
+			glob = true
+		case "-exact":
+			glob = false
+		default:
+			return "", fmt.Errorf("lsearch: unsupported mode %q", args[0])
+		}
+		args = args[1:]
+	}
+	if len(args) != 2 {
+		return "", fmt.Errorf("lsearch: wrong # of arguments")
+	}
+	list := tcl.SplitList(args[0])
+	needle := args[1]
+	for i, el := range list {
+		if glob {
+			if tcl.StringMatch(needle, el) {
+				return strconv.Itoa(i), nil
+			}
+			continue
+		}
+		if el == needle {
+			return strconv.Itoa(i), nil
+		}
+	}
+	return "-1", nil
+}
+
+// harnessCmdLindex implements `lindex list index` (one index level: the
+// fixtures' `lindex $vm [expr $ii+4]` shape; an out-of-range index renders
+// empty per Tcl).
+func harnessCmdLindex(words []string) (string, error) {
+	if len(words) < 2 {
+		return "", fmt.Errorf("lindex: wrong # of arguments")
+	}
+	list := tcl.SplitList(words[1])
+	if len(words) == 2 {
+		return strings.Join(list, " "), nil
+	}
+	idx, convErr := strconv.Atoi(strings.TrimSpace(words[2]))
+	if convErr != nil {
+		return "", fmt.Errorf("lindex: bad index %q", words[2])
+	}
+	if idx < 0 || idx >= len(list) {
+		return "", nil
+	}
+	return list[idx], nil
+}
+
+// harnessCmdJoin implements `join list ?joiner?` (the elements joined with
+// joiner, default a single space).
+func harnessCmdJoin(words []string) (string, error) {
+	if len(words) < 2 || len(words) > 3 {
+		return "", fmt.Errorf("join: wrong # of arguments")
+	}
+	elements := tcl.SplitList(words[1])
+	sep := " "
+	if len(words) == 3 {
+		sep = words[2]
+	}
+	return strings.Join(elements, sep), nil
+}
+
+// harnessCmdArrayNames implements `array names ?arr?` over the flat-key
+// runtime model: every vars entry "name(key)" contributes key (sorted, like
+// the harness's deterministic rendering of Tcl's unordered answer).
+func harnessCmdArrayNames(words []string, vars map[string]string) (string, error) {
+	if len(words) < 2 {
+		return "", fmt.Errorf("array names: wrong # of arguments")
+	}
+	if strings.ToLower(words[1]) != "names" {
+		return "", fmt.Errorf("array: unsupported subcommand %q", words[1])
+	}
+	if len(words) < 3 {
+		return "", fmt.Errorf("array names: wrong # of arguments")
+	}
+	name := strings.TrimPrefix(words[2], "::")
+	prefix := name + "("
+	var keys []string
+	for k := range vars {
+		if strings.HasPrefix(k, prefix) && strings.HasSuffix(k, ")") {
+			keys = append(keys, k[len(prefix):len(k)-1])
+		}
+	}
+	sort.Slice(keys, func(i, j int) bool {
+		a, aerr := strconv.Atoi(keys[i])
+		b, berr := strconv.Atoi(keys[j])
+		if aerr == nil && berr == nil {
+			return a < b
+		}
+		return keys[i] < keys[j]
+	})
+	return strings.Join(keys, " "), nil
+}
+
+// harnessCmdFileSize implements `file size <name>`: the lifecycle database
+// path's byte size (the resolver maps the fixture's relative name; a nil
+// resolver errors loudly).
+func harnessCmdFileSize(words []string, resolvePath func(string) string) (string, error) {
+	if len(words) < 2 {
+		return "", fmt.Errorf("file: wrong # of arguments")
+	}
+	if strings.ToLower(words[1]) != "size" {
+		return "", fmt.Errorf("file: unsupported subcommand %q", words[1])
+	}
+	if len(words) < 3 {
+		return "", fmt.Errorf("file size: wrong # of arguments")
+	}
+	if resolvePath == nil {
+		return "", fmt.Errorf("file size %q: no lifecycle path resolver in this context", words[2])
+	}
+	info, err := os.Stat(resolvePath(words[2]))
+	if err != nil {
+		return "", fmt.Errorf("file size %q: %v", words[2], err)
+	}
+	return strconv.FormatInt(info.Size(), 10), nil
+}
+
+// harnessCommandValue converts a command's string answer to an expression
+// value: a number keeps its type, anything else is a string.
+func harnessCommandValue(out string) tclExprVal {
+	text := strings.TrimSpace(out)
+	if text == "" {
+		return strVal(out)
+	}
+	if iv, err := strconv.ParseInt(text, 10, 64); err == nil {
+		return intVal(iv)
+	}
+	if fv, err := strconv.ParseFloat(text, 64); err == nil {
+		return floatVal(fv)
+	}
+	return strVal(out)
+}
+
+// harnessRuntimeCommands lists the command layer's head words: a runtime_expr
+// whose first word is one of these evaluates as a COMMAND (`join [array
+// names ::T] ,` — index9's set-in line) rather than as an expression.
+var harnessRuntimeCommands = map[string]bool{
+	"lsearch": true, "lindex": true, "join": true,
+	"array": true, "file": true, "expr": true,
+}
+
+// firstWordIsRuntimeCommand reports whether the text's leading word is one of
+// the runtime command layer's commands.
+func firstWordIsRuntimeCommand(text string) bool {
+	i := 0
+	for i < len(text) && (text[i] == ' ' || text[i] == '\t' || text[i] == '\n' || text[i] == '\r') {
+		i++
+	}
+	start := i
+	for i < len(text) && text[i] != ' ' && text[i] != '\t' && text[i] != '\n' && text[i] != '\r' && text[i] != ';' {
+		i++
+	}
+	return harnessRuntimeCommands[strings.ToLower(text[start:i])]
+}
+
+// evalHarnessRuntimeExpr evaluates one runtime_expr value: a command head
+// routes through the command layer, everything else through the expression
+// evaluator.
+func evalHarnessRuntimeExpr(text string, vars map[string]string, resolvePath func(string) string) (string, error) {
+	trimmed := strings.TrimSpace(text)
+	if firstWordIsRuntimeCommand(trimmed) {
+		return evalHarnessTclCommandText(trimmed, vars, resolvePath)
+	}
+	return evalHarnessTclExprResolving(trimmed, vars, resolvePath)
 }

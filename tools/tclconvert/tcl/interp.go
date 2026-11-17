@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -58,6 +59,7 @@ type Stmt struct {
 	// CollectColumn's text appends to the runtime list CollectVar.
 	CollectColumn   int
 	CollectVar      string
+	ExplainBody     string            // explain_rows: the per-row callback body (index9's db eval "EXPLAIN $sql" a {...})
 	CatchResult     bool              // the step stores its success code in Variable (a `catch` result)
 	CatchMessage    string            // the variable the catch's error message is stored in
 	AuthProc        string            // the Tcl authorizer proc name (a `db auth <proc>` step)
@@ -160,6 +162,7 @@ type Interp struct {
 	nextFileHandle     int
 	nullToken          string    // "db null TOKEN": rendering of SQL NULLs in results
 	stmtBudget         int       // max captured statements; 0 = unlimited
+	conversionMode     bool      // the CONVERTER's offline evaluator (capture branches fire only here)
 	deadline           time.Time // zero = none
 	runawayErr         error     // sticky budget/deadline error
 	substErr           error     // sticky error from a command substitution
@@ -235,6 +238,15 @@ func (i *Interp) tclSrand(seed int64) float64 {
 // ErrStatementBudget, which unwinds the interpreter loops and keeps both the
 // process memory and the emitted fixture bounded.
 func (i *Interp) SetStatementBudget(n int) { i.stmtBudget = n }
+
+// SetConversionMode marks the interpreter as the CONVERTER's offline
+// evaluator. The capture branches that turn `set X [cmd]` / `unset X` /
+// `db eval "EXPLAIN ..." a {...}` into fixture steps fire only here: a
+// RUNTIME callback interpreter (the harness's rtgeom/UDF/authorizer interps)
+// must evaluate those commands normally — capturing would stamp the "$name"
+// marker over the real value (the rtgeom box_geom body's
+// `set ::box_geom [lindex $args 2]` executes lindex for its value).
+func (i *Interp) SetConversionMode(on bool) { i.conversionMode = on }
 
 // SetDeadline bounds the total execution time of a file. The interpreter
 // checks the deadline between commands, so a runaway loop stops by itself
@@ -435,6 +447,22 @@ func (i *Interp) InvokeProcedure(name string, args ...string) (string, error) {
 
 // SetVariable sets a Tcl global variable for callback execution.
 func (i *Interp) SetVariable(name, value string) { i.setVar(name, value, nil) }
+
+// ArrayKeys enumerates the key parts of a flat-key array variable: the "key"
+// of every vars entry of the shape "name(key)" (array names parity for the
+// harness's explain_rows pull, which copies a callback's written array
+// globals back into the runtime set).
+func (i *Interp) ArrayKeys(name string) []string {
+	prefix := name + "("
+	var keys []string
+	for k := range i.vars {
+		if strings.HasPrefix(k, prefix) && strings.HasSuffix(k, ")") {
+			keys = append(keys, k[len(prefix):len(k)-1])
+		}
+	}
+	sort.Strings(keys)
+	return keys
+}
 
 // Variable returns the value visible to the currently executing callback scope.
 func (i *Interp) Variable(name string) (string, bool) {

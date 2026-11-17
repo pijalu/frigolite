@@ -1794,3 +1794,33 @@ everywhere; go vet + go build clean.
   renders ZERO rows (C xFilter checks sqlite3_value_type != SQLITE_TEXT →
   rc=DONE), not a prepare error — needs the ValueModule typed-args path, not
   the string-rendered argv.
+- **The tcl package is a RUNTIME interpreter, not just the converter (S41
+  Stage 3)**: capture branches added to commandSet/unset/dbEval fire for
+  EVERY tcl.Interp — including the harness's rtgeom/UDF/authorizer callback
+  interps. A callback proc body `set ::box_geom [lindex $args 2]` must
+  EXECUTE lindex; the capture stamped the "$name" runtime marker over the
+  real value (rtreedoc2 2-5.x). Fix: the conversionMode flag — capture
+  branches fire only in the converter's offline evaluator. Any new
+  capture-shaped branch in tools/tclconvert/tcl must gate on it, and the
+  rtgeom/tcl-heavy families (rtreedoc2, date, notify1) are the regression
+  net.
+- **The where2/where3 cksort EQP-capture shape is converter-era poison**:
+  query_assign steps of "EXPLAIN QUERY PLAN ..." carry a misattributed
+  expect (the do_test result is the PREVIOUS capture's value with its sort
+  marker); the exec path must keep dropping them. The plain-EXPLAIN capture
+  (bestindexF) and the EXPLAIN QUERY PLAN drop are distinguished by prefix —
+  never blanket-include "EXPLAIN " in the returnsRows check.
+- **git checkout <ref> -- <file> over UNCOMMITTED work destroys it** (the
+  S41 Stage-3 bisect lost the harness edits for one round; redo from the
+  transcript cost ~20 minutes). Commit checkpoints BEFORE bisecting, or
+  bisect in a scratch worktree with file COPIES.
+- **runtime_var_reset sets "" (present-empty) — an UNSET needs its own
+  step**: index9's 1.4/3.4/3.5/4.5 hand-pins need y ABSENT so the raw
+  expansion leaves $y in the SQL (the unbound named parameter = the QPSG
+  observable). The raw expansion leaves absent refs in place (expandTCLVarRefs
+  falls through), so runtime_var_unset (delete the key) is the faithful
+  `unset -nocomplain y`.
+- **The callback walk's array reset belongs INSIDE the step contract**: the
+  C proc's `array unset ::T` runs before every db eval — the explain_rows
+  handler clears the array targets' runtime keys before the push (the pull
+  then cannot resurrect stale keys; the clear must precede the push).

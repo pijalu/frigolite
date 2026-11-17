@@ -621,6 +621,29 @@ func commandSet(i *Interp, rawWords []rawWord, args []string, localVars map[stri
 			}
 		}
 	}
+	// `set in [join [array names ::T] ,]` (index9's sqluses) — a runtime
+	// command over callback-written globals: capture it as a runtime_expr
+	// the harness command layer evaluates (evalHarnessRuntimeExpr routes
+	// command heads; unknown commands error loudly).
+	if i.conversionMode && len(args) >= 2 && len(rawWords) >= 3 {
+		text := strings.TrimSpace(rawWords[2].Text)
+		if strings.HasPrefix(text, "[") && strings.HasSuffix(text, "]") {
+			inner := strings.TrimSpace(text[1 : len(text)-1])
+			if head := runtimeCommandHead(inner); head != "" {
+				name := strings.TrimPrefix(args[0], "::")
+				i.stmts = append(i.stmts, Stmt{
+					Type:     "runtime_expr",
+					SQL:      inner,
+					Variable: name,
+					TestName: i.curTest,
+				})
+				i.dynamicVars[name] = true
+				i.setVar(args[0], "$"+name, localVars)
+				i.vars[""] = "$" + name
+				return nil
+			}
+		}
+	}
 	// An assignment to a variable that already holds a runtime value must be
 	// a runtime assignment too: the harness has to see the new value, or a
 	// later condition reads a stale one (pager2: `set lowpoint $now` makes
@@ -804,11 +827,34 @@ func commandBinary(i *Interp, rawWords []rawWord, args []string, localVars map[s
 	return fmt.Errorf("unsupported binary form: %s", strings.Join(args, " "))
 }
 
+// runtimeCommandHead reports the head word when the command text starts with
+// one of the harness runtime command layer's commands (the capture shapes of
+// `set X [cmd ...]`), or "" otherwise.
+func runtimeCommandHead(text string) string {
+	fields := strings.Fields(text)
+	if len(fields) == 0 {
+		return ""
+	}
+	switch strings.ToLower(fields[0]) {
+	case "join", "lsearch", "lindex", "array", "file":
+		return strings.ToLower(fields[0])
+	}
+	return ""
+}
+
 // commandUnset implements `unset var...`.
 func commandUnset(i *Interp, rawWords []rawWord, args []string, localVars map[string]string) error {
 	for _, a := range args {
 		if strings.TrimPrefix(a, "::") == "echo_module_ignore_usable" {
 			i.stmts = append(i.stmts, Stmt{Type: "echo_ignore_usable", SQL: "0", TestName: i.curTest})
+		}
+		name := strings.TrimPrefix(a, "::")
+		if i.conversionMode && i.dynamicVars[name] {
+			// A runtime-carrying variable must LEAVE the runtime set at run
+			// time too (index9's `unset -nocomplain y` before the 1.4 probe:
+			// the raw expansion then leaves $y in the SQL text — the engine
+			// binds it as an unbound named parameter).
+			i.stmts = append(i.stmts, Stmt{Type: "runtime_var_unset", Variable: name, TestName: i.curTest})
 		}
 		delete(i.vars, a)
 		delete(localVars, a)
