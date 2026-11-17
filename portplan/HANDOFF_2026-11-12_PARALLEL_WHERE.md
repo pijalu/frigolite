@@ -139,3 +139,35 @@ GAP_CLOSURE_PLAN_2026-10-31.md).
   /tmp/full_s33s34_merge_fails.txt (1317).
 - Next queue: the WAL residue classes → the carded converter classes →
   the performance phase.
+
+## 2026-11-17: S37 + S41 landed (authorizer events + the EXPLAIN-row substrate)
+
+**State: feature/perf @ afe2e21a6, full-suite truth 1268 failing leaves**
+(/tmp/full_s41_merge_fails.txt — composed from the S41 gate raw scan 1281
+plus three fresh family sweeps folding in the 13 distinctagg hand-pin
+greens; vs the 1317 baseline: 61 GONE, 12 NEW, all residual cards).
+
+- **S37** (merged): authorizer/update-hook event collection — the
+  compile-time FK event walk (auth_events.go, gated on ForeignKeys &&
+  HasAuthorizer), per-column SQLITE_READ + ROWID, schema-name arg3,
+  harness authorizer global sync via the S25 push/pull pattern,
+  converter update_hook branch + main.go whitelist + harness handler,
+  hand-pinned runtime_var_reset fixture steps. 15 leaves: savepoint-9.x
+  (3), without_rowid3-18.x (5), tkt-f7b4edec (2), fkey2-18.x (5 bonus).
+- **S41** (merged): the EXPLAIN-row substrate, 4 stages — the engine row
+  stream (explain_rows.go; UPDATE dispatch ported from update.c:564-585
+  with indexColumnIsBeingUpdated), the explain() TVF (eponymous module +
+  real-object shadow guard), the harness surfaces (index9 19→0
+  hand-pinned with C's per-case $y restores; bestindexF 34→17; vacuum2
+  4→2; indexexpr2 9→5; where2-2.5/2.5b GONE at Stage 1), distinctagg
+  hand-pins (13). 61 GONE = 44 S41 + 17 riding the S37 merge (incl.
+  tpch01-1.1b/1.1c). Residual cards: distinctagg ×5
+  (DISTINCT-ordered-input), trigger7-2.x ×6 (trigger sub-program rows),
+  misc3-6.11-utf8; bestindexF eDistinct/xBestIndex-globals → S43.
+- S41 plan: portplan/PLAN_S41_explain_rows.md (STATUS per stage); S37
+  plan: portplan/PLAN_S37_auth_events.md.
+- **Restart point**: S35abc WIP on branch s35-wal-small @ 82854664a
+  (worktree /private/tmp/wt_s35impl) — S35a lifecycle flip mid-
+  verification (36 non-target families), then S35b/S35c per
+  PLAN_S35abc.md; then S35d-g per TRIAGE_wal_residue_2026-11-16.md;
+  then S42/S43 per TRIAGE_index_callback_2026-11-16.md.
