@@ -1,5 +1,26 @@
 # PLAN S35abc — the three smallest WAL-residue slices (2026-11-16)
 
+## STATUS (2026-11-17, live)
+
+- **S35a DONE + VERIFIED** (commits bc2ef93bf, S35a-docs): the pre-scan
+  flip landed wholesale — the honest sweep found the flip touches 39 fixture
+  families (20 RUN), and the churn IS the win: 27 GONEs (wal9-1.1/1.7,
+  walcrash2-1.3 targets + 24 same-class "no such table" harness artifacts),
+  1 NEW (pager4-1.6) oracle-adjudicated as a fixture-expect defect (converter
+  drops `file rename`) and resolved by the rename_file harness step + 3
+  hand-pins (pager4 5→0, engine's os.SameFile DBMOVED identity already
+  C-exact).
+  **Sweep verdict (S35a harness + pager4 pin at HEAD, vs the merge-gate
+  baseline, python raw byte scan leaf-only):** the whole wal* group (23
+  families incl. wal/wal2/wal3/wal4/wal6/walvfs/walmode/walfault/walckptnoop/
+  walfault2/e_wal*/journal2/subjournal) is BYTE-IDENTICAL except the two
+  targets; pager1/alter/pragma/pragma2/shared/sharedA/journal/journal2/
+  notify1/interrupt/interrupt2 identical; savepoint {9.1,9.2,9.3} GONE = the
+  S37 record's known fixes (the baseline predates S37);
+  vacuum-into-500 GONE = pre-existing flake flap (the baseline has it
+  failing; 3 reruns fail it again; no S35a mechanism touches vacuum-into).
+- S35b/S35c: pending.
+
 Source: `portplan/TRIAGE_wal_residue_2026-11-16.md` §3 (S35a/S35b/S35c).
 Pre-fix failing name sets (the verified gate, 2c9af99fa): wal9 {1.1, 1.7},
 walcrash2 {1.3}, walmode {4.9}, wal {12.1, 23.4}, walvfs {1.2, 3.1, 3.2,

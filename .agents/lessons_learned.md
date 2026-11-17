@@ -1727,3 +1727,62 @@ everywhere; go vet + go build clean.
 - Census after the slice: savepoint 8→5 (bucket-K residue), without_rowid3
   21→16 (bucket-J residue + 18.8/18.11 IGNORE), fkey2 22→17,
   tkt-f7b4edec 2→0. 15 leaves closed (10 planned + 5 fkey2 bonus).
+
+## S35a record (2026-11-17) — the lifecycle-for-named-db pre-scan flip: wholesale is the C-faithful shape, the churn is the win
+
+- **The pre-scan flip is NOT 3-leaf surgical — it flips 39 fixture families
+  (20 RUN, 19 skip-mapped)**: an `open_named_db` step whose SQL normalizes to
+  "test.db" (non-mode=memory URI) appears in blob/e_blobclose/e_changes/
+  exclusive/exec/pager2/pager4/parser1/reindex/schema/schema2/sharedA/B/
+  snapshot3/4/tkt-d82e3f3721/tkt-f7b4edec/wal9/walcrash2 (RUN) + 19 skipped
+  files. The plan's "zero churn" assumption was wrong; the honest pre/post
+  sweep (pre = HEAD minus the 13 pre-scan lines in a scratch worktree,
+  post = HEAD) found 27 GONEs, 1 NEW.
+- **All non-target GONEs are one class**: pre-flip main ran on `:memory:`
+  while db2 opened fixtureDir/test.db — every cross-connection leaf failed
+  "no such table" (parser1-1.3, snapshot3-1.1, exclusive-2.1, e_changes-1.1.5,
+  schema-9.1, tkt-d82e3-2.1: all the same signature). tester.tcl opens main on
+  test.db ALWAYS; the flip is fidelity, and the leaves were harness
+  artifacts, not engine gaps (P2's mechanism generalized to 21 leaves).
+- **The one NEW (pager4-1.6) is a FIXTURE-EXPECT defect, oracle-adjudicated**:
+  the converter drops `file rename` steps entirely (pager4's DBMOVED
+  choreography lost all three renames; `file delete -force` became a no-op
+  `delete_file` step joining "-force" as a filename). The 3.51 oracle on the
+  ENCODED choreography reproduces our post-flip results leaf-for-leaf (1.6 →
+  "attempt to write a readonly database"); on the REAL choreography C passes
+  1.6 {537 stone philips} — the JSON expects encode the unexpressible
+  choreography. Pre-change the leaf passed only by the `:memory:` accident.
+- **Fix: a `rename_file` harness step (SQL=source, Variable=dest,
+  fixture-path routing) + 3 hand-pins into pager4.json** restores the real
+  choreography and pager4 goes 5→0 — INCLUDING 1.4, because the engine
+  already implements C's inode-identity DBMOVED check (pager.go:556
+  os.SameFile against dbFileInfo; journal.go:475 cites pager4-1.3/1.4). No
+  engine change needed; the recreated-file readonly (1.4) and the
+  rename-back-writable (1.6) both fall out of the identity check.
+- **Lesson: when a slice's "zero churn" guard fails, adjudicate every GONE/NEW
+  by failure SIGNATURE first** (one class = one explanation), then oracle the
+  exceptions. The sweep took ~40s of wall time for 20 families (all small);
+  the honest check is cheap when done per-family with -timeout and a driver
+  script.
+- **S35a census: wal9 2→0, walcrash2 1→0, pager4 5→0; bonus GONEs (21):
+  e_blobclose-3.3, e_changes-1.1.5/1.2.5, exclusive-2.1/2.4-2.8/2.11,
+  parser1-1.3/1.5, schema-{9.1,9.2,10.4,setup_0},
+  schema2-{9.1,9.2,10.4,setup_0}, snapshot3-{1.1,1.5,1.6,1.8,2.0.1,2.0.2,
+  2.2,2.3}, snapshot4-{1.0,1.2}, tkt-d82e3f3721-2.1, pager4-{1.9,1.10,1.11}.
+  27 leaves closed total (3 planned + 24 bonus).**
+- The pre/post evidence lives in /tmp/s35logs/{pre,post}_<fam>.log (raw byte
+  scan, leaf-only); the oracle probes are /tmp/s35probes/p4_{encoded,real}.tcl.
+- **S35a sweep verdict (HEAD vs merge-gate baseline)**: wal* group (23
+  families, FRIGOLITE_TEST=wal, 945s) byte-identical outside wal9/walcrash2;
+  the 13 listed families identical; savepoint-9.x GONE = S37 (baseline
+  staleness, not S35a); vacuum-into-500 GONE = pre-existing flake (the
+  "output file already exists" leaf flaps between runs — added to the flake
+  watchlist). S35a closes 27 leaves (3 targets + 24 bonus).
+- **Oracle probe: the testfixture build's SQLITE_DEFAULT_PAGE_SIZE is 1024**
+  (fresh `sqlite3 db test.db` at page_size 1024 — PRAGMA page_size returns
+  1024). The walvfs-1.2 large-sector mechanism pins EXACTLY: devchar
+  sequential drops PSO → setSectorSize keeps 4096 → sectorSize(4096) >
+  pageSize(1024) → EVERY write-intent dispatches pagerWriteLargeSector →
+  the target leaf's sector (pages 1-4) fetches page 1 dirty → each INSERT
+  commits frames [pgno1 uncommitted, leaf COMMIT] (wal12.keep decode). Our
+  engine's default page size matches (1.0's {wal 0 5 5} passes today).
