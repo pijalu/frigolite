@@ -32,6 +32,16 @@
       ]
     },
     {
+      "name": "rename_file",
+      "steps": [
+        {
+          "type": "rename_file",
+          "sql": "test.db",
+          "variable": "test-xyz.db"
+        }
+      ]
+    },
+    {
       "name": "pager4-1.2",
       "steps": [
         {
@@ -104,6 +114,16 @@
       ]
     },
     {
+      "name": "rename_file",
+      "steps": [
+        {
+          "type": "rename_file",
+          "sql": "test-xyz.db",
+          "variable": "test.db"
+        }
+      ]
+    },
+    {
       "name": "pager4-1.5",
       "steps": [
         {
@@ -120,6 +140,16 @@
           "type": "catch",
           "sql": "UPDATE t1 SET a=537;\n  SELECT * FROM t1;",
           "expect": "0 {537 stone philips}"
+        }
+      ]
+    },
+    {
+      "name": "rename_file",
+      "steps": [
+        {
+          "type": "rename_file",
+          "sql": "test.db",
+          "variable": "test-xyz.db"
         }
       ]
     },

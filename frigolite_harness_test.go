@@ -4389,6 +4389,27 @@ func TestSQLiteSuite(t *testing.T) {
 							}
 							continue
 						}
+						if step.Type == "rename_file" {
+							// `file rename SOURCE DEST` (pager4.test's
+							// SQLITE_READONLY_DBMOVED choreography): move the
+							// file the way the open connection's pager sees it
+							// — the inode moves with the name, the held fd
+							// keeps reading/writing it, and the write path's
+							// file-presence check (C's pagerOpenWalIfPresent /
+							// journal-open identity check) observes the move.
+							// SQL = source, Variable = dest.
+							source, sourceErr := fixtureLifecyclePath(fixtureDBDir, step.SQL)
+							target, targetErr := fixtureLifecyclePath(fixtureDBDir, step.Variable)
+							if sourceErr != nil || targetErr != nil {
+								t.Errorf("invalid fixture rename paths: source=%v target=%v", sourceErr, targetErr)
+								return
+							}
+							if err := os.Rename(source, target); err != nil {
+								t.Errorf("rename file %q -> %q: %v", source, target, err)
+								return
+							}
+							continue
+						}
 						if step.Type == "delete_glob" {
 							// `foreach f [glob -nocomplain test.db*] { forcedelete $f }`
 							// (tester.tcl's idiom, walbak-3.x): remove every
