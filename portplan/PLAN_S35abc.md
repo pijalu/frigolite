@@ -19,7 +19,30 @@
   S37 record's known fixes (the baseline predates S37);
   vacuum-into-500 GONE = pre-existing flake flap (the baseline has it
   failing; 3 reruns fail it again; no S35a mechanism touches vacuum-into).
-- S35b/S35c: pending.
+- **S35b DONE** (commit 15c7e8789, 4 leaves): wal3-3.3 (WALSyncFull 0x0F→
+  0x0A, the stale pager.c:605-616 comment vs wal.h:24), walmode-4.9 (the
+  BUSY swallow deleted — C's OP_JournalMode vdbe.c:8081-8096 fails the
+  statement), wal-12.1 (file_size step + the SetPageSize double-refusal:
+  same-size no-op btree.c:3077 + BTS_PAGESIZE_FIXED btree.c:2724), subjournal
+  -2.1 (backup pin via query_assign/runtime_expr/backup_db). Zero NEW.
+- **S35c.1 + S35c.3 DONE** (rode the same commit 15c7e8789 — the quota-killed
+  agent had landed them before its STATUS update): sectorSize (512 PSO
+  floor / 4096 default) + SetDeviceCharacteristics recompute +
+  pagerWriteLargeSectorLocked (pager.c:6131-6190) + dbSizeLocked + the
+  changecounter rider (pager.c:3082-3097); the missing-main rule
+  (`os.IsNotExist(err)` joins the 0-byte rule, pager.c:3348-3351). Sweep
+  evidence at 15c7e8789: walvfs-1.2, wal6-4.4.2, wal4-1.3 GREEN.
+- **S35c.2 DONE** (commit 08897585f): the two-path split — real-shm trusts
+  a parsed header with NO file re-check (walIndexTryHdr, wal.c:2580-2625);
+  the heap-memory path re-validates salts+capacity vs the -wal file
+  (wal.c:2849-2861) and rebuilds. Post/pre wal-universe sweeps BYTE-IDENTICAL
+  (74=74 leaves; 08897585f vs 15c7e8789). **S35c COMPLETE.**
+- **walfault-15 CARD** (pre-existing residue, the faultsim/trial-cap unit):
+  passes in isolation, fails in family context at trial 2's prep
+  (`open: pager: read wal frame 35: EOF`) — a LIVE registry entry JOINed
+  across the faultsim restore serves trial-1's stale header over the
+  restored 9-frame wal. Full signature in .agents/lessons_learned.md
+  (S35c record). Targeted trace command there.
 
 Source: `portplan/TRIAGE_wal_residue_2026-11-16.md` §3 (S35a/S35b/S35c).
 Pre-fix failing name sets (the verified gate, 2c9af99fa): wal9 {1.1, 1.7},

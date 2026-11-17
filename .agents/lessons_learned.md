@@ -1827,3 +1827,42 @@ everywhere; go vet + go build clean.
 - Census after S35b: wal 2→1 (23.4 = the sqlite3_log surface, other unit),
   wal3 5→4 (the carded xShmLock class), walmode 1→0, subjournal 1→0.
   4 leaves closed, zero NEW (memdb/memdb2 byte-identical).
+
+## S35c record (2026-11-18) — the S35b commit carried S35c.1+S35c.3; S35c.2 splits C's two wal-index header paths; walfault-15 is a cross-case JOIN hazard, not a recovery bug
+
+- **Discovery discipline pays twice**: the quota-killed agent's "S35b" commit
+  (15c7e8789) actually delivered S35b AND S35c.1 (sectorSize field +
+  SetDeviceCharacteristics recompute + pagerWriteLargeSectorLocked +
+  dbSizeLocked + the changecounter rider) AND S35c.3 (the missing-main rule,
+  `os.IsNotExist(err)` in attachWalAtOpen). Sweep evidence at 15c7e8789:
+  walvfs-1.2, wal6-4.4.2, wal4-1.3 already green — before the plan STATUS
+  said "S35b/S35c: pending". Reconstruct state from commits+sweeps, never
+  from the plan's stale STATUS.
+- **S35c.2's refined two-path split** (walInitHeader): the real-shm path
+  trusts a parsed shared header with NO file re-check (walIndexTryHdr,
+  wal.c:2580-2625) — a salts/capacity gate there voided the log on every
+  reopen beside a zeroed/garbage -wal header (the original bug). The
+  heap-memory path (WAL opened under locking_mode=EXCLUSIVE, C's bNoShm)
+  re-validates the header against the -wal file (salts + capacity, C's
+  heap-path salt check wal.c:2849-2861, begin_unreliable_shm) and rebuilds
+  via the writer-lock recovery when the file disagrees. Post/pre wal-universe
+  sweeps (74 leaves, full family set incl. walfault/walfault2/ckptnoop/
+  setlk_recover) are BYTE-IDENTICAL — the split is C-exact and harmless.
+- **walfault-15 root-cause signature (carded to the faultsim/trial-cap unit,
+  pre-existing residue)**: passes IN ISOLATION (targeted
+  `go test -run '^TestSQLiteSuite$/^walfault$/^walfault-15'` green), fails IN
+  FAMILY context at trial 2's prep with `open: pager: read wal frame 35: EOF`
+  — an open that adopted a header mapping frame 35 while the restored wal
+  holds ~9 frames. The recovery walk is C-exact (EOF = clean end-of-log,
+  mxFrame never exceeds the file) and the fresh-acquire path truncates the
+  shm to 3 bytes, so the stale header can only come from a LIVE registry
+  entry JOINed across the faultsim restore (trial-1's faulted transaction
+  leaves mxFrame 35; the restore replaces the -wal file under a surviving
+  entry). walfault-11's trial loop (25+ min CPU, the documented trial-cap
+  hog) gates the family-context trace — targeted `-run '^TestSQLiteSuite$/^walfault$/^walfault-(11|12|15)'`
+  isolates the trio. NOT an S35abc regression (fails identically at pre).
+- **Test targeting**: FRIGOLITE_TEST filters FILES only (base substring);
+  Go's `-run '^TestSQLiteSuite$/^<fam>/^<case-prefix>'` targets cases — the
+  setup case rides along when its name shares the prefix (walfault-15-pre).
+  Slow families must be backgrounded with bounded polls (faultsim trials
+  buffer -v output per test: a silent log + busy CPU = still working).
