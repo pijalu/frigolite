@@ -129,6 +129,13 @@ func (e *Engine) AuthorizeResult(action auth.Action, arg1, arg2, arg3, arg4 stri
 	return a.Authorize(action, arg1, arg2, arg3, arg4)
 }
 
+// HasAuthorizer reports whether an authorizer callback is registered.
+// The FK compile-time events (execconstraint.AuthFKEvents) fire only when
+// one is (C gates every xAuth request on db->xAuth != 0).
+func (e *Engine) HasAuthorizer() bool {
+	return e.authorizer != nil
+}
+
 // Databases returns the attached database contexts (upper-cased key).
 func (e *Engine) Databases() map[string]*DatabaseContext {
 	return e.databases
@@ -315,6 +322,13 @@ func (e *Engine) JoinUpdateFromRows(s *sql.UpdateStmt, targetRow RowMap) ([]RowM
 // CheckForeignKeyViolations verifies FK constraints for a row write.
 func (e *Engine) CheckForeignKeyViolations(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, excludeRowID int64) *Result {
 	return e.constraints.CheckForeignKeyViolations(tableEntry, colDefs, values, excludeRowID)
+}
+
+// AuthFKEvents fires the FK processing's compile-time authorizer events for
+// one DML statement (delegates to the constraint enforcer; fkey.c
+// sqlite3FkCheck + sqlite3FkActions).
+func (e *Engine) AuthFKEvents(kind string, tableEntry *schema.Entry, ctx *DatabaseContext, changedCols []string, singleRowInsert bool) {
+	e.constraints.AuthFKEvents(kind, tableEntry, ctx, changedCols, singleRowInsert)
 }
 
 // FKChildScans returns one entry per FOREIGN KEY constraint referencing the

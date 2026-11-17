@@ -9,6 +9,7 @@
 package execconstraint
 
 import (
+	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/pager"
@@ -44,6 +45,12 @@ type ConstraintContext interface {
 	// Settings.
 	ForeignKeys() bool
 	DeferForeignKeys() bool
+
+	// Authorizer access: the FK compile-time events fire only when an
+	// authorizer is registered (C's every xAuth request gates on
+	// db->xAuth != 0).
+	AuthorizeResult(action auth.Action, arg1, arg2, arg3, arg4 string) auth.Result
+	HasAuthorizer() bool
 
 	// Schema lookup.
 	Databases() map[string]*DatabaseContext

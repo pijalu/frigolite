@@ -247,6 +247,11 @@ type DMLContext interface {
 	FkParentDelete(parentTable *schema.Entry, parentColDefs []sql.ColumnDef, oldRow RowMap) *Result
 	FkParentDeleteReplace(parentTable *schema.Entry, parentColDefs []sql.ColumnDef, oldRow RowMap) *Result
 
+	// AuthFKEvents fires the FK processing's compile-time authorizer events
+	// for one DML statement (fkey.c sqlite3FkCheck + sqlite3FkActions; the
+	// statement's own SQLITE_INSERT/UPDATE/DELETE event is the executor's).
+	AuthFKEvents(kind string, tableEntry *schema.Entry, ctx *DatabaseContext, changedCols []string, singleRowInsert bool)
+
 	// Preupdate hook firing: DML reports each row-level INSERT/UPDATE/DELETE
 	// to the owning engine, which sets the current preupdate event and invokes
 	// the registered sqlite3_preupdate_hook.

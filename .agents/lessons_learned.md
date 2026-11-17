@@ -1653,3 +1653,77 @@ everywhere; go vet + go build clean.
   audit the execconstraint/alter sites when they next surface.
 - **sweep.sh gotcha**: grep treats some failure logs as BINARY (blob
   values in got/want lines) and drops the leaf extraction — use `grep -a`.
+
+## S37 record (2026-11-16) — the authorizer/update-hook event collection slice
+
+- **The authorizer's event stream is a COMPILE-TIME (codegen) event, not a
+  runtime one.** Every SQLITE_READ the FK machinery issues fires from
+  sqlite3FkCheck's codegen walk (fkey.c:977-990 parent-key permission in the
+  FIRST loop; resolve.c:842 via fkScanChildren's scan-WHERE child-key
+  resolution in the SECOND loop — the parent side of the scan WHERE is a
+  TK_REGISTER and reads no auth) and from sqlite3FkActions' action-trigger
+  compilation (fkey.c:1416 → fkActionTrigger → codeRowTrigger, trigger.c
+  1272-1348). update.c calls FkCheck TWICE per UPDATE (update.c:1049 regOld +
+  1093 regNew) → child-side parent-key reads and parent-side scan reads
+  fire ×2 for UPDATE, ×1 for INSERT/DELETE. The trigger subprogram compiles
+  ONCE per statement (getRowTrigger cache) and is anonymous (malloc-zeroed
+  zName) → its events carry arg4="". Resolution order inside the trigger:
+  WHEN(old.pk IS new.pk — 2 parent-col reads, UPDATE only) → SET resolve
+  (1 parent-col read for CASCADE-UPDATE) → per-column stmt auth (update.c
+  :508) → WHERE resolve (parent col then child col — the OLD. term is the
+  LHS) → the child's own FkCheck first-loop reads (×2 UPDATE / ×1 DELETE)
+  → the child's FkActions (recursion). without_rowid3-18.5's 11-event
+  sequence is the calibration target — match it event for event.
+- **The second-loop scan skip is INSERT-specific** (fkey.c:1025-1036 — its
+  own comment: "inserting a single row into a parent table cannot cause or
+  fix an immediate violation"; the condition's assert documents
+  regOld==0 && regNew!=0). UPDATE/DELETE pass isMultiWrite-equivalent (the
+  row loop is a multi-write-capable statement — update.c:758/1319 set the
+  flag for any non-single-pass shape). Model: skip immediate scans only for
+  a single-row INSERT parent, keyed off the same singleRowInsert rule
+  validateDMLFKPrepare already computes.
+- **UPDATE statement auth shape**: update.c:508 fires SQLITE_UPDATE ONCE PER
+  CHANGED COLUMN in SET order with the column name as arg2 ("ROWID" when the
+  rowid pseudo-alias is assigned and the table declares no such column);
+  each target column resolves BEFORE its auth request (C interleaves lookup
+  + auth, so "no such column" precedes "not authorized"); the table lookup
+  precedes everything. INSERT (insert.c:969) and DELETE (delete.c:393) pass
+  arg3 = the target's schema name — the old engine shape passed "" for both
+  arg2 (UPDATE) and arg3 (INSERT/DELETE).
+- **The harness authorizer interp needed the S25 push/pull round trip**
+  (frigolite_tcl_authorizer_test.go): recording procs append to fixture
+  globals (`lappend ::authdata [lrange $args 0 4]`, savepoint.test:564) in a
+  PRIVATE tcl.Interp; NotifyScriptVarTargets over the proc bodies names the
+  sync targets; push present runtime values before EVERY invoke (a
+  runtime_var_reset between leaves must land in the interp) and pull after.
+  auth/auth2/auth3/hook are `unsupportedTestFiles` — the harness regression
+  surface for authorizer changes is the auth_proc-USING fixtures:
+  alterauth/alterauth2/altercons2/analyze3/fkey2/fkey7/fts4aa/savepoint/
+  schema/schema2/tclsqlite/without_rowid3.
+- **tkt-f7b4edec is an UPDATE-HOOK test, not an authorizer test** (`db1
+  update_hook update_hook`, args = INSERT/main/t1/rowid) — the triage's
+  bucket-F label was loose. The converter silently dropped the named-handle
+  command; the engine surface already existed (FirePreupdate → updateHook).
+  The named-handle branch (interp_cmds.go) emits an `update_hook` step
+  (whitelist it in tclconvert main.go — empty-SQL marker type) and the
+  harness handler registers SetUpdateHook with the same push/pull.
+- **The reset steps were the second half of every collection fix**: the
+  section-level `set authargs {}` / in-body `set ::authdata [list]` resets
+  had been dropped by the older converter, so events accumulated across
+  leaves even with sync working (fkey2-18.3's got began with 18.2's events).
+  The current converter emits them (regen-verified) — but the regens pull in
+  unrelated converter drift (savepoint's delete_file/repeat/close_db shapes;
+  without_rowid3's 10.2.x SQL corrections; tkt-f7b4edec's setup_1/2 resets
+  became runtime_expr with an EMPTY expr that errors). Hand-pin the reset
+  steps instead, copying Go-marshaled blocks from the regen output for
+  byte-exact format; the `tests[]` anchor sits INSIDE an already-opened
+  object — inserting a `    {` group before the `"name":` line duplicates
+  the opening brace (hit twice; repair by replacing the damaged block).
+- **Fixture-lifecycle nuance**: savepoint-9.4-9.6 pass vacuously — the catch
+  arm's comparison for a non-pair-list expect only asserts res.Error != nil
+  (harness:5370-5393), so the baked authdata prefix in their catch expects
+  is inert. Adding collection cannot break them; still pin their resets for
+  C faithfulness.
+- Census after the slice: savepoint 8→5 (bucket-K residue), without_rowid3
+  21→16 (bucket-J residue + 18.8/18.11 IGNORE), fkey2 22→17,
+  tkt-f7b4edec 2→0. 15 leaves closed (10 planned + 5 fkey2 bonus).
