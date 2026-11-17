@@ -224,6 +224,44 @@ func (i *Interp) dispatchCommand(cmd string, rawWords []rawWord, args []string, 
 		}
 		return nil
 	}
+	if len(args) > 0 && args[0] == "update_hook" {
+		// <db> update_hook <proc> — sqlite3_update_hook registration
+		// (tkt-f7b4edec.test: db1 update_hook update_hook). The callback
+		// receives (INSERT|UPDATE|DELETE, database, table, rowid) and
+		// recording procs append it to a fixture global the do_test bodies
+		// read back (`lappend ::HOOKS $args`). With an empty proc name the
+		// hook clears (test1.c sqlite3_update_hook's NULL form); the bare
+		// query form is not used by the corpus and fails loudly.
+		if len(args) > 1 && strings.TrimSpace(args[1]) != "" {
+			procName := strings.TrimPrefix(strings.TrimSpace(args[1]), "::")
+			step := Stmt{Type: "update_hook", Database: cmd, TestName: i.curTest, AuthProc: procName}
+			if proc, ok := i.procs[procName]; ok {
+				step.CallbackProcs = []Proc{{Name: proc.Name, Args: proc.Args, Body: proc.Body}}
+				step.FunctionProc = proc.Name
+				step.FunctionBody = proc.Body
+				if i.trackedVars == nil {
+					i.trackedVars = make(map[string]bool)
+				}
+				if i.dynamicVars == nil {
+					i.dynamicVars = make(map[string]bool)
+				}
+				for _, name := range NotifyScriptVarTargets(proc.Body) {
+					i.trackedVars[name] = true
+					// A `set NAME <value>` reset before the next callback
+					// run is a runtime_var_reset (the hook list starts over).
+					i.dynamicVars[name] = true
+				}
+			}
+			i.trackCallbackVars(step.CallbackVars, step.FunctionBody)
+			i.stmts = append(i.stmts, step)
+			return nil
+		}
+		if len(args) > 1 {
+			i.stmts = append(i.stmts, Stmt{Type: "update_hook", Database: cmd, TestName: i.curTest})
+			return nil
+		}
+		return &UnsupportedCommandError{Cmd: cmd + " update_hook (bare query form)"}
+	}
 	if len(args) > 0 && (args[0] == "eval" || args[0] == "close" || args[0] == "unlock_notify") {
 		if args[0] == "close" {
 			i.stmts = append(i.stmts, Stmt{Type: "close_named_db", Database: cmd, TestName: i.curTest})

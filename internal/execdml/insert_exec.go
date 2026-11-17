@@ -73,8 +73,25 @@ func (e *DMLExecutor) prepareInsertStmt(s *sql.InsertStmt) *Result {
 	if srcName, ok := e.ctx.EchoVTabSource(s.Table); ok {
 		e.ctx.RewriteEchoInsert(s, srcName)
 	}
-	if err := e.ctx.Authorize(auth.ActionInsert, s.Table, "", "", ""); err != nil {
+	// insert.c:969: SQLITE_INSERT with arg3 = the target's schema name
+	// (C's db->aDb[iDb].zDbSName). A table that does not resolve keeps the
+	// empty schema name (C errors "no such table" before the auth).
+	entry, dbCtx, ferr := e.ctx.FindTable(s.Table)
+	authDBName := ""
+	if ferr == nil && dbCtx != nil {
+		authDBName = dbCtx.Name
+	}
+	if err := e.ctx.Authorize(auth.ActionInsert, s.Table, "", authDBName, ""); err != nil {
 		return &Result{Error: err}
+	}
+	// insert.c:1572-1574: the FK codegen (sqlite3FkCheck + sqlite3FkActions)
+	// runs for ordinary tables only, issuing the compile-time authorizer
+	// events. singleRowInsert mirrors fkey.c's !pParse->isMultiWrite rule
+	// (validateDMLFKPrepare's same computation).
+	if ferr == nil && entry != nil &&
+		entry.Type == schema.TypeTable && !e.ctx.IsVirtualTable(entry) {
+		singleRowInsert := len(s.Values) == 1 || (len(s.Values) == 0 && s.Select == nil)
+		e.ctx.AuthFKEvents("INSERT", entry, dbCtx, nil, singleRowInsert)
 	}
 	return nil
 }

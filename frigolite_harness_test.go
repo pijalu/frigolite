@@ -18,6 +18,7 @@ import (
 	"reflect"
 	"regexp"
 	"runtime/debug"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -5908,9 +5909,66 @@ func TestSQLiteSuite(t *testing.T) {
 						case "auth_proc":
 							// `db auth <proc>` installs a Tcl authorizer:
 							// the proc answers SQLITE_OK / SQLITE_DENY /
-							// SQLITE_IGNORE for every action.
-							authorizer := newHarnessTclAuthorizer(step)
+							// SQLITE_IGNORE for every action. Recording
+							// procs append events to fixture globals that
+							// later runtime_var steps assert — the S25
+							// push/pull round trip syncs them.
+							authorizer := newHarnessTclAuthorizer(step, runtimeVars)
 							db.SetAuthorizer(authorizer)
+							continue
+						case "update_hook":
+							// `<db> update_hook <proc>` registers the
+							// connection's update hook (sqlite3_update_hook,
+							// tkt-f7b4edec.test's db1 update_hook
+							// update_hook). The callback receives
+							// (INSERT|UPDATE|DELETE, database, table, rowid);
+							// a recording proc appends it to a fixture
+							// global the runtime_var step asserts. The S25
+							// push/pull keeps the interp and the runtime set
+							// in step; an empty proc name clears the hook.
+							hookDB := execDB
+							if step.Database != "" && step.Database != "db" {
+								if named, ok := namedDBs[step.Database]; ok {
+									hookDB = named
+								}
+							}
+							hookTargets := make([]string, 0, 4)
+							for _, proc := range step.CallbackProcs {
+								for _, name := range tcl.NotifyScriptVarTargets(proc.Body) {
+									if !slices.Contains(hookTargets, name) {
+										hookTargets = append(hookTargets, name)
+									}
+								}
+							}
+							if step.AuthProc == "" {
+								hookDB.SetUpdateHook(nil)
+								continue
+							}
+							hookInterp := tcl.NewInterp()
+							hookProcs := make([]tcl.Proc, 0, len(step.CallbackProcs))
+							for _, proc := range step.CallbackProcs {
+								hookProcs = append(hookProcs, tcl.Proc{Name: proc.Name, Args: proc.Args, Body: proc.Body})
+							}
+							hookInterp.LoadProcedures(hookProcs)
+							for name, value := range step.CallbackVars {
+								hookInterp.SetVariable(name, value)
+							}
+							hookProcName := step.AuthProc
+							hookDB.SetUpdateHook(func(op, dbName, table string, rowid int64) {
+								for _, name := range hookTargets {
+									if v, ok := runtimeVars[name]; ok {
+										hookInterp.SetVariable(name, v)
+									}
+								}
+								hookInterp.InvokeProcedure(hookProcName, op, dbName, table, strconv.FormatInt(rowid, 10))
+								for _, name := range hookTargets {
+									if v, ok := hookInterp.Variable(name); ok {
+										runtimeVars[name] = v
+									} else if v, ok := hookInterp.Variable("::" + name); ok {
+										runtimeVars[name] = v
+									}
+								}
+							})
 							continue
 						case "auth":
 							actionStr := step.Action
